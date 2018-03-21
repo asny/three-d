@@ -5,3 +5,4 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 
 [dependencies]
 sdl2 = "0.29.0"
+glm = "0.2.3"
