@@ -1,0 +1,5 @@
+#!/bin/sh
+
+source ~/.emsdk/emsdk_env.sh
+export EMMAKEN_CFLAGS="-s USE_SDL=2"
+cargo build --target asmjs-unknown-emscripten
