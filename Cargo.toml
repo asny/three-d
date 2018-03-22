@@ -4,5 +4,6 @@ version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 
 [dependencies]
-sdl2 = "0.29.0"
+sdl2 = "0.31.0"
+gl = "0.10.0"
 glm = "0.2.3"
