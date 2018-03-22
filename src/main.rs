@@ -17,8 +17,15 @@ fn main() {
     let video_ctx = ctx.video().unwrap();
 
     let gl_attr = video_ctx.gl_attr();
+    #[cfg(target_os = "emscripten")]
+    gl_attr.set_context_profile(sdl2::video::GLProfile::GLES);
+    #[cfg(target_os = "emscripten")]
+    gl_attr.set_context_version(2, 0);
+
+    #[cfg(not(target_os = "emscripten"))]
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-    gl_attr.set_context_version(3, 3);
+    #[cfg(not(target_os = "emscripten"))]
+    gl_attr.set_context_version(2, 0);
 
     let window = video_ctx
         .window("Dust", 900, 700)
@@ -35,11 +42,25 @@ fn main() {
 
     use std::ffi::{CString};
     let vert_shader = render_gl::Shader::from_vert_source(
-        &CString::new(include_str!("triangle.vert")).unwrap()
+        &CString::new("#version 100
+
+        attribute vec3 Position;
+
+        void main()
+        {
+            gl_Position = vec4(Position, 1.0);
+        }
+        ").unwrap()
     ).unwrap();
 
     let frag_shader = render_gl::Shader::from_frag_source(
-        &CString::new(include_str!("triangle.frag")).unwrap()
+        &CString::new("#version 100
+
+        void main()
+        {
+            gl_FragColor = vec4(1.0, 0.5, 0.2, 1.0);
+        }
+        ").unwrap()
     ).unwrap();
 
     let shader_program = render_gl::Program::from_shaders(
