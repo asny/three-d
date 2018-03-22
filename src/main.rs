@@ -42,25 +42,11 @@ fn main() {
 
     use std::ffi::{CString};
     let vert_shader = render_gl::Shader::from_vert_source(
-        &CString::new("#version 100
-
-        attribute vec3 Position;
-
-        void main()
-        {
-            gl_Position = vec4(Position, 1.0);
-        }
-        ").unwrap()
+        &CString::new(include_str!("triangle.vert")).unwrap()
     ).unwrap();
 
     let frag_shader = render_gl::Shader::from_frag_source(
-        &CString::new("#version 100
-
-        void main()
-        {
-            gl_FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-        }
-        ").unwrap()
+        &CString::new(include_str!("triangle.frag")).unwrap()
     ).unwrap();
 
     let shader_program = render_gl::Program::from_shaders(
