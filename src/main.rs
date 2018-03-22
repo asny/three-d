@@ -3,8 +3,11 @@ extern crate gl;
 extern crate glm;
 
 use std::process;
+
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
+
+pub mod render_gl;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
@@ -29,6 +32,7 @@ fn main() {
     let _gl = gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     unsafe {
+        gl::Viewport(0, 0, 900, 700); // set viewport
         gl::ClearColor(0.3, 0.3, 0.5, 1.0);
     }
 
