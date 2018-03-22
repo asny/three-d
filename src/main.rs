@@ -13,6 +13,10 @@ fn main() {
     let ctx = sdl2::init().unwrap();
     let video_ctx = ctx.video().unwrap();
 
+    let gl_attr = video_ctx.gl_attr();
+    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
+    gl_attr.set_context_version(3, 3);
+
     let window = video_ctx
         .window("Dust", 900, 700)
         .opengl()
