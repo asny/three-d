@@ -18,14 +18,16 @@ fn main() {
 
     let gl_attr = video_ctx.gl_attr();
     #[cfg(target_os = "emscripten")]
-    gl_attr.set_context_profile(sdl2::video::GLProfile::GLES);
-    #[cfg(target_os = "emscripten")]
-    gl_attr.set_context_version(2, 0);
+    {
+        gl_attr.set_context_profile(sdl2::video::GLProfile::GLES);
+        gl_attr.set_context_version(2, 0);
+    }
 
     #[cfg(not(target_os = "emscripten"))]
-    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-    #[cfg(not(target_os = "emscripten"))]
-    gl_attr.set_context_version(2, 0);
+    {
+        gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
+        gl_attr.set_context_version(2, 0);
+    }
 
     let window = video_ctx
         .window("Dust", 900, 700)
@@ -140,10 +142,10 @@ fn main() {
     };
 
     #[cfg(target_os = "emscripten")]
-    use emscripten::{emscripten};
-
-    #[cfg(target_os = "emscripten")]
-    emscripten::set_main_loop_callback(main_loop);
+    {
+        use emscripten::{emscripten};
+        emscripten::set_main_loop_callback(main_loop);
+    }
 
     #[cfg(not(target_os = "emscripten"))]
     loop { main_loop(); }
