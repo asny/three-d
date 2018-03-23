@@ -44,15 +44,15 @@ fn main() {
     // set up shader program
 
     use std::ffi::{CString};
-    let vert_shader = temp::Shader::from_vert_source(
+    let vert_shader = shader::Shader::from_vert_source(
         &CString::new(include_str!("triangle.vert")).unwrap()
     ).unwrap();
 
-    let frag_shader = temp::Shader::from_frag_source(
+    let frag_shader = shader::Shader::from_frag_source(
         &CString::new(include_str!("triangle.frag")).unwrap()
     ).unwrap();
 
-    let shader_program = temp::Program::from_shaders(
+    let shader_program = shader::Program::from_shaders(
         &[vert_shader, frag_shader]
     ).unwrap();
 
