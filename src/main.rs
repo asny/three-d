@@ -7,7 +7,8 @@ use std::process;
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
-pub mod render_gl;
+pub mod dust;
+use dust::*;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
@@ -43,15 +44,15 @@ fn main() {
     // set up shader program
 
     use std::ffi::{CString};
-    let vert_shader = render_gl::Shader::from_vert_source(
+    let vert_shader = temp::Shader::from_vert_source(
         &CString::new(include_str!("triangle.vert")).unwrap()
     ).unwrap();
 
-    let frag_shader = render_gl::Shader::from_frag_source(
+    let frag_shader = temp::Shader::from_frag_source(
         &CString::new(include_str!("triangle.frag")).unwrap()
     ).unwrap();
 
-    let shader_program = render_gl::Program::from_shaders(
+    let shader_program = temp::Program::from_shaders(
         &[vert_shader, frag_shader]
     ).unwrap();
 

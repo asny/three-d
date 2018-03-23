@@ -139,7 +139,7 @@ fn shader_from_source(
     Ok(id)
 }
 
-fn create_whitespace_cstring_with_len(len: usize) -> CString {
+pub fn create_whitespace_cstring_with_len(len: usize) -> CString {
     // allocate buffer of correct size
     let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);
     // fill it with len spaces
