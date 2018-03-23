@@ -45,11 +45,11 @@ fn main() {
 
     use std::ffi::{CString};
     let vert_shader = shader::Shader::from_vert_source(
-        &CString::new(include_str!("triangle.vert")).unwrap()
+        &CString::new(include_str!("shaders/triangle.vert")).unwrap()
     ).unwrap();
 
     let frag_shader = shader::Shader::from_frag_source(
-        &CString::new(include_str!("triangle.frag")).unwrap()
+        &CString::new(include_str!("shaders/triangle.frag")).unwrap()
     ).unwrap();
 
     let shader_program = program::Program::from_shaders(
