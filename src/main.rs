@@ -52,7 +52,7 @@ fn main() {
         &CString::new(include_str!("triangle.frag")).unwrap()
     ).unwrap();
 
-    let shader_program = shader::Program::from_shaders(
+    let shader_program = program::Program::from_shaders(
         &[vert_shader, frag_shader]
     ).unwrap();
 

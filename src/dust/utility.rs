@@ -1,5 +1,5 @@
 
-use std::ffi::{CString, CStr};
+use std::ffi::CString;
 
 pub fn create_whitespace_cstring_with_len(len: usize) -> CString {
     // allocate buffer of correct size
