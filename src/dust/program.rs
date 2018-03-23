@@ -8,8 +8,24 @@ pub struct Program {
     id: gl::types::GLuint,
 }
 
-impl Program {
-    pub fn from_shaders(shaders: &[shader::Shader]) -> Result<Program, String> {
+impl Program
+{
+    pub fn from_source(vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, String>
+    {
+        use std::ffi::{CString};
+        let vert_shader = shader::Shader::from_vert_source(
+            &CString::new(vertex_shader_source).unwrap()
+        ).unwrap();
+
+        let frag_shader = shader::Shader::from_frag_source(
+            &CString::new(fragment_shader_source).unwrap()
+        ).unwrap();
+
+        return Program::from_shaders( &[vert_shader, frag_shader] );
+    }
+
+    pub fn from_shaders(shaders: &[shader::Shader]) -> Result<Program, String>
+    {
         let program_id = unsafe { gl::CreateProgram() };
 
         for shader in shaders {

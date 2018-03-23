@@ -42,19 +42,9 @@ fn main() {
     let _gl = gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // set up shader program
-
-    use std::ffi::{CString};
-    let vert_shader = shader::Shader::from_vert_source(
-        &CString::new(include_str!("shaders/triangle.vert")).unwrap()
-    ).unwrap();
-
-    let frag_shader = shader::Shader::from_frag_source(
-        &CString::new(include_str!("shaders/triangle.frag")).unwrap()
-    ).unwrap();
-
-    let shader_program = program::Program::from_shaders(
-        &[vert_shader, frag_shader]
-    ).unwrap();
+    let shader_program = program::Program::from_source(
+        include_str!("shaders/triangle.vert"),
+        include_str!("shaders/triangle.frag")).unwrap();
 
     shader_program.set_used();
 
