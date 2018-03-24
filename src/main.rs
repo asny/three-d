@@ -17,17 +17,11 @@ fn main() {
     let ctx = sdl2::init().unwrap();
     let video_ctx = ctx.video().unwrap();
 
-    let gl_attr = video_ctx.gl_attr();
-    #[cfg(target_os = "emscripten")]
-    {
-        gl_attr.set_context_profile(sdl2::video::GLProfile::GLES);
-        gl_attr.set_context_version(2, 0);
-    }
-
     #[cfg(not(target_os = "emscripten"))]
     {
+        let gl_attr = video_ctx.gl_attr();
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(2, 0);
+        gl_attr.set_context_version(4, 1);
     }
 
     let window = video_ctx
