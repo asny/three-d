@@ -6,11 +6,11 @@ use std::rc::Rc;
 use std::ops::Deref;
 
 pub use bindings::*;
-pub use bindings::Gl as InnerGl;
+pub use bindings::Gles2 as InnerGl;
 
 #[derive(Clone)]
 pub struct Gl {
-    inner: Rc<bindings::Gl>,
+    inner: Rc<bindings::Gles2>,
 }
 
 impl Gl {
@@ -18,15 +18,15 @@ impl Gl {
         where F: FnMut(&'static str) -> *const types::GLvoid
     {
         Gl {
-            inner: Rc::new(bindings::Gl::load_with(loadfn))
+            inner: Rc::new(bindings::Gles2::load_with(loadfn))
         }
     }
 }
 
 impl Deref for Gl {
-    type Target = bindings::Gl;
+    type Target = bindings::Gles2;
 
-    fn deref(&self) -> &bindings::Gl {
+    fn deref(&self) -> &bindings::Gles2 {
         &self.inner
     }
 }
