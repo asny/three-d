@@ -13,15 +13,8 @@ impl Program
 {
     pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, String>
     {
-        use std::ffi::{CString};
-        let vert_shader = shader::Shader::from_vert_source(gl,
-            &CString::new(vertex_shader_source).unwrap()
-        ).unwrap();
-
-        let frag_shader = shader::Shader::from_frag_source(gl,
-            &CString::new(fragment_shader_source).unwrap()
-        ).unwrap();
-
+        let vert_shader = shader::Shader::from_vert_source(gl, vertex_shader_source).unwrap();
+        let frag_shader = shader::Shader::from_frag_source(gl, fragment_shader_source).unwrap();
         return Program::from_shaders( gl, &[vert_shader, frag_shader] );
     }
 
