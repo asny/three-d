@@ -52,7 +52,7 @@ fn shader_from_source(
 ) -> Result<gl::types::GLuint, String>
 {
     use std::ffi::{CStr, CString};
-    let c_str: &CStr = &CString::new(source).unwrap();
+    let c_str: &CStr = &CString::new(source).map_err(|err| err.to_string())?;
 
     let id = unsafe { gl.CreateShader(kind) };
     unsafe {

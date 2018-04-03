@@ -13,8 +13,8 @@ impl Program
 {
     pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, String>
     {
-        let vert_shader = shader::Shader::from_vert_source(gl, vertex_shader_source).unwrap();
-        let frag_shader = shader::Shader::from_frag_source(gl, fragment_shader_source).unwrap();
+        let vert_shader = shader::Shader::from_vert_source(gl, vertex_shader_source)?;
+        let frag_shader = shader::Shader::from_frag_source(gl, fragment_shader_source)?;
         return Program::from_shaders( gl, &[vert_shader, frag_shader] );
     }
 
