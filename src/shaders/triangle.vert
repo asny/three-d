@@ -1,5 +1,3 @@
-precision mediump float;
-
 in vec3 Position;
 in vec3 Color;
 

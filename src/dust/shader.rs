@@ -14,9 +14,9 @@ impl Shader {
     ) -> Result<Shader, String>
     {
         #[cfg(not(target_os = "emscripten"))]
-        let header = "#version 330 core\n";
+        let header = "#version 330 core\nprecision mediump float;\n";
         #[cfg(target_os = "emscripten")]
-        let header = "#version 300 es\n";
+        let header = "#version 300 es\nprecision mediump float;\n";
 
         let s: &str = &[header, source].concat();
 
