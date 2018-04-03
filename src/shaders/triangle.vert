@@ -1,10 +1,10 @@
-#version 100
+#version 300 es
 precision mediump float;
 
-attribute vec3 Position;
-attribute vec3 Color;
+in vec3 Position;
+in vec3 Color;
 
-varying vec3 col;
+out vec3 col;
 
 void main()
 {

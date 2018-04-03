@@ -2,6 +2,10 @@ mod bindings {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
+pub use bindings::*;
+pub use bindings::Gles2 as Gl;
+
+/*
 use std::rc::Rc;
 use std::ops::Deref;
 
@@ -30,3 +34,4 @@ impl Deref for Gl {
         &self.inner
     }
 }
+*/

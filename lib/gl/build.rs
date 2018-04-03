@@ -1,6 +1,6 @@
 extern crate gl_generator;
 
-use gl_generator::{Registry, Fallbacks, StructGenerator, DebugStructGenerator, Api, Profile};
+use gl_generator::{Registry, Fallbacks, StaticStructGenerator, DebugStructGenerator, Api, Profile};
 use std::env;
 use std::fs::File;
 use std::path::Path;
@@ -18,7 +18,7 @@ fn main() {
         ).unwrap();
     } else {
         registry.write_bindings(
-            StructGenerator,
+            StaticStructGenerator,
             &mut file_gl
         ).unwrap();
     }
