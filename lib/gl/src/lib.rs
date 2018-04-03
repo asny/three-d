@@ -6,7 +6,10 @@ pub use bindings::*;
 
 use std::rc::Rc;
 use std::ops::Deref;
+#[cfg(target_os = "emscripten")]
 use bindings::Gles2 as InnerGl;
+#[cfg(not(target_os = "emscripten"))]
+use bindings::Gl as InnerGl;
 
 #[derive(Clone)]
 pub struct Gl {
