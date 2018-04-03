@@ -1,7 +1,5 @@
 use gl;
 use std;
-use std::ffi::CStr;
-
 use utility;
 
 pub struct Shader {
@@ -11,18 +9,26 @@ pub struct Shader {
 
 impl Shader {
     pub fn from_source(gl: &gl::Gl,
-        source: &CStr,
+        source: &str,
         kind: gl::types::GLenum
-    ) -> Result<Shader, String> {
-        let id = shader_from_source(gl, source, kind)?;
+    ) -> Result<Shader, String>
+    {
+        #[cfg(not(target_os = "emscripten"))]
+        let header = "#version 330 core\n";
+        #[cfg(target_os = "emscripten")]
+        let header = "#version 300 es\n";
+
+        let s: &str = &[header, source].concat();
+
+        let id = shader_from_source(gl, s, kind)?;
         Ok(Shader { gl: gl.clone(), id })
     }
 
-    pub fn from_vert_source(gl: &gl::Gl, source: &CStr) -> Result<Shader, String> {
+    pub fn from_vert_source(gl: &gl::Gl, source: &str) -> Result<Shader, String> {
         Shader::from_source(gl, source, gl::VERTEX_SHADER)
     }
 
-    pub fn from_frag_source(gl: &gl::Gl, source: &CStr) -> Result<Shader, String> {
+    pub fn from_frag_source(gl: &gl::Gl, source: &str) -> Result<Shader, String> {
         Shader::from_source(gl, source, gl::FRAGMENT_SHADER)
     }
 
@@ -41,12 +47,16 @@ impl Drop for Shader {
 
 fn shader_from_source(
     gl: &gl::Gl,
-    source: &CStr,
+    source: &str,
     kind: gl::types::GLenum
-) -> Result<gl::types::GLuint, String> {
+) -> Result<gl::types::GLuint, String>
+{
+    use std::ffi::{CStr, CString};
+    let c_str: &CStr = &CString::new(source).unwrap();
+
     let id = unsafe { gl.CreateShader(kind) };
     unsafe {
-        gl.ShaderSource(id, 1, &source.as_ptr(), std::ptr::null());
+        gl.ShaderSource(id, 1, &c_str.as_ptr(), std::ptr::null());
         gl.CompileShader(id);
     }
 
