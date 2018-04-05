@@ -4,6 +4,18 @@ use std;
 use utility;
 use shader;
 
+#[derive(Debug)]
+pub enum Error {
+    Shader(shader::Error),
+    FailedToLinkProgram {message: String}
+}
+
+impl From<shader::Error> for Error {
+    fn from(other: shader::Error) -> Self {
+        Error::Shader(other)
+    }
+}
+
 pub struct Program {
     gl: gl::Gl,
     id: gl::types::GLuint,
@@ -11,7 +23,7 @@ pub struct Program {
 
 impl Program
 {
-    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Program, String>
+    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Program, Error>
     {
         const POSSIBLE_EXT: [&str; 2] = [
             ".vert",
@@ -22,19 +34,19 @@ impl Program
             .map(|file_extension| {
                 shader::Shader::from_resource(gl, &format!("{}{}", name, file_extension))
             })
-            .collect::<Result<Vec<shader::Shader>, String>>()?;
+            .collect::<Result<Vec<shader::Shader>, shader::Error>>()?;
 
         Program::from_shaders(gl, &shaders[..])
     }
 
-    pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, String>
+    pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
     {
         let vert_shader = shader::Shader::from_vert_source(gl, vertex_shader_source)?;
         let frag_shader = shader::Shader::from_frag_source(gl, fragment_shader_source)?;
         return Program::from_shaders( gl, &[vert_shader, frag_shader] );
     }
 
-    pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, String>
+    pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
         let program_id = unsafe { gl.CreateProgram() };
 
@@ -66,7 +78,7 @@ impl Program
                 );
             }
 
-            return Err(error.to_string_lossy().into_owned());
+            return Err(Error::FailedToLinkProgram {message: error.to_string_lossy().into_owned() });;
         }
 
         for shader in shaders {

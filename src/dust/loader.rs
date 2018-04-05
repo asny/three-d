@@ -1,17 +1,23 @@
 use std::path::PathBuf;
-use std::fs;
+use std::{string, fs};
 use std::io::{self, Read};
 
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),
     FileContainsNil,
-    FailedToConvertToString
+    FailedToConvertToString(string::FromUtf8Error)
 }
 
 impl From<io::Error> for Error {
     fn from(other: io::Error) -> Self {
         Error::Io(other)
+    }
+}
+
+impl From<string::FromUtf8Error> for Error {
+    fn from(other: string::FromUtf8Error) -> Self {
+        Error::FailedToConvertToString(other)
     }
 }
 
@@ -33,7 +39,7 @@ pub fn load_string(resource_name: &str) -> Result<String, Error>
         return Err(Error::FileContainsNil);
     }
 
-    let str = String::from_utf8(buffer).map_err(|_| Error::FailedToConvertToString)?;
+    let str = String::from_utf8(buffer)?;
     Ok(str)
 }
 

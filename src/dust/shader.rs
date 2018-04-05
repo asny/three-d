@@ -1,7 +1,27 @@
 use gl;
 use std;
 use utility;
-use resources;
+use loader;
+
+#[derive(Debug)]
+pub enum Error {
+    Loader(loader::Error),
+    FailedToConvertToCString(std::ffi::NulError),
+    UnknownShaderType {message: String},
+    FailedToCompileShader {name: String, message: String}
+}
+
+impl From<loader::Error> for Error {
+    fn from(other: loader::Error) -> Self {
+        Error::Loader(other)
+    }
+}
+
+impl From<std::ffi::NulError> for Error {
+    fn from(other: std::ffi::NulError) -> Self {
+        Error::FailedToConvertToCString(other)
+    }
+}
 
 pub struct Shader {
     gl: gl::Gl,
@@ -10,7 +30,7 @@ pub struct Shader {
 
 impl Shader
 {
-    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Shader, String>
+    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Shader, Error>
     {
         const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] = [
             (".vert", gl::VERTEX_SHADER),
@@ -22,15 +42,14 @@ impl Shader
                 name.ends_with(file_extension)
             })
             .map(|&(_, kind)| kind)
-            .ok_or_else(|| format!("Can not determine shader type for resource {:?}", name))?;
+            .ok_or_else(|| Error::UnknownShaderType {message: format!("Can not determine shader type for resource {:?}", name) })?;
 
-        let source = resources::load_string(name)
-            .map_err(|e| format!("Error loading resource {:?}: {:?}", name, e))?;
+        let source = loader::load_string(name)?;
 
-        Shader::from_source(gl, &source, shader_kind)
+        Shader::from_source(gl, &source, shader_kind, name)
     }
 
-    pub fn from_source(gl: &gl::Gl, source: &str, kind: gl::types::GLenum) -> Result<Shader, String>
+    pub fn from_source(gl: &gl::Gl, source: &str, kind: gl::types::GLenum, name: &str) -> Result<Shader, Error>
     {
         #[cfg(not(target_os = "emscripten"))]
         let header = "#version 330 core\nprecision mediump float;\n";
@@ -39,16 +58,16 @@ impl Shader
 
         let s: &str = &[header, source].concat();
 
-        let id = shader_from_source(gl, s, kind)?;
+        let id = shader_from_source(gl, s, kind, name)?;
         Ok(Shader { gl: gl.clone(), id })
     }
 
-    pub fn from_vert_source(gl: &gl::Gl, source: &str) -> Result<Shader, String> {
-        Shader::from_source(gl, source, gl::VERTEX_SHADER)
+    pub fn from_vert_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
+        Shader::from_source(gl, source, gl::VERTEX_SHADER, "")
     }
 
-    pub fn from_frag_source(gl: &gl::Gl, source: &str) -> Result<Shader, String> {
-        Shader::from_source(gl, source, gl::FRAGMENT_SHADER)
+    pub fn from_frag_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
+        Shader::from_source(gl, source, gl::FRAGMENT_SHADER, "")
     }
 
     pub fn id(&self) -> gl::types::GLuint {
@@ -67,11 +86,12 @@ impl Drop for Shader {
 fn shader_from_source(
     gl: &gl::Gl,
     source: &str,
-    kind: gl::types::GLenum
-) -> Result<gl::types::GLuint, String>
+    kind: gl::types::GLenum,
+    name: &str
+) -> Result<gl::types::GLuint, Error>
 {
     use std::ffi::{CStr, CString};
-    let c_str: &CStr = &CString::new(source).map_err(|err| err.to_string())?;
+    let c_str: &CStr = &CString::new(source)?;
 
     let id = unsafe { gl.CreateShader(kind) };
     unsafe {
@@ -101,7 +121,10 @@ fn shader_from_source(
             );
         }
 
-        return Err(error.to_string_lossy().into_owned());
+        return Err(Error::FailedToCompileShader{
+            name: name.to_string(),
+            message: format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned())
+        });
     }
 
     Ok(id)
