@@ -33,8 +33,6 @@ impl Resources {
 
     pub fn load_cstring(&self, resource_name: &str) -> Result<ffi::CString, Error>
     {
-        println!("{}", self.root_path.display());
-        println!("{}", resource_name_to_path(&self.root_path,resource_name).display());
         let mut file = fs::File::open(
             resource_name_to_path(&self.root_path,resource_name)
         )?;
