@@ -9,7 +9,6 @@ use sdl2::keyboard::Keycode;
 
 pub mod dust;
 use dust::*;
-use dust::resources::Resources;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
@@ -37,9 +36,8 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // set up shader program
-    let res = Resources::from_exe_path().unwrap();
     let shader_program = program::Program::from_resource(
-        &gl, &res, "assets/shaders/triangle"
+        &gl, "assets/shaders/triangle"
         ).unwrap();
 
     shader_program.set_used();

@@ -3,7 +3,6 @@ use std;
 
 use utility;
 use shader;
-use resources;
 
 pub struct Program {
     gl: gl::Gl,
@@ -12,7 +11,7 @@ pub struct Program {
 
 impl Program
 {
-    pub fn from_resource(gl: &gl::Gl, res: &resources::Resources, name: &str) -> Result<Program, String>
+    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Program, String>
     {
         const POSSIBLE_EXT: [&str; 2] = [
             ".vert",
@@ -21,7 +20,7 @@ impl Program
 
         let shaders = POSSIBLE_EXT.iter()
             .map(|file_extension| {
-                shader::Shader::from_resource(gl, res, &format!("{}{}", name, file_extension))
+                shader::Shader::from_resource(gl, &format!("{}{}", name, file_extension))
             })
             .collect::<Result<Vec<shader::Shader>, String>>()?;
 

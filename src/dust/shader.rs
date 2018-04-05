@@ -10,7 +10,7 @@ pub struct Shader {
 
 impl Shader
 {
-    pub fn from_resource(gl: &gl::Gl, res: &resources::Resources, name: &str) -> Result<Shader, String>
+    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Shader, String>
     {
         const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] = [
             (".vert", gl::VERTEX_SHADER),
@@ -24,7 +24,7 @@ impl Shader
             .map(|&(_, kind)| kind)
             .ok_or_else(|| format!("Can not determine shader type for resource {:?}", name))?;
 
-        let source = res.load_string(name)
+        let source = resources::load_string(name)
             .map_err(|e| format!("Error loading resource {:?}: {:?}", name, e))?;
 
         Shader::from_source(gl, &source, shader_kind)
