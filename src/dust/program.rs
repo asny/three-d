@@ -7,7 +7,7 @@ use shader;
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
-    FailedToLinkProgram
+    FailedToLinkProgram {message: String}
 }
 
 impl From<shader::Error> for Error {
@@ -78,7 +78,7 @@ impl Program
                 );
             }
 
-            return Err(Error::FailedToLinkProgram);//error.to_string_lossy().into_owned());
+            return Err(Error::FailedToLinkProgram {message: error.to_string_lossy().into_owned() });;
         }
 
         for shader in shaders {
