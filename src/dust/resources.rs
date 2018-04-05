@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 use std::fs;
-use std::string;
 use std::io::{self, Read};
 
 #[derive(Debug)]
