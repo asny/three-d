@@ -5,14 +5,14 @@ use utility;
 use shader;
 
 #[derive(Debug)]
-pub enum ProgramError {
-    Shader(shader::ShaderError),
+pub enum Error {
+    Shader(shader::Error),
     FailedToLinkProgram
 }
 
-impl From<shader::ShaderError> for ProgramError {
-    fn from(other: shader::ShaderError) -> Self {
-        ProgramError::Shader(other)
+impl From<shader::Error> for Error {
+    fn from(other: shader::Error) -> Self {
+        Error::Shader(other)
     }
 }
 
@@ -23,7 +23,7 @@ pub struct Program {
 
 impl Program
 {
-    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Program, ProgramError>
+    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Program, Error>
     {
         const POSSIBLE_EXT: [&str; 2] = [
             ".vert",
@@ -34,19 +34,19 @@ impl Program
             .map(|file_extension| {
                 shader::Shader::from_resource(gl, &format!("{}{}", name, file_extension))
             })
-            .collect::<Result<Vec<shader::Shader>, shader::ShaderError>>()?;
+            .collect::<Result<Vec<shader::Shader>, shader::Error>>()?;
 
         Program::from_shaders(gl, &shaders[..])
     }
 
-    pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, ProgramError>
+    pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
     {
         let vert_shader = shader::Shader::from_vert_source(gl, vertex_shader_source)?;
         let frag_shader = shader::Shader::from_frag_source(gl, fragment_shader_source)?;
         return Program::from_shaders( gl, &[vert_shader, frag_shader] );
     }
 
-    pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, ProgramError>
+    pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
         let program_id = unsafe { gl.CreateProgram() };
 
@@ -78,7 +78,7 @@ impl Program
                 );
             }
 
-            return Err(ProgramError::FailedToLinkProgram);//error.to_string_lossy().into_owned());
+            return Err(Error::FailedToLinkProgram);//error.to_string_lossy().into_owned());
         }
 
         for shader in shaders {
