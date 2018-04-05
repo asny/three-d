@@ -4,6 +4,8 @@ use std;
 use utility;
 use shader;
 
+use std::fmt;
+
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
@@ -13,6 +15,31 @@ pub enum Error {
 impl From<shader::Error> for Error {
     fn from(other: shader::Error) -> Self {
         Error::Shader(other)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::Shader(ref err) => err.fmt(f),
+            Error::FailedToLinkProgram => write!(f, "No matching cities with a population were found."),
+        }
+    }
+}
+
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::Shader(ref err) => err.description(),
+            Error::FailedToLinkProgram => "not found"
+        }
+    }
+
+    fn cause(&self) -> Option<&std::error::Error> {
+        match *self {
+            Error::Shader(ref err) => Some(err),
+            Error::FailedToLinkProgram => None
+        }
     }
 }
 

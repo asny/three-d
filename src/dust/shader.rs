@@ -3,17 +3,56 @@ use std;
 use utility;
 use loader;
 
+use std::fmt;
+
 #[derive(Debug)]
 pub enum Error {
-    Load(loader::Error),
+    Loader(loader::Error),
+    FailedToConvertToCString(std::ffi::NulError),
     UnknownShaderType,
-    FailedToConvertToCString,
-    FailedToCompileShader
+    FailedToCompileShader {message: String}
 }
 
 impl From<loader::Error> for Error {
     fn from(other: loader::Error) -> Self {
-        Error::Load(other)
+        Error::Loader(other)
+    }
+}
+
+impl From<std::ffi::NulError> for Error {
+    fn from(other: std::ffi::NulError) -> Self {
+        Error::FailedToConvertToCString(other)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::Loader(ref _err) => write!(f, "No matching cities with a population were found."),
+            Error::FailedToConvertToCString(ref err) => err.fmt(f),
+            Error::UnknownShaderType => write!(f, "No matching cities with a population were found."),
+            Error::FailedToCompileShader {ref message} => write!(f, "Failed to compile shader {}", message),
+        }
+    }
+}
+
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::Loader(ref err) => "not found",
+            Error::FailedToConvertToCString(ref err) => err.description(),
+            Error::UnknownShaderType => "not found",
+            Error::FailedToCompileShader {ref message} => message
+        }
+    }
+
+    fn cause(&self) -> Option<&std::error::Error> {
+        match *self {
+            Error::Loader(ref err) => None,
+            Error::FailedToConvertToCString(ref err) => Some(err),
+            Error::UnknownShaderType => None,
+            Error::FailedToCompileShader {ref message} => None
+        }
     }
 }
 
@@ -84,7 +123,7 @@ fn shader_from_source(
 ) -> Result<gl::types::GLuint, Error>
 {
     use std::ffi::{CStr, CString};
-    let c_str: &CStr = &CString::new(source).map_err(|_| Error::FailedToConvertToCString)?;
+    let c_str: &CStr = &CString::new(source)?;
 
     let id = unsafe { gl.CreateShader(kind) };
     unsafe {
@@ -114,7 +153,7 @@ fn shader_from_source(
             );
         }
 
-        return Err(Error::FailedToCompileShader); //error.to_string_lossy().into_owned()
+        return Err(Error::FailedToCompileShader{message:error.to_string_lossy().into_owned()}); //error.to_string_lossy().into_owned()
     }
 
     Ok(id)
