@@ -39,7 +39,7 @@ fn main() {
     // set up shader program
     let res = Resources::from_exe_path().unwrap();
     let shader_program = program::Program::from_resource(
-        &gl, &res, "src/shaders/triangle"
+        &gl, &res, "assets/shaders/triangle"
         ).unwrap();
 
     shader_program.set_used();
