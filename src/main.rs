@@ -50,23 +50,9 @@ fn main() {
         0.0,  0.5, 0.0,   0.0, 0.0, 1.0    // top
     ];
 
-    let mut vbo: gl::types::GLuint = 0;
-    unsafe {
-        gl.GenBuffers(1, &mut vbo);
-    }
-
-    unsafe {
-        gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl.BufferData(
-            gl::ARRAY_BUFFER, // target
-            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
-            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
-            gl::STATIC_DRAW, // usage
-        );
-        gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-    }
-
     // set up vertex array object
+    let vbo = attribute::Attribute::create(&gl).unwrap();
+    vbo.populate(vertices);
 
     let mut vao: gl::types::GLuint = 0;
     unsafe {
@@ -75,7 +61,7 @@ fn main() {
 
     unsafe {
         gl.BindVertexArray(vao);
-        gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl.BindBuffer(gl::ARRAY_BUFFER, vbo.id());
         use std::ffi::{CString};
         let pos_location = gl.GetAttribLocation(shader_program.id(), CString::new("Position").unwrap().as_ptr()) as gl::types::GLuint;
         gl.EnableVertexAttribArray(pos_location);
