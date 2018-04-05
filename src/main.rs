@@ -51,17 +51,13 @@ fn main() {
     ];
 
     // set up vertex array object
-    let vbo = attribute::Attribute::create(&gl).unwrap();
-    vbo.populate(vertices);
+    let attribute = attribute::Attribute::create(&gl).unwrap();
+    attribute.populate(vertices);
 
-    let mut vao: gl::types::GLuint = 0;
-    unsafe {
-        gl.GenVertexArrays(1, &mut vao);
-    }
+    let model = model::Model::create(&gl).unwrap();
 
     unsafe {
-        gl.BindVertexArray(vao);
-        gl.BindBuffer(gl::ARRAY_BUFFER, vbo.id());
+        gl.BindBuffer(gl::ARRAY_BUFFER, attribute.id());
         use std::ffi::{CString};
         let pos_location = gl.GetAttribLocation(shader_program.id(), CString::new("Position").unwrap().as_ptr()) as gl::types::GLuint;
         gl.EnableVertexAttribArray(pos_location);
@@ -121,7 +117,7 @@ fn main() {
         // draw triangle
         shader_program.set_used();
         unsafe {
-            gl.BindVertexArray(vao);
+            gl.BindVertexArray(model.id());
             gl.DrawArrays(
                 gl::TRIANGLES, // mode
                 0, // starting index in the enabled arrays
