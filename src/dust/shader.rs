@@ -24,10 +24,10 @@ impl Shader
             .map(|&(_, kind)| kind)
             .ok_or_else(|| format!("Can not determine shader type for resource {:?}", name))?;
 
-        let source = res.load_cstring(name)
+        let source = res.load_string(name)
             .map_err(|e| format!("Error loading resource {:?}: {:?}", name, e))?;
 
-        Shader::from_source(gl, &source.to_string_lossy(), shader_kind)
+        Shader::from_source(gl, &source, shader_kind)
     }
 
     pub fn from_source(gl: &gl::Gl, source: &str, kind: gl::types::GLenum) -> Result<Shader, String>

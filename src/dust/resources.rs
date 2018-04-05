@@ -1,13 +1,14 @@
 use std::path::PathBuf;
 use std::fs;
+use std::string;
 use std::io::{self, Read};
-use std::ffi;
 
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),
     FileContainsNil,
     FailedToGetExePath,
+    FailedToConvertToString
 }
 
 impl From<io::Error> for Error {
@@ -31,7 +32,7 @@ impl Resources {
         })
     }
 
-    pub fn load_cstring(&self, resource_name: &str) -> Result<ffi::CString, Error>
+    pub fn load_string(&self, resource_name: &str) -> Result<String, Error>
     {
         let mut file = fs::File::open(
             resource_name_to_path(&self.root_path,resource_name)
@@ -48,7 +49,8 @@ impl Resources {
             return Err(Error::FileContainsNil);
         }
 
-        Ok(unsafe { ffi::CString::from_vec_unchecked(buffer) })
+        let str = String::from_utf8(buffer).map_err(|_| Error::FailedToConvertToString)?;
+        Ok(str)
     }
 }
 
