@@ -23,11 +23,11 @@ pub struct Resources {
 impl Resources {
     pub fn from_exe_path() -> Result<Resources, Error>
     {
-        let dir = PathBuf::from(
+        /*let dir = PathBuf::from(
             ::std::env::var("CARGO_MANIFEST_DIR")
-            .map_err(|_| Error::FailedToGetExePath)?);
+            .map_err(|_| Error::FailedToGetExePath)?);*/
         Ok(Resources {
-            root_path: dir.into()
+            root_path: PathBuf::from("./") //dir.into()
         })
     }
 
