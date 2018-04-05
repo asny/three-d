@@ -3,19 +3,20 @@ use std::fs;
 use std::io::{self, Read};
 
 #[derive(Debug)]
-pub enum Error {
+pub enum LoadError {
     Io(io::Error),
     FileContainsNil,
     FailedToConvertToString
 }
 
-impl From<io::Error> for Error {
+impl From<io::Error> for LoadError {
     fn from(other: io::Error) -> Self {
-        Error::Io(other)
+        LoadError::Io(other)
     }
 }
 
-pub fn load_string(resource_name: &str) -> Result<String, Error>
+
+pub fn load_string(resource_name: &str) -> Result<String, LoadError>
 {
     let root_path: PathBuf = PathBuf::from("./");
     let mut file = fs::File::open(
@@ -30,10 +31,10 @@ pub fn load_string(resource_name: &str) -> Result<String, Error>
 
     // check for nul byte
     if buffer.iter().find(|i| **i == 0).is_some() {
-        return Err(Error::FileContainsNil);
+        return Err(LoadError::FileContainsNil);
     }
 
-    let str = String::from_utf8(buffer).map_err(|_| Error::FailedToConvertToString)?;
+    let str = String::from_utf8(buffer).map_err(|_| LoadError::FailedToConvertToString)?;
     Ok(str)
 }
 

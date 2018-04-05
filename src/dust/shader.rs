@@ -1,7 +1,7 @@
 use gl;
 use std;
 use utility;
-use resources;
+use loader;
 
 pub struct Shader {
     gl: gl::Gl,
@@ -24,7 +24,7 @@ impl Shader
             .map(|&(_, kind)| kind)
             .ok_or_else(|| format!("Can not determine shader type for resource {:?}", name))?;
 
-        let source = resources::load_string(name)
+        let source = loader::load_string(name)
             .map_err(|e| format!("Error loading resource {:?}: {:?}", name, e))?;
 
         Shader::from_source(gl, &source, shader_kind)
