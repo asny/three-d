@@ -36,9 +36,9 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // set up shader program
-    let shader_program = program::Program::from_source(&gl,
-        include_str!("shaders/triangle.vert"),
-        include_str!("shaders/triangle.frag")).unwrap();
+    let mut shader_program = program::Program::from_resource(
+        &gl, "assets/shaders/triangle"
+        ).unwrap();
 
     shader_program.set_used();
 
@@ -116,6 +116,13 @@ fn main() {
             match event {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
+                },
+                Event::KeyDown {keycode: Some(Keycode::R), ..} => {
+                    shader_program = program::Program::from_resource(
+                        &gl, "assets/shaders/triangle"
+                        ).unwrap();
+
+                    shader_program.set_used();
                 },
                 _ => {}
             }

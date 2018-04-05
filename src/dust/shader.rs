@@ -1,17 +1,36 @@
 use gl;
 use std;
 use utility;
+use resources;
 
 pub struct Shader {
     gl: gl::Gl,
     id: gl::types::GLuint,
 }
 
-impl Shader {
-    pub fn from_source(gl: &gl::Gl,
-        source: &str,
-        kind: gl::types::GLenum
-    ) -> Result<Shader, String>
+impl Shader
+{
+    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Shader, String>
+    {
+        const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] = [
+            (".vert", gl::VERTEX_SHADER),
+            (".frag", gl::FRAGMENT_SHADER),
+        ];
+
+        let shader_kind = POSSIBLE_EXT.iter()
+            .find(|&&(file_extension, _)| {
+                name.ends_with(file_extension)
+            })
+            .map(|&(_, kind)| kind)
+            .ok_or_else(|| format!("Can not determine shader type for resource {:?}", name))?;
+
+        let source = resources::load_string(name)
+            .map_err(|e| format!("Error loading resource {:?}: {:?}", name, e))?;
+
+        Shader::from_source(gl, &source, shader_kind)
+    }
+
+    pub fn from_source(gl: &gl::Gl, source: &str, kind: gl::types::GLenum) -> Result<Shader, String>
     {
         #[cfg(not(target_os = "emscripten"))]
         let header = "#version 330 core\nprecision mediump float;\n";

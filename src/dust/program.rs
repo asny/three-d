@@ -11,6 +11,22 @@ pub struct Program {
 
 impl Program
 {
+    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Program, String>
+    {
+        const POSSIBLE_EXT: [&str; 2] = [
+            ".vert",
+            ".frag",
+        ];
+
+        let shaders = POSSIBLE_EXT.iter()
+            .map(|file_extension| {
+                shader::Shader::from_resource(gl, &format!("{}{}", name, file_extension))
+            })
+            .collect::<Result<Vec<shader::Shader>, String>>()?;
+
+        Program::from_shaders(gl, &shaders[..])
+    }
+
     pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, String>
     {
         let vert_shader = shader::Shader::from_vert_source(gl, vertex_shader_source)?;
