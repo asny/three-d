@@ -3,14 +3,12 @@ use std;
 use utility;
 use loader;
 
-use std::fmt;
-
 #[derive(Debug)]
 pub enum Error {
     Loader(loader::Error),
     FailedToConvertToCString(std::ffi::NulError),
-    UnknownShaderType,
-    FailedToCompileShader {message: String}
+    UnknownShaderType {message: String},
+    FailedToCompileShader {name: String, message: String}
 }
 
 impl From<loader::Error> for Error {
@@ -22,37 +20,6 @@ impl From<loader::Error> for Error {
 impl From<std::ffi::NulError> for Error {
     fn from(other: std::ffi::NulError) -> Self {
         Error::FailedToConvertToCString(other)
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Error::Loader(ref _err) => write!(f, "No matching cities with a population were found."),
-            Error::FailedToConvertToCString(ref err) => err.fmt(f),
-            Error::UnknownShaderType => write!(f, "No matching cities with a population were found."),
-            Error::FailedToCompileShader {ref message} => write!(f, "Failed to compile shader {}", message),
-        }
-    }
-}
-
-impl std::error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::Loader(ref err) => "not found",
-            Error::FailedToConvertToCString(ref err) => err.description(),
-            Error::UnknownShaderType => "not found",
-            Error::FailedToCompileShader {ref message} => message
-        }
-    }
-
-    fn cause(&self) -> Option<&std::error::Error> {
-        match *self {
-            Error::Loader(ref err) => None,
-            Error::FailedToConvertToCString(ref err) => Some(err),
-            Error::UnknownShaderType => None,
-            Error::FailedToCompileShader {ref message} => None
-        }
     }
 }
 
@@ -75,14 +42,14 @@ impl Shader
                 name.ends_with(file_extension)
             })
             .map(|&(_, kind)| kind)
-            .ok_or_else(|| Error::UnknownShaderType)?; //format!("Can not determine shader type for resource {:?}", name)
+            .ok_or_else(|| Error::UnknownShaderType {message: format!("Can not determine shader type for resource {:?}", name) })?;
 
         let source = loader::load_string(name)?;
 
-        Shader::from_source(gl, &source, shader_kind)
+        Shader::from_source(gl, &source, shader_kind, name)
     }
 
-    pub fn from_source(gl: &gl::Gl, source: &str, kind: gl::types::GLenum) -> Result<Shader, Error>
+    pub fn from_source(gl: &gl::Gl, source: &str, kind: gl::types::GLenum, name: &str) -> Result<Shader, Error>
     {
         #[cfg(not(target_os = "emscripten"))]
         let header = "#version 330 core\nprecision mediump float;\n";
@@ -91,16 +58,16 @@ impl Shader
 
         let s: &str = &[header, source].concat();
 
-        let id = shader_from_source(gl, s, kind)?;
+        let id = shader_from_source(gl, s, kind, name)?;
         Ok(Shader { gl: gl.clone(), id })
     }
 
     pub fn from_vert_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::VERTEX_SHADER)
+        Shader::from_source(gl, source, gl::VERTEX_SHADER, "")
     }
 
     pub fn from_frag_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::FRAGMENT_SHADER)
+        Shader::from_source(gl, source, gl::FRAGMENT_SHADER, "")
     }
 
     pub fn id(&self) -> gl::types::GLuint {
@@ -119,7 +86,8 @@ impl Drop for Shader {
 fn shader_from_source(
     gl: &gl::Gl,
     source: &str,
-    kind: gl::types::GLenum
+    kind: gl::types::GLenum,
+    name: &str
 ) -> Result<gl::types::GLuint, Error>
 {
     use std::ffi::{CStr, CString};
@@ -153,7 +121,10 @@ fn shader_from_source(
             );
         }
 
-        return Err(Error::FailedToCompileShader{message:error.to_string_lossy().into_owned()}); //error.to_string_lossy().into_owned()
+        return Err(Error::FailedToCompileShader{
+            name: name.to_string(),
+            message: format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned())
+        });
     }
 
     Ok(id)
