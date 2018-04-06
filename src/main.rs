@@ -17,7 +17,7 @@ fn main() {
     let ctx = sdl2::init().unwrap();
     let video_ctx = ctx.video().unwrap();
 
-    #[cfg(not(target_os = "emscripten"))]
+    #[cfg(target_os = "macos")] // Use OpenGL 4.1 since that is the newest version supported on macOS
     {
         let gl_attr = video_ctx.gl_attr();
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
