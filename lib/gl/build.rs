@@ -13,7 +13,7 @@ fn main() {
     match env::var(key) {
         Ok(val) => {
             println!("{}: {:?}", key, val);
-            if val == "asmjs-unknown-emscripten"
+            if val.find("emscripten").is_some()
             {
                 setup_webgl(file_gl);
             }

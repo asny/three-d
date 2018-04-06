@@ -1,0 +1,5 @@
+#!/bin/sh
+
+source ~/.emsdk/emsdk_env.sh
+export EMMAKEN_CFLAGS="-o index.html -s USE_WEBGL2=1 -s USE_SDL=2 -s WASM=1 --preload-file assets"
+cargo build --target wasm32-unknown-emscripten
