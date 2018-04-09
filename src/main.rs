@@ -47,7 +47,12 @@ fn main() {
     let attribute = attribute::Attribute::create(&gl).unwrap();
     attribute.populate(vertices);
 
-    let material = material::Material::create(&gl).unwrap();
+    // set up shader program
+    let shader_program = program::Program::from_resource(
+        &gl, "assets/shaders/triangle"
+        ).unwrap();
+
+    let material = material::Material::create(&gl, &shader_program).unwrap();
     let model = model::Model::create(&gl, &material).unwrap();
 
     unsafe {

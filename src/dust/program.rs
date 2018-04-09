@@ -16,6 +16,7 @@ impl From<shader::Error> for Error {
     }
 }
 
+#[derive(Clone)]
 pub struct Program {
     gl: gl::Gl,
     id: gl::types::GLuint,

@@ -12,14 +12,9 @@ pub struct Material {
 
 impl Material
 {
-    pub fn create(gl: &gl::Gl) -> Result<Material, Error>
+    pub fn create(gl: &gl::Gl, shader_program: &program::Program) -> Result<Material, Error>
     {
-        // set up shader program
-        let shader_program = program::Program::from_resource(
-            gl, "assets/shaders/triangle"
-            ).unwrap();
-
-        Ok(Material { program: shader_program })
+        Ok(Material { program: shader_program.clone() })
     }
 
     pub fn program(&self) -> &program::Program {
