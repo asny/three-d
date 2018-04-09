@@ -41,11 +41,3 @@ impl Attribute
         self.id
     }
 }
-
-impl Drop for Attribute {
-    fn drop(&mut self) {
-        /*unsafe {
-            //TODO:self.gl.DeleteProgram(self.id);
-        }*/
-    }
-}

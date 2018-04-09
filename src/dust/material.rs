@@ -27,8 +27,3 @@ impl Material
         self.program.set_used();
     }
 }
-
-impl Drop for Material {
-    fn drop(&mut self) {
-    }
-}
