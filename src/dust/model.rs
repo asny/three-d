@@ -5,16 +5,16 @@ use material;
 pub enum Error {
 }
 
-pub struct Model<'a> {
+pub struct Model {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    material: &'a material::Material
+    material: material::Material
 }
 
 
-impl<'a> Model<'a>
+impl Model
 {
-    pub fn create(gl: &gl::Gl, material: &'a material::Material) -> Result<Model<'a>, Error>
+    pub fn create(gl: &gl::Gl, material: &material::Material) -> Result<Model, Error>
     {
         let mut vao: gl::types::GLuint = 0;
         unsafe {
@@ -22,7 +22,7 @@ impl<'a> Model<'a>
             gl.BindVertexArray(vao);
         }
 
-        Ok(Model { gl: gl.clone(), id: vao, material: material })
+        Ok(Model { gl: gl.clone(), id: vao, material: material.clone() })
     }
 
     pub fn draw(&self)
@@ -36,13 +36,5 @@ impl<'a> Model<'a>
                 3 // number of indices to be rendered
             );
         }
-    }
-}
-
-impl<'a> Drop for Model<'a> {
-    fn drop(&mut self) {
-        /*unsafe {
-            //TODO:self.gl.DeleteProgram(self.id);
-        }*/
     }
 }

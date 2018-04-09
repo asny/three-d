@@ -5,6 +5,7 @@ use program;
 pub enum Error {
 }
 
+#[derive(Clone)]
 pub struct Material {
     program: program::Program
 }
