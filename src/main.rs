@@ -35,13 +35,6 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
-    // set up shader program
-    let mut shader_program = program::Program::from_resource(
-        &gl, "assets/shaders/triangle"
-        ).unwrap();
-
-    shader_program.set_used();
-
     // set up vertex buffer object
     let vertices: Vec<f32> = vec![
         // positions      // colors
@@ -50,34 +43,22 @@ fn main() {
         0.0,  0.5, 0.0,   0.0, 0.0, 1.0    // top
     ];
 
-    let mut vbo: gl::types::GLuint = 0;
-    unsafe {
-        gl.GenBuffers(1, &mut vbo);
-    }
-
-    unsafe {
-        gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl.BufferData(
-            gl::ARRAY_BUFFER, // target
-            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
-            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
-            gl::STATIC_DRAW, // usage
-        );
-        gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-    }
-
     // set up vertex array object
+    let attribute = attribute::Attribute::create(&gl).unwrap();
+    attribute.populate(vertices);
 
-    let mut vao: gl::types::GLuint = 0;
-    unsafe {
-        gl.GenVertexArrays(1, &mut vao);
-    }
+    // set up shader program
+    let shader_program = program::Program::from_resource(
+        &gl, "assets/shaders/triangle"
+        ).unwrap();
+
+    let material = material::Material::create(&gl, &shader_program).unwrap();
+    let model = model::Model::create(&gl, &material).unwrap();
 
     unsafe {
-        gl.BindVertexArray(vao);
-        gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl.BindBuffer(gl::ARRAY_BUFFER, attribute.id());
         use std::ffi::{CString};
-        let pos_location = gl.GetAttribLocation(shader_program.id(), CString::new("Position").unwrap().as_ptr()) as gl::types::GLuint;
+        let pos_location = gl.GetAttribLocation(material.program().id(), CString::new("Position").unwrap().as_ptr()) as gl::types::GLuint;
         gl.EnableVertexAttribArray(pos_location);
         gl.VertexAttribPointer(
             pos_location, // index of the generic vertex attribute
@@ -87,7 +68,7 @@ fn main() {
             (6 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
             std::ptr::null() // offset of the first component
         );
-        let color_location = gl.GetAttribLocation(shader_program.id(), CString::new("Color").unwrap().as_ptr()) as gl::types::GLuint;
+        let color_location = gl.GetAttribLocation(material.program().id(), CString::new("Color").unwrap().as_ptr()) as gl::types::GLuint;
         gl.EnableVertexAttribArray(color_location);
         gl.VertexAttribPointer(
             color_location, // index of the generic vertex attribute
@@ -118,11 +99,8 @@ fn main() {
                     process::exit(1);
                 },
                 Event::KeyDown {keycode: Some(Keycode::R), ..} => {
-                    shader_program = program::Program::from_resource(
-                        &gl, "assets/shaders/triangle"
-                        ).unwrap();
-
-                    shader_program.set_used();
+                    //material = material::Material::create(&gl).unwrap();
+                    //model = model::Model::create(&gl, &material).unwrap();
                 },
                 _ => {}
             }
@@ -132,16 +110,8 @@ fn main() {
             gl.Clear(gl::COLOR_BUFFER_BIT);
         }
 
-        // draw triangle
-        shader_program.set_used();
-        unsafe {
-            gl.BindVertexArray(vao);
-            gl.DrawArrays(
-                gl::TRIANGLES, // mode
-                0, // starting index in the enabled arrays
-                3 // number of indices to be rendered
-            );
-        }
+        // draw
+        model.draw();
 
         window.gl_swap_window();
     };
