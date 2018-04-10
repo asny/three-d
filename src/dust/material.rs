@@ -1,5 +1,5 @@
 use gl;
-use program;
+use dust::program;
 
 #[derive(Debug)]
 pub enum Error {

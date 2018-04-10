@@ -1,8 +1,8 @@
 use gl;
 use std;
 
-use utility;
-use shader;
+use dust::utility;
+use dust::shader;
 
 #[derive(Debug)]
 pub enum Error {

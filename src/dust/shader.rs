@@ -1,7 +1,7 @@
 use gl;
 use std;
-use utility;
-use loader;
+use dust::utility;
+use dust::loader;
 
 #[derive(Debug)]
 pub enum Error {

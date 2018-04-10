@@ -1,5 +1,5 @@
 use gl;
-use material;
+use dust::material;
 
 #[derive(Debug)]
 pub enum Error {
