@@ -36,16 +36,18 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // set up vertex buffer object
-    let vertices: Vec<f32> = vec![
+    let positions: Vec<f32> = vec![
         // positions      // colors
-        0.5, -0.5, 0.0,   1.0, 0.0, 0.0,   // bottom right
-        -0.5, -0.5, 0.0,  0.0, 1.0, 0.0,   // bottom left
-        0.0,  0.5, 0.0,   0.0, 0.0, 1.0    // top
+        0.5, -0.5, 0.0,  // bottom right
+        -0.5, -0.5, 0.0,  // bottom left
+        0.0,  0.5, 0.0,   // top
     ];
-
-    // set up vertex array object
-    let attribute = attribute::Attribute::create(&gl).unwrap();
-    attribute.populate(vertices);
+    let colors: Vec<f32> = vec![
+        // positions      // colors
+        1.0, 0.0, 0.0,   // bottom right
+        0.0, 1.0, 0.0,   // bottom left
+        0.0, 0.0, 1.0    // top
+    ];
 
     // set up shader program
     let shader_program = program::Program::from_resource(
@@ -55,32 +57,9 @@ fn main() {
     let material = material::Material::create(&gl, &shader_program).unwrap();
     let model = model::Model::create(&gl, &material).unwrap();
 
-    unsafe {
-        gl.BindBuffer(gl::ARRAY_BUFFER, attribute.id());
-        use std::ffi::{CString};
-        let pos_location = gl.GetAttribLocation(material.program().id(), CString::new("Position").unwrap().as_ptr()) as gl::types::GLuint;
-        gl.EnableVertexAttribArray(pos_location);
-        gl.VertexAttribPointer(
-            pos_location, // index of the generic vertex attribute
-            3, // the number of components per generic vertex attribute
-            gl::FLOAT, // data type
-            gl::FALSE, // normalized (int-to-float conversion)
-            (6 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-            std::ptr::null() // offset of the first component
-        );
-        let color_location = gl.GetAttribLocation(material.program().id(), CString::new("Color").unwrap().as_ptr()) as gl::types::GLuint;
-        gl.EnableVertexAttribArray(color_location);
-        gl.VertexAttribPointer(
-            color_location, // index of the generic vertex attribute
-            3, // the number of components per generic vertex attribute
-            gl::FLOAT, // data type
-            gl::FALSE, // normalized (int-to-float conversion)
-            (6 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-            (3 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid // offset of the first component
-        );
-        gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-        gl.BindVertexArray(0);
-    }
+    // set up vertex array object
+    attribute::Attribute::create(&gl, "Position", &shader_program, positions).unwrap();
+    attribute::Attribute::create(&gl, "Color", &shader_program, colors).unwrap();
 
     // set up shared state for window
     unsafe {
