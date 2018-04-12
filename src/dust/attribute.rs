@@ -7,7 +7,6 @@ pub enum Error {
 }
 
 pub struct Attribute {
-    gl: gl::Gl,
     id: gl::types::GLuint,
 }
 
@@ -40,7 +39,7 @@ impl Attribute
             gl.BindBuffer(gl::ARRAY_BUFFER, 0);
         }
 
-        Ok(Attribute { gl: gl.clone(), id: vbo })
+        Ok(Attribute { id: vbo })
     }
 
     pub fn id(&self) -> gl::types::GLuint {

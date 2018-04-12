@@ -52,11 +52,9 @@ fn main() {
     ];
 
     // set up shader program
-    let shader_program = program::Program::from_resource(
-        &gl, "assets/shaders/triangle"
-        ).unwrap();
+    let shader_program = program::Program::from_resource(&gl, "assets/shaders/triangle").unwrap();
 
-    let material = material::Material::create(&gl, &shader_program).unwrap();
+    let material = material::Material::create(&shader_program).unwrap();
     let model = model::Model::create(&gl, &material, &mesh).unwrap();
 
     // set up vertex array object

@@ -1,4 +1,3 @@
-use gl;
 use dust::program;
 
 #[derive(Debug)]
@@ -13,7 +12,7 @@ pub struct Material {
 
 impl Material
 {
-    pub fn create(gl: &gl::Gl, shader_program: &program::Program) -> Result<Material, Error>
+    pub fn create(shader_program: &program::Program) -> Result<Material, Error>
     {
         Ok(Material { program: shader_program.clone() })
     }
