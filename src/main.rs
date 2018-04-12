@@ -42,6 +42,8 @@ fn main() {
         -0.5, -0.5, 0.0,  // bottom left
         0.0,  0.5, 0.0,   // top
     ];
+    let mesh = mesh::Mesh::create(positions).unwrap();
+
     let colors: Vec<f32> = vec![
         // positions      // colors
         1.0, 0.0, 0.0,   // bottom right
@@ -55,11 +57,10 @@ fn main() {
         ).unwrap();
 
     let material = material::Material::create(&gl, &shader_program).unwrap();
-    let model = model::Model::create(&gl, &material).unwrap();
+    let model = model::Model::create(&gl, &material, &mesh).unwrap();
 
     // set up vertex array object
-    attribute::Attribute::create(&gl, "Position", &shader_program, positions).unwrap();
-    attribute::Attribute::create(&gl, "Color", &shader_program, colors).unwrap();
+    attribute::Attribute::create(&gl, "Color", &shader_program, &colors).unwrap();
 
     // set up shared state for window
     unsafe {

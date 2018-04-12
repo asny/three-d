@@ -1,5 +1,7 @@
 use gl;
 use dust::material;
+use dust::mesh;
+use dust::attribute;
 
 #[derive(Debug)]
 pub enum Error {
@@ -14,13 +16,15 @@ pub struct Model {
 
 impl Model
 {
-    pub fn create(gl: &gl::Gl, material: &material::Material) -> Result<Model, Error>
+    pub fn create(gl: &gl::Gl, material: &material::Material, mesh: &mesh::Mesh) -> Result<Model, Error>
     {
         let mut vao: gl::types::GLuint = 0;
         unsafe {
             gl.GenVertexArrays(1, &mut vao);
             gl.BindVertexArray(vao);
         }
+
+        attribute::Attribute::create(&gl, "Position", &material.program(), mesh.positions()).unwrap();
 
         Ok(Model { gl: gl.clone(), id: vao, material: material.clone() })
     }

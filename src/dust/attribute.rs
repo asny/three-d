@@ -14,7 +14,7 @@ pub struct Attribute {
 
 impl Attribute
 {
-    pub fn create(gl: &gl::Gl, name: &str, program: &program::Program, data: Vec<f32>) -> Result<Attribute, Error>
+    pub fn create(gl: &gl::Gl, name: &str, program: &program::Program, data: &Vec<f32>) -> Result<Attribute, Error>
     {
         let mut vbo: gl::types::GLuint = 0;
         unsafe {
