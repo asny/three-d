@@ -29,6 +29,11 @@ impl Model
         Ok(Model { gl: gl.clone(), id: vao, material: material.clone() })
     }
 
+    pub fn add_attribute(&self, name: &str, data: &Vec<f32>) -> Result<attribute::Attribute, attribute::Error>{
+
+        attribute::Attribute::create(&self.gl, name, &self.material.program(), data)
+    }
+
     pub fn draw(&self)
     {
         self.material.apply();

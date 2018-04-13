@@ -57,8 +57,7 @@ fn main() {
     let material = material::Material::create(&shader_program).unwrap();
     let model = model::Model::create(&gl, &material, &mesh).unwrap();
 
-    // set up vertex array object
-    attribute::Attribute::create(&gl, "Color", &shader_program, &colors).unwrap();
+    model.add_attribute("Color", &colors).unwrap();
 
     // set up shared state for window
     unsafe {
