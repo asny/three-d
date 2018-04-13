@@ -1,6 +1,5 @@
-use gl;
 use glm;
-use glm::ext::*;
+use dust::scene;
 
 #[derive(Debug)]
 pub enum Error {
@@ -33,6 +32,11 @@ impl Camera
     {
         self.position = position;
         self.direction = direction;
+    }
+
+    pub fn draw(&self, scene: &scene::Scene)
+    {
+        scene.draw();
     }
 
     fn get_view(&self) -> glm::Matrix4<f32>

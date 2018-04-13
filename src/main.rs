@@ -59,6 +59,9 @@ fn main() {
 
     model.add_attribute("Color", &colors).unwrap();
 
+    let mut scene = scene::Scene::create().unwrap();
+    scene.add_model(model);
+
     let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0)).unwrap();
 
     // set up shared state for window
@@ -90,7 +93,7 @@ fn main() {
         }
 
         // draw
-        model.draw();
+        camera.draw(&scene);
 
         window.gl_swap_window();
     };
