@@ -1,3 +1,4 @@
+use gl;
 use glm;
 use dust::scene;
 
@@ -6,24 +7,30 @@ pub enum Error {
 }
 
 pub struct Camera {
+    gl: gl::Gl,
     position: glm::Vec3,
     direction: glm::Vec3,
     z_near: f32,
     z_far: f32,
-    width: i16,
-    height: i16,
+    width: i32,
+    height: i32,
 }
 
 
 impl Camera
 {
-    pub fn create(position: glm::Vec3, direction: glm::Vec3) -> Result<Camera, Error>
+    pub fn create(gl: &gl::Gl, position: glm::Vec3, direction: glm::Vec3, width: i32, height: i32) -> Result<Camera, Error>
     {
-        Ok(Camera { position: position, direction: direction, z_near: 0.1, z_far: 1000.0, width: 1024, height: 1024 })
+        let mut camera = Camera { gl: gl.clone(), position: position, direction: direction, z_near: 0.1, z_far: 1000.0, width: width, height: height };
+        camera.set_screen_size(width, height);
+        Ok(camera)
     }
 
-    pub fn set_screen_size(&mut self, width: i16, height: i16)
+    pub fn set_screen_size(&mut self, width: i32, height: i32)
     {
+        unsafe {
+            self.gl.Viewport(0, 0, width, height);
+        }
         self.width = width;
         self.height = height;
     }
@@ -36,6 +43,9 @@ impl Camera
 
     pub fn draw(&self, scene: &scene::Scene)
     {
+        unsafe {
+            self.gl.Clear(gl::COLOR_BUFFER_BIT);
+        }
         scene.draw();
     }
 

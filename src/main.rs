@@ -39,7 +39,7 @@ fn main() {
     let mut scene = scene::Scene::create().unwrap();
 
     // Camera
-    let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0)).unwrap();
+    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0), 900, 700).unwrap();
 
     // Add triangle model
     let positions: Vec<f32> = vec![
@@ -61,9 +61,7 @@ fn main() {
     model.add_attribute("Color", &colors).unwrap();
     scene.add_model(model);
 
-    // set up shared state for window
     unsafe {
-        gl.Viewport(0, 0, 900, 700); // set viewport
         gl.ClearColor(0.3, 0.3, 0.5, 1.0);
     }
 
@@ -83,10 +81,6 @@ fn main() {
                 },
                 _ => {}
             }
-        }
-
-        unsafe {
-            gl.Clear(gl::COLOR_BUFFER_BIT);
         }
 
         // draw
