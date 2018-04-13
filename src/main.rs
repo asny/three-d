@@ -35,34 +35,31 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
-    // set up vertex buffer object
+    // Scene
+    let mut scene = scene::Scene::create().unwrap();
+
+    // Camera
+    let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0)).unwrap();
+
+    // Add triangle model
     let positions: Vec<f32> = vec![
         // positions      // colors
         0.5, -0.5, 0.0,  // bottom right
         -0.5, -0.5, 0.0,  // bottom left
         0.0,  0.5, 0.0,   // top
     ];
-    let mesh = mesh::Mesh::create(positions).unwrap();
-
     let colors: Vec<f32> = vec![
         // positions      // colors
         1.0, 0.0, 0.0,   // bottom right
         0.0, 1.0, 0.0,   // bottom left
         0.0, 0.0, 1.0    // top
     ];
-
-    // set up shader program
+    let mesh = mesh::Mesh::create(positions).unwrap();
     let shader_program = program::Program::from_resource(&gl, "assets/shaders/triangle").unwrap();
-
     let material = material::Material::create(&shader_program).unwrap();
     let model = model::Model::create(&gl, &material, &mesh).unwrap();
-
     model.add_attribute("Color", &colors).unwrap();
-
-    let mut scene = scene::Scene::create().unwrap();
     scene.add_model(model);
-
-    let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0)).unwrap();
 
     // set up shared state for window
     unsafe {
