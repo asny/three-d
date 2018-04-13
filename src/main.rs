@@ -59,7 +59,7 @@ fn main() {
 
     model.add_attribute("Color", &colors).unwrap();
 
-    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 10.0)).unwrap();
+    let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0)).unwrap();
 
     // set up shared state for window
     unsafe {
