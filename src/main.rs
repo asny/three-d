@@ -24,8 +24,10 @@ fn main() {
         gl_attr.set_context_version(4, 1);
     }
 
+    let width = 900;
+    let height = 700;
     let window = video_ctx
-        .window("Dust", 900, 700)
+        .window("Dust", width, height)
         .opengl()
         .position_centered()
         .resizable()
@@ -39,7 +41,7 @@ fn main() {
     let mut scene = scene::Scene::create().unwrap();
 
     // Camera
-    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0), 900, 700).unwrap();
+    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0), width, height).unwrap();
 
     // Add triangle model
     let positions: Vec<f32> = vec![
