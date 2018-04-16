@@ -1,5 +1,6 @@
 use gl;
 use std;
+use glm;
 
 use dust::utility;
 use dust::shader;
@@ -98,11 +99,38 @@ impl Program
         Ok(Program { gl: gl.clone(), id: program_id })
     }
 
-    pub fn add_uniform_attribute<T>(&self, name: &str, data: &f32) -> Result<(), Error>
+    pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
+    {
+        let location= self.get_uniform_location(name)?;
+        unsafe {
+            self.gl.Uniform1iv(location, 1, data);
+        }
+        Ok(())
+    }
+
+    pub fn add_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
             self.gl.Uniform1fv(location, 1, data);
+        }
+        Ok(())
+    }
+
+    pub fn add_uniform_vec3(&self, name: &str, data: &glm::Vec3) -> Result<(), Error>
+    {
+        let location= self.get_uniform_location(name)?;
+        unsafe {
+            self.gl.Uniform3fv(location, 1, &data[0]);
+        }
+        Ok(())
+    }
+
+    pub fn add_uniform_mat4(&self, name: &str, data: &glm::Matrix4<f32>) -> Result<(), Error>
+    {
+        let location= self.get_uniform_location(name)?;
+        unsafe {
+            self.gl.UniformMatrix4fv(location, 1, gl::FALSE, &data[0][0]);
         }
         Ok(())
     }
