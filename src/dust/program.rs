@@ -98,15 +98,24 @@ impl Program
         Ok(Program { gl: gl.clone(), id: program_id })
     }
 
-    pub fn add_uniform_attribute(&self, name: &str, data: &f32) -> Result<(), Error>
+    pub fn add_uniform_attribute<T>(&self, name: &str, data: &f32) -> Result<(), Error>
     {
-        self.set_used();
+        let location= self.get_uniform_location(name)?;
         unsafe {
-            let c_str = CString::new(name)?;
-            let location = self.gl.GetAttribLocation(self.id(), c_str.as_ptr()) as gl::types::GLint;
             self.gl.Uniform1fv(location, 1, data);
         }
         Ok(())
+    }
+
+    fn get_uniform_location(&self, name: &str) -> Result<i32, Error>
+    {
+        self.set_used();
+        let location: i32;
+        unsafe {
+            let c_str = CString::new(name)?;
+            location = self.gl.GetAttribLocation(self.id(), c_str.as_ptr());
+        }
+        Ok(location)
     }
 
     pub fn add_vertex_attribute(&self, name: &str, data: &Vec<f32>) -> Result<(), Error>
