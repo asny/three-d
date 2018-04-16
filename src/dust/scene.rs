@@ -3,6 +3,13 @@ use glm;
 
 #[derive(Debug)]
 pub enum Error {
+    Model(model::Error)
+}
+
+impl From<model::Error> for Error {
+    fn from(other: model::Error) -> Self {
+        Error::Model(other)
+    }
 }
 
 pub struct Scene {
@@ -22,10 +29,11 @@ impl Scene
         &self.models.push(model);
     }
 
-    pub fn draw(&self, screen_width: &u32, screen_height: &u32, camera_position: &glm::Vec3, view: &glm::Matrix4<f32>, projection: &glm::Matrix4<f32>)
+    pub fn draw(&self, screen_width: &u32, screen_height: &u32, camera_position: &glm::Vec3, view: &glm::Matrix4<f32>, projection: &glm::Matrix4<f32>) -> Result<(), Error>
     {
         for model in &self.models {
-            model.draw();
+            model.draw(screen_width, screen_height, camera_position, view, projection)?;
         }
+        Ok(())
     }
 }

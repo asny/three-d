@@ -4,6 +4,13 @@ use dust::scene;
 
 #[derive(Debug)]
 pub enum Error {
+    Scene(scene::Error)
+}
+
+impl From<scene::Error> for Error {
+    fn from(other: scene::Error) -> Self {
+        Error::Scene(other)
+    }
 }
 
 pub struct Camera {
@@ -41,12 +48,13 @@ impl Camera
         self.direction = direction;
     }
 
-    pub fn draw(&self, scene: &scene::Scene)
+    pub fn draw(&self, scene: &scene::Scene) -> Result<(), Error>
     {
         unsafe {
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
         }
-        scene.draw(&self.width, &self.height, &self.position, &self.get_view(), &self.get_projection());
+        scene.draw(&self.width, &self.height, &self.position, &self.get_view(), &self.get_projection())?;
+        Ok(())
     }
 
     fn get_view(&self) -> glm::Matrix4<f32>

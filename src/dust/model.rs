@@ -1,4 +1,5 @@
 use gl;
+use glm;
 use dust::material;
 use dust::mesh;
 use dust::program;
@@ -41,7 +42,7 @@ impl Model
         Ok(())
     }
 
-    pub fn draw(&self)
+    pub fn draw(&self, screen_width: &u32, screen_height: &u32, camera_position: &glm::Vec3, view: &glm::Matrix4<f32>, projection: &glm::Matrix4<f32>) -> Result<(), Error>
     {
         self.material.apply();
         unsafe {
@@ -52,5 +53,6 @@ impl Model
                 3 // number of indices to be rendered
             );
         }
+        Ok(())
     }
 }

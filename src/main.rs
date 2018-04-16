@@ -86,7 +86,7 @@ fn main() {
         }
 
         // draw
-        camera.draw(&scene);
+        camera.draw(&scene).unwrap();
 
         window.gl_swap_window();
     };
