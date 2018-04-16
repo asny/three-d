@@ -60,7 +60,7 @@ fn main() {
     let shader_program = program::Program::from_resource(&gl, "assets/shaders/triangle").unwrap();
     let material = material::Material::create(&shader_program).unwrap();
     let model = model::Model::create(&gl, &material, &mesh).unwrap();
-    model.add_attribute("Color", &colors).unwrap();
+    shader_program.add_vertex_attribute("Color", &colors);
     scene.add_model(model);
 
     unsafe {

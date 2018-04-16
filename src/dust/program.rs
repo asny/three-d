@@ -89,6 +89,33 @@ impl Program
         Ok(Program { gl: gl.clone(), id: program_id })
     }
 
+    pub fn add_vertex_attribute(&self, name: &str, data: &Vec<f32>)
+    {
+        let mut vbo: gl::types::GLuint = 0;
+        unsafe {
+            self.gl.GenBuffers(1, &mut vbo);
+            self.gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
+            self.gl.BufferData(
+                gl::ARRAY_BUFFER, // target
+                (data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+                data.as_ptr() as *const gl::types::GLvoid, // pointer to data
+                gl::STATIC_DRAW, // usage
+            );
+            use std::ffi::{CString};
+            let location = self.gl.GetAttribLocation(self.id(), CString::new(name).unwrap().as_ptr()) as gl::types::GLuint;
+            self.gl.EnableVertexAttribArray(location);
+            self.gl.VertexAttribPointer(
+                location, // index of the generic vertex attribute
+                3, // the number of components per generic vertex attribute
+                gl::FLOAT, // data type
+                gl::FALSE, // normalized (int-to-float conversion)
+                (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+                std::ptr::null() // offset of the first component
+            );
+            self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+        }
+    }
+
     pub fn id(&self) -> gl::types::GLuint {
         self.id
     }
