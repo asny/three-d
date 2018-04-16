@@ -141,7 +141,7 @@ impl Program
         let location: i32;
         unsafe {
             let c_str = CString::new(name)?;
-            location = self.gl.GetAttribLocation(self.id(), c_str.as_ptr());
+            location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
         }
         Ok(location)
     }
@@ -160,7 +160,7 @@ impl Program
             );
 
             let c_str = CString::new(name)?;
-            let location = self.gl.GetAttribLocation(self.id(), c_str.as_ptr()) as gl::types::GLuint;
+            let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr()) as gl::types::GLuint;
             self.gl.EnableVertexAttribArray(location);
             self.gl.VertexAttribPointer(
                 location, // index of the generic vertex attribute
@@ -173,10 +173,6 @@ impl Program
             self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
         }
         Ok(())
-    }
-
-    pub fn id(&self) -> gl::types::GLuint {
-        self.id
     }
 
     pub fn set_used(&self) {
