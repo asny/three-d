@@ -95,7 +95,12 @@ impl Program
 
     pub fn set_used(&self) {
         unsafe {
-            self.gl.UseProgram(self.id);
+            static mut CURRENTLY_USED: gl::types::GLuint = 1000000 as u32;
+            if self.id != CURRENTLY_USED
+            {
+                self.gl.UseProgram(self.id);
+                CURRENTLY_USED = self.id;
+            }
         }
     }
 }
