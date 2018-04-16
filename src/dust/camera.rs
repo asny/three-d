@@ -46,7 +46,7 @@ impl Camera
         unsafe {
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
         }
-        scene.draw();
+        scene.draw(&self.width, &self.height, &self.position, &self.get_view(), &self.get_projection());
     }
 
     fn get_view(&self) -> glm::Matrix4<f32>

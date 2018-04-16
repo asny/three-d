@@ -1,4 +1,5 @@
 use dust::model;
+use glm;
 
 #[derive(Debug)]
 pub enum Error {
@@ -21,7 +22,7 @@ impl Scene
         &self.models.push(model);
     }
 
-    pub fn draw(&self)
+    pub fn draw(&self, screen_width: &u32, screen_height: &u32, camera_position: &glm::Vec3, view: &glm::Matrix4<f32>, projection: &glm::Matrix4<f32>)
     {
         for model in &self.models {
             model.draw();
