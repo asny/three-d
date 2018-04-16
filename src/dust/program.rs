@@ -4,15 +4,24 @@ use std;
 use dust::utility;
 use dust::shader;
 
+use std::ffi::{CString};
+
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
-    FailedToLinkProgram {message: String}
+    FailedToLinkProgram {message: String},
+    FailedToCreateCString(std::ffi::NulError)
 }
 
 impl From<shader::Error> for Error {
     fn from(other: shader::Error) -> Self {
         Error::Shader(other)
+    }
+}
+
+impl From<std::ffi::NulError> for Error {
+    fn from(other: std::ffi::NulError) -> Self {
+        Error::FailedToCreateCString(other)
     }
 }
 
@@ -89,7 +98,18 @@ impl Program
         Ok(Program { gl: gl.clone(), id: program_id })
     }
 
-    pub fn add_vertex_attribute(&self, name: &str, data: &Vec<f32>)
+    pub fn add_uniform_attribute(&self, name: &str, data: &f32) -> Result<(), Error>
+    {
+        self.set_used();
+        unsafe {
+            let c_str = CString::new(name)?;
+            let location = self.gl.GetAttribLocation(self.id(), c_str.as_ptr()) as gl::types::GLint;
+            self.gl.Uniform1fv(location, 1, data);
+        }
+        Ok(())
+    }
+
+    pub fn add_vertex_attribute(&self, name: &str, data: &Vec<f32>) -> Result<(), Error>
     {
         let mut vbo: gl::types::GLuint = 0;
         unsafe {
@@ -101,8 +121,9 @@ impl Program
                 data.as_ptr() as *const gl::types::GLvoid, // pointer to data
                 gl::STATIC_DRAW, // usage
             );
-            use std::ffi::{CString};
-            let location = self.gl.GetAttribLocation(self.id(), CString::new(name).unwrap().as_ptr()) as gl::types::GLuint;
+
+            let c_str = CString::new(name)?;
+            let location = self.gl.GetAttribLocation(self.id(), c_str.as_ptr()) as gl::types::GLuint;
             self.gl.EnableVertexAttribArray(location);
             self.gl.VertexAttribPointer(
                 location, // index of the generic vertex attribute
@@ -114,6 +135,7 @@ impl Program
             );
             self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
         }
+        Ok(())
     }
 
     pub fn id(&self) -> gl::types::GLuint {
