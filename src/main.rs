@@ -41,7 +41,7 @@ fn main() {
     let mut scene = scene::Scene::create().unwrap();
 
     // Camera
-    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 10.0), glm::vec3(0.0, 0.0, -1.0), width, height).unwrap();
+    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, -1.0), width, height).unwrap();
 
     // Add triangle model
     let positions: Vec<f32> = vec![
