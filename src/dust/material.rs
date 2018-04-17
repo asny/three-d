@@ -36,8 +36,9 @@ impl Material
         Ok(Material { program: shader_program.clone() })
     }
 
-    pub fn program(&self) -> &program::Program {
-        &self.program
+    pub fn get_attribute_location(&self, name: &str) -> Result<i32, Error> {
+        let location = self.program.get_attribute_location(name)?;
+        Ok(location)
     }
 
     pub fn apply(&self)

@@ -139,40 +139,22 @@ impl Program
     {
         self.set_used();
         let location: i32;
+        let c_str = CString::new(name)?;
         unsafe {
-            let c_str = CString::new(name)?;
             location = self.gl.GetUniformLocation(self.id, c_str.as_ptr());
         }
         Ok(location)
     }
 
-    pub fn add_vertex_attribute(&self, name: &str, data: &Vec<f32>) -> Result<(), Error>
+    pub fn get_attribute_location(&self, name: &str) -> Result<i32, Error>
     {
-        let mut vbo: gl::types::GLuint = 0;
+        self.set_used();
+        let location: i32;
+        let c_str = CString::new(name)?;
         unsafe {
-            self.gl.GenBuffers(1, &mut vbo);
-            self.gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
-            self.gl.BufferData(
-                gl::ARRAY_BUFFER, // target
-                (data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
-                data.as_ptr() as *const gl::types::GLvoid, // pointer to data
-                gl::STATIC_DRAW, // usage
-            );
-
-            let c_str = CString::new(name)?;
-            let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr()) as gl::types::GLuint;
-            self.gl.EnableVertexAttribArray(location);
-            self.gl.VertexAttribPointer(
-                location, // index of the generic vertex attribute
-                3, // the number of components per generic vertex attribute
-                gl::FLOAT, // data type
-                gl::FALSE, // normalized (int-to-float conversion)
-                (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-                std::ptr::null() // offset of the first component
-            );
-            self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+            location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
         }
-        Ok(())
+        Ok(location)
     }
 
     pub fn set_used(&self) {

@@ -1,4 +1,5 @@
 use gl;
+use std;
 use dust::material;
 use dust::mesh;
 use dust::input;
@@ -30,15 +31,38 @@ impl Model
             gl.GenVertexArrays(1, &mut vao);
             gl.BindVertexArray(vao);
         }
+        let model = Model { gl: gl.clone(), id: vao, material: material.clone() };
 
-        material.program().add_vertex_attribute("Position", mesh.positions());
+        model.add_custom_attribute("Position", mesh.positions())?;
 
-        Ok(Model { gl: gl.clone(), id: vao, material: material.clone() })
+        Ok(model)
     }
 
     pub fn add_custom_attribute(&self, name: &str, data: &Vec<f32>) -> Result<(), Error>
     {
-        self.material.program().add_vertex_attribute(name, data);
+        let location = self.material.get_attribute_location(name)? as gl::types::GLuint;
+        let mut vbo: gl::types::GLuint = 0;
+        unsafe {
+            self.gl.GenBuffers(1, &mut vbo);
+            self.gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
+            self.gl.BufferData(
+                gl::ARRAY_BUFFER, // target
+                (data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+                data.as_ptr() as *const gl::types::GLvoid, // pointer to data
+                gl::STATIC_DRAW, // usage
+            );
+
+            self.gl.EnableVertexAttribArray(location);
+            self.gl.VertexAttribPointer(
+                location, // index of the generic vertex attribute
+                3, // the number of components per generic vertex attribute
+                gl::FLOAT, // data type
+                gl::FALSE, // normalized (int-to-float conversion)
+                (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+                std::ptr::null() // offset of the first component
+            );
+            self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+        }
         Ok(())
     }
 
