@@ -8,3 +8,4 @@ pub mod utility;
 pub mod mesh;
 pub mod camera;
 pub mod scene;
+pub mod input;

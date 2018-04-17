@@ -1,6 +1,7 @@
 use gl;
 use glm;
 use dust::scene;
+use dust::input;
 
 #[derive(Debug)]
 pub enum Error {
@@ -53,7 +54,8 @@ impl Camera
         unsafe {
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
         }
-        scene.draw(&self.width, &self.height, &self.position, &self.get_view(), &self.get_projection())?;
+        let input = input::DrawInput{view: self.get_view(), projection: self.get_projection()};
+        scene.draw(&input)?;
         Ok(())
     }
 
