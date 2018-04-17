@@ -141,7 +141,7 @@ impl Program
         let location: i32;
         unsafe {
             let c_str = CString::new(name)?;
-            location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
+            location = self.gl.GetUniformLocation(self.id, c_str.as_ptr());
         }
         Ok(location)
     }
