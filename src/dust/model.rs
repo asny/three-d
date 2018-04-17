@@ -45,7 +45,8 @@ impl Model
     pub fn draw(&self, screen_width: &u32, screen_height: &u32, camera_position: &glm::Vec3, view: &glm::Matrix4<f32>, projection: &glm::Matrix4<f32>) -> Result<(), Error>
     {
         let program = self.material.program();
-        program.add_uniform_mat4("ViewMatrix", view)?;
+        program.add_uniform_mat4("viewMatrix", view)?;
+        program.add_uniform_mat4("projectionMatrix", projection)?;
         self.material.apply();
         unsafe {
             self.gl.BindVertexArray(self.id);
