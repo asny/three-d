@@ -1,6 +1,7 @@
 use dust::program;
 use gl;
 use dust::input;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Error {
@@ -20,7 +21,6 @@ pub trait Material {
     fn get_attribute_location(&self, name: &str) -> Result<i32, Error>;
 }
 
-#[derive(Clone)]
 pub struct TriangleMaterial {
     program: program::Program
 }
@@ -50,9 +50,9 @@ impl Material for TriangleMaterial
 
 impl TriangleMaterial
 {
-    pub fn create(gl: &gl::Gl) -> Result<TriangleMaterial, Error>
+    pub fn create(gl: &gl::Gl) -> Result<Rc<TriangleMaterial>, Error>
     {
         let shader_program = program::Program::from_resource(&gl, "assets/shaders/triangle")?;
-        Ok(TriangleMaterial { program: shader_program })
+        Ok(Rc::new(TriangleMaterial { program: shader_program }))
     }
 }
