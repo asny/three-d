@@ -117,11 +117,30 @@ impl Program
         Ok(())
     }
 
+    pub fn add_uniform_vec2(&self, name: &str, data: &glm::Vec2) -> Result<(), Error>
+    {
+        let location= self.get_uniform_location(name)?;
+        unsafe {
+            self.gl.Uniform2fv(location, 1, &data[0]);
+        }
+        Ok(())
+    }
+
     pub fn add_uniform_vec3(&self, name: &str, data: &glm::Vec3) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
             self.gl.Uniform3fv(location, 1, &data[0]);
+        }
+        Ok(())
+    }
+
+
+    pub fn add_uniform_vec4(&self, name: &str, data: &glm::Vec4) -> Result<(), Error>
+    {
+        let location= self.get_uniform_location(name)?;
+        unsafe {
+            self.gl.Uniform4fv(location, 1, &data[0]);
         }
         Ok(())
     }
