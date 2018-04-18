@@ -1,4 +1,5 @@
 use dust::program;
+use gl;
 use dust::input;
 
 #[derive(Debug)]
@@ -31,9 +32,10 @@ impl Shade for Material {
 
 impl Material
 {
-    pub fn create(shader_program: &program::Program) -> Result<Material, Error>
+    pub fn create(gl: &gl::Gl) -> Result<Material, Error>
     {
-        Ok(Material { program: shader_program.clone() })
+        let shader_program = program::Program::from_resource(&gl, "assets/shaders/triangle")?;
+        Ok(Material { program: shader_program })
     }
 
     pub fn get_attribute_location(&self, name: &str) -> Result<i32, Error> {
