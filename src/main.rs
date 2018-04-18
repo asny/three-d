@@ -9,6 +9,7 @@ use sdl2::keyboard::Keycode;
 
 pub mod dust;
 use dust::*;
+pub mod triangle_material;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
@@ -57,7 +58,7 @@ fn main() {
         0.0, 0.0, 1.0    // top
     ];
     let mesh = mesh::Mesh::create(positions).unwrap();
-    let material = material::TriangleMaterial::create(&gl).unwrap();
+    let material = triangle_material::TriangleMaterial::create(&gl).unwrap();
     let model = model::Model::create(&gl, material, &mesh).unwrap();
     model.add_custom_attribute("Color", &colors).unwrap();
     scene.add_model(model);
