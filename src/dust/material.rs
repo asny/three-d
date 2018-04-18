@@ -13,16 +13,22 @@ impl From<program::Error> for Error {
     }
 }
 
-pub trait Shade {
+pub trait Material {
+    fn setup_states(&self) -> Result<(), Error>;
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), Error>;
 }
 
 #[derive(Clone)]
-pub struct Material {
+pub struct TriangleMaterial {
     program: program::Program
 }
 
-impl Shade for Material {
+impl Material for TriangleMaterial
+{
+    fn setup_states(&self) -> Result<(), Error> {
+        Ok(())
+    }
+
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), Error> {
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
@@ -30,12 +36,12 @@ impl Shade for Material {
     }
 }
 
-impl Material
+impl TriangleMaterial
 {
-    pub fn create(gl: &gl::Gl) -> Result<Material, Error>
+    pub fn create(gl: &gl::Gl) -> Result<TriangleMaterial, Error>
     {
         let shader_program = program::Program::from_resource(&gl, "assets/shaders/triangle")?;
-        Ok(Material { program: shader_program })
+        Ok(TriangleMaterial { program: shader_program })
     }
 
     pub fn get_attribute_location(&self, name: &str) -> Result<i32, Error> {
@@ -46,5 +52,11 @@ impl Material
     pub fn apply(&self)
     {
         self.program.set_used();
+    }
+
+    pub fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), Error> {
+        self.program.add_uniform_mat4("viewMatrix", &input.view)?;
+        self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
+        Ok(())
     }
 }

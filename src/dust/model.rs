@@ -3,7 +3,6 @@ use std;
 use dust::material;
 use dust::mesh;
 use dust::input;
-use dust::material::Shade;
 
 #[derive(Debug)]
 pub enum Error {
@@ -19,12 +18,12 @@ impl From<material::Error> for Error {
 pub struct Model {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    material: material::Material
+    material: material::TriangleMaterial
 }
 
 impl Model
 {
-    pub fn create(gl: &gl::Gl, material: &material::Material, mesh: &mesh::Mesh) -> Result<Model, Error>
+    pub fn create(gl: &gl::Gl, material: &material::TriangleMaterial, mesh: &mesh::Mesh) -> Result<Model, Error>
     {
         let mut vao: gl::types::GLuint = 0;
         unsafe {
