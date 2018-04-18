@@ -3,6 +3,7 @@ extern crate gl;
 extern crate glm;
 
 use std::process;
+use std::rc::Rc;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
@@ -57,8 +58,8 @@ fn main() {
         0.0, 0.0, 1.0    // top
     ];
     let mesh = mesh::Mesh::create(positions).unwrap();
-    let material = material::TriangleMaterial::create(&gl).unwrap();
-    let model = model::Model::create(&gl, &material, &mesh).unwrap();
+    let material = Rc::new(material::TriangleMaterial::create(&gl).unwrap());
+    let model = model::Model::create(&gl, material, &mesh).unwrap();
     model.add_custom_attribute("Color", &colors).unwrap();
     scene.add_model(model);
 

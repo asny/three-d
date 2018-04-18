@@ -1,5 +1,6 @@
 use gl;
 use std;
+use std::rc::Rc;
 use dust::material;
 use dust::mesh;
 use dust::input;
@@ -18,12 +19,12 @@ impl From<material::Error> for Error {
 pub struct Model {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    material: material::TriangleMaterial
+    material: Rc<material::Material>
 }
 
 impl Model
 {
-    pub fn create(gl: &gl::Gl, material: &material::TriangleMaterial, mesh: &mesh::Mesh) -> Result<Model, Error>
+    pub fn create(gl: &gl::Gl, material: Rc<material::Material>, mesh: &mesh::Mesh) -> Result<Model, Error>
     {
         let mut vao: gl::types::GLuint = 0;
         unsafe {
@@ -67,8 +68,8 @@ impl Model
 
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
     {
-        self.material.setup_uniforms(&input)?;
         self.material.apply();
+        self.material.setup_uniforms(&input)?;
         unsafe {
             self.gl.BindVertexArray(self.id);
             self.gl.DrawArrays(
