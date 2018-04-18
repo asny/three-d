@@ -1,3 +1,4 @@
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Error {
@@ -10,9 +11,9 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn create(positions: Vec<f32>) -> Result<Mesh, Error>
+    pub fn create(positions: Vec<f32>) -> Result<Rc<Mesh>, Error>
     {
-        Ok(Mesh { positions })
+        Ok(Rc::new(Mesh { positions }))
     }
 
     pub fn positions(&self) -> &Vec<f32>

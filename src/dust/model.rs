@@ -19,19 +19,20 @@ impl From<material::Error> for Error {
 pub struct Model {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    material: Rc<material::Material>
+    material: Rc<material::Material>,
+    _mesh: Rc<mesh::Mesh>
 }
 
 impl Model
 {
-    pub fn create(gl: &gl::Gl, material: Rc<material::Material>, mesh: &mesh::Mesh) -> Result<Model, Error>
+    pub fn create(gl: &gl::Gl, material: Rc<material::Material>, mesh: Rc<mesh::Mesh>) -> Result<Model, Error>
     {
         let mut vao: gl::types::GLuint = 0;
         unsafe {
             gl.GenVertexArrays(1, &mut vao);
             gl.BindVertexArray(vao);
         }
-        let model = Model { gl: gl.clone(), id: vao, material: material.clone() };
+        let model = Model { gl: gl.clone(), id: vao, material: material.clone(), _mesh: mesh.clone() };
 
         model.add_custom_attribute("Position", mesh.positions())?;
 
