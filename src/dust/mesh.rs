@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use std::collections::HashMap;
 use std::string::String;
 
@@ -14,11 +13,11 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn create(positions: Vec<f32>) -> Result<Rc<Mesh>, Error>
+    pub fn create(positions: Vec<f32>) -> Result<Mesh, Error>
     {
         let mut mesh = Mesh { attributes: HashMap::new() };
         mesh.add_custom_attribute("Position", positions);
-        Ok(Rc::new(mesh))
+        Ok(mesh)
     }
 
     pub fn attributes(&self) -> &HashMap<String, Vec<f32>>

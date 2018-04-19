@@ -194,12 +194,13 @@ impl Program
             self.gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
             self.gl.BufferData(
                 gl::ARRAY_BUFFER, // target
-                (no_attributes * no_vertices * 3 * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+                (stride * no_vertices * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
                 data.as_ptr() as *const gl::types::GLvoid, // pointer to data
                 gl::STATIC_DRAW, // usage
             );
         }
 
+        let mut offset: usize = 0;
         for (key, _value) in attributes {
             let location = self.get_attribute_location(key)? as gl::types::GLuint;
             unsafe {
@@ -210,9 +211,10 @@ impl Program
                     gl::FLOAT, // data type
                     gl::FALSE, // normalized (int-to-float conversion)
                     (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-                    std::ptr::null() // offset of the first component
+                    (offset * std::mem::size_of::<f32>()) as *const std::os::raw::c_void // offset of the first component
                 );
             }
+            offset = offset + 3;
         }
 
         unsafe {

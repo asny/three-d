@@ -57,7 +57,8 @@ fn main() {
         0.0, 1.0, 0.0,   // bottom left
         0.0, 0.0, 1.0    // top
     ];
-    let mesh = mesh::Mesh::create(positions).unwrap();
+    let mut mesh = mesh::Mesh::create(positions).unwrap();
+    mesh.add_custom_attribute("Color", colors);
     let material = triangle_material::TriangleMaterial::create(&gl).unwrap();
     let model = model::Model::create(&gl, material, mesh).unwrap();
     scene.add_model(model);

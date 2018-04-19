@@ -19,12 +19,12 @@ pub struct Model {
     gl: gl::Gl,
     id: gl::types::GLuint,
     material: Rc<material::Material>,
-    mesh: Rc<mesh::Mesh>
+    mesh: mesh::Mesh
 }
 
 impl Model
 {
-    pub fn create(gl: &gl::Gl, material: Rc<material::Material>, mesh: Rc<mesh::Mesh>) -> Result<Model, Error>
+    pub fn create(gl: &gl::Gl, material: Rc<material::Material>, mesh: mesh::Mesh) -> Result<Model, Error>
     {
         let mut vao: gl::types::GLuint = 0;
         unsafe {
@@ -32,7 +32,7 @@ impl Model
             gl.BindVertexArray(vao);
         }
         material.setup_attributes(&mesh)?;
-        let model = Model { gl: gl.clone(), id: vao, material: material.clone(), mesh: mesh.clone() };
+        let model = Model { gl: gl.clone(), id: vao, material: material.clone(), mesh: mesh };
 
         Ok(model)
     }
