@@ -29,8 +29,7 @@ impl material::Material for TriangleMaterial
 
     fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), material::Error>
     {
-        let data = mesh.positions();
-        self.program.setup_attributes(data)?;
+        self.program.setup_attributes(mesh.attributes())?;
 
         Ok(())
     }

@@ -5,13 +5,15 @@ use glm;
 use dust::utility;
 use dust::shader;
 
+use std::collections::HashMap;
 use std::ffi::{CString};
 
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
     FailedToLinkProgram {message: String},
-    FailedToCreateCString(std::ffi::NulError)
+    FailedToCreateCString(std::ffi::NulError),
+    FailedToFindPositions {message: String}
 }
 
 impl From<shader::Error> for Error {
@@ -165,31 +167,55 @@ impl Program
         Ok(location)
     }
 
-    pub fn setup_attributes(&self, data: &Vec<f32>) -> Result<(), Error>
+    pub fn setup_attributes(&self, attributes: &HashMap<String, Vec<f32>>) -> Result<(), Error>
     {
+        let no_attributes = attributes.len();
+        let no_vertices = (attributes.get("Position").ok_or(Error::FailedToFindPositions {message: format!("All drawables must have an attribute called Position")})?).len() / 3;
+        let stride = 3 * no_attributes;
+
+        let mut data: Vec<f32> = Vec::with_capacity(no_attributes * no_vertices * 3);
+        unsafe { data.set_len(no_attributes * no_vertices * 3); }
+        let mut offset = 0;
+        for (_key, value) in attributes
+        {
+            for vertex_id in 0..no_vertices
+            {
+                for d in 0..3
+                {
+                    data[offset + vertex_id * stride + d] = value[vertex_id * 3 + d];
+                }
+            }
+            offset = offset + 3;
+        }
+
         let mut vbo: gl::types::GLuint = 0;
         unsafe {
             self.gl.GenBuffers(1, &mut vbo);
             self.gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
             self.gl.BufferData(
                 gl::ARRAY_BUFFER, // target
-                (data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+                (no_attributes * no_vertices * 3 * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
                 data.as_ptr() as *const gl::types::GLvoid, // pointer to data
                 gl::STATIC_DRAW, // usage
             );
         }
 
-        let location = self.get_attribute_location("Position")? as gl::types::GLuint;
+        for (key, _value) in attributes {
+            let location = self.get_attribute_location(key)? as gl::types::GLuint;
+            unsafe {
+                self.gl.EnableVertexAttribArray(location);
+                self.gl.VertexAttribPointer(
+                    location, // index of the generic vertex attribute
+                    3, // the number of components per generic vertex attribute
+                    gl::FLOAT, // data type
+                    gl::FALSE, // normalized (int-to-float conversion)
+                    (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+                    std::ptr::null() // offset of the first component
+                );
+            }
+        }
+
         unsafe {
-            self.gl.EnableVertexAttribArray(location);
-            self.gl.VertexAttribPointer(
-                location, // index of the generic vertex attribute
-                3, // the number of components per generic vertex attribute
-                gl::FLOAT, // data type
-                gl::FALSE, // normalized (int-to-float conversion)
-                (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-                std::ptr::null() // offset of the first component
-            );
             self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
         }
         Ok(())

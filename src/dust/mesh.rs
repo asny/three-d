@@ -8,7 +8,6 @@ pub enum Error {
 }
 
 pub struct Mesh {
-    positions: Vec<f32>,
     attributes: HashMap<String, Vec<f32>>
 }
 
@@ -17,12 +16,14 @@ impl Mesh
 {
     pub fn create(positions: Vec<f32>) -> Result<Rc<Mesh>, Error>
     {
-        Ok(Rc::new(Mesh { positions, attributes: HashMap::new() }))
+        let mut mesh = Mesh { attributes: HashMap::new() };
+        mesh.add_custom_attribute("Position", positions);
+        Ok(Rc::new(mesh))
     }
 
-    pub fn positions(&self) -> &Vec<f32>
+    pub fn attributes(&self) -> &HashMap<String, Vec<f32>>
     {
-        &self.positions
+        &self.attributes
     }
 
     pub fn add_custom_attribute(&mut self, name: &str, attribute: Vec<f32>)
