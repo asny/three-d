@@ -29,9 +29,4 @@ impl Mesh
     {
         self.attributes.insert(String::from(name), attribute);
     }
-
-    pub fn get_custom_attribute(&self, name: &str) -> Result<&Vec<f32>, Error>
-    {
-        self.attributes.get(name).ok_or(Error::FailedToFindCustomAttribute {message: format!("Could not find attribute {}", name)})
-    }
 }

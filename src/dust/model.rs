@@ -32,7 +32,7 @@ impl Model
             gl.BindVertexArray(vao);
         }
         material.setup_attributes(&mesh)?;
-        let model = Model { gl: gl.clone(), id: vao, material: material.clone(), mesh: mesh };
+        let model = Model { gl: gl.clone(), id: vao, material: material, mesh: mesh };
 
         Ok(model)
     }
