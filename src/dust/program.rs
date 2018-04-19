@@ -167,7 +167,7 @@ impl Program
         Ok(location)
     }
 
-    pub fn setup_attributes(&self, attributes: &HashMap<String, Vec<f32>>) -> Result<(), Error>
+    fn from(attributes: &HashMap<String, Vec<f32>>) -> Result<Vec<f32>, Error>
     {
         let no_attributes = attributes.len();
         let no_vertices = (attributes.get("Position").ok_or(Error::FailedToFindPositions {message: format!("All drawables must have an attribute called Position")})?).len() / 3;
@@ -187,6 +187,16 @@ impl Program
             }
             offset = offset + 3;
         }
+        Ok(data)
+    }
+
+    pub fn setup_attributes(&self, attributes: &HashMap<String, Vec<f32>>) -> Result<(), Error>
+    {
+        let no_attributes = attributes.len();
+        let no_vertices = (attributes.get("Position").ok_or(Error::FailedToFindPositions {message: format!("All drawables must have an attribute called Position")})?).len() / 3;
+        let stride = 3 * no_attributes;
+
+        let data = Program::from(attributes)?;
 
         let mut vbo: gl::types::GLuint = 0;
         unsafe {
