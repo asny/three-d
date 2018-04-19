@@ -165,7 +165,37 @@ impl Program
         Ok(location)
     }
 
-    pub fn get_attribute_location(&self, name: &str) -> Result<i32, Error>
+    pub fn setup_attributes(&self, data: &Vec<f32>) -> Result<(), Error>
+    {
+        let mut vbo: gl::types::GLuint = 0;
+        unsafe {
+            self.gl.GenBuffers(1, &mut vbo);
+            self.gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
+            self.gl.BufferData(
+                gl::ARRAY_BUFFER, // target
+                (data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+                data.as_ptr() as *const gl::types::GLvoid, // pointer to data
+                gl::STATIC_DRAW, // usage
+            );
+        }
+
+        let location = self.get_attribute_location("Position")? as gl::types::GLuint;
+        unsafe {
+            self.gl.EnableVertexAttribArray(location);
+            self.gl.VertexAttribPointer(
+                location, // index of the generic vertex attribute
+                3, // the number of components per generic vertex attribute
+                gl::FLOAT, // data type
+                gl::FALSE, // normalized (int-to-float conversion)
+                (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+                std::ptr::null() // offset of the first component
+            );
+            self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+        }
+        Ok(())
+    }
+
+    fn get_attribute_location(&self, name: &str) -> Result<i32, Error>
     {
         self.set_used();
         let location: i32;

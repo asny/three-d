@@ -60,7 +60,6 @@ fn main() {
     let mesh = mesh::Mesh::create(positions).unwrap();
     let material = triangle_material::TriangleMaterial::create(&gl).unwrap();
     let model = model::Model::create(&gl, material, mesh).unwrap();
-    model.add_custom_attribute("Color", &colors).unwrap();
     scene.add_model(model);
 
     unsafe {

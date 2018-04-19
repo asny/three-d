@@ -2,6 +2,7 @@ use dust::program;
 use gl;
 use dust::input;
 use dust::material;
+use dust::mesh;
 use std::rc::Rc;
 
 pub struct TriangleMaterial {
@@ -19,15 +20,19 @@ impl material::Material for TriangleMaterial
         Ok(())
     }
 
-    fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), material::Error> {
+    fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), material::Error>
+    {
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
         Ok(())
     }
 
-    fn get_attribute_location(&self, name: &str) -> Result<i32, material::Error> {
-        let location = self.program.get_attribute_location(name)?;
-        Ok(location)
+    fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), material::Error>
+    {
+        let data = mesh.positions();
+        self.program.setup_attributes(data)?;
+
+        Ok(())
     }
 }
 
