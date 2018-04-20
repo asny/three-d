@@ -29,7 +29,10 @@ impl material::Material for TriangleMaterial
 
     fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), material::Error>
     {
-        self.program.setup_attribute(mesh.positions())?;
+        let mut list = Vec::new();
+        list.push( mesh.positions());
+        list.push(mesh.get("Color")?);
+        self.program.setup_attributes(&list)?;
 
         Ok(())
     }
