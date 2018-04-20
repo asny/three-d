@@ -175,14 +175,14 @@ impl Program
         Ok(location)
     }
 
-    pub fn setup_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::Buffer, Error>
+    pub fn add_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::Buffer, Error>
     {
         let mut list = Vec::new();
         list.push(attribute);
-        self.setup_attributes(&list)
+        self.add_attributes(&list)
     }
 
-    pub fn setup_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::Buffer, Error>
+    pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::Buffer, Error>
     {
         let mut stride = 0;
         let mut no_vertices = 0;
@@ -192,11 +192,12 @@ impl Program
             no_vertices = attribute.data().len() / attribute.stride();
         }
 
-        let data = from(&attributes, no_vertices, stride)?;
-
+        // Create and bind buffer
         let buffer = buffer::Buffer::create_vertex_buffer(&self.gl)?;
         buffer.bind();
 
+        // Add data to the buffer
+        let data = from(&attributes, no_vertices, stride)?;
         unsafe {
             self.gl.BufferData(
                 gl::ARRAY_BUFFER, // target
@@ -206,6 +207,7 @@ impl Program
             );
         }
 
+        // Link the buffer data to the vertex attributes in the shader
         let mut offset: usize = 0;
         for attribute in attributes {
             let location = self.get_attribute_location(attribute.name())? as gl::types::GLuint;

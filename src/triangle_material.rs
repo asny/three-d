@@ -32,7 +32,7 @@ impl material::Material for TriangleMaterial
         let mut list = Vec::new();
         list.push( mesh.positions());
         list.push(mesh.get("Color")?);
-        self.program.setup_attributes(&list)?;
+        self.program.add_attributes(&list)?;
         Ok(())
     }
 }
