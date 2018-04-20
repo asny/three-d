@@ -175,25 +175,6 @@ impl Program
         Ok(location)
     }
 
-    fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
-    {
-        let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
-        unsafe { data.set_len(stride * no_vertices); }
-        let mut offset = 0;
-        for attribute in attributes
-        {
-            for vertex_id in 0..no_vertices
-            {
-                for d in 0..attribute.stride()
-                {
-                    data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.stride() + d];
-                }
-            }
-            offset = offset + attribute.stride();
-        }
-        Ok(data)
-    }
-
     pub fn setup_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::Buffer, Error>
     {
         let mut list = Vec::new();
@@ -211,7 +192,7 @@ impl Program
             no_vertices = attribute.data().len() / attribute.stride();
         }
 
-        let data = Program::from(&attributes, no_vertices, stride)?;
+        let data = from(&attributes, no_vertices, stride)?;
 
         let buffer = buffer::Buffer::create_vertex_buffer(&self.gl)?;
         buffer.bind();
@@ -276,4 +257,23 @@ impl Drop for Program {
             self.gl.DeleteProgram(self.id);
         }
     }
+}
+
+fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
+{
+    let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
+    unsafe { data.set_len(stride * no_vertices); }
+    let mut offset = 0;
+    for attribute in attributes
+    {
+        for vertex_id in 0..no_vertices
+        {
+            for d in 0..attribute.stride()
+            {
+                data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.stride() + d];
+            }
+        }
+        offset = offset + attribute.stride();
+    }
+    Ok(data)
 }
