@@ -10,3 +10,4 @@ pub mod camera;
 pub mod scene;
 pub mod input;
 pub mod attribute;
+pub mod buffer;

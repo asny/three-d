@@ -5,12 +5,14 @@ use glm;
 use dust::attribute;
 use dust::utility;
 use dust::shader;
+use dust::buffer;
 
 use std::ffi::{CString};
 
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
+    Buffer(buffer::Error),
     FailedToLinkProgram {message: String},
     FailedToCreateCString(std::ffi::NulError),
     FailedToFindPositions {message: String}
@@ -19,6 +21,12 @@ pub enum Error {
 impl From<shader::Error> for Error {
     fn from(other: shader::Error) -> Self {
         Error::Shader(other)
+    }
+}
+
+impl From<buffer::Error> for Error {
+    fn from(other: buffer::Error) -> Self {
+        Error::Buffer(other)
     }
 }
 
@@ -186,14 +194,14 @@ impl Program
         Ok(data)
     }
 
-    pub fn setup_attribute(&self, attribute: &attribute::Attribute) -> Result<(), Error>
+    pub fn setup_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::Buffer, Error>
     {
         let mut list = Vec::new();
         list.push(attribute);
         self.setup_attributes(&list)
     }
 
-    pub fn setup_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<(), Error>
+    pub fn setup_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::Buffer, Error>
     {
         let mut stride = 0;
         let mut no_vertices = 0;
@@ -205,10 +213,10 @@ impl Program
 
         let data = Program::from(&attributes, no_vertices, stride)?;
 
-        let mut vbo: gl::types::GLuint = 0;
+        let buffer = buffer::Buffer::create_vertex_buffer(&self.gl)?;
+        buffer.bind();
+
         unsafe {
-            self.gl.GenBuffers(1, &mut vbo);
-            self.gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
             self.gl.BufferData(
                 gl::ARRAY_BUFFER, // target
                 (stride * no_vertices * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
@@ -234,10 +242,9 @@ impl Program
             offset = offset + attribute.stride();
         }
 
-        unsafe {
-            self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-        }
-        Ok(())
+        buffer.unbind();
+
+        Ok(buffer)
     }
 
     fn get_attribute_location(&self, name: &str) -> Result<i32, Error>

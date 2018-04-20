@@ -33,7 +33,6 @@ impl material::Material for TriangleMaterial
         list.push( mesh.positions());
         list.push(mesh.get("Color")?);
         self.program.setup_attributes(&list)?;
-
         Ok(())
     }
 }
