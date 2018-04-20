@@ -184,6 +184,7 @@ impl Program
 
     pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::Buffer, Error>
     {
+        self.set_used();
         let mut stride = 0;
         let mut no_vertices = 0;
         for attribute in attributes
@@ -210,18 +211,7 @@ impl Program
         // Link the buffer data to the vertex attributes in the shader
         let mut offset: usize = 0;
         for attribute in attributes {
-            let location = self.get_attribute_location(attribute.name())? as gl::types::GLuint;
-            unsafe {
-                self.gl.EnableVertexAttribArray(location);
-                self.gl.VertexAttribPointer(
-                    location, // index of the generic vertex attribute
-                    attribute.stride() as i32, // the number of components per generic vertex attribute
-                    gl::FLOAT, // data type
-                    gl::FALSE, // normalized (int-to-float conversion)
-                    (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-                    (offset * std::mem::size_of::<f32>()) as *const std::os::raw::c_void // offset of the first component
-                );
-            }
+            self.setup_attribute(attribute.name(), attribute.stride(),stride, offset)?;
             offset = offset + attribute.stride();
         }
 
@@ -230,15 +220,22 @@ impl Program
         Ok(buffer)
     }
 
-    fn get_attribute_location(&self, name: &str) -> Result<i32, Error>
+    fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize) -> Result<(), Error>
     {
-        self.set_used();
-        let location: i32;
         let c_str = CString::new(name)?;
         unsafe {
-            location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
+            let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr()) as gl::types::GLuint;
+            self.gl.EnableVertexAttribArray(location);
+            self.gl.VertexAttribPointer(
+                location, // index of the generic vertex attribute
+                no_components as gl::types::GLint, // the number of components per generic vertex attribute
+                gl::FLOAT, // data type
+                gl::FALSE, // normalized (int-to-float conversion)
+                (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+                (offset * std::mem::size_of::<f32>()) as *const std::os::raw::c_void // offset of the first component
+            );
         }
-        Ok(location)
+        Ok(())
     }
 
     pub fn set_used(&self) {
