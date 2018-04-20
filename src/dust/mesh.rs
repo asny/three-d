@@ -1,32 +1,35 @@
-use std::collections::HashMap;
+use dust::attribute;
 use std::string::String;
+use glm;
 
 #[derive(Debug)]
 pub enum Error {
-    FailedToFindCustomAttribute {message: String}
+    FailedToFindCustomAttribute {message: String},
+    Attribute(attribute::Error)
+}
+
+impl From<attribute::Error> for Error {
+    fn from(other: attribute::Error) -> Self {
+        Error::Attribute(other)
+    }
 }
 
 pub struct Mesh {
-    attributes: HashMap<String, Vec<f32>>
+    positions: attribute::Attribute
 }
 
 
 impl Mesh
 {
-    pub fn create(positions: Vec<f32>) -> Result<Mesh, Error>
+    pub fn create(positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
     {
-        let mut mesh = Mesh { attributes: HashMap::new() };
-        mesh.add_custom_attribute("Position", positions);
+        let position_attribute = attribute::Attribute::create_vec3_attribute("Position", positions)?;
+        let mesh = Mesh { positions: position_attribute };
         Ok(mesh)
     }
 
-    pub fn attributes(&self) -> &HashMap<String, Vec<f32>>
+    pub fn positions(&self) -> &attribute::Attribute
     {
-        &self.attributes
-    }
-
-    pub fn add_custom_attribute(&mut self, name: &str, attribute: Vec<f32>)
-    {
-        self.attributes.insert(String::from(name), attribute);
+        &self.positions
     }
 }

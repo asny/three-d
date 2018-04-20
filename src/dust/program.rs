@@ -2,10 +2,10 @@ use gl;
 use std;
 use glm;
 
+use dust::attribute;
 use dust::utility;
 use dust::shader;
 
-use std::collections::HashMap;
 use std::ffi::{CString};
 
 #[derive(Debug)]
@@ -167,36 +167,43 @@ impl Program
         Ok(location)
     }
 
-    fn from(attributes: &HashMap<String, Vec<f32>>) -> Result<Vec<f32>, Error>
+    fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
     {
-        let no_attributes = attributes.len();
-        let no_vertices = (attributes.get("Position").ok_or(Error::FailedToFindPositions {message: format!("All drawables must have an attribute called Position")})?).len() / 3;
-        let stride = 3 * no_attributes;
-
-        let mut data: Vec<f32> = Vec::with_capacity(no_attributes * no_vertices * 3);
-        unsafe { data.set_len(no_attributes * no_vertices * 3); }
+        let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
+        unsafe { data.set_len(stride * no_vertices); }
         let mut offset = 0;
-        for (_key, value) in attributes
+        for attribute in attributes
         {
             for vertex_id in 0..no_vertices
             {
-                for d in 0..3
+                for d in 0..attribute.stride()
                 {
-                    data[offset + vertex_id * stride + d] = value[vertex_id * 3 + d];
+                    data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.stride() + d];
                 }
             }
-            offset = offset + 3;
+            offset = offset + attribute.stride();
         }
         Ok(data)
     }
 
-    pub fn setup_attributes(&self, attributes: &HashMap<String, Vec<f32>>) -> Result<(), Error>
+    pub fn setup_attribute(&self, attribute: &attribute::Attribute) -> Result<(), Error>
     {
-        let no_attributes = attributes.len();
-        let no_vertices = (attributes.get("Position").ok_or(Error::FailedToFindPositions {message: format!("All drawables must have an attribute called Position")})?).len() / 3;
-        let stride = 3 * no_attributes;
+        let mut list = Vec::new();
+        list.push(attribute);
+        self.setup_attributes(&list)
+    }
 
-        let data = Program::from(attributes)?;
+    pub fn setup_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<(), Error>
+    {
+        let mut stride = 0;
+        let mut no_vertices = 0;
+        for attribute in attributes
+        {
+            stride += attribute.stride();
+            no_vertices = attribute.data().len() / attribute.stride();
+        }
+
+        let data = Program::from(&attributes, no_vertices, stride)?;
 
         let mut vbo: gl::types::GLuint = 0;
         unsafe {
@@ -211,20 +218,20 @@ impl Program
         }
 
         let mut offset: usize = 0;
-        for (key, _value) in attributes {
-            let location = self.get_attribute_location(key)? as gl::types::GLuint;
+        for attribute in attributes {
+            let location = self.get_attribute_location(attribute.name())? as gl::types::GLuint;
             unsafe {
                 self.gl.EnableVertexAttribArray(location);
                 self.gl.VertexAttribPointer(
                     location, // index of the generic vertex attribute
-                    3, // the number of components per generic vertex attribute
+                    attribute.stride() as i32, // the number of components per generic vertex attribute
                     gl::FLOAT, // data type
                     gl::FALSE, // normalized (int-to-float conversion)
                     (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
                     (offset * std::mem::size_of::<f32>()) as *const std::os::raw::c_void // offset of the first component
                 );
             }
-            offset = offset + 3;
+            offset = offset + attribute.stride();
         }
 
         unsafe {

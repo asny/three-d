@@ -45,20 +45,20 @@ fn main() {
     let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, -1.0), width, height).unwrap();
 
     // Add triangle model
-    let positions: Vec<f32> = vec![
+    let positions: Vec<glm::Vec3> = vec![
         // positions      // colors
-        0.5, -0.5, 0.0,  // bottom right
-        -0.5, -0.5, 0.0,  // bottom left
-        0.0,  0.5, 0.0,   // top
+        glm::vec3(0.5, -0.5, 0.0),  // bottom right
+        glm::vec3(-0.5, -0.5, 0.0),  // bottom left
+        glm::vec3(0.0,  0.5, 0.0),   // top
     ];
-    let colors: Vec<f32> = vec![
+    let colors: Vec<glm::Vec3> = vec![
         // positions      // colors
-        1.0, 0.0, 0.0,   // bottom right
-        0.0, 1.0, 0.0,   // bottom left
-        0.0, 0.0, 1.0    // top
+        glm::vec3(1.0, 0.0, 0.0),   // bottom right
+        glm::vec3(0.0, 1.0, 0.0),   // bottom left
+        glm::vec3(0.0, 0.0, 1.0)    // top
     ];
     let mut mesh = mesh::Mesh::create(positions).unwrap();
-    mesh.add_custom_attribute("Color", colors);
+    //mesh.add_custom_attribute("Color", colors);
     let material = triangle_material::TriangleMaterial::create(&gl).unwrap();
     let model = model::Model::create(&gl, material, mesh).unwrap();
     scene.add_model(model);
