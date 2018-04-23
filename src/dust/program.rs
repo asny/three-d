@@ -189,8 +189,8 @@ impl Program
         let mut no_vertices = 0;
         for attribute in attributes
         {
-            stride += attribute.stride();
-            no_vertices = attribute.data().len() / attribute.stride();
+            stride += attribute.no_components();
+            no_vertices = attribute.data().len() / attribute.no_components();
         }
 
         // Create and bind buffer
@@ -211,8 +211,8 @@ impl Program
         // Link the buffer data to the vertex attributes in the shader
         let mut offset: usize = 0;
         for attribute in attributes {
-            self.setup_attribute(attribute.name(), attribute.stride(),stride, offset)?;
-            offset = offset + attribute.stride();
+            self.setup_attribute(attribute.name(), attribute.no_components(),stride, offset)?;
+            offset = offset + attribute.no_components();
         }
 
         buffer.unbind();
@@ -267,12 +267,12 @@ fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usi
     {
         for vertex_id in 0..no_vertices
         {
-            for d in 0..attribute.stride()
+            for d in 0..attribute.no_components()
             {
-                data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.stride() + d];
+                data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.no_components() + d];
             }
         }
-        offset = offset + attribute.stride();
+        offset = offset + attribute.no_components();
     }
     Ok(data)
 }

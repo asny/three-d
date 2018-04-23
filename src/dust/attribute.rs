@@ -8,7 +8,7 @@ pub enum Error {
 pub struct Attribute {
     name: String,
     data: Vec<f32>,
-    stride: usize
+    no_components: usize
 }
 
 
@@ -22,7 +22,7 @@ impl Attribute
             d.push(datum.y);
             d.push(datum.z);
         }
-        Ok(Attribute{name: String::from(name), data: d, stride: 3})
+        Ok(Attribute{name: String::from(name), data: d, no_components: 3})
     }
 
     pub fn data(&self) -> &Vec<f32>
@@ -30,9 +30,9 @@ impl Attribute
         &self.data
     }
 
-    pub fn stride(&self) -> usize
+    pub fn no_components(&self) -> usize
     {
-        self.stride
+        self.no_components
     }
 
     pub fn name(&self) -> &str
