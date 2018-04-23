@@ -1,9 +1,9 @@
 use gl;
 use std;
 use std::rc::Rc;
-use dust::material;
+use material;
 use gust::mesh;
-use dust::input;
+use input;
 
 #[derive(Debug)]
 pub enum Error {

@@ -6,7 +6,6 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 [dependencies]
 gust = { git = "https://github.com/asny/Gust" }
 gl = { path = "lib/gl" }
-sdl2 = "0.31.0"
 glm = "0.2.3"
 
 [features]

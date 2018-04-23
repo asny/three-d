@@ -3,9 +3,9 @@ use std;
 use glm;
 
 use gust::attribute;
-use dust::utility;
-use dust::shader;
-use dust::buffer;
+use utility;
+use shader;
+use buffer;
 
 use std::ffi::{CString};
 

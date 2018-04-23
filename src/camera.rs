@@ -1,7 +1,7 @@
 use gl;
 use glm;
-use dust::scene;
-use dust::input;
+use scene;
+use input;
 
 #[derive(Debug)]
 pub enum Error {

@@ -1,5 +1,5 @@
-use dust::program;
-use dust::input;
+use program;
+use input;
 use gust::mesh;
 use gl;
 
