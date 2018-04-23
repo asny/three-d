@@ -39,6 +39,7 @@ impl Model
 
     pub fn update_attributes(&self) -> Result<(), Error>
     {
+        // TODO: Update the attributes in the relevant vertex buffers
         Ok(())
     }
 
