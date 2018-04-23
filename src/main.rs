@@ -1,6 +1,7 @@
 extern crate sdl2;
 extern crate gl;
 extern crate glm;
+extern crate gust;
 
 use std::process;
 
@@ -9,6 +10,7 @@ use sdl2::keyboard::Keycode;
 
 pub mod dust;
 use dust::*;
+use gust::*;
 pub mod triangle_material;
 
 #[cfg(target_os = "emscripten")]

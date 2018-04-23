@@ -2,7 +2,7 @@ use gl;
 use std;
 use std::rc::Rc;
 use dust::material;
-use dust::mesh;
+use gust::mesh;
 use dust::input;
 
 #[derive(Debug)]

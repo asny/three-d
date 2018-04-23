@@ -2,7 +2,7 @@ use dust::program;
 use gl;
 use dust::input;
 use dust::material;
-use dust::mesh;
+use gust::mesh;
 use std::rc::Rc;
 use dust::state;
 

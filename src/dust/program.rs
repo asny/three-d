@@ -2,7 +2,7 @@ use gl;
 use std;
 use glm;
 
-use dust::attribute;
+use gust::attribute;
 use dust::utility;
 use dust::shader;
 use dust::buffer;

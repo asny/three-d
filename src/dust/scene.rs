@@ -1,6 +1,6 @@
 use dust::model;
 use dust::input;
-use dust::mesh;
+use gust::mesh;
 use dust::material;
 use std::rc::Rc;
 use gl;

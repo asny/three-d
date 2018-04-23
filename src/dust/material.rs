@@ -1,6 +1,6 @@
 use dust::program;
 use dust::input;
-use dust::mesh;
+use gust::mesh;
 use gl;
 
 #[derive(Debug)]

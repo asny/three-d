@@ -27,6 +27,7 @@ version = "0.1.0"
 dependencies = [
  "gl 0.1.0",
  "glm 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gust 0.1.0",
  "sdl2 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -78,6 +79,13 @@ dependencies = [
  "num 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
  "quickcheck 0.2.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "gust"
+version = "0.1.0"
+dependencies = [
+ "glm 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
