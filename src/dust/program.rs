@@ -230,7 +230,7 @@ impl Program
 
     pub fn set_used(&self) {
         unsafe {
-            static mut CURRENTLY_USED: gl::types::GLuint = 1000000 as u32;
+            static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
             if self.id != CURRENTLY_USED
             {
                 self.gl.UseProgram(self.id);

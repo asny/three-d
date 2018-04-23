@@ -41,7 +41,7 @@ impl VertexBuffer
     fn bind(&self)
     {
         unsafe {
-            static mut CURRENTLY_USED: gl::types::GLuint = 1000000 as u32;
+            static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
             if self.id != CURRENTLY_USED
             {
                 self.gl.BindBuffer(gl::ARRAY_BUFFER, self.id);

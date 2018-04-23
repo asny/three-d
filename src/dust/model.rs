@@ -1,4 +1,5 @@
 use gl;
+use std;
 use std::rc::Rc;
 use dust::material;
 use dust::mesh;
@@ -26,14 +27,13 @@ impl Model
 {
     pub fn create(gl: &gl::Gl, material: Rc<material::Material>, mesh: mesh::Mesh) -> Result<Model, Error>
     {
-        let mut vao: gl::types::GLuint = 0;
+        let mut id: gl::types::GLuint = 0;
         unsafe {
-            gl.GenVertexArrays(1, &mut vao);
-            gl.BindVertexArray(vao);
+            gl.GenVertexArrays(1, &mut id);
         }
-        material.setup_attributes(&mesh)?;
-        let model = Model { gl: gl.clone(), id: vao, material: material, mesh: mesh };
-
+        let model = Model { gl: gl.clone(), id, material, mesh };
+        model.bind();
+        model.material.setup_attributes(&model.mesh)?;
         Ok(model)
     }
 
@@ -49,8 +49,8 @@ impl Model
         self.material.setup_states()?;
         self.material.setup_uniforms(&input)?;
 
+        self.bind();
         unsafe {
-            self.gl.BindVertexArray(self.id);
             self.gl.DrawArrays(
                 gl::TRIANGLES, // mode
                 0, // starting index in the enabled arrays
@@ -59,4 +59,17 @@ impl Model
         }
         Ok(())
     }
+
+    fn bind(&self)
+    {
+        unsafe {
+            static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
+            if self.id != CURRENTLY_USED
+            {
+                self.gl.BindVertexArray(self.id);
+                CURRENTLY_USED = self.id;
+            }
+        }
+    }
+
 }
