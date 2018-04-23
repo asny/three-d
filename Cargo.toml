@@ -4,9 +4,8 @@ version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 
 [dependencies]
-gust = { git = "https://github.com/asny/Gust" }
+gust = { path = "../Gust" }
 gl = { path = "lib/gl" }
-glm = "0.2.3"
 
 [features]
 gl_debug = ["gl/debug"]

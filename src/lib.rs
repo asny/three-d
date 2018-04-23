@@ -1,7 +1,8 @@
 
-extern crate glm;
 pub extern crate gl;
-extern crate gust;
+pub extern crate gust;
+pub use gust::glm;
+pub use gust::*;
 
 pub mod loader;
 pub mod model;
