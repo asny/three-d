@@ -175,14 +175,14 @@ impl Program
         Ok(location)
     }
 
-    pub fn add_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::Buffer, Error>
+    pub fn add_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::VertexBuffer, Error>
     {
         let mut list = Vec::new();
         list.push(attribute);
         self.add_attributes(&list)
     }
 
-    pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::Buffer, Error>
+    pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
     {
         self.set_used();
         let mut stride = 0;
@@ -194,19 +194,11 @@ impl Program
         }
 
         // Create and bind buffer
-        let buffer = buffer::Buffer::create_vertex_buffer(&self.gl)?;
-        buffer.bind();
+        let buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
         let data = from(&attributes, no_vertices, stride)?;
-        unsafe {
-            self.gl.BufferData(
-                gl::ARRAY_BUFFER, // target
-                (stride * no_vertices * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
-                data.as_ptr() as *const gl::types::GLvoid, // pointer to data
-                gl::STATIC_DRAW, // usage
-            );
-        }
+        buffer.fill_with(&data);
 
         // Link the buffer data to the vertex attributes in the shader
         let mut offset: usize = 0;
@@ -214,8 +206,6 @@ impl Program
             self.setup_attribute(attribute.name(), attribute.no_components(),stride, offset)?;
             offset = offset + attribute.no_components();
         }
-
-        buffer.unbind();
 
         Ok(buffer)
     }
