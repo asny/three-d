@@ -1,5 +1,9 @@
 use dust::model;
 use dust::input;
+use dust::mesh;
+use dust::material;
+use std::rc::Rc;
+use gl;
 
 #[derive(Debug)]
 pub enum Error {
@@ -24,9 +28,11 @@ impl Scene
         Ok(Scene { models: Vec::new() })
     }
 
-    pub fn add_model(&mut self, model: model::Model)
+    pub fn add_model(&mut self, gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Material>) -> Result<(), Error>
     {
+        let model = model::Model::create(&gl, mesh, material)?;
         &self.models.push(model);
+        Ok(())
     }
 
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>

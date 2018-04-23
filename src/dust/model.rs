@@ -25,7 +25,7 @@ pub struct Model {
 
 impl Model
 {
-    pub fn create(gl: &gl::Gl, material: Rc<material::Material>, mesh: mesh::Mesh) -> Result<Model, Error>
+    pub fn create(gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Material>) -> Result<Model, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
