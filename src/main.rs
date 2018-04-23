@@ -48,8 +48,8 @@ fn main() {
     let positions: Vec<glm::Vec3> = vec![
         // positions      // colors
         glm::vec3(0.5, -0.5, 0.0),  // bottom right
-        glm::vec3(-0.5, -0.5, 0.0),  // bottom left
         glm::vec3(0.0,  0.5, 0.0),   // top
+        glm::vec3(-0.5, -0.5, 0.0),  // bottom left
     ];
     let colors: Vec<glm::Vec3> = vec![
         // positions      // colors

@@ -1,6 +1,7 @@
 use dust::program;
 use dust::input;
 use dust::mesh;
+use gl;
 
 #[derive(Debug)]
 pub enum Error {
@@ -22,7 +23,7 @@ impl From<mesh::Error> for Error {
 
 pub trait Material {
     fn apply(&self);
-    fn setup_states(&self) -> Result<(), Error>;
+    fn setup_states(&self, gl: &gl::Gl) -> Result<(), Error>;
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), Error>;
     fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), Error>;
 }

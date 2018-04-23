@@ -4,6 +4,7 @@ use dust::input;
 use dust::material;
 use dust::mesh;
 use std::rc::Rc;
+use dust::state;
 
 pub struct TriangleMaterial {
     program: program::Program
@@ -16,7 +17,8 @@ impl material::Material for TriangleMaterial
         self.program.set_used();
     }
 
-    fn setup_states(&self) -> Result<(), material::Error> {
+    fn setup_states(&self, gl: &gl::Gl) -> Result<(), material::Error> {
+        state::cull_back_faces(gl, true);
         Ok(())
     }
 

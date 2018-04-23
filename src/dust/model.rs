@@ -46,7 +46,7 @@ impl Model
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
     {
         self.material.apply();
-        self.material.setup_states()?;
+        self.material.setup_states(&self.gl)?;
         self.material.setup_uniforms(&input)?;
 
         self.bind();
