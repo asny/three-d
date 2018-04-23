@@ -52,8 +52,10 @@ impl Mesh
         Err(Error::FailedToFindCustomAttribute{message: format!("Failed to find {} attribute", name)})
     }
 
-    pub fn add_custom_attribute(&mut self, attribute: attribute::Attribute)
+    pub fn add_custom_attribute(&mut self, name: &str, data: Vec<glm::Vec3>) -> Result<(), Error>
     {
-        self.custom_attributes.push(attribute);
+        let custom_attribute = attribute::Attribute::create_vec3_attribute(name, data)?;
+        self.custom_attributes.push(custom_attribute);
+        Ok(())
     }
 }
