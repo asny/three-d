@@ -50,11 +50,13 @@ impl Model
         self.material.setup_uniforms(&input)?;
 
         self.bind();
+        let draw_mode = self.get_draw_mode();
+        let no_indices = self.mesh.no_vertices();
         unsafe {
             self.gl.DrawArrays(
-                gl::TRIANGLES, // mode
+                draw_mode, // mode
                 0, // starting index in the enabled arrays
-                3 // number of indices to be rendered
+                no_indices as i32 // number of indices to be rendered
             );
         }
         Ok(())
@@ -72,4 +74,8 @@ impl Model
         }
     }
 
+    fn get_draw_mode(&self) -> u32
+    {
+        gl::TRIANGLES
+    }
 }
