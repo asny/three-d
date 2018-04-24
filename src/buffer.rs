@@ -32,7 +32,7 @@ impl VertexBuffer
                 gl::ARRAY_BUFFER, // target
                 (data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
                 data.as_ptr() as *const gl::types::GLvoid, // pointer to data
-                gl::STATIC_DRAW, // usage
+                gl::STATIC_DRAW // usage
             );
         }
     }
@@ -65,7 +65,7 @@ impl ElementBuffer
                 gl::ELEMENT_ARRAY_BUFFER, // target
                 (data.len() * std::mem::size_of::<u32>()) as gl::types::GLsizeiptr, // size of data in bytes
                 data.as_ptr() as *const gl::types::GLvoid, // pointer to data
-                gl::STATIC_DRAW, // usage
+                gl::STATIC_DRAW // usage
             );
         }
     }
