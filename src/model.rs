@@ -67,7 +67,7 @@ impl Model
             self.gl.DrawElements(
                 draw_mode, // mode
                 self.mesh.indices().len() as i32, // number of indices to be rendered
-                gl::UNSIGNED_INT,
+                gl::UNSIGNED_SHORT,
                 std::ptr::null() // starting index in the enabled arrays
             );
         }

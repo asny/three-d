@@ -57,13 +57,13 @@ impl ElementBuffer
         Ok(buffer)
     }
 
-    pub fn fill_with(&self, data: &Vec<u32>)
+    pub fn fill_with(&self, data: &Vec<u16>)
     {
         bind(&self.gl, self.id, gl::ELEMENT_ARRAY_BUFFER);
         unsafe {
             self.gl.BufferData(
                 gl::ELEMENT_ARRAY_BUFFER, // target
-                (data.len() * std::mem::size_of::<u32>()) as gl::types::GLsizeiptr, // size of data in bytes
+                (data.len() * std::mem::size_of::<u16>()) as gl::types::GLsizeiptr, // size of data in bytes
                 data.as_ptr() as *const gl::types::GLvoid, // pointer to data
                 gl::STATIC_DRAW // usage
             );
