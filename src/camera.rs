@@ -54,6 +54,11 @@ impl Camera
         self.position
     }
 
+    pub fn target(&self) -> glm::Vec3
+    {
+        self.target
+    }
+
     pub fn direction(&self) -> glm::Vec3
     {
         glm::normalize(self.target - self.position)
