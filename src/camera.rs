@@ -49,6 +49,16 @@ impl Camera
         self.target = target;
     }
 
+    pub fn position(&self) -> glm::Vec3
+    {
+        self.position
+    }
+
+    pub fn direction(&self) -> glm::Vec3
+    {
+        glm::normalize(self.target - self.position)
+    }
+
     pub fn draw(&self, scene: &scene::Scene) -> Result<(), Error>
     {
         unsafe {

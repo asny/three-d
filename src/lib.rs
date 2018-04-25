@@ -15,6 +15,7 @@ pub mod program;
 pub mod input;
 pub mod state;
 
+pub mod eventhandler;
 pub mod camera;
 pub mod scene;
 
