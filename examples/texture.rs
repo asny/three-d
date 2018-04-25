@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod triangle_material;
+mod texture_material;
 
 use std::process;
 
@@ -54,7 +54,7 @@ fn main() {
 
     let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
     mesh.add_custom_attribute("Color", colors).unwrap();
-    let material = triangle_material::TriangleMaterial::create(&gl).unwrap();
+    let material = texture_material::TextureMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 
     unsafe {

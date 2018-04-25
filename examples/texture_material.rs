@@ -7,12 +7,12 @@ use std::rc::Rc;
 use dust::state;
 use dust::texture;
 
-pub struct TriangleMaterial {
+pub struct TextureMaterial {
     program: program::Program,
     texture: texture::Texture
 }
 
-impl material::Material for TriangleMaterial
+impl material::Material for TextureMaterial
 {
     fn apply(&self)
     {
@@ -43,11 +43,11 @@ impl material::Material for TriangleMaterial
     }
 }
 
-impl TriangleMaterial
+impl TextureMaterial
 {
     pub fn create(gl: &gl::Gl) -> Result<Rc<material::Material>, material::Error>
     {
-        let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/triangle")?;
+        let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/texture")?;
         let mut texture = texture::Texture::create(&gl).unwrap();
 
         let tex_data: Vec<f32> = vec![
@@ -56,6 +56,6 @@ impl TriangleMaterial
 
         texture.fill_with(&tex_data, 4, 4);
 
-        Ok(Rc::new(TriangleMaterial { program: shader_program, texture }))
+        Ok(Rc::new(TextureMaterial { program: shader_program, texture }))
     }
 }
