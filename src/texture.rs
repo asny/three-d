@@ -30,7 +30,7 @@ impl Texture
         }
     }
 
-    pub fn fill_with(&self, data: &Vec<f32>, width: u32, height: u32)
+    pub fn fill_with(&mut self, data: &Vec<f32>, width: u32, height: u32)
     {
         self.bind();
         unsafe {
@@ -43,6 +43,11 @@ impl Texture
                              gl::RED,
                              gl::FLOAT,
                              data.as_ptr() as *const gl::types::GLvoid);
+
+            self.gl.TexParameteri(self.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            self.gl.TexParameteri(self.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            self.gl.TexParameteri(self.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+            self.gl.TexParameteri(self.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
         }
     }
 
