@@ -45,6 +45,14 @@ impl Texture
                              data.as_ptr() as *const gl::types::GLvoid);
         }
     }
+
+    pub fn bind_at(&self, location: u32)
+    {
+        unsafe {
+            self.gl.ActiveTexture(gl::TEXTURE0 + location);
+        }
+        self.bind();
+    }
 }
 
 impl Drop for Texture {
