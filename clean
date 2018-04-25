@@ -1,0 +1,10 @@
+#!/bin/sh
+
+cargo clean
+rm -f *.html
+rm -f *.data
+rm -f *.html.map
+rm -f *.js
+rm -f *.wasm
+rm -f *.wasm.map
+rm -f *.wast

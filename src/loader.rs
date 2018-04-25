@@ -23,7 +23,7 @@ impl From<string::FromUtf8Error> for Error {
 
 pub fn load_string(resource_name: &str) -> Result<String, Error>
 {
-    let root_path: PathBuf = PathBuf::from("./");
+    let root_path: PathBuf = PathBuf::from("");
     let mut file = fs::File::open(
         resource_name_to_path(&root_path,resource_name)
     )?;
