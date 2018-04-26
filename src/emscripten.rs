@@ -4,7 +4,7 @@ pub mod emscripten {
     use std::cell::RefCell;
     use std::ptr::null_mut;
     use std::os::raw::c_void;
-    use std::ffi::CStr;
+    use std::ffi::{CStr, CString};
     use emscripten_sys::{emscripten_set_main_loop, emscripten_async_wget, emscripten_async_wget_data};
 
     thread_local!(static MAIN_LOOP_CALLBACK: RefCell<*mut c_void> = RefCell::new(null_mut()));
@@ -38,8 +38,8 @@ pub mod emscripten {
         });
 
         unsafe {
-            let out = 0 as *const ::std::os::raw::c_char;
-            emscripten_async_wget(name.as_ptr() as *const ::std::os::raw::c_char,
+            let out = CString::new("").unwrap().as_ptr();
+            emscripten_async_wget(CString::new(name).unwrap().as_ptr(),
                                        out,
                                        Some(on_load_wrapper::<F>),
                                        Some(on_error_wrapper::<E>));
