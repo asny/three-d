@@ -42,7 +42,7 @@ pub mod emscripten {
             emscripten_async_wget(name.as_ptr() as *const ::std::os::raw::c_char,
                                        out,
                                        Some(on_load_wrapper::<F>),
-                                       Some(on_error_wrapper::<F>));
+                                       Some(on_error_wrapper::<E>));
         }
 
         unsafe extern "C" fn on_load_wrapper<F>(char_ptr: *const ::std::os::raw::c_char) where F: FnMut(String)
