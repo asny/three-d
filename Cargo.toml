@@ -6,6 +6,7 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 [dependencies]
 gust = { path = "../Gust" }
 gl = { path = "lib/gl" }
+sdl2 = "0.31.0"
 
 [features]
 gl_debug = ["gl/debug"]
