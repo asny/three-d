@@ -4,6 +4,7 @@ pub mod emscripten {
     use std::cell::RefCell;
     use std::ptr::null_mut;
     use std::os::raw::c_void;
+    use std::ffi::CStr;
     use emscripten_sys::{emscripten_set_main_loop, emscripten_async_wget, emscripten_async_wget_data};
 
     thread_local!(static MAIN_LOOP_CALLBACK: RefCell<*mut c_void> = RefCell::new(null_mut()));
@@ -24,26 +25,41 @@ pub mod emscripten {
     }
 
     thread_local!(static ON_LOAD_CALLBACK: RefCell<*mut c_void> = RefCell::new(null_mut()));
+    thread_local!(static ON_ERROR_CALLBACK: RefCell<*mut c_void> = RefCell::new(null_mut()));
 
-    pub fn async_wget_data<F, E>(name: &str, on_load: F, on_error: E) where F: FnMut(String), E: FnOnce(String)
+    pub fn async_wget_data<F, E>(name: &str, on_load: F, on_error: E) where F: FnMut(String), E: FnMut(String)
     {
         ON_LOAD_CALLBACK.with(|log| {
             *log.borrow_mut() = &on_load as *const _ as *mut c_void;
+        });
+
+        ON_ERROR_CALLBACK.with(|log| {
+            *log.borrow_mut() = &on_error as *const _ as *mut c_void;
         });
 
         unsafe {
             let out = 0 as *const ::std::os::raw::c_char;
             emscripten_async_wget(name.as_ptr() as *const ::std::os::raw::c_char,
                                        out,
-                                       Some(str_callback_wrapper::<F>),
-                                       Some(str_callback_wrapper::<F>));
+                                       Some(on_load_wrapper::<F>),
+                                       Some(on_error_wrapper::<F>));
         }
 
-        unsafe extern "C" fn str_callback_wrapper<F>(arg1: *const ::std::os::raw::c_char) where F: FnMut(String)
+        unsafe extern "C" fn on_load_wrapper<F>(char_ptr: *const ::std::os::raw::c_char) where F: FnMut(String)
         {
+            let arg = CStr::from_ptr(char_ptr).to_str().unwrap().to_string();
             ON_LOAD_CALLBACK.with(|z| {
                 let closure = *z.borrow_mut() as *mut F;
-                (*closure)(String::from("Hej"));
+                (*closure)(arg);
+            });
+        }
+
+        unsafe extern "C" fn on_error_wrapper<E>(char_ptr: *const ::std::os::raw::c_char) where E: FnMut(String)
+        {
+            let arg = CStr::from_ptr(char_ptr).to_str().unwrap().to_string();
+            ON_ERROR_CALLBACK.with(|z| {
+                let closure = *z.borrow_mut() as *mut E;
+                (*closure)(arg);
             });
         }
     }
