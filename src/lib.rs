@@ -19,9 +19,10 @@ pub mod texture;
 pub mod eventhandler;
 pub mod camera;
 pub mod scene;
+pub mod renderer;
 
 #[cfg(target_os = "emscripten")]
 extern crate emscripten_sys;
 
 #[cfg(target_os = "emscripten")]
-pub mod emscripten;
+mod emscripten;

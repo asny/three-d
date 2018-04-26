@@ -92,12 +92,5 @@ fn main() {
         window.gl_swap_window();
     };
 
-    #[cfg(target_os = "emscripten")]
-    {
-        use emscripten::{emscripten};
-        emscripten::set_main_loop_callback(main_loop);
-    }
-
-    #[cfg(not(target_os = "emscripten"))]
-    loop { main_loop(); }
+    renderer::set_main_loop(main_loop);
 }
