@@ -65,7 +65,7 @@ fn main() {
     let mut events = ctx.event_pump().unwrap();
 
     // main loop
-    let mut main_loop = || {
+    let main_loop = || {
         for event in events.poll_iter() {
             match event {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
