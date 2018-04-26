@@ -79,7 +79,7 @@ fn main() {
 
                     };
                     println!("Reading file");
-                    renderer::load("box.txt", on_load);
+                    loader::load("box.txt", on_load);
 
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {

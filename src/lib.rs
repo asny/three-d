@@ -4,7 +4,7 @@ pub extern crate gust;
 pub use gust::glm;
 pub use gust::mesh;
 
-mod loader;
+pub mod loader;
 mod model;
 mod buffer;
 mod shader;
