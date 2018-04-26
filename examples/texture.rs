@@ -72,6 +72,15 @@ fn main() {
                     process::exit(1);
                 },
                 Event::KeyDown {keycode: Some(Keycode::R), ..} => {
+
+                    let on_load = |data: String| {
+
+                        println!("Box loaded sucessfully {}", data);
+
+                    };
+                    println!("Reading file");
+                    renderer::load("box.txt", on_load);
+
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
