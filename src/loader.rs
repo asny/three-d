@@ -58,10 +58,8 @@ fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
 #[cfg(target_os = "emscripten")]
 pub fn load<F>(name: &str, on_load: F) where F: FnMut(String)
 {
-    let on_error = |data: String| {
-
-        println!("Error {}", data);
-
+    let on_error = |cause: String| {
+        panic!(cause);
     };
     use emscripten::{emscripten};
     emscripten::async_wget_data(name, on_load, on_error);

@@ -74,12 +74,11 @@ fn main() {
                 Event::KeyDown {keycode: Some(Keycode::R), ..} => {
 
                     let on_load = |data: String| {
-
-                        println!("Box loaded sucessfully {}", data);
-
+                        println!("Box loaded sucessfully: {}", data);
                     };
                     println!("Reading file");
                     loader::load("box.txt", on_load);
+                    println!("End reading file");
 
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
