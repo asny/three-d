@@ -21,4 +21,7 @@ pub mod camera;
 pub mod scene;
 
 #[cfg(target_os = "emscripten")]
+extern crate emscripten_sys;
+
+#[cfg(target_os = "emscripten")]
 pub mod emscripten;
