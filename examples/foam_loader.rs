@@ -6,8 +6,9 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
 {
     let on_l = |text: Box<BufRead>|
     {
-        let mut meta_data = MetaData {format: FORMAT::NONE, file_type: FILE_TYPE::NONE};
+        let mut meta_data = MetaData {format: FORMAT::NONE, file_type: FILETYPE::NONE};
         let mut data= Vec::new();
+        let mut should_read_data = false;
         for line in text.lines()
         {
             let l = line.unwrap();
@@ -18,8 +19,17 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
 
             if words.len() > 0
             {
-                read_meta_data(&words, &mut meta_data);
-                read_data::<u32>(&words, &mut data);
+                if *words.first().unwrap() == "//"
+                {
+                    should_read_data = !should_read_data;
+                }
+                if should_read_data
+                {
+                    read_data::<u32>(&words, &mut data);
+                }
+                else {
+                    read_meta_data(&words, &mut meta_data);
+                }
             }
         }
         println!("Format: {:?}", meta_data.format);
@@ -33,11 +43,11 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
 enum FORMAT {ASCII, BINARY, NONE}
 
 #[derive(Debug)]
-enum FILE_TYPE {OWNER, NONE}
+enum FILETYPE {OWNER, NONE}
 
 struct MetaData {
     format: FORMAT,
-    file_type: FILE_TYPE
+    file_type: FILETYPE
 }
 
 fn read_meta_data(words: &Vec<&str>, meta_data: &mut MetaData)
@@ -51,8 +61,8 @@ fn read_meta_data(words: &Vec<&str>, meta_data: &mut MetaData)
                 _ => FORMAT::NONE
             }},
             "object" => { meta_data.file_type = match words[1] {
-                "owner;" => FILE_TYPE::OWNER,
-                _ => FILE_TYPE::NONE
+                "owner;" => FILETYPE::OWNER,
+                _ => FILETYPE::NONE
             }},
             &_ => {}
         }
