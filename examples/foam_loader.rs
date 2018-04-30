@@ -4,69 +4,37 @@ use std::str;
 
 pub fn load<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::FromStr
 {
-    let on_l = |text: Box<BufRead>|
+    loader::load( name, |text: Box<BufRead>|
     {
         println!("");
         println!("Loading: {}", name);
-        let mut meta_data = MetaData {format: FORMAT::NONE, file_type: FILETYPE::NONE};
-        let mut lines_iter = text.lines();
-        loop
+        let mut meta_data = MetaData {format: FORMAT::NONE, file_type: FILETYPE::NONE, no_attributes: -1};
+        let mut data = Vec::new();
+        let mut reading_data = false;
+        for line in text.lines()
         {
-            let line = lines_iter.next().unwrap().unwrap();
-            let mut words: Vec<&str> = line.trim().split(' ').map(|s| s.trim()).collect();
-            words.retain(|&i| i != "");
+            let l = line.unwrap();
+            let mut words: Vec<&str> = l.trim().split(|x| (x == ' ') || (x == '(') || (x == ')') ).map(|s| s.trim()).collect();
+            words.retain(|&i| i != "" && i != ")" && i != "(");
 
             if words.len() > 0
             {
                 if *words.first().unwrap() == "//"
                 {
-                    break;
+                    reading_data = true;
                 }
-                read_meta_data_into(&words, &mut meta_data);
-            }
-        }
-        let data = read_data::<T>(&mut lines_iter);
-        on_load(data);
-        println!("Format: {:?}", meta_data.format);
-    };
-    loader::load(name, on_l);
-}
-
-fn read_data<T>(lines_iter: &mut Lines<Box<BufRead>>) -> Vec<T> where T: str::FromStr
-{
-    let mut data = Vec::new();
-    let mut no_attributes = -1;
-    loop
-    {
-        let line = lines_iter.next().unwrap().unwrap();
-        let mut words: Vec<&str> = line.trim().split(|x| (x == ' ') || (x == '(') || (x == ')') ).map(|s| s.trim()).collect();
-        words.retain(|&i| i != "" && i != ")" && i != "(");
-
-        if words.len() > 0
-        {
-            if *words.first().unwrap() == "//"
-            {
-                break;
-            }
-
-            for word in words {
-                if no_attributes == -1
+                if !reading_data
                 {
-                    match word.parse::<i32>() {
-                        Ok  (i) => { no_attributes = i },
-                        Err(..) => {},
-                    }
+                    read_meta_data_into(&words, &mut meta_data);
                 }
                 else {
-                    match word.parse::<T>() {
-                        Ok  (i) => {data.push(i)},
-                        Err(..) => {},
-                    }
+                    read_data_into(&words, &mut meta_data, &mut data);
                 }
             }
         }
-    }
-    data
+        on_load(data);
+        println!("Format: {:?}", meta_data.format);
+    });
 }
 
 #[derive(Debug)]
@@ -77,7 +45,27 @@ enum FILETYPE {POINTS, OWNER, NONE}
 
 struct MetaData {
     format: FORMAT,
-    file_type: FILETYPE
+    file_type: FILETYPE,
+    no_attributes: i32
+}
+
+fn read_data_into<T>(words: &Vec<&str>, meta_data: &mut MetaData, data: &mut Vec<T>) where T: str::FromStr
+{
+    for word in words {
+        if meta_data.no_attributes == -1
+        {
+            match word.parse::<i32>() {
+                Ok  (i) => { meta_data.no_attributes = i },
+                Err(..) => {},
+            }
+        }
+        else {
+            match word.parse::<T>() {
+                Ok  (i) => {data.push(i)},
+                Err(..) => {},
+            }
+        }
+    }
 }
 
 fn read_meta_data_into(words: &Vec<&str>, meta_data: &mut MetaData)
