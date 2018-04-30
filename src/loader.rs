@@ -23,6 +23,13 @@ impl From<string::FromUtf8Error> for Error {
 
 pub fn load_string(resource_name: &str) -> Result<String, Error>
 {
+    let buffer = load_buffer(resource_name)?;
+    let str = String::from_utf8(buffer)?;
+    Ok(str)
+}
+
+pub fn load_buffer(resource_name: &str) -> Result<Vec<u8>, Error>
+{
     let root_path: PathBuf = PathBuf::from("");
     let mut file = fs::File::open(
         resource_name_to_path(&root_path,resource_name)
@@ -38,9 +45,7 @@ pub fn load_string(resource_name: &str) -> Result<String, Error>
     if buffer.iter().find(|i| **i == 0).is_some() {
         return Err(Error::FileContainsNil);
     }
-
-    let str = String::from_utf8(buffer)?;
-    Ok(str)
+    Ok(buffer)
 }
 
 use std::path::Path;
@@ -56,11 +61,11 @@ fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
 }
 
 #[cfg(target_os = "emscripten")]
-pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
+pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(Vec<u8>)
 {
     let on_l = |temp: String| {
         use loader;
-        let data = loader::load_string(temp.as_str()).unwrap();
+        let data = load_buffer(temp.as_str()).unwrap();
         on_load(data);
     };
     let on_error = |cause: String| {
@@ -71,9 +76,9 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
 }
 
 #[cfg(not(target_os = "emscripten"))]
-pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
+pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(Vec<u8>)
 {
     use loader;
-    let data = loader::load_string(name).unwrap();
+    let data = load_buffer(name).unwrap();
     on_load(data);
 }

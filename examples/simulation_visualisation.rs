@@ -2,6 +2,7 @@ extern crate sdl2;
 extern crate dust;
 
 mod simulation_material;
+mod foam_loader;
 
 use std::process;
 
@@ -63,7 +64,7 @@ fn main() {
                         println!("Box loaded sucessfully: {}", data);
                     };
                     println!("Reading file");
-                    loader::load("box.txt", on_load);
+                    foam_loader::load("user/openfoam/constant/polyMesh/owner", on_load);
                     println!("End reading file");
 
                 },
