@@ -58,17 +58,9 @@ fn main() {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
                 },
-                Event::KeyDown {keycode: Some(Keycode::R), ..} => {
-
-                    let on_load = |data: String| {
-                        println!("Data loaded sucessfully: {}", data);
-                    };
-                    foam_loader::load("user/openfoam/constant/polyMesh/owner", on_load);
-                    let on_load2 = |data: String| {
-                        println!("Data loaded sucessfully: {}", data);
-                    };
-                    foam_loader::load("user/openfoam/constant/polyMesh/points", on_load2);
-
+                Event::KeyDown {keycode: Some(Keycode::R), ..} =>
+                {
+                    add_model_from_foam(&mut scene);
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
@@ -90,4 +82,18 @@ fn main() {
     };
 
     renderer::set_main_loop(main_loop);
+}
+
+fn add_model_from_foam(scene: &mut scene::Scene)
+{
+    foam_loader::load("user/openfoam/constant/polyMesh/points", |data: Vec<f32>|
+        {
+            println!("{:?}", data);
+            foam_loader::load("user/openfoam/constant/polyMesh/owner", |owner: Vec<u32>|
+                {
+                    println!("{:?}", owner);
+                }
+            );
+        }
+    );
 }

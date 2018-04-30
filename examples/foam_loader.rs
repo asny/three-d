@@ -2,7 +2,7 @@ use dust::loader;
 use std::io::{BufRead, Lines};
 use std::str;
 
-pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
+pub fn load<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::FromStr
 {
     let on_l = |text: Box<BufRead>|
     {
@@ -25,11 +25,8 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
                 read_meta_data_into(&words, &mut meta_data);
             }
         }
-        match meta_data.file_type {
-            FILETYPE::OWNER => { let data = read_data::<u32>(&mut lines_iter); on_load(String::from(format!("Data: {:?}", data))); },
-            FILETYPE::POINTS => { let data = read_data::<f32>(&mut lines_iter); on_load(String::from(format!("Data: {:?}", data))); },
-            FILETYPE::NONE => {}
-        };
+        let data = read_data::<T>(&mut lines_iter);
+        on_load(data);
         println!("Format: {:?}", meta_data.format);
     };
     loader::load(name, on_l);
