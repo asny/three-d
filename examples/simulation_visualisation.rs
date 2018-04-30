@@ -86,12 +86,12 @@ fn main() {
 
 fn add_model_from_foam(scene: &mut scene::Scene)
 {
-    foam_loader::load("user/openfoam/constant/polyMesh/points", |data: Vec<f32>|
+    foam_loader::load("user/openfoam/constant/polyMesh/points", |points: Vec<f32>|
         {
-            println!("{:?}", data);
-            foam_loader::load("user/openfoam/constant/polyMesh/owner", |owner: Vec<u32>|
+            println!("{:?}", points);
+            foam_loader::load("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>|
                 {
-                    println!("{:?}", owner);
+                    println!("{:?}", faces);
                 }
             );
         }

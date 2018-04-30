@@ -28,12 +28,18 @@ pub fn load<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::Fr
                     read_meta_data_into(&words, &mut meta_data);
                 }
                 else {
+
+                    match meta_data.file_type {
+                         FILETYPE::FACES => { words = words[1..].to_vec(); },
+                        _ => {}
+                    }
                     read_data_into(&words, &mut meta_data, &mut data);
                 }
             }
         }
-        on_load(data);
         println!("Format: {:?}", meta_data.format);
+        println!("File type: {:?}", meta_data.file_type);
+        on_load(data);
     });
 }
 
@@ -41,7 +47,7 @@ pub fn load<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::Fr
 enum FORMAT {ASCII, BINARY, NONE}
 
 #[derive(Debug)]
-enum FILETYPE {POINTS, OWNER, NONE}
+enum FILETYPE {POINTS, FACES, OWNER, NONE}
 
 struct MetaData {
     format: FORMAT,
@@ -81,6 +87,7 @@ fn read_meta_data_into(words: &Vec<&str>, meta_data: &mut MetaData)
             "object" => { meta_data.file_type = match words[1] {
                 "owner;" => FILETYPE::OWNER,
                 "points;" => FILETYPE::POINTS,
+                "faces;" => FILETYPE::FACES,
                 _ => FILETYPE::NONE
             }},
             &_ => {}
