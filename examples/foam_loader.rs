@@ -27,7 +27,7 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
         }
         match meta_data.file_type {
             FILETYPE::OWNER => { let data = read_data::<u32>(&mut lines_iter); on_load(String::from(format!("Data: {:?}", data))); },
-            FILETYPE::POINTS => {let data = read_data::<f32>(&mut lines_iter); on_load(String::from(format!("Data: {:?}", data))); },
+            FILETYPE::POINTS => { let data = read_data::<f32>(&mut lines_iter); on_load(String::from(format!("Data: {:?}", data))); },
             FILETYPE::NONE => {}
         };
         println!("Format: {:?}", meta_data.format);
@@ -35,16 +35,10 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
     loader::load(name, on_l);
 }
 
-/*fn get_words(line: String) -> Vec<&str>
-{
-    let mut words: Vec<&str> = line.trim().split(' ').map(|s| s.trim()).collect();
-    words.retain(|&i| i != "");
-    words
-}*/
-
 fn read_data<T>(lines_iter: &mut Lines<Box<BufRead>>) -> Vec<T> where T: str::FromStr
 {
     let mut data = Vec::new();
+    let mut no_attributes = -1;
     loop
     {
         let line = lines_iter.next().unwrap().unwrap();
@@ -59,9 +53,18 @@ fn read_data<T>(lines_iter: &mut Lines<Box<BufRead>>) -> Vec<T> where T: str::Fr
             }
 
             for word in words {
-                match word.parse::<T>() {
-                    Ok  (i) => data.push(i),
-                    Err(..) => {},
+                if no_attributes == -1
+                {
+                    match word.parse::<i32>() {
+                        Ok  (i) => { no_attributes = i },
+                        Err(..) => {},
+                    }
+                }
+                else {
+                    match word.parse::<T>() {
+                        Ok  (i) => {data.push(i)},
+                        Err(..) => {},
+                    }
                 }
             }
         }
