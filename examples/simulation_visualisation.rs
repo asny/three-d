@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod texture_material;
+mod simulation_material;
 
 use std::process;
 
@@ -39,22 +39,8 @@ fn main() {
 
     // Camera
     let mut camera = camera::Camera::create(&gl, glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
-
-    // Add model
-    let colors: Vec<glm::Vec3> = vec![
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(0.0, 0.0, 1.0),    // top
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 0.0, 1.0),    // top
-    ];
-
-    let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
-    mesh.add_custom_attribute("Color", colors).unwrap();
-    let material = texture_material::TextureMaterial::create(&gl).unwrap();
+    let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
+    let material = simulation_material::SimulationMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 
     unsafe {
@@ -70,6 +56,16 @@ fn main() {
             match event {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
+                },
+                Event::KeyDown {keycode: Some(Keycode::R), ..} => {
+
+                    let on_load = |data: String| {
+                        println!("Box loaded sucessfully: {}", data);
+                    };
+                    println!("Reading file");
+                    loader::load("box.txt", on_load);
+                    println!("End reading file");
+
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()

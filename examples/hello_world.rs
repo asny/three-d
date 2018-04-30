@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod texture_material;
+mod color_material;
 
 use std::process;
 
@@ -38,23 +38,21 @@ fn main() {
     let mut scene = scene::Scene::create().unwrap();
 
     // Camera
-    let mut camera = camera::Camera::create(&gl, glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
+    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
 
-    // Add model
+    let positions: Vec<glm::Vec3> = vec![
+        glm::vec3(0.5, -0.5, 0.0), // bottom right
+        glm::vec3(-0.5, -0.5, 0.0),// bottom left
+        glm::vec3(0.0,  0.5, 0.0) // top
+    ];
     let colors: Vec<glm::Vec3> = vec![
         glm::vec3(1.0, 0.0, 0.0),   // bottom right
         glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(0.0, 0.0, 1.0),    // top
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 0.0, 1.0),    // top
+        glm::vec3(0.0, 0.0, 1.0)    // top
     ];
-
-    let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
+    let mut mesh = mesh::Mesh::create(vec![0, 1, 2], positions).unwrap();
     mesh.add_custom_attribute("Color", colors).unwrap();
-    let material = texture_material::TextureMaterial::create(&gl).unwrap();
+    let material = color_material::ColorMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 
     unsafe {
@@ -70,15 +68,6 @@ fn main() {
             match event {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
-                },
-                Event::MouseMotion {xrel, yrel, mousestate, .. } => {
-                    if mousestate.left()
-                    {
-                        eventhandler::rotate(&mut camera, xrel, yrel);
-                    }
-                },
-                Event::MouseWheel {y, .. } => {
-                    eventhandler::zoom(&mut camera, y);
                 },
                 _ => {}
             }

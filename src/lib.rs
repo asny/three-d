@@ -4,7 +4,7 @@ pub extern crate gust;
 pub use gust::glm;
 pub use gust::mesh;
 
-mod loader;
+pub mod loader;
 mod model;
 mod buffer;
 mod shader;
@@ -19,6 +19,10 @@ pub mod texture;
 pub mod eventhandler;
 pub mod camera;
 pub mod scene;
+pub mod renderer;
 
 #[cfg(target_os = "emscripten")]
-pub mod emscripten;
+extern crate emscripten_sys;
+
+#[cfg(target_os = "emscripten")]
+mod emscripten;
