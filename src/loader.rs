@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use std::{str, string, fs};
-use std::io::{self, Read, BufReader};
+use std::{str, fs};
+use std::io::{self, BufReader};
 
 #[derive(Debug)]
 pub enum Error {
@@ -29,7 +29,7 @@ pub fn load_string(resource_name: &str) -> Result<String, Error>
 pub fn load_read_buffer(resource_name: &str) -> Result<Box<io::BufRead>, Error>
 {
     let root_path: PathBuf = PathBuf::from("");
-    let mut file = fs::File::open(
+    let file = fs::File::open(
         resource_name_to_path(&root_path,resource_name)
     )?;
 
@@ -53,7 +53,6 @@ fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
 pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>)
 {
     let on_l = |temp: String| {
-        use loader;
         let data = load_read_buffer(temp.as_str()).unwrap();
         on_load(data);
     };
@@ -67,7 +66,6 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>)
 #[cfg(not(target_os = "emscripten"))]
 pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>)
 {
-    use loader;
     let data = load_read_buffer(name).unwrap();
     on_load(data);
 }

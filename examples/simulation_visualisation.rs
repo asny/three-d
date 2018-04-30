@@ -91,13 +91,8 @@ fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
             println!("{:?}", points);
             foam_loader::load("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>|
                 {
-                    let no_vertices = points.len()/3;
-                    let mut positions_vec3 = Vec::with_capacity(no_vertices);
-                    for vid in 0..no_vertices {
-                        positions_vec3.push(glm::vec3(points[vid * 3], points[vid * 3 + 1], points[vid * 3 + 2]));
-                    }
                     println!("{:?}", faces);
-                    let mesh = mesh::Mesh::create(faces, positions_vec3).unwrap();
+                    let mesh = mesh::Mesh::create_unsafe(faces, &points).unwrap();
                     let material = simulation_material::SimulationMaterial::create(&gl).unwrap();
                     scene.add_model(&gl, mesh, material).unwrap();
 
