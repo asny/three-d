@@ -10,7 +10,7 @@ pub fn load<F>(name: &str, mut on_load: F) where F: FnMut(String)
         println!("Loading: {}", name);
         let mut meta_data = MetaData {format: FORMAT::NONE, file_type: FILETYPE::NONE};
         let mut lines_iter = text.lines();
-        while true
+        loop
         {
             let line = lines_iter.next().unwrap().unwrap();
             let mut words: Vec<&str> = line.trim().split(' ').map(|s| s.trim()).collect();
@@ -48,8 +48,8 @@ fn read_data<T>(lines_iter: &mut Lines<Box<BufRead>>) -> Vec<T> where T: str::Fr
     loop
     {
         let line = lines_iter.next().unwrap().unwrap();
-        let mut words: Vec<&str> = line.trim().split(' ').map(|s| s.trim()).collect();
-        words.retain(|&i| i != "");
+        let mut words: Vec<&str> = line.trim().split(|x| (x == ' ') || (x == '(') || (x == ')') ).map(|s| s.trim()).collect();
+        words.retain(|&i| i != "" && i != ")" && i != "(");
 
         if words.len() > 0
         {
@@ -57,7 +57,13 @@ fn read_data<T>(lines_iter: &mut Lines<Box<BufRead>>) -> Vec<T> where T: str::Fr
             {
                 break;
             }
-            read_data_into(&words, &mut data);
+
+            for word in words {
+                match word.parse::<T>() {
+                    Ok  (i) => data.push(i),
+                    Err(..) => {},
+                }
+            }
         }
     }
     data
@@ -91,15 +97,5 @@ fn read_meta_data_into(words: &Vec<&str>, meta_data: &mut MetaData)
             }},
             &_ => {}
         }
-    }
-}
-
-fn read_data_into<T>(words: &Vec<&str>, data: &mut Vec<T>) where T: str::FromStr
-{
-    for s in words {
-        match s.parse::<T>() {
-            Ok(i) => data.push(i),
-            Err(..) => {},
-        };
     }
 }
