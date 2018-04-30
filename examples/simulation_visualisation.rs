@@ -60,7 +60,7 @@ fn main() {
                 },
                 Event::KeyDown {keycode: Some(Keycode::R), ..} =>
                 {
-                    add_model_from_foam(&mut scene);
+                    add_model_from_foam(&mut scene, &gl);
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
@@ -84,14 +84,23 @@ fn main() {
     renderer::set_main_loop(main_loop);
 }
 
-fn add_model_from_foam(scene: &mut scene::Scene)
+fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
 {
     foam_loader::load("user/openfoam/constant/polyMesh/points", |points: Vec<f32>|
         {
             println!("{:?}", points);
             foam_loader::load("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>|
                 {
+                    let no_vertices = points.len()/3;
+                    let mut positions_vec3 = Vec::with_capacity(no_vertices);
+                    for vid in 0..no_vertices {
+                        positions_vec3.push(glm::vec3(points[vid * 3], points[vid * 3 + 1], points[vid * 3 + 2]));
+                    }
                     println!("{:?}", faces);
+                    let mesh = mesh::Mesh::create(faces, positions_vec3).unwrap();
+                    let material = simulation_material::SimulationMaterial::create(&gl).unwrap();
+                    scene.add_model(&gl, mesh, material).unwrap();
+
                 }
             );
         }

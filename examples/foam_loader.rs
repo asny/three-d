@@ -1,5 +1,5 @@
 use dust::loader;
-use std::io::{BufRead, Lines};
+use std::io::BufRead;
 use std::str;
 
 pub fn load<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::FromStr
