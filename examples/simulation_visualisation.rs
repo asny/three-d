@@ -39,7 +39,7 @@ fn main() {
 
     // Camera
     let mut camera = camera::Camera::create(&gl, glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
-    let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
+    let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
     let material = simulation_material::SimulationMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 
