@@ -71,6 +71,16 @@ fn main() {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
                 },
+                Event::KeyDown {keycode: Some(Keycode::R), ..} => {
+
+                    let on_load = |data: String| {
+                        println!("Box loaded sucessfully: {}", data);
+                    };
+                    println!("Reading file");
+                    loader::load("box.txt", on_load);
+                    println!("End reading file");
+
+                },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
                     {
