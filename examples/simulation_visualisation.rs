@@ -61,11 +61,13 @@ fn main() {
                 Event::KeyDown {keycode: Some(Keycode::R), ..} => {
 
                     let on_load = |data: String| {
-                        println!("Box loaded sucessfully: {}", data);
+                        println!("Data loaded sucessfully: {}", data);
                     };
-                    println!("Reading file");
                     foam_loader::load("user/openfoam/constant/polyMesh/owner", on_load);
-                    println!("End reading file");
+                    let on_load2 = |data: String| {
+                        println!("Data loaded sucessfully: {}", data);
+                    };
+                    foam_loader::load("user/openfoam/constant/polyMesh/points", on_load2);
 
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
