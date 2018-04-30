@@ -28,10 +28,12 @@ pub fn load<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::Fr
                     read_meta_data_into(&words, &mut meta_data);
                 }
                 else {
-
-                    match meta_data.file_type {
-                         FILETYPE::FACES => { words = words[1..].to_vec(); },
-                        _ => {}
+                    if words.len() > 1
+                    {
+                        match meta_data.file_type {
+                             FILETYPE::FACES => { words = words[1..].to_vec(); },
+                            _ => {}
+                        }
                     }
                     read_data_into(&words, &mut meta_data, &mut data);
                 }
