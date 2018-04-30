@@ -29,6 +29,8 @@ pub mod emscripten {
 
     pub fn async_wget_data<F, E>(name: &str, on_load: F, on_error: E) where F: FnMut(String), E: FnMut(String)
     {
+        let name_c_str = CString::new(name).unwrap();
+        let out_c_str = CString::new("").unwrap();
         ON_LOAD_CALLBACK.with(|log| {
             *log.borrow_mut() = &on_load as *const _ as *mut c_void;
         });
@@ -38,9 +40,8 @@ pub mod emscripten {
         });
 
         unsafe {
-            let out = CString::new("").unwrap().as_ptr();
-            emscripten_async_wget(CString::new(name).unwrap().as_ptr(),
-                                       out,
+            emscripten_async_wget(name_c_str.as_ptr(),
+                                       out_c_str.as_ptr(),
                                        Some(on_load_wrapper::<F>),
                                        Some(on_error_wrapper::<E>));
         }
