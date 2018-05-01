@@ -144,5 +144,7 @@ fn create_mesh(positions: &Vec<f32>, faces: &Vec<u32>, owners: &Vec<u32>, neighb
     }
     println!("{:?}", boundary_face_ids);
     println!("{:?}", boundary_vertices);
-    mesh::Mesh::create_unsafe(boundary_face_ids, &boundary_vertices).unwrap()
+    let mut mesh = mesh::Mesh::create_unsafe(boundary_face_ids.clone(), &boundary_vertices).unwrap();
+    mesh.add_custom_int_attribute("FaceId", &boundary_face_ids);
+    mesh
 }

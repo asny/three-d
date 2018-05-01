@@ -28,6 +28,7 @@ impl material::Material for SimulationMaterial
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), material::Error>
     {
         self.program.add_uniform_float("textureSpacing", &(1.0 / (self.texture_width as f32)))?;
+        self.program.add_uniform_float("density", &3.0)?;
 
         self.index_to_position_texture.bind_at(0);
         self.program.add_uniform_int("indexToPosition", &0)?;
@@ -45,7 +46,10 @@ impl material::Material for SimulationMaterial
 
     fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), material::Error>
     {
-        self.program.add_attribute(&mesh.positions())?;
+        let mut list = Vec::new();
+        list.push( mesh.positions());
+        list.push(mesh.get("FaceId")?);
+        self.program.add_attributes(&list)?;
         Ok(())
     }
 }
