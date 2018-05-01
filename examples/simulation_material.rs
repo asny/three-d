@@ -36,6 +36,8 @@ impl material::Material for SimulationMaterial
         self.cellid_to_faceids_texture.bind_at(2);
         self.program.add_uniform_int("cellIdToFaceIds", &2)?;
 
+        self.program.add_uniform_vec3("cameraPosition", &input.camera_position)?;
+        self.program.add_uniform_mat4("modelMatrix", &input.model)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
         Ok(())
