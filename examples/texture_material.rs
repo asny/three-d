@@ -36,10 +36,7 @@ impl material::Material for TextureMaterial
 
     fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), material::Error>
     {
-        let mut list = Vec::new();
-        list.push( mesh.positions());
-        list.push(mesh.get("Color")?);
-        self.program.add_attributes(&list)?;
+        self.program.add_attribute(&mesh.positions())?;
         Ok(())
     }
 }
