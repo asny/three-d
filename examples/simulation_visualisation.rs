@@ -87,7 +87,6 @@ fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
         foam_loader::load("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>| {
             foam_loader::load("user/openfoam/constant/polyMesh/owner", |owner: Vec<u32>| {
                 foam_loader::load("user/openfoam/constant/polyMesh/neighbour", |neighbour: Vec<u32>| {
-
                     let mesh = create_mesh(&points, &faces, &owner, &neighbour);
                     let cell_to_faces = create_cell_to_faces(&owner, &neighbour);
                     let face_to_cells = create_face_to_cells(&owner, &neighbour);
@@ -102,7 +101,6 @@ fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
 fn create_cell_to_faces(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
 {
     let no_cells = *owner.iter().max().unwrap() as usize + 1;
-    println!("{}", no_cells);
     let mut cells = Vec::new();
     use std::iter;
     cells.extend(iter::repeat(0 as u32).take(4 * no_cells));
@@ -121,7 +119,6 @@ fn create_cell_to_faces(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
         cells[cell_id * 4 + cell_count[cell_id]] = face_id as u32;
         cell_count[cell_id] = cell_count[cell_id] + 1;
     }
-    println!("{:?}", cells);
 
     cells
 }
@@ -141,25 +138,21 @@ fn create_face_to_cells(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
 
 fn create_mesh(positions: &Vec<f32>, faces: &Vec<u32>, owners: &Vec<u32>, neighbours: &Vec<u32>) -> mesh::Mesh
 {
-    let mut boundary_vertices = Vec::new();
+    let mut boundary_indices = Vec::new();
+    let mut boundary_positions: Vec<glm::Vec3> = Vec::new();
     let mut boundary_face_ids = Vec::new();
-    let mut boundary_face_id = 0;
-    for face_id in neighbours.len()..owners.len()
+    for i in 0..owners.len()-neighbours.len()
     {
+        let face_id = i + neighbours.len();
         for k in 0..3
         {
             let index = faces[face_id * 3 + k] as usize;
-            boundary_vertices.push(positions[3 * index]);
-            boundary_vertices.push(positions[3 * index + 1]);
-            boundary_vertices.push(positions[3 * index + 2]);
-
-            boundary_face_ids.push(boundary_face_id);
-            boundary_face_id = boundary_face_id + 1;
+            boundary_positions.push(glm::vec3(positions[3 * index], positions[3 * index + 1], positions[3 * index + 2]));
+            boundary_indices.push((i * 3 + k) as u32);
+            boundary_face_ids.push(face_id as u32);
         }
     }
-    println!("{:?}", boundary_face_ids);
-    println!("{:?}", boundary_vertices);
-    let mut mesh = mesh::Mesh::create_unsafe(boundary_face_ids.clone(), &boundary_vertices).unwrap();
+    let mut mesh = mesh::Mesh::create(boundary_indices, boundary_positions).unwrap();
     mesh.add_custom_int_attribute("FaceId", &boundary_face_ids).unwrap();
     mesh
 }

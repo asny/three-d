@@ -5,6 +5,7 @@ use dust::material;
 use dust::texture;
 use gust::mesh;
 use std::rc::Rc;
+use dust::state;
 
 pub struct SimulationMaterial {
     program: program::Program,
@@ -22,7 +23,8 @@ impl material::Material for SimulationMaterial
         self.program.set_used();
     }
 
-    fn setup_states(&self, _gl: &gl::Gl) -> Result<(), material::Error> {
+    fn setup_states(&self, gl: &gl::Gl) -> Result<(), material::Error> {
+        state::cull_back_faces(gl, true);
         Ok(())
     }
 

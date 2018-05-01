@@ -13,5 +13,5 @@ void main()
 {
     originFaceId = FaceId;
     origin = (modelMatrix * vec4( Position, 1.0 )).xyz;
-    gl_Position = projectionMatrix * viewMatrix * vec4(Position, 1.0);
+    gl_Position = projectionMatrix * viewMatrix * vec4(origin, 1.0);
 }
