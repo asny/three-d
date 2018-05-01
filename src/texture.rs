@@ -1,4 +1,5 @@
 use gl;
+use std;
 
 #[derive(Debug)]
 pub enum Error {
@@ -32,7 +33,7 @@ impl Texture
 
     pub fn fill_with(&mut self, data: &Vec<f32>, width: usize, height: usize, no_elements: usize)
     {
-        let d = Texture::extend_data(data, width * height);
+        let d = Texture::extend_data(data, width * height, 0.0);
         self.bind();
         unsafe {
             let format = if no_elements == 1 {gl::RED} else {gl::RGB};
@@ -62,14 +63,14 @@ impl Texture
         self.bind();
     }
 
-    fn extend_data(data: &Vec<f32>, desired_length: usize) -> Vec<f32>
+    fn extend_data<T>(data: &Vec<T>, desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
     {
         let mut d = data.clone();
         if d.len() < desired_length
         {
             use std::iter;
             let mut fill = Vec::new();
-            fill.extend(iter::repeat(0 as f32).take(desired_length - data.len()));
+            fill.extend(iter::repeat(value).take(desired_length - data.len()));
             d.append(&mut fill);
         }
         d
