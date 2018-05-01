@@ -11,7 +11,8 @@ pub struct SimulationMaterial {
     texture_width: usize,
     index_to_position_texture: texture::Texture,
     faceid_to_indices_texture: texture::Texture,
-    cellid_to_faceids_texture: texture::Texture
+    cellid_to_faceids_texture: texture::Texture,
+    faceid_to_cellids_texture: texture::Texture
 }
 
 impl material::Material for SimulationMaterial
@@ -36,6 +37,8 @@ impl material::Material for SimulationMaterial
         self.program.add_uniform_int("faceIdToIndices", &1)?;
         self.cellid_to_faceids_texture.bind_at(2);
         self.program.add_uniform_int("cellIdToFaceIds", &2)?;
+        self.faceid_to_cellids_texture.bind_at(3);
+        self.program.add_uniform_int("faceIdToCellIds", &3)?;
 
         self.program.add_uniform_vec3("cameraPosition", &input.camera_position)?;
         self.program.add_uniform_mat4("modelMatrix", &input.model)?;
@@ -56,7 +59,7 @@ impl material::Material for SimulationMaterial
 
 impl SimulationMaterial
 {
-    pub fn create(gl: &gl::Gl, positions: &Vec<f32>, faces: &Vec<u32>, cells: &Vec<u32>) -> Result<Rc<material::Material>, material::Error>
+    pub fn create(gl: &gl::Gl, positions: &Vec<f32>, faces: &Vec<u32>, cell_to_faces: &Vec<u32>, face_to_cells: &Vec<u32>) -> Result<Rc<material::Material>, material::Error>
     {
         let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/simulation")?;
         let texture_width = 1024;
@@ -68,8 +71,13 @@ impl SimulationMaterial
         faceid_to_indices_texture.fill_with_int(faces, texture_width, texture_width);
 
         let mut cellid_to_faceids_texture = texture::Texture::create(&gl).unwrap();
-        cellid_to_faceids_texture.fill_with_int(cells, texture_width, texture_width);
+        cellid_to_faceids_texture.fill_with_int(cell_to_faces, texture_width, texture_width);
 
-        Ok(Rc::new(SimulationMaterial { program: shader_program, texture_width, index_to_position_texture, faceid_to_indices_texture, cellid_to_faceids_texture }))
+        let mut faceid_to_cellids_texture = texture::Texture::create(&gl).unwrap();
+        faceid_to_cellids_texture.fill_with_int(face_to_cells, texture_width, texture_width);
+
+        Ok(Rc::new(SimulationMaterial {
+            program: shader_program, texture_width, index_to_position_texture, faceid_to_indices_texture, cellid_to_faceids_texture, faceid_to_cellids_texture
+        }))
     }
 }

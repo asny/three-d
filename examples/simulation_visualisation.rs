@@ -89,8 +89,9 @@ fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
                 foam_loader::load("user/openfoam/constant/polyMesh/neighbour", |neighbour: Vec<u32>| {
 
                     let mesh = create_mesh(&points, &faces, &owner, &neighbour);
-                    let cells = create_cell_data(&owner, &neighbour);
-                    let material = simulation_material::SimulationMaterial::create(&gl, &points, &faces, &cells).unwrap();
+                    let cell_to_faces = create_cell_to_faces(&owner, &neighbour);
+                    let face_to_cells = create_face_to_cells(&owner, &neighbour);
+                    let material = simulation_material::SimulationMaterial::create(&gl, &points, &faces, &cell_to_faces, &face_to_cells).unwrap();
                     scene.add_model(&gl, mesh, material).unwrap();
                 });
             });
@@ -98,7 +99,7 @@ fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
     });
 }
 
-fn create_cell_data(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
+fn create_cell_to_faces(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
 {
     let no_cells = *owner.iter().max().unwrap() as usize + 1;
     println!("{}", no_cells);
@@ -111,16 +112,30 @@ fn create_cell_data(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
 
     for face_id in 0..owner.len() {
         let cell_id = owner[face_id] as usize;
-        cells[ cell_id * 4 + cell_count[cell_id] ] = face_id as u32;
+        cells[cell_id * 4 + cell_count[cell_id]] = face_id as u32;
         cell_count[cell_id] = cell_count[cell_id] + 1;
     }
 
     for face_id in 0..neighbour.len() {
         let cell_id = neighbour[face_id] as usize;
-        cells[ cell_id * 4 + cell_count[cell_id] ] = face_id as u32;
+        cells[cell_id * 4 + cell_count[cell_id]] = face_id as u32;
         cell_count[cell_id] = cell_count[cell_id] + 1;
     }
     println!("{:?}", cells);
+
+    cells
+}
+
+fn create_face_to_cells(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
+{
+    let mut cells = Vec::new();
+    use std::iter;
+    cells.extend(iter::repeat(0 as u32).take(2 * owner.len()));
+    for i in 0..owner.len()
+    {
+      cells[ i * 2 ] = owner[i];
+      if i < neighbour.len() {cells[ i * 2 + 1 ] = neighbour[i]};
+    }
     cells
 }
 
@@ -145,6 +160,6 @@ fn create_mesh(positions: &Vec<f32>, faces: &Vec<u32>, owners: &Vec<u32>, neighb
     println!("{:?}", boundary_face_ids);
     println!("{:?}", boundary_vertices);
     let mut mesh = mesh::Mesh::create_unsafe(boundary_face_ids.clone(), &boundary_vertices).unwrap();
-    mesh.add_custom_int_attribute("FaceId", &boundary_face_ids);
+    mesh.add_custom_int_attribute("FaceId", &boundary_face_ids).unwrap();
     mesh
 }
