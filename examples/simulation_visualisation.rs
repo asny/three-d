@@ -40,9 +40,6 @@ fn main() {
 
     // Camera
     let mut camera = camera::Camera::create(&gl, glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
-    let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
-    let material = simulation_material::SimulationMaterial::create(&gl).unwrap();
-    scene.add_model(&gl, mesh, material).unwrap();
 
     unsafe {
         gl.ClearColor(0.3, 0.3, 0.5, 1.0);
@@ -86,18 +83,39 @@ fn main() {
 
 fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
 {
-    foam_loader::load("user/openfoam/constant/polyMesh/points", |points: Vec<f32>|
-        {
-            println!("{:?}", points);
-            foam_loader::load("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>|
-                {
-                    println!("{:?}", faces);
-                    let mesh = mesh::Mesh::create_unsafe(faces, &points).unwrap();
-                    let material = simulation_material::SimulationMaterial::create(&gl).unwrap();
-                    scene.add_model(&gl, mesh, material).unwrap();
+    foam_loader::load("user/openfoam/constant/polyMesh/points", |points: Vec<f32>| {
+        foam_loader::load("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>| {
+            foam_loader::load("user/openfoam/constant/polyMesh/owner", |owner: Vec<u32>| {
+                foam_loader::load("user/openfoam/constant/polyMesh/neighbour", |neighbour: Vec<u32>| {
 
-                }
-            );
+                    let mesh = create_mesh(&points, &faces, &owner, &neighbour);
+                    let material = simulation_material::SimulationMaterial::create(&gl, &points, &faces, &owner, &neighbour).unwrap();
+                    scene.add_model(&gl, mesh, material).unwrap();
+                });
+            });
+        });
+    });
+}
+
+fn create_mesh(positions: &Vec<f32>, faces: &Vec<u32>, owners: &Vec<u32>, neighbours: &Vec<u32>) -> mesh::Mesh
+{
+    let mut boundary_vertices = Vec::new();
+    let mut boundary_face_ids = Vec::new();
+    let mut boundary_face_id = 0;
+    for face_id in neighbours.len()..owners.len()
+    {
+        for k in 0..3
+        {
+            let index = faces[face_id * 3 + k] as usize;
+            boundary_vertices.push(positions[3 * index]);
+            boundary_vertices.push(positions[3 * index + 1]);
+            boundary_vertices.push(positions[3 * index + 2]);
+
+            boundary_face_ids.push(boundary_face_id);
+            boundary_face_id = boundary_face_id + 1;
         }
-    );
+    }
+    println!("{:?}", boundary_face_ids);
+    println!("{:?}", boundary_vertices);
+    mesh::Mesh::create_unsafe(boundary_face_ids, &boundary_vertices).unwrap()
 }
