@@ -50,6 +50,35 @@ impl SimulationMaterial
         let mut index_to_position_texture = texture::Texture::create(&gl).unwrap();
         index_to_position_texture.fill_with(positions, texture_width, texture_width, 3);
 
+        let mut faceid_to_indices_texture = texture::Texture::create(&gl).unwrap();
+        faceid_to_indices_texture.fill_with_int(faces, texture_width, texture_width);
+
+
+        let no_cells = *owners.iter().max().unwrap() as usize + 1;
+        println!("{}", no_cells);
+        let mut cellid_to_faceids = Vec::new();
+        use std::iter;
+        cellid_to_faceids.extend(iter::repeat(0).take(4 * no_cells));
+
+        let mut cell_count = Vec::new();
+        cell_count.extend(iter::repeat(0).take(no_cells));
+
+        for face_id in 0..owners.len() {
+            let cell_id = owners[face_id] as usize;
+            cellid_to_faceids[ cell_id * 4 + cell_count[cell_id] ] = face_id;
+            cell_count[cell_id] = cell_count[cell_id] + 1;
+        }
+
+        for face_id in 0..neighbours.len() {
+            let cell_id = neighbours[face_id] as usize;
+            cellid_to_faceids[ cell_id * 4 + cell_count[cell_id] ] = face_id;
+            cell_count[cell_id] = cell_count[cell_id] + 1;
+        }
+        println!("{:?}", cellid_to_faceids);
+
+        let mut cellid_to_faceids_texture = texture::Texture::create(&gl).unwrap();
+        cellid_to_faceids_texture.fill_with_int(faces, texture_width, texture_width);
+
         Ok(Rc::new(SimulationMaterial { program: shader_program, texture_width, index_to_position_texture }))
     }
 }
