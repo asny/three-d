@@ -1,5 +1,7 @@
 
 uniform sampler2D indexToPosition;
+uniform sampler2D faceIdToIndices;
+uniform sampler2D cellIdToFaceIds;
 
 in vec2 coords;
 

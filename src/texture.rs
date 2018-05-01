@@ -57,7 +57,8 @@ impl Texture
 
     pub fn fill_with_int(&mut self, data: &Vec<u32>, width: usize, height: usize)
     {
-        let d = Texture::extend_data(data, width * height, 0);
+        let mut d = Texture::extend_data(data, width * height, 0);
+        d.iter().map(|i| *i as f32);
         self.bind();
         unsafe {
             self.gl.TexImage2D(self.target,

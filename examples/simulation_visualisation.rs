@@ -89,12 +89,39 @@ fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
                 foam_loader::load("user/openfoam/constant/polyMesh/neighbour", |neighbour: Vec<u32>| {
 
                     let mesh = create_mesh(&points, &faces, &owner, &neighbour);
-                    let material = simulation_material::SimulationMaterial::create(&gl, &points, &faces, &owner, &neighbour).unwrap();
+                    let cells = create_cell_data(&owner, &neighbour);
+                    let material = simulation_material::SimulationMaterial::create(&gl, &points, &faces, &cells).unwrap();
                     scene.add_model(&gl, mesh, material).unwrap();
                 });
             });
         });
     });
+}
+
+fn create_cell_data(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
+{
+    let no_cells = *owner.iter().max().unwrap() as usize + 1;
+    println!("{}", no_cells);
+    let mut cells = Vec::new();
+    use std::iter;
+    cells.extend(iter::repeat(0 as u32).take(4 * no_cells));
+
+    let mut cell_count = Vec::new();
+    cell_count.extend(iter::repeat(0).take(no_cells));
+
+    for face_id in 0..owner.len() {
+        let cell_id = owner[face_id] as usize;
+        cells[ cell_id * 4 + cell_count[cell_id] ] = face_id as u32;
+        cell_count[cell_id] = cell_count[cell_id] + 1;
+    }
+
+    for face_id in 0..neighbour.len() {
+        let cell_id = neighbour[face_id] as usize;
+        cells[ cell_id * 4 + cell_count[cell_id] ] = face_id as u32;
+        cell_count[cell_id] = cell_count[cell_id] + 1;
+    }
+    println!("{:?}", cells);
+    cells
 }
 
 fn create_mesh(positions: &Vec<f32>, faces: &Vec<u32>, owners: &Vec<u32>, neighbours: &Vec<u32>) -> mesh::Mesh
