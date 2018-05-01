@@ -8,7 +8,8 @@ use std::rc::Rc;
 
 pub struct SimulationMaterial {
     program: program::Program,
-    texture: texture::Texture
+    texture_width: usize,
+    index_to_position_texture: texture::Texture
 }
 
 impl material::Material for SimulationMaterial
@@ -24,8 +25,9 @@ impl material::Material for SimulationMaterial
 
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), material::Error>
     {
-        self.texture.bind_at(0);
-        self.program.add_uniform_int("tex", &0)?;
+        self.program.add_uniform_float("textureSpacing", &(1.0 / (self.texture_width as f32)))?;
+        self.index_to_position_texture.bind_at(0);
+        self.program.add_uniform_int("indexToPosition", &0)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
         Ok(())
@@ -40,16 +42,14 @@ impl material::Material for SimulationMaterial
 
 impl SimulationMaterial
 {
-    pub fn create(gl: &gl::Gl) -> Result<Rc<material::Material>, material::Error>
+    pub fn create(gl: &gl::Gl, positions: &Vec<f32>, faces: &Vec<u32>, owners: &Vec<u32>, neighbours: &Vec<u32>) -> Result<Rc<material::Material>, material::Error>
     {
         let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/simulation")?;
+        let texture_width = 1024;
 
-        let mut texture = texture::Texture::create(&gl).unwrap();
-        let tex_data: Vec<f32> = vec![
-            1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0
-        ];
-        texture.fill_with(&tex_data, 4, 4);
+        let mut index_to_position_texture = texture::Texture::create(&gl).unwrap();
+        index_to_position_texture.fill_with(positions, texture_width, texture_width);
 
-        Ok(Rc::new(SimulationMaterial { program: shader_program, texture }))
+        Ok(Rc::new(SimulationMaterial { program: shader_program, texture_width, index_to_position_texture }))
     }
 }

@@ -30,8 +30,9 @@ impl Texture
         }
     }
 
-    pub fn fill_with(&mut self, data: &Vec<f32>, width: u32, height: u32)
+    pub fn fill_with(&mut self, data: &Vec<f32>, width: usize, height: usize)
     {
+        let d = Texture::extend_data(data, width * height);
         self.bind();
         unsafe {
             self.gl.TexImage2D(self.target,
@@ -42,7 +43,7 @@ impl Texture
                              0,
                              gl::RED,
                              gl::FLOAT,
-                             data.as_ptr() as *const gl::types::GLvoid);
+                             d.as_ptr() as *const gl::types::GLvoid);
 
             self.gl.TexParameteri(self.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
             self.gl.TexParameteri(self.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
@@ -57,6 +58,19 @@ impl Texture
             self.gl.ActiveTexture(gl::TEXTURE0 + location);
         }
         self.bind();
+    }
+
+    fn extend_data(data: &Vec<f32>, desired_length: usize) -> Vec<f32>
+    {
+        let mut d = data.clone();
+        if d.len() < desired_length
+        {
+            use std::iter;
+            let mut fill = Vec::new();
+            fill.extend(iter::repeat(0 as f32).take(desired_length - data.len()));
+            d.append(&mut fill);
+        }
+        d
     }
 }
 
