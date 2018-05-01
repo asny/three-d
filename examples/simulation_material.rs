@@ -48,7 +48,7 @@ impl SimulationMaterial
         let texture_width = 1024;
 
         let mut index_to_position_texture = texture::Texture::create(&gl).unwrap();
-        index_to_position_texture.fill_with(positions, texture_width, texture_width);
+        index_to_position_texture.fill_with(positions, texture_width, texture_width, 3);
 
         Ok(Rc::new(SimulationMaterial { program: shader_program, texture_width, index_to_position_texture }))
     }
