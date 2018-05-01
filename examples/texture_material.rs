@@ -30,6 +30,7 @@ impl material::Material for TextureMaterial
         self.program.add_uniform_int("tex", &0)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
+        self.program.add_uniform_vec3("cameraPosition", &input.camera_position)?;
         Ok(())
     }
 
@@ -54,7 +55,7 @@ impl TextureMaterial
             1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0
         ];
 
-        texture.fill_with(&tex_data, 4, 4);
+        texture.fill_with(&tex_data, 4, 4, 1);
 
         Ok(Rc::new(TextureMaterial { program: shader_program, texture }))
     }
