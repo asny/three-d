@@ -49,7 +49,7 @@ pub fn load<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::Fr
 enum FORMAT {ASCII, BINARY, NONE}
 
 #[derive(Debug)]
-enum FILETYPE {POINTS, FACES, OWNER, NONE}
+enum FILETYPE {POINTS, FACES, OWNER, NEIGHBOUR, NONE}
 
 struct MetaData {
     format: FORMAT,
@@ -87,6 +87,7 @@ fn read_meta_data_into(words: &Vec<&str>, meta_data: &mut MetaData)
                 _ => FORMAT::NONE
             }},
             "object" => { meta_data.file_type = match words[1] {
+                "neighbour;" => FILETYPE::NEIGHBOUR,
                 "owner;" => FILETYPE::OWNER,
                 "points;" => FILETYPE::POINTS,
                 "faces;" => FILETYPE::FACES,

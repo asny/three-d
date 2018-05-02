@@ -127,7 +127,7 @@ fn create_face_to_cells(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
 {
     let mut cells = Vec::new();
     use std::iter;
-    cells.extend(iter::repeat(std::u32::MAX).take(2 * owner.len()));
+    cells.extend(iter::repeat(999999 as u32).take(2 * owner.len()));
     for i in 0..owner.len()
     {
       cells[ i * 2 ] = owner[i];
@@ -152,7 +152,7 @@ fn create_mesh(positions: &Vec<f32>, faces: &Vec<u32>, owners: &Vec<u32>, neighb
             boundary_face_ids.push(face_id as u32);
         }
     }
-    let mut mesh = mesh::Mesh::create(boundary_indices, boundary_positions).unwrap();
+    let mut mesh = mesh::Mesh::create(&boundary_indices, boundary_positions).unwrap();
     mesh.add_custom_int_attribute("FaceId", &boundary_face_ids).unwrap();
     mesh
 }
