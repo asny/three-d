@@ -17,7 +17,7 @@ out vec4 fragmentColor;
 
 vec2 indexToUv(float index) {
     float x = (index + 0.5) * textureSpacing;
-    return vec2( mod(x, 1.0) , floor(x) * textureSpacing );
+    return vec2( mod(x, 1.0) , 0.5);//floor(x) * textureSpacing );
 }
 
 vec2 getCellIDs(float fid){
@@ -46,11 +46,11 @@ vec3 getPosition(float index){
 }
 
 float getValue(float fid, vec3 barycentricCoords){
+    return 1.0;
     vec3 indices = getIndices(fid);
     float val1 = texture( vertexIdToData, indexToUv(indices.x) ).r;
     float val2 = texture( vertexIdToData, indexToUv(indices.y) ).r;
     float val3 = texture( vertexIdToData, indexToUv(indices.z) ).r;
-    return 1.0;
     return barycentricCoords.x * val3 + barycentricCoords.y * val1 + barycentricCoords.z * val2;
 }
 
@@ -132,9 +132,11 @@ void main() {
 
         value = getValue(faceId, barycentricCoords);
         sumValue += density * 0.5 * (value + oldValue) * distance(oldHitPos, hitPos);
-        if(cellId < 0.0 || sumValue >= 1.0) break;
+        if(cellId > 9999999.0 || sumValue >= 1.0)
+        {
+            fragmentColor = vec4(sumValue, 0.0, 1.0 - sumValue, 1.0);
+            return;
+        }
     }
-
-    if(cellId < 0.0 || sumValue >= 1.0) {fragmentColor = vec4(sumValue, 0.0, 1.0 - sumValue, 1.0); return;}
     fragmentColor = vec4(1.0, 0.0, sumValue, 1.0);
 }

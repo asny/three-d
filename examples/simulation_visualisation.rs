@@ -127,7 +127,7 @@ fn create_face_to_cells(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
 {
     let mut cells = Vec::new();
     use std::iter;
-    cells.extend(iter::repeat(0 as u32).take(2 * owner.len()));
+    cells.extend(iter::repeat(std::u32::MAX).take(2 * owner.len()));
     for i in 0..owner.len()
     {
       cells[ i * 2 ] = owner[i];

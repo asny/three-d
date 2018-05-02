@@ -31,7 +31,7 @@ impl material::Material for SimulationMaterial
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), material::Error>
     {
         self.program.add_uniform_float("textureSpacing", &(1.0 / (self.texture_width as f32)))?;
-        self.program.add_uniform_float("density", &3.0)?;
+        self.program.add_uniform_float("density", &0.1)?;
 
         self.index_to_position_texture.bind_at(0);
         self.program.add_uniform_int("indexToPosition", &0)?;
@@ -64,19 +64,20 @@ impl SimulationMaterial
     pub fn create(gl: &gl::Gl, positions: &Vec<f32>, faces: &Vec<u32>, cell_to_faces: &Vec<u32>, face_to_cells: &Vec<u32>) -> Result<Rc<material::Material>, material::Error>
     {
         let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/simulation")?;
-        let texture_width = 1024;
+        let texture_width = 64;
+        let texture_height = 1;
 
         let mut index_to_position_texture = texture::Texture::create(&gl).unwrap();
-        index_to_position_texture.fill_with(positions, texture_width, texture_width, 3);
+        index_to_position_texture.fill_with(positions, texture_width, texture_height, 3);
 
         let mut faceid_to_indices_texture = texture::Texture::create(&gl).unwrap();
-        faceid_to_indices_texture.fill_with_int(faces, texture_width, texture_width);
+        faceid_to_indices_texture.fill_with_int(faces, texture_width, texture_height);
 
         let mut cellid_to_faceids_texture = texture::Texture::create(&gl).unwrap();
-        cellid_to_faceids_texture.fill_with_int(cell_to_faces, texture_width, texture_width);
+        cellid_to_faceids_texture.fill_with_int(cell_to_faces, texture_width, texture_height);
 
         let mut faceid_to_cellids_texture = texture::Texture::create(&gl).unwrap();
-        faceid_to_cellids_texture.fill_with_int(face_to_cells, texture_width, texture_width);
+        faceid_to_cellids_texture.fill_with_int(face_to_cells, texture_width, texture_height);
 
         Ok(Rc::new(SimulationMaterial {
             program: shader_program, texture_width, index_to_position_texture, faceid_to_indices_texture, cellid_to_faceids_texture, faceid_to_cellids_texture
