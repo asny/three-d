@@ -2,7 +2,6 @@
 uniform sampler2D indexToPosition;
 uniform sampler2D faceIdToIndices;
 uniform sampler2D cellIdToFaceIds;
-
 uniform sampler2D faceIdToCellIds;
 uniform sampler2D vertexIdToData;
 
@@ -22,23 +21,23 @@ vec2 indexToUv(float index) {
 }
 
 vec2 getCellIDs(float fid){
-    float cellId1 = texture( faceIdToCellIds, indexToUv(2.0 * fid) ).a;
-    float cellId2 = texture( faceIdToCellIds, indexToUv(2.0 * fid + 1.0)).a;
+    float cellId1 = texture( faceIdToCellIds, indexToUv(2.0 * fid) ).r;
+    float cellId2 = texture( faceIdToCellIds, indexToUv(2.0 * fid + 1.0)).r;
     return vec2(cellId1, cellId2);
 }
 
 vec4 getFaceIDs(float cid){
-    float faceId1 = texture( cellIdToFaceIds, indexToUv(4.0 * cid) ).a;
-    float faceId2 = texture( cellIdToFaceIds, indexToUv(4.0 * cid + 1.0) ).a;
-    float faceId3 = texture( cellIdToFaceIds, indexToUv(4.0 * cid + 2.0) ).a;
-    float faceId4 = texture( cellIdToFaceIds, indexToUv(4.0 * cid + 3.0) ).a;
+    float faceId1 = texture( cellIdToFaceIds, indexToUv(4.0 * cid) ).r;
+    float faceId2 = texture( cellIdToFaceIds, indexToUv(4.0 * cid + 1.0) ).r;
+    float faceId3 = texture( cellIdToFaceIds, indexToUv(4.0 * cid + 2.0) ).r;
+    float faceId4 = texture( cellIdToFaceIds, indexToUv(4.0 * cid + 3.0) ).r;
     return vec4(faceId1, faceId2, faceId3, faceId4);
 }
 
 vec3 getIndices(float fid){
-    float index1 = texture( faceIdToIndices, indexToUv(3.0 * fid) ).a;
-    float index2 = texture( faceIdToIndices, indexToUv(3.0 * fid + 1.0) ).a;
-    float index3 = texture( faceIdToIndices, indexToUv(3.0 * fid + 2.0) ).a;
+    float index1 = texture( faceIdToIndices, indexToUv(3.0 * fid) ).r;
+    float index2 = texture( faceIdToIndices, indexToUv(3.0 * fid + 1.0) ).r;
+    float index3 = texture( faceIdToIndices, indexToUv(3.0 * fid + 2.0) ).r;
     return vec3(index1, index2, index3);
 }
 
@@ -48,9 +47,10 @@ vec3 getPosition(float index){
 
 float getValue(float fid, vec3 barycentricCoords){
     vec3 indices = getIndices(fid);
-    float val1 = texture( vertexIdToData, indexToUv(indices.x) ).a;
-    float val2 = texture( vertexIdToData, indexToUv(indices.y) ).a;
-    float val3 = texture( vertexIdToData, indexToUv(indices.z) ).a;
+    float val1 = texture( vertexIdToData, indexToUv(indices.x) ).r;
+    float val2 = texture( vertexIdToData, indexToUv(indices.y) ).r;
+    float val3 = texture( vertexIdToData, indexToUv(indices.z) ).r;
+    return 1.0;
     return barycentricCoords.x * val3 + barycentricCoords.y * val1 + barycentricCoords.z * val2;
 }
 
