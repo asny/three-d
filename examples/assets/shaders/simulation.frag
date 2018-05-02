@@ -132,7 +132,7 @@ void main() {
 
         value = getValue(faceId, barycentricCoords);
         sumValue += density * 0.5 * (value + oldValue) * distance(oldHitPos, hitPos);
-        if(cellId > 9999999.0 || sumValue >= 1.0)
+        if(cellId > 999998.0 || sumValue >= 1.0)
         {
             fragmentColor = vec4(sumValue, 0.0, 1.0 - sumValue, 1.0);
             return;
