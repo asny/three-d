@@ -37,10 +37,16 @@ pub mod emscripten {
             *log.borrow_mut() = &on_error as *const _ as *mut c_void;
         });
 
+        let mut path = String::from("http://localhost:8000/");
+        path.push_str(name);
+        let temp: &str = path.as_ref();
+        println!("{}   {}", path, name);
+
+        let url = CString::new(temp).unwrap();
+        let file = CString::new(name).unwrap();
+
         unsafe {
-            let out = CString::new("").unwrap().as_ptr();
-            emscripten_async_wget(CString::new(name).unwrap().as_ptr(),
-                                       out,
+            emscripten_async_wget(url.as_ptr(), file.as_ptr(),
                                        Some(on_load_wrapper::<F>),
                                        Some(on_error_wrapper::<E>));
         }
