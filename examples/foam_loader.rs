@@ -2,11 +2,27 @@ use dust::loader;
 use std::io::BufRead;
 use std::str;
 
+
+pub fn load_async<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: str::FromStr
+{
+    println!("");
+    println!("Loading async: {}", name);
+    loader::load_async( name, |text: Box<BufRead>| {
+        let data = load_internal(text);
+        on_load(data);
+    });
+}
+
 pub fn load<T>(name: &str) -> Vec<T> where T: str::FromStr
 {
     println!("");
     println!("Loading: {}", name);
-    let text = loader::load( name ).unwrap();
+    let text = loader::load(name).unwrap();
+    load_internal(text)
+}
+
+fn load_internal<T>(text: Box<BufRead>) -> Vec<T> where T: str::FromStr
+{
     let mut meta_data = MetaData {format: FORMAT::NONE, file_type: FILETYPE::NONE, no_attributes: -1};
     let mut data = Vec::new();
     let mut reading_data = false;

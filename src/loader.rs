@@ -63,3 +63,24 @@ pub fn load(name: &str) -> Result<Box<io::BufRead>, Error>
 {
     load_read_buffer(name)
 }
+
+#[cfg(target_os = "emscripten")]
+pub fn load_async<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>)
+{
+    let on_l = |temp: String| {
+        let data = load_read_buffer(temp.as_str()).unwrap();
+        on_load(data);
+    };
+    let on_error = |cause: String| {
+        panic!(cause);
+    };
+    use emscripten::{emscripten};
+    emscripten::async_wget_data(name, on_l, on_error);
+}
+
+#[cfg(not(target_os = "emscripten"))]
+pub fn load_async<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>)
+{
+    let data = load_read_buffer(name).unwrap();
+    on_load(data);
+}

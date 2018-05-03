@@ -84,35 +84,29 @@ fn main() {
 fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
 {
     let points = foam_loader::load::<f32>("user/openfoam/constant/polyMesh/points");
-    println!("{:?}", points);
     let faces = foam_loader::load::<u32>("user/openfoam/constant/polyMesh/faces");
-    println!("{:?}", points);
-    println!("{:?}", faces);
     let owner= foam_loader::load::<u32>("user/openfoam/constant/polyMesh/owner");
     let neighbour= foam_loader::load::<u32>("user/openfoam/constant/polyMesh/neighbour");
+    create_foam_model(scene, gl, &points, &faces, &owner, &neighbour);
 
+    foam_loader::load_async("user/openfoam/constant/polyMesh/points", |points: Vec<f32>| {
+        foam_loader::load_async("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>| {
+            foam_loader::load_async("user/openfoam/constant/polyMesh/owner", |owner: Vec<u32>| {
+                foam_loader::load_async("user/openfoam/constant/polyMesh/neighbour", |neighbour: Vec<u32>| {
+                    create_foam_model(scene, gl, &points, &faces, &owner, &neighbour);
+                });
+            });
+        });
+    });
+}
+
+fn create_foam_model(scene: &mut scene::Scene, gl: &gl::Gl, points: &Vec<f32>, faces: &Vec<u32>, owner: &Vec<u32>, neighbour: &Vec<u32>)
+{
     let mesh = create_mesh(&points, &faces, &owner, &neighbour);
     let cell_to_faces = create_cell_to_faces(&owner, &neighbour);
     let face_to_cells = create_face_to_cells(&owner, &neighbour);
     let material = simulation_material::SimulationMaterial::create(&gl, &points, &faces, &cell_to_faces, &face_to_cells).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
-
-
-    /*
-    foam_loader::load("user/openfoam/constant/polyMesh/points", |points: Vec<f32>| {
-        foam_loader::load("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>| {
-            foam_loader::load("user/openfoam/constant/polyMesh/owner", |owner: Vec<u32>| {
-                foam_loader::load("user/openfoam/constant/polyMesh/neighbour", |neighbour: Vec<u32>| {
-                    let mesh = create_mesh(&points, &faces, &owner, &neighbour);
-                    let cell_to_faces = create_cell_to_faces(&owner, &neighbour);
-                    let face_to_cells = create_face_to_cells(&owner, &neighbour);
-                    let material = simulation_material::SimulationMaterial::create(&gl, &points, &faces, &cell_to_faces, &face_to_cells).unwrap();
-                    scene.add_model(&gl, mesh, material).unwrap();
-                });
-            });
-        });
-    });
-    */
 }
 
 fn create_cell_to_faces(owner: &Vec<u32>, neighbour: &Vec<u32>) -> Vec<u32>
