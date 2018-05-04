@@ -83,11 +83,11 @@ fn main() {
 
 fn add_model_from_foam(scene: &mut scene::Scene, gl: &gl::Gl)
 {
-    let points = foam_loader::load::<f32>("user/openfoam/constant/polyMesh/points");
+    /*let points = foam_loader::load::<f32>("user/openfoam/constant/polyMesh/points");
     let faces = foam_loader::load::<u32>("user/openfoam/constant/polyMesh/faces");
     let owner= foam_loader::load::<u32>("user/openfoam/constant/polyMesh/owner");
     let neighbour= foam_loader::load::<u32>("user/openfoam/constant/polyMesh/neighbour");
-    create_foam_model(scene, gl, &points, &faces, &owner, &neighbour);
+    create_foam_model(scene, gl, &points, &faces, &owner, &neighbour);*/
 
     foam_loader::load_async("user/openfoam/constant/polyMesh/points", |points: Vec<f32>| {
         foam_loader::load_async("user/openfoam/constant/polyMesh/faces", |faces: Vec<u32>| {

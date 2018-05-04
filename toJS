@@ -1,5 +1,5 @@
 #!/bin/sh
 
 source ~/.emsdk/emsdk_env.sh
-export EMMAKEN_CFLAGS="-o index.html -s ASYNCIFY=1 -s USE_WEBGL2=1 -s USE_SDL=2 -s SAFE_HEAP=1 --preload-file examples/assets"
+export EMMAKEN_CFLAGS="-o index.html -s FETCH=1 -s FORCE_FILESYSTEM=1 -s USE_WEBGL2=1 -s USE_SDL=2 -s SAFE_HEAP=1 -s ASSERTIONS=2 --preload-file examples/assets"
 cargo build --example $1 --target asmjs-unknown-emscripten

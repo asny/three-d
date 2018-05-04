@@ -1,11 +1,13 @@
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten {
+    use std;
     use std::cell::RefCell;
     use std::ptr::null_mut;
     use std::os::raw::c_void;
     use std::ffi::{CStr, CString};
-    use emscripten_sys::{emscripten_set_main_loop, emscripten_wget, emscripten_async_wget};
+    use emscripten_sys::{emscripten_set_main_loop, emscripten_wget, emscripten_async_wget, em_str_callback_func,emscripten_fetch_t, emscripten_fetch_attr_t, emscripten_fetch_attr_init,
+                     emscripten_fetch, emscripten_fetch_close};
 
     thread_local!(static MAIN_LOOP_CALLBACK: RefCell<*mut c_void> = RefCell::new(null_mut()));
 
@@ -21,6 +23,56 @@ pub mod emscripten {
                 let closure = *z.borrow_mut() as *mut F;
                 (*closure)();
             });
+        }
+    }
+
+    fn body_string(fetch: &emscripten_fetch_t) -> String {
+        let data = unsafe { std::mem::transmute::<*const i8, *mut u8>((*fetch).data) };
+        let len = (*fetch).totalBytes as usize;
+        let slice = unsafe { std::slice::from_raw_parts(data, len) };
+        let mut v = Vec::with_capacity(len);
+        v.resize(len, 0);
+        v.copy_from_slice(slice);
+        String::from_utf8(v).ok().unwrap()
+    }
+
+    extern "C" fn handle_success(fetch: *mut emscripten_fetch_t) {
+        unsafe {
+            let body = body_string(&*fetch);
+            println!("Success");
+            println!("{}", body);
+            emscripten_fetch_close(fetch);
+        }
+    }
+
+    extern "C" fn handle_error(fetch: *mut emscripten_fetch_t) {
+        unsafe {
+            println!("error: status code {}", (*fetch).status);
+            emscripten_fetch_close(fetch);
+        }
+    }
+
+    pub fn fetch(url: &str)
+    {
+        unsafe {
+
+            let mut fetch_arg: emscripten_fetch_attr_t = std::mem::uninitialized();
+            emscripten_fetch_attr_init(&mut fetch_arg);
+            fetch_arg.attributes = 1;// | 64;
+            fetch_arg.onsuccess = Some(handle_success);
+            fetch_arg.onerror = Some(handle_error);
+            let url_c = std::ffi::CString::new(url).unwrap();
+            emscripten_fetch(&mut fetch_arg, url_c.as_ptr());
+            /*let fetch = emscripten_fetch(&mut fetch_arg, url_c.as_ptr());
+            if (*fetch).status == 200 {
+
+                let data = body_string(&*fetch);
+                println!("{}", data);
+            } else {
+                println!("error: status code {}", (*fetch).status);
+            }
+
+            emscripten_fetch_close(fetch);*/
         }
     }
 

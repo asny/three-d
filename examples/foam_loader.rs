@@ -13,6 +13,14 @@ pub fn load_async<F, T>(name: &str, mut on_load: F) where F: FnMut(Vec<T>), T: s
     });
 }
 
+pub fn fetch<T>(name: &str) -> Vec<T> where T: str::FromStr
+{
+    println!("");
+    println!("Loading using fetch: {}", name);
+    loader::fetch(name);
+    Vec::new()
+}
+
 pub fn load<T>(name: &str) -> Vec<T> where T: str::FromStr
 {
     println!("");

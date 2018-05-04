@@ -65,6 +65,19 @@ pub fn load(name: &str) -> Result<Box<io::BufRead>, Error>
 }
 
 #[cfg(target_os = "emscripten")]
+pub fn fetch(url: &str)
+{
+    use emscripten::{emscripten};
+    emscripten::fetch(url);
+}
+
+#[cfg(not(target_os = "emscripten"))]
+pub fn fetch(url: &str)
+{
+
+}
+
+#[cfg(target_os = "emscripten")]
 pub fn load_async<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>)
 {
     let on_l = |temp: String| {
