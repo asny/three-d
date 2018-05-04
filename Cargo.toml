@@ -7,6 +7,7 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 gust = { path = "../Gust" }
 gl = { path = "lib/gl" }
 sdl2 = "0.31.0"
+num-traits = "0.2.2"
 
 [target.'cfg(target_os = "emscripten")'.dependencies]
 emscripten-sys = "0.3"

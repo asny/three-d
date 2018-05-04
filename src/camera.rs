@@ -69,7 +69,8 @@ impl Camera
         unsafe {
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
         }
-        let input = input::DrawInput{view: self.get_view(), projection: self.get_projection()};
+        use num_traits::identities::One;
+        let input = input::DrawInput{model: glm::Matrix4::one(),view: self.get_view(), projection: self.get_projection(), camera_position: self.position};
         scene.draw(&input)?;
         Ok(())
     }
