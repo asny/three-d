@@ -88,7 +88,7 @@ pub fn load_async<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>
         panic!(cause);
     };
     use emscripten::{emscripten};
-    emscripten::async_wget_data(name, on_l, on_error);
+    emscripten::async_wget(name, on_l, on_error);
 }
 
 #[cfg(not(target_os = "emscripten"))]

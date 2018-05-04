@@ -52,6 +52,7 @@ pub mod emscripten {
         }
     }
 
+    // Needs -s FETCH=1
     pub fn fetch(url: &str)
     {
         unsafe {
@@ -69,7 +70,7 @@ pub mod emscripten {
     thread_local!(static ON_LOAD_CALLBACK: RefCell<*mut c_void> = RefCell::new(null_mut()));
     thread_local!(static ON_ERROR_CALLBACK: RefCell<*mut c_void> = RefCell::new(null_mut()));
 
-    pub fn async_wget_data<F, E>(name: &str, on_load: F, on_error: E) where F: FnMut(String), E: FnMut(String)
+    pub fn async_wget<F, E>(name: &str, on_load: F, on_error: E) where F: FnMut(String), E: FnMut(String)
     {
         ON_LOAD_CALLBACK.with(|log| {
             *log.borrow_mut() = &on_load as *const _ as *mut c_void;
@@ -112,7 +113,8 @@ pub mod emscripten {
         }
     }
 
-    pub fn wget_data(name: &str)
+    // Needs -s ASYNCIFY=1
+    pub fn wget(name: &str)
     {
         let mut path = String::from("http://localhost:8000/");
         path.push_str(name);
