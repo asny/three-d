@@ -63,16 +63,6 @@ pub mod emscripten {
             fetch_arg.onerror = Some(handle_error);
             let url_c = std::ffi::CString::new(url).unwrap();
             emscripten_fetch(&mut fetch_arg, url_c.as_ptr());
-            /*let fetch = emscripten_fetch(&mut fetch_arg, url_c.as_ptr());
-            if (*fetch).status == 200 {
-
-                let data = body_string(&*fetch);
-                println!("{}", data);
-            } else {
-                println!("error: status code {}", (*fetch).status);
-            }
-
-            emscripten_fetch_close(fetch);*/
         }
     }
 
