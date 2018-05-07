@@ -53,7 +53,7 @@ fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
 pub fn load(name: &str) -> Result<Box<io::BufRead>, Error>
 {
     use emscripten::{emscripten};
-    emscripten::wget_data(name);
+    emscripten::wget(name);
     println!("Out name: {}", name);
     load_read_buffer(name)
 }
