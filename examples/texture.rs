@@ -21,10 +21,10 @@ fn main() {
         gl_attr.set_context_version(4, 1);
     }
 
-    let width = 900;
-    let height = 700;
+    let width: usize = 900;
+    let height: usize = 700;
     let window = video_ctx
-        .window("Dust", width, height)
+        .window("Dust", width as u32, height as u32)
         .opengl()
         .position_centered()
         .resizable()
