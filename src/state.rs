@@ -18,3 +18,21 @@ pub fn cull_back_faces(gl: &gl::Gl, enable: bool)
         }
     }
 }
+
+pub fn depth_write(gl: &gl::Gl, enable: bool)
+{
+    unsafe {
+        static mut CURRENTLY_ENABLED: bool = false;
+        if enable != CURRENTLY_ENABLED
+        {
+            if enable
+            {
+                gl.DepthMask(gl::TRUE);
+            }
+            else {
+                gl.DepthMask(gl::FALSE);
+            }
+            CURRENTLY_ENABLED = enable;
+        }
+    }
+}
