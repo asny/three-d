@@ -89,10 +89,10 @@ impl Camera
         let input = input::DrawInput{model: glm::Matrix4::one(),view: self.get_view(), projection: self.get_projection(),
             camera_position: self.position, color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
 
-        /*self.geometry_pass_rendertarget.bind();
+        self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
 
-        scene.draw(&input)?;*/
+        scene.draw(&input)?;
 
         self.screen_rendertarget.bind();
         self.screen_rendertarget.clear();
