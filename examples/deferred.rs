@@ -4,6 +4,7 @@ extern crate dust;
 mod materials;
 
 use std::process;
+use std::rc::Rc;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
@@ -43,6 +44,9 @@ fn main() {
     let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
     let material = materials::texture_material::TextureMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
+
+    let light = dust::light::DirectionalLight::create(&gl, glm::vec3(0.0, -1.0, 0.0)).unwrap();
+    scene.add_light(&gl, Rc::from(light));
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();

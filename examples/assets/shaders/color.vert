@@ -1,13 +1,13 @@
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-in vec3 Position;
-in vec3 Color;
+in vec3 position;
+in vec3 color;
 
 out vec3 col;
 
 void main()
 {
-  col = Color;
-  gl_Position = projectionMatrix * viewMatrix * vec4(Position, 1.0);
+  col = color;
+  gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0);
 }

@@ -2,6 +2,7 @@ use gl;
 use std;
 use state;
 use texture;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Error {
@@ -53,7 +54,7 @@ pub struct ColorRendertarget {
     id: u32,
     width: usize,
     height: usize,
-    color_texture: Option<texture::Texture2D>
+    pub color_texture: Rc<texture::Texture2D>
 }
 
 impl ColorRendertarget
@@ -61,17 +62,16 @@ impl ColorRendertarget
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
-        let rendertarget = ColorRendertarget { gl: gl.clone(), id, width, height, color_texture: None };
-        rendertarget.bind();
+        bind(gl, id, width, height);
 
         let draw_buffers = vec![gl::COLOR_ATTACHMENT0];
-        let color_texture = Some(texture::Texture2D::create_as_color_rendertarget(gl, width, height, 0)?);
+        let color_texture = texture::Texture2D::create_as_color_rendertarget(gl, width, height, 0)?;
 
         unsafe {
             gl.DrawBuffers(1, draw_buffers.as_ptr());
         }
 
-        Ok(rendertarget)
+        Ok(ColorRendertarget { gl: gl.clone(), id, width, height, color_texture: Rc::from(color_texture) })
     }
 }
 

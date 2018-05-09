@@ -5,6 +5,7 @@ use material;
 use gust::mesh;
 use input;
 use buffer;
+use glm;
 
 #[derive(Debug)]
 pub enum Error {
@@ -33,6 +34,37 @@ pub struct Model {
 
 impl Model
 {
+    pub fn draw_full_screen_quad(gl: &gl::Gl)
+    {
+        unsafe {
+            static mut FULL_SCREEN__QUAD_ID: gl::types::GLuint = std::u32::MAX;
+            if std::u32::MAX == FULL_SCREEN__QUAD_ID
+            {
+                // Generate and bind array
+                gl.GenVertexArrays(1, &mut FULL_SCREEN__QUAD_ID);
+                bind(gl, FULL_SCREEN__QUAD_ID);
+
+                let positions: Vec<glm::Vec3> = vec![
+                    glm::vec3(-1.0, -1.0, 0.0), // bottom right
+                    glm::vec3(-1.0, 1.0, 0.0),// bottom left
+                    glm::vec3(1.0,  1.0, 0.0) // top
+                ];
+                let uv_coordinates: Vec<glm::Vec2> = vec![
+                    glm::vec2(1.0, 0.0),   // bottom right
+                    glm::vec2(0.0, 1.0),   // bottom left
+                    glm::vec2(1.0, 1.0)    // top
+                ];
+                let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
+                mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
+
+                let index_buffer = buffer::ElementBuffer::create(gl).unwrap();
+                index_buffer.fill_with(&mesh.indices());
+            }
+            bind(gl, FULL_SCREEN__QUAD_ID);
+            gl.DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_SHORT, std::ptr::null());
+        }
+    }
+
     pub fn create(gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Material>) -> Result<Model, Error>
     {
         let mut id: gl::types::GLuint = 0;
@@ -76,18 +108,23 @@ impl Model
 
     fn bind(&self)
     {
-        unsafe {
-            static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
-            if self.id != CURRENTLY_USED
-            {
-                self.gl.BindVertexArray(self.id);
-                CURRENTLY_USED = self.id;
-            }
-        }
+        bind(&self.gl, self.id);
     }
 
     fn get_draw_mode(&self) -> u32
     {
         gl::TRIANGLES
+    }
+}
+
+fn bind(gl: &gl::Gl, id: u32)
+{
+    unsafe {
+        static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
+        if id != CURRENTLY_USED
+        {
+            gl.BindVertexArray(id);
+            CURRENTLY_USED = id;
+        }
     }
 }

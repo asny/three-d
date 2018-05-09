@@ -53,7 +53,7 @@ fn main() {
     ];
 
     let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
-    mesh.add_custom_attribute("Color", colors).unwrap();
+    mesh.add_custom_vec3_attribute("Color", colors).unwrap();
     let material = materials::texture_material::TextureMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 

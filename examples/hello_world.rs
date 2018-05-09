@@ -51,7 +51,7 @@ fn main() {
         glm::vec3(0.0, 0.0, 1.0)    // top
     ];
     let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
-    mesh.add_custom_attribute("Color", colors).unwrap();
+    mesh.add_custom_vec3_attribute("color", colors).unwrap();
     let material = materials::color_material::ColorMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 

@@ -4,6 +4,7 @@ use gust::mesh;
 use material;
 use std::rc::Rc;
 use gl;
+use light;
 
 #[derive(Debug)]
 pub enum Error {
@@ -17,7 +18,8 @@ impl From<model::Error> for Error {
 }
 
 pub struct Scene {
-    models: Vec<model::Model>
+    models: Vec<model::Model>,
+    lights: Vec<Rc<light::Shining>>
 }
 
 
@@ -25,7 +27,7 @@ impl Scene
 {
     pub fn create() -> Result<Scene, Error>
     {
-        Ok(Scene { models: Vec::new() })
+        Ok(Scene { models: Vec::new(), lights: Vec::new() })
     }
 
     pub fn add_model(&mut self, gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Material>) -> Result<(), Error>
@@ -35,10 +37,24 @@ impl Scene
         Ok(())
     }
 
+    pub fn add_light(&mut self, gl: &gl::Gl, light: Rc<light::Shining>) -> Result<(), Error>
+    {
+        &self.lights.push(light);
+        Ok(())
+    }
+
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
     {
         for model in &self.models {
             model.draw(input)?;
+        }
+        Ok(())
+    }
+
+    pub fn shine_lights(&self, gl: &gl::Gl, input: &input::DrawInput) -> Result<(), Error>
+    {
+        for light in &self.lights {
+            light.shine(gl, input);
         }
         Ok(())
     }

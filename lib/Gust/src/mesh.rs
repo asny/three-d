@@ -43,7 +43,7 @@ impl Mesh
             indices_u16.push(indices[i] as u16);
         }
 
-        let position_attribute = attribute::Attribute::create_vec3_attribute("Position", positions)?;
+        let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
         let mesh = Mesh { no_vertices, indices: indices_u16, positions: position_attribute, custom_attributes: Vec::new() };
         Ok(mesh)
     }
@@ -74,7 +74,17 @@ impl Mesh
         Err(Error::FailedToFindCustomAttribute{message: format!("Failed to find {} attribute", name)})
     }
 
-    pub fn add_custom_attribute(&mut self, name: &str, data: Vec<glm::Vec3>) -> Result<(), Error>
+    pub fn add_custom_vec2_attribute(&mut self, name: &str, data: Vec<glm::Vec2>) -> Result<(), Error>
+    {
+        if self.no_vertices != data.len() {
+            return Err(Error::WrongSizeOfAttribute {message: format!("The data for {} does not have the correct size, it should be {}", name, self.no_vertices)})
+        }
+        let custom_attribute = attribute::Attribute::create_vec2_attribute(name, data)?;
+        self.custom_attributes.push(custom_attribute);
+        Ok(())
+    }
+
+    pub fn add_custom_vec3_attribute(&mut self, name: &str, data: Vec<glm::Vec3>) -> Result<(), Error>
     {
         if self.no_vertices != data.len() {
             return Err(Error::WrongSizeOfAttribute {message: format!("The data for {} does not have the correct size, it should be {}", name, self.no_vertices)})

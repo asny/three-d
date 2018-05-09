@@ -20,6 +20,16 @@ impl Attribute
         Ok(Attribute{name: String::from(name), data: d, no_components: 1})
     }
 
+    pub fn create_vec2_attribute(name: &str, data: Vec<glm::Vec2>) -> Result<Attribute, Error>
+    {
+        let mut d = Vec::new();
+        for datum in data {
+            d.push(datum.x);
+            d.push(datum.y);
+        }
+        Ok(Attribute{name: String::from(name), data: d, no_components: 2})
+    }
+
     pub fn create_vec3_attribute(name: &str, data: Vec<glm::Vec3>) -> Result<Attribute, Error>
     {
         let mut d = Vec::new();

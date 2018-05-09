@@ -4,6 +4,7 @@ use scene;
 use input;
 use rendertarget;
 use rendertarget::Rendertarget;
+use num_traits::identities::One;
 
 #[derive(Debug)]
 pub enum Error {
@@ -68,13 +69,35 @@ impl Camera
 
     pub fn draw(&self, scene: &scene::Scene) -> Result<(), Error>
     {
+        self.deferred_pass(scene)
+    }
+
+    pub fn forward_pass(&self, scene: &scene::Scene) -> Result<(), Error>
+    {
+        let input = input::DrawInput{model: glm::Matrix4::one(),view: self.get_view(), projection: self.get_projection(),
+            camera_position: self.position, color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
+
         self.screen_rendertarget.bind();
         self.screen_rendertarget.clear();
 
-        use num_traits::identities::One;
-        let input = input::DrawInput{model: glm::Matrix4::one(),view: self.get_view(), projection: self.get_projection(), camera_position: self.position};
-
         scene.draw(&input)?;
+        Ok(())
+    }
+
+    pub fn deferred_pass(&self, scene: &scene::Scene) -> Result<(), Error>
+    {
+        let input = input::DrawInput{model: glm::Matrix4::one(),view: self.get_view(), projection: self.get_projection(),
+            camera_position: self.position, color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
+
+        /*self.geometry_pass_rendertarget.bind();
+        self.geometry_pass_rendertarget.clear();
+
+        scene.draw(&input)?;*/
+
+        self.screen_rendertarget.bind();
+        self.screen_rendertarget.clear();
+
+        scene.shine_lights(&self.gl, &input)?;
         Ok(())
     }
 

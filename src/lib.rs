@@ -10,6 +10,7 @@ mod buffer;
 mod shader;
 mod utility;
 
+pub mod light;
 pub mod material;
 pub mod program;
 pub mod input;
