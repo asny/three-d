@@ -24,7 +24,8 @@ pub struct Camera {
     z_far: f32,
     width: usize,
     height: usize,
-    screen_rendertarget: rendertarget::ScreenRendertarget
+    screen_rendertarget: rendertarget::ScreenRendertarget,
+    geometry_pass_rendertarget: rendertarget::ColorRendertarget
 }
 
 
@@ -33,7 +34,8 @@ impl Camera
     pub fn create(gl: &gl::Gl, position: glm::Vec3, target: glm::Vec3, width: usize, height: usize) -> Result<Camera, Error>
     {
         let screen_rendertarget = rendertarget::ScreenRendertarget::create(&gl, width, height).unwrap();
-        Ok(Camera { gl: gl.clone(), position, target, z_near: 0.1, z_far: 1000.0, width, height, screen_rendertarget })
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height).unwrap();
+        Ok(Camera { gl: gl.clone(), position, target, z_near: 0.1, z_far: 1000.0, width, height, screen_rendertarget, geometry_pass_rendertarget })
     }
 
     pub fn set_screen_size(&mut self, width: usize, height: usize)
