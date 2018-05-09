@@ -45,10 +45,7 @@ impl Shining for DirectionalLight
     {
         state::depth_write(gl,false);
         state::depth_test(gl, false);
-        state::cull_back_faces(gl,false);
-        unsafe {
-            gl.DepthFunc(gl::LEQUAL);
-        }
+        state::cull_back_faces(gl,true);
 
         input.color_texture.bind(0);
         self.program.add_uniform_int("colorMap", &0);
