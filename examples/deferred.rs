@@ -44,12 +44,6 @@ fn main() {
     let material = materials::texture_material::TextureMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 
-    unsafe {
-        gl.ClearColor(0.3, 0.3, 0.5, 1.0);
-    }
-
-    let rendertarget = rendertarget::Rendertarget::create(&gl, width, height);
-
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
 

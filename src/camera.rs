@@ -2,6 +2,7 @@ use gl;
 use glm;
 use scene;
 use input;
+use rendertarget;
 
 #[derive(Debug)]
 pub enum Error {
@@ -22,6 +23,7 @@ pub struct Camera {
     z_far: f32,
     width: usize,
     height: usize,
+    screen_rendertarget: rendertarget::Rendertarget
 }
 
 
@@ -29,16 +31,13 @@ impl Camera
 {
     pub fn create(gl: &gl::Gl, position: glm::Vec3, target: glm::Vec3, width: usize, height: usize) -> Result<Camera, Error>
     {
-        let mut camera = Camera { gl: gl.clone(), position, target, z_near: 0.1, z_far: 1000.0, width: width, height: height };
-        camera.set_screen_size(width, height);
-        Ok(camera)
+        let screen_rendertarget = rendertarget::Rendertarget::create(&gl, width, height).unwrap();
+        Ok(Camera { gl: gl.clone(), position, target, z_near: 0.1, z_far: 1000.0, width, height, screen_rendertarget })
     }
 
     pub fn set_screen_size(&mut self, width: usize, height: usize)
     {
-        unsafe {
-            self.gl.Viewport(0, 0, width as i32, height as i32);
-        }
+        self.screen_rendertarget = rendertarget::Rendertarget::create(&self.gl, width, height).unwrap();
         self.width = width;
         self.height = height;
     }
@@ -66,11 +65,12 @@ impl Camera
 
     pub fn draw(&self, scene: &scene::Scene) -> Result<(), Error>
     {
-        unsafe {
-            self.gl.Clear(gl::COLOR_BUFFER_BIT);
-        }
+        self.screen_rendertarget.bind();
+        self.screen_rendertarget.clear();
+
         use num_traits::identities::One;
         let input = input::DrawInput{model: glm::Matrix4::one(),view: self.get_view(), projection: self.get_projection(), camera_position: self.position};
+
         scene.draw(&input)?;
         Ok(())
     }

@@ -20,7 +20,7 @@ impl Rendertarget
     {
         let mut id: u32 = 0;
         unsafe {
-            gl.GenFramebuffers(1, &mut id);
+            //gl.GenFramebuffers(1, &mut id);
         }
         Ok(Rendertarget{ gl: gl.clone(), id, width, height })
     }
