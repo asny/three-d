@@ -45,18 +45,15 @@ pub struct ColorRendertarget {
     gl: gl::Gl,
     id: u32,
     width: usize,
-    height: usize
+    height: usize,
 }
 
 impl ColorRendertarget
 {
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ColorRendertarget, Error>
     {
-        let mut id: u32 = 0;
-        unsafe {
-            gl.GenFramebuffers(1, &mut id);
-        }
-        Ok(ColorRendertarget { gl: gl.clone(), id: 0, width, height })
+        let id = generate(gl)?;
+        Ok(ColorRendertarget { gl: gl.clone(), id, width, height })
     }
 }
 
@@ -81,6 +78,15 @@ impl Drop for ColorRendertarget {
 
 
 // COMMON FUNCTIONS
+fn generate(gl: &gl::Gl) -> Result<u32, Error>
+{
+    let mut id: u32 = 0;
+    unsafe {
+        gl.GenFramebuffers(1, &mut id);
+    }
+    Ok(id)
+}
+
 fn bind(gl: &gl::Gl, id: u32, width: usize, height: usize)
 {
     unsafe {
