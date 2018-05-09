@@ -6,10 +6,11 @@ use gust::mesh;
 use std::rc::Rc;
 use dust::state;
 use dust::texture;
+use dust::texture::Texture;
 
 pub struct TextureMaterial {
     program: program::Program,
-    texture: texture::Texture
+    texture: texture::Texture2D
 }
 
 impl material::Material for TextureMaterial
@@ -26,7 +27,7 @@ impl material::Material for TextureMaterial
 
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), material::Error>
     {
-        self.texture.bind_at(0);
+        self.texture.bind(0);
         self.program.add_uniform_int("tex", &0)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
@@ -46,7 +47,7 @@ impl TextureMaterial
     pub fn create(gl: &gl::Gl) -> Result<Rc<material::Material>, material::Error>
     {
         let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/texture")?;
-        let mut texture = texture::Texture::create(&gl).unwrap();
+        let mut texture = texture::Texture2D::create(&gl).unwrap();
 
         let tex_data: Vec<f32> = vec![
             1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0

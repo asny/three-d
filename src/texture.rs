@@ -6,35 +6,33 @@ pub enum Error {
 
 }
 
-pub struct Texture {
+
+pub trait Texture {
+    fn bind(&self, location: u32);
+}
+
+pub struct Texture2D {
     gl: gl::Gl,
     id: u32,
     target: u32
 }
 
-impl Texture
+impl Texture2D
 {
-    pub fn create(gl: &gl::Gl) -> Result<Texture, Error>
+    pub fn create(gl: &gl::Gl) -> Result<Texture2D, Error>
     {
         let mut id: u32 = 0;
         unsafe {
             gl.GenTextures(1, &mut id);
         }
-        let texture = Texture{ gl: gl.clone(), id, target: gl::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
         Ok(texture)
-    }
-
-    fn bind(&self)
-    {
-        unsafe {
-            self.gl.BindTexture(self.target, self.id);
-        }
     }
 
     pub fn fill_with(&mut self, data: &Vec<f32>, width: usize, height: usize, no_elements: usize)
     {
-        let d = Texture::extend_data(data, width * height, 0.0);
-        self.bind();
+        let d = Texture2D::extend_data(data, width * height, 0.0);
+        bind(&self.gl, self.id, self.target);
         unsafe {
             let format = if no_elements == 1 {gl::RED} else {gl::RGB};
             let internal_format = if no_elements == 1 {gl::R32F} else {gl::RGB32F};
@@ -60,13 +58,6 @@ impl Texture
         self.fill_with(&data.iter().map(|i| *i as f32).collect(), width, height, 1);
     }
 
-    pub fn bind_at(&self, location: u32)
-    {
-        unsafe {
-            self.gl.ActiveTexture(gl::TEXTURE0 + location);
-        }
-        self.bind();
-    }
 
     fn extend_data<T>(data: &Vec<T>, desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
     {
@@ -82,10 +73,30 @@ impl Texture
     }
 }
 
-impl Drop for Texture {
+impl Texture for Texture2D
+{
+    fn bind(&self, location: u32)
+    {
+        unsafe {
+            self.gl.ActiveTexture(gl::TEXTURE0 + location);
+        }
+        bind(&self.gl, self.id, self.target);
+    }
+}
+
+impl Drop for Texture2D {
     fn drop(&mut self) {
         unsafe {
             self.gl.DeleteTextures(1, &self.id);
         }
+    }
+}
+
+
+// COMMON FUNCTIONS
+fn bind(gl: &gl::Gl, id: u32, target: u32)
+{
+    unsafe {
+        gl.BindTexture(target, id);
     }
 }
