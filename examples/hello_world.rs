@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod color_material;
+mod materials;
 
 use std::process;
 
@@ -52,7 +52,7 @@ fn main() {
     ];
     let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
     mesh.add_custom_attribute("Color", colors).unwrap();
-    let material = color_material::ColorMaterial::create(&gl).unwrap();
+    let material = materials::color_material::ColorMaterial::create(&gl).unwrap();
     scene.add_model(&gl, mesh, material).unwrap();
 
     unsafe {
