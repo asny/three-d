@@ -1,10 +1,17 @@
 use gl;
 use std;
 use state;
+use texture;
 
 #[derive(Debug)]
 pub enum Error {
+    Texture(texture::Error)
+}
 
+impl From<texture::Error> for Error {
+    fn from(other: texture::Error) -> Self {
+        Error::Texture(other)
+    }
 }
 
 pub trait Rendertarget {
@@ -46,6 +53,7 @@ pub struct ColorRendertarget {
     id: u32,
     width: usize,
     height: usize,
+    color_texture: Option<texture::Texture2D>
 }
 
 impl ColorRendertarget
@@ -53,7 +61,17 @@ impl ColorRendertarget
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
-        Ok(ColorRendertarget { gl: gl.clone(), id, width, height })
+        let rendertarget = ColorRendertarget { gl: gl.clone(), id, width, height, color_texture: None };
+        rendertarget.bind();
+
+        let draw_buffers = vec![gl::COLOR_ATTACHMENT0];
+        let color_texture = Some(texture::Texture2D::create_as_color_rendertarget(gl, width, height, 0)?);
+
+        unsafe {
+            gl.DrawBuffers(1, draw_buffers.as_ptr());
+        }
+
+        Ok(rendertarget)
     }
 }
 
