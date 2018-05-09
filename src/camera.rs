@@ -3,6 +3,7 @@ use glm;
 use scene;
 use input;
 use rendertarget;
+use rendertarget::Rendertarget;
 
 #[derive(Debug)]
 pub enum Error {
@@ -23,7 +24,7 @@ pub struct Camera {
     z_far: f32,
     width: usize,
     height: usize,
-    screen_rendertarget: rendertarget::Rendertarget
+    screen_rendertarget: rendertarget::ScreenRendertarget
 }
 
 
@@ -31,13 +32,13 @@ impl Camera
 {
     pub fn create(gl: &gl::Gl, position: glm::Vec3, target: glm::Vec3, width: usize, height: usize) -> Result<Camera, Error>
     {
-        let screen_rendertarget = rendertarget::Rendertarget::create(&gl, width, height).unwrap();
+        let screen_rendertarget = rendertarget::ScreenRendertarget::create(&gl, width, height).unwrap();
         Ok(Camera { gl: gl.clone(), position, target, z_near: 0.1, z_far: 1000.0, width, height, screen_rendertarget })
     }
 
     pub fn set_screen_size(&mut self, width: usize, height: usize)
     {
-        self.screen_rendertarget = rendertarget::Rendertarget::create(&self.gl, width, height).unwrap();
+        self.screen_rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, width, height).unwrap();
         self.width = width;
         self.height = height;
     }
