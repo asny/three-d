@@ -6,6 +6,7 @@ use gust::mesh;
 use input;
 use buffer;
 use glm;
+use program;
 
 #[derive(Debug)]
 pub enum Error {
@@ -34,7 +35,7 @@ pub struct Model {
 
 impl Model
 {
-    pub fn draw_full_screen_quad(gl: &gl::Gl)
+    pub fn draw_full_screen_quad(gl: &gl::Gl, program: &program::Program)
     {
         unsafe {
             static mut FULL_SCREEN__QUAD_ID: gl::types::GLuint = std::u32::MAX;
@@ -58,7 +59,12 @@ impl Model
                 mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
 
                 let index_buffer = buffer::ElementBuffer::create(gl).unwrap();
-                index_buffer.fill_with(&mesh.indices());
+                index_buffer.fill_with(&vec![0, 1, 2]);
+
+                let mut list = Vec::new();
+                list.push( mesh.positions());
+                list.push(mesh.get("uv_coordinate").unwrap());
+                program.add_attributes(&list).unwrap();
             }
             bind(gl, FULL_SCREEN__QUAD_ID);
             gl.DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_SHORT, std::ptr::null());

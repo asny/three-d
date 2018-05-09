@@ -53,6 +53,6 @@ impl Shining for DirectionalLight
         input.color_texture.bind(0);
         self.program.add_uniform_int("colorMap", &0);
 
-        model::Model::draw_full_screen_quad(gl);
+        model::Model::draw_full_screen_quad(gl, &self.program);
     }
 }
