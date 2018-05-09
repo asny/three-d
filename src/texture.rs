@@ -23,12 +23,8 @@ impl Texture2D
 {
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
-        let mut id: u32 = 0;
-        unsafe {
-            gl.GenTextures(1, &mut id);
-        }
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
-        Ok(texture)
+        let id = generate(gl)?;
+        Ok(Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height })
     }
 
     pub fn fill_with(&mut self, data: &Vec<f32>)
@@ -61,23 +57,37 @@ impl Texture for Texture2D
 {
     fn bind(&self, location: u32)
     {
-        unsafe {
-            self.gl.ActiveTexture(gl::TEXTURE0 + location);
-        }
-        bind(&self.gl, self.id, self.target);
+        bind_at(&self.gl, self.id, self.target, location);
     }
 }
 
-impl Drop for Texture2D {
-    fn drop(&mut self) {
-        unsafe {
-            self.gl.DeleteTextures(1, &self.id);
-        }
+impl Drop for Texture2D
+{
+    fn drop(&mut self)
+    {
+        drop(&self.gl, &self.id);
     }
 }
 
 
 // COMMON FUNCTIONS
+fn generate(gl: &gl::Gl) -> Result<u32, Error>
+{
+    let mut id: u32 = 0;
+    unsafe {
+        gl.GenTextures(1, &mut id);
+    }
+    Ok(id)
+}
+
+fn bind_at(gl: &gl::Gl, id: u32, target: u32, location: u32)
+{
+    unsafe {
+        gl.ActiveTexture(gl::TEXTURE0 + location);
+    }
+    bind(gl, id, target);
+}
+
 fn bind(gl: &gl::Gl, id: u32, target: u32)
 {
     unsafe {
@@ -85,6 +95,12 @@ fn bind(gl: &gl::Gl, id: u32, target: u32)
     }
 }
 
+fn drop(gl: &gl::Gl, id: &u32)
+{
+    unsafe {
+        gl.DeleteTextures(1, id);
+    }
+}
 
 fn extend_data<T>(data: &Vec<T>, desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
 {
