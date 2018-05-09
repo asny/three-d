@@ -19,12 +19,23 @@ pub struct Texture2D {
     height: usize
 }
 
+// TEXTURE 2D
 impl Texture2D
 {
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        Ok(Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height })
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
+
+        bind(&texture.gl, texture.id, texture.target);
+        unsafe {
+            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+        }
+
+        Ok(texture)
     }
 
     pub fn fill_with(&mut self, data: &Vec<f32>)
@@ -44,11 +55,6 @@ impl Texture2D
                              format,
                              gl::FLOAT,
                              d.as_ptr() as *const gl::types::GLvoid);
-
-            self.gl.TexParameteri(self.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            self.gl.TexParameteri(self.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            self.gl.TexParameteri(self.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
-            self.gl.TexParameteri(self.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
         }
     }
 }
@@ -68,7 +74,6 @@ impl Drop for Texture2D
         drop(&self.gl, &self.id);
     }
 }
-
 
 // COMMON FUNCTIONS
 fn generate(gl: &gl::Gl) -> Result<u32, Error>
