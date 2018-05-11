@@ -22,10 +22,11 @@ impl From<program::Error> for Error {
 
 
 pub trait Emitting {
-    fn shine(&self, gl: &gl::Gl, input: &input::DrawInput);
+    fn shine(&self, input: &input::DrawInput) -> Result<(), Error>;
 }
 
 pub struct DirectionalLight {
+    gl: gl::Gl,
     program: program::Program,
     direction: glm::Vec3
 }
@@ -35,21 +36,22 @@ impl DirectionalLight
     pub fn create(gl: &gl::Gl, direction: glm::Vec3) -> Result<DirectionalLight, Error>
     {
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/light_pass")?;
-        Ok(DirectionalLight {program, direction})
+        Ok(DirectionalLight {gl: gl.clone(), program, direction})
     }
 }
 
 impl Emitting for DirectionalLight
 {
-    fn shine(&self, gl: &gl::Gl, input: &input::DrawInput)
+    fn shine(&self, input: &input::DrawInput) -> Result<(), Error>
     {
-        state::depth_write(gl,false);
-        state::depth_test(gl, false);
-        state::cull_back_faces(gl,true);
+        state::depth_write(&self.gl,false);
+        state::depth_test(&self.gl, false);
+        state::cull_back_faces(&self.gl,true);
 
         input.color_texture.bind(0);
-        self.program.add_uniform_int("colorMap", &0);
+        self.program.add_uniform_int("colorMap", &0)?;
 
-        model::Model::draw_full_screen_quad(gl, &self.program);
+        model::Model::draw_full_screen_quad(&self.gl, &self.program);
+        Ok(())
     }
 }

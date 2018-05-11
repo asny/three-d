@@ -97,7 +97,7 @@ impl Camera
         self.screen_rendertarget.bind();
         self.screen_rendertarget.clear();
 
-        scene.shine_lights(&self.gl, &input)?;
+        scene.shine_lights(&input)?;
         Ok(())
     }
 

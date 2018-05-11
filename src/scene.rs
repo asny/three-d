@@ -37,10 +37,9 @@ impl Scene
         Ok(())
     }
 
-    pub fn add_light(&mut self, gl: &gl::Gl, light: Rc<light::Emitting>) -> Result<(), Error>
+    pub fn add_light(&mut self, light: Rc<light::Emitting>)
     {
         &self.lights.push(light);
-        Ok(())
     }
 
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
@@ -51,10 +50,10 @@ impl Scene
         Ok(())
     }
 
-    pub fn shine_lights(&self, gl: &gl::Gl, input: &input::DrawInput) -> Result<(), Error>
+    pub fn shine_lights(&self, input: &input::DrawInput) -> Result<(), Error>
     {
         for light in &self.lights {
-            light.shine(gl, input);
+            light.shine(input);
         }
         Ok(())
     }
