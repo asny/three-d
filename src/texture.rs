@@ -42,7 +42,7 @@ impl Texture2D
     pub fn create_as_color_rendertarget(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let mut texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
 
         bind(&texture.gl, texture.id, texture.target);
         unsafe {

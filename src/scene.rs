@@ -1,19 +1,23 @@
 use model;
 use input;
-use gust::mesh;
-use material;
 use std::rc::Rc;
-use gl;
 use light;
 
 #[derive(Debug)]
 pub enum Error {
-    Model(model::Error)
+    Model(model::Error),
+    Light(light::Error)
 }
 
 impl From<model::Error> for Error {
     fn from(other: model::Error) -> Self {
         Error::Model(other)
+    }
+}
+
+impl From<light::Error> for Error {
+    fn from(other: light::Error) -> Self {
+        Error::Light(other)
     }
 }
 
@@ -25,16 +29,14 @@ pub struct Scene {
 
 impl Scene
 {
-    pub fn create() -> Result<Scene, Error>
+    pub fn create() -> Scene
     {
-        Ok(Scene { models: Vec::new(), lights: Vec::new() })
+        Scene { models: Vec::new(), lights: Vec::new() }
     }
 
-    pub fn add_model(&mut self, gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Reflecting>) -> Result<(), Error>
+    pub fn add_model(&mut self, model: model::Model)
     {
-        let model = model::Model::create(&gl, mesh, material)?;
         &self.models.push(model);
-        Ok(())
     }
 
     pub fn add_light(&mut self, light: Rc<light::Emitting>)
@@ -53,7 +55,7 @@ impl Scene
     pub fn shine_lights(&self, input: &input::DrawInput) -> Result<(), Error>
     {
         for light in &self.lights {
-            light.shine(input);
+            light.shine(input)?;
         }
         Ok(())
     }

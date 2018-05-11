@@ -36,14 +36,16 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Scene
-    let mut scene = scene::Scene::create().unwrap();
+    let mut scene = scene::Scene::create();
 
     // Camera
     let mut camera = camera::Camera::create(&gl, glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
 
     let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
     let material = materials::texture_material::TextureMaterial::create(&gl).unwrap();
-    scene.add_model(&gl, mesh, material).unwrap();
+
+    let model = model::Model::create(&gl, mesh, material).unwrap();
+    scene.add_model(model);
 
     let light = dust::light::DirectionalLight::create(&gl, glm::vec3(0.0, -1.0, 0.0)).unwrap();
     scene.add_light(Rc::from(light));

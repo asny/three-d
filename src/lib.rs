@@ -5,7 +5,7 @@ pub use gust::glm;
 pub use gust::mesh;
 
 pub mod loader;
-mod model;
+pub mod model;
 mod buffer;
 mod shader;
 mod utility;
