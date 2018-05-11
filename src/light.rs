@@ -21,7 +21,7 @@ impl From<program::Error> for Error {
 }
 
 
-pub trait Shining {
+pub trait Emitting {
     fn shine(&self, gl: &gl::Gl, input: &input::DrawInput);
 }
 
@@ -39,7 +39,7 @@ impl DirectionalLight
     }
 }
 
-impl Shining for DirectionalLight
+impl Emitting for DirectionalLight
 {
     fn shine(&self, gl: &gl::Gl, input: &input::DrawInput)
     {

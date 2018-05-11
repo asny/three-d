@@ -19,7 +19,7 @@ impl From<model::Error> for Error {
 
 pub struct Scene {
     models: Vec<model::Model>,
-    lights: Vec<Rc<light::Shining>>
+    lights: Vec<Rc<light::Emitting>>
 }
 
 
@@ -37,7 +37,7 @@ impl Scene
         Ok(())
     }
 
-    pub fn add_light(&mut self, gl: &gl::Gl, light: Rc<light::Shining>) -> Result<(), Error>
+    pub fn add_light(&mut self, gl: &gl::Gl, light: Rc<light::Emitting>) -> Result<(), Error>
     {
         &self.lights.push(light);
         Ok(())
