@@ -29,7 +29,7 @@ impl From<buffer::Error> for Error {
 pub struct Model {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    material: Rc<material::Material>,
+    material: Rc<material::Reflecting>,
     mesh: mesh::Mesh
 }
 
@@ -71,7 +71,7 @@ impl Model
         }
     }
 
-    pub fn create(gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Material>) -> Result<Model, Error>
+    pub fn create(gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Reflecting>) -> Result<Model, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {

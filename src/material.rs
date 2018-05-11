@@ -21,7 +21,7 @@ impl From<mesh::Error> for Error {
     }
 }
 
-pub trait Material {
+pub trait Reflecting {
     fn apply(&self);
     fn setup_states(&self, gl: &gl::Gl) -> Result<(), Error>;
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), Error>;

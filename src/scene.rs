@@ -30,7 +30,7 @@ impl Scene
         Ok(Scene { models: Vec::new(), lights: Vec::new() })
     }
 
-    pub fn add_model(&mut self, gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Material>) -> Result<(), Error>
+    pub fn add_model(&mut self, gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Reflecting>) -> Result<(), Error>
     {
         let model = model::Model::create(&gl, mesh, material)?;
         &self.models.push(model);

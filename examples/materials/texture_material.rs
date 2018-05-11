@@ -13,7 +13,7 @@ pub struct TextureMaterial {
     texture: texture::Texture2D
 }
 
-impl material::Material for TextureMaterial
+impl material::Reflecting for TextureMaterial
 {
     fn apply(&self)
     {
@@ -44,7 +44,7 @@ impl material::Material for TextureMaterial
 
 impl TextureMaterial
 {
-    pub fn create(gl: &gl::Gl) -> Result<Rc<material::Material>, material::Error>
+    pub fn create(gl: &gl::Gl) -> Result<Rc<material::Reflecting>, material::Error>
     {
         let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/texture")?;
 

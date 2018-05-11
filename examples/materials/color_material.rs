@@ -9,7 +9,7 @@ pub struct ColorMaterial {
     program: program::Program
 }
 
-impl material::Material for ColorMaterial
+impl material::Reflecting for ColorMaterial
 {
     fn apply(&self)
     {
@@ -39,7 +39,7 @@ impl material::Material for ColorMaterial
 
 impl ColorMaterial
 {
-    pub fn create(gl: &gl::Gl) -> Result<Rc<material::Material>, material::Error>
+    pub fn create(gl: &gl::Gl) -> Result<Rc<material::Reflecting>, material::Error>
     {
         let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
 
