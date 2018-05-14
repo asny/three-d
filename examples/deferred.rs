@@ -35,11 +35,14 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Renderer
+    let renderer = renderer::Pipeline::create(&gl, width, height).unwrap();
+
     // Scene
     let mut scene = scene::Scene::create();
 
     // Camera
-    let mut camera = camera::Camera::create(&gl, glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
+    let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
     let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
     let material = materials::texture_material::TextureMaterial::create(&gl).unwrap();
@@ -74,7 +77,7 @@ fn main() {
         }
 
         // draw
-        camera.draw(&scene).unwrap();
+        renderer.draw(&camera, &scene).unwrap();
 
         window.gl_swap_window();
     };

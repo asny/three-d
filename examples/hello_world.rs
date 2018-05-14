@@ -39,7 +39,7 @@ fn main() {
     let mut scene = scene::Scene::create();
 
     // Camera
-    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
+    let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
     let positions: Vec<glm::Vec3> = vec![
         glm::vec3(0.5, -0.5, 0.0), // bottom right
