@@ -1,5 +1,5 @@
 use glm;
-use texture;
+use core::texture;
 use std::rc::Rc;
 
 pub struct DrawInput {

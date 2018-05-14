@@ -1,4 +1,4 @@
-use program;
+use core::program;
 use input;
 use gust::mesh;
 use gl;

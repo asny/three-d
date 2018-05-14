@@ -6,7 +6,7 @@ use gust::mesh;
 use input;
 use core::buffer;
 use glm;
-use program;
+use core::program;
 
 #[derive(Debug)]
 pub enum Error {

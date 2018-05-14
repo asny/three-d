@@ -1,9 +1,9 @@
 use gl;
 use glm;
-use program;
-use state;
+use core::program;
+use core::state;
 use input;
-use texture::Texture;
+use core::texture::Texture;
 use model;
 
 #[derive(Debug)]

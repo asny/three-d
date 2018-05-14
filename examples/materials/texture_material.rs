@@ -1,12 +1,12 @@
-use dust::program;
+use dust::core::program;
 use gl;
 use dust::input;
 use dust::material;
 use gust::mesh;
 use std::rc::Rc;
-use dust::state;
-use dust::texture;
-use dust::texture::Texture;
+use dust::core::state;
+use dust::core::texture;
+use dust::core::texture::Texture;
 
 pub struct TextureMaterial {
     program: program::Program,

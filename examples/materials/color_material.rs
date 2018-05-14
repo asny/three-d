@@ -1,4 +1,4 @@
-use dust::program;
+use dust::core::program;
 use gl;
 use dust::input;
 use dust::material;

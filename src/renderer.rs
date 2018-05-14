@@ -4,8 +4,8 @@ use input;
 use glm;
 use gl;
 use num_traits::identities::One;
-use rendertarget;
-use rendertarget::Rendertarget;
+use core::rendertarget;
+use core::rendertarget::Rendertarget;
 
 #[derive(Debug)]
 pub enum Error {

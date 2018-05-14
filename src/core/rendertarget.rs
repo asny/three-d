@@ -1,7 +1,7 @@
 use gl;
 use std;
-use state;
-use texture;
+use core::state;
+use core::texture;
 use std::rc::Rc;
 
 #[derive(Debug)]
