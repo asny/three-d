@@ -5,7 +5,7 @@ use glm;
 use gust::attribute;
 use utility;
 use shader;
-use buffer;
+use core::buffer;
 
 use std::ffi::{CString};
 

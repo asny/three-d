@@ -4,7 +4,7 @@ use std::rc::Rc;
 use material;
 use gust::mesh;
 use input;
-use buffer;
+use core::buffer;
 use glm;
 use program;
 

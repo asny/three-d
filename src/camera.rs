@@ -1,7 +1,4 @@
-use gl;
 use glm;
-use scene;
-use input;
 
 pub struct Camera {
     pub position: glm::Vec3,

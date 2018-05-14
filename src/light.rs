@@ -3,9 +3,6 @@ use glm;
 use program;
 use state;
 use input;
-use mesh;
-use std;
-use buffer;
 use texture::Texture;
 use model;
 
