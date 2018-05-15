@@ -3,7 +3,6 @@ use std;
 use glm;
 
 use gust::attribute;
-use utility;
 use core::shader;
 use core::buffer;
 use core::state;
@@ -89,7 +88,7 @@ impl Program
                 gl.GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut len);
             }
 
-            let error = utility::create_whitespace_cstring_with_len(len as usize);
+            let error = create_whitespace_cstring_with_len(len as usize);
 
             unsafe {
                 gl.GetProgramInfoLog(
@@ -282,4 +281,13 @@ fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usi
         offset = offset + attribute.no_components();
     }
     Ok(data)
+}
+
+fn create_whitespace_cstring_with_len(len: usize) -> CString {
+    // allocate buffer of correct size
+    let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);
+    // fill it with len spaces
+    buffer.extend([b' '].iter().cycle().take(len));
+    // convert buffer to CString
+    unsafe { CString::from_vec_unchecked(buffer) }
 }

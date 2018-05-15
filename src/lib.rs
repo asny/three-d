@@ -6,7 +6,6 @@ pub use gust::mesh;
 
 pub mod core;
 pub mod loader;
-mod utility;
 
 pub mod traits;
 pub mod light;
