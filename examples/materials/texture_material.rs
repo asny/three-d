@@ -25,7 +25,7 @@ impl traits::Reflecting for TextureMaterial
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
         self.program.add_uniform_vec3("cameraPosition", &input.camera_position)?;
 
-        self.model.draw(input)?;
+        self.model.draw()?;
         Ok(())
     }
 

@@ -1,9 +1,8 @@
 use gl;
 use std;
-use gust::mesh;
-use input;
-use core::buffer;
 use glm;
+use gust::mesh;
+use core::buffer;
 use core::program;
 
 #[derive(Debug)]
@@ -90,7 +89,7 @@ impl Attributes
         Ok(())
     }
 
-    pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
+    pub fn draw(&self) -> Result<(), Error>
     {
         self.bind();
         let draw_mode = self.get_draw_mode();

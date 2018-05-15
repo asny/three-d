@@ -17,7 +17,7 @@ impl traits::Reflecting for ColorMaterial
     {
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
-        self.model.draw(input)?;
+        self.model.draw()?;
         Ok(())
     }
 }
