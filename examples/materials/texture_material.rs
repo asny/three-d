@@ -23,7 +23,7 @@ impl material::Reflecting for TextureMaterial
     }
 
     fn setup_states(&self) -> Result<(), material::Error> {
-        state::cull_back_faces(&self.program.gl, true);
+        self.program.cull_back_faces(true);
         Ok(())
     }
 

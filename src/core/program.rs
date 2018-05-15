@@ -6,6 +6,7 @@ use gust::attribute;
 use utility;
 use core::shader;
 use core::buffer;
+use core::state;
 
 use std::ffi::{CString};
 
@@ -38,7 +39,7 @@ impl From<std::ffi::NulError> for Error {
 
 #[derive(Clone)]
 pub struct Program {
-    pub gl: gl::Gl,
+    gl: gl::Gl,
     id: gl::types::GLuint,
 }
 
@@ -226,6 +227,22 @@ impl Program
             );
         }
         Ok(())
+    }
+
+    // STATES
+    pub fn cull_back_faces(&self, enable: bool)
+    {
+        state::cull_back_faces(&self.gl, enable);
+    }
+
+    pub fn depth_test(&self, enable: bool)
+    {
+        state::depth_test(&self.gl, enable);
+    }
+
+    pub fn depth_write(&self, enable: bool)
+    {
+        state::depth_write(&self.gl, enable);
     }
 
     pub fn set_used(&self) {
