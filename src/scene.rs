@@ -39,9 +39,6 @@ impl Scene
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
     {
         for model in &self.models {
-            model.apply();
-            model.setup_states()?;
-            model.setup_uniforms(&input)?;
             model.reflect(input);
         }
         Ok(())

@@ -16,34 +16,17 @@ pub struct TextureMaterial {
 
 impl traits::Reflecting for TextureMaterial
 {
-    fn apply(&self)
+    fn reflect(&self, input: &input::DrawInput) -> Result<(), traits::Error>
     {
-        self.program.set_used();
-    }
-
-    fn setup_states(&self) -> Result<(), traits::Error> {
         self.program.cull_back_faces(true);
-        Ok(())
-    }
-
-    fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), traits::Error>
-    {
         self.texture.bind(0);
         self.program.add_uniform_int("tex", &0)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
         self.program.add_uniform_vec3("cameraPosition", &input.camera_position)?;
-        Ok(())
-    }
 
-    fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), traits::Error>
-    {
-        Ok(())
-    }
-
-    fn reflect(&self, input: &input::DrawInput)
-    {
         self.model.draw(input);
+        Ok(())
     }
 
 }

@@ -35,6 +35,9 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Renderer
+    let renderer = renderer::Pipeline::create(&gl, width, height).unwrap();
+
     // Scene
     let mut scene = scene::Scene::create();
 
@@ -53,8 +56,7 @@ fn main() {
     ];
     let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
     mesh.add_custom_vec3_attribute("color", colors).unwrap();
-    let material = materials::color_material::ColorMaterial::create(&gl).unwrap();
-    let model = model::Model::create(&gl, mesh, material).unwrap();
+    let model = materials::color_material::ColorMaterial::create(&gl, &mesh).unwrap();
     scene.add_model(model);
 
     let light = dust::light::DirectionalLight::create(&gl, glm::vec3(0.0, -1.0, 0.0)).unwrap();
@@ -75,7 +77,7 @@ fn main() {
         }
 
         // draw
-        camera.forward_pass(&scene).unwrap();
+        renderer.forward_pass(&camera, &scene).unwrap();
 
         window.gl_swap_window();
     };
