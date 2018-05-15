@@ -8,6 +8,7 @@ pub mod core;
 pub mod loader;
 mod utility;
 
+pub mod traits;
 pub mod light;
 pub mod material;
 pub mod input;
