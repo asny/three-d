@@ -7,9 +7,11 @@ use std::rc::Rc;
 use dust::core::state;
 use dust::core::texture;
 use dust::core::texture::Texture;
+use dust::core::attributes;
 
 pub struct TextureMaterial {
     program: program::Program,
+    model: attributes::Attributes,
     texture: texture::Texture2D
 }
 
@@ -20,8 +22,8 @@ impl material::Reflecting for TextureMaterial
         self.program.set_used();
     }
 
-    fn setup_states(&self, gl: &gl::Gl) -> Result<(), material::Error> {
-        state::cull_back_faces(gl, true);
+    fn setup_states(&self) -> Result<(), material::Error> {
+        state::cull_back_faces(&self.program.gl, true);
         Ok(())
     }
 
@@ -37,22 +39,28 @@ impl material::Reflecting for TextureMaterial
 
     fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), material::Error>
     {
-        self.program.add_attribute(&mesh.positions())?;
         Ok(())
     }
+
+    fn reflect(&self, input: &input::DrawInput)
+    {
+        self.model.draw(input);
+    }
+
 }
 
 impl TextureMaterial
 {
-    pub fn create(gl: &gl::Gl) -> Result<Rc<material::Reflecting>, material::Error>
+    pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<material::Reflecting>, material::Error>
     {
-        let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/texture")?;
+        let shader_program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
+        let attributes = attributes::Attributes::create(gl, mesh, &shader_program).unwrap();
 
         let tex_data: Vec<f32> = vec![
             1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0
         ];
-        let texture = texture::Texture2D::create_from_data(&gl, 4, 4, &tex_data).unwrap();
+        let texture = texture::Texture2D::create_from_data(gl, 4, 4, &tex_data).unwrap();
 
-        Ok(Rc::new(TextureMaterial { program: shader_program, texture }))
+        Ok(Rc::new(TextureMaterial { program: shader_program, model: attributes, texture }))
     }
 }

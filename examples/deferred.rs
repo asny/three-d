@@ -45,9 +45,7 @@ fn main() {
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
     let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
-    let material = materials::texture_material::TextureMaterial::create(&gl).unwrap();
-
-    let model = model::Model::create(&gl, mesh, material).unwrap();
+    let model = materials::texture_material::TextureMaterial::create(&gl, &mesh).unwrap();
     scene.add_model(model);
 
     let light = dust::light::DirectionalLight::create(&gl, glm::vec3(0.0, -1.0, 0.0)).unwrap();

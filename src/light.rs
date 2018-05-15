@@ -4,7 +4,7 @@ use core::program;
 use core::state;
 use input;
 use core::texture::Texture;
-use model;
+use core::attributes;
 
 #[derive(Debug)]
 pub enum Error {
@@ -48,7 +48,7 @@ impl Emitting for DirectionalLight
         input.color_texture.bind(0);
         self.program.add_uniform_int("colorMap", &0)?;
 
-        model::Model::draw_full_screen_quad(&self.gl, &self.program);
+        attributes::Attributes::draw_full_screen_quad(&self.gl, &self.program);
         Ok(())
     }
 }

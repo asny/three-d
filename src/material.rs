@@ -22,8 +22,9 @@ impl From<mesh::Error> for Error {
 }
 
 pub trait Reflecting {
+    fn reflect(&self, input: &input::DrawInput);
     fn apply(&self);
-    fn setup_states(&self, gl: &gl::Gl) -> Result<(), Error>;
+    fn setup_states(&self) -> Result<(), Error>;
     fn setup_uniforms(&self, input: &input::DrawInput) -> Result<(), Error>;
     fn setup_attributes(&self, mesh: &mesh::Mesh) -> Result<(), Error>;
 }

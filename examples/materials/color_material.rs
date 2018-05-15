@@ -16,7 +16,7 @@ impl material::Reflecting for ColorMaterial
         self.program.set_used();
     }
 
-    fn setup_states(&self, _gl: &gl::Gl) -> Result<(), material::Error> {
+    fn setup_states(&self) -> Result<(), material::Error> {
         Ok(())
     }
 
@@ -34,6 +34,9 @@ impl material::Reflecting for ColorMaterial
         list.push(mesh.get("color")?);
         self.program.add_attributes(&list)?;
         Ok(())
+    }
+    fn reflect(&self, input: &input::DrawInput) {
+        unimplemented!()
     }
 }
 

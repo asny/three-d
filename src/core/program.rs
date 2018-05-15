@@ -38,7 +38,7 @@ impl From<std::ffi::NulError> for Error {
 
 #[derive(Clone)]
 pub struct Program {
-    gl: gl::Gl,
+    pub gl: gl::Gl,
     id: gl::types::GLuint,
 }
 

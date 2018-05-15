@@ -1,16 +1,16 @@
-use model;
 use input;
 use std::rc::Rc;
 use light;
+use material;
 
 #[derive(Debug)]
 pub enum Error {
-    Model(model::Error),
+    Model(material::Error),
     Light(light::Error)
 }
 
-impl From<model::Error> for Error {
-    fn from(other: model::Error) -> Self {
+impl From<material::Error> for Error {
+    fn from(other: material::Error) -> Self {
         Error::Model(other)
     }
 }
@@ -22,7 +22,7 @@ impl From<light::Error> for Error {
 }
 
 pub struct Scene {
-    models: Vec<model::Model>,
+    models: Vec<Rc<material::Reflecting>>,
     lights: Vec<Rc<light::Emitting>>
 }
 
@@ -34,7 +34,7 @@ impl Scene
         Scene { models: Vec::new(), lights: Vec::new() }
     }
 
-    pub fn add_model(&mut self, model: model::Model)
+    pub fn add_model(&mut self, model: Rc<material::Reflecting>)
     {
         &self.models.push(model);
     }
@@ -47,7 +47,10 @@ impl Scene
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
     {
         for model in &self.models {
-            model.draw(input)?;
+            model.apply();
+            model.setup_states()?;
+            model.setup_uniforms(&input)?;
+            model.reflect(input);
         }
         Ok(())
     }
