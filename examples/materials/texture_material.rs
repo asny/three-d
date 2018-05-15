@@ -4,7 +4,6 @@ use dust::input;
 use dust::traits;
 use gust::mesh;
 use std::rc::Rc;
-use dust::core::state;
 use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::attributes;

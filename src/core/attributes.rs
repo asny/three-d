@@ -1,6 +1,5 @@
 use gl;
 use std;
-use material;
 use gust::mesh;
 use input;
 use core::buffer;

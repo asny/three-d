@@ -10,7 +10,6 @@ mod utility;
 
 pub mod traits;
 pub mod light;
-pub mod material;
 pub mod input;
 
 pub mod eventhandler;
