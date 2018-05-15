@@ -25,7 +25,7 @@ impl traits::Reflecting for TextureMaterial
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
         self.program.add_uniform_vec3("cameraPosition", &input.camera_position)?;
 
-        self.model.draw(input);
+        self.model.draw(input)?;
         Ok(())
     }
 
@@ -36,12 +36,12 @@ impl TextureMaterial
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
         let shader_program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
-        let attributes = attributes::Attributes::create(gl, mesh, &shader_program).unwrap();
+        let attributes = attributes::Attributes::create(gl, mesh, &shader_program)?;
 
         let tex_data: Vec<f32> = vec![
             1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0
         ];
-        let texture = texture::Texture2D::create_from_data(gl, 4, 4, &tex_data).unwrap();
+        let texture = texture::Texture2D::create_from_data(gl, 4, 4, &tex_data)?;
 
         Ok(Rc::new(TextureMaterial { program: shader_program, model: attributes, texture }))
     }

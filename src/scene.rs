@@ -39,7 +39,7 @@ impl Scene
     pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
     {
         for model in &self.models {
-            model.reflect(input);
+            model.reflect(input)?;
         }
         Ok(())
     }

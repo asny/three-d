@@ -17,7 +17,7 @@ impl traits::Reflecting for ColorMaterial
     {
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
-        self.model.draw(input);
+        self.model.draw(input)?;
         Ok(())
     }
 }
@@ -27,7 +27,7 @@ impl ColorMaterial
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
         let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
-        let attributes = attributes::Attributes::create(gl, mesh, &shader_program).unwrap();
+        let attributes = attributes::Attributes::create(gl, mesh, &shader_program)?;
 
         Ok(Rc::new(ColorMaterial { program: shader_program, model: attributes }))
     }
