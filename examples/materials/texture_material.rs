@@ -16,7 +16,7 @@ pub struct TextureMaterial {
 
 impl traits::Reflecting for TextureMaterial
 {
-    fn reflect(&self, input: &input::DrawInput) -> Result<(), traits::Error>
+    fn reflect(&self, input: &input::ReflectingInput) -> Result<(), traits::Error>
     {
         self.program.cull_back_faces(true);
         self.texture.bind(0);

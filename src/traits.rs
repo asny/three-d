@@ -41,5 +41,5 @@ pub trait Emitting {
 }
 
 pub trait Reflecting {
-    fn reflect(&self, input: &input::DrawInput) -> Result<(), Error>;
+    fn reflect(&self, input: &input::ReflectingInput) -> Result<(), Error>;
 }

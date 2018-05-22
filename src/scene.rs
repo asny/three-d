@@ -36,7 +36,7 @@ impl Scene
         &self.lights.push(light);
     }
 
-    pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
+    pub fn draw(&self, input: &input::ReflectingInput) -> Result<(), Error>
     {
         for model in &self.models {
             model.reflect(input)?;

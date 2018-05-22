@@ -13,7 +13,7 @@ pub struct ColorMaterial {
 
 impl traits::Reflecting for ColorMaterial
 {
-    fn reflect(&self, input: &input::DrawInput) -> Result<(), traits::Error>
+    fn reflect(&self, input: &input::ReflectingInput) -> Result<(), traits::Error>
     {
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
