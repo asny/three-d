@@ -24,7 +24,7 @@ impl DirectionalLight
 
 impl traits::Emitting for DirectionalLight
 {
-    fn shine(&self, input: &input::DrawInput) -> Result<(), traits::Error>
+    fn shine(&self, input: &input::EmittingInput) -> Result<(), traits::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, false);

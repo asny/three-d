@@ -37,7 +37,7 @@ impl From<mesh::Error> for Error {
 }
 
 pub trait Emitting {
-    fn shine(&self, input: &input::DrawInput) -> Result<(), Error>;
+    fn shine(&self, input: &input::EmittingInput) -> Result<(), Error>;
 }
 
 pub trait Reflecting {

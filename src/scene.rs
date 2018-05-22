@@ -44,7 +44,7 @@ impl Scene
         Ok(())
     }
 
-    pub fn shine_lights(&self, input: &input::DrawInput) -> Result<(), Error>
+    pub fn shine_lights(&self, input: &input::EmittingInput) -> Result<(), Error>
     {
         for light in &self.lights {
             light.shine(input)?;

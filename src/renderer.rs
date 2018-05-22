@@ -57,8 +57,8 @@ impl Pipeline
 
     pub fn forward_pass(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let input = input::DrawInput{model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
-            camera_position: camera.position, color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
+        let input = input::DrawInput{ model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
+            camera_position: camera.position };
 
         self.screen_rendertarget.bind();
         self.screen_rendertarget.clear();
@@ -69,18 +69,21 @@ impl Pipeline
 
     pub fn deferred_pass(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let input = input::DrawInput{model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
-            camera_position: camera.position, color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
+        let reflecting_input = input::DrawInput{ model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
+            camera_position: camera.position };
 
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
 
-        scene.draw(&input)?;
+        scene.draw(&reflecting_input)?;
 
         self.screen_rendertarget.bind();
         self.screen_rendertarget.clear();
 
-        scene.shine_lights(&input)?;
+        let emitting_input = input::EmittingInput{ camera_position: camera.position,
+            color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
+
+        scene.shine_lights(&emitting_input)?;
         Ok(())
     }
 }
