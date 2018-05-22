@@ -75,7 +75,7 @@ fn main() {
         }
 
         // draw
-        renderer.draw(&camera, &scene).unwrap();
+        renderer.deferred_pass(&camera, &scene).unwrap();
 
         window.gl_swap_window();
     };

@@ -4,18 +4,26 @@ use input;
 use glm;
 use gl;
 use num_traits::identities::One;
+use screen;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
 
 #[derive(Debug)]
 pub enum Error {
     Scene(scene::Error),
+    Screen(screen::Error),
     Rendertarget(rendertarget::Error)
 }
 
 impl From<scene::Error> for Error {
     fn from(other: scene::Error) -> Self {
         Error::Scene(other)
+    }
+}
+
+impl From<screen::Error> for Error {
+    fn from(other: screen::Error) -> Self {
+        Error::Screen(other)
     }
 }
 
@@ -27,9 +35,7 @@ impl From<rendertarget::Error> for Error {
 
 pub struct Pipeline {
     gl: gl::Gl,
-    width: usize,
-    height: usize,
-    screen_rendertarget: rendertarget::ScreenRendertarget,
+    screen: screen::Screen,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget
 }
 
@@ -38,21 +44,9 @@ impl Pipeline
 {
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<Pipeline, Error>
     {
-        let screen_rendertarget = rendertarget::ScreenRendertarget::create(&gl, width, height)?;
+        let screen = screen::Screen::create(gl, width, height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height)?;
-        Ok(Pipeline { gl: gl.clone(), width, height, screen_rendertarget, geometry_pass_rendertarget })
-    }
-
-    pub fn set_screen_size(&mut self, width: usize, height: usize)
-    {
-        self.screen_rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, width, height).unwrap();
-        self.width = width;
-        self.height = height;
-    }
-
-    pub fn draw(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
-    {
-        self.deferred_pass(camera,scene)
+        Ok(Pipeline { gl: gl.clone(), screen, geometry_pass_rendertarget })
     }
 
     pub fn forward_pass(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
@@ -60,8 +54,8 @@ impl Pipeline
         let input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
             camera_position: camera.position };
 
-        self.screen_rendertarget.bind();
-        self.screen_rendertarget.clear();
+        self.screen.rendertarget.bind();
+        self.screen.rendertarget.clear();
 
         scene.draw(&input)?;
         Ok(())
@@ -77,8 +71,8 @@ impl Pipeline
 
         scene.draw(&reflecting_input)?;
 
-        self.screen_rendertarget.bind();
-        self.screen_rendertarget.clear();
+        self.screen.rendertarget.bind();
+        self.screen.rendertarget.clear();
 
         let emitting_input = input::EmittingInput{ camera_position: camera.position,
             color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
