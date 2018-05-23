@@ -20,10 +20,11 @@ impl traits::Reflecting for TextureMaterial
     {
         self.program.cull_back_faces(true);
         self.texture.bind(0);
-        self.program.add_uniform_int("tex", &0)?;
+        self.program.add_uniform_int("texture0", &0)?;
+        self.program.add_uniform_mat4("modelMatrix", &input.model)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
-        self.program.add_uniform_vec3("cameraPosition", &input.camera_position)?;
+        self.program.add_uniform_mat4("normalMatrix", &input.normal)?;
 
         self.model.draw()?;
         Ok(())
@@ -35,14 +36,16 @@ impl TextureMaterial
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let shader_program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
-        let attributes = attributes::Attributes::create(gl, mesh, &shader_program)?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
+        let model = attributes::Attributes::create(gl, mesh, &program)?;
+        program.add_attribute(mesh.get("normal")?)?;
+        program.add_attribute(mesh.get("uv_coordinate")?)?;
 
         let tex_data: Vec<f32> = vec![
             1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0
         ];
         let texture = texture::Texture2D::create_from_data(gl, 4, 4, &tex_data)?;
 
-        Ok(Rc::new(TextureMaterial { program: shader_program, model: attributes, texture }))
+        Ok(Rc::new(TextureMaterial { program, model, texture }))
     }
 }

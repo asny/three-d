@@ -44,7 +44,29 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
+    let normals: Vec<glm::Vec3> = vec![
+        glm::vec3(1.0, 0.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(0.0, 0.0, 1.0),
+        glm::vec3(1.0, 0.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(0.0, 0.0, 1.0),
+        glm::vec3(1.0, 0.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0)
+    ];
+    let uv_coordinates: Vec<glm::Vec2> = vec![
+        glm::vec2(1.0, 0.0),
+        glm::vec2(0.0, 1.0),
+        glm::vec2(1.0, 0.0),
+        glm::vec2(0.0, 1.0),
+        glm::vec2(1.0, 0.0),
+        glm::vec2(0.0, 1.0),
+        glm::vec2(1.0, 0.0),
+        glm::vec2(0.0, 1.0)
+    ];
+    let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
+    mesh.add_custom_vec3_attribute("normal", normals);
+    mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates);
     let model = materials::texture_material::TextureMaterial::create(&gl, &mesh).unwrap();
     scene.add_model(model);
 
