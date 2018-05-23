@@ -13,7 +13,7 @@ pub mod input;
 
 pub mod eventhandler;
 pub mod camera;
-pub mod screen;
+pub mod pipeline;
 pub mod scene;
 pub mod renderer;
 
