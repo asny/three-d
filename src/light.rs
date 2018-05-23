@@ -2,7 +2,7 @@ use gl;
 use glm;
 use core::program;
 use core::state;
-use input;
+use core::texture;
 use core::texture::Texture;
 use core::attributes;
 use traits;
@@ -24,13 +24,13 @@ impl DirectionalLight
 
 impl traits::Emitting for DirectionalLight
 {
-    fn shine(&self, input: &input::EmittingInput) -> Result<(), traits::Error>
+    fn shine(&self, color_texture: &texture::Texture2D) -> Result<(), traits::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, false);
         state::cull_back_faces(&self.gl,true);
 
-        input.color_texture.bind(0);
+        color_texture.bind(0);
         self.program.add_uniform_int("colorMap", &0)?;
 
         attributes::Attributes::draw_full_screen_quad(&self.gl, &self.program);

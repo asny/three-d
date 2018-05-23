@@ -65,8 +65,8 @@ fn main() {
         glm::vec2(0.0, 1.0)
     ];
     let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
-    mesh.add_custom_vec3_attribute("normal", normals);
-    mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates);
+    mesh.add_custom_vec3_attribute("normal", normals).unwrap();
+    mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
     let model = materials::texture_material::TextureMaterial::create(&gl, &mesh).unwrap();
     scene.add_model(model);
 

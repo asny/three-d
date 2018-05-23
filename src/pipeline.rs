@@ -75,14 +75,14 @@ impl DeferredPipeline
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<DeferredPipeline, Error>
     {
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
         Ok(DeferredPipeline { gl: gl.clone(), width, height, rendertarget, geometry_pass_rendertarget })
     }
 
     pub fn resize(&mut self, width: usize, height: usize) -> Result<(), Error>
     {
         self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, width, height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, width, height)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, width, height, 3)?;
         self.width = width;
         self.height = height;
         Ok(())
@@ -101,10 +101,7 @@ impl DeferredPipeline
         self.rendertarget.bind();
         self.rendertarget.clear();
 
-        let emitting_input = input::EmittingInput{ camera_position: camera.position,
-            color_texture: self.geometry_pass_rendertarget.color_texture.clone()};
-
-        scene.shine_lights(&emitting_input)?;
+        scene.shine_lights(&self.geometry_pass_rendertarget.targets[0])?;
         Ok(())
     }
 }

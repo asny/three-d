@@ -2,7 +2,6 @@ use gl;
 use std;
 use core::state;
 use core::texture;
-use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Error {
@@ -54,24 +53,28 @@ pub struct ColorRendertarget {
     id: u32,
     width: usize,
     height: usize,
-    pub color_texture: Rc<texture::Texture2D>
+    pub targets: Vec<texture::Texture2D>
 }
 
 impl ColorRendertarget
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ColorRendertarget, Error>
+    pub fn create(gl: &gl::Gl, width: usize, height: usize, no_targets: usize) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
         bind(gl, id, width, height);
 
-        let draw_buffers = vec![gl::COLOR_ATTACHMENT0];
-        let color_texture = texture::Texture2D::create_as_color_rendertarget(gl, width, height, 0)?;
-
-        unsafe {
-            gl.DrawBuffers(1, draw_buffers.as_ptr());
+        let mut draw_buffers = Vec::new();
+        let mut targets = Vec::new();
+        for i in 0..no_targets {
+            draw_buffers.push(gl::COLOR_ATTACHMENT0 + i as u32);
+            targets.push(texture::Texture2D::create_as_color_rendertarget(gl, width, height, i as u32)?)
         }
 
-        Ok(ColorRendertarget { gl: gl.clone(), id, width, height, color_texture: Rc::from(color_texture) })
+        unsafe {
+            gl.DrawBuffers(no_targets as i32, draw_buffers.as_ptr());
+        }
+
+        Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets })
     }
 }
 
