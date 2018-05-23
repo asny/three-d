@@ -26,9 +26,10 @@ impl ColorMaterial
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let shader_program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
-        let attributes = attributes::Attributes::create(gl, mesh, &shader_program)?;
+        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
+        let model = attributes::Attributes::create(gl, mesh, &program)?;
+        program.add_attribute(mesh.get("color")?)?;
 
-        Ok(Rc::new(ColorMaterial { program: shader_program, model: attributes }))
+        Ok(Rc::new(ColorMaterial { program, model }))
     }
 }
