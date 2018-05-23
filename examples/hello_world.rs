@@ -36,7 +36,7 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = renderer::Pipeline::create(&gl, width, height).unwrap();
+    let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
 
     // Scene
     let mut scene = scene::Scene::create();
@@ -77,7 +77,7 @@ fn main() {
         }
 
         // draw
-        renderer.forward_pass(&camera, &scene).unwrap();
+        renderer.draw(&camera, &scene).unwrap();
 
         window.gl_swap_window();
     };
