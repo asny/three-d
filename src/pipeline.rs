@@ -10,17 +10,18 @@ use core::state;
 use core::attributes;
 use core::texture::Texture;
 use core::program;
+use traits;
 
 #[derive(Debug)]
 pub enum Error {
-    Scene(scene::Error),
     Program(program::Error),
-    Rendertarget(rendertarget::Error)
+    Rendertarget(rendertarget::Error),
+    Traits(traits::Error)
 }
 
-impl From<scene::Error> for Error {
-    fn from(other: scene::Error) -> Self {
-        Error::Scene(other)
+impl From<traits::Error> for Error {
+    fn from(other: traits::Error) -> Self {
+        Error::Traits(other)
     }
 }
 
@@ -67,7 +68,10 @@ impl ForwardPipeline
         self.rendertarget.bind();
         self.rendertarget.clear();
 
-        scene.draw(&input)?;
+        for model in &scene.models {
+            model.reflect(&input)?;
+        }
+
         Ok(())
     }
 }
@@ -103,13 +107,15 @@ impl DeferredPipeline
 
     pub fn draw(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let reflecting_input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
+        let input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
             projection: camera.get_projection(), normal: glm::Matrix4::one(), camera_position: camera.position };
 
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
 
-        scene.draw(&reflecting_input)?;
+        for model in &scene.models {
+            model.reflect(&input)?;
+        }
 
         self.rendertarget.bind();
         self.rendertarget.clear();

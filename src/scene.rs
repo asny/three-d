@@ -1,24 +1,10 @@
-use input;
 use std::rc::Rc;
 use traits;
-use core::texture;
-
-#[derive(Debug)]
-pub enum Error {
-    Traits(traits::Error)
-}
-
-impl From<traits::Error> for Error {
-    fn from(other: traits::Error) -> Self {
-        Error::Traits(other)
-    }
-}
 
 pub struct Scene {
-    models: Vec<Rc<traits::Reflecting>>,
-    lights: Vec<Rc<traits::Emitting>>
+    pub models: Vec<Rc<traits::Reflecting>>,
+    pub lights: Vec<Rc<traits::Emitting>>
 }
-
 
 impl Scene
 {
@@ -35,13 +21,5 @@ impl Scene
     pub fn add_light(&mut self, light: Rc<traits::Emitting>)
     {
         &self.lights.push(light);
-    }
-
-    pub fn draw(&self, input: &input::ReflectingInput) -> Result<(), Error>
-    {
-        for model in &self.models {
-            model.reflect(input)?;
-        }
-        Ok(())
     }
 }
