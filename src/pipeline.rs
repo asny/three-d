@@ -6,16 +6,27 @@ use gl;
 use num_traits::identities::One;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
+use core::state;
+use core::attributes;
+use core::texture::Texture;
+use core::program;
 
 #[derive(Debug)]
 pub enum Error {
     Scene(scene::Error),
+    Program(program::Error),
     Rendertarget(rendertarget::Error)
 }
 
 impl From<scene::Error> for Error {
     fn from(other: scene::Error) -> Self {
         Error::Scene(other)
+    }
+}
+
+impl From<program::Error> for Error {
+    fn from(other: program::Error) -> Self {
+        Error::Program(other)
     }
 }
 
@@ -65,6 +76,7 @@ pub struct DeferredPipeline {
     gl: gl::Gl,
     pub width: usize,
     pub height: usize,
+    light_pass_program: program::Program,
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget
 }
@@ -74,9 +86,10 @@ impl DeferredPipeline
 {
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<DeferredPipeline, Error>
     {
+        let light_pass_program = program::Program::from_resource(&gl, "examples/assets/shaders/light_pass")?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
-        Ok(DeferredPipeline { gl: gl.clone(), width, height, rendertarget, geometry_pass_rendertarget })
+        Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, rendertarget, geometry_pass_rendertarget })
     }
 
     pub fn resize(&mut self, width: usize, height: usize) -> Result<(), Error>
@@ -90,8 +103,8 @@ impl DeferredPipeline
 
     pub fn draw(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let reflecting_input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
-            normal: glm::Matrix4::one(), camera_position: camera.position };
+        let reflecting_input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
+            projection: camera.get_projection(), normal: glm::Matrix4::one(), camera_position: camera.position };
 
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
@@ -101,7 +114,20 @@ impl DeferredPipeline
         self.rendertarget.bind();
         self.rendertarget.clear();
 
-        scene.shine_lights(&self.geometry_pass_rendertarget.targets[0])?;
+        state::depth_write(&self.gl,false);
+        state::depth_test(&self.gl, false);
+        state::cull_back_faces(&self.gl,true);
+
+        self.geometry_pass_rendertarget.targets[0].bind(0);
+        self.light_pass_program.add_uniform_int("colorMap", &0)?;
+
+        self.geometry_pass_rendertarget.targets[1].bind(1);
+        self.light_pass_program.add_uniform_int("positionMap", &1)?;
+
+        self.geometry_pass_rendertarget.targets[2].bind(2);
+        self.light_pass_program.add_uniform_int("normalMap", &2)?;
+
+        attributes::Attributes::draw_full_screen_quad(&self.gl, &self.light_pass_program);
         Ok(())
     }
 }

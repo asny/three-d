@@ -44,12 +44,4 @@ impl Scene
         }
         Ok(())
     }
-
-    pub fn shine_lights(&self, color_texture: &texture::Texture2D) -> Result<(), Error>
-    {
-        for light in &self.lights {
-            light.shine(color_texture)?;
-        }
-        Ok(())
-    }
 }

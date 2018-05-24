@@ -37,7 +37,6 @@ impl From<mesh::Error> for Error {
 }
 
 pub trait Emitting {
-    fn shine(&self, color_texture: &texture::Texture2D) -> Result<(), Error>;
 }
 
 pub trait Reflecting {

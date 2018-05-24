@@ -59,7 +59,7 @@ fn main() {
     let model = materials::color_material::ColorMaterial::create(&gl, &mesh).unwrap();
     scene.add_model(model);
 
-    let light = dust::light::DirectionalLight::create(&gl, glm::vec3(0.0, -1.0, 0.0)).unwrap();
+    let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
     scene.add_light(Rc::from(light));
 
     // set up event handling
