@@ -110,6 +110,10 @@ impl DeferredPipeline
         let input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
             projection: camera.get_projection(), normal: glm::Matrix4::one(), camera_position: camera.position };
 
+        state::depth_write(&self.gl,true);
+        state::depth_test(&self.gl, true);
+        state::cull_back_faces(&self.gl,false);
+
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
 
@@ -123,6 +127,9 @@ impl DeferredPipeline
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, false);
         state::cull_back_faces(&self.gl,true);
+        unsafe {
+            self.gl.DepthFunc(gl::LEQUAL);
+        }
 
         self.geometry_pass_rendertarget.targets[0].bind(0);
         self.light_pass_program.add_uniform_int("colorMap", &0)?;
@@ -135,6 +142,8 @@ impl DeferredPipeline
 
         self.geometry_pass_rendertarget.depth_target.bind(3);
         self.light_pass_program.add_uniform_int("depthMap", &3)?;
+
+        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
 
         attributes::Attributes::draw_full_screen_quad(&self.gl, &self.light_pass_program);
         Ok(())

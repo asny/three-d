@@ -185,9 +185,17 @@ vec4 calculate_point_light(vec3 position, vec3 normal)
     return color / attenuation;
 }
 
+float linear_depth(float z)
+{
+    float n = 0.1; // camera z near
+    float f = 10.0; // camera z far
+    return (2.0 * n) / (f + n - z * (f - n));
+}
+
+
 void main()
 {
-    //float depth = texture(depthMap, uv).r;
+    float depth = texture(depthMap, uv).r;
    	vec4 col = vec4(texture(colorMap, uv).xyz, 1.);
     /*if(depth < 1.)
     {
@@ -206,5 +214,6 @@ void main()
 
         col *= light;
     }*/
-    color = col;
+    depth = linear_depth(depth);
+    color = vec4(depth, depth, depth, 1.0);
 }
