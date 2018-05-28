@@ -133,6 +133,9 @@ impl DeferredPipeline
         self.geometry_pass_rendertarget.targets[2].bind(2);
         self.light_pass_program.add_uniform_int("normalMap", &2)?;
 
+        self.geometry_pass_rendertarget.depth_target.bind(3);
+        self.light_pass_program.add_uniform_int("depthMap", &3)?;
+
         attributes::Attributes::draw_full_screen_quad(&self.gl, &self.light_pass_program);
         Ok(())
     }

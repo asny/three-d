@@ -39,7 +39,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn create_as_color_rendertarget(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
+    pub fn create_as_color_target(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
@@ -61,6 +61,33 @@ impl Texture2D
                              gl::FLOAT,
                              std::ptr::null());
             gl.FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0 + channel, gl::TEXTURE_2D, id, 0);
+        }
+
+        Ok(texture)
+    }
+
+    pub fn create_as_depth_target(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
+    {
+        let id = generate(gl)?;
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
+
+        bind(&texture.gl, texture.id, texture.target);
+        unsafe {
+            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+
+            gl.TexImage2D(texture.target,
+                             0,
+                             gl::DEPTH_COMPONENT32F as i32,
+                             width as i32,
+                             height as i32,
+                             0,
+                             gl::DEPTH_COMPONENT,
+                             gl::FLOAT,
+                             std::ptr::null());
+            gl.FramebufferTexture2D(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT, gl::TEXTURE_2D, id, 0);
         }
 
         Ok(texture)
