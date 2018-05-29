@@ -24,6 +24,19 @@ pub struct Mesh {
 
 impl Mesh
 {
+    pub fn create_unsafe_with_normals(indices: &Vec<u32>, positions: &Vec<f32>, normals: &Vec<f32>) -> Result<Mesh, Error>
+    {
+        let mut mesh = Mesh::create_unsafe(indices, positions)?;
+        let no_vertices = normals.len()/3;
+        let mut normals_vec3 = Vec::with_capacity(no_vertices);
+        for vid in 0..no_vertices {
+            normals_vec3.push(glm::vec3(normals[vid * 3], normals[vid * 3 + 1], normals[vid * 3 + 2]));
+        }
+        let normal_attribute = attribute::Attribute::create_vec3_attribute("normal", normals_vec3)?;
+        mesh.attributes.push(normal_attribute);
+        Ok(mesh)
+    }
+
     pub fn create_unsafe(indices: &Vec<u32>, positions: &Vec<f32>) -> Result<Mesh, Error>
     {
         let no_vertices = positions.len()/3;
