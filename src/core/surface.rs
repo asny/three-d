@@ -82,33 +82,29 @@ impl FullScreenQuad
     pub fn render(gl: &gl::Gl, program: &program::Program)
     {
         unsafe {
-            static mut FULL_SCREEN__QUAD_ID: gl::types::GLuint = std::u32::MAX;
-            if std::u32::MAX == FULL_SCREEN__QUAD_ID
+            static mut FULL_SCREEN__QUAD: Option<TriangleSurface> = None;
+            match FULL_SCREEN__QUAD
             {
-                // Generate and bind array
-                gl.GenVertexArrays(1, &mut FULL_SCREEN__QUAD_ID);
-                bind(gl, FULL_SCREEN__QUAD_ID);
+                None => {
+                    let positions: Vec<glm::Vec3> = vec![
+                        glm::vec3(-3.0, -1.0, 0.0),
+                        glm::vec3(3.0, -1.0, 0.0),
+                        glm::vec3(0.0, 2.0, 0.0)
+                    ];
+                    let uv_coordinates: Vec<glm::Vec2> = vec![
+                        glm::vec2(-1.0, 0.0),
+                        glm::vec2(2.0, 0.0),
+                        glm::vec2(0.5, 1.5)
+                    ];
+                    let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
+                    mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
 
-                let positions: Vec<glm::Vec3> = vec![
-                    glm::vec3(-3.0, -1.0, 0.0),
-                    glm::vec3(3.0, -1.0, 0.0),
-                    glm::vec3(0.0, 2.0, 0.0)
-                ];
-                let uv_coordinates: Vec<glm::Vec2> = vec![
-                    glm::vec2(-1.0, 0.0),
-                    glm::vec2(2.0, 0.0),
-                    glm::vec2(0.5, 1.5)
-                ];
-                let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
-                mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
-
-                let index_buffer = buffer::ElementBuffer::create(gl).unwrap();
-                index_buffer.fill_with(&vec![0, 1, 2]);
-
-                program.add_attributes(&mesh.attributes).unwrap();
+                    let surface = TriangleSurface::create(gl, &mesh, program).unwrap();
+                    surface.render().unwrap();
+                    FULL_SCREEN__QUAD = Some(surface);
+                },
+                Some(ref x) => {x.render().unwrap();}
             }
-            bind(gl, FULL_SCREEN__QUAD_ID);
-            gl.DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_SHORT, std::ptr::null());
         }
     }
 }
