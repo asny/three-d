@@ -38,8 +38,6 @@ impl TextureMaterial
     {
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let model = surface::TriangleSurface::create(gl, mesh, &program)?;
-        program.add_attribute(mesh.get("normal")?)?;
-        program.add_attribute(mesh.get("uv_coordinate")?)?;
 
         let tex_data: Vec<f32> = vec![
             1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0

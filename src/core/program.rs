@@ -175,14 +175,7 @@ impl Program
         Ok(location)
     }
 
-    pub fn add_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::VertexBuffer, Error>
-    {
-        let mut list = Vec::new();
-        list.push(attribute);
-        self.add_attributes(&list)
-    }
-
-    pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&self, attributes: &Vec<attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
     {
         self.set_used();
         let mut stride = 0;
@@ -197,7 +190,7 @@ impl Program
         let buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        let data = from(&attributes, no_vertices, stride)?;
+        let data = from(attributes, no_vertices, stride)?;
         buffer.fill_with(&data);
 
         // Link the buffer data to the vertex attributes in the shader
@@ -264,12 +257,12 @@ impl Drop for Program {
     }
 }
 
-fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
+fn from(attributes: &Vec<attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
 {
     let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
     unsafe { data.set_len(stride * no_vertices); }
     let mut offset = 0;
-    for attribute in attributes
+    for attribute in attributes.iter()
     {
         for vertex_id in 0..no_vertices
         {

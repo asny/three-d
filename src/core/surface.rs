@@ -43,7 +43,7 @@ impl TriangleSurface
         let index_buffer = buffer::ElementBuffer::create(&gl)?;
         index_buffer.fill_with(&mesh.indices());
 
-        program.add_attribute(mesh.positions())?;
+        program.add_attributes(&mesh.attributes)?;
         Ok(model)
     }
 
@@ -105,10 +105,7 @@ impl FullScreenQuad
                 let index_buffer = buffer::ElementBuffer::create(gl).unwrap();
                 index_buffer.fill_with(&vec![0, 1, 2]);
 
-                let mut list = Vec::new();
-                list.push(mesh.positions());
-                list.push(mesh.get("uv_coordinate").unwrap());
-                program.add_attributes(&list).unwrap();
+                program.add_attributes(&mesh.attributes).unwrap();
             }
             bind(gl, FULL_SCREEN__QUAD_ID);
             gl.DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_SHORT, std::ptr::null());

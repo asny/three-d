@@ -18,8 +18,7 @@ impl From<attribute::Error> for Error {
 pub struct Mesh {
     no_vertices: usize,
     indices: Vec<u16>,
-    positions: attribute::Attribute,
-    custom_attributes: Vec<attribute::Attribute>
+    pub attributes: Vec<attribute::Attribute>
 }
 
 
@@ -44,13 +43,14 @@ impl Mesh
         }
 
         let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
-        let mesh = Mesh { no_vertices, indices: indices_u16, positions: position_attribute, custom_attributes: Vec::new() };
+        let mut mesh = Mesh { no_vertices, indices: indices_u16, attributes: Vec::new() };
+        mesh.attributes.push(position_attribute);
         Ok(mesh)
     }
 
-    pub fn positions(&self) -> &attribute::Attribute
+    pub fn positions(&self) -> Result<&attribute::Attribute, Error>
     {
-        &self.positions
+        self.get("position")
     }
 
     pub fn indices(&self) -> &Vec<u16>
@@ -65,7 +65,7 @@ impl Mesh
 
     pub fn get(&self, name: &str) -> Result<&attribute::Attribute, Error>
     {
-        for attribute in self.custom_attributes.iter() {
+        for attribute in self.attributes.iter() {
             if attribute.name() == name
             {
                 return Ok(attribute)
@@ -80,7 +80,7 @@ impl Mesh
             return Err(Error::WrongSizeOfAttribute {message: format!("The data for {} does not have the correct size, it should be {}", name, self.no_vertices)})
         }
         let custom_attribute = attribute::Attribute::create_vec2_attribute(name, data)?;
-        self.custom_attributes.push(custom_attribute);
+        self.attributes.push(custom_attribute);
         Ok(())
     }
 
@@ -90,7 +90,7 @@ impl Mesh
             return Err(Error::WrongSizeOfAttribute {message: format!("The data for {} does not have the correct size, it should be {}", name, self.no_vertices)})
         }
         let custom_attribute = attribute::Attribute::create_vec3_attribute(name, data)?;
-        self.custom_attributes.push(custom_attribute);
+        self.attributes.push(custom_attribute);
         Ok(())
     }
 
@@ -100,7 +100,7 @@ impl Mesh
             return Err(Error::WrongSizeOfAttribute {message: format!("The data for {} does not have the correct size, it should be {}", name, self.no_vertices)})
         }
         let custom_attribute = attribute::Attribute::create_int_attribute(name, data)?;
-        self.custom_attributes.push(custom_attribute);
+        self.attributes.push(custom_attribute);
         Ok(())
     }
 }
