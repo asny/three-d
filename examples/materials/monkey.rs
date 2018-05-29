@@ -3,8 +3,6 @@ use gl;
 use glm;
 use dust::input;
 use dust::traits;
-use gust::mesh;
-use gust::loader;
 use gust;
 use dust::core::surface;
 use std::rc::Rc;

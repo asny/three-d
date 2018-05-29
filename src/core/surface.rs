@@ -1,6 +1,5 @@
 use gl;
 use std;
-use glm;
 use gust::mesh;
 use core::buffer;
 use core::program;

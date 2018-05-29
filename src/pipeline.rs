@@ -7,7 +7,6 @@ use num_traits::identities::One;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
 use core::state;
-use core::surface;
 use core::texture::Texture;
 use core::program;
 use core::full_screen_quad;

@@ -4,7 +4,6 @@ extern crate dust;
 mod materials;
 
 use std::process;
-use std::rc::Rc;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
