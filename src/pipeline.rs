@@ -10,6 +10,7 @@ use core::state;
 use core::surface;
 use core::texture::Texture;
 use core::program;
+use core::full_screen_quad;
 use traits;
 
 #[derive(Debug)]
@@ -159,7 +160,7 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &light.base.ambient_intensity)?;
             self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &light.base.diffuse_intensity)?;
 
-            surface::FullScreenQuad::render(&self.gl, &self.light_pass_program);
+            full_screen_quad::render(&self.gl, &self.light_pass_program);
         }
 
         Ok(())
