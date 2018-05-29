@@ -146,7 +146,7 @@ impl DeferredPipeline
         self.geometry_pass_rendertarget.depth_target.bind(3);
         self.light_pass_program.add_uniform_int("depthMap", &3)?;
 
-        for light in scene.directional_lights.iter()
+        for directional_light in scene.directional_lights.iter()
         {
             /*shadow_render_target.bind_texture_for_reading(4);
             GLUniform::use(shader, "shadowMap", 4);
@@ -155,10 +155,10 @@ impl DeferredPipeline
 
             self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
             self.light_pass_program.add_uniform_int("lightType", &1)?;
-            self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
-            self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
-            self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &light.base.ambient_intensity)?;
-            self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &light.base.diffuse_intensity)?;
+            self.light_pass_program.add_uniform_vec3("directionalLight.direction", &directional_light.direction)?;
+            self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &directional_light.base.color)?;
+            self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &directional_light.base.ambient_intensity)?;
+            self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &directional_light.base.diffuse_intensity)?;
 
             full_screen_quad::render(&self.gl, &self.light_pass_program);
         }
