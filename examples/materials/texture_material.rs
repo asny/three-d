@@ -26,7 +26,7 @@ impl traits::Reflecting for TextureMaterial
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
         self.program.add_uniform_mat4("normalMatrix", &input.normal)?;
 
-        self.model.draw()?;
+        self.model.render()?;
         Ok(())
     }
 

@@ -31,42 +31,6 @@ pub struct TriangleSurface {
 
 impl TriangleSurface
 {
-    pub fn draw_full_screen_quad(gl: &gl::Gl, program: &program::Program)
-    {
-        unsafe {
-            static mut FULL_SCREEN__QUAD_ID: gl::types::GLuint = std::u32::MAX;
-            if std::u32::MAX == FULL_SCREEN__QUAD_ID
-            {
-                // Generate and bind array
-                gl.GenVertexArrays(1, &mut FULL_SCREEN__QUAD_ID);
-                bind(gl, FULL_SCREEN__QUAD_ID);
-
-                let positions: Vec<glm::Vec3> = vec![
-                    glm::vec3(-3.0, -1.0, 0.0),
-                    glm::vec3(3.0,  -1.0, 0.0),
-                    glm::vec3(0.0, 2.0, 0.0)
-                ];
-                let uv_coordinates: Vec<glm::Vec2> = vec![
-                    glm::vec2(-1.0, 0.0),
-                    glm::vec2(2.0, 0.0),
-                    glm::vec2(0.5, 1.5)
-                ];
-                let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
-                mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
-
-                let index_buffer = buffer::ElementBuffer::create(gl).unwrap();
-                index_buffer.fill_with(&vec![0, 1, 2]);
-
-                let mut list = Vec::new();
-                list.push( mesh.positions());
-                list.push(mesh.get("uv_coordinate").unwrap());
-                program.add_attributes(&list).unwrap();
-            }
-            bind(gl, FULL_SCREEN__QUAD_ID);
-            gl.DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_SHORT, std::ptr::null());
-        }
-    }
-
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
@@ -89,13 +53,12 @@ impl TriangleSurface
         Ok(())
     }
 
-    pub fn draw(&self) -> Result<(), Error>
+    pub fn render(&self) -> Result<(), Error>
     {
         self.bind();
-        let draw_mode = self.get_draw_mode();
         unsafe {
             self.gl.DrawElements(
-                draw_mode, // mode
+                gl::TRIANGLES, // mode
                 self.no_indices as i32, // number of indices to be rendered
                 gl::UNSIGNED_SHORT,
                 std::ptr::null() // starting index in the enabled arrays
@@ -108,10 +71,48 @@ impl TriangleSurface
     {
         bind(&self.gl, self.id);
     }
+}
 
-    fn get_draw_mode(&self) -> u32
+pub struct FullScreenQuad {
+
+}
+
+impl FullScreenQuad
+{
+    pub fn render(gl: &gl::Gl, program: &program::Program)
     {
-        gl::TRIANGLES
+        unsafe {
+            static mut FULL_SCREEN__QUAD_ID: gl::types::GLuint = std::u32::MAX;
+            if std::u32::MAX == FULL_SCREEN__QUAD_ID
+            {
+                // Generate and bind array
+                gl.GenVertexArrays(1, &mut FULL_SCREEN__QUAD_ID);
+                bind(gl, FULL_SCREEN__QUAD_ID);
+
+                let positions: Vec<glm::Vec3> = vec![
+                    glm::vec3(-3.0, -1.0, 0.0),
+                    glm::vec3(3.0, -1.0, 0.0),
+                    glm::vec3(0.0, 2.0, 0.0)
+                ];
+                let uv_coordinates: Vec<glm::Vec2> = vec![
+                    glm::vec2(-1.0, 0.0),
+                    glm::vec2(2.0, 0.0),
+                    glm::vec2(0.5, 1.5)
+                ];
+                let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
+                mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
+
+                let index_buffer = buffer::ElementBuffer::create(gl).unwrap();
+                index_buffer.fill_with(&vec![0, 1, 2]);
+
+                let mut list = Vec::new();
+                list.push(mesh.positions());
+                list.push(mesh.get("uv_coordinate").unwrap());
+                program.add_attributes(&list).unwrap();
+            }
+            bind(gl, FULL_SCREEN__QUAD_ID);
+            gl.DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_SHORT, std::ptr::null());
+        }
     }
 }
 

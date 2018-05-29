@@ -159,7 +159,7 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &light.base.ambient_intensity)?;
             self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &light.base.diffuse_intensity)?;
 
-            surface::TriangleSurface::draw_full_screen_quad(&self.gl, &self.light_pass_program);
+            surface::FullScreenQuad::render(&self.gl, &self.light_pass_program);
         }
 
         Ok(())
