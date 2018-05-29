@@ -7,7 +7,7 @@ use num_traits::identities::One;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
 use core::state;
-use core::attributes;
+use core::surface;
 use core::texture::Texture;
 use core::program;
 use traits;
@@ -159,7 +159,7 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &light.base.ambient_intensity)?;
             self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &light.base.diffuse_intensity)?;
 
-            attributes::Attributes::draw_full_screen_quad(&self.gl, &self.light_pass_program);
+            surface::TriangleSurface::draw_full_screen_quad(&self.gl, &self.light_pass_program);
         }
 
         Ok(())

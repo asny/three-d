@@ -3,12 +3,12 @@ use gl;
 use dust::input;
 use dust::traits;
 use gust::mesh;
-use dust::core::attributes;
+use dust::core::surface;
 use std::rc::Rc;
 
 pub struct ColorMaterial {
     program: program::Program,
-    model: attributes::Attributes
+    model: surface::TriangleSurface
 }
 
 impl traits::Reflecting for ColorMaterial
@@ -27,7 +27,7 @@ impl ColorMaterial
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
-        let model = attributes::Attributes::create(gl, mesh, &program)?;
+        let model = surface::TriangleSurface::create(gl, mesh, &program)?;
         program.add_attribute(mesh.get("color")?)?;
 
         Ok(Rc::new(ColorMaterial { program, model }))

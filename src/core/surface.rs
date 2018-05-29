@@ -23,13 +23,13 @@ impl From<buffer::Error> for Error {
     }
 }
 
-pub struct Attributes {
+pub struct TriangleSurface {
     gl: gl::Gl,
     id: gl::types::GLuint,
     no_indices: usize
 }
 
-impl Attributes
+impl TriangleSurface
 {
     pub fn draw_full_screen_quad(gl: &gl::Gl, program: &program::Program)
     {
@@ -67,13 +67,13 @@ impl Attributes
         }
     }
 
-    pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<Attributes, Error>
+    pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
-        let model = Attributes { gl: gl.clone(), id, no_indices: mesh.indices().len() };
+        let model = TriangleSurface { gl: gl.clone(), id, no_indices: mesh.indices().len() };
         model.bind();
 
         let index_buffer = buffer::ElementBuffer::create(&gl)?;

@@ -6,11 +6,11 @@ use gust::mesh;
 use std::rc::Rc;
 use dust::core::texture;
 use dust::core::texture::Texture;
-use dust::core::attributes;
+use dust::core::surface;
 
 pub struct TextureMaterial {
     program: program::Program,
-    model: attributes::Attributes,
+    model: surface::TriangleSurface,
     texture: texture::Texture2D
 }
 
@@ -37,7 +37,7 @@ impl TextureMaterial
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
-        let model = attributes::Attributes::create(gl, mesh, &program)?;
+        let model = surface::TriangleSurface::create(gl, mesh, &program)?;
         program.add_attribute(mesh.get("normal")?)?;
         program.add_attribute(mesh.get("uv_coordinate")?)?;
 

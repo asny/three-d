@@ -1,13 +1,13 @@
 use input;
 use gust::mesh;
 use core::program;
-use core::attributes;
+use core::surface;
 use core::texture;
 
 #[derive(Debug)]
 pub enum Error {
     Program(program::Error),
-    Model(attributes::Error),
+    Model(surface::Error),
     Texture(texture::Error),
     Mesh(mesh::Error)
 }
@@ -18,8 +18,8 @@ impl From<program::Error> for Error {
     }
 }
 
-impl From<attributes::Error> for Error {
-    fn from(other: attributes::Error) -> Self {
+impl From<surface::Error> for Error {
+    fn from(other: surface::Error) -> Self {
         Error::Model(other)
     }
 }
