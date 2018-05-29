@@ -61,7 +61,7 @@ impl ForwardPipeline
         Ok(())
     }
 
-    pub fn draw(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
+    pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
         let input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
             normal: glm::Matrix4::one(), camera_position: camera.position };
@@ -106,7 +106,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn draw(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
+    pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
         let input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
             projection: camera.get_projection(), normal: glm::Matrix4::one(), camera_position: camera.position };
