@@ -71,7 +71,7 @@ fn main() {
     scene.add_model(model);
 
     let light = dust::light::DirectionalLight::create( glm::vec3(0.0, -1.0, 0.0)).unwrap();
-    scene.add_light(Rc::from(light));
+    scene.add_light(light);
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();

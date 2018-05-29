@@ -1,16 +1,17 @@
 use std::rc::Rc;
 use traits;
+use light;
 
 pub struct Scene {
     pub models: Vec<Rc<traits::Reflecting>>,
-    pub lights: Vec<Rc<traits::Emitting>>
+    pub directional_lights: Vec<light::DirectionalLight>
 }
 
 impl Scene
 {
     pub fn create() -> Scene
     {
-        Scene { models: Vec::new(), lights: Vec::new() }
+        Scene { models: Vec::new(), directional_lights: Vec::new() }
     }
 
     pub fn add_model(&mut self, model: Rc<traits::Reflecting>)
@@ -18,8 +19,8 @@ impl Scene
         &self.models.push(model);
     }
 
-    pub fn add_light(&mut self, light: Rc<traits::Emitting>)
+    pub fn add_light(&mut self, light: light::DirectionalLight)
     {
-        &self.lights.push(light);
+        &self.directional_lights.push(light);
     }
 }
