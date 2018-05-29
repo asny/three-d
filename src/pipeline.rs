@@ -114,6 +114,9 @@ impl DeferredPipeline
         state::depth_write(&self.gl,true);
         state::depth_test(&self.gl, true);
         state::cull_back_faces(&self.gl,false);
+        unsafe {
+            self.gl.Disable(gl::BLEND);
+        }
 
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
