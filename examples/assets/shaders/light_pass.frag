@@ -135,7 +135,7 @@ vec4 calculate_point_light(vec3 position, vec3 normal)
     float z = abs(lightDirection.z);
     if(x > y && x > z)
     {
-        if(lightDirection.x > 0)
+        if(lightDirection.x > 0.0)
         {
             shadowMatrix = shadowMVP0;
         }
@@ -145,7 +145,7 @@ vec4 calculate_point_light(vec3 position, vec3 normal)
     }
     else if(y > x && y > z)
     {
-        if(lightDirection.y > 0)
+        if(lightDirection.y > 0.0)
         {
             shadowMatrix = shadowMVP2;
         }
@@ -155,7 +155,7 @@ vec4 calculate_point_light(vec3 position, vec3 normal)
     }
     else if(z > x && z > y)
     {
-        if(lightDirection.z > 0)
+        if(lightDirection.z > 0.0)
         {
             shadowMatrix = shadowMVP4;
         }
