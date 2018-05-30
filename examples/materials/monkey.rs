@@ -4,6 +4,7 @@ use glm;
 use dust::traits;
 use gust;
 use dust::core::surface;
+use dust::camera;
 
 pub struct Monkey {
     program: program::Program,
@@ -12,13 +13,13 @@ pub struct Monkey {
 
 impl traits::Reflecting for Monkey
 {
-    fn reflect(&self, input: &traits::ReflectingInput) -> Result<(), traits::Error>
+    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.add_uniform_vec3("color", &glm::vec3(1.0, 1.0, 1.0))?;
-        self.program.add_uniform_mat4("modelMatrix", &input.model)?;
-        self.program.add_uniform_mat4("viewMatrix", &input.view)?;
-        self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
-        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(&input.model)))?;
+        self.program.add_uniform_mat4("modelMatrix", &transformation)?;
+        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
+        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(transformation)))?;
         self.model.render()?;
         Ok(())
     }

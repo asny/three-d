@@ -7,6 +7,7 @@ use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::surface;
 use glm;
+use dust::camera;
 
 pub struct TextureMaterial {
     program: program::Program,
@@ -16,15 +17,15 @@ pub struct TextureMaterial {
 
 impl traits::Reflecting for TextureMaterial
 {
-    fn reflect(&self, input: &traits::ReflectingInput) -> Result<(), traits::Error>
+    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull_back_faces(true);
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;
-        self.program.add_uniform_mat4("modelMatrix", &input.model)?;
-        self.program.add_uniform_mat4("viewMatrix", &input.view)?;
-        self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
-        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(&input.model)))?;
+        self.program.add_uniform_mat4("modelMatrix", &transformation)?;
+        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
+        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(transformation)))?;
 
         self.model.render()?;
         Ok(())

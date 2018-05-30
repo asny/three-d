@@ -61,14 +61,12 @@ impl ForwardPipeline
 
     pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let input = traits::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
-            camera_position: camera.position };
-
         self.rendertarget.bind();
         self.rendertarget.clear();
 
         for model in &scene.models {
-            model.reflect(&input)?;
+            let transformation = glm::Matrix4::one();
+            model.reflect(&transformation, camera)?;
         }
 
         Ok(())
@@ -106,9 +104,6 @@ impl DeferredPipeline
 
     pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let input = traits::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
-            projection: camera.get_projection(), camera_position: camera.position };
-
         state::depth_write(&self.gl,true);
         state::depth_test(&self.gl, true);
         state::cull_back_faces(&self.gl,false);
@@ -118,7 +113,8 @@ impl DeferredPipeline
         self.geometry_pass_rendertarget.clear();
 
         for model in &scene.models {
-            model.reflect(&input)?;
+            let transformation = glm::Matrix4::one();
+            model.reflect(&transformation, camera)?;
         }
 
         self.rendertarget.bind();

@@ -4,6 +4,8 @@ use dust::traits;
 use gust::mesh;
 use dust::core::surface;
 use std::rc::Rc;
+use dust::camera;
+use glm;
 
 pub struct ColorMaterial {
     program: program::Program,
@@ -12,10 +14,10 @@ pub struct ColorMaterial {
 
 impl traits::Reflecting for ColorMaterial
 {
-    fn reflect(&self, input: &traits::ReflectingInput) -> Result<(), traits::Error>
+    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.add_uniform_mat4("viewMatrix", &input.view)?;
-        self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
+        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
+        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
         self.model.render()?;
         Ok(())
     }
