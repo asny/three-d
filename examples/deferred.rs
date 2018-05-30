@@ -4,6 +4,7 @@ extern crate dust;
 mod materials;
 
 use std::process;
+use std::rc::Rc;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
@@ -43,8 +44,8 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let model = materials::monkey::Monkey::create(&gl).unwrap();
-    scene.add_model(model);
+    let monkey = materials::monkey::Monkey::create(&gl).unwrap();
+    scene.add_model(Rc::new(monkey));
 
     let light = dust::light::DirectionalLight::create( glm::vec3(0.0, -1.0, 0.0)).unwrap();
     scene.add_light(light);

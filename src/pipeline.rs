@@ -1,6 +1,6 @@
 use camera;
 use scene;
-use input;
+use traits;
 use glm;
 use gl;
 use num_traits::identities::One;
@@ -10,7 +10,6 @@ use core::state;
 use core::texture::Texture;
 use core::program;
 use core::full_screen_quad;
-use traits;
 
 #[derive(Debug)]
 pub enum Error {
@@ -62,7 +61,7 @@ impl ForwardPipeline
 
     pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
+        let input = traits::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
             normal: glm::Matrix4::one(), camera_position: camera.position };
 
         self.rendertarget.bind();
@@ -107,7 +106,7 @@ impl DeferredPipeline
 
     pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
-        let input = input::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
+        let input = traits::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
             projection: camera.get_projection(), normal: glm::Matrix4::one(), camera_position: camera.position };
 
         state::depth_write(&self.gl,true);

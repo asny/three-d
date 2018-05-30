@@ -1,6 +1,5 @@
 use dust::core::program;
 use gl;
-use dust::input;
 use dust::traits;
 use gust::mesh;
 use dust::core::surface;
@@ -13,7 +12,7 @@ pub struct ColorMaterial {
 
 impl traits::Reflecting for ColorMaterial
 {
-    fn reflect(&self, input: &input::ReflectingInput) -> Result<(), traits::Error>
+    fn reflect(&self, input: &traits::ReflectingInput) -> Result<(), traits::Error>
     {
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;

@@ -1,6 +1,5 @@
 use dust::core::program;
 use gl;
-use dust::input;
 use dust::traits;
 use gust::mesh;
 use std::rc::Rc;
@@ -16,7 +15,7 @@ pub struct TextureMaterial {
 
 impl traits::Reflecting for TextureMaterial
 {
-    fn reflect(&self, input: &input::ReflectingInput) -> Result<(), traits::Error>
+    fn reflect(&self, input: &traits::ReflectingInput) -> Result<(), traits::Error>
     {
         self.program.cull_back_faces(true);
         self.texture.bind(0);

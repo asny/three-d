@@ -9,7 +9,6 @@ pub mod loader;
 
 pub mod traits;
 pub mod light;
-pub mod input;
 
 pub mod eventhandler;
 pub mod camera;
