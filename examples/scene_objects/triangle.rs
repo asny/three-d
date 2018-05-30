@@ -7,12 +7,12 @@ use std::rc::Rc;
 use dust::camera;
 use glm;
 
-pub struct ColorMaterial {
+pub struct Triangle {
     program: program::Program,
     model: surface::TriangleSurface
 }
 
-impl traits::Reflecting for ColorMaterial
+impl traits::Reflecting for Triangle
 {
     fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
@@ -23,13 +23,13 @@ impl traits::Reflecting for ColorMaterial
     }
 }
 
-impl ColorMaterial
+impl Triangle
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
         let model = surface::TriangleSurface::create(gl, mesh, &program)?;
 
-        Ok(Rc::new(ColorMaterial { program, model }))
+        Ok(Rc::new(Triangle { program, model }))
     }
 }

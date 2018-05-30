@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod materials;
+mod scene_objects;
 
 use std::process;
 use std::rc::Rc;
@@ -55,7 +55,7 @@ fn main() {
 
     let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
     mesh.add_custom_vec3_attribute("Color", colors).unwrap();
-    let material = materials::texture_material::TextureMaterial::create(&gl).unwrap();
+    let material = scene_objects::texture_material::TextureMaterial::create(&gl).unwrap();
     let model = model::Model::create(&gl, mesh, material).unwrap();
     scene.add_model(model);
 

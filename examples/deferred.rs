@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod materials;
+mod scene_objects;
 
 use std::process;
 use std::rc::Rc;
@@ -44,7 +44,7 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let monkey = materials::monkey::Monkey::create(&gl).unwrap();
+    let monkey = scene_objects::monkey::Monkey::create(&gl).unwrap();
     scene.add_model(Rc::new(monkey));
 
     let light = dust::light::DirectionalLight::create( glm::vec3(0.0, -1.0, 0.0)).unwrap();

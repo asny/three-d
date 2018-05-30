@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod materials;
+mod scene_objects;
 
 use std::process;
 use std::rc::Rc;
@@ -56,7 +56,7 @@ fn main() {
     ];
     let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
     mesh.add_custom_vec3_attribute("color", colors).unwrap();
-    let model = materials::color_material::ColorMaterial::create(&gl, &mesh).unwrap();
+    let model = scene_objects::triangle::Triangle::create(&gl, &mesh).unwrap();
     scene.add_model(model);
 
     let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();

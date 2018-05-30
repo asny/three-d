@@ -9,13 +9,13 @@ use dust::core::surface;
 use glm;
 use dust::camera;
 
-pub struct TextureMaterial {
+pub struct TexturedBox {
     program: program::Program,
     model: surface::TriangleSurface,
     texture: texture::Texture2D
 }
 
-impl traits::Reflecting for TextureMaterial
+impl traits::Reflecting for TexturedBox
 {
     fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
@@ -33,7 +33,7 @@ impl traits::Reflecting for TextureMaterial
 
 }
 
-impl TextureMaterial
+impl TexturedBox
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
@@ -45,6 +45,6 @@ impl TextureMaterial
         ];
         let texture = texture::Texture2D::create_from_data(gl, 4, 4, &tex_data)?;
 
-        Ok(Rc::new(TextureMaterial { program, model, texture }))
+        Ok(Rc::new(TexturedBox { program, model, texture }))
     }
 }
