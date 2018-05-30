@@ -4,7 +4,6 @@ extern crate dust;
 mod scene_objects;
 
 use std::process;
-use std::rc::Rc;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
@@ -44,19 +43,7 @@ fn main() {
     // Camera
     let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let positions: Vec<glm::Vec3> = vec![
-        glm::vec3(0.5, -0.5, 0.0), // bottom right
-        glm::vec3(-0.5, -0.5, 0.0),// bottom left
-        glm::vec3(0.0,  0.5, 0.0) // top
-    ];
-    let colors: Vec<glm::Vec3> = vec![
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(0.0, 0.0, 1.0)    // top
-    ];
-    let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
-    mesh.add_custom_vec3_attribute("color", colors).unwrap();
-    let model = scene_objects::triangle::Triangle::create(&gl, &mesh).unwrap();
+    let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
     scene.add_model(model);
 
     let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
