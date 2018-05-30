@@ -18,7 +18,7 @@ impl traits::Reflecting for Monkey
         self.program.add_uniform_mat4("modelMatrix", &input.model)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
-        self.program.add_uniform_mat4("normalMatrix", &input.normal)?;
+        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(&input.model)))?;
         self.model.render()?;
         Ok(())
     }

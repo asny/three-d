@@ -6,6 +6,7 @@ use std::rc::Rc;
 use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::surface;
+use glm;
 
 pub struct TextureMaterial {
     program: program::Program,
@@ -23,7 +24,7 @@ impl traits::Reflecting for TextureMaterial
         self.program.add_uniform_mat4("modelMatrix", &input.model)?;
         self.program.add_uniform_mat4("viewMatrix", &input.view)?;
         self.program.add_uniform_mat4("projectionMatrix", &input.projection)?;
-        self.program.add_uniform_mat4("normalMatrix", &input.normal)?;
+        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(&input.model)))?;
 
         self.model.render()?;
         Ok(())

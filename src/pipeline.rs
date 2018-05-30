@@ -62,7 +62,7 @@ impl ForwardPipeline
     pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
         let input = traits::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(), projection: camera.get_projection(),
-            normal: glm::Matrix4::one(), camera_position: camera.position };
+            camera_position: camera.position };
 
         self.rendertarget.bind();
         self.rendertarget.clear();
@@ -107,7 +107,7 @@ impl DeferredPipeline
     pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
     {
         let input = traits::ReflectingInput { model: glm::Matrix4::one(),view: camera.get_view(),
-            projection: camera.get_projection(), normal: glm::Matrix4::one(), camera_position: camera.position };
+            projection: camera.get_projection(), camera_position: camera.position };
 
         state::depth_write(&self.gl,true);
         state::depth_test(&self.gl, true);
