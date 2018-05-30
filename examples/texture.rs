@@ -4,7 +4,6 @@ extern crate dust;
 mod scene_objects;
 
 use std::process;
-use std::rc::Rc;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
@@ -35,11 +34,14 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Renderer
+    let renderer = pipeline::DeferredPipeline::create(&gl, width, height).unwrap();
+
     // Scene
     let mut scene = scene::Scene::create();
 
     // Camera
-    let mut camera = camera::Camera::create(&gl, glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
+    let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
     // Add model
     let colors: Vec<glm::Vec3> = vec![
@@ -55,12 +57,11 @@ fn main() {
 
     let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
     mesh.add_custom_vec3_attribute("Color", colors).unwrap();
-    let material = scene_objects::texture_material::TextureMaterial::create(&gl).unwrap();
-    let model = model::Model::create(&gl, mesh, material).unwrap();
+    let model = scene_objects::textured_box::TexturedBox::create(&gl, &mesh).unwrap();
     scene.add_model(model);
 
-    let light = dust::light::DirectionalLight::create(&gl, glm::vec3(0.0, -1.0, 0.0)).unwrap();
-    scene.add_light(Rc::from(light));
+    let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
+    scene.add_light(light);
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -86,7 +87,7 @@ fn main() {
         }
 
         // draw
-        camera.draw(&scene).unwrap();
+        renderer.render(&camera, &scene).unwrap();
 
         window.gl_swap_window();
     };
