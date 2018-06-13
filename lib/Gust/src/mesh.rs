@@ -16,14 +16,31 @@ impl From<attribute::Error> for Error {
 }
 
 pub struct Mesh {
-    no_vertices: usize,
-    indices: Vec<u16>,
+    pub no_vertices: usize,
+    pub indices: Option<Vec<u16>>,
     pub attributes: Vec<attribute::Attribute>
 }
 
 
 impl Mesh
 {
+    pub fn create_with_normals(positions: Vec<glm::Vec3>, normals: Vec<glm::Vec3>) -> Result<Mesh, Error>
+    {
+        let mut mesh = Mesh::create(positions)?;
+        let normal_attribute = attribute::Attribute::create_vec3_attribute("normal", normals)?;
+        mesh.attributes.push(normal_attribute);
+        Ok(mesh)
+    }
+
+    pub fn create(positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
+    {
+        let no_vertices = positions.len();
+        let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
+        let mut mesh = Mesh { no_vertices, indices: None, attributes: Vec::new() };
+        mesh.attributes.push(position_attribute);
+        Ok(mesh)
+    }
+
     pub fn create_unsafe_with_normals(indices: &Vec<u32>, positions: &Vec<f32>, normals: &Vec<f32>) -> Result<Mesh, Error>
     {
         let mut mesh = Mesh::create_unsafe(indices, positions)?;
@@ -44,10 +61,10 @@ impl Mesh
         for vid in 0..no_vertices {
             positions_vec3.push(glm::vec3(positions[vid * 3], positions[vid * 3 + 1], positions[vid * 3 + 2]));
         }
-        Mesh::create(&indices, positions_vec3)
+        Mesh::create_indexed(&indices, positions_vec3)
     }
 
-    pub fn create(indices: &Vec<u32>, positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
+    pub fn create_indexed(indices: &Vec<u32>, positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
     {
         let no_vertices = positions.len();
         let mut indices_u16 = Vec::with_capacity(indices.len());
@@ -56,7 +73,7 @@ impl Mesh
         }
 
         let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
-        let mut mesh = Mesh { no_vertices, indices: indices_u16, attributes: Vec::new() };
+        let mut mesh = Mesh { no_vertices, indices: Some(indices_u16), attributes: Vec::new() };
         mesh.attributes.push(position_attribute);
         Ok(mesh)
     }
@@ -64,16 +81,6 @@ impl Mesh
     pub fn positions(&self) -> Result<&attribute::Attribute, Error>
     {
         self.get("position")
-    }
-
-    pub fn indices(&self) -> &Vec<u16>
-    {
-        &self.indices
-    }
-
-    pub fn no_vertices(&self) -> usize
-    {
-        self.no_vertices
     }
 
     pub fn get(&self, name: &str) -> Result<&attribute::Attribute, Error>

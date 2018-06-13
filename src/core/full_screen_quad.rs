@@ -21,7 +21,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                     glm::vec2(2.0, 0.0),
                     glm::vec2(0.5, 1.5)
                 ];
-                let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
+                let mut mesh = mesh::Mesh::create(positions).unwrap();
                 mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
 
                 let surface = surface::TriangleSurface::create(gl, &mesh, program).unwrap();

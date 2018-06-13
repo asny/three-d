@@ -1,7 +1,7 @@
 use dust::core::program;
 use gl;
 use dust::traits;
-use gust::mesh;
+use gust;
 use std::rc::Rc;
 use dust::core::texture;
 use dust::core::texture::Texture;
@@ -35,10 +35,11 @@ impl traits::Reflecting for TexturedBox
 
 impl TexturedBox
 {
-    pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<Rc<traits::Reflecting>, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
+        let mesh = gust::models::create_cube().unwrap();
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
-        let model = surface::TriangleSurface::create(gl, mesh, &program)?;
+        let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
         let tex_data: Vec<f32> = vec![
             1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0

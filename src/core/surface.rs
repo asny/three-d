@@ -25,7 +25,8 @@ impl From<buffer::Error> for Error {
 pub struct TriangleSurface {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    no_indices: usize
+    count: usize,
+    indexed: bool
 }
 
 impl TriangleSurface
@@ -36,11 +37,20 @@ impl TriangleSurface
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
-        let model = TriangleSurface { gl: gl.clone(), id, no_indices: mesh.indices().len() };
-        model.bind();
+        let model;
+        match mesh.indices {
+            Some(ref indices) => {
+                model = TriangleSurface { gl: gl.clone(), id, indexed: true, count: indices.len() };
+                model.bind();
 
-        let index_buffer = buffer::ElementBuffer::create(&gl)?;
-        index_buffer.fill_with(&mesh.indices());
+                let index_buffer = buffer::ElementBuffer::create(&gl)?;
+                index_buffer.fill_with(&indices);
+            },
+            None => {
+                model = TriangleSurface { gl: gl.clone(), id, indexed: false, count: mesh.no_vertices };
+                model.bind();
+            }
+        }
 
         program.add_attributes(&mesh.attributes)?;
         Ok(model)
@@ -55,13 +65,26 @@ impl TriangleSurface
     pub fn render(&self) -> Result<(), Error>
     {
         self.bind();
-        unsafe {
-            self.gl.DrawElements(
-                gl::TRIANGLES, // mode
-                self.no_indices as i32, // number of indices to be rendered
-                gl::UNSIGNED_SHORT,
-                std::ptr::null() // starting index in the enabled arrays
-            );
+        match self.indexed {
+            true => {
+                unsafe {
+                    self.gl.DrawElements(
+                        gl::TRIANGLES, // mode
+                        self.count as i32, // number of indices to be rendered
+                        gl::UNSIGNED_SHORT,
+                        std::ptr::null() // starting index in the enabled arrays
+                    );
+                }
+            },
+            false => {
+                unsafe {
+                    self.gl.DrawArrays(
+                        gl::TRIANGLES, // mode
+                        0,
+                        self.count as i32 // number of vertices to be rendered
+                    );
+                }
+            }
         }
         Ok(())
     }

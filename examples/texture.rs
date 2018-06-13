@@ -43,21 +43,7 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    // Add model
-    let colors: Vec<glm::Vec3> = vec![
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(0.0, 0.0, 1.0),    // top
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 0.0, 1.0),    // top
-    ];
-
-    let mut mesh = gust::loader::load_obj("/examples/assets/models/box.obj").unwrap();
-    mesh.add_custom_vec3_attribute("Color", colors).unwrap();
-    let model = scene_objects::textured_box::TexturedBox::create(&gl, &mesh).unwrap();
+    let model = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
     scene.add_model(model);
 
     let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
