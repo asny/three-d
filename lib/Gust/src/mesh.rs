@@ -27,17 +27,15 @@ impl Mesh
     pub fn create_with_normals(positions: Vec<glm::Vec3>, normals: Vec<glm::Vec3>) -> Result<Mesh, Error>
     {
         let mut mesh = Mesh::create(positions)?;
-        let normal_attribute = attribute::Attribute::create_vec3_attribute("normal", normals)?;
-        mesh.attributes.push(normal_attribute);
+        mesh.add_custom_vec3_attribute("normal", normals)?;
         Ok(mesh)
     }
 
     pub fn create(positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
     {
         let no_vertices = positions.len();
-        let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
         let mut mesh = Mesh { no_vertices, indices: None, attributes: Vec::new() };
-        mesh.attributes.push(position_attribute);
+        mesh.add_custom_vec3_attribute("position", positions)?;
         Ok(mesh)
     }
 
@@ -49,8 +47,7 @@ impl Mesh
         for vid in 0..no_vertices {
             normals_vec3.push(glm::vec3(normals[vid * 3], normals[vid * 3 + 1], normals[vid * 3 + 2]));
         }
-        let normal_attribute = attribute::Attribute::create_vec3_attribute("normal", normals_vec3)?;
-        mesh.attributes.push(normal_attribute);
+        mesh.add_custom_vec3_attribute("normal", normals_vec3)?;
         Ok(mesh)
     }
 
@@ -72,9 +69,8 @@ impl Mesh
             indices_u16.push(indices[i] as u16);
         }
 
-        let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
         let mut mesh = Mesh { no_vertices, indices: Some(indices_u16), attributes: Vec::new() };
-        mesh.attributes.push(position_attribute);
+        mesh.add_custom_vec3_attribute("position", positions)?;
         Ok(mesh)
     }
 
