@@ -145,7 +145,8 @@ pub fn create_cube() -> Result<mesh::Mesh, Error>
         glm::vec2(0.0, 0.0)
     ];
 
-    let mut mesh = mesh::Mesh::create_with_normals(positions, normals)?;
+    let mut mesh = mesh::Mesh::create(positions)?;
+    mesh.add_custom_vec3_attribute("normal", normals)?;
     mesh.add_custom_vec2_attribute("uv_coordinate", uvs)?;
     Ok(mesh)
 }

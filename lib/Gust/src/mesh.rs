@@ -24,13 +24,6 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn create_with_normals(positions: Vec<glm::Vec3>, normals: Vec<glm::Vec3>) -> Result<Mesh, Error>
-    {
-        let mut mesh = Mesh::create(positions)?;
-        mesh.add_custom_vec3_attribute("normal", normals)?;
-        Ok(mesh)
-    }
-
     pub fn create(positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
     {
         let no_vertices = positions.len();
@@ -39,29 +32,7 @@ impl Mesh
         Ok(mesh)
     }
 
-    pub fn create_unsafe_with_normals(indices: &Vec<u32>, positions: &Vec<f32>, normals: &Vec<f32>) -> Result<Mesh, Error>
-    {
-        let mut mesh = Mesh::create_unsafe(indices, positions)?;
-        let no_vertices = normals.len()/3;
-        let mut normals_vec3 = Vec::with_capacity(no_vertices);
-        for vid in 0..no_vertices {
-            normals_vec3.push(glm::vec3(normals[vid * 3], normals[vid * 3 + 1], normals[vid * 3 + 2]));
-        }
-        mesh.add_custom_vec3_attribute("normal", normals_vec3)?;
-        Ok(mesh)
-    }
-
-    pub fn create_unsafe(indices: &Vec<u32>, positions: &Vec<f32>) -> Result<Mesh, Error>
-    {
-        let no_vertices = positions.len()/3;
-        let mut positions_vec3 = Vec::with_capacity(no_vertices);
-        for vid in 0..no_vertices {
-            positions_vec3.push(glm::vec3(positions[vid * 3], positions[vid * 3 + 1], positions[vid * 3 + 2]));
-        }
-        Mesh::create_indexed(&indices, positions_vec3)
-    }
-
-    pub fn create_indexed(indices: &Vec<u32>, positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
+    pub fn create_indexed(indices: Vec<u32>, positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
     {
         let no_vertices = positions.len();
         let mut indices_u16 = Vec::with_capacity(indices.len());
