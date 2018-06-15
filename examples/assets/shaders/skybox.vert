@@ -1,0 +1,15 @@
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+in vec3 position;
+
+out vec3 coords;
+
+void main()
+{
+    coords = position;
+
+    // Calculate position
+    gl_Position = (projectionMatrix * mat4(mat3(viewMatrix * modelMatrix)) * vec4(position, 1.)).xyww;
+}

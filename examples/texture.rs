@@ -46,6 +46,9 @@ fn main() {
     let model = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
     scene.add_model(model);
 
+    let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
+    scene.add_model(skybox);
+
     let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
     scene.add_light(light);
 
