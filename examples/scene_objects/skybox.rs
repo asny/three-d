@@ -10,7 +10,6 @@ use dust::core::texture::Texture;
 use dust::core::surface;
 use glm;
 use dust::camera;
-use loader;
 use self::image::{GenericImage};
 
 pub struct Skybox {
@@ -46,8 +45,8 @@ impl Skybox
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
         let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
-        let texture = texture::Texture2D::create_from_u8_data(gl,
-                              img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels())?;
+        let mut texture = texture::Texture2D::create(gl)?;
+        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
         Ok(Rc::new(Skybox { program, model, texture }))
     }

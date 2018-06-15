@@ -14,18 +14,16 @@ pub trait Texture {
 pub struct Texture2D {
     gl: gl::Gl,
     id: u32,
-    target: u32,
-    width: usize,
-    height: usize
+    target: u32
 }
 
 // TEXTURE 2D
 impl Texture2D
 {
-    pub fn create_from_u8_data(gl: &gl::Gl, width: usize, height: usize, data: &Vec<u8>) -> Result<Texture2D, Error>
+    pub fn create(gl: &gl::Gl) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let mut texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
         bind(&texture.gl, texture.id, texture.target);
         unsafe {
@@ -34,24 +32,6 @@ impl Texture2D
             gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
             gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
         }
-        texture.fill_with_u8(data);
-
-        Ok(texture)
-    }
-
-    pub fn create_from_data(gl: &gl::Gl, width: usize, height: usize, data: &Vec<f32>) -> Result<Texture2D, Error>
-    {
-        let id = generate(gl)?;
-        let mut texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
-
-        bind(&texture.gl, texture.id, texture.target);
-        unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-        }
-        texture.fill_with(data);
 
         Ok(texture)
     }
@@ -59,7 +39,7 @@ impl Texture2D
     pub fn create_as_color_target(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
         bind(&texture.gl, texture.id, texture.target);
         unsafe {
@@ -86,7 +66,7 @@ impl Texture2D
     pub fn create_as_depth_target(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
         bind(&texture.gl, texture.id, texture.target);
         unsafe {
@@ -110,9 +90,9 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, data: &Vec<u8>)
+    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: &Vec<u8>)
     {
-        let d = extend_data(data, self.width * self.height, 0);
+        let d = extend_data(data, width * height, 0);
         bind(&self.gl, self.id, self.target);
         unsafe {
             let format = gl::RGB;
@@ -120,8 +100,8 @@ impl Texture2D
             self.gl.TexImage2D(self.target,
                              0,
                              internal_format as i32,
-                             self.width as i32,
-                             self.height as i32,
+                             width as i32,
+                             height as i32,
                              0,
                              format,
                              gl::UNSIGNED_BYTE,
@@ -129,10 +109,10 @@ impl Texture2D
         }
     }
 
-    pub fn fill_with(&mut self, data: &Vec<f32>)
+    pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &Vec<f32>)
     {
         let no_elements = 1;
-        let d = extend_data(data, self.width * self.height, 0.0);
+        let d = extend_data(data, width * height, 0.0);
         bind(&self.gl, self.id, self.target);
         unsafe {
             let format = if no_elements == 1 {gl::RED} else {gl::RGB};
@@ -140,8 +120,8 @@ impl Texture2D
             self.gl.TexImage2D(self.target,
                              0,
                              internal_format as i32,
-                             self.width as i32,
-                             self.height as i32,
+                             width as i32,
+                             height as i32,
                              0,
                              format,
                              gl::FLOAT,
