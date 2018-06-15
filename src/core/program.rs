@@ -209,7 +209,7 @@ impl Program
         let c_str = CString::new(name)?;
         unsafe {
             let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
-            if(location == -1)
+            if location == -1
             {
                 return Err(Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)});
             }
