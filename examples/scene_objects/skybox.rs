@@ -23,6 +23,9 @@ impl traits::Reflecting for Skybox
     fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull_back_faces(false);
+        self.program.depth_write(true);
+        self.program.depth_test(true);
+
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
@@ -40,14 +43,20 @@ impl Skybox
 {
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let mesh = gust::models::create_cube().unwrap();
+        let mesh = gust::loader::load_obj("examples/assets/models/box.obj").unwrap();
         let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
         let back = image::open("examples/assets/textures/skybox_checker/back.jpg").unwrap();
-        let front = image::open("examples/assets/textures/skybox_checker/back.jpg").unwrap();
+        let front = image::open("examples/assets/textures/skybox_checker/front.jpg").unwrap();
+        let top = image::open("examples/assets/textures/skybox_checker/top.jpg").unwrap();
+        let left = image::open("examples/assets/textures/skybox_checker/left.jpg").unwrap();
+        let right = image::open("examples/assets/textures/skybox_checker/right.jpg").unwrap();
         let mut texture = texture::Texture3D::create(gl)?;
-        texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize, [&back.raw_pixels(), &back.raw_pixels(), &back.raw_pixels(), &back.raw_pixels(), &back.raw_pixels()]);
+        println!("{:?}", back.dimensions());
+        println!("{:?}", back.color());
+        texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
+                          [&back.raw_pixels(), &front.raw_pixels(), &top.raw_pixels(), &left.raw_pixels(), &right.raw_pixels()]);
 
         Ok(Rc::new(Skybox { program, model, texture }))
     }

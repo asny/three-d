@@ -181,6 +181,7 @@ impl Texture3D
             unsafe {
                 let format = gl::RGB;
                 let internal_format = gl::RGB8;
+                let d = data[i];
                 self.gl.TexImage2D(gl::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
                                  0,
                                  internal_format as i32,
@@ -189,7 +190,7 @@ impl Texture3D
                                  0,
                                  format,
                                  gl::UNSIGNED_BYTE,
-                                 data[i].as_ptr() as *const gl::types::GLvoid);
+                                 d.as_ptr() as *const gl::types::GLvoid);
             }
         }
     }
