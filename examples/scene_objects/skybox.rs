@@ -15,7 +15,7 @@ use self::image::{GenericImage};
 pub struct Skybox {
     program: program::Program,
     model: surface::TriangleSurface,
-    texture: texture::Texture2D
+    texture: texture::Texture3D
 }
 
 impl traits::Reflecting for Skybox
@@ -44,9 +44,9 @@ impl Skybox
         let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
-        let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
-        let mut texture = texture::Texture2D::create(gl)?;
-        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
+        let img = image::open("examples/assets/textures/skybox_checker/back.jpg").unwrap();
+        let mut texture = texture::Texture3D::create(gl)?;
+        texture.fill_with(img.dimensions().0 as usize, img.dimensions().1 as usize, [&img.raw_pixels()]);
 
         Ok(Rc::new(Skybox { program, model, texture }))
     }

@@ -174,11 +174,10 @@ impl Texture3D
         Ok(texture)
     }
 
-    pub fn fill_with(&mut self, width: usize, height: usize, data: [Vec<u8>; 6])
+    pub fn fill_with(&mut self, width: usize, height: usize, data: [&Vec<u8>; 1])
     {
         bind(&self.gl, self.id, self.target);
-        for i in 0..6 {
-            let d = &data[i];
+        for i in 0..1 {
             unsafe {
                 let format = gl::RGB;
                 let internal_format = gl::RGB8;
@@ -190,7 +189,7 @@ impl Texture3D
                                  0,
                                  format,
                                  gl::UNSIGNED_BYTE,
-                                 d.as_ptr() as *const gl::types::GLvoid);
+                                 data[i].as_ptr() as *const gl::types::GLvoid);
             }
         }
     }
