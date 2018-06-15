@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::{str, fs};
 use std::io::{self, BufReader};
+use image::{self,GenericImage};
 
 #[derive(Debug)]
 pub enum Error {
@@ -12,6 +13,20 @@ impl From<io::Error> for Error {
     fn from(other: io::Error) -> Self {
         Error::Io(other)
     }
+}
+
+pub fn load_image(resource_name: &str) -> Result<Vec<u8>, Error>
+{
+    // Use the open function to load an image from a Path.
+    // ```open``` returns a `DynamicImage` on success.
+    let img = image::open(resource_name).unwrap();
+
+    // The dimensions method returns the images width and height.
+    println!("dimensions {:?}", img.dimensions());
+
+    // The color method returns the image's `ColorType`.
+    println!("{:?}", img.color());
+    Ok(img.raw_pixels())
 }
 
 pub fn load_string(resource_name: &str) -> Result<String, Error>

@@ -8,6 +8,7 @@ use dust::core::texture::Texture;
 use dust::core::surface;
 use glm;
 use dust::camera;
+use loader;
 
 pub struct TexturedBox {
     program: program::Program,
@@ -41,10 +42,8 @@ impl TexturedBox
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
-        let tex_data: Vec<f32> = vec![
-            1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 0.5, 0.5, 1.0
-        ];
-        let texture = texture::Texture2D::create_from_data(gl, 4, 4, &tex_data)?;
+        let tex_data = loader::load_image("examples/assets/textures/test_texture.jpg").unwrap();
+        let texture = texture::Texture2D::create_from_u8_data(gl, 256, 256, &tex_data)?;
 
         Ok(Rc::new(TexturedBox { program, model, texture }))
     }

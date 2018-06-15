@@ -22,6 +22,23 @@ pub struct Texture2D {
 // TEXTURE 2D
 impl Texture2D
 {
+    pub fn create_from_u8_data(gl: &gl::Gl, width: usize, height: usize, data: &Vec<u8>) -> Result<Texture2D, Error>
+    {
+        let id = generate(gl)?;
+        let mut texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D, width, height };
+
+        bind(&texture.gl, texture.id, texture.target);
+        unsafe {
+            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+        }
+        texture.fill_with_u8(data);
+
+        Ok(texture)
+    }
+
     pub fn create_from_data(gl: &gl::Gl, width: usize, height: usize, data: &Vec<f32>) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
@@ -91,6 +108,25 @@ impl Texture2D
         }
 
         Ok(texture)
+    }
+
+    pub fn fill_with_u8(&mut self, data: &Vec<u8>)
+    {
+        let d = extend_data(data, self.width * self.height, 0);
+        bind(&self.gl, self.id, self.target);
+        unsafe {
+            let format = gl::RGB;
+            let internal_format = gl::RGB8;
+            self.gl.TexImage2D(self.target,
+                             0,
+                             internal_format as i32,
+                             self.width as i32,
+                             self.height as i32,
+                             0,
+                             format,
+                             gl::UNSIGNED_BYTE,
+                             d.as_ptr() as *const gl::types::GLvoid);
+        }
     }
 
     pub fn fill_with(&mut self, data: &Vec<f32>)
