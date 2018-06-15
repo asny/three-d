@@ -3,9 +3,9 @@ use std;
 use glm;
 
 use gust::attribute;
-use utility;
-use shader;
-use buffer;
+use core::shader;
+use core::buffer;
+use core::state;
 
 use std::ffi::{CString};
 
@@ -88,7 +88,7 @@ impl Program
                 gl.GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut len);
             }
 
-            let error = utility::create_whitespace_cstring_with_len(len as usize);
+            let error = create_whitespace_cstring_with_len(len as usize);
 
             unsafe {
                 gl.GetProgramInfoLog(
@@ -175,14 +175,7 @@ impl Program
         Ok(location)
     }
 
-    pub fn add_attribute(&self, attribute: &attribute::Attribute) -> Result<buffer::VertexBuffer, Error>
-    {
-        let mut list = Vec::new();
-        list.push(attribute);
-        self.add_attributes(&list)
-    }
-
-    pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&self, attributes: &Vec<attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
     {
         self.set_used();
         let mut stride = 0;
@@ -197,7 +190,7 @@ impl Program
         let buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        let data = from(&attributes, no_vertices, stride)?;
+        let data = from(attributes, no_vertices, stride)?;
         buffer.fill_with(&data);
 
         // Link the buffer data to the vertex attributes in the shader
@@ -228,6 +221,22 @@ impl Program
         Ok(())
     }
 
+    // STATES
+    pub fn cull_back_faces(&self, enable: bool)
+    {
+        state::cull_back_faces(&self.gl, enable);
+    }
+
+    pub fn depth_test(&self, enable: bool)
+    {
+        state::depth_test(&self.gl, enable);
+    }
+
+    pub fn depth_write(&self, enable: bool)
+    {
+        state::depth_write(&self.gl, enable);
+    }
+
     pub fn set_used(&self) {
         unsafe {
             static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
@@ -248,12 +257,12 @@ impl Drop for Program {
     }
 }
 
-fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
+fn from(attributes: &Vec<attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
 {
     let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
     unsafe { data.set_len(stride * no_vertices); }
     let mut offset = 0;
-    for attribute in attributes
+    for attribute in attributes.iter()
     {
         for vertex_id in 0..no_vertices
         {
@@ -265,4 +274,13 @@ fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usi
         offset = offset + attribute.no_components();
     }
     Ok(data)
+}
+
+fn create_whitespace_cstring_with_len(len: usize) -> CString {
+    // allocate buffer of correct size
+    let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);
+    // fill it with len spaces
+    buffer.extend([b' '].iter().cycle().take(len));
+    // convert buffer to CString
+    unsafe { CString::from_vec_unchecked(buffer) }
 }

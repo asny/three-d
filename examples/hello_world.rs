@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate dust;
 
-mod materials;
+mod scene_objects;
 
 use std::process;
 
@@ -21,10 +21,10 @@ fn main() {
         gl_attr.set_context_version(4, 1);
     }
 
-    let width = 900;
-    let height = 700;
+    let width: usize = 900;
+    let height: usize = 700;
     let window = video_ctx
-        .window("Dust", width, height)
+        .window("Dust", width as u32, height as u32)
         .opengl()
         .position_centered()
         .resizable()
@@ -34,30 +34,20 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Renderer
+    let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
+
     // Scene
-    let mut scene = scene::Scene::create().unwrap();
+    let mut scene = scene::Scene::create();
 
     // Camera
-    let camera = camera::Camera::create(&gl, glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height).unwrap();
+    let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let positions: Vec<glm::Vec3> = vec![
-        glm::vec3(0.5, -0.5, 0.0), // bottom right
-        glm::vec3(-0.5, -0.5, 0.0),// bottom left
-        glm::vec3(0.0,  0.5, 0.0) // top
-    ];
-    let colors: Vec<glm::Vec3> = vec![
-        glm::vec3(1.0, 0.0, 0.0),   // bottom right
-        glm::vec3(0.0, 1.0, 0.0),   // bottom left
-        glm::vec3(0.0, 0.0, 1.0)    // top
-    ];
-    let mut mesh = mesh::Mesh::create(&vec![0, 1, 2], positions).unwrap();
-    mesh.add_custom_attribute("Color", colors).unwrap();
-    let material = materials::color_material::ColorMaterial::create(&gl).unwrap();
-    scene.add_model(&gl, mesh, material).unwrap();
+    let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
+    scene.add_model(model);
 
-    unsafe {
-        gl.ClearColor(0.3, 0.3, 0.5, 1.0);
-    }
+    let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
+    scene.add_light(light);
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -74,7 +64,7 @@ fn main() {
         }
 
         // draw
-        camera.draw(&scene).unwrap();
+        renderer.render(&camera, &scene).unwrap();
 
         window.gl_swap_window();
     };

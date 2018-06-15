@@ -11,4 +11,3 @@ pub fn set_main_loop<F>(mut main_loop: F) where F: FnMut()
 {
     loop { main_loop(); }
 }
-

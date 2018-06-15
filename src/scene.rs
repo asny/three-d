@@ -1,45 +1,26 @@
-use model;
-use input;
-use gust::mesh;
-use material;
 use std::rc::Rc;
-use gl;
-
-#[derive(Debug)]
-pub enum Error {
-    Model(model::Error)
-}
-
-impl From<model::Error> for Error {
-    fn from(other: model::Error) -> Self {
-        Error::Model(other)
-    }
-}
+use traits;
+use light;
 
 pub struct Scene {
-    models: Vec<model::Model>
+    pub models: Vec<Rc<traits::Reflecting>>,
+    pub directional_lights: Vec<light::DirectionalLight>
 }
-
 
 impl Scene
 {
-    pub fn create() -> Result<Scene, Error>
+    pub fn create() -> Scene
     {
-        Ok(Scene { models: Vec::new() })
+        Scene { models: Vec::new(), directional_lights: Vec::new() }
     }
 
-    pub fn add_model(&mut self, gl: &gl::Gl, mesh: mesh::Mesh, material: Rc<material::Material>) -> Result<(), Error>
+    pub fn add_model(&mut self, model: Rc<traits::Reflecting>)
     {
-        let model = model::Model::create(&gl, mesh, material)?;
         &self.models.push(model);
-        Ok(())
     }
 
-    pub fn draw(&self, input: &input::DrawInput) -> Result<(), Error>
+    pub fn add_light(&mut self, light: light::DirectionalLight)
     {
-        for model in &self.models {
-            model.draw(input)?;
-        }
-        Ok(())
+        &self.directional_lights.push(light);
     }
 }
