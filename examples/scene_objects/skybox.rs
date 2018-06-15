@@ -44,9 +44,10 @@ impl Skybox
         let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
-        let img = image::open("examples/assets/textures/skybox_checker/back.jpg").unwrap();
+        let back = image::open("examples/assets/textures/skybox_checker/back.jpg").unwrap();
+        let front = image::open("examples/assets/textures/skybox_checker/back.jpg").unwrap();
         let mut texture = texture::Texture3D::create(gl)?;
-        texture.fill_with(img.dimensions().0 as usize, img.dimensions().1 as usize, [&img.raw_pixels()]);
+        texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize, [&back.raw_pixels(), &back.raw_pixels(), &back.raw_pixels(), &back.raw_pixels(), &back.raw_pixels()]);
 
         Ok(Rc::new(Skybox { program, model, texture }))
     }
