@@ -1,5 +1,4 @@
 extern crate num_traits;
-extern crate image;
 pub extern crate gl;
 pub extern crate gust;
 pub use gust::glm;
