@@ -15,7 +15,8 @@ pub enum Error {
     Buffer(buffer::Error),
     FailedToLinkProgram {message: String},
     FailedToCreateCString(std::ffi::NulError),
-    FailedToFindPositions {message: String}
+    FailedToFindPositions {message: String},
+    FailedToFindAttribute {message: String}
 }
 
 impl From<shader::Error> for Error {
@@ -207,10 +208,15 @@ impl Program
     {
         let c_str = CString::new(name)?;
         unsafe {
-            let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr()) as gl::types::GLuint;
-            self.gl.EnableVertexAttribArray(location);
+            let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
+            if(location == -1)
+            {
+                return Err(Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)});
+            }
+
+            self.gl.EnableVertexAttribArray(location as gl::types::GLuint);
             self.gl.VertexAttribPointer(
-                location, // index of the generic vertex attribute
+                location as gl::types::GLuint, // index of the generic vertex attribute
                 no_components as gl::types::GLint, // the number of components per generic vertex attribute
                 gl::FLOAT, // data type
                 gl::FALSE, // normalized (int-to-float conversion)
