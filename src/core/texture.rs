@@ -148,6 +148,70 @@ impl Drop for Texture2D
     }
 }
 
+pub struct Texture3D {
+    gl: gl::Gl,
+    id: u32,
+    target: u32
+}
+
+// TEXTURE 3D
+impl Texture3D
+{
+    pub fn create(gl: &gl::Gl) -> Result<Texture3D, Error>
+    {
+        let id = generate(gl)?;
+        let texture = Texture3D { gl: gl.clone(), id, target: gl::TEXTURE_CUBE_MAP };
+
+        bind(&texture.gl, texture.id, texture.target);
+        unsafe {
+            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_R, gl::REPEAT as i32);
+        }
+
+        Ok(texture)
+    }
+
+    pub fn fill_with(&mut self, width: usize, height: usize, data: [Vec<u8>; 6])
+    {
+        bind(&self.gl, self.id, self.target);
+        for i in 0..6 {
+            let d = &data[i];
+            unsafe {
+                let format = gl::RGB;
+                let internal_format = gl::RGB8;
+                self.gl.TexImage2D(gl::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+                                 0,
+                                 internal_format as i32,
+                                 width as i32,
+                                 height as i32,
+                                 0,
+                                 format,
+                                 gl::UNSIGNED_BYTE,
+                                 d.as_ptr() as *const gl::types::GLvoid);
+            }
+        }
+    }
+}
+
+impl Texture for Texture3D
+{
+    fn bind(&self, location: u32)
+    {
+        bind_at(&self.gl, self.id, self.target, location);
+    }
+}
+
+impl Drop for Texture3D
+{
+    fn drop(&mut self)
+    {
+        drop(&self.gl, &self.id);
+    }
+}
+
 // COMMON FUNCTIONS
 fn generate(gl: &gl::Gl) -> Result<u32, Error>
 {
