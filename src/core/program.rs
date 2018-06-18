@@ -228,7 +228,7 @@ impl Program
     }
 
     // STATES
-    pub fn cull(&self, cull_type: state::CULL_TYPE)
+    pub fn cull(&self, cull_type: state::CullType)
     {
         state::cull(&self.gl, cull_type);
     }

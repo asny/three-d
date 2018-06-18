@@ -23,7 +23,7 @@ impl traits::Reflecting for Skybox
 {
     fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.cull(state::CULL_TYPE::FRONT);
+        self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
         self.program.depth_test(true);
 

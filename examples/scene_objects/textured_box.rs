@@ -23,7 +23,7 @@ impl traits::Reflecting for TexturedBox
 {
     fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.cull(state::CULL_TYPE::BACK);
+        self.program.cull(state::CullType::BACK);
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;

@@ -19,27 +19,27 @@ pub fn blend(gl: &gl::Gl, enable: bool)
 }
 
 #[derive(PartialEq)]
-pub enum CULL_TYPE {
+pub enum CullType {
     NONE,
     BACK,
     FRONT
 }
 
-pub fn cull(gl: &gl::Gl, cull_type: CULL_TYPE)
+pub fn cull(gl: &gl::Gl, cull_type: CullType)
 {
     unsafe {
-        static mut CURRENT: CULL_TYPE = CULL_TYPE::NONE;
+        static mut CURRENT: CullType = CullType::NONE;
         if cull_type != CURRENT
         {
             match cull_type {
-                CULL_TYPE::NONE => {
+                CullType::NONE => {
                     gl.Disable(gl::CULL_FACE);
                 },
-                CULL_TYPE::BACK => {
+                CullType::BACK => {
                     gl.Enable(gl::CULL_FACE);
                     gl.CullFace(gl::BACK);
                 },
-                CULL_TYPE::FRONT => {
+                CullType::FRONT => {
                     gl.Enable(gl::CULL_FACE);
                     gl.CullFace(gl::FRONT);
                 }
