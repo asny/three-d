@@ -106,7 +106,7 @@ impl DeferredPipeline
     {
         state::depth_write(&self.gl,true);
         state::depth_test(&self.gl, true);
-        state::cull_back_faces(&self.gl,false);
+        state::cull(&self.gl,state::CullType::NONE);
         state::blend(&self.gl, false);
 
         self.geometry_pass_rendertarget.bind();
@@ -122,7 +122,7 @@ impl DeferredPipeline
 
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, false);
-        state::cull_back_faces(&self.gl,true);
+        state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, true);
         unsafe {
             self.gl.DepthFunc(gl::LEQUAL);
