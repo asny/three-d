@@ -18,21 +18,33 @@ pub fn blend(gl: &gl::Gl, enable: bool)
     }
 }
 
-pub fn cull_back_faces(gl: &gl::Gl, enable: bool)
+#[derive(PartialEq)]
+pub enum CULL_TYPE {
+    NONE,
+    BACK,
+    FRONT
+}
+
+pub fn cull(gl: &gl::Gl, cull_type: CULL_TYPE)
 {
     unsafe {
-        static mut CURRENTLY_ENABLED: bool = false;
-        if enable != CURRENTLY_ENABLED
+        static mut CURRENT: CULL_TYPE = CULL_TYPE::NONE;
+        if cull_type != CURRENT
         {
-            if enable
-            {
-                gl.Enable(gl::CULL_FACE);
-                gl.CullFace(gl::BACK);
+            match cull_type {
+                CULL_TYPE::NONE => {
+                    gl.Disable(gl::CULL_FACE);
+                },
+                CULL_TYPE::BACK => {
+                    gl.Enable(gl::CULL_FACE);
+                    gl.CullFace(gl::BACK);
+                },
+                CULL_TYPE::FRONT => {
+                    gl.Enable(gl::CULL_FACE);
+                    gl.CullFace(gl::FRONT);
+                }
             }
-            else {
-                gl.Disable(gl::CULL_FACE);
-            }
-            CURRENTLY_ENABLED = enable;
+            CURRENT = cull_type;
         }
     }
 }

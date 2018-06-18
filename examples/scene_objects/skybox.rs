@@ -8,6 +8,7 @@ use std::rc::Rc;
 use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::surface;
+use dust::core::state;
 use glm;
 use dust::camera;
 use self::image::{GenericImage};
@@ -22,7 +23,7 @@ impl traits::Reflecting for Skybox
 {
     fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.cull_back_faces(false);
+        self.program.cull(state::CULL_TYPE::FRONT);
         self.program.depth_write(true);
         self.program.depth_test(true);
 

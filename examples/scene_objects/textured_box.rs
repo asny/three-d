@@ -10,6 +10,7 @@ use dust::core::texture::Texture;
 use dust::core::surface;
 use glm;
 use dust::camera;
+use dust::core::state;
 use self::image::{GenericImage};
 
 pub struct TexturedBox {
@@ -22,7 +23,7 @@ impl traits::Reflecting for TexturedBox
 {
     fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.cull_back_faces(true);
+        self.program.cull(state::CULL_TYPE::BACK);
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;

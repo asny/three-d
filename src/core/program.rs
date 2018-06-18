@@ -228,9 +228,9 @@ impl Program
     }
 
     // STATES
-    pub fn cull_back_faces(&self, enable: bool)
+    pub fn cull(&self, cull_type: state::CULL_TYPE)
     {
-        state::cull_back_faces(&self.gl, enable);
+        state::cull(&self.gl, cull_type);
     }
 
     pub fn depth_test(&self, enable: bool)
