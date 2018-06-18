@@ -47,16 +47,15 @@ impl Skybox
         let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
-        let back = image::open("examples/assets/textures/skybox_checker/back.jpg").unwrap();
-        let front = image::open("examples/assets/textures/skybox_checker/front.jpg").unwrap();
-        let top = image::open("examples/assets/textures/skybox_checker/top.jpg").unwrap();
-        let left = image::open("examples/assets/textures/skybox_checker/left.jpg").unwrap();
-        let right = image::open("examples/assets/textures/skybox_checker/right.jpg").unwrap();
+        let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
+        let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
+        let top = image::open("examples/assets/textures/skybox_evening/top.jpg").unwrap();
+        let left = image::open("examples/assets/textures/skybox_evening/left.jpg").unwrap();
+        let right = image::open("examples/assets/textures/skybox_evening/right.jpg").unwrap();
         let mut texture = texture::Texture3D::create(gl)?;
-        println!("{:?}", back.dimensions());
-        println!("{:?}", back.color());
         texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                          [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(), &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+                          [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
+                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
 
         Ok(Rc::new(Skybox { program, model, texture }))
     }
