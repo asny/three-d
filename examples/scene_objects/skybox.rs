@@ -56,7 +56,7 @@ impl Skybox
         println!("{:?}", back.dimensions());
         println!("{:?}", back.color());
         texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                          [&back.raw_pixels(), &front.raw_pixels(), &top.raw_pixels(), &left.raw_pixels(), &right.raw_pixels()]);
+                          [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(), &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
 
         Ok(Rc::new(Skybox { program, model, texture }))
     }
