@@ -1,4 +1,5 @@
 extern crate image;
+extern crate noise;
 
 use dust::core::program;
 use gl;
@@ -13,6 +14,7 @@ use glm;
 use dust::camera;
 use dust::core::state;
 use self::image::{GenericImage};
+use self::noise::{NoiseFn, Point2, Perlin};
 
 const SIZE: f32 = 16.0;
 const VERTICES_PER_UNIT: usize = 8;
@@ -103,7 +105,8 @@ impl Terrain
 struct Heightmap
 {
     origo: glm::Vec3,
-    heights: Vec<Vec<f32>>
+    heights: Vec<Vec<f32>>,
+    noise_generator: Box<NoiseFn<Point2<f64>>>
 }
 
 impl Heightmap
@@ -114,7 +117,8 @@ impl Heightmap
         for r in 0..VERTICES_PER_SIDE+1 {
             heights.push(vec![0.0;VERTICES_PER_SIDE + 1]);
         }
-        Heightmap {origo: glm::vec3(0.0,0.0,0.0), heights}
+        let perlin = Perlin::new();
+        Heightmap {origo: glm::vec3(0.0,0.0,0.0), heights, noise_generator: Box::new(perlin)}
     }
 
     pub fn initialize(&mut self, _origo: glm::Vec3)
@@ -130,8 +134,9 @@ impl Heightmap
 
     fn set_height(&mut self, scale: f32, r: usize, c: usize, neighbour_heights: Vec<f32>)
     {
-        self.heights[r][c] = average(&neighbour_heights) +
-        0.15 * scale;//raw_noise_2d(origo.x + r * VERTEX_DISTANCE, origo.z + c * VERTEX_DISTANCE);
+        let noise_val = self.noise_generator.get([self.origo.x as f64 + r as f64 * VERTEX_DISTANCE as f64,
+            self.origo.z as f64 + c as f64 * VERTEX_DISTANCE as f64]);
+        self.heights[r][c] = average(&neighbour_heights) + 0.15 * scale * noise_val as f32;
     }
 
     fn get_height(&self, r: usize, c: usize) -> f32
