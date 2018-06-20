@@ -64,8 +64,8 @@ impl Terrain
                 indices.push(r + c * stride);
                 indices.push(r + 1 + c * stride);
                 indices.push(r + (c + 1) * stride);
-                indices.push(r + 1 + c * stride);
                 indices.push(r + (c + 1) * stride);
+                indices.push(r + 1 + c * stride);
                 indices.push(r + 1 + (c + 1) * stride);
 
             }
