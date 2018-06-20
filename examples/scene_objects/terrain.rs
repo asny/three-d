@@ -72,6 +72,7 @@ impl Terrain
         }
 
         let mut positions = Vec::new();
+        let mut uvs = Vec::new();
 
         for r in 0..VERTICES_PER_SIDE
         {
@@ -80,9 +81,12 @@ impl Terrain
                 let mut pos = glm::vec3(r as f32 * VERTEX_DISTANCE, 0., c as f32 * VERTEX_DISTANCE);
                 pos.y = heightmap.get_height_at(pos);
                 positions.push(pos);
+
+                uvs.push(glm::vec2(r as f32 / VERTICES_PER_SIDE as f32, c as f32 / VERTICES_PER_SIDE as f32));
             }
         }
-        let mesh = gust::mesh::Mesh::create_indexed(indices, positions)?;
+        let mut mesh = gust::mesh::Mesh::create_indexed(indices, positions)?;
+        mesh.add_custom_vec2_attribute("uv_coordinate", uvs)?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
