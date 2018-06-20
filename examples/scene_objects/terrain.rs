@@ -14,7 +14,7 @@ use glm;
 use dust::camera;
 use dust::core::state;
 use self::image::{GenericImage};
-use self::noise::{NoiseFn, Point2, Perlin};
+use self::noise::{NoiseFn, Point2, SuperSimplex};
 
 const SIZE: f32 = 16.0;
 const VERTICES_PER_UNIT: usize = 8;
@@ -117,8 +117,8 @@ impl Heightmap
         for r in 0..VERTICES_PER_SIDE+1 {
             heights.push(vec![0.0;VERTICES_PER_SIDE + 1]);
         }
-        let perlin = Perlin::new();
-        Heightmap {origo: glm::vec3(0.0,0.0,0.0), heights, noise_generator: Box::new(perlin)}
+        let noise_generator = Box::new(SuperSimplex::new());
+        Heightmap {origo: glm::vec3(0.0,0.0,0.0), heights, noise_generator}
     }
 
     pub fn initialize(&mut self, _origo: glm::Vec3)
