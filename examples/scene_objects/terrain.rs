@@ -57,24 +57,8 @@ impl Terrain
     {
         let mut heightmap = Heightmap::create();
         heightmap.initialize(glm::vec3(0.0, 0.0, 0.0));
-        let mut indices: Vec<u32> = Vec::new();
-        let stride = VERTICES_PER_SIDE as u32;
-        for r in 0..stride-1
-        {
-            for c in 0..stride-1
-            {
-                indices.push(r + c * stride);
-                indices.push(r + 1 + c * stride);
-                indices.push(r + (c + 1) * stride);
-                indices.push(r + (c + 1) * stride);
-                indices.push(r + 1 + c * stride);
-                indices.push(r + 1 + (c + 1) * stride);
-
-            }
-        }
 
         let mut positions = Vec::new();
-        let mut uvs = Vec::new();
 
         for r in 0..VERTICES_PER_SIDE
         {
@@ -83,12 +67,10 @@ impl Terrain
                 let mut pos = glm::vec3(r as f32 * VERTEX_DISTANCE, 0., c as f32 * VERTEX_DISTANCE);
                 pos.y = heightmap.get_height_at(pos);
                 positions.push(pos);
-
-                uvs.push(glm::vec2(r as f32 / VERTICES_PER_SIDE as f32, c as f32 / VERTICES_PER_SIDE as f32));
             }
         }
-        let mut mesh = gust::mesh::Mesh::create_indexed(indices, positions)?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", uvs)?;
+        let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), positions)?;
+        mesh.add_custom_vec2_attribute("uv_coordinate", Heightmap::uv_coordinates())?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
@@ -111,6 +93,40 @@ struct Heightmap
 
 impl Heightmap
 {
+    pub fn indices() -> Vec<u32>
+    {
+        let mut indices: Vec<u32> = Vec::new();
+        let stride = VERTICES_PER_SIDE as u32;
+        for r in 0..stride-1
+        {
+            for c in 0..stride-1
+            {
+                indices.push(r + c * stride);
+                indices.push(r + 1 + c * stride);
+                indices.push(r + (c + 1) * stride);
+                indices.push(r + (c + 1) * stride);
+                indices.push(r + 1 + c * stride);
+                indices.push(r + 1 + (c + 1) * stride);
+
+            }
+        }
+        indices
+    }
+
+    pub fn uv_coordinates() -> Vec<glm::Vec2>
+    {
+        let mut uvs = Vec::new();
+        let scale = 1.0 / VERTICES_PER_SIDE as f32;
+        for r in 0..VERTICES_PER_SIDE
+        {
+            for c in 0..VERTICES_PER_SIDE
+            {
+                uvs.push(glm::vec2(r as f32 * scale, c as f32 * scale));
+            }
+        }
+        uvs
+    }
+
     pub fn create() -> Heightmap
     {
         let mut heights = Vec::with_capacity(VERTICES_PER_SIDE + 1);
