@@ -75,7 +75,7 @@ impl Terrain
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
-        let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
+        let img = image::open("examples/assets/textures/grass.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
@@ -93,6 +93,27 @@ struct Heightmap
 
 impl Heightmap
 {
+    pub fn create() -> Heightmap
+    {
+        let mut heights = Vec::with_capacity(VERTICES_PER_SIDE + 1);
+        for r in 0..VERTICES_PER_SIDE+1 {
+            heights.push(vec![0.0;VERTICES_PER_SIDE + 1]);
+        }
+        let noise_generator = Box::new(SuperSimplex::new());
+        Heightmap {origo: glm::vec3(0.0,0.0,0.0), heights, noise_generator}
+    }
+
+    pub fn initialize(&mut self, _origo: glm::Vec3)
+    {
+        self.origo = _origo;
+
+        self.set_height(SIZE, 0, 0, vec![]);
+        self.set_height(SIZE, 0, VERTICES_PER_SIDE, vec![]);
+        self.set_height(SIZE, VERTICES_PER_SIDE, 0, vec![]);
+        self.set_height(SIZE, VERTICES_PER_SIDE, VERTICES_PER_SIDE, vec![]);
+        self.subdivide(0, 0, VERTICES_PER_SIDE);
+    }
+    
     pub fn indices() -> Vec<u32>
     {
         let mut indices: Vec<u32> = Vec::new();
@@ -125,27 +146,6 @@ impl Heightmap
             }
         }
         uvs
-    }
-
-    pub fn create() -> Heightmap
-    {
-        let mut heights = Vec::with_capacity(VERTICES_PER_SIDE + 1);
-        for r in 0..VERTICES_PER_SIDE+1 {
-            heights.push(vec![0.0;VERTICES_PER_SIDE + 1]);
-        }
-        let noise_generator = Box::new(SuperSimplex::new());
-        Heightmap {origo: glm::vec3(0.0,0.0,0.0), heights, noise_generator}
-    }
-
-    pub fn initialize(&mut self, _origo: glm::Vec3)
-    {
-        self.origo = _origo;
-
-        self.set_height(SIZE, 0, 0, vec![]);
-        self.set_height(SIZE, 0, VERTICES_PER_SIDE, vec![]);
-        self.set_height(SIZE, VERTICES_PER_SIDE, 0, vec![]);
-        self.set_height(SIZE, VERTICES_PER_SIDE, VERTICES_PER_SIDE, vec![]);
-        self.subdivide(0, 0, VERTICES_PER_SIDE);
     }
 
     fn set_height(&mut self, scale: f32, r: usize, c: usize, neighbour_heights: Vec<f32>)
