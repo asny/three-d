@@ -69,7 +69,7 @@ impl Terrain
                 positions.push(pos);
             }
         }
-        let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), positions)?;
+        let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), heightmap.positions().clone())?;
         mesh.add_custom_vec2_attribute("uv_coordinate", Heightmap::uv_coordinates())?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
@@ -131,13 +131,18 @@ impl Heightmap
         indices
     }
 
+    pub fn positions(&self) -> &Vec<glm::Vec3>
+    {
+        &self.positions
+    }
+
     pub fn uv_coordinates() -> Vec<glm::Vec2>
     {
         let mut uvs = Vec::new();
         let scale = 1.0 / VERTICES_PER_SIDE as f32;
-        for r in 0..VERTICES_PER_SIDE
+        for r in 0..VERTICES_PER_SIDE+1
         {
-            for c in 0..VERTICES_PER_SIDE
+            for c in 0..VERTICES_PER_SIDE+1
             {
                 uvs.push(glm::vec2(r as f32 * scale, c as f32 * scale));
             }
