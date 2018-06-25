@@ -56,7 +56,7 @@ impl Terrain
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
         let mut heightmap = Heightmap::create();
-        heightmap.initialize(glm::vec3(0.0, 0.0, 0.0));
+        heightmap.initialize(glm::vec3(-SIZE/2.0, 0.0, -SIZE/2.0));
 
         let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), heightmap.positions().clone())?;
         mesh.add_custom_vec3_attribute("normal", Heightmap::normals())?;
