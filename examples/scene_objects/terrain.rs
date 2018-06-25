@@ -57,7 +57,7 @@ impl Terrain
     {
         let mut heightmap = Heightmap::create();
         heightmap.initialize(glm::vec3(0.0, 0.0, 0.0));
-        
+
         let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), heightmap.positions().clone())?;
         mesh.add_custom_vec2_attribute("uv_coordinate", Heightmap::uv_coordinates())?;
 
@@ -103,7 +103,7 @@ impl Heightmap
     pub fn indices() -> Vec<u32>
     {
         let mut indices: Vec<u32> = Vec::new();
-        let stride = VERTICES_PER_SIDE as u32;
+        let stride = VERTICES_PER_SIDE as u32 + 1;
         for r in 0..stride-1
         {
             for c in 0..stride-1
@@ -145,12 +145,12 @@ impl Heightmap
                             self.origo.z + c as f32 * VERTEX_DISTANCE);
         let noise_val = self.noise_generator.get([pos.x as f64, pos.z as f64]);
         pos.y = average(&neighbour_heights) + 0.15 * scale * noise_val as f32;
-        self.positions[r*VERTICES_PER_SIDE + c] = pos;
+        self.positions[r*(VERTICES_PER_SIDE+1) + c] = pos;
     }
 
     fn get_height(&self, r: usize, c: usize) -> f32
     {
-        self.positions[r*VERTICES_PER_SIDE + c].y
+        self.positions[r*(VERTICES_PER_SIDE+1) + c].y
     }
 
     fn subdivide(&mut self, origo_r: usize, origo_c: usize, size: usize)
