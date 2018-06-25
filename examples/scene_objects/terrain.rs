@@ -59,6 +59,7 @@ impl Terrain
         heightmap.initialize(glm::vec3(0.0, 0.0, 0.0));
 
         let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), heightmap.positions().clone())?;
+        mesh.add_custom_vec3_attribute("normal", Heightmap::normals())?;
         mesh.add_custom_vec2_attribute("uv_coordinate", Heightmap::uv_coordinates())?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
@@ -137,6 +138,19 @@ impl Heightmap
             }
         }
         uvs
+    }
+
+    pub fn normals() -> Vec<glm::Vec3>
+    {
+        let mut normals = Vec::new();
+        for r in 0..VERTICES_PER_SIDE+1
+        {
+            for c in 0..VERTICES_PER_SIDE+1
+            {
+                normals.push(glm::vec3(0.0, 1.0, 0.0));
+            }
+        }
+        normals
     }
 
     fn set_height(&mut self, scale: f32, r: usize, c: usize, neighbour_heights: Vec<f32>)
