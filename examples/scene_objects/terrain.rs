@@ -57,18 +57,7 @@ impl Terrain
     {
         let mut heightmap = Heightmap::create();
         heightmap.initialize(glm::vec3(0.0, 0.0, 0.0));
-
-        let mut positions = Vec::new();
-
-        for r in 0..VERTICES_PER_SIDE
-        {
-            for c in 0..VERTICES_PER_SIDE
-            {
-                let mut pos = glm::vec3(r as f32 * VERTEX_DISTANCE, 0., c as f32 * VERTEX_DISTANCE);
-                pos.y = heightmap.get_height_at(pos);
-                positions.push(pos);
-            }
-        }
+        
         let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), heightmap.positions().clone())?;
         mesh.add_custom_vec2_attribute("uv_coordinate", Heightmap::uv_coordinates())?;
 
