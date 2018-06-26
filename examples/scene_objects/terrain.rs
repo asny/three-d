@@ -152,9 +152,9 @@ impl Heightmap
                     normals.push(glm::vec3(0.0, 1.0, 0.0));
                 }
                 else {
-                    let mut n = glm::vec3(0.0, 1.0, 0.0);
-                    n.x -= self.get_height(r+1,c) - self.get_height(r-1,c);
-                    n.z -= self.get_height(r,c+1) - self.get_height(r,c-1);
+                    let mut n = glm::vec3(self.get_height(r-1,c) - self.get_height(r+1,c),
+                                          2.0 * VERTEX_DISTANCE,
+                                          self.get_height(r,c-1) - self.get_height(r,c+1));
                     glm::normalize(n);
                     normals.push(n)
                 }
