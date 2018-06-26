@@ -32,23 +32,14 @@ pub fn load_obj(name: &str) -> Result<mesh::Mesh, Error>
     let no_vertices = m.positions.len()/3;
 
     // Create mesh
-    let mut positions_vec3 = Vec::with_capacity(no_vertices);
-    for vid in 0..no_vertices {
-        positions_vec3.push(glm::vec3(m.positions[vid * 3], m.positions[vid * 3 + 1], m.positions[vid * 3 + 2]));
-    }
-
     let mut mesh = match m.indices.len() > 0 {
-        true => mesh::Mesh::create_indexed(m.indices.clone(), positions_vec3)?,
-        false => mesh::Mesh::create(positions_vec3)?
+        true => mesh::Mesh::create_indexed(m.indices.clone(), m.positions.clone())?,
+        false => mesh::Mesh::create(m.positions.clone())?
     };
 
     if m.normals.len() > 0
     {
-        let mut normals_vec3 = Vec::with_capacity(no_vertices);
-        for vid in 0..no_vertices {
-            normals_vec3.push(glm::vec3(m.normals[vid * 3], m.normals[vid * 3 + 1], m.normals[vid * 3 + 2]));
-        }
-        mesh.add_custom_vec3_attribute("normal", normals_vec3)?;
+        mesh.add_custom_vec3_attribute("normal", m.normals.clone())?;
     }
 
     Ok(mesh)

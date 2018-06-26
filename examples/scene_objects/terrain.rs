@@ -77,7 +77,7 @@ impl Terrain
 struct Heightmap
 {
     origo: glm::Vec3,
-    positions: Vec<glm::Vec3>,
+    positions: Vec<f32>,
     noise_generator: Box<NoiseFn<Point2<f64>>>
 }
 
@@ -85,7 +85,7 @@ impl Heightmap
 {
     pub fn create() -> Heightmap
     {
-        let positions = vec![glm::vec3(0.0, 0.0, 0.0);(VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)];
+        let positions = vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)];
         let noise_generator = Box::new(SuperSimplex::new());
         Heightmap {origo: glm::vec3(0.0,0.0,0.0), positions, noise_generator}
     }
@@ -121,12 +121,12 @@ impl Heightmap
         indices
     }
 
-    pub fn positions(&self) -> &Vec<glm::Vec3>
+    pub fn positions(&self) -> &Vec<f32>
     {
         &self.positions
     }
 
-    pub fn uv_coordinates() -> Vec<glm::Vec2>
+    pub fn uv_coordinates() -> Vec<f32>
     {
         let mut uvs = Vec::new();
         let scale = 1.0 / VERTICES_PER_SIDE as f32;
@@ -134,13 +134,14 @@ impl Heightmap
         {
             for c in 0..VERTICES_PER_SIDE+1
             {
-                uvs.push(glm::vec2(r as f32 * scale, c as f32 * scale));
+                uvs.push(r as f32 * scale);
+                uvs.push(c as f32 * scale);
             }
         }
         uvs
     }
 
-    pub fn normals(&self) -> Vec<glm::Vec3>
+    pub fn normals(&self) -> Vec<f32>
     {
         let mut normals = Vec::new();
         for r in 0..VERTICES_PER_SIDE+1
@@ -149,14 +150,19 @@ impl Heightmap
             {
                 if c == 0 || r == 0 || c == VERTICES_PER_SIDE || r == VERTICES_PER_SIDE
                 {
-                    normals.push(glm::vec3(0.0, 1.0, 0.0));
+                    normals.push(0.0);
+                    normals.push(1.0);
+                    normals.push(0.0);
                 }
                 else {
                     let mut n = glm::vec3(self.get_height(r-1,c) - self.get_height(r+1,c),
                                           2.0 * VERTEX_DISTANCE,
                                           self.get_height(r,c-1) - self.get_height(r,c+1));
                     glm::normalize(n);
-                    normals.push(n)
+
+                    normals.push(n.x);
+                    normals.push(n.y);
+                    normals.push(n.z);
                 }
             }
         }
@@ -169,12 +175,14 @@ impl Heightmap
                             self.origo.z + c as f32 * VERTEX_DISTANCE);
         let noise_val = self.noise_generator.get([pos.x as f64, pos.z as f64]);
         pos.y = average(&neighbour_heights) + 0.15 * scale * noise_val as f32;
-        self.positions[r*(VERTICES_PER_SIDE+1) + c] = pos;
+        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = pos.x;
+        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = pos.y;
+        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = pos.z;
     }
 
     fn get_height(&self, r: usize, c: usize) -> f32
     {
-        self.positions[r*(VERTICES_PER_SIDE+1) + c].y
+        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
     }
 
     fn subdivide(&mut self, origo_r: usize, origo_c: usize, size: usize)

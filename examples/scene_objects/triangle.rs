@@ -27,15 +27,15 @@ impl Triangle
 {
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let positions: Vec<glm::Vec3> = vec![
-            glm::vec3(0.5, -0.5, 0.0), // bottom right
-            glm::vec3(-0.5, -0.5, 0.0),// bottom left
-            glm::vec3(0.0,  0.5, 0.0) // top
+        let positions: Vec<f32> = vec![
+            0.5, -0.5, 0.0, // bottom right
+            -0.5, -0.5, 0.0,// bottom left
+            0.0,  0.5, 0.0 // top
         ];
-        let colors: Vec<glm::Vec3> = vec![
-            glm::vec3(1.0, 0.0, 0.0),   // bottom right
-            glm::vec3(0.0, 1.0, 0.0),   // bottom left
-            glm::vec3(0.0, 0.0, 1.0)    // top
+        let colors: Vec<f32> = vec![
+            1.0, 0.0, 0.0,   // bottom right
+            0.0, 1.0, 0.0,   // bottom left
+            0.0, 0.0, 1.0    // top
         ];
         let mut mesh = mesh::Mesh::create(positions).unwrap();
         mesh.add_custom_vec3_attribute("color", colors).unwrap();

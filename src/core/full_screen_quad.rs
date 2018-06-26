@@ -11,15 +11,15 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
         match FULL_SCREEN__QUAD
         {
             None => {
-                let positions: Vec<glm::Vec3> = vec![
-                    glm::vec3(-3.0, -1.0, 0.0),
-                    glm::vec3(3.0, -1.0, 0.0),
-                    glm::vec3(0.0, 2.0, 0.0)
+                let positions: Vec<f32> = vec![
+                    -3.0, -1.0, 0.0,
+                    3.0, -1.0, 0.0,
+                    0.0, 2.0, 0.0
                 ];
-                let uv_coordinates: Vec<glm::Vec2> = vec![
-                    glm::vec2(-1.0, 0.0),
-                    glm::vec2(2.0, 0.0),
-                    glm::vec2(0.5, 1.5)
+                let uv_coordinates: Vec<f32> = vec![
+                    -1.0, 0.0,
+                    2.0, 0.0,
+                    0.5, 1.5
                 ];
                 let mut mesh = mesh::Mesh::create(positions).unwrap();
                 mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();

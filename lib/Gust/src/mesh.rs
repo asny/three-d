@@ -24,17 +24,17 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn create(positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
+    pub fn create(positions: Vec<f32>) -> Result<Mesh, Error>
     {
-        let no_vertices = positions.len();
+        let no_vertices = positions.len()/3;
         let mut mesh = Mesh { no_vertices, indices: None, attributes: Vec::new() };
         mesh.add_custom_vec3_attribute("position", positions)?;
         Ok(mesh)
     }
 
-    pub fn create_indexed(indices: Vec<u32>, positions: Vec<glm::Vec3>) -> Result<Mesh, Error>
+    pub fn create_indexed(indices: Vec<u32>, positions: Vec<f32>) -> Result<Mesh, Error>
     {
-        let no_vertices = positions.len();
+        let no_vertices = positions.len()/3;
         let mut indices_u16 = Vec::with_capacity(indices.len());
         for i in 0..indices.len() {
             indices_u16.push(indices[i] as u16);
@@ -61,9 +61,9 @@ impl Mesh
         Err(Error::FailedToFindCustomAttribute{message: format!("Failed to find {} attribute", name)})
     }
 
-    pub fn add_custom_vec2_attribute(&mut self, name: &str, data: Vec<glm::Vec2>) -> Result<(), Error>
+    pub fn add_custom_vec2_attribute(&mut self, name: &str, data: Vec<f32>) -> Result<(), Error>
     {
-        if self.no_vertices != data.len() {
+        if self.no_vertices != data.len()/2 {
             return Err(Error::WrongSizeOfAttribute {message: format!("The data for {} does not have the correct size, it should be {}", name, self.no_vertices)})
         }
         let custom_attribute = attribute::Attribute::create_vec2_attribute(name, data)?;
@@ -71,9 +71,9 @@ impl Mesh
         Ok(())
     }
 
-    pub fn add_custom_vec3_attribute(&mut self, name: &str, data: Vec<glm::Vec3>) -> Result<(), Error>
+    pub fn add_custom_vec3_attribute(&mut self, name: &str, data: Vec<f32>) -> Result<(), Error>
     {
-        if self.no_vertices != data.len() {
+        if self.no_vertices != data.len()/3 {
             return Err(Error::WrongSizeOfAttribute {message: format!("The data for {} does not have the correct size, it should be {}", name, self.no_vertices)})
         }
         let custom_attribute = attribute::Attribute::create_vec3_attribute(name, data)?;
