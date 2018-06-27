@@ -30,7 +30,7 @@ pub struct Terrain {
     program: program::Program,
     model: surface::TriangleSurface,
     texture: texture::Texture2D,
-    mesh: mesh::Mesh
+    mesh: Mesh
 }
 
 impl traits::Reflecting for Terrain
@@ -159,7 +159,7 @@ impl Heightmap
                     let mut n = glm::vec3(self.get_height(r-1,c) - self.get_height(r+1,c),
                                           2.0 * VERTEX_DISTANCE,
                                           self.get_height(r,c-1) - self.get_height(r,c+1));
-                    glm::normalize(n);
+                    n = glm::normalize(n);
 
                     normals.push(n.x);
                     normals.push(n.y);

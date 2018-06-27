@@ -16,5 +16,5 @@ void main()
         discard;
     position = vec4(pos, 1.0);
     color = c;
-    normal = vec4(normalize(nor), 1.0);
+    normal = vec4(nor, 1.0);
 }
