@@ -29,7 +29,8 @@ const PATCH_SIZE: f32 = SIZE * PATCH_SIDE_LENGTH as f32;
 pub struct Terrain {
     program: program::Program,
     model: surface::TriangleSurface,
-    texture: texture::Texture2D
+    texture: texture::Texture2D,
+    mesh: mesh::Mesh
 }
 
 impl traits::Reflecting for Terrain
@@ -70,7 +71,7 @@ impl Terrain
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
-        Ok(Rc::new(Terrain { program, model, texture }))
+        Ok(Rc::new(Terrain { program, model, texture, mesh }))
     }
 }
 
@@ -226,11 +227,6 @@ impl Heightmap
         height += (1. - tx) * tz * self.get_height(r,c+1);
         height += tx * tz * self.get_height(r+1,c+1);
         return height;
-    }
-
-    pub fn get_origo(&self) -> glm::Vec3
-    {
-        return self.origo;
     }
 }
 
