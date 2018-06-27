@@ -176,7 +176,7 @@ impl Program
         Ok(location)
     }
 
-    pub fn add_attributes(&self, attributes: &Vec<attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
     {
         self.set_used();
         let mut stride = 0;
@@ -263,7 +263,7 @@ impl Drop for Program {
     }
 }
 
-fn from(attributes: &Vec<attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
+fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
 {
     let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
     unsafe { data.set_len(stride * no_vertices); }

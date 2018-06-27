@@ -1,5 +1,4 @@
 use gl;
-use glm;
 use mesh;
 use core::surface;
 use core::program;

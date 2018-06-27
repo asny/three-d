@@ -7,7 +7,8 @@ use core::program;
 #[derive(Debug)]
 pub enum Error {
     Buffer(buffer::Error),
-    Program(program::Error)
+    Program(program::Error),
+    Mesh(mesh::Error)
 }
 
 impl From<program::Error> for Error {
@@ -22,6 +23,12 @@ impl From<buffer::Error> for Error {
     }
 }
 
+impl From<mesh::Error> for Error {
+    fn from(other: mesh::Error) -> Self {
+        Error::Mesh(other)
+    }
+}
+
 pub struct TriangleSurface {
     gl: gl::Gl,
     id: gl::types::GLuint,
@@ -32,6 +39,11 @@ pub struct TriangleSurface {
 impl TriangleSurface
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
+    {
+        TriangleSurface::create_with_specific_attributes(gl, mesh, program, mesh.get_attribute_names())
+    }
+
+    pub fn create_with_specific_attributes(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program, attribute_names: Vec<&str>) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
@@ -51,9 +63,19 @@ impl TriangleSurface
                 model.bind();
             }
         }
+        model.add_attributes(attribute_names, mesh, program)?;
 
-        program.add_attributes(&mesh.attributes)?;
         Ok(model)
+    }
+
+    fn add_attributes(&self, attribute_names: Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<(), Error>
+    {
+        let mut attributes = Vec::new();
+        for name in attribute_names {
+            attributes.push(mesh.get(name)?);
+        }
+        program.add_attributes(&attributes)?;
+        Ok(())
     }
 
     pub fn update_attributes(&self) -> Result<(), Error>

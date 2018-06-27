@@ -18,7 +18,7 @@ impl From<attribute::Error> for Error {
 pub struct Mesh {
     pub no_vertices: usize,
     pub indices: Option<Vec<u16>>,
-    pub attributes: Vec<attribute::Attribute>
+    attributes: Vec<attribute::Attribute>
 }
 
 
@@ -43,6 +43,15 @@ impl Mesh
         let mut mesh = Mesh { no_vertices, indices: Some(indices_u16), attributes: Vec::new() };
         mesh.add_custom_vec3_attribute("position", positions)?;
         Ok(mesh)
+    }
+
+    pub fn get_attribute_names(&self) -> Vec<&str>
+    {
+        let mut names = Vec::new();
+        for attribute in self.attributes.iter() {
+            names.push(attribute.name());
+        }
+        names
     }
 
     pub fn positions(&self) -> Result<&attribute::Attribute, Error>
