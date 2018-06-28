@@ -95,11 +95,13 @@ impl Heightmap
     {
         self.origo = _origo;
 
-        self.set_height(SIZE, 0, 0, vec![]);
-        self.set_height(SIZE, 0, VERTICES_PER_SIDE, vec![]);
-        self.set_height(SIZE, VERTICES_PER_SIDE, 0, vec![]);
-        self.set_height(SIZE, VERTICES_PER_SIDE, VERTICES_PER_SIDE, vec![]);
-        self.subdivide(0, 0, VERTICES_PER_SIDE);
+        for r in 0..VERTICES_PER_SIDE+1
+        {
+            for c in 0..VERTICES_PER_SIDE+1
+            {
+                self.set_height(r,c);
+            }
+        }
     }
 
     pub fn indices() -> Vec<u32>
@@ -170,7 +172,7 @@ impl Heightmap
         normals
     }
 
-    fn set_height(&mut self, scale: f32, r: usize, c: usize, neighbour_heights: Vec<f32>)
+    fn set_height(&mut self, r: usize, c: usize)
     {
         let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
         let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
@@ -185,32 +187,6 @@ impl Heightmap
     fn get_height(&self, r: usize, c: usize) -> f32
     {
         self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
-    }
-
-    fn subdivide(&mut self, origo_r: usize, origo_c: usize, size: usize)
-    {
-        let half_size = size/2;
-        if half_size >= 1
-        {
-            let scale = size as f32 * VERTEX_DISTANCE;
-
-            let mut neighbour_heights = vec![self.get_height(origo_r,origo_c), self.get_height(origo_r + size,origo_c)];
-            self.set_height(scale, origo_r + half_size, origo_c, neighbour_heights);
-            neighbour_heights = vec![self.get_height(origo_r,origo_c), self.get_height(origo_r,origo_c + size)];
-            self.set_height(scale, origo_r, origo_c + half_size, neighbour_heights);
-            neighbour_heights = vec![self.get_height(origo_r + size,origo_c + size), self.get_height(origo_r,origo_c + size)];
-            self.set_height(scale, origo_r + half_size, origo_c + size, neighbour_heights);
-            neighbour_heights = vec![self.get_height(origo_r + size,origo_c + size), self.get_height(origo_r + size,origo_c)];
-            self.set_height(scale, origo_r + size, origo_c + half_size, neighbour_heights);
-            neighbour_heights = vec![self.get_height(origo_r + half_size,origo_c), self.get_height(origo_r,origo_c + half_size),
-                            self.get_height(origo_r + half_size,origo_c + size), self.get_height(origo_r + size,origo_c + half_size)];
-            self.set_height(scale, origo_r + half_size, origo_c + half_size, neighbour_heights);
-
-            self.subdivide(origo_r, origo_c, half_size);
-            self.subdivide(origo_r + half_size, origo_c, half_size);
-            self.subdivide(origo_r, origo_c + half_size, half_size);
-            self.subdivide(origo_r + half_size, origo_c + half_size, half_size);
-        }
     }
 
     pub fn get_height_at(&self, position: glm::Vec3) -> f32
@@ -229,17 +205,4 @@ impl Heightmap
         height += tx * tz * self.get_height(r+1,c+1);
         return height;
     }
-}
-
-fn average(heights: &Vec<f32>) -> f32
-{
-    if heights.len() == 0
-    {
-        return 0.0;
-    }
-    let mut sum = 0.0;
-    for height in heights {
-        sum += height;
-    }
-    return sum / heights.len() as f32;
 }
