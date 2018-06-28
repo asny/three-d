@@ -16,7 +16,7 @@ use dust::core::state;
 use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 
-const SIZE: f32 = 16.0;
+const SIZE: f32 = 32.0;
 const VERTICES_PER_UNIT: usize = 8;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
@@ -172,13 +172,14 @@ impl Heightmap
 
     fn set_height(&mut self, scale: f32, r: usize, c: usize, neighbour_heights: Vec<f32>)
     {
-        let mut pos = glm::vec3(self.origo.x + r as f32 * VERTEX_DISTANCE, 0.0,
-                            self.origo.z + c as f32 * VERTEX_DISTANCE);
-        let noise_val = self.noise_generator.get([pos.x as f64, pos.z as f64]);
-        pos.y = average(&neighbour_heights) + 0.15 * scale * noise_val as f32;
-        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = pos.x;
-        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = pos.y;
-        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = pos.z;
+        let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
+        let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
+        let y = (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
+                0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+                2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
+        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
+        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
+        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
     }
 
     fn get_height(&self, r: usize, c: usize) -> f32
