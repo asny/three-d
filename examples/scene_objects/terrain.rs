@@ -21,15 +21,12 @@ const VERTICES_PER_UNIT: usize = 8;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
-const PATCH_RADIUS: usize = 1;
-const PATCH_SIDE_LENGTH: usize = 2 * PATCH_RADIUS + 1;
-const PATCH_VERTICES_PER_SIDE: usize = VERTICES_PER_SIDE * PATCH_SIDE_LENGTH;
-const PATCH_SIZE: f32 = SIZE * PATCH_SIDE_LENGTH as f32;
-
 pub struct Terrain {
     program: program::Program,
     model: surface::TriangleSurface,
     texture: texture::Texture2D,
+    noise_generator: Box<NoiseFn<Point2<f64>>>,
+    origo: glm::Vec3,
     mesh: Mesh
 }
 
@@ -56,12 +53,14 @@ impl Terrain
 {
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let mut heightmap = Heightmap::create();
-        heightmap.initialize(glm::vec3(-SIZE/2.0, 0.0, -SIZE/2.0));
+        let origo =glm::vec3(-SIZE/2.0, 0.0, -SIZE/2.0);
+        let noise_generator = Box::new(SuperSimplex::new());
+        let positions = positions(&origo, &noise_generator);
+        let normals = normals(&positions);
 
-        let mut mesh = gust::mesh::Mesh::create_indexed(Heightmap::indices(), heightmap.positions().clone())?;
-        mesh.add_custom_vec3_attribute("normal", heightmap.normals())?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", Heightmap::uv_coordinates())?;
+        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), positions)?;
+        mesh.add_custom_vec3_attribute("normal", normals)?;
+        mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates())?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
@@ -71,125 +70,10 @@ impl Terrain
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
-        Ok(Rc::new(Terrain { program, model, texture, mesh }))
-    }
-}
-
-struct Heightmap
-{
-    origo: glm::Vec3,
-    positions: Vec<f32>,
-    noise_generator: Box<NoiseFn<Point2<f64>>>
-}
-
-impl Heightmap
-{
-    pub fn create() -> Heightmap
-    {
-        let positions = vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)];
-        let noise_generator = Box::new(SuperSimplex::new());
-        Heightmap {origo: glm::vec3(0.0,0.0,0.0), positions, noise_generator}
+        Ok(Rc::new(Terrain { program, model, texture, origo, noise_generator, mesh}))
     }
 
-    pub fn initialize(&mut self, _origo: glm::Vec3)
-    {
-        self.origo = _origo;
-
-        for r in 0..VERTICES_PER_SIDE+1
-        {
-            for c in 0..VERTICES_PER_SIDE+1
-            {
-                self.set_height(r,c);
-            }
-        }
-    }
-
-    pub fn indices() -> Vec<u32>
-    {
-        let mut indices: Vec<u32> = Vec::new();
-        let stride = VERTICES_PER_SIDE as u32 + 1;
-        for r in 0..stride-1
-        {
-            for c in 0..stride-1
-            {
-                indices.push(r + c * stride);
-                indices.push(r + 1 + c * stride);
-                indices.push(r + (c + 1) * stride);
-                indices.push(r + (c + 1) * stride);
-                indices.push(r + 1 + c * stride);
-                indices.push(r + 1 + (c + 1) * stride);
-
-            }
-        }
-        indices
-    }
-
-    pub fn positions(&self) -> &Vec<f32>
-    {
-        &self.positions
-    }
-
-    pub fn uv_coordinates() -> Vec<f32>
-    {
-        let mut uvs = Vec::new();
-        let scale = 1.0 / VERTICES_PER_SIDE as f32;
-        for r in 0..VERTICES_PER_SIDE+1
-        {
-            for c in 0..VERTICES_PER_SIDE+1
-            {
-                uvs.push(r as f32 * scale);
-                uvs.push(c as f32 * scale);
-            }
-        }
-        uvs
-    }
-
-    pub fn normals(&self) -> Vec<f32>
-    {
-        let mut normals = Vec::new();
-        for r in 0..VERTICES_PER_SIDE+1
-        {
-            for c in 0..VERTICES_PER_SIDE+1
-            {
-                if c == 0 || r == 0 || c == VERTICES_PER_SIDE || r == VERTICES_PER_SIDE
-                {
-                    normals.push(0.0);
-                    normals.push(1.0);
-                    normals.push(0.0);
-                }
-                else {
-                    let mut n = glm::vec3(self.get_height(r-1,c) - self.get_height(r+1,c),
-                                          2.0 * VERTEX_DISTANCE,
-                                          self.get_height(r,c-1) - self.get_height(r,c+1));
-                    n = glm::normalize(n);
-
-                    normals.push(n.x);
-                    normals.push(n.y);
-                    normals.push(n.z);
-                }
-            }
-        }
-        normals
-    }
-
-    fn set_height(&mut self, r: usize, c: usize)
-    {
-        let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
-        let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
-        let y = (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-                0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-                2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
-        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
-        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
-        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
-    }
-
-    fn get_height(&self, r: usize, c: usize) -> f32
-    {
-        self.positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
-    }
-
-    pub fn get_height_at(&self, position: glm::Vec3) -> f32
+    /*pub fn get_height_at(&self, position: glm::Vec3) -> f32
     {
         let vec = position - self.origo;
 
@@ -204,5 +88,94 @@ impl Heightmap
         height += (1. - tx) * tz * self.get_height(r,c+1);
         height += tx * tz * self.get_height(r+1,c+1);
         return height;
+    }*/
+}
+
+fn indices() -> Vec<u32>
+{
+    let mut indices: Vec<u32> = Vec::new();
+    let stride = VERTICES_PER_SIDE as u32 + 1;
+    for r in 0..stride-1
+    {
+        for c in 0..stride-1
+        {
+            indices.push(r + c * stride);
+            indices.push(r + 1 + c * stride);
+            indices.push(r + (c + 1) * stride);
+            indices.push(r + (c + 1) * stride);
+            indices.push(r + 1 + c * stride);
+            indices.push(r + 1 + (c + 1) * stride);
+
+        }
     }
+    indices
+}
+
+fn positions(origo: &glm::Vec3, noise_generator: &Box<SuperSimplex>) -> Vec<f32>
+{
+    let mut positions = vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)];
+
+    for r in 0..VERTICES_PER_SIDE+1
+    {
+        for c in 0..VERTICES_PER_SIDE+1
+        {
+            let x = origo.x + r as f32 * VERTEX_DISTANCE;
+            let z = origo.z + c as f32 * VERTEX_DISTANCE;
+            let y = (noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
+                    0.25 * noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+                    2.0 * noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
+            positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
+            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
+            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
+        }
+    }
+    positions
+}
+
+fn uv_coordinates() -> Vec<f32>
+{
+    let mut uvs = Vec::new();
+    let scale = 1.0 / VERTICES_PER_SIDE as f32;
+    for r in 0..VERTICES_PER_SIDE+1
+    {
+        for c in 0..VERTICES_PER_SIDE+1
+        {
+            uvs.push(r as f32 * scale);
+            uvs.push(c as f32 * scale);
+        }
+    }
+    uvs
+}
+
+fn normals(positions: &Vec<f32>) -> Vec<f32>
+{
+    let mut normals = Vec::new();
+    for r in 0..VERTICES_PER_SIDE+1
+    {
+        for c in 0..VERTICES_PER_SIDE+1
+        {
+            if c == 0 || r == 0 || c == VERTICES_PER_SIDE || r == VERTICES_PER_SIDE
+            {
+                normals.push(0.0);
+                normals.push(1.0);
+                normals.push(0.0);
+            }
+            else {
+                let mut n = glm::vec3(get_height(positions,r-1,c) - get_height(positions,r+1,c),
+                                      2.0 * VERTEX_DISTANCE,
+                                      get_height(positions,r,c-1) - get_height(positions,r,c+1));
+                n = glm::normalize(n);
+
+                normals.push(n.x);
+                normals.push(n.y);
+                normals.push(n.z);
+            }
+        }
+    }
+    normals
+}
+
+fn get_height(positions: &Vec<f32>, r: usize, c: usize) -> f32
+{
+    positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
 }
