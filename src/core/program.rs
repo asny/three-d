@@ -183,19 +183,19 @@ impl Program
         // Create buffer
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
 
+        // Add data to the buffer
+        self.update_attributes(&mut buffer, attributes);
+
+        // Link the buffer data to the vertex attributes in the shader
         let mut stride = 0;
         for attribute in attributes
         {
             stride += attribute.no_components();
         }
 
-        // Add data to the buffer
-        self.update_attributes(&mut buffer, attributes);
-
-        // Link the buffer data to the vertex attributes in the shader
         let mut offset: usize = 0;
         for attribute in attributes {
-            self.setup_attribute(attribute.name(), attribute.no_components(),stride, offset)?;
+            self.setup_attribute(attribute.name(), attribute.no_components(), stride, offset)?;
             offset = offset + attribute.no_components();
         }
 
@@ -205,16 +205,7 @@ impl Program
     pub fn update_attributes(&self, buffer: &mut buffer::VertexBuffer, attributes: &Vec<&attribute::Attribute>)
     {
         self.set_used();
-        let mut stride = 0;
-        let mut no_vertices = 0;
-        for attribute in attributes
-        {
-            stride += attribute.no_components();
-            no_vertices = attribute.data().len() / attribute.no_components();
-        }
-
-        // Add data to the buffer
-        let data = from(attributes, no_vertices, stride);
+        let data = from(attributes);
         buffer.fill_with(&data);
     }
 
@@ -277,8 +268,16 @@ impl Drop for Program {
     }
 }
 
-fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Vec<f32>
+fn from(attributes: &Vec<&attribute::Attribute>) -> Vec<f32>
 {
+    let mut stride = 0;
+    let mut no_vertices = 0;
+    for attribute in attributes
+    {
+        stride += attribute.no_components();
+        no_vertices = attribute.data().len() / attribute.no_components();
+    }
+
     let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
     unsafe { data.set_len(stride * no_vertices); }
     let mut offset = 0;
