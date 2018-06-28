@@ -179,20 +179,18 @@ impl Program
     pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
     {
         self.set_used();
+
+        // Create buffer
+        let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
+
         let mut stride = 0;
-        let mut no_vertices = 0;
         for attribute in attributes
         {
             stride += attribute.no_components();
-            no_vertices = attribute.data().len() / attribute.no_components();
         }
 
-        // Create and bind buffer
-        let buffer = buffer::VertexBuffer::create(&self.gl)?;
-
         // Add data to the buffer
-        let data = from(attributes, no_vertices, stride)?;
-        buffer.fill_with(&data);
+        self.update_attributes(&mut buffer, attributes);
 
         // Link the buffer data to the vertex attributes in the shader
         let mut offset: usize = 0;
@@ -202,6 +200,22 @@ impl Program
         }
 
         Ok(buffer)
+    }
+
+    pub fn update_attributes(&self, buffer: &mut buffer::VertexBuffer, attributes: &Vec<&attribute::Attribute>)
+    {
+        self.set_used();
+        let mut stride = 0;
+        let mut no_vertices = 0;
+        for attribute in attributes
+        {
+            stride += attribute.no_components();
+            no_vertices = attribute.data().len() / attribute.no_components();
+        }
+
+        // Add data to the buffer
+        let data = from(attributes, no_vertices, stride);
+        buffer.fill_with(&data);
     }
 
     fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize) -> Result<(), Error>
@@ -263,7 +277,7 @@ impl Drop for Program {
     }
 }
 
-fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
+fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usize) -> Vec<f32>
 {
     let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
     unsafe { data.set_len(stride * no_vertices); }
@@ -279,7 +293,7 @@ fn from(attributes: &Vec<&attribute::Attribute>, no_vertices: usize, stride: usi
         }
         offset = offset + attribute.no_components();
     }
-    Ok(data)
+    data
 }
 
 fn create_whitespace_cstring_with_len(len: usize) -> CString {

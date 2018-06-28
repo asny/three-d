@@ -72,6 +72,7 @@ impl Terrain
 
         let mut terrain = Terrain { program, model, texture, origo, noise_generator, mesh};
         terrain.update_heights();
+        terrain.model.update_attributes(terrain.mesh.get_attribute_names(), &terrain.mesh, &terrain.program)?;
         Ok(Rc::new(terrain))
     }
 
@@ -79,6 +80,8 @@ impl Terrain
     {
         self.origo = glm::vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
         self.update_heights();
+        //TODO: Update normals
+        self.model.update_attributes(self.mesh.get_attribute_names(), &self.mesh, &self.program).unwrap();
     }
 
     fn update_heights(&mut self)
@@ -99,7 +102,6 @@ impl Terrain
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
             }
         }
-        //TODO: Update normals
     }
 
     /*pub fn get_height_at(&self, position: glm::Vec3) -> f32

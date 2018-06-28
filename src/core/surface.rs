@@ -32,6 +32,7 @@ impl From<mesh::Error> for Error {
 pub struct TriangleSurface {
     gl: gl::Gl,
     id: gl::types::GLuint,
+    buffer: Vec<buffer::VertexBuffer>,
     count: usize,
     indexed: bool
 }
@@ -49,17 +50,17 @@ impl TriangleSurface
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
-        let model;
+        let mut model;
         match mesh.indices {
             Some(ref indices) => {
-                model = TriangleSurface { gl: gl.clone(), id, indexed: true, count: indices.len() };
+                model = TriangleSurface { gl: gl.clone(), id, buffer: Vec::new(), indexed: true, count: indices.len() };
                 model.bind();
 
                 let index_buffer = buffer::ElementBuffer::create(&gl)?;
                 index_buffer.fill_with(&indices);
             },
             None => {
-                model = TriangleSurface { gl: gl.clone(), id, indexed: false, count: mesh.no_vertices };
+                model = TriangleSurface { gl: gl.clone(), id, buffer: Vec::new(), indexed: false, count: mesh.no_vertices };
                 model.bind();
             }
         }
@@ -68,19 +69,27 @@ impl TriangleSurface
         Ok(model)
     }
 
-    fn add_attributes(&self, attribute_names: Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<(), Error>
+    fn add_attributes(&mut self, attribute_names: Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<(), Error>
     {
         let mut attributes = Vec::new();
         for name in attribute_names {
             attributes.push(mesh.get(name)?);
         }
-        program.add_attributes(&attributes)?;
+        self.buffer.push(program.add_attributes(&attributes)?);
         Ok(())
     }
 
-    pub fn update_attributes(&self) -> Result<(), Error>
+    pub fn update_attributes(&mut self, attribute_names: Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<(), Error>
     {
-        // TODO: Update the attributes in the relevant vertex buffers
+        let mut attributes = Vec::new();
+        for name in attribute_names {
+            attributes.push(mesh.get(name)?);
+        }
+        match self.buffer.first_mut() {
+            Some(mut buffer) => {program.update_attributes(&mut buffer, &attributes)},
+            None => {}
+        }
+
         Ok(())
     }
 
