@@ -55,7 +55,7 @@ impl Terrain
     {
         let origo =glm::vec3(-SIZE/2.0, 0.0, -SIZE/2.0);
         let noise_generator = Box::new(SuperSimplex::new());
-        let positions = positions(&origo, &noise_generator);
+        let positions = positions(&origo);
         let normals = normals(&positions);
 
         let mut mesh = gust::mesh::Mesh::create_indexed(indices(), positions)?;
@@ -70,7 +70,36 @@ impl Terrain
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
-        Ok(Rc::new(Terrain { program, model, texture, origo, noise_generator, mesh}))
+        let mut terrain = Terrain { program, model, texture, origo, noise_generator, mesh};
+        terrain.update_heights();
+        Ok(Rc::new(terrain))
+    }
+
+    pub fn set_center(&mut self, center: &glm::Vec3)
+    {
+        self.origo = glm::vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
+        self.update_heights();
+    }
+
+    fn update_heights(&mut self)
+    {
+        let position_attribute = self.mesh.get_mut("position").unwrap();
+        let positions = position_attribute.data_mut();
+        for r in 0..VERTICES_PER_SIDE+1
+        {
+            for c in 0..VERTICES_PER_SIDE+1
+            {
+                let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
+                let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
+                let y = (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
+                        0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+                        2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
+                positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
+                positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
+                positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
+            }
+        }
+        //TODO: Update normals
     }
 
     /*pub fn get_height_at(&self, position: glm::Vec3) -> f32
@@ -111,7 +140,7 @@ fn indices() -> Vec<u32>
     indices
 }
 
-fn positions(origo: &glm::Vec3, noise_generator: &Box<SuperSimplex>) -> Vec<f32>
+fn positions(origo: &glm::Vec3) -> Vec<f32>
 {
     let mut positions = vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)];
 
@@ -119,14 +148,9 @@ fn positions(origo: &glm::Vec3, noise_generator: &Box<SuperSimplex>) -> Vec<f32>
     {
         for c in 0..VERTICES_PER_SIDE+1
         {
-            let x = origo.x + r as f32 * VERTEX_DISTANCE;
-            let z = origo.z + c as f32 * VERTEX_DISTANCE;
-            let y = (noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-                    0.25 * noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-                    2.0 * noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
-            positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
-            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
-            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
+            positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = origo.x + r as f32 * VERTEX_DISTANCE;
+            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = 0.0;
+            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = origo.z + c as f32 * VERTEX_DISTANCE;
         }
     }
     positions

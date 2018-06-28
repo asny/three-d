@@ -70,6 +70,17 @@ impl Mesh
         Err(Error::FailedToFindCustomAttribute{message: format!("Failed to find {} attribute", name)})
     }
 
+    pub fn get_mut(&mut self, name: &str) -> Result<&mut attribute::Attribute, Error>
+    {
+        for attribute in self.attributes.iter_mut() {
+            if attribute.name() == name
+            {
+                return Ok(attribute)
+            }
+        }
+        Err(Error::FailedToFindCustomAttribute{message: format!("Failed to find {} attribute", name)})
+    }
+
     pub fn add_custom_vec2_attribute(&mut self, name: &str, data: Vec<f32>) -> Result<(), Error>
     {
         if self.no_vertices != data.len()/2 {

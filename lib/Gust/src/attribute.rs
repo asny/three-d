@@ -35,6 +35,11 @@ impl Attribute
         &self.data
     }
 
+    pub fn data_mut(&mut self) -> &mut Vec<f32>
+    {
+        &mut self.data
+    }
+
     pub fn no_components(&self) -> usize
     {
         self.no_components
