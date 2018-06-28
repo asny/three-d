@@ -10,6 +10,7 @@ use std::rc::Rc;
 use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::surface;
+use dust::core::buffer;
 use glm;
 use dust::camera;
 use dust::core::state;
@@ -26,6 +27,7 @@ pub struct Terrain {
     model: surface::TriangleSurface,
     texture: texture::Texture2D,
     noise_generator: Box<NoiseFn<Point2<f64>>>,
+    buffer: buffer::VertexBuffer,
     origo: glm::Vec3,
     mesh: Mesh
 }
@@ -53,9 +55,8 @@ impl Terrain
 {
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let origo =glm::vec3(-SIZE/2.0, 0.0, -SIZE/2.0);
         let noise_generator = Box::new(SuperSimplex::new());
-        let positions = positions(&origo);
+        let positions = positions();
         let normals = normals(&positions);
 
         let mut mesh = gust::mesh::Mesh::create_indexed(indices(), positions)?;
@@ -63,16 +64,16 @@ impl Terrain
         mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates())?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
-        let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
+        let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh, &program)?;
+        let mut buffer = model.add_attributes(mesh.get_attribute_names(), &mesh, &program)?;
 
         let img = image::open("examples/assets/textures/grass.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
-        let mut terrain = Terrain { program, model, texture, origo, noise_generator, mesh};
-        terrain.update_heights();
-        terrain.model.update_attributes(terrain.mesh.get_attribute_names(), &terrain.mesh, &terrain.program)?;
+        let mut terrain = Terrain { program, model, texture, buffer, origo: glm::vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        terrain.set_center(&glm::vec3(0.0, 0.0, 0.0));
         Ok(Rc::new(terrain))
     }
 
@@ -81,7 +82,12 @@ impl Terrain
         self.origo = glm::vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
         self.update_heights();
         //TODO: Update normals
-        self.model.update_attributes(self.mesh.get_attribute_names(), &self.mesh, &self.program).unwrap();
+
+        let mut attributes = Vec::new();
+        for name in self.mesh.get_attribute_names() {
+            attributes.push(self.mesh.get(name).unwrap());
+        }
+        self.program.update_attributes(&mut self.buffer, &attributes);
     }
 
     fn update_heights(&mut self)
@@ -142,20 +148,9 @@ fn indices() -> Vec<u32>
     indices
 }
 
-fn positions(origo: &glm::Vec3) -> Vec<f32>
+fn positions() -> Vec<f32>
 {
-    let mut positions = vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)];
-
-    for r in 0..VERTICES_PER_SIDE+1
-    {
-        for c in 0..VERTICES_PER_SIDE+1
-        {
-            positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = origo.x + r as f32 * VERTEX_DISTANCE;
-            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = 0.0;
-            positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = origo.z + c as f32 * VERTEX_DISTANCE;
-        }
-    }
-    positions
+    vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
 }
 
 fn uv_coordinates() -> Vec<f32>

@@ -41,10 +41,12 @@ impl TriangleSurface
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
-        TriangleSurface::create_with_specific_attributes(gl, mesh, program, mesh.get_attribute_names())
+        let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh, program)?;
+        surface.add_attributes(mesh.get_attribute_names(), mesh, program)?;
+        Ok(surface)
     }
 
-    pub fn create_with_specific_attributes(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program, attribute_names: Vec<&str>) -> Result<TriangleSurface, Error>
+    pub fn create_without_adding_attributes(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
@@ -64,33 +66,18 @@ impl TriangleSurface
                 model.bind();
             }
         }
-        model.add_attributes(attribute_names, mesh, program)?;
 
         Ok(model)
     }
 
-    fn add_attributes(&mut self, attribute_names: Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<(), Error>
+    pub fn add_attributes(&mut self, attribute_names: Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<buffer::VertexBuffer, Error>
     {
         let mut attributes = Vec::new();
         for name in attribute_names {
             attributes.push(mesh.get(name)?);
         }
-        self.buffer.push(program.add_attributes(&attributes)?);
-        Ok(())
-    }
-
-    pub fn update_attributes(&mut self, attribute_names: Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<(), Error>
-    {
-        let mut attributes = Vec::new();
-        for name in attribute_names {
-            attributes.push(mesh.get(name)?);
-        }
-        match self.buffer.first_mut() {
-            Some(mut buffer) => {program.update_attributes(&mut buffer, &attributes)},
-            None => {}
-        }
-
-        Ok(())
+        let buffer = program.add_attributes(&attributes)?;
+        Ok(buffer)
     }
 
     pub fn render(&self) -> Result<(), Error>
