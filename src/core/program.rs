@@ -184,7 +184,7 @@ impl Program
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        self.update_attributes(&mut buffer, attributes);
+        buffer.fill_from(attributes);
 
         // Link the buffer data to the vertex attributes in the shader
         let mut stride = 0;
@@ -200,13 +200,6 @@ impl Program
         }
 
         Ok(buffer)
-    }
-
-    pub fn update_attributes(&self, buffer: &mut buffer::VertexBuffer, attributes: &Vec<&attribute::Attribute>)
-    {
-        self.set_used();
-        let data = from(attributes);
-        buffer.fill_with(&data);
     }
 
     fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize) -> Result<(), Error>
@@ -266,33 +259,6 @@ impl Drop for Program {
             self.gl.DeleteProgram(self.id);
         }
     }
-}
-
-fn from(attributes: &Vec<&attribute::Attribute>) -> Vec<f32>
-{
-    let mut stride = 0;
-    let mut no_vertices = 0;
-    for attribute in attributes
-    {
-        stride += attribute.no_components();
-        no_vertices = attribute.data().len() / attribute.no_components();
-    }
-
-    let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
-    unsafe { data.set_len(stride * no_vertices); }
-    let mut offset = 0;
-    for attribute in attributes.iter()
-    {
-        for vertex_id in 0..no_vertices
-        {
-            for d in 0..attribute.no_components()
-            {
-                data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.no_components() + d];
-            }
-        }
-        offset = offset + attribute.no_components();
-    }
-    data
 }
 
 fn create_whitespace_cstring_with_len(len: usize) -> CString {

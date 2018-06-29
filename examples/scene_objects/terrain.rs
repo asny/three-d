@@ -86,7 +86,7 @@ impl Terrain
         for name in vec!["position", "normal"] {
             attributes.push(self.mesh.get(name).unwrap());
         }
-        self.program.update_attributes(&mut self.buffer, &attributes);
+        self.buffer.fill_from(&attributes);
     }
 
     fn update_heights(&mut self) -> &Vec<f32>

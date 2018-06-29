@@ -1,5 +1,6 @@
 use gl;
 use std;
+use gust::attribute;
 
 #[derive(Debug)]
 pub enum Error {
@@ -22,6 +23,34 @@ impl VertexBuffer
         let buffer = VertexBuffer{gl: gl.clone(), id };
         bind(&buffer.gl, buffer.id, gl::ARRAY_BUFFER);
         Ok(buffer)
+    }
+
+    pub fn fill_from(&self, attributes: &Vec<&attribute::Attribute>)
+    {
+        let mut stride = 0;
+        let mut no_vertices = 0;
+        for attribute in attributes
+        {
+            stride += attribute.no_components();
+            no_vertices = attribute.data().len() / attribute.no_components();
+        }
+
+        let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
+        unsafe { data.set_len(stride * no_vertices); }
+        let mut offset = 0;
+        for attribute in attributes.iter()
+        {
+            for vertex_id in 0..no_vertices
+            {
+                for d in 0..attribute.no_components()
+                {
+                    data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.no_components() + d];
+                }
+            }
+            offset = offset + attribute.no_components();
+        }
+
+        self.fill_with(&data);
     }
 
     pub fn fill_with(&self, data: &Vec<f32>)
