@@ -65,7 +65,7 @@ impl Terrain
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh, &program)?;
-        let mut buffer = model.add_attributes(mesh.get_attribute_names(), &mesh, &program)?;
+        let buffer = model.add_attributes(mesh.get_attribute_names(), &mesh, &program)?;
 
         let img = image::open("examples/assets/textures/grass.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;
@@ -81,7 +81,7 @@ impl Terrain
     {
         self.origo = glm::vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
         self.update_heights();
-        //TODO: Update normals
+        self.update_normals();
 
         let mut attributes = Vec::new();
         for name in self.mesh.get_attribute_names() {
@@ -90,7 +90,7 @@ impl Terrain
         self.program.update_attributes(&mut self.buffer, &attributes);
     }
 
-    fn update_heights(&mut self)
+    fn update_heights(&mut self) -> &Vec<f32>
     {
         let position_attribute = self.mesh.get_mut("position").unwrap();
         let positions = position_attribute.data_mut();
@@ -106,6 +106,30 @@ impl Terrain
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
+            }
+        }
+        positions
+    }
+
+    fn update_normals(&mut self)
+    {
+        let normal_attribute = self.mesh.get_mut("normal").unwrap();
+        let normals = normal_attribute.data_mut();
+        for r in 0..VERTICES_PER_SIDE+1
+        {
+            for c in 0..VERTICES_PER_SIDE+1
+            {
+                let mut n = glm::vec3(0.0, 1.0, 0.0);
+                /*if c != 0 && r != 0 && c != VERTICES_PER_SIDE && r != VERTICES_PER_SIDE
+                {
+                    n = glm::vec3(get_height(positions,r-1,c) - get_height(positions,r+1,c),
+                                          2.0 * VERTEX_DISTANCE,
+                                          get_height(positions,r,c-1) - get_height(positions,r,c+1));
+                    n = glm::normalize(n);
+                }*/
+                normals[3 * (r*(VERTICES_PER_SIDE+1) + c)] = n.x;
+                normals[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = n.y;
+                normals[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = n.z;
             }
         }
     }
@@ -168,35 +192,12 @@ fn uv_coordinates() -> Vec<f32>
     uvs
 }
 
-fn normals(positions: &Vec<f32>) -> Vec<f32>
-{
-    let mut normals = Vec::new();
-    for r in 0..VERTICES_PER_SIDE+1
-    {
-        for c in 0..VERTICES_PER_SIDE+1
-        {
-            if c == 0 || r == 0 || c == VERTICES_PER_SIDE || r == VERTICES_PER_SIDE
-            {
-                normals.push(0.0);
-                normals.push(1.0);
-                normals.push(0.0);
-            }
-            else {
-                let mut n = glm::vec3(get_height(positions,r-1,c) - get_height(positions,r+1,c),
-                                      2.0 * VERTEX_DISTANCE,
-                                      get_height(positions,r,c-1) - get_height(positions,r,c+1));
-                n = glm::normalize(n);
-
-                normals.push(n.x);
-                normals.push(n.y);
-                normals.push(n.z);
-            }
-        }
-    }
-    normals
-}
-
 fn get_height(positions: &Vec<f32>, r: usize, c: usize) -> f32
 {
     positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
+}
+
+fn normals(positions: &Vec<f32>) -> Vec<f32>
+{
+    vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
 }
