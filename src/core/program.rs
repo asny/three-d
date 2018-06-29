@@ -4,7 +4,6 @@ use glm;
 
 use gust::attribute;
 use core::shader;
-use core::buffer;
 use core::state;
 
 use std::ffi::{CString};
@@ -12,7 +11,6 @@ use std::ffi::{CString};
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
-    Buffer(buffer::Error),
     FailedToLinkProgram {message: String},
     FailedToCreateCString(std::ffi::NulError),
     FailedToFindPositions {message: String},
@@ -22,12 +20,6 @@ pub enum Error {
 impl From<shader::Error> for Error {
     fn from(other: shader::Error) -> Self {
         Error::Shader(other)
-    }
-}
-
-impl From<buffer::Error> for Error {
-    fn from(other: buffer::Error) -> Self {
-        Error::Buffer(other)
     }
 }
 
@@ -176,15 +168,9 @@ impl Program
         Ok(location)
     }
 
-    pub fn add_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
+    pub fn setup_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<(), Error>
     {
         self.set_used();
-
-        // Create buffer
-        let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
-
-        // Add data to the buffer
-        buffer.fill_from(attributes);
 
         // Link the buffer data to the vertex attributes in the shader
         let mut stride = 0;
@@ -199,7 +185,7 @@ impl Program
             offset = offset + attribute.no_components();
         }
 
-        Ok(buffer)
+        Ok(())
     }
 
     fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize) -> Result<(), Error>

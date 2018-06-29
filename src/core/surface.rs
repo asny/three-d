@@ -76,7 +76,14 @@ impl TriangleSurface
         for name in attribute_names {
             attributes.push(mesh.get(name)?);
         }
-        let buffer = program.add_attributes(&attributes)?;
+
+        // Create buffer
+        let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
+
+        // Add data to the buffer
+        buffer.fill_from(&attributes);
+
+        program.setup_attributes(&attributes)?;
         Ok(buffer)
     }
 
