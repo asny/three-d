@@ -56,11 +56,9 @@ impl Terrain
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
         let noise_generator = Box::new(SuperSimplex::new());
-        let positions = positions();
-        let normals = normals(&positions);
 
-        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), positions)?;
-        mesh.add_custom_vec3_attribute("normal", normals)?;
+        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), positions())?;
+        mesh.add_custom_vec3_attribute("normal", normals())?;
         mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates())?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
@@ -177,6 +175,11 @@ fn positions() -> Vec<f32>
     vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
 }
 
+fn normals() -> Vec<f32>
+{
+    vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
+}
+
 fn uv_coordinates() -> Vec<f32>
 {
     let mut uvs = Vec::new();
@@ -195,9 +198,4 @@ fn uv_coordinates() -> Vec<f32>
 fn get_height(positions: &Vec<f32>, r: usize, c: usize) -> f32
 {
     positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
-}
-
-fn normals(positions: &Vec<f32>) -> Vec<f32>
-{
-    vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
 }
