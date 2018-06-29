@@ -63,7 +63,8 @@ impl Terrain
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh, &program)?;
-        let buffer = model.add_attributes(mesh.get_attribute_names(), &mesh, &program)?;
+        let buffer = model.add_attributes(vec!["position", "normal"], &mesh, &program)?;
+        model.add_attributes(vec!["uv_coordinate"], &mesh, &program)?;
 
         let img = image::open("examples/assets/textures/grass.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;
@@ -82,7 +83,7 @@ impl Terrain
         self.update_normals();
 
         let mut attributes = Vec::new();
-        for name in self.mesh.get_attribute_names() {
+        for name in vec!["position", "normal"] {
             attributes.push(self.mesh.get(name).unwrap());
         }
         self.program.update_attributes(&mut self.buffer, &attributes);
