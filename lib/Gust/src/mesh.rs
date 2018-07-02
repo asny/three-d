@@ -43,15 +43,6 @@ impl Mesh
         Ok(Mesh { no_vertices, indices: Some(indices_u16), positions: position_attribute, attributes: Vec::new() })
     }
 
-    pub fn get_attribute_names(&self) -> Vec<&str>
-    {
-        let mut names = Vec::new();
-        for attribute in self.attributes.iter() {
-            names.push(attribute.name());
-        }
-        names
-    }
-
     pub fn get(&self, name: &str) -> Result<&attribute::Attribute, Error>
     {
         for attribute in self.attributes.iter() {
