@@ -43,7 +43,8 @@ impl TriangleSurface
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
         let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh, program)?;
-        let attributes = mesh.get_vec(&mesh.get_attribute_names())?;
+        let mut attributes = mesh.get_vec(&mesh.get_attribute_names())?;
+        attributes.push(&mesh.positions);
         surface.add_attributes(&attributes, program)?;
         Ok(surface)
     }

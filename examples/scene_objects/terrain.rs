@@ -63,7 +63,7 @@ impl Terrain
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh, &program)?;
-        let buffer = model.add_attributes(&mesh.get_vec(&vec!["position", "normal"])?, &program)?;
+        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?], &program)?;
         model.add_attributes(&mesh.get_vec(&vec!["uv_coordinate"])?, &program)?;
 
         let img = image::open("examples/assets/textures/grass.jpg").unwrap();
@@ -82,17 +82,12 @@ impl Terrain
         self.update_heights();
         self.update_normals();
 
-        let mut attributes = Vec::new();
-        for name in vec!["position", "normal"] {
-            attributes.push(self.mesh.get(name).unwrap());
-        }
-        self.buffer.fill_from(&attributes);
+        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap()]);
     }
 
     fn update_heights(&mut self) -> &Vec<f32>
     {
-        let position_attribute = self.mesh.get_mut("position").unwrap();
-        let positions = position_attribute.data_mut();
+        let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE+1
         {
             for c in 0..VERTICES_PER_SIDE+1

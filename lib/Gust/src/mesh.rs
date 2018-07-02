@@ -18,6 +18,7 @@ impl From<attribute::Error> for Error {
 pub struct Mesh {
     pub no_vertices: usize,
     pub indices: Option<Vec<u16>>,
+    pub positions: attribute::Attribute,
     attributes: Vec<attribute::Attribute>
 }
 
@@ -27,9 +28,8 @@ impl Mesh
     pub fn create(positions: Vec<f32>) -> Result<Mesh, Error>
     {
         let no_vertices = positions.len()/3;
-        let mut mesh = Mesh { no_vertices, indices: None, attributes: Vec::new() };
-        mesh.add_custom_vec3_attribute("position", positions)?;
-        Ok(mesh)
+        let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
+        Ok(Mesh { no_vertices, indices: None, positions: position_attribute, attributes: Vec::new() })
     }
 
     pub fn create_indexed(indices: Vec<u32>, positions: Vec<f32>) -> Result<Mesh, Error>
@@ -39,10 +39,9 @@ impl Mesh
         for i in 0..indices.len() {
             indices_u16.push(indices[i] as u16);
         }
+        let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
 
-        let mut mesh = Mesh { no_vertices, indices: Some(indices_u16), attributes: Vec::new() };
-        mesh.add_custom_vec3_attribute("position", positions)?;
-        Ok(mesh)
+        Ok(Mesh { no_vertices, indices: Some(indices_u16), positions: position_attribute, attributes: Vec::new() })
     }
 
     pub fn get_attribute_names(&self) -> Vec<&str>
@@ -52,11 +51,6 @@ impl Mesh
             names.push(attribute.name());
         }
         names
-    }
-
-    pub fn positions(&self) -> Result<&attribute::Attribute, Error>
-    {
-        self.get("position")
     }
 
     pub fn get(&self, name: &str) -> Result<&attribute::Attribute, Error>
