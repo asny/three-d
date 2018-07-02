@@ -1,5 +1,4 @@
 use mesh;
-use glm;
 
 #[derive(Debug)]
 pub enum Error {

@@ -33,7 +33,6 @@ impl From<mesh::Error> for Error {
 pub struct TriangleSurface {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    buffer: Vec<buffer::VertexBuffer>,
     count: usize,
     indexed: bool
 }
@@ -42,30 +41,30 @@ impl TriangleSurface
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
-        let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh, program)?;
+        let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh)?;
         let mut attributes = mesh.get_vec(&mesh.get_attribute_names())?;
         attributes.push(&mesh.positions);
         surface.add_attributes(&attributes, program)?;
         Ok(surface)
     }
 
-    pub fn create_without_adding_attributes(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
+    pub fn create_without_adding_attributes(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
-        let mut model;
+        let model;
         match mesh.indices {
             Some(ref indices) => {
-                model = TriangleSurface { gl: gl.clone(), id, buffer: Vec::new(), indexed: true, count: indices.len() };
+                model = TriangleSurface { gl: gl.clone(), id, indexed: true, count: indices.len() };
                 model.bind();
 
                 let index_buffer = buffer::ElementBuffer::create(&gl)?;
                 index_buffer.fill_with(&indices);
             },
             None => {
-                model = TriangleSurface { gl: gl.clone(), id, buffer: Vec::new(), indexed: false, count: mesh.no_vertices };
+                model = TriangleSurface { gl: gl.clone(), id, indexed: false, count: mesh.no_vertices };
                 model.bind();
             }
         }

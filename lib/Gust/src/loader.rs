@@ -2,7 +2,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use tobj;
 use mesh;
-use glm;
 
 #[derive(Debug)]
 pub enum Error {
