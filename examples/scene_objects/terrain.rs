@@ -64,7 +64,7 @@ impl Terrain
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
         let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?], &program)?;
-        model.add_attributes(&mesh.get_vec(&vec!["uv_coordinate"])?, &program)?;
+        model.add_attributes(&vec![mesh.get("uv_coordinate")?], &program)?;
 
         let img = image::open("examples/assets/textures/grass.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;

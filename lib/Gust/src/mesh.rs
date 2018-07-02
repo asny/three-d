@@ -63,13 +63,14 @@ impl Mesh
         Err(Error::FailedToFindCustomAttribute{message: format!("Failed to find {} attribute", name)})
     }
 
-    pub fn get_vec(&self, names: &Vec<&str>) -> Result<Vec<&attribute::Attribute>, Error>
+    pub fn get_attributes(&self) -> Vec<&attribute::Attribute>
     {
-        let mut attributes = Vec::new();
-        for name in names {
-            attributes.push(self.get(name)?);
+        let mut att = Vec::new();
+        att.push(&self.positions);
+        for attribute in self.attributes.iter() {
+            att.push(attribute);
         }
-        Ok(attributes)
+        att
     }
 
     pub fn get_mut(&mut self, name: &str) -> Result<&mut attribute::Attribute, Error>
