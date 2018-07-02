@@ -3,6 +3,7 @@ use std;
 use gust::mesh;
 use core::buffer;
 use core::program;
+use gust::attribute;
 
 #[derive(Debug)]
 pub enum Error {
@@ -42,7 +43,8 @@ impl TriangleSurface
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
         let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh, program)?;
-        surface.add_attributes(&mesh.get_attribute_names(), mesh, program)?;
+        let attributes = mesh.get_vec(&mesh.get_attribute_names())?;
+        surface.add_attributes(&attributes, program)?;
         Ok(surface)
     }
 
@@ -70,17 +72,16 @@ impl TriangleSurface
         Ok(model)
     }
 
-    pub fn add_attributes(&mut self, attribute_names: &Vec<&str>, mesh: &mesh::Mesh, program: &program::Program) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&mut self, attributes: &Vec<&attribute::Attribute>, program: &program::Program) -> Result<buffer::VertexBuffer, Error>
     {
         // Create buffer
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        let attributes = mesh.get_vec(attribute_names)?;
-        buffer.fill_from(&attributes);
+        buffer.fill_from(attributes);
 
         // Link data and program
-        program.setup_attributes(&attributes)?;
+        program.setup_attributes(attributes)?;
 
         Ok(buffer)
     }

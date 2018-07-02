@@ -25,7 +25,7 @@ impl VertexBuffer
         Ok(buffer)
     }
 
-    pub fn fill_from(&self, attributes: &Vec<&attribute::Attribute>)
+    pub fn fill_from(&mut self, attributes: &Vec<&attribute::Attribute>)
     {
         let mut stride = 0;
         let mut no_vertices = 0;
@@ -53,7 +53,7 @@ impl VertexBuffer
         self.fill_with(&data);
     }
 
-    pub fn fill_with(&self, data: &Vec<f32>)
+    pub fn fill_with(&mut self, data: &Vec<f32>)
     {
         bind(&self.gl, self.id, gl::ARRAY_BUFFER);
         unsafe {
