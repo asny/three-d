@@ -1,4 +1,3 @@
-use glm;
 
 #[derive(Debug)]
 pub enum Error {

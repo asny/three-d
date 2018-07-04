@@ -18,7 +18,7 @@ use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 
 const SIZE: f32 = 32.0;
-const VERTICES_PER_UNIT: usize = 8;
+const VERTICES_PER_UNIT: usize = 4;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
@@ -80,7 +80,8 @@ impl Terrain
     {
         self.origo = glm::vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
         self.update_heights();
-        self.update_normals();
+        //self.update_normals();
+        self.mesh.compute_normals();
 
         self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap()]);
     }
