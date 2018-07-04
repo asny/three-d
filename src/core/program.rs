@@ -2,9 +2,9 @@ use gl;
 use std;
 use glm;
 
-use gust::attribute;
 use core::shader;
 use core::state;
+use core::buffer;
 
 use std::ffi::{CString};
 
@@ -168,21 +168,13 @@ impl Program
         Ok(location)
     }
 
-    pub fn setup_attributes(&self, attributes: &Vec<&attribute::Attribute>) -> Result<(), Error>
+    pub fn setup_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
     {
         self.set_used();
+        buffer.bind();
 
-        // Link the buffer data to the vertex attributes in the shader
-        let mut stride = 0;
-        for attribute in attributes
-        {
-            stride += attribute.no_components();
-        }
-
-        let mut offset: usize = 0;
-        for attribute in attributes {
-            self.setup_attribute(attribute.name(), attribute.no_components(), stride, offset)?;
-            offset = offset + attribute.no_components();
+        for att in buffer.attributes_iter() {
+            self.setup_attribute(att.name.as_ref(), att.no_components, buffer.stride(), att.offset)?;
         }
 
         Ok(())

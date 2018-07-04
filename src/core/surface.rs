@@ -79,7 +79,7 @@ impl TriangleSurface
         buffer.fill_from(attributes);
 
         // Link data and program
-        program.setup_attributes(attributes)?;
+        program.setup_attributes(&buffer)?;
 
         Ok(buffer)
     }
