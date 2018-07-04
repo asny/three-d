@@ -21,8 +21,13 @@ impl VertexBuffer
             gl.GenBuffers(1, &mut id);
         }
         let buffer = VertexBuffer{gl: gl.clone(), id };
-        bind(&buffer.gl, buffer.id, gl::ARRAY_BUFFER);
+        buffer.bind();
         Ok(buffer)
+    }
+
+    pub fn bind(&self)
+    {
+        bind(&self.gl, self.id, gl::ARRAY_BUFFER);
     }
 
     pub fn fill_from(&mut self, attributes: &Vec<&attribute::Attribute>)
@@ -55,7 +60,7 @@ impl VertexBuffer
 
     pub fn fill_with(&mut self, data: &Vec<f32>)
     {
-        bind(&self.gl, self.id, gl::ARRAY_BUFFER);
+        self.bind();
         unsafe {
             self.gl.BufferData(
                 gl::ARRAY_BUFFER, // target
