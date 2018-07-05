@@ -5,10 +5,13 @@ mod scene_objects;
 
 use std::process;
 
+use num_traits::identities::One;
+
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
 use dust::*;
+use dust::traits::Reflecting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
@@ -43,14 +46,11 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let model = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
-    scene.add_model(model);
+    let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
 
     let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
-    scene.add_model(skybox);
 
-    let terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
-    scene.add_model(terrain);
+    let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
 
     let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
     scene.add_light(light);
@@ -79,7 +79,14 @@ fn main() {
         }
 
         // draw
-        renderer.render(&camera, &scene).unwrap();
+        renderer.render_begin(&camera).unwrap();
+
+        let transformation = glm::Matrix4::one();
+        skybox.reflect(&transformation, &camera).unwrap();
+        terrain.reflect(&transformation, &camera).unwrap();
+        textured_box.reflect(&transformation, &camera).unwrap();
+
+        renderer.render_end(&camera, &scene).unwrap();
 
         window.gl_swap_window();
     };

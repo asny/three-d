@@ -102,21 +102,20 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
+    pub fn render_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        state::depth_write(&self.gl,true);
+        state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
-        state::cull(&self.gl,state::CullType::NONE);
+        state::cull(&self.gl, state::CullType::NONE);
         state::blend(&self.gl, false);
 
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
+        Ok(())
+    }
 
-        for model in &scene.models {
-            let transformation = glm::Matrix4::one();
-            model.reflect(&transformation, camera)?;
-        }
-
+    pub fn render_end(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
+    {
         self.rendertarget.bind();
         self.rendertarget.clear();
 

@@ -6,7 +6,6 @@ use gl;
 use dust::traits;
 use gust;
 use gust::mesh::Mesh;
-use std::rc::Rc;
 use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::surface;
@@ -53,7 +52,7 @@ impl traits::Reflecting for Terrain
 
 impl Terrain
 {
-    pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Result<Terrain, traits::Error>
     {
         let noise_generator = Box::new(SuperSimplex::new());
 
@@ -73,7 +72,7 @@ impl Terrain
 
         let mut terrain = Terrain { program, model, texture, buffer, origo: glm::vec3(0.0, 0.0, 0.0), noise_generator, mesh};
         terrain.set_center(&glm::vec3(0.0, 0.0, 0.0));
-        Ok(Rc::new(terrain))
+        Ok(terrain)
     }
 
     pub fn set_center(&mut self, center: &glm::Vec3)
