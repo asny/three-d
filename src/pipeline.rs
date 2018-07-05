@@ -3,6 +3,7 @@ use scene;
 use traits;
 use glm;
 use gl;
+use light;
 use num_traits::identities::One;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
@@ -102,7 +103,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render_begin(&self) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
@@ -114,7 +115,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render_end(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
+    pub fn render_end(&self, camera: &camera::Camera, directional_lights: &Vec<light::DirectionalLight>) -> Result<(), Error>
     {
         self.rendertarget.bind();
         self.rendertarget.clear();
@@ -140,7 +141,7 @@ impl DeferredPipeline
         self.geometry_pass_rendertarget.depth_target.bind(3);
         self.light_pass_program.add_uniform_int("depthMap", &3)?;
 
-        for directional_light in scene.directional_lights.iter()
+        for directional_light in directional_lights.iter()
         {
             /*shadow_render_target.bind_texture_for_reading(4);
             GLUniform::use(shader, "shadowMap", 4);

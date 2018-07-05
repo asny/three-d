@@ -40,20 +40,16 @@ fn main() {
     // Renderer
     let renderer = pipeline::DeferredPipeline::create(&gl, width, height).unwrap();
 
-    // Scene
-    let mut scene = scene::Scene::create();
-
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
+    // Models
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
-
     let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
-
     let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
 
-    let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
-    scene.add_light(light);
+    // Lights
+    let directional_lights = vec![dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap()];
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -79,14 +75,14 @@ fn main() {
         }
 
         // draw
-        renderer.render_begin(&camera).unwrap();
+        renderer.render_begin().unwrap();
 
         let transformation = glm::Matrix4::one();
         skybox.reflect(&transformation, &camera).unwrap();
         terrain.reflect(&transformation, &camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
 
-        renderer.render_end(&camera, &scene).unwrap();
+        renderer.render_end(&camera, &directional_lights).unwrap();
 
         window.gl_swap_window();
     };
