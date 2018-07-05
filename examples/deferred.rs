@@ -5,11 +5,13 @@ mod scene_objects;
 
 use std::process;
 use std::rc::Rc;
+use num_traits::identities::One;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
 use dust::*;
+use dust::traits::Reflecting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
@@ -38,17 +40,12 @@ fn main() {
     // Renderer
     let renderer = pipeline::DeferredPipeline::create(&gl, width, height).unwrap();
 
-    // Scene
-    let mut scene = scene::Scene::create();
-
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
     let monkey = scene_objects::monkey::Monkey::create(&gl).unwrap();
-    scene.add_model(Rc::new(monkey));
 
-    let light = dust::light::DirectionalLight::create( glm::vec3(0.0, -1.0, 0.0)).unwrap();
-    scene.add_light(light);
+    let directional_light = dust::light::DirectionalLight::create( glm::vec3(0.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -74,7 +71,14 @@ fn main() {
         }
 
         // draw
-        renderer.render(&camera, &scene).unwrap();
+        renderer.geometry_pass_begin().unwrap();
+
+        let transformation = glm::Matrix4::one();
+        monkey.reflect(&transformation, &camera).unwrap();
+
+        renderer.light_pass_begin(&camera).unwrap();
+
+        renderer.shine_light(&directional_light).unwrap();
 
         window.gl_swap_window();
     };
