@@ -49,7 +49,7 @@ fn main() {
     let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
 
     // Lights
-    let directional_lights = vec![dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap()];
+    let directional_light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -75,14 +75,16 @@ fn main() {
         }
 
         // draw
-        renderer.render_begin().unwrap();
+        renderer.geometry_pass_begin().unwrap();
 
         let transformation = glm::Matrix4::one();
         skybox.reflect(&transformation, &camera).unwrap();
         terrain.reflect(&transformation, &camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
 
-        renderer.render_end(&camera, &directional_lights).unwrap();
+        renderer.light_pass_begin(&camera).unwrap();
+        
+        renderer.shine_light(&directional_light).unwrap();
 
         window.gl_swap_window();
     };

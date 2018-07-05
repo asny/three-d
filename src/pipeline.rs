@@ -103,7 +103,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render_begin(&self) -> Result<(), Error>
+    pub fn geometry_pass_begin(&self) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
@@ -115,7 +115,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render_end(&self, camera: &camera::Camera, directional_lights: &Vec<light::DirectionalLight>) -> Result<(), Error>
+    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         self.rendertarget.bind();
         self.rendertarget.clear();
@@ -141,23 +141,25 @@ impl DeferredPipeline
         self.geometry_pass_rendertarget.depth_target.bind(3);
         self.light_pass_program.add_uniform_int("depthMap", &3)?;
 
-        for directional_light in directional_lights.iter()
-        {
-            /*shadow_render_target.bind_texture_for_reading(4);
-            GLUniform::use(shader, "shadowMap", 4);
-            GLUniform::use(shader, "shadowCubeMap", 5);
-            GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
+        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
 
-            self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
-            self.light_pass_program.add_uniform_int("lightType", &1)?;
-            self.light_pass_program.add_uniform_vec3("directionalLight.direction", &directional_light.direction)?;
-            self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &directional_light.base.color)?;
-            self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &directional_light.base.ambient_intensity)?;
-            self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &directional_light.base.diffuse_intensity)?;
+        Ok(())
+    }
 
-            full_screen_quad::render(&self.gl, &self.light_pass_program);
-        }
+    pub fn shine_light(&self, directional_light: &light::DirectionalLight) -> Result<(), Error>
+    {
+        /*shadow_render_target.bind_texture_for_reading(4);
+        GLUniform::use(shader, "shadowMap", 4);
+        GLUniform::use(shader, "shadowCubeMap", 5);
+        GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
 
+        self.light_pass_program.add_uniform_int("lightType", &1)?;
+        self.light_pass_program.add_uniform_vec3("directionalLight.direction", &directional_light.direction)?;
+        self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &directional_light.base.color)?;
+        self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &directional_light.base.ambient_intensity)?;
+        self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &directional_light.base.diffuse_intensity)?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
         Ok(())
     }
 }
