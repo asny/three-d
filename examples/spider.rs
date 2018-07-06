@@ -4,6 +4,7 @@ extern crate dust;
 mod scene_objects;
 
 use std::process;
+use std::time::Instant;
 
 use num_traits::identities::One;
 
@@ -47,6 +48,7 @@ fn main() {
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
     let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
     let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
+    let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights
     let directional_light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
@@ -54,12 +56,16 @@ fn main() {
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
 
+    let mut now = Instant::now();
     // main loop
     let main_loop = || {
         for event in events.poll_iter() {
             match event {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
+                },
+                Event::KeyDown {keycode: Some(Keycode::W), ..} => {
+                    spider.is_moving_forward = true;
                 },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
@@ -74,6 +80,13 @@ fn main() {
             }
         }
 
+        let new_now = Instant::now();
+
+        let elapsed_time = (new_now.duration_since(now).subsec_nanos() as u64 / 1_000_000) as f32;
+        now = new_now;
+
+        spider.update(elapsed_time, &terrain);
+
         // draw
         renderer.geometry_pass_begin().unwrap();
 
@@ -81,6 +94,7 @@ fn main() {
         skybox.reflect(&transformation, &camera).unwrap();
         terrain.reflect(&transformation, &camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
+        spider.reflect(&transformation, &camera).unwrap();
 
         renderer.light_pass_begin(&camera).unwrap();
         
