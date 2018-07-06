@@ -3,11 +3,13 @@ use std;
 use gust::mesh;
 use core::buffer;
 use core::program;
+use gust::attribute;
 
 #[derive(Debug)]
 pub enum Error {
     Buffer(buffer::Error),
-    Program(program::Error)
+    Program(program::Error),
+    Mesh(mesh::Error)
 }
 
 impl From<program::Error> for Error {
@@ -22,6 +24,12 @@ impl From<buffer::Error> for Error {
     }
 }
 
+impl From<mesh::Error> for Error {
+    fn from(other: mesh::Error) -> Self {
+        Error::Mesh(other)
+    }
+}
+
 pub struct TriangleSurface {
     gl: gl::Gl,
     id: gl::types::GLuint,
@@ -32,6 +40,13 @@ pub struct TriangleSurface {
 impl TriangleSurface
 {
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
+    {
+        let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh)?;
+        surface.add_attributes(&mesh.get_attributes(), program)?;
+        Ok(surface)
+    }
+
+    pub fn create_without_adding_attributes(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
@@ -52,14 +67,21 @@ impl TriangleSurface
             }
         }
 
-        program.add_attributes(&mesh.attributes)?;
         Ok(model)
     }
 
-    pub fn update_attributes(&self) -> Result<(), Error>
+    pub fn add_attributes(&mut self, attributes: &Vec<&attribute::Attribute>, program: &program::Program) -> Result<buffer::VertexBuffer, Error>
     {
-        // TODO: Update the attributes in the relevant vertex buffers
-        Ok(())
+        // Create buffer
+        let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
+
+        // Add data to the buffer
+        buffer.fill_from(attributes);
+
+        // Link data and program
+        program.setup_attributes(&buffer)?;
+
+        Ok(buffer)
     }
 
     pub fn render(&self) -> Result<(), Error>

@@ -2,17 +2,15 @@ use gl;
 use std;
 use glm;
 
-use gust::attribute;
 use core::shader;
-use core::buffer;
 use core::state;
+use core::buffer;
 
 use std::ffi::{CString};
 
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
-    Buffer(buffer::Error),
     FailedToLinkProgram {message: String},
     FailedToCreateCString(std::ffi::NulError),
     FailedToFindPositions {message: String},
@@ -22,12 +20,6 @@ pub enum Error {
 impl From<shader::Error> for Error {
     fn from(other: shader::Error) -> Self {
         Error::Shader(other)
-    }
-}
-
-impl From<buffer::Error> for Error {
-    fn from(other: buffer::Error) -> Self {
-        Error::Buffer(other)
     }
 }
 
@@ -176,32 +168,16 @@ impl Program
         Ok(location)
     }
 
-    pub fn add_attributes(&self, attributes: &Vec<attribute::Attribute>) -> Result<buffer::VertexBuffer, Error>
+    pub fn setup_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
     {
         self.set_used();
-        let mut stride = 0;
-        let mut no_vertices = 0;
-        for attribute in attributes
-        {
-            stride += attribute.no_components();
-            no_vertices = attribute.data().len() / attribute.no_components();
+        buffer.bind();
+
+        for att in buffer.attributes_iter() {
+            self.setup_attribute(att.name.as_ref(), att.no_components, buffer.stride(), att.offset)?;
         }
 
-        // Create and bind buffer
-        let buffer = buffer::VertexBuffer::create(&self.gl)?;
-
-        // Add data to the buffer
-        let data = from(attributes, no_vertices, stride)?;
-        buffer.fill_with(&data);
-
-        // Link the buffer data to the vertex attributes in the shader
-        let mut offset: usize = 0;
-        for attribute in attributes {
-            self.setup_attribute(attribute.name(), attribute.no_components(),stride, offset)?;
-            offset = offset + attribute.no_components();
-        }
-
-        Ok(buffer)
+        Ok(())
     }
 
     fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize) -> Result<(), Error>
@@ -261,25 +237,6 @@ impl Drop for Program {
             self.gl.DeleteProgram(self.id);
         }
     }
-}
-
-fn from(attributes: &Vec<attribute::Attribute>, no_vertices: usize, stride: usize) -> Result<Vec<f32>, Error>
-{
-    let mut data: Vec<f32> = Vec::with_capacity(stride * no_vertices);
-    unsafe { data.set_len(stride * no_vertices); }
-    let mut offset = 0;
-    for attribute in attributes.iter()
-    {
-        for vertex_id in 0..no_vertices
-        {
-            for d in 0..attribute.no_components()
-            {
-                data[offset + vertex_id * stride + d] = attribute.data()[vertex_id * attribute.no_components() + d];
-            }
-        }
-        offset = offset + attribute.no_components();
-    }
-    Ok(data)
 }
 
 fn create_whitespace_cstring_with_len(len: usize) -> CString {

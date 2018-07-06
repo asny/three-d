@@ -4,7 +4,7 @@ extern crate dust;
 mod scene_objects;
 
 use std::process;
-use std::rc::Rc;
+
 use num_traits::identities::One;
 
 use sdl2::event::{Event};
@@ -43,9 +43,13 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let monkey = scene_objects::monkey::Monkey::create(&gl).unwrap();
+    // Models
+    let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
+    let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
+    let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
 
-    let directional_light = dust::light::DirectionalLight::create( glm::vec3(0.0, -1.0, 0.0)).unwrap();
+    // Lights
+    let directional_light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -74,10 +78,12 @@ fn main() {
         renderer.geometry_pass_begin().unwrap();
 
         let transformation = glm::Matrix4::one();
-        monkey.reflect(&transformation, &camera).unwrap();
+        skybox.reflect(&transformation, &camera).unwrap();
+        terrain.reflect(&transformation, &camera).unwrap();
+        textured_box.reflect(&transformation, &camera).unwrap();
 
         renderer.light_pass_begin(&camera).unwrap();
-
+        
         renderer.shine_light(&directional_light).unwrap();
 
         window.gl_swap_window();

@@ -1,14 +1,24 @@
 use gl;
 use std;
+use gust::attribute;
+pub use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
 
 }
 
+pub struct Att {
+    pub name: String,
+    pub offset: usize,
+    pub no_components: usize
+}
+
 pub struct VertexBuffer {
     gl: gl::Gl,
     id: u32,
+    stride: usize,
+    map: Vec<Att>
 }
 
 impl VertexBuffer
@@ -19,14 +29,58 @@ impl VertexBuffer
         unsafe {
             gl.GenBuffers(1, &mut id);
         }
-        let buffer = VertexBuffer{gl: gl.clone(), id };
-        bind(&buffer.gl, buffer.id, gl::ARRAY_BUFFER);
+        let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, map: Vec::new() };
+        buffer.bind();
         Ok(buffer)
     }
 
-    pub fn fill_with(&self, data: &Vec<f32>)
+    pub fn bind(&self)
     {
         bind(&self.gl, self.id, gl::ARRAY_BUFFER);
+    }
+
+    pub fn stride(&self) -> usize
+    {
+        self.stride
+    }
+
+    pub fn attributes_iter(&self) -> Iter<Att>
+    {
+        self.map.iter()
+    }
+
+    pub fn fill_from(&mut self, attributes: &Vec<&attribute::Attribute>)
+    {
+        self.stride = 0;
+        self.map = Vec::new();
+        let mut no_vertices = 0;
+        for attribute in attributes
+        {
+            self.stride += attribute.no_components();
+            no_vertices = attribute.data().len() / attribute.no_components();
+        }
+
+        let mut data: Vec<f32> = vec![0.0; self.stride * no_vertices];
+        let mut offset = 0;
+        for attribute in attributes.iter()
+        {
+            self.map.push(Att {name: String::from(attribute.name()), offset, no_components: attribute.no_components()});
+            for vertex_id in 0..no_vertices
+            {
+                for d in 0..attribute.no_components()
+                {
+                    data[offset + vertex_id * self.stride + d] = attribute.data()[vertex_id * attribute.no_components() + d];
+                }
+            }
+            offset = offset + attribute.no_components();
+        }
+
+        self.fill_with(&data);
+    }
+
+    pub fn fill_with(&mut self, data: &Vec<f32>)
+    {
+        self.bind();
         unsafe {
             self.gl.BufferData(
                 gl::ARRAY_BUFFER, // target
