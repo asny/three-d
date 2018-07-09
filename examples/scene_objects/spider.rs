@@ -27,12 +27,12 @@ impl traits::Reflecting for Spider
 {
     fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.add_uniform_vec3("color", &vec3(1.0, 1.0, 1.0))?;
+        /*self.program.add_uniform_vec3("color", &vec3(1.0, 1.0, 1.0))?;
         self.program.add_uniform_mat4("modelMatrix", &self.local2world)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
         self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
-        self.model.render()?;
+        self.model.render()?;*/
         Ok(())
     }
 }
@@ -41,7 +41,7 @@ impl Spider
 {
     pub fn create(gl: &gl::Gl) -> Result<Spider, traits::Error>
     {
-        let mesh = gust::loader::load_obj("/examples/assets/models/suzanne.obj").unwrap();
+        let mesh = gust::loader::load_obj("/examples/assets/models/spider.obj").unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/standard")?;
         let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
