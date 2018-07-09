@@ -55,9 +55,13 @@ impl Spider
         vec3(self.position.x, terrain.get_height_at(self.position.x, self.position.z) + HEIGHT_ABOVE_GROUND, self.position.z)
     }
 
-    pub fn get_view_direction(&self, terrain: &terrain::Terrain) -> &Vec3
+    pub fn get_view_direction(&self, terrain: &terrain::Terrain) -> Vec3
     {
-        &self.view_direction
+        let height0 = terrain.get_height_at(self.position.x, self.position.z);
+        let height1 = terrain.get_height_at(self.position.x + 0.5 * self.view_direction.x, self.position.z + 0.5 * self.view_direction.z);
+        let height2 = terrain.get_height_at(self.position.x + self.view_direction.x, self.position.z + self.view_direction.z);
+        let y_view_dir = 0.25 * ((height2 - height0) + (height1 - height0));
+        normalize(vec3(self.view_direction.x, y_view_dir, self.view_direction.z))
     }
 
     pub fn update(&mut self, time: f32, terrain: &terrain::Terrain)

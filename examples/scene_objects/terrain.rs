@@ -27,7 +27,7 @@ pub struct Terrain {
     texture: texture::Texture2D,
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
-    origo: Vec3,
+    center: Vec3,
     mesh: Mesh
 }
 
@@ -70,14 +70,19 @@ impl Terrain
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
-        let mut terrain = Terrain { program, model, texture, buffer, origo: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        let mut terrain = Terrain { program, model, texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
         Ok(terrain)
     }
 
+    pub fn get_center(&self) -> &Vec3
+    {
+        &self.center
+    }
+
     pub fn set_center(&mut self, center: &Vec3)
     {
-        self.origo = vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
+        self.center = *center;
         self.update_heights();
         self.mesh.compute_normals();
 
@@ -91,8 +96,8 @@ impl Terrain
         {
             for c in 0..VERTICES_PER_SIDE+1
             {
-                let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
-                let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
+                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
                 let y = get_height_at(&self.noise_generator, x, z);
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
