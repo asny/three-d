@@ -56,6 +56,7 @@ fn main() {
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
 
+    let mut camerahandler = camerahandler::CameraHandler::create();
     let mut now = Instant::now();
     // main loop
     let main_loop = || {
@@ -91,11 +92,14 @@ fn main() {
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
                     {
-                        eventhandler::rotate(&mut camera, xrel, yrel);
+                        camerahandler.rotate(&mut camera, xrel, yrel);
                     }
                 },
                 Event::MouseWheel {y, .. } => {
-                    eventhandler::zoom(&mut camera, y);
+                    camerahandler.zoom(&mut camera, y);
+                },
+                Event::KeyDown {keycode: Some(Keycode::Tab), ..} => {
+                    camerahandler.next_state();
                 },
                 _ => {}
             }
@@ -107,6 +111,7 @@ fn main() {
         now = new_now;
 
         spider.update(elapsed_time, &terrain);
+        camerahandler.translate(&mut camera, spider.get_position(&terrain), spider.get_view_direction(&terrain));
 
         // draw
         renderer.geometry_pass_begin().unwrap();
