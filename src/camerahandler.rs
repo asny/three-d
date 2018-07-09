@@ -53,10 +53,10 @@ impl CameraHandler
                 let right_direction = cross(direction, up_direction);
                 up_direction = cross(right_direction, direction);
                 let mut camera_position = camera.position;
-                let zoom = length(camera_position);
-                camera_position = camera_position + (right_direction * x + up_direction * y) * 0.1;
-                camera_position = normalize(camera_position) * zoom;
                 let target = camera.target;
+                let zoom = length(camera_position - target);
+                camera_position = camera_position + (right_direction * x + up_direction * y) * 0.1;
+                camera_position = target + normalize(camera_position - target) * zoom;
                 camera.set_view(camera_position, target);
             },
             _ => {}
@@ -78,8 +78,4 @@ impl CameraHandler
             _ => {}
         }
     }
-
-
-
 }
-
