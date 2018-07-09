@@ -51,7 +51,8 @@ impl Spider
 
     pub fn get_position(&self, terrain: &terrain::Terrain) -> Vec3
     {
-        vec3(self.position.x, terrain.get_height_at(self.position.x, self.position.z), self.position.z)
+        static HEIGHT_ABOVE_GROUND: f32 = 0.3;
+        vec3(self.position.x, terrain.get_height_at(self.position.x, self.position.z) + HEIGHT_ABOVE_GROUND, self.position.z)
     }
 
     pub fn get_view_direction(&self, terrain: &terrain::Terrain) -> &Vec3
@@ -64,7 +65,6 @@ impl Spider
         static SPEED: f32 = 2.0;
         static ANGULAR_SPEED: f32 = 1.0;
         static GRAVITY: f32 = -9.82;
-        static HEIGHT: f32 = 0.3;
 
         if self.is_moving_forward
         {
