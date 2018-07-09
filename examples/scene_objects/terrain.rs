@@ -16,8 +16,8 @@ use dust::core::state;
 use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 
-const SIZE: f32 = 32.0;
-const VERTICES_PER_UNIT: usize = 4;
+const SIZE: f32 = 64.0;
+const VERTICES_PER_UNIT: usize = 2;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
