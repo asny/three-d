@@ -38,6 +38,11 @@ impl CameraHandler
             CameraState::FIRST => {
                 camera.set_view(*position, *position + *front_direction);
             },
+            CameraState::SPHERICAL => {
+                let camera_position = camera.position;
+                let change = *position - camera.target;
+                camera.set_view(camera_position + change, *position);
+            },
             _ => {}
         }
     }
