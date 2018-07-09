@@ -86,18 +86,16 @@ impl Spider
         }
 
         let spider_translation;
-        let spider_rotation;
         {
             // Get world position and view direction
             let world_position = self.get_position(terrain);
             let world_view_direction = self.get_view_direction(terrain);
 
             // Compute spider model matrix
-            spider_rotation = ext::look_at(vec3(0., 0., 0.), *world_view_direction, vec3(0., 1., 0.));
             //let spider_rotation_yaw = orientation(normalize(vec3(world_view_direction.x, 0.0, world_view_direction.z)), vec3(0.0, 0.0, 1.0));
             //let spider_rotation_pitch = orientation(normalize(vec3(0.0, world_view_direction.y, 1.0)), vec3(0.0, 0.0, 1.0));
             spider_translation = translate(&Matrix4::one(), *world_position);
         }
-        self.local2world = spider_translation * spider_rotation;// * spider_rotation_yaw * spider_rotation_pitch;
+        self.local2world = spider_translation;// * spider_rotation_yaw * spider_rotation_pitch;
     }
 }
