@@ -109,15 +109,15 @@ impl Terrain
     fn update_uv_coordinates(&mut self)
     {
         let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
-        let scale = 1.0 / SIZE as f32;
+        let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE+1
         {
             for c in 0..VERTICES_PER_SIDE+1
             {
-                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c)] = 0.1 * (x - (x / SIZE).floor() * SIZE);
-                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = 0.1 * (z - (z / SIZE).floor() * SIZE);
+                let x = self.center.x + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z + c as f32 * VERTEX_DISTANCE;
+                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c)] = scale * x;
+                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = scale * z;
             }
         }
 
