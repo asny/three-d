@@ -27,12 +27,12 @@ impl traits::Reflecting for Spider
 {
     fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        /*self.program.add_uniform_vec3("color", &vec3(1.0, 1.0, 1.0))?;
+        self.program.add_uniform_vec3("color", &vec3(1.0, 1.0, 1.0))?;
         self.program.add_uniform_mat4("modelMatrix", &self.local2world)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
-        self.model.render()?;*/
+        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(&self.local2world)))?;
+        self.model.render()?;
         Ok(())
     }
 }
