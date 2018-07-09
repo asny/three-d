@@ -67,6 +67,27 @@ fn main() {
                 Event::KeyDown {keycode: Some(Keycode::W), ..} => {
                     spider.is_moving_forward = true;
                 },
+                Event::KeyUp {keycode: Some(Keycode::W), ..} => {
+                    spider.is_moving_forward = false;
+                },
+                Event::KeyDown {keycode: Some(Keycode::D), ..} => {
+                    spider.is_rotating_right = true;
+                },
+                Event::KeyUp {keycode: Some(Keycode::D), ..} => {
+                    spider.is_rotating_right = false;
+                },
+                Event::KeyDown {keycode: Some(Keycode::A), ..} => {
+                    spider.is_rotating_left = true;
+                },
+                Event::KeyUp {keycode: Some(Keycode::A), ..} => {
+                    spider.is_rotating_left = false;
+                },
+                Event::KeyDown {keycode: Some(Keycode::S), ..} => {
+                    spider.is_moving_backward = true;
+                },
+                Event::KeyUp {keycode: Some(Keycode::S), ..} => {
+                    spider.is_moving_backward = false;
+                },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
                     {
