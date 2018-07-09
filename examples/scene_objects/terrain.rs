@@ -62,8 +62,7 @@ impl Terrain
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?], &program)?;
-        model.add_attributes(&vec![mesh.get("uv_coordinate")?], &program)?;
+        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &program)?;
 
         let img = image::open("examples/assets/textures/grass.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;
@@ -82,14 +81,15 @@ impl Terrain
 
     pub fn set_center(&mut self, center: &Vec3)
     {
-        self.center = *center;
+        self.center = vec3(center.x.floor(), 0.0, center.z.floor());
         self.update_heights();
+        self.update_uv_coordinates();
         self.mesh.compute_normals();
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap()]);
+        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap(), self.mesh.get("uv_coordinate").unwrap()]);
     }
 
-    fn update_heights(&mut self) -> &Vec<f32>
+    fn update_heights(&mut self)
     {
         let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE+1
@@ -104,7 +104,23 @@ impl Terrain
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
             }
         }
-        positions
+    }
+
+    fn update_uv_coordinates(&mut self)
+    {
+        let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
+        let scale = 1.0 / SIZE as f32;
+        for r in 0..VERTICES_PER_SIDE+1
+        {
+            for c in 0..VERTICES_PER_SIDE+1
+            {
+                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
+                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c)] = 0.1 * (x - (x / SIZE).floor() * SIZE);
+                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = 0.1 * (z - (z / SIZE).floor() * SIZE);
+            }
+        }
+
     }
 
     pub fn get_height_at(&self, x: f32, z: f32) -> f32
@@ -152,15 +168,5 @@ fn normals() -> Vec<f32>
 
 fn uv_coordinates() -> Vec<f32>
 {
-    let mut uvs = Vec::new();
-    let scale = 1.0 / VERTICES_PER_SIDE as f32;
-    for r in 0..VERTICES_PER_SIDE+1
-    {
-        for c in 0..VERTICES_PER_SIDE+1
-        {
-            uvs.push(r as f32 * scale);
-            uvs.push(c as f32 * scale);
-        }
-    }
-    uvs
+    vec![0.0;2 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
 }
