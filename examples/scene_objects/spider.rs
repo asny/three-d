@@ -49,9 +49,9 @@ impl Spider
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})
     }
 
-    pub fn get_position(&self, terrain: &terrain::Terrain) -> &Vec3
+    pub fn get_position(&self, terrain: &terrain::Terrain) -> Vec3
     {
-        &self.position
+        vec3(self.position.x, terrain.get_height_at(self.position.x, self.position.z), self.position.z)
     }
 
     pub fn get_view_direction(&self, terrain: &terrain::Terrain) -> &Vec3
@@ -94,7 +94,7 @@ impl Spider
             // Compute spider model matrix
             //let spider_rotation_yaw = orientation(normalize(vec3(world_view_direction.x, 0.0, world_view_direction.z)), vec3(0.0, 0.0, 1.0));
             //let spider_rotation_pitch = orientation(normalize(vec3(0.0, world_view_direction.y, 1.0)), vec3(0.0, 0.0, 1.0));
-            spider_translation = translate(&Matrix4::one(), *world_position);
+            spider_translation = translate(&Matrix4::one(), world_position);
         }
         self.local2world = spider_translation;// * spider_rotation_yaw * spider_rotation_pitch;
     }

@@ -111,7 +111,7 @@ fn main() {
         now = new_now;
 
         spider.update(elapsed_time, &terrain);
-        camerahandler.translate(&mut camera, spider.get_position(&terrain), spider.get_view_direction(&terrain));
+        camerahandler.translate(&mut camera, &spider.get_position(&terrain), spider.get_view_direction(&terrain));
 
         // draw
         renderer.geometry_pass_begin().unwrap();

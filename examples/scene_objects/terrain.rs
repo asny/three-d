@@ -79,7 +79,6 @@ impl Terrain
     {
         self.origo = vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
         self.update_heights();
-        //self.update_normals();
         self.mesh.compute_normals();
 
         self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap()]);
@@ -95,8 +94,8 @@ impl Terrain
                 let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
                 let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
                 let y = (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-                        0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-                        2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
+                    0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+                    2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
@@ -105,45 +104,12 @@ impl Terrain
         positions
     }
 
-    fn update_normals(&mut self)
+    pub fn get_height_at(&self, x: f32, z: f32) -> f32
     {
-        let normal_attribute = self.mesh.get_mut("normal").unwrap();
-        let normals = normal_attribute.data_mut();
-        for r in 0..VERTICES_PER_SIDE+1
-        {
-            for c in 0..VERTICES_PER_SIDE+1
-            {
-                let mut n = vec3(0.0, 1.0, 0.0);
-                /*if c != 0 && r != 0 && c != VERTICES_PER_SIDE && r != VERTICES_PER_SIDE
-                {
-                    n = glm::vec3(get_height(positions,r-1,c) - get_height(positions,r+1,c),
-                                          2.0 * VERTEX_DISTANCE,
-                                          get_height(positions,r,c-1) - get_height(positions,r,c+1));
-                    n = glm::normalize(n);
-                }*/
-                normals[3 * (r*(VERTICES_PER_SIDE+1) + c)] = n.x;
-                normals[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = n.y;
-                normals[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = n.z;
-            }
-        }
+        (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
+                0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+                2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
     }
-
-    /*pub fn get_height_at(&self, position: glm::Vec3) -> f32
-    {
-        let vec = position - self.origo;
-
-        let r = (vec.x * VERTICES_PER_UNIT as f32).floor() as usize;
-        let c = (vec.z * VERTICES_PER_UNIT as f32).floor() as usize;
-
-        let tx = vec.x * VERTICES_PER_UNIT as f32 - r as f32;
-        let tz = vec.z * VERTICES_PER_UNIT as f32 - c as f32;
-
-        let mut height = (1. - tx) * (1. - tz) * self.get_height(r,c);
-        height += tx * (1. - tz) * self.get_height(r+1,c);
-        height += (1. - tx) * tz * self.get_height(r,c+1);
-        height += tx * tz * self.get_height(r+1,c+1);
-        return height;
-    }*/
 }
 
 fn indices() -> Vec<u32>
@@ -189,9 +155,4 @@ fn uv_coordinates() -> Vec<f32>
         }
     }
     uvs
-}
-
-fn get_height(positions: &Vec<f32>, r: usize, c: usize) -> f32
-{
-    positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
 }
