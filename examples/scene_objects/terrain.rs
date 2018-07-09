@@ -93,9 +93,7 @@ impl Terrain
             {
                 let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
                 let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
-                let y = (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-                    0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-                    2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
+                let y = get_height_at(&self.noise_generator, x, z);
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
@@ -106,10 +104,15 @@ impl Terrain
 
     pub fn get_height_at(&self, x: f32, z: f32) -> f32
     {
-        (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-                0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-                2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
+        get_height_at(&self.noise_generator, x, z)
     }
+}
+
+fn get_height_at(noise_generator: &Box<NoiseFn<Point2<f64>>>, x: f32, z: f32) -> f32
+{
+    (noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
+            0.25 * noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+            2.0 * noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
 }
 
 fn indices() -> Vec<u32>
