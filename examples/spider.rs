@@ -82,7 +82,7 @@ fn main() {
 
         let new_now = Instant::now();
 
-        let elapsed_time = (new_now.duration_since(now).subsec_nanos() as u64 / 1_000_000) as f32;
+        let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
         now = new_now;
 
         spider.update(elapsed_time, &terrain);
