@@ -69,10 +69,10 @@ impl CameraHandler
             CameraState::SPHERICAL => {
                 let mut position = camera.position;
                 let target = camera.target;
-                let mut zoom = length(position);
+                let mut zoom = length(position - target);
                 zoom += wheel as f32;
                 zoom = zoom.max(1.0);
-                position = normalize(position - target) * zoom;
+                position = target - camera.direction() * zoom;
                 camera.set_view(position, target);
             },
             _ => {}
