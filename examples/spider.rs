@@ -3,6 +3,7 @@ extern crate dust;
 
 mod scene_objects;
 
+use glm::*;
 use std::process;
 use std::time::Instant;
 
@@ -111,7 +112,13 @@ fn main() {
         now = new_now;
 
         spider.update(elapsed_time, &terrain);
-        camerahandler.translate(&mut camera, &spider.get_position(&terrain), &spider.get_view_direction(&terrain));
+        let spider_pos = spider.get_position(&terrain);
+        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&terrain));
+
+        if length(*terrain.get_center() - spider_pos) > 10.0
+        {
+            terrain.set_center(&spider_pos);
+        }
 
         // draw
         renderer.geometry_pass_begin().unwrap();
