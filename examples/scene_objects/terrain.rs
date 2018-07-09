@@ -10,14 +10,14 @@ use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::surface;
 use dust::core::buffer;
-use glm;
+use glm::*;
 use dust::camera;
 use dust::core::state;
 use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 
-const SIZE: f32 = 32.0;
-const VERTICES_PER_UNIT: usize = 4;
+const SIZE: f32 = 64.0;
+const VERTICES_PER_UNIT: usize = 2;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
@@ -27,13 +27,13 @@ pub struct Terrain {
     texture: texture::Texture2D,
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
-    origo: glm::Vec3,
+    center: Vec3,
     mesh: Mesh
 }
 
 impl traits::Reflecting for Terrain
 {
-    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
+    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull(state::CullType::BACK);
 
@@ -42,7 +42,7 @@ impl traits::Reflecting for Terrain
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(transformation)))?;
+        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
 
         self.model.render()?;
         Ok(())
@@ -62,88 +62,78 @@ impl Terrain
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?], &program)?;
-        model.add_attributes(&vec![mesh.get("uv_coordinate")?], &program)?;
+        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &program)?;
 
         let img = image::open("examples/assets/textures/grass.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
-        let mut terrain = Terrain { program, model, texture, buffer, origo: glm::vec3(0.0, 0.0, 0.0), noise_generator, mesh};
-        terrain.set_center(&glm::vec3(0.0, 0.0, 0.0));
+        let mut terrain = Terrain { program, model, texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        terrain.set_center(&vec3(0.0, 0.0, 0.0));
         Ok(terrain)
     }
 
-    pub fn set_center(&mut self, center: &glm::Vec3)
+    pub fn get_center(&self) -> &Vec3
     {
-        self.origo = glm::vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
-        self.update_heights();
-        //self.update_normals();
-        self.mesh.compute_normals();
-
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap()]);
+        &self.center
     }
 
-    fn update_heights(&mut self) -> &Vec<f32>
+    pub fn set_center(&mut self, center: &Vec3)
+    {
+        self.center = vec3(center.x.floor(), 0.0, center.z.floor());
+        self.update_heights();
+        self.update_uv_coordinates();
+        self.mesh.compute_normals();
+
+        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap(), self.mesh.get("uv_coordinate").unwrap()]);
+    }
+
+    fn update_heights(&mut self)
     {
         let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE+1
         {
             for c in 0..VERTICES_PER_SIDE+1
             {
-                let x = self.origo.x + r as f32 * VERTEX_DISTANCE;
-                let z = self.origo.z + c as f32 * VERTEX_DISTANCE;
-                let y = (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-                        0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-                        2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32;
+                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
+                let y = get_height_at(&self.noise_generator, x, z);
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = y;
                 positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
             }
         }
-        positions
     }
 
-    fn update_normals(&mut self)
+    fn update_uv_coordinates(&mut self)
     {
-        let normal_attribute = self.mesh.get_mut("normal").unwrap();
-        let normals = normal_attribute.data_mut();
+        let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
+        let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE+1
         {
             for c in 0..VERTICES_PER_SIDE+1
             {
-                let mut n = glm::vec3(0.0, 1.0, 0.0);
-                /*if c != 0 && r != 0 && c != VERTICES_PER_SIDE && r != VERTICES_PER_SIDE
-                {
-                    n = glm::vec3(get_height(positions,r-1,c) - get_height(positions,r+1,c),
-                                          2.0 * VERTEX_DISTANCE,
-                                          get_height(positions,r,c-1) - get_height(positions,r,c+1));
-                    n = glm::normalize(n);
-                }*/
-                normals[3 * (r*(VERTICES_PER_SIDE+1) + c)] = n.x;
-                normals[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = n.y;
-                normals[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = n.z;
+                let x = self.center.x + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z + c as f32 * VERTEX_DISTANCE;
+                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c)] = scale * x;
+                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = scale * z;
             }
         }
+
     }
 
-    /*pub fn get_height_at(&self, position: glm::Vec3) -> f32
+    pub fn get_height_at(&self, x: f32, z: f32) -> f32
     {
-        let vec = position - self.origo;
+        get_height_at(&self.noise_generator, x, z)
+    }
+}
 
-        let r = (vec.x * VERTICES_PER_UNIT as f32).floor() as usize;
-        let c = (vec.z * VERTICES_PER_UNIT as f32).floor() as usize;
-
-        let tx = vec.x * VERTICES_PER_UNIT as f32 - r as f32;
-        let tz = vec.z * VERTICES_PER_UNIT as f32 - c as f32;
-
-        let mut height = (1. - tx) * (1. - tz) * self.get_height(r,c);
-        height += tx * (1. - tz) * self.get_height(r+1,c);
-        height += (1. - tx) * tz * self.get_height(r,c+1);
-        height += tx * tz * self.get_height(r+1,c+1);
-        return height;
-    }*/
+fn get_height_at(noise_generator: &Box<NoiseFn<Point2<f64>>>, x: f32, z: f32) -> f32
+{
+    (noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
+            0.25 * noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+            2.0 * noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
 }
 
 fn indices() -> Vec<u32>
@@ -178,20 +168,5 @@ fn normals() -> Vec<f32>
 
 fn uv_coordinates() -> Vec<f32>
 {
-    let mut uvs = Vec::new();
-    let scale = 1.0 / VERTICES_PER_SIDE as f32;
-    for r in 0..VERTICES_PER_SIDE+1
-    {
-        for c in 0..VERTICES_PER_SIDE+1
-        {
-            uvs.push(r as f32 * scale);
-            uvs.push(c as f32 * scale);
-        }
-    }
-    uvs
-}
-
-fn get_height(positions: &Vec<f32>, r: usize, c: usize) -> f32
-{
-    positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1]
+    vec![0.0;2 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
 }

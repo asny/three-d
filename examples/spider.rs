@@ -3,7 +3,9 @@ extern crate dust;
 
 mod scene_objects;
 
+use glm::*;
 use std::process;
+use std::time::Instant;
 
 use num_traits::identities::One;
 
@@ -47,6 +49,7 @@ fn main() {
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
     let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
     let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
+    let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights
     let directional_light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
@@ -54,6 +57,8 @@ fn main() {
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
 
+    let mut camerahandler = camerahandler::CameraHandler::create();
+    let mut now = Instant::now();
     // main loop
     let main_loop = || {
         for event in events.poll_iter() {
@@ -61,17 +66,58 @@ fn main() {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
                 },
+                Event::KeyDown {keycode: Some(Keycode::W), ..} => {
+                    spider.is_moving_forward = true;
+                },
+                Event::KeyUp {keycode: Some(Keycode::W), ..} => {
+                    spider.is_moving_forward = false;
+                },
+                Event::KeyDown {keycode: Some(Keycode::D), ..} => {
+                    spider.is_rotating_right = true;
+                },
+                Event::KeyUp {keycode: Some(Keycode::D), ..} => {
+                    spider.is_rotating_right = false;
+                },
+                Event::KeyDown {keycode: Some(Keycode::A), ..} => {
+                    spider.is_rotating_left = true;
+                },
+                Event::KeyUp {keycode: Some(Keycode::A), ..} => {
+                    spider.is_rotating_left = false;
+                },
+                Event::KeyDown {keycode: Some(Keycode::S), ..} => {
+                    spider.is_moving_backward = true;
+                },
+                Event::KeyUp {keycode: Some(Keycode::S), ..} => {
+                    spider.is_moving_backward = false;
+                },
                 Event::MouseMotion {xrel, yrel, mousestate, .. } => {
                     if mousestate.left()
                     {
-                        eventhandler::rotate(&mut camera, xrel, yrel);
+                        camerahandler.rotate(&mut camera, xrel, yrel);
                     }
                 },
                 Event::MouseWheel {y, .. } => {
-                    eventhandler::zoom(&mut camera, y);
+                    camerahandler.zoom(&mut camera, y);
+                },
+                Event::KeyDown {keycode: Some(Keycode::Tab), ..} => {
+                    camerahandler.next_state();
                 },
                 _ => {}
             }
+        }
+
+        let new_now = Instant::now();
+
+        let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
+        now = new_now;
+
+        spider.update(elapsed_time, &terrain);
+        let spider_pos = spider.get_position(&terrain);
+        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&terrain));
+
+        if length(*terrain.get_center() - spider_pos) > 10.0
+        {
+            terrain.set_center(&spider_pos);
         }
 
         // draw
@@ -81,6 +127,7 @@ fn main() {
         skybox.reflect(&transformation, &camera).unwrap();
         terrain.reflect(&transformation, &camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
+        spider.reflect(&transformation, &camera).unwrap();
 
         renderer.light_pass_begin(&camera).unwrap();
         
