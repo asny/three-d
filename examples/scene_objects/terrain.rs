@@ -10,7 +10,7 @@ use dust::core::texture;
 use dust::core::texture::Texture;
 use dust::core::surface;
 use dust::core::buffer;
-use glm;
+use glm::*;
 use dust::camera;
 use dust::core::state;
 use self::image::{GenericImage};
@@ -27,13 +27,13 @@ pub struct Terrain {
     texture: texture::Texture2D,
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
-    origo: glm::Vec3,
+    origo: Vec3,
     mesh: Mesh
 }
 
 impl traits::Reflecting for Terrain
 {
-    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
+    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull(state::CullType::BACK);
 
@@ -42,7 +42,7 @@ impl traits::Reflecting for Terrain
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(transformation)))?;
+        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
 
         self.model.render()?;
         Ok(())
@@ -70,14 +70,14 @@ impl Terrain
 
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
 
-        let mut terrain = Terrain { program, model, texture, buffer, origo: glm::vec3(0.0, 0.0, 0.0), noise_generator, mesh};
-        terrain.set_center(&glm::vec3(0.0, 0.0, 0.0));
+        let mut terrain = Terrain { program, model, texture, buffer, origo: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        terrain.set_center(&vec3(0.0, 0.0, 0.0));
         Ok(terrain)
     }
 
-    pub fn set_center(&mut self, center: &glm::Vec3)
+    pub fn set_center(&mut self, center: &Vec3)
     {
-        self.origo = glm::vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
+        self.origo = vec3(center.x - SIZE/2.0, 0.0, center.z - SIZE/2.0);
         self.update_heights();
         //self.update_normals();
         self.mesh.compute_normals();
@@ -113,7 +113,7 @@ impl Terrain
         {
             for c in 0..VERTICES_PER_SIDE+1
             {
-                let mut n = glm::vec3(0.0, 1.0, 0.0);
+                let mut n = vec3(0.0, 1.0, 0.0);
                 /*if c != 0 && r != 0 && c != VERTICES_PER_SIDE && r != VERTICES_PER_SIDE
                 {
                     n = glm::vec3(get_height(positions,r-1,c) - get_height(positions,r+1,c),
