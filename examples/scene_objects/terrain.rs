@@ -70,6 +70,7 @@ impl Terrain
         mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates())?;
 
         let terrain_program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
+        let water_program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
         let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &terrain_program)?;
 
