@@ -22,9 +22,11 @@ const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
 pub struct Terrain {
-    program: program::Program,
+    terrain_program: program::Program,
     model: surface::TriangleSurface,
-    texture: texture::Texture2D,
+    ground_texture: texture::Texture2D,
+    lake_texture: texture::Texture2D,
+    noise_texture: texture::Texture2D,
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
     center: Vec3,
@@ -35,14 +37,21 @@ impl traits::Reflecting for Terrain
 {
     fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.cull(state::CullType::BACK);
+        self.terrain_program.cull(state::CullType::BACK);
 
-        self.texture.bind(0);
-        self.program.add_uniform_int("texture0", &0)?;
-        self.program.add_uniform_mat4("modelMatrix", &transformation)?;
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
+        self.ground_texture.bind(0);
+        self.terrain_program.add_uniform_int("groundTexture", &0)?;
+
+        self.lake_texture.bind(1);
+        self.terrain_program.add_uniform_int("lakeTexture", &1)?;
+
+        self.noise_texture.bind(2);
+        self.terrain_program.add_uniform_int("noiseTexture", &2)?;
+
+        self.terrain_program.add_uniform_mat4("modelMatrix", &transformation)?;
+        self.terrain_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
+        self.terrain_program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+        self.terrain_program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
 
         self.model.render()?;
         Ok(())
@@ -60,16 +69,15 @@ impl Terrain
         mesh.add_custom_vec3_attribute("normal", normals())?;
         mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates())?;
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
+        let terrain_program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &program)?;
+        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &terrain_program)?;
 
-        let img = image::open("examples/assets/textures/grass.jpg").unwrap();
-        let mut texture = texture::Texture2D::create(gl)?;
+        let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
+        let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
+        let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
 
-        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
-
-        let mut terrain = Terrain { program, model, texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        let mut terrain = Terrain { terrain_program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
         Ok(terrain)
     }
@@ -127,6 +135,14 @@ impl Terrain
     {
         get_height_at(&self.noise_generator, x, z)
     }
+}
+
+fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, traits::Error>
+{
+    let img = image::open(name).unwrap();
+    let mut texture = texture::Texture2D::create(gl)?;
+    texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
+    Ok(texture)
 }
 
 fn get_height_at(noise_generator: &Box<NoiseFn<Point2<f64>>>, x: f32, z: f32) -> f32
