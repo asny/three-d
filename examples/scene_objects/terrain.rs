@@ -56,7 +56,7 @@ impl Terrain
         Ok(terrain)
     }
 
-    pub fn draw_ground(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render_ground(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.terrain_program.cull(state::CullType::BACK);
 
@@ -80,7 +80,7 @@ impl Terrain
         Ok(())
     }
 
-    pub fn draw_water(&self, camera: &camera::Camera, color_texture: &Texture) -> Result<(), traits::Error>
+    pub fn render_water(&self, camera: &camera::Camera, color_texture: &Texture) -> Result<(), traits::Error>
     {
         self.water_program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
         self.water_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;

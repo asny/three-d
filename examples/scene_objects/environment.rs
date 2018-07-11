@@ -18,16 +18,16 @@ impl Environment {
         Ok(Environment {terrain, skybox})
     }
 
-    pub fn draw_solid(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render_opague(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.skybox.render(&camera)?;
-        self.terrain.draw_ground(camera)?;
+        self.terrain.render_ground(camera)?;
         Ok(())
     }
 
-    pub fn draw_transparent(&self, camera: &camera::Camera, color_texture: &core::texture::Texture) -> Result<(), traits::Error>
+    pub fn render_transparent(&self, camera: &camera::Camera, color_texture: &core::texture::Texture) -> Result<(), traits::Error>
     {
-        self.terrain.draw_water(camera, color_texture)?;
+        self.terrain.render_water(camera, color_texture)?;
         Ok(())
     }
 

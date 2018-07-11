@@ -117,7 +117,7 @@ fn main() {
         // Draw
         let render_opague = || {
             let transformation = glm::Matrix4::one();
-            environment.draw_solid(&camera).unwrap();
+            environment.render_opague(&camera).unwrap();
             textured_box.reflect(&transformation, &camera).unwrap();
             spider.reflect(&transformation, &camera).unwrap();
         };
@@ -127,7 +127,7 @@ fn main() {
 
         renderer.forward_pass_begin();
 
-        environment.draw_transparent(&camera, renderer.geometry_pass_color_texture()).unwrap();
+        environment.render_transparent(&camera, renderer.geometry_pass_color_texture()).unwrap();
 
         window.gl_swap_window();
     };
