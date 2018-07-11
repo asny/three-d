@@ -1,21 +1,26 @@
-use scene_objects::terrain;
+use scene_objects::terrain::Terrain;
+use scene_objects::skybox::Skybox;
 use dust::*;
 use glm::*;
 
 pub struct Environment
 {
-    terrain: terrain::Terrain
+    skybox: Skybox,
+    terrain: Terrain
 }
 
 impl Environment {
     pub fn create(gl: &gl::Gl) -> Result<Environment, traits::Error>
     {
-        let terrain = terrain::Terrain::create(gl)?;
-        Ok(Environment {terrain})
+        let terrain = Terrain::create(gl)?;
+        let skybox = Skybox::create(&gl).unwrap();
+
+        Ok(Environment {terrain, skybox})
     }
 
     pub fn draw_solid(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
+        self.skybox.render(&camera)?;
         self.terrain.draw_ground(camera)?;
         Ok(())
     }

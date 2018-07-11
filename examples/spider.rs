@@ -46,7 +46,6 @@ fn main() {
 
     // Models
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
-    let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
     let mut environment = scene_objects::environment::Environment::create(&gl).unwrap();
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
@@ -120,7 +119,6 @@ fn main() {
         renderer.geometry_pass_begin().unwrap();
 
         let transformation = glm::Matrix4::one();
-        skybox.reflect(&transformation, &camera).unwrap();
         environment.draw_solid(&camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
         spider.reflect(&transformation, &camera).unwrap();
