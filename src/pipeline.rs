@@ -103,7 +103,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn geometry_pass_begin(&self) -> Result<(), Error>
+    pub fn render<F>(&self, render_opague: F, camera: &camera::Camera) -> Result<(), Error> where F: Fn()
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
@@ -112,16 +112,9 @@ impl DeferredPipeline
 
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
-        Ok(())
-    }
 
-    pub fn bind_geometry_pass_color_texture(&self, location: u32)
-    {
-        self.geometry_pass_rendertarget.targets[0].bind(0);
-    }
+        render_opague();
 
-    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
-    {
         self.rendertarget.bind();
         self.rendertarget.clear();
 
@@ -149,6 +142,11 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
 
         Ok(())
+    }
+
+    pub fn bind_geometry_pass_color_texture(&self, location: u32)
+    {
+        self.geometry_pass_rendertarget.targets[0].bind(0);
     }
 
     pub fn shine_light(&self, directional_light: &light::DirectionalLight) -> Result<(), Error>

@@ -116,14 +116,13 @@ fn main() {
         environment.set_position(&spider_pos);
 
         // draw
-        renderer.geometry_pass_begin().unwrap();
-
-        let transformation = glm::Matrix4::one();
-        environment.draw_solid(&camera).unwrap();
-        textured_box.reflect(&transformation, &camera).unwrap();
-        spider.reflect(&transformation, &camera).unwrap();
-
-        renderer.light_pass_begin(&camera).unwrap();
+        let render_opague = || {
+            let transformation = glm::Matrix4::one();
+            environment.draw_solid(&camera).unwrap();
+            textured_box.reflect(&transformation, &camera).unwrap();
+            spider.reflect(&transformation, &camera).unwrap();
+        };
+        renderer.render(render_opague, &camera).unwrap();
         
         renderer.shine_light(&directional_light).unwrap();
 
