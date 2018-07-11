@@ -15,6 +15,7 @@ use dust::camera;
 use dust::core::state;
 use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
+use num_traits::identities::One;
 
 const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 2;
@@ -23,6 +24,7 @@ const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
 pub struct Terrain {
     terrain_program: program::Program,
+    water_program: program::Program,
     model: surface::TriangleSurface,
     ground_texture: texture::Texture2D,
     lake_texture: texture::Texture2D,
@@ -54,6 +56,7 @@ impl traits::Reflecting for Terrain
         self.terrain_program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
 
         self.model.render()?;
+
         Ok(())
     }
 
@@ -78,9 +81,19 @@ impl Terrain
         let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
         let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
 
-        let mut terrain = Terrain { terrain_program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        let mut terrain = Terrain { terrain_program, water_program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
         Ok(terrain)
+    }
+
+    pub fn draw_water(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    {
+        self.water_program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
+        self.water_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
+        self.water_program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+
+        self.model.render()?;
+        Ok(())
     }
 
     pub fn get_center(&self) -> &Vec3

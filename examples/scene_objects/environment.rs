@@ -23,6 +23,12 @@ impl Environment {
         Ok(Environment {terrain})
     }
 
+    pub fn draw_transparent(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    {
+        self.terrain.draw_water(camera)?;
+        Ok(())
+    }
+
     pub fn set_position(&mut self, position: &Vec3)
     {
         if length(*self.terrain.get_center() - *position) > 10.0

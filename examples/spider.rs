@@ -3,7 +3,6 @@ extern crate dust;
 
 mod scene_objects;
 
-use glm::*;
 use std::process;
 use std::time::Instant;
 
@@ -129,6 +128,10 @@ fn main() {
         renderer.light_pass_begin(&camera).unwrap();
         
         renderer.shine_light(&directional_light).unwrap();
+
+        renderer.forward_pass_begin();
+
+        environment.draw_transparent(&camera).unwrap();
 
         window.gl_swap_window();
     };

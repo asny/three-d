@@ -1,4 +1,5 @@
-uniform mat4 VPMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 uniform samplerCube environmentMap;
 uniform vec3 eyePosition;
 uniform float time;
@@ -30,7 +31,7 @@ vec3 reflect_color(vec3 incidentDir, vec3 normal)
     for (int i = 0; i < 8; i++)
     {
         p_w += stepDir;
-        vec4 p_s = VPMatrix * vec4(p_w, 1.);
+        vec4 p_s = projectionMatrix * viewMatrix * vec4(p_w, 1.);
         p_s /= p_s.w;
         vec2 uv = 0.5 + 0.5 * p_s.xy;
         if(uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.)

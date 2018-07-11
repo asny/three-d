@@ -162,4 +162,12 @@ impl DeferredPipeline
         full_screen_quad::render(&self.gl, &self.light_pass_program);
         Ok(())
     }
+
+    pub fn forward_pass_begin(&self)
+    {
+        state::blend(&self.gl, true);
+        unsafe {
+            self.gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        }
+    }
 }
