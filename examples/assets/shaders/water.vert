@@ -1,5 +1,6 @@
-uniform mat4 VPMatrix;
-uniform mat4 MMatrix;
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 uniform float time;
 uniform float median_wavelength;
 uniform float speed;
@@ -10,15 +11,15 @@ const int noWaves = 4;
 const float pi = 3.14159;
 
 in vec3 position;
-in vec2 uv_coordinates;
+in vec2 uv_coordinate;
 
-out vec2 coords;
+out vec2 uv;
 out vec3 nor;
 out vec3 pos;
 
 void main()
 {
-    pos = (MMatrix * vec4(position, 1.)).xyz;
+    pos = (modelMatrix * vec4(position, 1.)).xyz;
     pos.y = 0.;
     nor = vec3(0., 1., 0.);
     
@@ -66,6 +67,6 @@ void main()
         nor.z -= dir.y * frequency * amplitude * cos_a;
     }
     
-    gl_Position = VPMatrix * vec4(pos, 1.);
-    coords = uv_coordinates;
+    gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
+    uv = uv_coordinate;
 }

@@ -14,7 +14,7 @@ uniform vec2 screenSize;
 
 in vec3 pos;
 in vec3 nor;
-in vec2 coords;
+in vec2 uv;
 
 layout (location = 0) out vec4 color;
 
@@ -156,10 +156,10 @@ void main()
         }
         
         // Sample the mask
-        vec2 scaledUV = coords * 20.;
+        vec2 scaledUV = uv * 20.;
         float edgePatternScroll = 0.2;
-        float channelA = texture(maskSampler, scaledUV - vec2(edgePatternScroll, cos(coords.x))).r;
-        float channelB = texture(maskSampler, scaledUV * 0.5 + vec2(sin(coords.y), edgePatternScroll)).b;
+        float channelA = texture(maskSampler, scaledUV - vec2(edgePatternScroll, cos(uv.x))).r;
+        float channelB = texture(maskSampler, scaledUV * 0.5 + vec2(sin(uv.y), edgePatternScroll)).b;
         
         // Modify it to our liking
         float mask = (channelA + channelB) * 0.95;
