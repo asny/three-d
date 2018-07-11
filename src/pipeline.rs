@@ -115,6 +115,11 @@ impl DeferredPipeline
         Ok(())
     }
 
+    pub fn bind_geometry_pass_color_texture(&self, location: u32)
+    {
+        self.geometry_pass_rendertarget.targets[0].bind(0);
+    }
+
     pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         self.rendertarget.bind();
@@ -129,7 +134,7 @@ impl DeferredPipeline
             self.gl.BlendFunc(gl::ONE, gl::ONE);
         }
 
-        self.geometry_pass_rendertarget.targets[0].bind(0);
+        self.bind_geometry_pass_color_texture(0);
         self.light_pass_program.add_uniform_int("colorMap", &0)?;
 
         self.geometry_pass_rendertarget.targets[1].bind(1);

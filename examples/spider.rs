@@ -131,7 +131,7 @@ fn main() {
 
         renderer.forward_pass_begin();
 
-        environment.draw_transparent(&camera).unwrap();
+        environment.draw_transparent(&camera, &renderer).unwrap();
 
         window.gl_swap_window();
     };

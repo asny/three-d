@@ -20,9 +20,9 @@ impl Environment {
         Ok(())
     }
 
-    pub fn draw_transparent(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn draw_transparent(&self, camera: &camera::Camera, pipeline: &pipeline::DeferredPipeline) -> Result<(), traits::Error>
     {
-        self.terrain.draw_water(camera)?;
+        self.terrain.draw_water(camera, pipeline)?;
         Ok(())
     }
 

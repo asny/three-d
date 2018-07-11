@@ -6,13 +6,10 @@ use gl;
 use dust::traits;
 use gust;
 use gust::mesh::Mesh;
-use dust::core::texture;
+use dust::*;
+use dust::core::*;
 use dust::core::texture::Texture;
-use dust::core::surface;
-use dust::core::buffer;
 use glm::*;
-use dust::camera;
-use dust::core::state;
 use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 use num_traits::identities::One;
@@ -83,11 +80,14 @@ impl Terrain
         Ok(())
     }
 
-    pub fn draw_water(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn draw_water(&self, camera: &camera::Camera, pipeline: &pipeline::DeferredPipeline) -> Result<(), traits::Error>
     {
         self.water_program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
         self.water_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.water_program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+
+        pipeline.bind_geometry_pass_color_texture(0);
+        self.water_program.add_uniform_int("colorMap", &0)?;
 
         self.model.render()?;
         Ok(())
