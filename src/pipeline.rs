@@ -130,13 +130,13 @@ impl DeferredPipeline
         self.geometry_pass_color_texture().bind(0);
         self.light_pass_program.add_uniform_int("colorMap", &0)?;
 
-        self.geometry_pass_rendertarget.targets[1].bind(1);
+        self.geometry_pass_position_texture().bind(1);
         self.light_pass_program.add_uniform_int("positionMap", &1)?;
 
-        self.geometry_pass_rendertarget.targets[2].bind(2);
+        self.geometry_pass_normal_texture().bind(2);
         self.light_pass_program.add_uniform_int("normalMap", &2)?;
 
-        self.geometry_pass_rendertarget.depth_target.bind(3);
+        self.geometry_pass_depth_texture().bind(3);
         self.light_pass_program.add_uniform_int("depthMap", &3)?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
@@ -147,6 +147,21 @@ impl DeferredPipeline
     pub fn geometry_pass_color_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.targets[0]
+    }
+
+    pub fn geometry_pass_position_texture(&self) -> &Texture
+    {
+        &self.geometry_pass_rendertarget.targets[1]
+    }
+
+    pub fn geometry_pass_normal_texture(&self) -> &Texture
+    {
+        &self.geometry_pass_rendertarget.targets[2]
+    }
+
+    pub fn geometry_pass_depth_texture(&self) -> &Texture
+    {
+        &self.geometry_pass_rendertarget.depth_target
     }
 
     pub fn shine_light(&self, directional_light: &light::DirectionalLight) -> Result<(), Error>

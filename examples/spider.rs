@@ -105,17 +105,16 @@ fn main() {
         }
 
         let new_now = Instant::now();
-
         let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
         now = new_now;
 
+        // Update
         spider.update(elapsed_time, &environment);
         let spider_pos = spider.get_position(&environment);
         camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment));
-
         environment.set_position(&spider_pos);
 
-        // draw
+        // Draw
         let render_opague = || {
             let transformation = glm::Matrix4::one();
             environment.draw_solid(&camera).unwrap();
