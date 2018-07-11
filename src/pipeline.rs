@@ -127,7 +127,7 @@ impl DeferredPipeline
             self.gl.BlendFunc(gl::ONE, gl::ONE);
         }
 
-        self.bind_geometry_pass_color_texture(0);
+        self.geometry_pass_color_texture().bind(0);
         self.light_pass_program.add_uniform_int("colorMap", &0)?;
 
         self.geometry_pass_rendertarget.targets[1].bind(1);
@@ -144,9 +144,9 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn bind_geometry_pass_color_texture(&self, location: u32)
+    pub fn geometry_pass_color_texture(&self) -> &Texture
     {
-        self.geometry_pass_rendertarget.targets[0].bind(0);
+        &self.geometry_pass_rendertarget.targets[0]
     }
 
     pub fn shine_light(&self, directional_light: &light::DirectionalLight) -> Result<(), Error>

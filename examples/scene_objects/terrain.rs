@@ -86,7 +86,7 @@ impl Terrain
         self.water_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.water_program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
 
-        pipeline.bind_geometry_pass_color_texture(0);
+        pipeline.geometry_pass_color_texture().bind(0);
         self.water_program.add_uniform_int("colorMap", &0)?;
 
         self.model.render()?;
