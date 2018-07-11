@@ -35,33 +35,6 @@ pub struct Terrain {
     mesh: Mesh
 }
 
-impl traits::Reflecting for Terrain
-{
-    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
-    {
-        self.terrain_program.cull(state::CullType::BACK);
-
-        self.ground_texture.bind(0);
-        self.terrain_program.add_uniform_int("groundTexture", &0)?;
-
-        self.lake_texture.bind(1);
-        self.terrain_program.add_uniform_int("lakeTexture", &1)?;
-
-        self.noise_texture.bind(2);
-        self.terrain_program.add_uniform_int("noiseTexture", &2)?;
-
-        self.terrain_program.add_uniform_mat4("modelMatrix", &transformation)?;
-        self.terrain_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
-        self.terrain_program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.terrain_program.add_uniform_mat4("normalMatrix", &transpose(&inverse(transformation)))?;
-
-        self.model.render()?;
-
-        Ok(())
-    }
-
-}
-
 impl Terrain
 {
     pub fn create(gl: &gl::Gl) -> Result<Terrain, traits::Error>
@@ -84,6 +57,30 @@ impl Terrain
         let mut terrain = Terrain { terrain_program, water_program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
         Ok(terrain)
+    }
+
+    pub fn draw_ground(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    {
+        self.terrain_program.cull(state::CullType::BACK);
+
+        self.ground_texture.bind(0);
+        self.terrain_program.add_uniform_int("groundTexture", &0)?;
+
+        self.lake_texture.bind(1);
+        self.terrain_program.add_uniform_int("lakeTexture", &1)?;
+
+        self.noise_texture.bind(2);
+        self.terrain_program.add_uniform_int("noiseTexture", &2)?;
+
+        let transformation = Matrix4::one();
+        self.terrain_program.add_uniform_mat4("modelMatrix", &transformation)?;
+        self.terrain_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
+        self.terrain_program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+        self.terrain_program.add_uniform_mat4("normalMatrix", &transpose(&inverse(&transformation)))?;
+
+        self.model.render()?;
+
+        Ok(())
     }
 
     pub fn draw_water(&self, camera: &camera::Camera) -> Result<(), traits::Error>

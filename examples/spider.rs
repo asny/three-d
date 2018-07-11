@@ -121,7 +121,7 @@ fn main() {
 
         let transformation = glm::Matrix4::one();
         skybox.reflect(&transformation, &camera).unwrap();
-        environment.reflect(&transformation, &camera).unwrap();
+        environment.draw_solid(&camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
         spider.reflect(&transformation, &camera).unwrap();
 

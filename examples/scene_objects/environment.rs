@@ -7,20 +7,17 @@ pub struct Environment
     terrain: terrain::Terrain
 }
 
-impl traits::Reflecting for Environment
-{
-    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
-    {
-        self.terrain.reflect(transformation, camera)?;
-        Ok(())
-    }
-}
-
 impl Environment {
     pub fn create(gl: &gl::Gl) -> Result<Environment, traits::Error>
     {
         let terrain = terrain::Terrain::create(gl)?;
         Ok(Environment {terrain})
+    }
+
+    pub fn draw_solid(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    {
+        self.terrain.draw_ground(camera)?;
+        Ok(())
     }
 
     pub fn draw_transparent(&self, camera: &camera::Camera) -> Result<(), traits::Error>
