@@ -6,7 +6,7 @@ use dust::traits;
 use gust;
 use dust::core::surface;
 use dust::camera;
-use scene_objects::terrain;
+use scene_objects::environment::Environment;
 use num_traits::identities::One;
 
 pub struct Spider {
@@ -49,22 +49,22 @@ impl Spider
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})
     }
 
-    pub fn get_position(&self, terrain: &terrain::Terrain) -> Vec3
+    pub fn get_position(&self, environment: &Environment) -> Vec3
     {
         static HEIGHT_ABOVE_GROUND: f32 = 0.3;
-        vec3(self.position.x, terrain.get_height_at(self.position.x, self.position.z) + HEIGHT_ABOVE_GROUND, self.position.z)
+        vec3(self.position.x, environment.get_height_at(self.position.x, self.position.z) + HEIGHT_ABOVE_GROUND, self.position.z)
     }
 
-    pub fn get_view_direction(&self, terrain: &terrain::Terrain) -> Vec3
+    pub fn get_view_direction(&self, environment: &Environment) -> Vec3
     {
-        let height0 = terrain.get_height_at(self.position.x, self.position.z);
-        let height1 = terrain.get_height_at(self.position.x + 0.5 * self.view_direction.x, self.position.z + 0.5 * self.view_direction.z);
-        let height2 = terrain.get_height_at(self.position.x + self.view_direction.x, self.position.z + self.view_direction.z);
+        let height0 = environment.get_height_at(self.position.x, self.position.z);
+        let height1 = environment.get_height_at(self.position.x + 0.5 * self.view_direction.x, self.position.z + 0.5 * self.view_direction.z);
+        let height2 = environment.get_height_at(self.position.x + self.view_direction.x, self.position.z + self.view_direction.z);
         let y_view_dir = 0.25 * ((height2 - height0) + (height1 - height0));
         normalize(vec3(self.view_direction.x, y_view_dir, self.view_direction.z))
     }
 
-    pub fn update(&mut self, time: f32, terrain: &terrain::Terrain)
+    pub fn update(&mut self, time: f32, environment: &Environment)
     {
         static SPEED: f32 = 2.0;
         static ANGULAR_SPEED: f32 = 1.0;
@@ -92,8 +92,8 @@ impl Spider
         let spider_translation;
         {
             // Get world position and view direction
-            let world_position = self.get_position(terrain);
-            let world_view_direction = self.get_view_direction(terrain);
+            let world_position = self.get_position(environment);
+            let world_view_direction = self.get_view_direction(environment);
 
             // Compute spider model matrix
             //let spider_rotation_yaw = orientation(normalize(vec3(world_view_direction.x, 0.0, world_view_direction.z)), vec3(0.0, 0.0, 1.0));

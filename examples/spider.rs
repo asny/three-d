@@ -48,7 +48,7 @@ fn main() {
     // Models
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
     let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
-    let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
+    let mut environment = scene_objects::environment::Environment::create(&gl).unwrap();
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights
@@ -111,21 +111,18 @@ fn main() {
         let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
         now = new_now;
 
-        spider.update(elapsed_time, &terrain);
-        let spider_pos = spider.get_position(&terrain);
-        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&terrain));
+        spider.update(elapsed_time, &environment);
+        let spider_pos = spider.get_position(&environment);
+        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment));
 
-        if length(*terrain.get_center() - spider_pos) > 10.0
-        {
-            terrain.set_center(&spider_pos);
-        }
+        environment.set_position(&spider_pos);
 
         // draw
         renderer.geometry_pass_begin().unwrap();
 
         let transformation = glm::Matrix4::one();
         skybox.reflect(&transformation, &camera).unwrap();
-        terrain.reflect(&transformation, &camera).unwrap();
+        environment.reflect(&transformation, &camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
         spider.reflect(&transformation, &camera).unwrap();
 
