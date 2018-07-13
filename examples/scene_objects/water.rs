@@ -46,7 +46,9 @@ impl Water
 
     pub fn render(&self, camera: &camera::Camera, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture) -> Result<(), traits::Error>
     {
-        self.program.cull(state::CullType::BACK);
+        self.program.cull(state::CullType::NONE);
+        self.program.depth_write(false);
+        self.program.depth_test(true);
 
         self.program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
