@@ -86,6 +86,9 @@ impl Terrain
         self.water_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.water_program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
 
+        self.water_program.add_uniform_vec3("eyePosition", &camera.position)?;
+        self.water_program.add_uniform_vec2("screenSize", &vec2(camera.width as f32, camera.height as f32))?;
+
         color_texture.bind(0);
         self.water_program.add_uniform_int("colorMap", &0)?;
 
