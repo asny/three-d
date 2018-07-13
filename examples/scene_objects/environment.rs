@@ -24,7 +24,7 @@ impl Environment {
     pub fn render_opague(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.skybox.render(&camera)?;
-        self.terrain.render_ground(camera)?;
+        self.terrain.render(camera)?;
         Ok(())
     }
 
