@@ -25,9 +25,9 @@ impl Environment {
         Ok(())
     }
 
-    pub fn render_transparent(&self, camera: &camera::Camera, color_texture: &core::texture::Texture) -> Result<(), traits::Error>
+    pub fn render_transparent(&self, camera: &camera::Camera, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture) -> Result<(), traits::Error>
     {
-        self.terrain.render_water(camera, color_texture)?;
+        self.terrain.render_water(camera, color_texture, position_texture)?;
         Ok(())
     }
 

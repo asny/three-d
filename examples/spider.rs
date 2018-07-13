@@ -127,7 +127,7 @@ fn main() {
 
         renderer.forward_pass_begin();
 
-        environment.render_transparent(&camera, renderer.geometry_pass_color_texture()).unwrap();
+        environment.render_transparent(&camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
     };

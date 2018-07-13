@@ -80,7 +80,7 @@ impl Terrain
         Ok(())
     }
 
-    pub fn render_water(&self, camera: &camera::Camera, color_texture: &Texture) -> Result<(), traits::Error>
+    pub fn render_water(&self, camera: &camera::Camera, color_texture: &Texture, position_texture: &Texture) -> Result<(), traits::Error>
     {
         self.water_program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
         self.water_program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
@@ -91,6 +91,9 @@ impl Terrain
 
         color_texture.bind(0);
         self.water_program.add_uniform_int("colorMap", &0)?;
+
+        position_texture.bind(1);
+        self.water_program.add_uniform_int("positionMap", &1)?;
 
         self.model.render()?;
         Ok(())
