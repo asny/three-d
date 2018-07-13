@@ -1,4 +1,5 @@
 use scene_objects::terrain::Terrain;
+use scene_objects::water::Water;
 use scene_objects::skybox::Skybox;
 use dust::*;
 use glm::*;
@@ -6,16 +7,18 @@ use glm::*;
 pub struct Environment
 {
     skybox: Skybox,
-    terrain: Terrain
+    terrain: Terrain,
+    water: Water
 }
 
 impl Environment {
     pub fn create(gl: &gl::Gl) -> Result<Environment, traits::Error>
     {
-        let terrain = Terrain::create(gl)?;
         let skybox = Skybox::create(&gl).unwrap();
+        let terrain = Terrain::create(gl)?;
+        let water = Water::create(gl)?;
 
-        Ok(Environment {terrain, skybox})
+        Ok(Environment {terrain, skybox, water})
     }
 
     pub fn render_opague(&self, camera: &camera::Camera) -> Result<(), traits::Error>
@@ -27,7 +30,7 @@ impl Environment {
 
     pub fn render_transparent(&self, camera: &camera::Camera, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture) -> Result<(), traits::Error>
     {
-        self.terrain.render_water(camera, color_texture, position_texture)?;
+        self.water.render(camera, color_texture, position_texture, self.skybox.get_texture())?;
         Ok(())
     }
 

@@ -53,4 +53,9 @@ impl Skybox
         self.model.render()?;
         Ok(())
     }
+
+    pub fn get_texture(&self) -> &texture::Texture3D
+    {
+        &self.texture
+    }
 }
