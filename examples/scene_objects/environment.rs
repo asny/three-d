@@ -28,9 +28,9 @@ impl Environment {
         Ok(())
     }
 
-    pub fn render_transparent(&self, camera: &camera::Camera, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture) -> Result<(), traits::Error>
+    pub fn render_transparent(&self, time: f32, camera: &camera::Camera, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture) -> Result<(), traits::Error>
     {
-        self.water.render(camera, color_texture, position_texture, self.skybox.get_texture())?;
+        self.water.render(time, camera, color_texture, position_texture, self.skybox.get_texture())?;
         Ok(())
     }
 

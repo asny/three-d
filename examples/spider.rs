@@ -57,6 +57,7 @@ fn main() {
 
     let mut camerahandler = camerahandler::CameraHandler::create();
     let mut now = Instant::now();
+    let mut time = 0.0;
     // main loop
     let main_loop = || {
         for event in events.poll_iter() {
@@ -107,6 +108,7 @@ fn main() {
         let new_now = Instant::now();
         let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
         now = new_now;
+        time += elapsed_time;
 
         // Update
         spider.update(elapsed_time, &environment);
@@ -127,7 +129,7 @@ fn main() {
 
         renderer.forward_pass_begin();
 
-        environment.render_transparent(&camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
+        environment.render_transparent(time, &camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
     };
