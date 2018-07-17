@@ -1,5 +1,6 @@
 use glm;
 use traits;
+use core::program;
 
 pub struct Light {
     pub color: glm::Vec3,
@@ -26,4 +27,13 @@ impl DirectionalLight
 
 impl traits::Emitting for DirectionalLight
 {
+    fn emit(&self, program: &program::Program) -> Result<(), traits::Error>
+    {
+        program.add_uniform_int("lightType", &1)?;
+        program.add_uniform_vec3("directionalLight.direction", &self.direction)?;
+        program.add_uniform_vec3("directionalLight.base.color", &self.base.color)?;
+        program.add_uniform_float("directionalLight.base.ambientIntensity", &self.base.ambient_intensity)?;
+        program.add_uniform_float("directionalLight.base.diffuseIntensity", &self.base.diffuse_intensity)?;
+        Ok(())
+    }
 }

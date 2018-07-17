@@ -38,6 +38,7 @@ impl From<mesh::Error> for Error {
 }
 
 pub trait Emitting {
+    fn emit(&self, program: &program::Program) -> Result<(), Error>;
 }
 
 pub trait Reflecting {

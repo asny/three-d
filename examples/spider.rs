@@ -13,6 +13,7 @@ use sdl2::keyboard::Keycode;
 
 use dust::*;
 use dust::traits::Reflecting;
+use dust::traits::Emitting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
@@ -130,11 +131,7 @@ fn main() {
             GLUniform::use(shader, "shadowCubeMap", 5);
             GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
 
-            program.add_uniform_int("lightType", &1)?;
-            program.add_uniform_vec3("directionalLight.direction", &directional_light.direction)?;
-            program.add_uniform_vec3("directionalLight.base.color", &directional_light.base.color)?;
-            program.add_uniform_float("directionalLight.base.ambientIntensity", &directional_light.base.ambient_intensity)?;
-            program.add_uniform_float("directionalLight.base.diffuseIntensity", &directional_light.base.diffuse_intensity)?;
+            directional_light.emit(program)?;
 
             core::full_screen_quad::render(&gl, program);
             Ok(())
