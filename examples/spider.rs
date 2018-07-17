@@ -124,9 +124,22 @@ fn main() {
             spider.reflect(&transformation, &camera)?;
             Ok(())
         };
-        renderer.render(render_opague, &camera).unwrap();
-        
-        renderer.shine_light(&directional_light).unwrap();
+        let shine_lights = |program: &core::program::Program| {
+            /*shadow_render_target.bind_texture_for_reading(4);
+            GLUniform::use(shader, "shadowMap", 4);
+            GLUniform::use(shader, "shadowCubeMap", 5);
+            GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
+
+            program.add_uniform_int("lightType", &1)?;
+            program.add_uniform_vec3("directionalLight.direction", &directional_light.direction)?;
+            program.add_uniform_vec3("directionalLight.base.color", &directional_light.base.color)?;
+            program.add_uniform_float("directionalLight.base.ambientIntensity", &directional_light.base.ambient_intensity)?;
+            program.add_uniform_float("directionalLight.base.diffuseIntensity", &directional_light.base.diffuse_intensity)?;
+
+            core::full_screen_quad::render(&gl, program);
+            Ok(())
+        };
+        renderer.render(render_opague, shine_lights, &camera).unwrap();
 
         renderer.forward_pass_begin();
 

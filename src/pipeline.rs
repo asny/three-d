@@ -103,7 +103,8 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render<F>(&self, render_opague: F, camera: &camera::Camera) -> Result<(), Error> where F: Fn() -> Result<(), Error>
+    pub fn render<F, G>(&self, render_opague: F, shine_lights: G, camera: &camera::Camera)
+        -> Result<(), Error> where F: Fn() -> Result<(), Error>, G: Fn(&program::Program) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
@@ -141,6 +142,8 @@ impl DeferredPipeline
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
 
+        shine_lights(&self.light_pass_program)?;
+
         Ok(())
     }
 
@@ -162,23 +165,6 @@ impl DeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.depth_target
-    }
-
-    pub fn shine_light(&self, directional_light: &light::DirectionalLight) -> Result<(), Error>
-    {
-        /*shadow_render_target.bind_texture_for_reading(4);
-        GLUniform::use(shader, "shadowMap", 4);
-        GLUniform::use(shader, "shadowCubeMap", 5);
-        GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
-
-        self.light_pass_program.add_uniform_int("lightType", &1)?;
-        self.light_pass_program.add_uniform_vec3("directionalLight.direction", &directional_light.direction)?;
-        self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &directional_light.base.color)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &directional_light.base.ambient_intensity)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &directional_light.base.diffuse_intensity)?;
-
-        full_screen_quad::render(&self.gl, &self.light_pass_program);
-        Ok(())
     }
 
     pub fn forward_pass_begin(&self)
