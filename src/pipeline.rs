@@ -126,7 +126,6 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, true);
         unsafe {
-            self.gl.DepthFunc(gl::LEQUAL);
             self.gl.BlendFunc(gl::ONE, gl::ONE);
         }
 
@@ -145,6 +144,15 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
 
         shine_lights(&self.light_pass_program)?;
+
+        // Post effects
+        state::depth_write(&self.gl,false);
+        state::depth_test(&self.gl, false);
+        state::cull(&self.gl,state::CullType::BACK);
+        state::blend(&self.gl, true);
+        unsafe {
+            self.gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        }
 
         Ok(())
     }
@@ -167,13 +175,5 @@ impl DeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.depth_target
-    }
-
-    pub fn forward_pass_begin(&self)
-    {
-        state::blend(&self.gl, true);
-        unsafe {
-            self.gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        }
     }
 }

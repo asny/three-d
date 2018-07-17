@@ -138,8 +138,6 @@ fn main() {
         };
         renderer.render(render_opague, shine_lights, &camera).unwrap();
 
-        renderer.forward_pass_begin();
-
         environment.render_transparent(time, &camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
