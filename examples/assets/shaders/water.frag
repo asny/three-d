@@ -2,15 +2,14 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform samplerCube environmentMap;
 uniform vec3 eyePosition;
-uniform float time;
-uniform vec3 windDirection;
+/*uniform float time;
 uniform vec4 ringCenterAndTime[32];
 uniform int noEffects;
-uniform float ringEffectTime;
+uniform float ringEffectTime;*/
 
 uniform sampler2D positionMap;
 uniform sampler2D colorMap;
-uniform sampler2D maskSampler;
+//uniform sampler2D maskSampler;
 uniform vec2 screenSize;
 
 in vec3 pos;
@@ -81,7 +80,7 @@ vec3 get_normal()
 {
     // Rings
     vec3 ring = vec3(0., 0., 0.);
-    for (int i = 0; i < noEffects; i++)
+    /*for (int i = 0; i < noEffects; i++)
     {
         vec3 center = ringCenterAndTime[i].xyz;
         float startTime = ringCenterAndTime[i].w;
@@ -94,7 +93,7 @@ vec3 get_normal()
             float ringFactor = 0.4 * smoothstep(0., spread, dist) * sin(100.*(spread - dist));
             ring += fadeFactor * ringFactor * normalize(pos - center);
         }
-    }
+    }*/
     return normalize(nor + ring);
 }
 
@@ -141,7 +140,7 @@ void main()
     col = mix(refractColor, reflectColor, fresnel);
     
     // Foam
-    float waterDepth = pos.y-backgroundPos.y;
+    /*float waterDepth = pos.y-backgroundPos.y;
     const float minFoamDepth = 0.;
     const float peakFoamDepth = 0.02;
     const float maxFoamDepth = 0.1;
@@ -169,7 +168,7 @@ void main()
         
         foam = clamp(foam - mask, 0, 0.5);
         col = mix(col, vec3(0.8,0.8,0.8), foam);
-    }
+    }*/
     
     // Fog
     col = fog(col, eyePosition, pos);
