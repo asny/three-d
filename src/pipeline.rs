@@ -106,6 +106,7 @@ impl DeferredPipeline
     pub fn render<F, G>(&self, render_opague: F, shine_lights: G, camera: &camera::Camera)
         -> Result<(), Error> where F: Fn() -> Result<(), Error>, G: Fn(&program::Program) -> Result<(), Error>
     {
+        // Geometry pass
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
         state::cull(&self.gl, state::CullType::NONE);
@@ -116,6 +117,7 @@ impl DeferredPipeline
 
         render_opague()?;
 
+        // Light pass
         self.rendertarget.bind();
         self.rendertarget.clear();
 
