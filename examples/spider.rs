@@ -13,7 +13,6 @@ use sdl2::keyboard::Keycode;
 
 use dust::*;
 use dust::traits::Reflecting;
-use dust::traits::Emitting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
