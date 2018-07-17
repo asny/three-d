@@ -119,9 +119,10 @@ fn main() {
         // Draw
         let render_opague = || {
             let transformation = glm::Matrix4::one();
-            environment.render_opague(&camera).unwrap();
-            textured_box.reflect(&transformation, &camera).unwrap();
-            spider.reflect(&transformation, &camera).unwrap();
+            environment.render_opague(&camera)?;
+            textured_box.reflect(&transformation, &camera)?;
+            spider.reflect(&transformation, &camera)?;
+            Ok(())
         };
         renderer.render(render_opague, &camera).unwrap();
         
