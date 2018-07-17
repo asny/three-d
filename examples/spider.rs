@@ -125,15 +125,8 @@ fn main() {
             spider.reflect(&transformation, &camera)?;
             Ok(())
         };
-        let shine_lights = |program: &core::program::Program| {
-            /*shadow_render_target.bind_texture_for_reading(4);
-            GLUniform::use(shader, "shadowMap", 4);
-            GLUniform::use(shader, "shadowCubeMap", 5);
-            GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
-
-            directional_light.emit(program)?;
-
-            core::full_screen_quad::render(&gl, program);
+        let shine_lights = || {
+            renderer.shine_directional_light(&directional_light)?;
             Ok(())
         };
         renderer.render(render_opague, shine_lights, &camera).unwrap();

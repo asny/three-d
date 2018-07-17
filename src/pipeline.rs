@@ -103,8 +103,8 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render<F, G>(&self, render_opague: F, shine_lights: G, camera: &camera::Camera)
-        -> Result<(), Error> where F: Fn() -> Result<(), Error>, G: Fn(&program::Program) -> Result<(), Error>
+    pub fn render<F, G>(&self, render_opague: F, shine_lights: G, camera: &camera::Camera) -> Result<(), Error>
+        where F: Fn() -> Result<(), Error>, G: Fn() -> Result<(), Error>
     {
         // Geometry pass
         state::depth_write(&self.gl, true);
@@ -126,6 +126,7 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, true);
         unsafe {
+            self.gl.DepthFunc(gl::LEQUAL);
             self.gl.BlendFunc(gl::ONE, gl::ONE);
         }
 
@@ -143,7 +144,7 @@ impl DeferredPipeline
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
 
-        shine_lights(&self.light_pass_program)?;
+        shine_lights()?;
 
         // Post effects
         state::depth_write(&self.gl,false);
@@ -154,6 +155,23 @@ impl DeferredPipeline
             self.gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         }
 
+        Ok(())
+    }
+
+    pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
+    {
+        /*shadow_render_target.bind_texture_for_reading(4);
+        GLUniform::use(shader, "shadowMap", 4);
+        GLUniform::use(shader, "shadowCubeMap", 5);
+        GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
+
+        self.light_pass_program.add_uniform_int("lightType", &1)?;
+        self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
+        self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &light.base.ambient_intensity)?;
+        self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &light.base.diffuse_intensity)?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
         Ok(())
     }
 
