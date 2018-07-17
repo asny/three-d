@@ -79,8 +79,10 @@ pub struct DeferredPipeline {
     pub width: usize,
     pub height: usize,
     light_pass_program: program::Program,
+    copy_program: program::Program,
     rendertarget: rendertarget::ScreenRendertarget,
-    geometry_pass_rendertarget: rendertarget::ColorRendertarget
+    geometry_pass_rendertarget: rendertarget::ColorRendertarget,
+    light_pass_rendertarget: rendertarget::ColorRendertarget
 }
 
 
@@ -89,9 +91,11 @@ impl DeferredPipeline
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "examples/assets/shaders/light_pass")?;
+        let copy_program = program::Program::from_resource(&gl, "examples/assets/shaders/copy")?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
-        Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, rendertarget, geometry_pass_rendertarget })
+        let light_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 1)?;
+        Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
 
     pub fn resize(&mut self, width: usize, height: usize) -> Result<(), Error>
@@ -118,8 +122,8 @@ impl DeferredPipeline
         render_opague()?;
 
         // Light pass
-        self.rendertarget.bind();
-        self.rendertarget.clear();
+        self.light_pass_rendertarget.bind();
+        self.light_pass_rendertarget.clear();
 
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, false);
@@ -164,6 +168,24 @@ impl DeferredPipeline
         Ok(())
     }
 
+    pub fn copy(&self) -> Result<(), Error>
+    {
+        self.rendertarget.bind();
+        self.rendertarget.clear();
+
+        state::depth_write(&self.gl,true);
+        state::depth_test(&self.gl, true);
+
+        self.light_pass_color_texture().bind(0);
+        self.copy_program.add_uniform_int("colorMap", &0)?;
+
+        self.geometry_pass_depth_texture().bind(1);
+        self.copy_program.add_uniform_int("depthMap", &1)?;
+
+        full_screen_quad::render(&self.gl, &self.copy_program);
+        Ok(())
+    }
+
     pub fn geometry_pass_color_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.targets[0]
@@ -182,5 +204,10 @@ impl DeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.depth_target
+    }
+
+    pub fn light_pass_color_texture(&self) -> &Texture
+    {
+        &self.light_pass_rendertarget.targets[0]
     }
 }

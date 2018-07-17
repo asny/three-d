@@ -128,6 +128,8 @@ fn main() {
 
         renderer.shine_directional_light(&directional_light).unwrap();
 
+        renderer.copy().unwrap();
+
         unsafe {
             gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         }
