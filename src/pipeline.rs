@@ -103,8 +103,8 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render<F, G>(&self, render_opague: F, shine_lights: G, camera: &camera::Camera) -> Result<(), Error>
-        where F: Fn() -> Result<(), Error>, G: Fn() -> Result<(), Error>
+    pub fn render<F>(&self, render_opague: F, camera: &camera::Camera) -> Result<(), Error>
+        where F: Fn() -> Result<(), Error>
     {
         // Geometry pass
         state::depth_write(&self.gl, true);
@@ -143,17 +143,6 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_int("depthMap", &3)?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
-
-        shine_lights()?;
-
-        // Post effects
-        state::depth_write(&self.gl,false);
-        state::depth_test(&self.gl, false);
-        state::cull(&self.gl,state::CullType::BACK);
-        state::blend(&self.gl, true);
-        unsafe {
-            self.gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        }
 
         Ok(())
     }

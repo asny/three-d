@@ -124,12 +124,13 @@ fn main() {
             spider.reflect(&transformation, &camera)?;
             Ok(())
         };
-        let shine_lights = || {
-            renderer.shine_directional_light(&directional_light)?;
-            Ok(())
-        };
-        renderer.render(render_opague, shine_lights, &camera).unwrap();
+        renderer.render(render_opague, &camera).unwrap();
 
+        renderer.shine_directional_light(&directional_light).unwrap();
+
+        unsafe {
+            gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        }
         environment.render_transparent(time, &camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
