@@ -14,7 +14,7 @@ use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 use num_traits::identities::One;
 
-const SIZE: f32 = 16.0;
+const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 8;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;

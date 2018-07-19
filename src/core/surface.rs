@@ -93,7 +93,7 @@ impl TriangleSurface
                     self.gl.DrawElements(
                         gl::TRIANGLES, // mode
                         self.count as i32, // number of indices to be rendered
-                        gl::UNSIGNED_SHORT,
+                        gl::UNSIGNED_INT,
                         std::ptr::null() // starting index in the enabled arrays
                     );
                 }
