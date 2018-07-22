@@ -15,6 +15,7 @@ use num_traits::identities::One;
 const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 2;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
+const VERTICES_IN_TOTAL: usize = VERTICES_PER_SIDE * VERTICES_PER_SIDE;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
 pub struct Water {
@@ -30,8 +31,8 @@ impl Water
 {
     pub fn create(gl: &gl::Gl) -> Result<Water, traits::Error>
     {
-        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), positions())?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates())?;
+        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
+        mesh.add_custom_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
@@ -84,15 +85,15 @@ impl Water
     fn update_positions(&mut self)
     {
         let positions = self.mesh.positions.data_mut();
-        for r in 0..VERTICES_PER_SIDE+1
+        for r in 0..VERTICES_PER_SIDE
         {
-            for c in 0..VERTICES_PER_SIDE+1
+            for c in 0..VERTICES_PER_SIDE
             {
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                positions[3 * (r*(VERTICES_PER_SIDE+1) + c)] = x;
-                positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = 0.0;
-                positions[3 * (r*(VERTICES_PER_SIDE+1) + c) + 2] = z;
+                positions[3 * (r*VERTICES_PER_SIDE + c)] = x;
+                positions[3 * (r*VERTICES_PER_SIDE + c) + 1] = 0.0;
+                positions[3 * (r*VERTICES_PER_SIDE + c) + 2] = z;
             }
         }
     }
@@ -101,14 +102,14 @@ impl Water
     {
         let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
         let scale = 0.1;
-        for r in 0..VERTICES_PER_SIDE+1
+        for r in 0..VERTICES_PER_SIDE
         {
-            for c in 0..VERTICES_PER_SIDE+1
+            for c in 0..VERTICES_PER_SIDE
             {
                 let x = self.center.x + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z + c as f32 * VERTEX_DISTANCE;
-                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c)] = scale * x;
-                uvs[2 * (r*(VERTICES_PER_SIDE+1) + c) + 1] = scale * z;
+                uvs[2 * (r*VERTICES_PER_SIDE + c)] = scale * x;
+                uvs[2 * (r*VERTICES_PER_SIDE + c) + 1] = scale * z;
             }
         }
 
@@ -126,7 +127,7 @@ fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, trait
 fn indices() -> Vec<u32>
 {
     let mut indices: Vec<u32> = Vec::new();
-    let stride = VERTICES_PER_SIDE as u32 + 1;
+    let stride = VERTICES_PER_SIDE as u32;
     for r in 0..stride-1
     {
         for c in 0..stride-1
@@ -141,14 +142,4 @@ fn indices() -> Vec<u32>
         }
     }
     indices
-}
-
-fn positions() -> Vec<f32>
-{
-    vec![0.0;3 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
-}
-
-fn uv_coordinates() -> Vec<f32>
-{
-    vec![0.0;2 * (VERTICES_PER_SIDE + 1) * (VERTICES_PER_SIDE + 1)]
 }
