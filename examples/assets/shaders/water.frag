@@ -171,7 +171,7 @@ void main()
     }*/
     
     // Fog
-    col = fog(col, eyePosition, pos);
+    //col = fog(col, eyePosition, pos);
     
     color = vec4(col, 1.);
 }
