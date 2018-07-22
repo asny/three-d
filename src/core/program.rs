@@ -204,6 +204,11 @@ impl Program
     }
 
     // STATES
+    pub fn blend(&self, blend_type: state::BlendType)
+    {
+        state::blend(&self.gl, blend_type);
+    }
+
     pub fn cull(&self, cull_type: state::CullType)
     {
         state::cull(&self.gl, cull_type);

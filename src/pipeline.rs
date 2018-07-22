@@ -121,7 +121,7 @@ impl DeferredPipeline
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
         state::cull(&self.gl, state::CullType::NONE);
-        state::blend(&self.gl, false);
+        state::blend(&self.gl, state::BlendType::NONE);
 
         Ok(())
     }
@@ -142,10 +142,9 @@ impl DeferredPipeline
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, false);
         state::cull(&self.gl,state::CullType::BACK);
-        state::blend(&self.gl, true);
+        state::blend(&self.gl, state::BlendType::ONE__ONE);
         unsafe {
             self.gl.DepthFunc(gl::LEQUAL);
-            self.gl.BlendFunc(gl::ONE, gl::ONE);
         }
 
         self.geometry_pass_color_texture().bind(0);
@@ -191,7 +190,7 @@ impl DeferredPipeline
         state::depth_write(&self.gl,true);
         state::depth_test(&self.gl, true);
         state::cull(&self.gl,state::CullType::BACK);
-        state::blend(&self.gl, false);
+        state::blend(&self.gl, state::BlendType::NONE);
 
         self.light_pass_color_texture()?.bind(0);
         program.add_uniform_int("colorMap", &0)?;
