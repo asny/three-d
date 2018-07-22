@@ -39,7 +39,7 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, true).unwrap();
 
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);

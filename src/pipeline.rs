@@ -1,3 +1,4 @@
+use std;
 use camera;
 use scene;
 use traits;
@@ -16,7 +17,8 @@ use core::full_screen_quad;
 pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
-    Traits(traits::Error)
+    Traits(traits::Error),
+    LightPassRendertargetNotAvailable {message: String}
 }
 
 impl From<traits::Error> for Error {
@@ -82,19 +84,22 @@ pub struct DeferredPipeline {
     copy_program: program::Program,
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
-    light_pass_rendertarget: rendertarget::ColorRendertarget
+    light_pass_rendertarget: Option<rendertarget::ColorRendertarget>
 }
 
 
 impl DeferredPipeline
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<DeferredPipeline, Error>
+    pub fn create(gl: &gl::Gl, width: usize, height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "examples/assets/shaders/light_pass")?;
         let copy_program = program::Program::from_resource(&gl, "examples/assets/shaders/copy")?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
-        let light_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 1)?;
+        let mut light_pass_rendertarget= None;
+        if use_light_pass_rendertarget {
+            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, width, height, 1)?);
+        }
         Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
 
@@ -122,8 +127,16 @@ impl DeferredPipeline
 
     pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.light_pass_rendertarget.bind();
-        self.light_pass_rendertarget.clear();
+        match self.light_pass_rendertarget {
+            Some(ref rendertarget) => {
+                rendertarget.bind();
+                rendertarget.clear();
+            },
+            None => {
+                self.rendertarget.bind();
+                self.rendertarget.clear();
+            }
+        }
 
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, false);
@@ -178,7 +191,7 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, false);
 
-        self.light_pass_color_texture().bind(0);
+        self.light_pass_color_texture()?.bind(0);
         self.copy_program.add_uniform_int("colorMap", &0)?;
 
         self.geometry_pass_depth_texture().bind(1);
@@ -208,8 +221,13 @@ impl DeferredPipeline
         &self.geometry_pass_rendertarget.depth_target
     }
 
-    pub fn light_pass_color_texture(&self) -> &Texture
+    pub fn light_pass_color_texture(&self) -> Result<&Texture, Error>
     {
-        &self.light_pass_rendertarget.targets[0]
+        match self.light_pass_rendertarget {
+            Some(ref rendertarget) => { return Ok(&rendertarget.targets[0]) },
+            None => {
+                return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
+            }
+        }
     }
 }
