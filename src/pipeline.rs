@@ -107,21 +107,21 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn render<F>(&self, render_opague: F, camera: &camera::Camera) -> Result<(), Error>
-        where F: Fn() -> Result<(), Error>
+    pub fn geometry_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        // Geometry pass
+        self.geometry_pass_rendertarget.bind();
+        self.geometry_pass_rendertarget.clear();
+
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, true);
         state::cull(&self.gl, state::CullType::NONE);
         state::blend(&self.gl, false);
 
-        self.geometry_pass_rendertarget.bind();
-        self.geometry_pass_rendertarget.clear();
+        Ok(())
+    }
 
-        render_opague()?;
-
-        // Light pass
+    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    {
         self.light_pass_rendertarget.bind();
         self.light_pass_rendertarget.clear();
 
@@ -168,13 +168,15 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn copy(&self) -> Result<(), Error>
+    pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         self.rendertarget.bind();
         self.rendertarget.clear();
 
         state::depth_write(&self.gl,true);
         state::depth_test(&self.gl, true);
+        state::cull(&self.gl,state::CullType::BACK);
+        state::blend(&self.gl, false);
 
         self.light_pass_color_texture().bind(0);
         self.copy_program.add_uniform_int("colorMap", &0)?;
