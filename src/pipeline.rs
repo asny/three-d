@@ -81,7 +81,7 @@ pub struct DeferredPipeline {
     pub width: usize,
     pub height: usize,
     light_pass_program: program::Program,
-    copy_program: program::Program,
+    copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     light_pass_rendertarget: Option<rendertarget::ColorRendertarget>
@@ -93,12 +93,13 @@ impl DeferredPipeline
     pub fn create(gl: &gl::Gl, width: usize, height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "examples/assets/shaders/light_pass")?;
-        let copy_program = program::Program::from_resource(&gl, "examples/assets/shaders/copy")?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
         let mut light_pass_rendertarget= None;
+        let mut copy_program = None;
         if use_light_pass_rendertarget {
             light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, width, height, 1)?);
+            copy_program = Some(program::Program::from_resource(&gl, "examples/assets/shaders/copy")?);
         }
         Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
@@ -183,6 +184,7 @@ impl DeferredPipeline
 
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
+        let program = self.copy_program()?;
         self.rendertarget.bind();
         self.rendertarget.clear();
 
@@ -192,12 +194,12 @@ impl DeferredPipeline
         state::blend(&self.gl, false);
 
         self.light_pass_color_texture()?.bind(0);
-        self.copy_program.add_uniform_int("colorMap", &0)?;
+        program.add_uniform_int("colorMap", &0)?;
 
         self.geometry_pass_depth_texture().bind(1);
-        self.copy_program.add_uniform_int("depthMap", &1)?;
+        program.add_uniform_int("depthMap", &1)?;
 
-        full_screen_quad::render(&self.gl, &self.copy_program);
+        full_screen_quad::render(&self.gl, program);
         Ok(())
     }
 
@@ -225,6 +227,16 @@ impl DeferredPipeline
     {
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => { return Ok(&rendertarget.targets[0]) },
+            None => {
+                return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
+            }
+        }
+    }
+
+    pub fn copy_program(&self) -> Result<&program::Program, Error>
+    {
+        match self.copy_program {
+            Some(ref program) => { return Ok(program) },
             None => {
                 return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
             }
