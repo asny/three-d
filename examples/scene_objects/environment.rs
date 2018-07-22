@@ -39,6 +39,7 @@ impl Environment {
         if length(*self.terrain.get_center() - *position) > 10.0
         {
             self.terrain.set_center(position);
+            self.water.set_center(position);
         }
     }
 
