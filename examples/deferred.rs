@@ -38,7 +38,7 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
 
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
@@ -70,15 +70,15 @@ fn main() {
             }
         }
 
-        // draw
-        renderer.geometry_pass_begin().unwrap();
-
+        // Draw
+        // Geometry pass
+        renderer.geometry_pass_begin(&camera).unwrap();
         let transformation = glm::Matrix4::one();
         monkey.reflect(&transformation, &camera).unwrap();
 
+        // Light pass
         renderer.light_pass_begin(&camera).unwrap();
-
-        renderer.shine_light(&directional_light).unwrap();
+        renderer.shine_directional_light(&directional_light).unwrap();
 
         window.gl_swap_window();
     };

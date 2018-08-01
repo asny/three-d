@@ -130,9 +130,6 @@ fn main() {
         renderer.copy_to_screen().unwrap();
 
         // After effects
-        unsafe {
-            gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        }
         environment.render_transparent(time, &camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
