@@ -50,7 +50,7 @@ impl Water
         self.program.blend(state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         self.program.cull(state::CullType::NONE);
         self.program.depth_write(false);
-        self.program.depth_test(true);
+        self.program.depth_test(state::DepthTestType::LEQUAL);
 
         self.program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;

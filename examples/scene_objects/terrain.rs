@@ -59,7 +59,7 @@ impl Terrain
     {
         self.program.cull(state::CullType::BACK);
         self.program.depth_write(true);
-        self.program.depth_test(true);
+        self.program.depth_test(state::DepthTestType::LEQUAL);
 
         self.ground_texture.bind(0);
         self.program.add_uniform_int("groundTexture", &0)?;

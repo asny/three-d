@@ -62,20 +62,33 @@ pub fn cull(gl: &gl::Gl, cull_type: CullType)
     }
 }
 
-pub fn depth_test(gl: &gl::Gl, enable: bool)
+#[derive(PartialEq)]
+pub enum DepthTestType {
+    NONE,
+    LEQUAL,
+    LESS
+}
+
+pub fn depth_test(gl: &gl::Gl, depth_test_type: DepthTestType)
 {
     unsafe {
-        static mut CURRENTLY_ENABLED: bool = false;
-        if enable != CURRENTLY_ENABLED
+        static mut CURRENT: DepthTestType = DepthTestType::NONE;
+        if depth_test_type != CURRENT
         {
-            if enable
-            {
-                gl.Enable(gl::DEPTH_TEST);
+            match depth_test_type {
+                DepthTestType::NONE => {
+                    gl.Disable(gl::DEPTH_TEST);
+                },
+                DepthTestType::LEQUAL => {
+                    gl.Enable(gl::DEPTH_TEST);
+                    gl.DepthFunc(gl::LEQUAL);
+                },
+                DepthTestType::LESS => {
+                    gl.Enable(gl::DEPTH_TEST);
+                    gl.DepthFunc(gl::LESS);
+                }
             }
-            else {
-                gl.Disable(gl::DEPTH_TEST);
-            }
-            CURRENTLY_ENABLED = enable;
+            CURRENT = depth_test_type;
         }
     }
 }
