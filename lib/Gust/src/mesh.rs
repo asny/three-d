@@ -18,7 +18,7 @@ impl From<attribute::Error> for Error {
 pub struct Mesh {
     pub no_vertices: usize,
     pub no_faces: usize,
-    pub indices: Option<Vec<u16>>,
+    pub indices: Option<Vec<u32>>,
     pub positions: attribute::Attribute,
     attributes: Vec<attribute::Attribute>
 }
@@ -36,13 +36,9 @@ impl Mesh
     pub fn create_indexed(indices: Vec<u32>, positions: Vec<f32>) -> Result<Mesh, Error>
     {
         let no_vertices = positions.len()/3;
-        let mut indices_u16 = Vec::with_capacity(indices.len());
-        for i in 0..indices.len() {
-            indices_u16.push(indices[i] as u16);
-        }
         let position_attribute = attribute::Attribute::create_vec3_attribute("position", positions)?;
 
-        Ok(Mesh { no_vertices, no_faces: indices.len()/3, indices: Some(indices_u16), positions: position_attribute, attributes: Vec::new() })
+        Ok(Mesh { no_vertices, no_faces: indices.len()/3, indices: Some(indices), positions: position_attribute, attributes: Vec::new() })
     }
 
     pub fn get(&self, name: &str) -> Result<&attribute::Attribute, Error>

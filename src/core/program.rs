@@ -204,14 +204,19 @@ impl Program
     }
 
     // STATES
+    pub fn blend(&self, blend_type: state::BlendType)
+    {
+        state::blend(&self.gl, blend_type);
+    }
+
     pub fn cull(&self, cull_type: state::CullType)
     {
         state::cull(&self.gl, cull_type);
     }
 
-    pub fn depth_test(&self, enable: bool)
+    pub fn depth_test(&self, depth_test_type: state::DepthTestType)
     {
-        state::depth_test(&self.gl, enable);
+        state::depth_test(&self.gl, depth_test_type);
     }
 
     pub fn depth_write(&self, enable: bool)

@@ -1,19 +1,32 @@
 use gl;
 
-pub fn blend(gl: &gl::Gl, enable: bool)
+#[derive(PartialEq)]
+pub enum BlendType {
+    NONE,
+    SRC_ALPHA__ONE_MINUS_SRC_ALPHA,
+    ONE__ONE
+}
+
+pub fn blend(gl: &gl::Gl, blend_type: BlendType)
 {
     unsafe {
-        static mut CURRENTLY_ENABLED: bool = false;
-        if enable != CURRENTLY_ENABLED
+        static mut CURRENT: BlendType = BlendType::NONE;
+        if blend_type != CURRENT
         {
-            if enable
-            {
-                gl.Enable(gl::BLEND);
+            match blend_type {
+                BlendType::NONE => {
+                    gl.Disable(gl::BLEND);
+                },
+                BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA => {
+                    gl.Enable(gl::BLEND);
+                    gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+                },
+                BlendType::ONE__ONE => {
+                    gl.Enable(gl::BLEND);
+                    gl.BlendFunc(gl::ONE, gl::ONE);
+                }
             }
-            else {
-                gl.Disable(gl::BLEND);
-            }
-            CURRENTLY_ENABLED = enable;
+            CURRENT = blend_type;
         }
     }
 }
@@ -49,20 +62,33 @@ pub fn cull(gl: &gl::Gl, cull_type: CullType)
     }
 }
 
-pub fn depth_test(gl: &gl::Gl, enable: bool)
+#[derive(PartialEq)]
+pub enum DepthTestType {
+    NONE,
+    LEQUAL,
+    LESS
+}
+
+pub fn depth_test(gl: &gl::Gl, depth_test_type: DepthTestType)
 {
     unsafe {
-        static mut CURRENTLY_ENABLED: bool = false;
-        if enable != CURRENTLY_ENABLED
+        static mut CURRENT: DepthTestType = DepthTestType::NONE;
+        if depth_test_type != CURRENT
         {
-            if enable
-            {
-                gl.Enable(gl::DEPTH_TEST);
+            match depth_test_type {
+                DepthTestType::NONE => {
+                    gl.Disable(gl::DEPTH_TEST);
+                },
+                DepthTestType::LEQUAL => {
+                    gl.Enable(gl::DEPTH_TEST);
+                    gl.DepthFunc(gl::LEQUAL);
+                },
+                DepthTestType::LESS => {
+                    gl.Enable(gl::DEPTH_TEST);
+                    gl.DepthFunc(gl::LESS);
+                }
             }
-            else {
-                gl.Disable(gl::DEPTH_TEST);
-            }
-            CURRENTLY_ENABLED = enable;
+            CURRENT = depth_test_type;
         }
     }
 }

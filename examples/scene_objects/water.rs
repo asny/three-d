@@ -1,5 +1,4 @@
 extern crate image;
-extern crate noise;
 
 use dust::core::program;
 use gl;
@@ -11,92 +10,80 @@ use dust::core::*;
 use dust::core::texture::Texture;
 use glm::*;
 use self::image::{GenericImage};
-use self::noise::{NoiseFn, Point2, SuperSimplex};
 use num_traits::identities::One;
 
 const SIZE: f32 = 64.0;
-const VERTICES_PER_UNIT: usize = 8;
+const VERTICES_PER_UNIT: usize = 2;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTICES_IN_TOTAL: usize = VERTICES_PER_SIDE * VERTICES_PER_SIDE;
 const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
-pub struct Terrain {
+pub struct Water {
     program: program::Program,
     model: surface::TriangleSurface,
-    ground_texture: texture::Texture2D,
-    lake_texture: texture::Texture2D,
-    noise_texture: texture::Texture2D,
-    noise_generator: Box<NoiseFn<Point2<f64>>>,
+    foam_texture: texture::Texture2D,
     buffer: buffer::VertexBuffer,
     center: Vec3,
     mesh: Mesh
 }
 
-impl Terrain
+impl Water
 {
-    pub fn create(gl: &gl::Gl) -> Result<Terrain, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Result<Water, traits::Error>
     {
-        let noise_generator = Box::new(SuperSimplex::new());
-
         let mut mesh = gust::mesh::Mesh::create_indexed(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_custom_vec3_attribute("normal", vec![0.0;3 * VERTICES_IN_TOTAL])?;
         mesh.add_custom_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &program)?;
+        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("uv_coordinate")?], &program)?;
 
-        let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
-        let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
-        let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
+        let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
 
-        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
-        terrain.set_center(&vec3(0.0, 0.0, 0.0));
-        Ok(terrain)
+        let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0), mesh};
+        water.set_center(&vec3(0.0, 0.0, 0.0));
+        Ok(water)
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, time: f32, camera: &camera::Camera, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture) -> Result<(), traits::Error>
     {
-        self.program.cull(state::CullType::BACK);
-        self.program.depth_write(true);
+        self.program.blend(state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
+        self.program.cull(state::CullType::NONE);
+        self.program.depth_write(false);
         self.program.depth_test(state::DepthTestType::LEQUAL);
 
-        self.ground_texture.bind(0);
-        self.program.add_uniform_int("groundTexture", &0)?;
-
-        self.lake_texture.bind(1);
-        self.program.add_uniform_int("lakeTexture", &1)?;
-
-        self.noise_texture.bind(2);
-        self.program.add_uniform_int("noiseTexture", &2)?;
-
-        let transformation = Matrix4::one();
-        self.program.add_uniform_mat4("modelMatrix", &transformation)?;
+        self.program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(&transformation)))?;
+
+        self.program.add_uniform_vec3("eyePosition", &camera.position)?;
+        self.program.add_uniform_vec2("screenSize", &vec2(camera.width as f32, camera.height as f32))?;
+
+        self.program.add_uniform_float("time", &time)?;
+
+        color_texture.bind(0);
+        self.program.add_uniform_int("colorMap", &0)?;
+
+        position_texture.bind(1);
+        self.program.add_uniform_int("positionMap", &1)?;
+
+        skybox_texture.bind(2);
+        self.program.add_uniform_int("environmentMap", &2)?;
 
         self.model.render()?;
-
         Ok(())
-    }
-
-    pub fn get_center(&self) -> &Vec3
-    {
-        &self.center
     }
 
     pub fn set_center(&mut self, center: &Vec3)
     {
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
-        self.update_heights();
+        self.update_positions();
         self.update_uv_coordinates();
-        self.mesh.compute_normals();
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap(), self.mesh.get("uv_coordinate").unwrap()]);
+        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("uv_coordinate").unwrap()]);
     }
 
-    fn update_heights(&mut self)
+    fn update_positions(&mut self)
     {
         let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE
@@ -105,9 +92,8 @@ impl Terrain
             {
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                let y = get_height_at(&self.noise_generator, x, z);
                 positions[3 * (r*VERTICES_PER_SIDE + c)] = x;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 1] = y;
+                positions[3 * (r*VERTICES_PER_SIDE + c) + 1] = 0.0;
                 positions[3 * (r*VERTICES_PER_SIDE + c) + 2] = z;
             }
         }
@@ -129,11 +115,6 @@ impl Terrain
         }
 
     }
-
-    pub fn get_height_at(&self, x: f32, z: f32) -> f32
-    {
-        get_height_at(&self.noise_generator, x, z)
-    }
 }
 
 fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, traits::Error>
@@ -142,13 +123,6 @@ fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, trait
     let mut texture = texture::Texture2D::create(gl)?;
     texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
     Ok(texture)
-}
-
-fn get_height_at(noise_generator: &Box<NoiseFn<Point2<f64>>>, x: f32, z: f32) -> f32
-{
-    (noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-            0.25 * noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-            2.0 * noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
 }
 
 fn indices() -> Vec<u32>

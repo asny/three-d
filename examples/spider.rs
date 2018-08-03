@@ -3,7 +3,6 @@ extern crate dust;
 
 mod scene_objects;
 
-use glm::*;
 use std::process;
 use std::time::Instant;
 
@@ -40,15 +39,14 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, true).unwrap();
 
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
     // Models
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
-    let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
-    let mut terrain = scene_objects::terrain::Terrain::create(&gl).unwrap();
+    let mut environment = scene_objects::environment::Environment::create(&gl).unwrap();
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights
@@ -59,6 +57,7 @@ fn main() {
 
     let mut camerahandler = camerahandler::CameraHandler::create();
     let mut now = Instant::now();
+    let mut time = 0.0;
     // main loop
     let main_loop = || {
         for event in events.poll_iter() {
@@ -107,31 +106,31 @@ fn main() {
         }
 
         let new_now = Instant::now();
-
         let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
         now = new_now;
+        time += elapsed_time;
 
-        spider.update(elapsed_time, &terrain);
-        let spider_pos = spider.get_position(&terrain);
-        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&terrain));
+        // Update
+        spider.update(elapsed_time, &environment);
+        let spider_pos = spider.get_position(&environment);
+        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment));
+        environment.set_position(&spider_pos);
 
-        if length(*terrain.get_center() - spider_pos) > 10.0
-        {
-            terrain.set_center(&spider_pos);
-        }
-
-        // draw
-        renderer.geometry_pass_begin().unwrap();
-
+        // Draw
+        // Geometry pass
+        renderer.geometry_pass_begin(&camera).unwrap();
         let transformation = glm::Matrix4::one();
-        skybox.reflect(&transformation, &camera).unwrap();
-        terrain.reflect(&transformation, &camera).unwrap();
+        environment.render_opague(&camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
         spider.reflect(&transformation, &camera).unwrap();
 
+        // Light pass
         renderer.light_pass_begin(&camera).unwrap();
-        
-        renderer.shine_light(&directional_light).unwrap();
+        renderer.shine_directional_light(&directional_light).unwrap();
+        renderer.copy_to_screen().unwrap();
+
+        // After effects
+        environment.render_transparent(time, &camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
     };
