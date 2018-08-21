@@ -111,6 +111,35 @@ impl TriangleSurface
         Ok(())
     }
 
+    pub fn render_instances(&self, no_instances: usize) -> Result<(), Error>
+    {
+        self.bind();
+        match self.indexed {
+            true => {
+                unsafe {
+                    self.gl.DrawElementsInstanced(
+                        gl::TRIANGLES, // mode
+                        self.count as i32, // number of indices to be rendered
+                        gl::UNSIGNED_INT,
+                        std::ptr::null(), // starting index in the enabled arrays
+                        no_instances as i32
+                    );
+                }
+            },
+            false => {
+                unsafe {
+                    self.gl.DrawArraysInstanced(
+                        gl::TRIANGLES, // mode
+                        0,
+                        self.count as i32, // number of vertices to be rendered
+                        no_instances as i32
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
+
     fn bind(&self)
     {
         bind(&self.gl, self.id);
