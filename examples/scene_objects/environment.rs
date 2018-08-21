@@ -19,7 +19,7 @@ impl Environment {
         let skybox = Skybox::create(&gl).unwrap();
         let terrain = Terrain::create(gl)?;
         let water = Water::create(gl)?;
-        let grass = Grass::create(gl)?;
+        let grass = Grass::create(gl, &terrain)?;
 
         Ok(Environment {terrain, skybox, water, grass})
     }
@@ -44,6 +44,7 @@ impl Environment {
         {
             self.terrain.set_center(position);
             self.water.set_center(position);
+            self.grass.create_straws(&self.terrain);
         }
     }
 
