@@ -1,7 +1,7 @@
 use gl;
 use glm::*;
 
-use gust;
+use gust::*;
 
 use scene_objects::terrain::Terrain;
 use dust::{traits, camera};
@@ -13,13 +13,34 @@ pub struct Grass {
     position_buffer: buffer::VertexBuffer
 }
 
-const NO_STRAWS: usize = 2;
+const NO_STRAWS: usize = 128;
 
 impl Grass
 {
     pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Result<Grass, traits::Error>
     {
-        let mesh = gust::models::create_cube().unwrap();
+        let positions: Vec<f32> = vec![
+            -0.1, 0.0, 0.0,
+            0.1, 0.0, 0.0,
+            -0.08, 0.3, 0.0,
+            0.08, 0.3, 0.0,
+            -0.05, 0.5, 0.0,
+            0.05, 0.5, 0.0,
+            -0.02, 0.7, 0.0,
+            0.02, 0.7, 0.0,
+            0.0, 0.8, 0.0
+        ];
+        let indices: Vec<u32> = vec![
+            0, 1, 2,
+            1, 2, 3,
+            2, 3, 4,
+            3, 4, 5,
+            4, 5, 6,
+            5, 6, 7,
+            6, 7, 8
+        ];
+        let mesh = mesh::Mesh::create_indexed(indices, positions)?;
+
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
         model.add_attributes(&[&mesh.positions].to_vec(), &program)?;
@@ -36,8 +57,14 @@ impl Grass
 
     pub fn create_straws(&mut self, terrain: &Terrain)
     {
-        let offsets = [0.0,0.0,0.0, 10.0,0.0,10.0];
-        self.position_buffer.fill_with(&offsets.to_vec());
+        let mut root_positions = Vec::new();
+        for i in 0..NO_STRAWS {
+            root_positions.push(i as f32);
+            root_positions.push(i as f32);
+            root_positions.push(i as f32);
+        }
+
+        self.position_buffer.fill_with(&root_positions);
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
