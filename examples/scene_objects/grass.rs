@@ -1,9 +1,12 @@
+extern crate rand;
+
 use gl;
 use glm::*;
+use self::rand::prelude::*;
 
 use gust::*;
 
-use scene_objects::terrain::Terrain;
+use scene_objects::terrain::*;
 use dust::{traits, camera};
 use dust::core::{buffer, program, surface, state};
 
@@ -55,13 +58,27 @@ impl Grass
         Ok(grass)
     }
 
+    fn random_position(terrain: &Terrain) -> Vec3
+    {
+        let center = terrain.get_center();
+        let x = center.x + (random::<f32>()-0.5) * SIZE;
+        let z = center.z + (random::<f32>()-0.5) * SIZE;
+        let height = terrain.get_height_at(x, z);
+        if height < 0.1
+        {
+            return Grass::random_position(terrain)
+        }
+        vec3(x, height, z)
+    }
+
     pub fn create_straws(&mut self, terrain: &Terrain)
     {
         let mut root_positions = Vec::new();
         for i in 0..NO_STRAWS {
-            root_positions.push(i as f32);
-            root_positions.push(i as f32);
-            root_positions.push(i as f32);
+            let p = Grass::random_position(terrain);
+            root_positions.push(p.x);
+            root_positions.push(p.y);
+            root_positions.push(p.z);
         }
 
         self.position_buffer.fill_with(&root_positions);
