@@ -16,7 +16,7 @@ pub struct Grass {
     position_buffer: buffer::VertexBuffer
 }
 
-const NO_STRAWS: usize = 128;
+const NO_STRAWS: usize = 1024;
 
 impl Grass
 {
