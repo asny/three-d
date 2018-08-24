@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 
 [dependencies]
-gust = { path = "lib/Gust" }
+gust = { path = "../Gust" }
 gl = { path = "lib/gl" }
 num-traits = "0.2.2"
 
