@@ -8,6 +8,7 @@ use std::process;
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
+use num_traits::identities::One;
 use dust::*;
 
 fn main() {
@@ -44,10 +45,6 @@ fn main() {
     let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
     let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
-    scene.add_model(model);
-
-    let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
-    scene.add_light(light);
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -64,7 +61,10 @@ fn main() {
         }
 
         // draw
-        renderer.render(&camera, &scene).unwrap();
+        renderer.render_pass_begin().unwrap();
+
+        let transformation = glm::Matrix4::one();
+        model.reflect(&transformation, &camera);
 
         window.gl_swap_window();
     };

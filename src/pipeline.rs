@@ -1,11 +1,8 @@
-use std;
+
 use camera;
-use scene;
 use traits;
-use glm;
 use gl;
 use light;
-use num_traits::identities::One;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
 use core::state;
@@ -62,15 +59,10 @@ impl ForwardPipeline
         Ok(())
     }
 
-    pub fn render(&self, camera: &camera::Camera, scene: &scene::Scene) -> Result<(), Error>
+    pub fn render_pass_begin(&self) -> Result<(), Error>
     {
         self.rendertarget.bind();
         self.rendertarget.clear();
-
-        for model in &scene.models {
-            let transformation = glm::Matrix4::one();
-            model.reflect(&transformation, camera)?;
-        }
 
         Ok(())
     }
