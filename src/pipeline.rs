@@ -92,14 +92,14 @@ impl DeferredPipeline
 {
     pub fn create(gl: &gl::Gl, width: usize, height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
-        let light_pass_program = program::Program::from_resource(&gl, "examples/assets/shaders/light_pass")?;
+        let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass")?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
             light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, width, height, 1)?);
-            copy_program = Some(program::Program::from_resource(&gl, "examples/assets/shaders/copy")?);
+            copy_program = Some(program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy")?);
         }
         Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
