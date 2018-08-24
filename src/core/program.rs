@@ -224,6 +224,11 @@ impl Program
         state::depth_write(&self.gl, enable);
     }
 
+    pub fn polygon_mode(&self, polygon_type: state::PolygonType)
+    {
+        state::polygon_mode(&self.gl, polygon_type);
+    }
+
     pub fn set_used(&self) {
         unsafe {
             static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;

@@ -1,6 +1,38 @@
 use gl;
 
 #[derive(PartialEq)]
+pub enum PolygonType {
+    Point,
+    Line,
+    Fill
+}
+
+pub fn polygon_mode(gl: &gl::Gl, polygon_type: PolygonType)
+{
+    unsafe {
+        static mut CURRENT: PolygonType = PolygonType::Fill;
+        if polygon_type != CURRENT
+        {
+            match polygon_type {
+                PolygonType::Point => {
+                    gl.PolygonMode(gl::FRONT_AND_BACK, gl::POINT);
+                },
+                PolygonType::Line => {
+                    gl.PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+                },
+                PolygonType::Fill => {
+                    gl.PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
+                }
+            }
+            CURRENT = polygon_type;
+        }
+    }
+    unsafe {
+        gl.PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+    }
+}
+
+#[derive(PartialEq)]
 pub enum BlendType {
     NONE,
     SRC_ALPHA__ONE_MINUS_SRC_ALPHA,
