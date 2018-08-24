@@ -4,7 +4,7 @@ use gl;
 use glm::*;
 use self::rand::prelude::*;
 
-use gust::*;
+use gust::mesh::Mesh;
 
 use scene_objects::terrain::*;
 use dust::{traits, camera};
@@ -16,22 +16,33 @@ pub struct Grass {
     position_buffer: buffer::VertexBuffer
 }
 
-const NO_STRAWS: usize = 1024;
+const NO_STRAWS: usize = 128;
 
 impl Grass
 {
     pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Result<Grass, traits::Error>
     {
         let positions: Vec<f32> = vec![
-            -0.1, 0.0, 0.0,
-            0.1, 0.0, 0.0,
-            -0.08, 0.3, 0.0,
-            0.08, 0.3, 0.0,
-            -0.05, 0.5, 0.0,
-            0.05, 0.5, 0.0,
+            -0.08, 0.0, 0.0,
+            0.08, 0.0, 0.0,
+            -0.06, 0.3, 0.0,
+            0.06, 0.3, 0.0,
+            -0.04, 0.5, 0.0,
+            0.04, 0.5, 0.0,
             -0.02, 0.7, 0.0,
             0.02, 0.7, 0.0,
-            0.0, 0.8, 0.0
+            0.0, 1.0, 0.0
+        ];
+        let uvs: Vec<f32> = vec![
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 0.3,
+            1.0, 0.3,
+            0.0, 0.5,
+            1.0, 0.5,
+            0.0, 0.7,
+            1.0, 0.7,
+            0.5, 1.0,
         ];
         let indices: Vec<u32> = vec![
             0, 1, 2,
@@ -42,11 +53,11 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mesh = mesh::Mesh::create_indexed(indices, positions)?;
+        let mut mesh = Mesh::create_indexed(indices, positions)?;
+        mesh.add_custom_vec2_attribute("uv_coordinate", uvs)?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass")?;
-        let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        model.add_attributes(&[&mesh.positions].to_vec(), &program)?;
+        let mut model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
         let mut position_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
