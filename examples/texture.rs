@@ -4,6 +4,7 @@ extern crate dust;
 mod scene_objects;
 
 use std::process;
+use num_traits::identities::One;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
@@ -35,22 +36,15 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height).unwrap();
-
-    // Scene
-    let mut scene = scene::Scene::create();
+    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
 
     // Camera
     let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
 
-    let model = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
-    scene.add_model(model);
-
+    let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
     let skybox = scene_objects::skybox::Skybox::create(&gl).unwrap();
-    scene.add_model(skybox);
 
     let light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
-    scene.add_light(light);
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -76,7 +70,15 @@ fn main() {
         }
 
         // draw
-        renderer.render(&camera, &scene).unwrap();
+        // Geometry pass
+        renderer.geometry_pass_begin(&camera).unwrap();
+        let transformation = glm::Matrix4::one();
+        textured_box.reflect(&transformation, &camera).unwrap();
+        skybox.render(&camera).unwrap();
+
+        // Light pass
+        renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_directional_light(&light).unwrap();
 
         window.gl_swap_window();
     };
