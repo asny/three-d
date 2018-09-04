@@ -8,9 +8,10 @@ out vec3 pos;
 out vec3 nor;
 out vec2 uv;
 
-const float width = 0.02f;
-const float height = 0.2f;
+const float width = 0.2f;
+const float height = 0.8f;
 const vec3 up_direction = vec3(0., 1., 0.);
+const vec3 tangent_side = vec3(1.0, 0.0, 0.0);
 
 float func(float x)
 {
@@ -29,17 +30,18 @@ vec3 compute_position(vec3 origin, vec3 top, float parameter)
     return origin + parameter * (top - origin) + func(parameter) * up_direction;
 }
 
-vec3 compute_normal(vec3 origin, vec3 corner, vec3 top, float parameter)
+vec3 compute_normal(vec3 origin, vec3 top, float parameter)
 {
-    vec3 tangent = top - origin + dfunc(parameter) * up_direction;
-    return normalize(cross(corner - origin, tangent));
+    vec3 tangent_up = top - origin + dfunc(parameter) * up_direction;
+    return normalize(cross(tangent_side, tangent_up));
 }
 
 void main()
 {
-    vec3 p3 = compute_position(root_position + vec3(width * position.x - 0.5 * width, 0.0, 0.0), root_position + vec3(0.0, height, 0.1), position.y);
-    gl_Position = projectionMatrix * viewMatrix * vec4(p3, 1.0);
-    pos = p3;
-    nor = vec3(0.0, 1.0, 0.0);
+    vec3 origin = root_position + vec3(width * position.x - 0.5 * width, 0.0, 0.0);
+    vec3 top = root_position + vec3(0.0, height, 0.5 * height);
+    pos = compute_position(origin, top, position.y);
+    nor = compute_normal(origin, top, position.y);
     uv = position.xy;
+    gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
 }

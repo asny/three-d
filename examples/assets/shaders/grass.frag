@@ -9,7 +9,7 @@ layout (location = 2) out vec4 normal;
 
 void main()
 {
-    color = vec4(uv, 0.0, 1.0f);
+    color = vec4(0.0, 1.0, 0.0, 1.0f);
     position = vec4(pos, 1.0);
     normal = vec4(nor, 1.0);
 }
