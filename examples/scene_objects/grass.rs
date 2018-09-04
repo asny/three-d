@@ -23,26 +23,15 @@ impl Grass
     pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Result<Grass, traits::Error>
     {
         let positions: Vec<f32> = vec![
-            -0.08, 0.0, 0.0,
-            0.08, 0.0, 0.0,
-            -0.06, 0.3, 0.0,
-            0.06, 0.3, 0.0,
-            -0.04, 0.5, 0.0,
-            0.04, 0.5, 0.0,
-            -0.02, 0.7, 0.0,
-            0.02, 0.7, 0.0,
-            0.0, 1.0, 0.0
-        ];
-        let uvs: Vec<f32> = vec![
-            0.0, 0.0,
-            1.0, 0.0,
-            0.0, 0.3,
-            1.0, 0.3,
-            0.0, 0.5,
-            1.0, 0.5,
-            0.0, 0.7,
-            1.0, 0.7,
-            0.5, 1.0,
+            0.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            0.0, 0.3, 0.0,
+            1.0, 0.3, 0.0,
+            0.0, 0.5, 0.0,
+            1.0, 0.5, 0.0,
+            0.0, 0.7, 0.0,
+            1.0, 0.7, 0.0,
+            0.5, 1.0, 0.0,
         ];
         let indices: Vec<u32> = vec![
             0, 1, 2,
@@ -54,7 +43,6 @@ impl Grass
             6, 7, 8
         ];
         let mut mesh = Mesh::create_indexed(indices, positions)?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", uvs)?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh, &program)?;
