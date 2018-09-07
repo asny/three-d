@@ -106,7 +106,7 @@ impl Terrain
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
                 let y = get_height_at(&self.noise_generator, x, z);
-                self.mesh.positions.set(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, y, z));
+                self.mesh.set_position_at(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, y, z));
             }
         }
     }

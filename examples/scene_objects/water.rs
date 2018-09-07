@@ -92,7 +92,7 @@ impl Water
             {
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                self.mesh.positions.set(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, 0.0, z));
+                self.mesh.set_position_at(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, 0.0, z));
             }
         }
     }
