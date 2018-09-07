@@ -94,7 +94,7 @@ impl Terrain
         self.update_uv_coordinates();
         self.mesh.update_normals().unwrap();
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get_vec3_attribute("normal").unwrap(), self.mesh.get_vec2_attribute("uv_coordinate").unwrap()]);
+        self.buffer.fill_from_attributes(&self.mesh, &vec!["uv_coordinate"], &vec!["position", "normal"]);
     }
 
     fn update_heights(&mut self)

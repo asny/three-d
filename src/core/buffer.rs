@@ -91,35 +91,6 @@ impl VertexBuffer
         self.fill_with(&data);
     }
 
-    pub fn fill_from(&mut self, attributes: &Vec<&attribute::Attribute>)
-    {
-        self.stride = 0;
-        self.map = Vec::new();
-        let mut no_vertices = 0;
-        for attribute in attributes
-        {
-            self.stride += attribute.no_components();
-            no_vertices = attribute.data().len() / attribute.no_components();
-        }
-
-        let mut data: Vec<f32> = vec![0.0; self.stride * no_vertices];
-        let mut offset = 0;
-        for attribute in attributes.iter()
-        {
-            self.map.push(Att {name: String::from(attribute.name()), offset, no_components: attribute.no_components()});
-            for vertex_id in 0..no_vertices
-            {
-                for d in 0..attribute.no_components()
-                {
-                    data[offset + vertex_id * self.stride + d] = attribute.data()[vertex_id * attribute.no_components() + d];
-                }
-            }
-            offset = offset + attribute.no_components();
-        }
-
-        self.fill_with(&data);
-    }
-
     pub fn fill_with(&mut self, data: &Vec<f32>)
     {
         self.bind();

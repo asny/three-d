@@ -81,7 +81,7 @@ impl Water
         self.update_positions();
         self.update_uv_coordinates();
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get_vec2_attribute("uv_coordinate").unwrap()]);
+        self.buffer.fill_from_attributes(&self.mesh, &vec!["uv_coordinate"], &vec!["position"]);
     }
 
     fn update_positions(&mut self)
