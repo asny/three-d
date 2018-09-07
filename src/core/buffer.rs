@@ -50,7 +50,7 @@ impl VertexBuffer
         self.map.iter()
     }
 
-    pub fn fill_from_attributes(&mut self, mesh: &Mesh, vec2_attributes: &Vec<String>, vec3_attributes: &Vec<String>)
+    pub fn fill_from_attributes(&mut self, mesh: &Mesh, vec2_attributes: &Vec<&str>, vec3_attributes: &Vec<&str>)
     {
         self.stride = vec2_attributes.len() * 2 + vec3_attributes.len() * 3;
         self.map = Vec::new();
@@ -59,7 +59,7 @@ impl VertexBuffer
         let mut offset = 0;
         for attribute_name in vec2_attributes.iter()
         {
-            self.map.push(Att {name: attribute_name.clone(), offset, no_components: 2});
+            self.map.push(Att {name: attribute_name.to_string(), offset, no_components: 2});
             let mut index = offset;
             for vertex_id in mesh.vertex_iterator()
             {
@@ -74,7 +74,7 @@ impl VertexBuffer
 
         for attribute_name in vec3_attributes.iter()
         {
-            self.map.push(Att {name: attribute_name.clone(), offset, no_components: 3});
+            self.map.push(Att {name: attribute_name.to_string(), offset, no_components: 3});
             let mut index = offset;
             for vertex_id in mesh.vertex_iterator()
             {

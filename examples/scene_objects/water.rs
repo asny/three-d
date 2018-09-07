@@ -37,7 +37,7 @@ impl Water
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get_vec2_attribute("uv_coordinate")?], &program)?;
+        let buffer = model.add_att(&mesh, &program, &vec!["uv_coordinate"], &vec!["position"])?;
 
         let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
 
