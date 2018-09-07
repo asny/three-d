@@ -62,7 +62,7 @@ impl TriangleSurface
                 index_buffer.fill_with(&indices);
             },
             None => {
-                model = TriangleSurface { gl: gl.clone(), id, indexed: false, count: mesh.no_vertices };
+                model = TriangleSurface { gl: gl.clone(), id, indexed: false, count: mesh.no_vertices() };
                 model.bind();
             }
         }

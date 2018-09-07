@@ -55,7 +55,7 @@ impl VertexBuffer
         self.stride = vec2_attributes.len() * 2 + vec3_attributes.len() * 3;
         self.map = Vec::new();
 
-        let mut data: Vec<f32> = vec![0.0; self.stride * mesh.no_vertices];
+        let mut data: Vec<f32> = vec![0.0; self.stride * mesh.no_vertices()];
         let mut offset = 0;
         for attribute_name in vec2_attributes.iter()
         {
