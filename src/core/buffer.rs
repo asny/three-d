@@ -1,7 +1,6 @@
 use gl;
 use std;
 use gust::mesh::Mesh;
-use gust::attribute;
 pub use std::slice::Iter;
 
 #[derive(Debug)]

@@ -3,7 +3,6 @@ use std;
 use gust::mesh;
 use core::buffer;
 use core::program;
-use gust::attribute;
 
 #[derive(Debug)]
 pub enum Error {
