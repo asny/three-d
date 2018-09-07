@@ -4,6 +4,7 @@ use dust::core::program;
 use gl;
 use dust::traits;
 use gust;
+use gust::ids::*;
 use gust::mesh::Mesh;
 use dust::*;
 use dust::core::*;
@@ -36,7 +37,7 @@ impl Water
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("uv_coordinate")?], &program)?;
+        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get_vec2_attribute("uv_coordinate")?], &program)?;
 
         let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
 
@@ -80,28 +81,24 @@ impl Water
         self.update_positions();
         self.update_uv_coordinates();
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("uv_coordinate").unwrap()]);
+        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get_vec2_attribute("uv_coordinate").unwrap()]);
     }
 
     fn update_positions(&mut self)
     {
-        let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                positions[3 * (r*VERTICES_PER_SIDE + c)] = x;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 1] = 0.0;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 2] = z;
+                self.mesh.positions.set(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, 0.0, z));
             }
         }
     }
 
     fn update_uv_coordinates(&mut self)
     {
-        let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
         let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE
         {
@@ -109,8 +106,7 @@ impl Water
             {
                 let x = self.center.x + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z + c as f32 * VERTEX_DISTANCE;
-                uvs[2 * (r*VERTICES_PER_SIDE + c)] = scale * x;
-                uvs[2 * (r*VERTICES_PER_SIDE + c) + 1] = scale * z;
+                self.mesh.set_vec2_attribute_at("uv_coordinate", &VertexID::new(r*VERTICES_PER_SIDE + c), &vec2(scale * x, scale * z)).unwrap();
             }
         }
 

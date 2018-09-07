@@ -5,6 +5,7 @@ use dust::core::program;
 use gl;
 use dust::traits;
 use gust;
+use gust::ids::*;
 use gust::mesh::Mesh;
 use dust::*;
 use dust::core::*;
@@ -44,7 +45,7 @@ impl Terrain
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &program)?;
+        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get_vec3_attribute("normal")?, mesh.get_vec2_attribute("uv_coordinate")?], &program)?;
 
         let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
         let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
@@ -91,14 +92,13 @@ impl Terrain
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
         self.update_heights();
         self.update_uv_coordinates();
-        self.mesh.compute_normals();
+        self.mesh.update_normals().unwrap();
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap(), self.mesh.get("uv_coordinate").unwrap()]);
+        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get_vec3_attribute("normal").unwrap(), self.mesh.get_vec2_attribute("uv_coordinate").unwrap()]);
     }
 
     fn update_heights(&mut self)
     {
-        let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
@@ -106,16 +106,13 @@ impl Terrain
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
                 let y = get_height_at(&self.noise_generator, x, z);
-                positions[3 * (r*VERTICES_PER_SIDE + c)] = x;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 1] = y;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 2] = z;
+                self.mesh.positions.set(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, y, z));
             }
         }
     }
 
     fn update_uv_coordinates(&mut self)
     {
-        let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
         let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE
         {
@@ -123,8 +120,7 @@ impl Terrain
             {
                 let x = self.center.x + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z + c as f32 * VERTEX_DISTANCE;
-                uvs[2 * (r*VERTICES_PER_SIDE + c)] = scale * x;
-                uvs[2 * (r*VERTICES_PER_SIDE + c) + 1] = scale * z;
+                self.mesh.set_vec2_attribute_at("uv_coordinate", &VertexID::new(r*VERTICES_PER_SIDE + c), &vec2(scale * x, scale * z)).unwrap();
             }
         }
 

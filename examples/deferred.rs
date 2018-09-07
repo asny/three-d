@@ -4,7 +4,6 @@ extern crate dust;
 mod scene_objects;
 
 use std::process;
-use std::rc::Rc;
 use num_traits::identities::One;
 
 use sdl2::event::{Event};
