@@ -32,8 +32,7 @@ impl From<mesh::Error> for Error {
 pub struct TriangleSurface {
     gl: gl::Gl,
     id: gl::types::GLuint,
-    count: usize,
-    indexed: bool
+    count: usize
 }
 
 impl TriangleSurface
@@ -51,20 +50,13 @@ impl TriangleSurface
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
-        let model;
-        match mesh.indices {
-            Some(ref indices) => {
-                model = TriangleSurface { gl: gl.clone(), id, indexed: true, count: indices.len() };
-                model.bind();
 
-                let index_buffer = buffer::ElementBuffer::create(&gl)?;
-                index_buffer.fill_with(&indices);
-            },
-            None => {
-                model = TriangleSurface { gl: gl.clone(), id, indexed: false, count: mesh.no_vertices() };
-                model.bind();
-            }
-        }
+        let indices = mesh.indices();
+        let model = TriangleSurface { gl: gl.clone(), id, count: indices.len() };
+        model.bind();
+
+        let index_buffer = buffer::ElementBuffer::create(&gl)?;
+        index_buffer.fill_with(indices);
 
         Ok(model)
     }
@@ -86,26 +78,13 @@ impl TriangleSurface
     pub fn render(&self) -> Result<(), Error>
     {
         self.bind();
-        match self.indexed {
-            true => {
-                unsafe {
-                    self.gl.DrawElements(
-                        gl::TRIANGLES, // mode
-                        self.count as i32, // number of indices to be rendered
-                        gl::UNSIGNED_INT,
-                        std::ptr::null() // starting index in the enabled arrays
-                    );
-                }
-            },
-            false => {
-                unsafe {
-                    self.gl.DrawArrays(
-                        gl::TRIANGLES, // mode
-                        0,
-                        self.count as i32 // number of vertices to be rendered
-                    );
-                }
-            }
+        unsafe {
+            self.gl.DrawElements(
+                gl::TRIANGLES, // mode
+                self.count as i32, // number of indices to be rendered
+                gl::UNSIGNED_INT,
+                std::ptr::null() // starting index in the enabled arrays
+            );
         }
         Ok(())
     }
@@ -113,28 +92,14 @@ impl TriangleSurface
     pub fn render_instances(&self, no_instances: usize) -> Result<(), Error>
     {
         self.bind();
-        match self.indexed {
-            true => {
-                unsafe {
-                    self.gl.DrawElementsInstanced(
-                        gl::TRIANGLES, // mode
-                        self.count as i32, // number of indices to be rendered
-                        gl::UNSIGNED_INT,
-                        std::ptr::null(), // starting index in the enabled arrays
-                        no_instances as i32
-                    );
-                }
-            },
-            false => {
-                unsafe {
-                    self.gl.DrawArraysInstanced(
-                        gl::TRIANGLES, // mode
-                        0,
-                        self.count as i32, // number of vertices to be rendered
-                        no_instances as i32
-                    );
-                }
-            }
+        unsafe {
+            self.gl.DrawElementsInstanced(
+                gl::TRIANGLES, // mode
+                self.count as i32, // number of indices to be rendered
+                gl::UNSIGNED_INT,
+                std::ptr::null(), // starting index in the enabled arrays
+                no_instances as i32
+            );
         }
         Ok(())
     }
