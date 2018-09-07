@@ -1,6 +1,7 @@
 use scene_objects::terrain::Terrain;
 use scene_objects::water::Water;
 use scene_objects::skybox::Skybox;
+use scene_objects::grass::Grass;
 use dust::*;
 use glm::*;
 
@@ -8,7 +9,8 @@ pub struct Environment
 {
     skybox: Skybox,
     terrain: Terrain,
-    water: Water
+    water: Water,
+    grass: Grass
 }
 
 impl Environment {
@@ -17,14 +19,16 @@ impl Environment {
         let skybox = Skybox::create(&gl).unwrap();
         let terrain = Terrain::create(gl)?;
         let water = Water::create(gl)?;
+        let grass = Grass::create(gl, &terrain)?;
 
-        Ok(Environment {terrain, skybox, water})
+        Ok(Environment {terrain, skybox, water, grass})
     }
 
     pub fn render_opague(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.skybox.render(&camera)?;
         self.terrain.render(camera)?;
+        self.grass.render(camera)?;
         Ok(())
     }
 
@@ -40,6 +44,7 @@ impl Environment {
         {
             self.terrain.set_center(position);
             self.water.set_center(position);
+            self.grass.create_straws(&self.terrain);
         }
     }
 

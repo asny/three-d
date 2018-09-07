@@ -174,13 +174,13 @@ impl Program
         buffer.bind();
 
         for att in buffer.attributes_iter() {
-            self.setup_attribute(att.name.as_ref(), att.no_components, buffer.stride(), att.offset)?;
+            self.setup_attribute(att.name.as_ref(), att.no_components, buffer.stride(), att.offset, 0)?;
         }
 
         Ok(())
     }
 
-    fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize) -> Result<(), Error>
+    pub fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
         let c_str = CString::new(name)?;
         unsafe {
@@ -199,6 +199,7 @@ impl Program
                 (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
                 (offset * std::mem::size_of::<f32>()) as *const std::os::raw::c_void // offset of the first component
             );
+            self.gl.VertexAttribDivisor(location as gl::types::GLuint, divisor as gl::types::GLuint);
         }
         Ok(())
     }
