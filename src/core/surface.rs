@@ -42,7 +42,7 @@ impl TriangleSurface
     pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
         let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh)?;
-        surface.add_attributes(&mesh.get_attributes(), program)?;
+        surface.add_att(mesh, program, &mesh.get_vec2_attribute_names(), &mesh.get_vec3_attribute_names())?;
         Ok(surface)
     }
 
@@ -68,6 +68,20 @@ impl TriangleSurface
         }
 
         Ok(model)
+    }
+
+    pub fn add_att(&mut self, mesh: &mesh::Mesh, program: &program::Program, vec2_attributes: &Vec<String>, vec3_attributes: &Vec<String>) -> Result<buffer::VertexBuffer, Error>
+    {
+        // Create buffer
+        let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
+
+        // Add data to the buffer
+        buffer.fill_from_attributes(mesh, vec2_attributes, vec3_attributes);
+
+        // Link data and program
+        program.setup_attributes(&buffer)?;
+
+        Ok(buffer)
     }
 
     pub fn add_attributes(&mut self, attributes: &Vec<&attribute::Attribute>, program: &program::Program) -> Result<buffer::VertexBuffer, Error>

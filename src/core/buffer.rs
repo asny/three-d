@@ -1,5 +1,6 @@
 use gl;
 use std;
+use gust::mesh::Mesh;
 use gust::attribute;
 pub use std::slice::Iter;
 
@@ -47,6 +48,47 @@ impl VertexBuffer
     pub fn attributes_iter(&self) -> Iter<Att>
     {
         self.map.iter()
+    }
+
+    pub fn fill_from_attributes(&mut self, mesh: &Mesh, vec2_attributes: &Vec<String>, vec3_attributes: &Vec<String>)
+    {
+        self.stride = vec2_attributes.len() * 2 + vec3_attributes.len() * 3;
+        self.map = Vec::new();
+
+        let mut data: Vec<f32> = vec![0.0; self.stride * mesh.no_vertices];
+        let mut offset = 0;
+        for attribute_name in vec2_attributes.iter()
+        {
+            self.map.push(Att {name: attribute_name.clone(), offset, no_components: 2});
+            let mut index = offset;
+            for vertex_id in mesh.vertex_iterator()
+            {
+                let value = mesh.get_vec2_attribute_at(attribute_name, &vertex_id).unwrap();
+                data[index] = value.x;
+                data[index + 1] = value.y;
+
+                index += self.stride;
+            }
+            offset = offset + 2;
+        }
+
+        for attribute_name in vec3_attributes.iter()
+        {
+            self.map.push(Att {name: attribute_name.clone(), offset, no_components: 3});
+            let mut index = offset;
+            for vertex_id in mesh.vertex_iterator()
+            {
+                let value = mesh.get_vec3_attribute_at(attribute_name, &vertex_id).unwrap();
+                data[index] = value.x;
+                data[index + 1] = value.y;
+                data[index + 2] = value.z;
+
+                index += self.stride;
+            }
+            offset = offset + 3;
+        }
+
+        self.fill_with(&data);
     }
 
     pub fn fill_from(&mut self, attributes: &Vec<&attribute::Attribute>)

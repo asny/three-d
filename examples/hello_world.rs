@@ -64,7 +64,7 @@ fn main() {
         renderer.render_pass_begin().unwrap();
 
         let transformation = glm::Matrix4::one();
-        model.reflect(&transformation, &camera);
+        model.reflect(&transformation, &camera).unwrap();
 
         window.gl_swap_window();
     };
