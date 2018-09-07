@@ -45,7 +45,7 @@ impl Terrain
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_att(&mesh, &program, &vec!["position", "normal"], &vec!["uv_coordinate"])?;
+        let buffer = model.add_attributes(&mesh, &program, &vec!["position", "normal"], &vec!["uv_coordinate"])?;
 
         let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
         let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
