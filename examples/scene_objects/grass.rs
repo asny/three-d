@@ -21,7 +21,7 @@ const NO_STRAWS: usize = 128;
 
 impl Grass
 {
-    pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Result<Grass, traits::Error>
+    pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Grass
     {
         let positions: Vec<f32> = vec![
             0.0, 0.0, 0.0,
@@ -43,20 +43,20 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices, positions)?;
+        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices, positions).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/grass")?;
-        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
-        model.add_attributes(&mesh, &program,&vec![], &vec!["position"])?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/grass").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        model.add_attributes(&mesh, &program,&vec![], &vec!["position"]).unwrap();
 
         let mut position_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
         program.set_used();
-        program.setup_attribute("root_position", 3, 3, 0, 1)?;
+        program.setup_attribute("root_position", 3, 3, 0, 1).unwrap();
 
         let mut grass = Grass { program, model, position_buffer };
         grass.create_straws(terrain);
-        Ok(grass)
+        grass
     }
 
     fn random_position(terrain: &Terrain) -> Vec3

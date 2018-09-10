@@ -30,30 +30,30 @@ pub struct Terrain {
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
     center: Vec3,
-    mesh: gust::halfedge_mesh::HalfEdgeMesh
+    mesh: gust::simple_mesh::SimpleMesh
 }
 
 impl Terrain
 {
-    pub fn create(gl: &gl::Gl) -> Result<Terrain, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
 
-        let mut mesh = gust::halfedge_mesh::HalfEdgeMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_vec3_attribute("normal", vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
+        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL]).unwrap();
+        mesh.add_vec3_attribute("normal", vec![0.0;3 * VERTICES_IN_TOTAL]).unwrap();
+        mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL]).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
-        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
-        let buffer = model.add_attributes(&mesh, &program,&vec!["uv_coordinate"], &vec!["position", "normal"])?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        let buffer = model.add_attributes(&mesh, &program,&vec!["uv_coordinate"], &vec!["position", "normal"]).unwrap();
 
-        let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
-        let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
-        let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
+        let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png").unwrap();
+        let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
 
         let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
-        Ok(terrain)
+        terrain
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
@@ -94,7 +94,7 @@ impl Terrain
         self.update_uv_coordinates();
 
         for vertex_id in self.mesh.vertex_iterator() {
-            let normal = self.mesh.compute_vertex_normal(&vertex_id);
+            let normal = vec3(0.0, 1.0, 0.0); // TODO
             self.mesh.set_vec3_attribute_at("normal", &vertex_id, &normal).unwrap();
         }
 
@@ -136,7 +136,7 @@ impl Terrain
     }
 }
 
-fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, traits::Error>
+fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, texture::Error>
 {
     let img = image::open(name).unwrap();
     let mut texture = texture::Texture2D::create(gl)?;

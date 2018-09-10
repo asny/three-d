@@ -46,7 +46,7 @@ fn main() {
 
     // Models
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
-    let mut environment = scene_objects::environment::Environment::create(&gl).unwrap();
+    let mut environment = scene_objects::environment::Environment::create(&gl);
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights

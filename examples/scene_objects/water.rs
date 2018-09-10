@@ -30,20 +30,20 @@ pub struct Water {
 
 impl Water
 {
-    pub fn create(gl: &gl::Gl) -> Result<Water, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Water
     {
-        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
+        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL]).unwrap();
+        mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL]).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
-        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
-        let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate"], &vec!["position"])?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/water").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate"], &vec!["position"]).unwrap();
 
-        let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
+        let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
 
         let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0), mesh};
         water.set_center(&vec3(0.0, 0.0, 0.0));
-        Ok(water)
+        water
     }
 
     pub fn render(&self, time: f32, camera: &camera::Camera, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture) -> Result<(), traits::Error>

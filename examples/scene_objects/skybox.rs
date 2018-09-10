@@ -19,24 +19,24 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn create(gl: &gl::Gl) -> Result<Skybox, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Skybox
     {
         let mesh = gust::loader::load_obj("examples/assets/models/box.obj").unwrap();
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox")?;
-        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
-        model.add_attributes(&mesh, &program,&vec![], &vec!["position"])?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        model.add_attributes(&mesh, &program,&vec![], &vec!["position"]).unwrap();
 
         let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
         let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
         let top = image::open("examples/assets/textures/skybox_evening/top.jpg").unwrap();
         let left = image::open("examples/assets/textures/skybox_evening/left.jpg").unwrap();
         let right = image::open("examples/assets/textures/skybox_evening/right.jpg").unwrap();
-        let mut texture = texture::Texture3D::create(gl)?;
+        let mut texture = texture::Texture3D::create(gl).unwrap();
         texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
                           [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
                               &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
 
-        Ok(Skybox { program, model, texture })
+        Skybox { program, model, texture }
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
