@@ -24,7 +24,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                 let mut mesh = simple_mesh::SimpleMesh::create((0..3).collect(), positions).unwrap();
                 mesh.add_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
 
-                let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh).unwrap();
+                let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
                 model.add_attributes(&mesh, &program,&vec!["uv_coordinate"], &vec!["position"]).unwrap();
                 model.render().unwrap();
                 FULL_SCREEN__QUAD = Some(model);

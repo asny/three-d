@@ -46,7 +46,7 @@ impl Grass
         let mut mesh = gust::simple_mesh::SimpleMesh::create(indices, positions)?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass")?;
-        let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
+        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec![], &vec!["position"])?;
 
         let mut position_buffer = buffer::VertexBuffer::create(gl).unwrap();

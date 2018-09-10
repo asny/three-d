@@ -41,7 +41,7 @@ impl Triangle
         let mut mesh = gust::simple_mesh::SimpleMesh::create((0..3).collect(), positions).unwrap();
         mesh.add_vec3_attribute("color", colors).unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
-        let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
+        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec![], &vec!["position", "color"])?;
 
         Ok(Rc::new(Triangle { program, model }))

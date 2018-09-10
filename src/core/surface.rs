@@ -37,14 +37,7 @@ pub struct TriangleSurface {
 
 impl TriangleSurface
 {
-    pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
-    {
-        let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh)?;
-        surface.add_attributes(mesh, program, &vec![], &vec!["position"])?;
-        Ok(surface)
-    }
-
-    pub fn create_without_adding_attributes(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<TriangleSurface, Error>
+    pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
