@@ -15,7 +15,7 @@ use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 use num_traits::identities::One;
 
-pub const SIZE: f32 = 64.0;
+pub const SIZE: f32 = 16.0;
 const VERTICES_PER_UNIT: usize = 8;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTICES_IN_TOTAL: usize = VERTICES_PER_SIDE * VERTICES_PER_SIDE;
@@ -39,13 +39,13 @@ impl Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
 
-        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
+        let mut mesh = gust::mesh::Mesh::create_connected(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
         mesh.add_custom_vec3_attribute("normal", vec![0.0;3 * VERTICES_IN_TOTAL])?;
         mesh.add_custom_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&mesh, &program, &vec!["position", "normal"], &vec!["uv_coordinate"])?;
+        let buffer = model.add_attributes(&mesh, &program,&vec!["uv_coordinate"], &vec!["position", "normal"])?;
 
         let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
         let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
@@ -92,7 +92,11 @@ impl Terrain
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
         self.update_heights();
         self.update_uv_coordinates();
-        self.mesh.update_normals().unwrap();
+
+        for vertex_id in self.mesh.vertex_iterator() {
+            let normal = self.mesh.compute_vertex_normal(&vertex_id);
+            self.mesh.set_vec3_attribute_at("normal", &vertex_id, &normal).unwrap();
+        }
 
         self.buffer.fill_from_attributes(&self.mesh, &vec!["uv_coordinate"], &vec!["position", "normal"]);
     }
