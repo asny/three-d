@@ -23,7 +23,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                 let mut mesh = mesh::Mesh::create(positions).unwrap();
                 mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
 
-                let surface = surface::TriangleSurface::create(gl, &mesh, program).unwrap();
+                let surface = surface::TriangleSurface::create_and_add_all_attributes(gl, &mesh, program).unwrap();
                 surface.render().unwrap();
                 FULL_SCREEN__QUAD = Some(surface);
             },
