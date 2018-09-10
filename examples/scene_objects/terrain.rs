@@ -92,13 +92,27 @@ impl Terrain
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
         self.update_heights();
         self.update_uv_coordinates();
-
-        for vertex_id in self.mesh.vertex_iterator() {
-            let normal = vec3(0.0, 1.0, 0.0); // TODO
-            self.mesh.set_vec3_attribute_at("normal", &vertex_id, &normal).unwrap();
-        }
+        self.update_normals();
 
         self.buffer.fill_from_attributes(&self.mesh, &vec!["uv_coordinate"], &vec!["position", "normal"]);
+    }
+
+    fn update_normals(&mut self)
+    {
+        let h = VERTEX_DISTANCE;
+        for r in 0..VERTICES_PER_SIDE
+        {
+            for c in 0..VERTICES_PER_SIDE
+            {
+                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
+                let y = self.get_height_at(x, z);
+                let dx = self.get_height_at(x + h, z) - 2.0 * y + self.get_height_at(x - h, z);
+                let dz = self.get_height_at(x, z + h) - 2.0 * y + self.get_height_at(x, z - h);
+                let normal = normalize(vec3(dx, h * h, dz));
+                self.mesh.set_vec3_attribute_at("normal", &VertexID::new(r*VERTICES_PER_SIDE + c), &normal).unwrap();
+            }
+        }
     }
 
     fn update_heights(&mut self)
@@ -109,7 +123,7 @@ impl Terrain
             {
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                let y = get_height_at(&self.noise_generator, x, z);
+                let y = self.get_height_at(x, z);
                 self.mesh.set_position_at(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, y, z));
             }
         }
