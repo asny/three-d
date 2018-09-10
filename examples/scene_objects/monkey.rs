@@ -31,7 +31,7 @@ impl Monkey
     {
         let mesh = gust::loader::load_obj("/examples/assets/models/suzanne.obj").unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/standard")?;
-        let model = surface::TriangleSurface::create_and_add_all_attributes(gl, &mesh, &program)?;
+        let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
         Ok(Monkey { program, model })
     }

@@ -37,7 +37,7 @@ pub struct TriangleSurface {
 
 impl TriangleSurface
 {
-    pub fn create_and_add_all_attributes(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
+    pub fn create(gl: &gl::Gl, mesh: &mesh::Mesh, program: &program::Program) -> Result<TriangleSurface, Error>
     {
         let mut surface = TriangleSurface::create_without_adding_attributes(gl, mesh)?;
         surface.add_attributes(mesh, program, &mesh.get_vec2_attribute_names(), &mesh.get_vec3_attribute_names())?;

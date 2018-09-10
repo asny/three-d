@@ -43,7 +43,7 @@ impl TexturedBox
     {
         let mesh = gust::models::create_cube().unwrap();
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
-        let model = surface::TriangleSurface::create_and_add_all_attributes(gl, &mesh, &program)?;
+        let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
 
         let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
         let mut texture = texture::Texture2D::create(gl)?;
