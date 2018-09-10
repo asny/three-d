@@ -1,5 +1,6 @@
 use gl;
-use mesh;
+use gust::mesh::Mesh;
+use gust::simple_mesh;
 use core::surface;
 use core::program;
 
@@ -20,12 +21,13 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                     2.0, 0.0,
                     0.5, 1.5
                 ];
-                let mut mesh = mesh::Mesh::create(positions).unwrap();
-                mesh.add_custom_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
+                let mut mesh = simple_mesh::SimpleMesh::create((0..3).collect(), positions).unwrap();
+                mesh.add_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
 
-                let surface = surface::TriangleSurface::create(gl, &mesh, program).unwrap();
-                surface.render().unwrap();
-                FULL_SCREEN__QUAD = Some(surface);
+                let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh).unwrap();
+                model.add_attributes(&mesh, &program,&vec!["uv_coordinate"], &vec!["position"]).unwrap();
+                model.render().unwrap();
+                FULL_SCREEN__QUAD = Some(model);
             },
             Some(ref x) => {x.render().unwrap();}
         }

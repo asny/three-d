@@ -30,7 +30,7 @@ pub struct Terrain {
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
     center: Vec3,
-    mesh: Mesh
+    mesh: gust::halfedge_mesh::HalfEdgeMesh
 }
 
 impl Terrain
@@ -39,9 +39,9 @@ impl Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
 
-        let mut mesh = gust::mesh::Mesh::create_connected(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_custom_vec3_attribute("normal", vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
+        let mut mesh = gust::halfedge_mesh::HalfEdgeMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
+        mesh.add_vec3_attribute("normal", vec![0.0;3 * VERTICES_IN_TOTAL])?;
+        mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;

@@ -25,15 +25,15 @@ pub struct Water {
     foam_texture: texture::Texture2D,
     buffer: buffer::VertexBuffer,
     center: Vec3,
-    mesh: Mesh
+    mesh: gust::simple_mesh::SimpleMesh
 }
 
 impl Water
 {
     pub fn create(gl: &gl::Gl) -> Result<Water, traits::Error>
     {
-        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
+        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
+        mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
         let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;

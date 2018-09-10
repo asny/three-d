@@ -43,7 +43,8 @@ impl Spider
     {
         let mesh = gust::loader::load_obj("/examples/assets/models/spider.obj").unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/standard")?;
-        let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
+        let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
+        model.add_attributes(&mesh, &program,&vec![], &vec!["position", "normal"])?;
 
         Ok(Spider { program, model, position: vec3(0.0, 0.0, 5.0), view_direction: vec3(0.0, 0.0, -1.0), local2world: Matrix4::one(),
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})
