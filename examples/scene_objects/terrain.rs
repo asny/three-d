@@ -15,7 +15,7 @@ use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 use num_traits::identities::One;
 
-pub const SIZE: f32 = 16.0;
+pub const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 8;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTICES_IN_TOTAL: usize = VERTICES_PER_SIDE * VERTICES_PER_SIDE;
@@ -106,10 +106,9 @@ impl Terrain
             {
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                let y = self.get_height_at(x, z);
-                let dx = self.get_height_at(x + h, z) - 2.0 * y + self.get_height_at(x - h, z);
-                let dz = self.get_height_at(x, z + h) - 2.0 * y + self.get_height_at(x, z - h);
-                let normal = normalize(vec3(dx, h * h, dz));
+                let dx = self.get_height_at(x + 0.5 * h, z) - self.get_height_at(x - 0.5 * h, z);
+                let dz = self.get_height_at(x, z + 0.5 * h) - self.get_height_at(x, z - 0.5 * h);
+                let normal = normalize(vec3(-dx, h, -dz));
                 self.mesh.set_vec3_attribute_at("normal", &VertexID::new(r*VERTICES_PER_SIDE + c), &normal).unwrap();
             }
         }
