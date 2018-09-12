@@ -2,7 +2,6 @@ use dust::core::program;
 use gl;
 use dust::traits;
 use gust;
-use gust::mesh::Mesh;
 use dust::core::surface;
 use std::rc::Rc;
 use dust::camera;
