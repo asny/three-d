@@ -91,10 +91,10 @@ impl VertexBuffer
             offset = offset + 3;
         }
 
-        self.fill_with(&data);
+        self.fill_with(data);
     }
 
-    pub fn fill_with(&mut self, data: &Vec<f32>)
+    pub fn fill_with(&mut self, data: Vec<f32>)
     {
         self.bind();
         unsafe {
@@ -127,7 +127,7 @@ impl ElementBuffer
         Ok(buffer)
     }
 
-    pub fn fill_with(&self, data: &Vec<u32>)
+    pub fn fill_with(&self, data: Vec<u32>)
     {
         bind(&self.gl, self.id, gl::ELEMENT_ARRAY_BUFFER);
         unsafe {

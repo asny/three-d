@@ -82,7 +82,7 @@ impl Grass
             root_positions.push(p.z);
         }
 
-        self.position_buffer.fill_with(&root_positions);
+        self.position_buffer.fill_with(root_positions);
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
