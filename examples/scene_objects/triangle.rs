@@ -37,7 +37,7 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let mut mesh = gust::simple_mesh::SimpleMesh::create((0..3).collect(), positions).unwrap();
+        let mut mesh = ::gust::static_mesh::StaticMesh::create((0..3).collect(), positions).unwrap();
         mesh.add_vec3_attribute("color", colors).unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh)?;

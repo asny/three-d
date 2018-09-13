@@ -1,6 +1,5 @@
 use gl;
-use gust::mesh::Mesh;
-use gust::simple_mesh;
+use gust::static_mesh::StaticMesh;
 use core::surface;
 use core::program;
 
@@ -21,7 +20,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                     2.0, 0.0,
                     0.5, 1.5
                 ];
-                let mut mesh = simple_mesh::SimpleMesh::create((0..3).collect(), positions).unwrap();
+                let mut mesh = StaticMesh::create((0..3).collect(), positions).unwrap();
                 mesh.add_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
 
                 let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();

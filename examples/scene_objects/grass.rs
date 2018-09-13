@@ -5,7 +5,7 @@ use glm::*;
 use self::rand::prelude::*;
 
 use gust;
-use gust::mesh::Mesh;
+use gust::static_mesh::StaticMesh;
 
 use scene_objects::terrain::*;
 use dust::{traits, camera};
@@ -43,7 +43,7 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices, positions).unwrap();
+        let mut mesh = StaticMesh::create(indices, positions).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();

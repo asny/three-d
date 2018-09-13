@@ -1,6 +1,6 @@
 use gl;
 use std;
-use gust::mesh::Mesh;
+use gust::mesh::Renderable;
 pub use std::slice::Iter;
 
 #[derive(Debug)]
@@ -49,7 +49,7 @@ impl VertexBuffer
         self.map.iter()
     }
 
-    pub fn fill_from_attributes(&mut self, mesh: &Mesh, vec2_attributes: &Vec<&str>, vec3_attributes: &Vec<&str>)
+    pub fn fill_from_attributes(&mut self, mesh: &Renderable, vec2_attributes: &Vec<&str>, vec3_attributes: &Vec<&str>)
     {
         self.stride = vec2_attributes.len() * 2 + vec3_attributes.len() * 3;
         self.map = Vec::new();

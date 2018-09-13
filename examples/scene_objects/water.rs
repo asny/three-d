@@ -5,7 +5,7 @@ use gl;
 use dust::traits;
 use gust;
 use gust::ids::*;
-use gust::mesh::Mesh;
+use gust::static_mesh::StaticMesh;
 use dust::*;
 use dust::core::*;
 use dust::core::texture::Texture;
@@ -25,14 +25,14 @@ pub struct Water {
     foam_texture: texture::Texture2D,
     buffer: buffer::VertexBuffer,
     center: Vec3,
-    mesh: gust::simple_mesh::SimpleMesh
+    mesh: StaticMesh
 }
 
 impl Water
 {
     pub fn create(gl: &gl::Gl) -> Water
     {
-        let mut mesh = gust::simple_mesh::SimpleMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL]).unwrap();
+        let mut mesh = StaticMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL]).unwrap();
         mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water").unwrap();
@@ -92,7 +92,7 @@ impl Water
             {
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                self.mesh.set_position_at(&VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, 0.0, z));
+                self.mesh.set_vec3_attribute_at("position", &VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, 0.0, z)).unwrap();
             }
         }
     }
