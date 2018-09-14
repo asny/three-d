@@ -24,7 +24,7 @@ impl Skybox
         let mesh = gust::loader::load_obj_as_static_mesh("examples/assets/models/box.obj").unwrap();
         let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        model.add_attributes(&mesh, &program,&vec![], &vec!["position"]).unwrap();
+        model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
 
         let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
         let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();

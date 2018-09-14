@@ -4,6 +4,7 @@ use dust::core::program;
 use gl;
 use dust::traits;
 use gust;
+use gust::mesh::Attribute;
 use gust::ids::*;
 use gust::static_mesh::StaticMesh;
 use dust::*;
@@ -32,12 +33,12 @@ impl Water
 {
     pub fn create(gl: &gl::Gl) -> Water
     {
-        let mut mesh = StaticMesh::create(indices(), vec![0.0;3 * VERTICES_IN_TOTAL]).unwrap();
-        mesh.add_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL]).unwrap();
+        let mut mesh = StaticMesh::create(indices(), vec![Attribute::new("position", 3, vec![0.0;3 * VERTICES_IN_TOTAL]),
+                                                          Attribute::new("uv_coordinate", 2, vec![0.0;2 * VERTICES_IN_TOTAL])]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate"], &vec!["position"]).unwrap();
+        let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate", "position"]).unwrap();
 
         let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
 

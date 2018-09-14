@@ -173,8 +173,10 @@ impl Program
         self.set_used();
         buffer.bind();
 
+        let mut offset = 0;
         for att in buffer.attributes_iter() {
-            self.setup_attribute(att.name.as_ref(), att.no_components, buffer.stride(), att.offset, 0)?;
+            self.setup_attribute(att.name.as_ref(), att.no_components, buffer.stride(), offset, 0)?;
+            offset = offset + att.no_components;
         }
 
         Ok(())

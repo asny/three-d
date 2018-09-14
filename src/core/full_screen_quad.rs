@@ -1,4 +1,5 @@
 use gl;
+use gust::mesh::Attribute;
 use gust::static_mesh::StaticMesh;
 use core::surface;
 use core::program;
@@ -20,11 +21,12 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                     2.0, 0.0,
                     0.5, 1.5
                 ];
-                let mut mesh = StaticMesh::create((0..3).collect(), positions).unwrap();
-                mesh.add_vec2_attribute("uv_coordinate", uv_coordinates).unwrap();
+                let attributes = vec![Attribute::new("position", 3, positions),
+                                      Attribute::new("uv_coordinate", 2, uv_coordinates)];
+                let mut mesh = StaticMesh::create((0..3).collect(), attributes).unwrap();
 
                 let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-                model.add_attributes(&mesh, &program,&vec!["uv_coordinate"], &vec!["position"]).unwrap();
+                model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position"]).unwrap();
                 model.render().unwrap();
                 FULL_SCREEN__QUAD = Some(model);
             },

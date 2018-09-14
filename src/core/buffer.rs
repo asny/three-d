@@ -14,7 +14,6 @@ impl From<mesh::Error> for Error {
 
 pub struct Att {
     pub name: String,
-    pub offset: usize,
     pub no_components: usize
 }
 
@@ -22,7 +21,7 @@ pub struct VertexBuffer {
     gl: gl::Gl,
     id: u32,
     stride: usize,
-    map: Vec<Att>
+    attributes_infos: Vec<Att>
 }
 
 impl VertexBuffer
@@ -33,7 +32,7 @@ impl VertexBuffer
         unsafe {
             gl.GenBuffers(1, &mut id);
         }
-        let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, map: Vec::new() };
+        let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, attributes_infos: Vec::new() };
         buffer.bind();
         Ok(buffer)
     }
@@ -50,45 +49,30 @@ impl VertexBuffer
 
     pub fn attributes_iter(&self) -> Iter<Att>
     {
-        self.map.iter()
+        self.attributes_infos.iter()
     }
 
-    pub fn fill_from_attributes(&mut self, mesh: &mesh::Renderable, vec2_attributes: &Vec<&str>, vec3_attributes: &Vec<&str>)
+    pub fn fill_from_attributes(&mut self, mesh: &mesh::Renderable, attribute_names: &Vec<&str>)
     {
-        self.stride = vec2_attributes.len() * 2 + vec3_attributes.len() * 3;
-        self.map = Vec::new();
+        self.attributes_infos = Vec::new();
+        self.stride = attribute_names.iter().map(|name| mesh.get_attribute(name).unwrap().no_components).sum();
 
-        let mut data: Vec<f32> = vec![0.0; self.stride * mesh.no_vertices()];
+        let no_vertices = mesh.no_vertices();
+        let mut data: Vec<f32> = vec![0.0; self.stride * no_vertices];
         let mut offset = 0;
-        for attribute_name in vec2_attributes.iter()
+        for name in attribute_names.iter()
         {
-            self.map.push(Att {name: attribute_name.to_string(), offset, no_components: 2});
+            let attribute = mesh.get_attribute(name).unwrap();
+            let no_components = attribute.no_components;
+            self.attributes_infos.push(Att {name: name.to_string(), no_components});
             let mut index = offset;
-            for vertex_id in mesh.vertex_iterator()
-            {
-                let value = mesh.get_vec2_attribute_at(attribute_name, &vertex_id).unwrap();
-                data[index] = value.x;
-                data[index + 1] = value.y;
-
+            for i in 0..no_vertices {
+                for j in 0..no_components {
+                    data[index + j] = attribute.data[i * no_components + j];
+                }
                 index += self.stride;
             }
-            offset = offset + 2;
-        }
-
-        for attribute_name in vec3_attributes.iter()
-        {
-            self.map.push(Att {name: attribute_name.to_string(), offset, no_components: 3});
-            let mut index = offset;
-            for vertex_id in mesh.vertex_iterator()
-            {
-                let value = mesh.get_vec3_attribute_at(attribute_name, &vertex_id).unwrap();
-                data[index] = value.x;
-                data[index + 1] = value.y;
-                data[index + 2] = value.z;
-
-                index += self.stride;
-            }
-            offset = offset + 3;
+            offset = offset + no_components;
         }
 
         self.fill_with(data);

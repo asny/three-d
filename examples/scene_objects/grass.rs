@@ -5,6 +5,7 @@ use glm::*;
 use self::rand::prelude::*;
 
 use gust;
+use gust::mesh::Attribute;
 use gust::static_mesh::StaticMesh;
 
 use scene_objects::terrain::*;
@@ -43,11 +44,11 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mut mesh = StaticMesh::create(indices, positions).unwrap();
+        let mut mesh = StaticMesh::create(indices, vec![Attribute::new("position", 3, positions)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        model.add_attributes(&mesh, &program,&vec![], &vec!["position"]).unwrap();
+        model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
 
         let mut position_buffer = buffer::VertexBuffer::create(gl).unwrap();
 

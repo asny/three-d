@@ -47,13 +47,13 @@ impl TriangleSurface
         Ok(model)
     }
 
-    pub fn add_attributes(&mut self, mesh: &Renderable, program: &program::Program, vec2_attributes: &Vec<&str>, vec3_attributes: &Vec<&str>) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&mut self, mesh: &Renderable, program: &program::Program, attribute_names: &Vec<&str>) -> Result<buffer::VertexBuffer, Error>
     {
         // Create buffer
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        buffer.fill_from_attributes(mesh, vec2_attributes, vec3_attributes);
+        buffer.fill_from_attributes(mesh, attribute_names);
 
         // Link data and program
         program.setup_attributes(&buffer)?;
