@@ -90,57 +90,64 @@ impl Terrain
     pub fn set_center(&mut self, center: &Vec3)
     {
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
-        self.update_heights();
-        self.update_uv_coordinates();
-        self.update_normals();
+        const STRIDE: usize = 8;
+        let mut data = vec![0.0; STRIDE * VERTICES_IN_TOTAL];
 
-        self.buffer.fill_from_attributes(&self.mesh, &vec!["uv_coordinate"], &vec!["position", "normal"]);
+        self.update_positions(&mut data, 2, STRIDE);
+        self.update_normals(&mut data, 5, STRIDE);
+        self.update_uv_coordinates(&mut data, 0, STRIDE);
+
+        self.buffer.fill_with(data);
     }
 
-    fn update_normals(&mut self)
-    {
-        let h = VERTEX_DISTANCE;
-        for r in 0..VERTICES_PER_SIDE
-        {
-            for c in 0..VERTICES_PER_SIDE
-            {
-                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                let dx = self.get_height_at(x + 0.5 * h, z) - self.get_height_at(x - 0.5 * h, z);
-                let dz = self.get_height_at(x, z + 0.5 * h) - self.get_height_at(x, z - 0.5 * h);
-                let normal = normalize(vec3(-dx, h, -dz));
-                self.mesh.set_vec3_attribute_at("normal", &VertexID::new(r*VERTICES_PER_SIDE + c), &normal).unwrap();
-            }
-        }
-    }
-
-    fn update_heights(&mut self)
+    fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
+                let vertex_id = r*VERTICES_PER_SIDE + c;
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                let y = self.get_height_at(x, z);
-                self.mesh.set_vec3_attribute_at("position", &VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, y, z)).unwrap();
+                data[offset + vertex_id * stride] = x;
+                data[offset + vertex_id * stride + 1] = self.get_height_at(x, z);
+                data[offset + vertex_id * stride + 2] = z;
             }
         }
     }
 
-    fn update_uv_coordinates(&mut self)
+    fn update_uv_coordinates(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
         let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
-                let x = self.center.x + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z + c as f32 * VERTEX_DISTANCE;
-                self.mesh.set_vec2_attribute_at("uv_coordinate", &VertexID::new(r*VERTICES_PER_SIDE + c), &vec2(scale * x, scale * z)).unwrap();
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                data[offset + vertex_id * stride] = scale * (self.center.x + r as f32 * VERTEX_DISTANCE);
+                data[offset + vertex_id * stride + 1] = scale * (self.center.z + c as f32 * VERTEX_DISTANCE);
             }
         }
+    }
 
+    fn update_normals(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
+    {
+        let h = VERTEX_DISTANCE;
+        for r in 0..VERTICES_PER_SIDE
+        {
+            for c in 0..VERTICES_PER_SIDE
+            {
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
+                let dx = self.get_height_at(x + 0.5 * h, z) - self.get_height_at(x - 0.5 * h, z);
+                let dz = self.get_height_at(x, z + 0.5 * h) - self.get_height_at(x, z - 0.5 * h);
+                let normal = normalize(vec3(-dx, h, -dz));
+                data[offset + vertex_id * stride] = normal.x;
+                data[offset + vertex_id * stride + 1] = normal.y;
+                data[offset + vertex_id * stride + 2] = normal.z;
+            }
+        }
     }
 
     pub fn get_height_at(&self, x: f32, z: f32) -> f32

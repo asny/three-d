@@ -111,7 +111,6 @@ impl Water
                 data[offset + vertex_id * stride + 1] = scale * (self.center.z + c as f32 * VERTEX_DISTANCE);
             }
         }
-
     }
 }
 
