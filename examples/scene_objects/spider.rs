@@ -41,7 +41,7 @@ impl Spider
 {
     pub fn create(gl: &gl::Gl) -> Result<Spider, traits::Error>
     {
-        let mesh = gust::loader::load_obj_as_simple_mesh("/examples/assets/models/spider.obj").unwrap();
+        let mesh = gust::loader::load_obj_as_static_mesh("/examples/assets/models/spider.obj").unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/standard")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec![], &vec!["position", "normal"])?;
