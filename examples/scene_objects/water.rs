@@ -78,35 +78,37 @@ impl Water
     pub fn set_center(&mut self, center: &Vec3)
     {
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
-        self.update_positions();
-        self.update_uv_coordinates();
+        let mut data = vec![0.0; 5 * VERTICES_IN_TOTAL];
 
-        self.buffer.fill_from_attributes(&self.mesh, &vec!["uv_coordinate"], &vec!["position"]);
+        self.update_positions(&mut data, 2, 5);
+        self.update_uv_coordinates(&mut data, 0, 5);
+
+        self.buffer.fill_with(data);
     }
 
-    fn update_positions(&mut self)
+    fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
-                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                self.mesh.set_vec3_attribute_at("position", &VertexID::new(r*VERTICES_PER_SIDE + c), &vec3(x, 0.0, z)).unwrap();
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                data[offset + vertex_id * stride] = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                data[offset + vertex_id * stride + 2] = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
             }
         }
     }
 
-    fn update_uv_coordinates(&mut self)
+    fn update_uv_coordinates(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
         let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
-                let x = self.center.x + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z + c as f32 * VERTEX_DISTANCE;
-                self.mesh.set_vec2_attribute_at("uv_coordinate", &VertexID::new(r*VERTICES_PER_SIDE + c), &vec2(scale * x, scale * z)).unwrap();
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                data[offset + vertex_id * stride] = scale * (self.center.x + r as f32 * VERTEX_DISTANCE);
+                data[offset + vertex_id * stride + 1] = scale * (self.center.z + c as f32 * VERTEX_DISTANCE);
             }
         }
 
