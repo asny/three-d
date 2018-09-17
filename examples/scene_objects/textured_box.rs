@@ -1,16 +1,8 @@
 extern crate image;
 
-use dust::core::program;
 use gl;
-use dust::traits;
-use gust;
+use dust::*;
 use std::rc::Rc;
-use dust::core::texture;
-use dust::core::texture::Texture;
-use dust::core::surface;
-use glm;
-use dust::camera;
-use dust::core::state;
 use self::image::{GenericImage};
 
 pub struct TexturedBox {
@@ -21,7 +13,7 @@ pub struct TexturedBox {
 
 impl traits::Reflecting for TexturedBox
 {
-    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
+    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull(state::CullType::BACK);
         self.texture.bind(0);
@@ -29,7 +21,7 @@ impl traits::Reflecting for TexturedBox
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &glm::transpose(&glm::inverse(transformation)))?;
+        self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose())?;
 
         self.model.render()?;
         Ok(())
@@ -41,7 +33,7 @@ impl TexturedBox
 {
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let mesh = gust::models::create_cube().unwrap();
+        let mesh = mesh_generator::create_cube().unwrap();
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position", "normal"])?;

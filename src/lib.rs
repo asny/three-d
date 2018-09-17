@@ -1,6 +1,4 @@
-pub extern crate num_traits;
 pub extern crate gl;
-#[macro_use]
 pub extern crate gust;
 
 #[macro_export]
@@ -12,11 +10,8 @@ macro_rules! att {
     }}
 }
 
-pub use gust::glm;
-pub use gust::mesh;
-
 pub mod core;
-pub mod loader;
+mod loader;
 
 pub mod traits;
 pub mod light;
@@ -33,3 +28,12 @@ extern crate emscripten_sys;
 
 #[cfg(target_os = "emscripten")]
 mod emscripten;
+
+pub use gust::types::*;
+pub use gust::mesh as mesh;
+pub use gust::mesh::Renderable;
+pub use gust::loader as mesh_loader;
+pub use gust::models as mesh_generator;
+
+pub use core::*;
+pub use texture::Texture;

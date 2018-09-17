@@ -1,10 +1,11 @@
 use gl;
 use std;
-use glm;
 
 use core::shader;
 use core::state;
 use core::buffer;
+
+use gust::types::*;
 
 use std::ffi::{CString};
 
@@ -120,7 +121,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_vec2(&self, name: &str, data: &glm::Vec2) -> Result<(), Error>
+    pub fn add_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
@@ -129,7 +130,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_vec3(&self, name: &str, data: &glm::Vec3) -> Result<(), Error>
+    pub fn add_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
@@ -139,7 +140,7 @@ impl Program
     }
 
 
-    pub fn add_uniform_vec4(&self, name: &str, data: &glm::Vec4) -> Result<(), Error>
+    pub fn add_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
@@ -148,11 +149,11 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_mat4(&self, name: &str, data: &glm::Matrix4<f32>) -> Result<(), Error>
+    pub fn add_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.UniformMatrix4fv(location, 1, gl::FALSE, &data[0][0]);
+            self.gl.UniformMatrix4fv(location, 1, gl::FALSE, &data[0]);
         }
         Ok(())
     }

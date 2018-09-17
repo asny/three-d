@@ -1,22 +1,22 @@
-use glm;
 use traits;
+use gust::*;
 
 pub struct Light {
-    pub color: glm::Vec3,
+    pub color: Vec3,
     pub ambient_intensity: f32,
     pub diffuse_intensity: f32
 }
 
 pub struct DirectionalLight {
     pub base: Light,
-    pub direction: glm::Vec3
+    pub direction: Vec3
 }
 
 impl DirectionalLight
 {
-    pub fn create(direction: glm::Vec3) -> Result<DirectionalLight, traits::Error>
+    pub fn create(direction: Vec3) -> Result<DirectionalLight, traits::Error>
     {
-        let color = glm::vec3(1., 1., 1.);
+        let color = vec3(1., 1., 1.);
         let ambient_intensity = 0.2;
         let diffuse_intensity = 0.5;
         let base = Light {color, ambient_intensity, diffuse_intensity};

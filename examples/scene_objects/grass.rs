@@ -1,15 +1,9 @@
 extern crate rand;
 
 use gl;
-use glm::*;
 use self::rand::prelude::*;
-
-use gust::static_mesh::StaticMesh;
-
 use dust::*;
 use scene_objects::terrain::*;
-use dust::{traits, camera};
-use dust::core::{buffer, program, surface, state};
 
 pub struct Grass {
     program: program::Program,
@@ -43,7 +37,7 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mesh = StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
+        let mesh = mesh::StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();

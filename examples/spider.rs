@@ -6,8 +6,6 @@ mod scene_objects;
 use std::process;
 use std::time::Instant;
 
-use num_traits::identities::One;
-
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
@@ -42,7 +40,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, width, height, true).unwrap();
 
     // Camera
-    let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
     // Models
     let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
@@ -50,7 +48,7 @@ fn main() {
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights
-    let directional_light = dust::light::DirectionalLight::create(glm::vec3(0.0, -1.0, 0.0)).unwrap();
+    let directional_light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -119,7 +117,7 @@ fn main() {
         // Draw
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
-        let transformation = glm::Matrix4::one();
+        let transformation = Mat4::identity();
         environment.render_opague(&camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
         spider.reflect(&transformation, &camera).unwrap();

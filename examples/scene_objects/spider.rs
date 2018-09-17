@@ -1,13 +1,7 @@
-use dust::core::program;
+
 use gl;
-use glm::*;
-use glm::ext::*;
-use dust::traits;
-use gust;
-use dust::core::surface;
-use dust::camera;
+use dust::*;
 use scene_objects::environment::Environment;
-use num_traits::identities::One;
 
 pub struct Spider {
     program: program::Program,
@@ -31,7 +25,7 @@ impl traits::Reflecting for Spider
         self.program.add_uniform_mat4("modelMatrix", &self.local2world)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(&self.local2world)))?;
+        self.program.add_uniform_mat4("normalMatrix", &self.local2world.try_inverse().unwrap().transpose())?;
         self.model.render()?;
         Ok(())
     }
@@ -41,12 +35,12 @@ impl Spider
 {
     pub fn create(gl: &gl::Gl) -> Result<Spider, traits::Error>
     {
-        let mesh = gust::loader::load_obj_as_static_mesh("/examples/assets/models/spider.obj").unwrap();
+        let mesh = mesh_loader::load_obj_as_static_mesh("/examples/assets/models/spider.obj").unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/standard")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec!["position", "normal"])?;
 
-        Ok(Spider { program, model, position: vec3(0.0, 0.0, 5.0), view_direction: vec3(0.0, 0.0, -1.0), local2world: Matrix4::one(),
+        Ok(Spider { program, model, position: vec3(0.0, 0.0, 5.0), view_direction: vec3(0.0, 0.0, -1.0), local2world: Mat4::identity(),
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})
     }
 
@@ -62,7 +56,7 @@ impl Spider
         let height1 = environment.get_height_at(self.position.x + 0.5 * self.view_direction.x, self.position.z + 0.5 * self.view_direction.z);
         let height2 = environment.get_height_at(self.position.x + self.view_direction.x, self.position.z + self.view_direction.z);
         let y_view_dir = 0.25 * ((height2 - height0) + (height1 - height0));
-        normalize(vec3(self.view_direction.x, y_view_dir, self.view_direction.z))
+        vec3(self.view_direction.x, y_view_dir, self.view_direction.z).normalize()
     }
 
     pub fn update(&mut self, time: f32, environment: &Environment)
@@ -81,12 +75,14 @@ impl Spider
         }
         if self.is_rotating_left
         {
-            let v = ext::rotate(&Matrix4::one(), time * ANGULAR_SPEED, vec3(0.0, 1.0, 0.0)) * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
+            let m = Mat4::new_rotation( time * ANGULAR_SPEED * vec3(0.0, 1.0, 0.0) );
+            let v = m * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
             self.view_direction = vec3(v.x, v.y, v.z);
         }
         if self.is_rotating_right
         {
-            let v = ext::rotate(&Matrix4::one(), -time * ANGULAR_SPEED, vec3(0.0, 1.0, 0.0)) * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
+            let m = Mat4::new_rotation( - time * ANGULAR_SPEED * vec3(0.0, 1.0, 0.0) );
+            let v = m * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
             self.view_direction = vec3(v.x, v.y, v.z);
         }
 
@@ -99,7 +95,7 @@ impl Spider
             // Compute spider model matrix
             //let spider_rotation_yaw = orientation(normalize(vec3(world_view_direction.x, 0.0, world_view_direction.z)), vec3(0.0, 0.0, 1.0));
             //let spider_rotation_pitch = orientation(normalize(vec3(0.0, world_view_direction.y, 1.0)), vec3(0.0, 0.0, 1.0));
-            spider_translation = translate(&Matrix4::one(), world_position);
+            spider_translation = Mat4::identity();//translate(&Mat4::one(), world_position);
         }
         self.local2world = spider_translation;// * spider_rotation_yaw * spider_rotation_pitch;
     }

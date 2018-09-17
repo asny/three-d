@@ -8,7 +8,6 @@ use std::process;
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
-use num_traits::identities::One;
 use dust::*;
 
 fn main() {
@@ -42,7 +41,7 @@ fn main() {
     let mut scene = scene::Scene::create();
 
     // Camera
-    let camera = camera::Camera::create(glm::vec3(0.0, 0.0, 2.0), glm::vec3(0.0, 0.0, 0.0), width, height);
+    let camera = camera::Camera::create(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), width, height);
 
     let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
 
@@ -63,7 +62,7 @@ fn main() {
         // draw
         renderer.render_pass_begin().unwrap();
 
-        let transformation = glm::Matrix4::one();
+        let transformation = Mat4::identity();
         model.reflect(&transformation, &camera).unwrap();
 
         window.gl_swap_window();
