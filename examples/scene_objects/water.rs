@@ -25,8 +25,7 @@ pub struct Water {
     model: surface::TriangleSurface,
     foam_texture: texture::Texture2D,
     buffer: buffer::VertexBuffer,
-    center: Vec3,
-    mesh: StaticMesh
+    center: Vec3
 }
 
 impl Water
@@ -42,7 +41,7 @@ impl Water
 
         let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
 
-        let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0), mesh};
+        let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
         water.set_center(&vec3(0.0, 0.0, 0.0));
         water
     }

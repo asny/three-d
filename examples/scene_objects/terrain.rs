@@ -30,8 +30,7 @@ pub struct Terrain {
     noise_texture: texture::Texture2D,
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
-    center: Vec3,
-    mesh: StaticMesh
+    center: Vec3
 }
 
 impl Terrain
@@ -52,7 +51,7 @@ impl Terrain
         let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png").unwrap();
         let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
 
-        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
         terrain
     }
