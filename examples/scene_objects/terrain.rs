@@ -5,7 +5,9 @@ use dust::core::program;
 use gl;
 use dust::traits;
 use gust;
-use gust::mesh::Mesh;
+use gust::ids::*;
+use gust::mesh::Attribute;
+use gust::static_mesh::StaticMesh;
 use dust::*;
 use dust::core::*;
 use dust::core::texture::Texture;
@@ -28,31 +30,30 @@ pub struct Terrain {
     noise_texture: texture::Texture2D,
     noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
-    center: Vec3,
-    mesh: Mesh
+    center: Vec3
 }
 
 impl Terrain
 {
-    pub fn create(gl: &gl::Gl) -> Result<Terrain, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
 
-        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_custom_vec3_attribute("normal", vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
+        let mut mesh = StaticMesh::create(indices(), vec![Attribute::new("position", 3, vec![0.0;3 * VERTICES_IN_TOTAL]),
+                                                          Attribute::new("normal", 3, vec![0.0;3 * VERTICES_IN_TOTAL]),
+                                                          Attribute::new("uv_coordinate", 2, vec![0.0;2 * VERTICES_IN_TOTAL])]).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain")?;
-        let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("normal")?, mesh.get("uv_coordinate")?], &program)?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        let buffer = model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position", "normal"]).unwrap();
 
-        let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
-        let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png")?;
-        let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
+        let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png").unwrap();
+        let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
 
-        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator, mesh};
+        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
-        Ok(terrain)
+        terrain
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
@@ -89,45 +90,64 @@ impl Terrain
     pub fn set_center(&mut self, center: &Vec3)
     {
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
-        self.update_heights();
-        self.update_uv_coordinates();
-        self.mesh.compute_normals();
+        const STRIDE: usize = 8;
+        let mut data = vec![0.0; STRIDE * VERTICES_IN_TOTAL];
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("normal").unwrap(), self.mesh.get("uv_coordinate").unwrap()]);
+        self.update_positions(&mut data, 2, STRIDE);
+        self.update_normals(&mut data, 5, STRIDE);
+        self.update_uv_coordinates(&mut data, 0, STRIDE);
+
+        self.buffer.fill_with(data);
     }
 
-    fn update_heights(&mut self)
+    fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
-        let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
+                let vertex_id = r*VERTICES_PER_SIDE + c;
                 let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                let y = get_height_at(&self.noise_generator, x, z);
-                positions[3 * (r*VERTICES_PER_SIDE + c)] = x;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 1] = y;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 2] = z;
+                data[offset + vertex_id * stride] = x;
+                data[offset + vertex_id * stride + 1] = self.get_height_at(x, z);
+                data[offset + vertex_id * stride + 2] = z;
             }
         }
     }
 
-    fn update_uv_coordinates(&mut self)
+    fn update_uv_coordinates(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
-        let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
         let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
-                let x = self.center.x + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z + c as f32 * VERTEX_DISTANCE;
-                uvs[2 * (r*VERTICES_PER_SIDE + c)] = scale * x;
-                uvs[2 * (r*VERTICES_PER_SIDE + c) + 1] = scale * z;
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                data[offset + vertex_id * stride] = scale * (self.center.x + r as f32 * VERTEX_DISTANCE);
+                data[offset + vertex_id * stride + 1] = scale * (self.center.z + c as f32 * VERTEX_DISTANCE);
             }
         }
+    }
 
+    fn update_normals(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
+    {
+        let h = VERTEX_DISTANCE;
+        for r in 0..VERTICES_PER_SIDE
+        {
+            for c in 0..VERTICES_PER_SIDE
+            {
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
+                let dx = self.get_height_at(x + 0.5 * h, z) - self.get_height_at(x - 0.5 * h, z);
+                let dz = self.get_height_at(x, z + 0.5 * h) - self.get_height_at(x, z - 0.5 * h);
+                let normal = normalize(vec3(-dx, h, -dz));
+                data[offset + vertex_id * stride] = normal.x;
+                data[offset + vertex_id * stride + 1] = normal.y;
+                data[offset + vertex_id * stride + 2] = normal.z;
+            }
+        }
     }
 
     pub fn get_height_at(&self, x: f32, z: f32) -> f32
@@ -136,7 +156,7 @@ impl Terrain
     }
 }
 
-fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, traits::Error>
+fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, texture::Error>
 {
     let img = image::open(name).unwrap();
     let mut texture = texture::Texture2D::create(gl)?;

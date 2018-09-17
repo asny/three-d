@@ -14,14 +14,14 @@ pub struct Environment
 }
 
 impl Environment {
-    pub fn create(gl: &gl::Gl) -> Result<Environment, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Environment
     {
-        let skybox = Skybox::create(&gl).unwrap();
-        let terrain = Terrain::create(gl)?;
-        let water = Water::create(gl)?;
-        let grass = Grass::create(gl, &terrain)?;
+        let skybox = Skybox::create(&gl);
+        let terrain = Terrain::create(gl);
+        let water = Water::create(gl);
+        let grass = Grass::create(gl, &terrain);
 
-        Ok(Environment {terrain, skybox, water, grass})
+        Environment {terrain, skybox, water, grass}
     }
 
     pub fn render_opague(&self, camera: &camera::Camera) -> Result<(), traits::Error>

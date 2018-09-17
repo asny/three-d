@@ -4,7 +4,9 @@ use dust::core::program;
 use gl;
 use dust::traits;
 use gust;
-use gust::mesh::Mesh;
+use gust::mesh::Attribute;
+use gust::ids::*;
+use gust::static_mesh::StaticMesh;
 use dust::*;
 use dust::core::*;
 use dust::core::texture::Texture;
@@ -23,26 +25,25 @@ pub struct Water {
     model: surface::TriangleSurface,
     foam_texture: texture::Texture2D,
     buffer: buffer::VertexBuffer,
-    center: Vec3,
-    mesh: Mesh
+    center: Vec3
 }
 
 impl Water
 {
-    pub fn create(gl: &gl::Gl) -> Result<Water, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Water
     {
-        let mut mesh = gust::mesh::Mesh::create_indexed(indices(), vec![0.0;3 * VERTICES_IN_TOTAL])?;
-        mesh.add_custom_vec2_attribute("uv_coordinate", vec![0.0;2 * VERTICES_IN_TOTAL])?;
+        let mut mesh = StaticMesh::create(indices(), vec![Attribute::new("position", 3, vec![0.0;3 * VERTICES_IN_TOTAL]),
+                                                          Attribute::new("uv_coordinate", 2, vec![0.0;2 * VERTICES_IN_TOTAL])]).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/water")?;
-        let mut model = surface::TriangleSurface::create_without_adding_attributes(gl, &mesh)?;
-        let buffer = model.add_attributes(&vec![&mesh.positions, mesh.get("uv_coordinate")?], &program)?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/water").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate", "position"]).unwrap();
 
-        let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg")?;
+        let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
 
-        let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0), mesh};
+        let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
         water.set_center(&vec3(0.0, 0.0, 0.0));
-        Ok(water)
+        water
     }
 
     pub fn render(&self, time: f32, camera: &camera::Camera, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture) -> Result<(), traits::Error>
@@ -77,43 +78,39 @@ impl Water
     pub fn set_center(&mut self, center: &Vec3)
     {
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
-        self.update_positions();
-        self.update_uv_coordinates();
+        let mut data = vec![0.0; 5 * VERTICES_IN_TOTAL];
 
-        self.buffer.fill_from(&vec![&self.mesh.positions, self.mesh.get("uv_coordinate").unwrap()]);
+        self.update_positions(&mut data, 2, 5);
+        self.update_uv_coordinates(&mut data, 0, 5);
+
+        self.buffer.fill_with(data);
     }
 
-    fn update_positions(&mut self)
+    fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
-        let positions = self.mesh.positions.data_mut();
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
-                let x = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
-                positions[3 * (r*VERTICES_PER_SIDE + c)] = x;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 1] = 0.0;
-                positions[3 * (r*VERTICES_PER_SIDE + c) + 2] = z;
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                data[offset + vertex_id * stride] = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                data[offset + vertex_id * stride + 2] = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
             }
         }
     }
 
-    fn update_uv_coordinates(&mut self)
+    fn update_uv_coordinates(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
     {
-        let uvs = self.mesh.get_mut("uv_coordinate").unwrap().data_mut();
         let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
-                let x = self.center.x + r as f32 * VERTEX_DISTANCE;
-                let z = self.center.z + c as f32 * VERTEX_DISTANCE;
-                uvs[2 * (r*VERTICES_PER_SIDE + c)] = scale * x;
-                uvs[2 * (r*VERTICES_PER_SIDE + c) + 1] = scale * z;
+                let vertex_id = r*VERTICES_PER_SIDE + c;
+                data[offset + vertex_id * stride] = scale * (self.center.x + r as f32 * VERTEX_DISTANCE);
+                data[offset + vertex_id * stride + 1] = scale * (self.center.z + c as f32 * VERTEX_DISTANCE);
             }
         }
-
     }
 }
 

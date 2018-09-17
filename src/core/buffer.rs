@@ -1,16 +1,19 @@
 use gl;
 use std;
-use gust::attribute;
+use gust::mesh;
 pub use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
+    Mesh(mesh::Error)
+}
 
+impl From<mesh::Error> for Error {
+    fn from(other: mesh::Error) -> Self { Error::Mesh(other) }
 }
 
 pub struct Att {
     pub name: String,
-    pub offset: usize,
     pub no_components: usize
 }
 
@@ -18,7 +21,7 @@ pub struct VertexBuffer {
     gl: gl::Gl,
     id: u32,
     stride: usize,
-    map: Vec<Att>
+    attributes_infos: Vec<Att>
 }
 
 impl VertexBuffer
@@ -29,7 +32,7 @@ impl VertexBuffer
         unsafe {
             gl.GenBuffers(1, &mut id);
         }
-        let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, map: Vec::new() };
+        let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, attributes_infos: Vec::new() };
         buffer.bind();
         Ok(buffer)
     }
@@ -46,39 +49,36 @@ impl VertexBuffer
 
     pub fn attributes_iter(&self) -> Iter<Att>
     {
-        self.map.iter()
+        self.attributes_infos.iter()
     }
 
-    pub fn fill_from(&mut self, attributes: &Vec<&attribute::Attribute>)
+    pub fn fill_from_attributes(&mut self, mesh: &mesh::Renderable, attribute_names: &Vec<&str>)
     {
-        self.stride = 0;
-        self.map = Vec::new();
-        let mut no_vertices = 0;
-        for attribute in attributes
-        {
-            self.stride += attribute.no_components();
-            no_vertices = attribute.data().len() / attribute.no_components();
-        }
+        self.attributes_infos = Vec::new();
+        self.stride = attribute_names.iter().map(|name| mesh.get_attribute(name).unwrap().no_components).sum();
 
+        let no_vertices = mesh.no_vertices();
         let mut data: Vec<f32> = vec![0.0; self.stride * no_vertices];
         let mut offset = 0;
-        for attribute in attributes.iter()
+        for name in attribute_names.iter()
         {
-            self.map.push(Att {name: String::from(attribute.name()), offset, no_components: attribute.no_components()});
-            for vertex_id in 0..no_vertices
-            {
-                for d in 0..attribute.no_components()
-                {
-                    data[offset + vertex_id * self.stride + d] = attribute.data()[vertex_id * attribute.no_components() + d];
+            let attribute = mesh.get_attribute(name).unwrap();
+            let no_components = attribute.no_components;
+            self.attributes_infos.push(Att {name: name.to_string(), no_components});
+            let mut index = offset;
+            for i in 0..no_vertices {
+                for j in 0..no_components {
+                    data[index + j] = attribute.data[i * no_components + j];
                 }
+                index += self.stride;
             }
-            offset = offset + attribute.no_components();
+            offset = offset + no_components;
         }
 
-        self.fill_with(&data);
+        self.fill_with(data);
     }
 
-    pub fn fill_with(&mut self, data: &Vec<f32>)
+    pub fn fill_with(&mut self, data: Vec<f32>)
     {
         self.bind();
         unsafe {
@@ -111,7 +111,7 @@ impl ElementBuffer
         Ok(buffer)
     }
 
-    pub fn fill_with(&self, data: &Vec<u32>)
+    pub fn fill_with(&self, data: Vec<u32>)
     {
         bind(&self.gl, self.id, gl::ELEMENT_ARRAY_BUFFER);
         unsafe {

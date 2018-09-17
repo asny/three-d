@@ -1,11 +1,11 @@
 use dust::core::program;
 use gl;
 use dust::traits;
-use gust::mesh;
 use dust::core::surface;
 use std::rc::Rc;
 use dust::camera;
 use glm;
+use gust::mesh::Attribute;
 
 pub struct Triangle {
     program: program::Program,
@@ -37,10 +37,10 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let mut mesh = mesh::Mesh::create(positions).unwrap();
-        mesh.add_custom_vec3_attribute("color", colors).unwrap();
+        let mesh = ::gust::static_mesh::StaticMesh::create((0..3).collect(), vec![Attribute::new("position", 3, positions), Attribute::new("color", 3, colors)]).unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
-        let model = surface::TriangleSurface::create(gl, &mesh, &program)?;
+        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
+        model.add_attributes(&mesh, &program,&vec!["position", "color"])?;
 
         Ok(Rc::new(Triangle { program, model }))
     }

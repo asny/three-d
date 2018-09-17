@@ -4,7 +4,9 @@ use gl;
 use glm::*;
 use self::rand::prelude::*;
 
-use gust::mesh::Mesh;
+use gust;
+use gust::mesh::Attribute;
+use gust::static_mesh::StaticMesh;
 
 use scene_objects::terrain::*;
 use dust::{traits, camera};
@@ -20,7 +22,7 @@ const NO_STRAWS: usize = 128;
 
 impl Grass
 {
-    pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Result<Grass, traits::Error>
+    pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Grass
     {
         let positions: Vec<f32> = vec![
             0.0, 0.0, 0.0,
@@ -42,19 +44,20 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mut mesh = Mesh::create_indexed(indices, positions)?;
+        let mut mesh = StaticMesh::create(indices, vec![Attribute::new("position", 3, positions)]).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/grass")?;
-        let mut model = surface::TriangleSurface::create(gl, &mesh, &program)?;
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/grass").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
 
         let mut position_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
         program.set_used();
-        program.setup_attribute("root_position", 3, 3, 0, 1)?;
+        program.setup_attribute("root_position", 3, 3, 0, 1).unwrap();
 
         let mut grass = Grass { program, model, position_buffer };
         grass.create_straws(terrain);
-        Ok(grass)
+        grass
     }
 
     fn random_position(terrain: &Terrain) -> Vec3
@@ -80,7 +83,7 @@ impl Grass
             root_positions.push(p.z);
         }
 
-        self.position_buffer.fill_with(&root_positions);
+        self.position_buffer.fill_with(root_positions);
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>

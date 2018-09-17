@@ -27,9 +27,6 @@ pub fn polygon_mode(gl: &gl::Gl, polygon_type: PolygonType)
             CURRENT = polygon_type;
         }
     }
-    unsafe {
-        gl.PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-    }
 }
 
 #[derive(PartialEq)]
