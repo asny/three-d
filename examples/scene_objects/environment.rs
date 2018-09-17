@@ -3,7 +3,6 @@ use scene_objects::water::Water;
 use scene_objects::skybox::Skybox;
 use scene_objects::grass::Grass;
 use dust::*;
-use glm::*;
 
 pub struct Environment
 {
@@ -40,7 +39,7 @@ impl Environment {
 
     pub fn set_position(&mut self, position: &Vec3)
     {
-        if length(*self.terrain.get_center() - *position) > 10.0
+        if (*self.terrain.get_center() - *position).norm() > 10.0
         {
             self.terrain.set_center(position);
             self.water.set_center(position);

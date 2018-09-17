@@ -4,7 +4,6 @@ extern crate dust;
 mod scene_objects;
 
 use std::process;
-use num_traits::identities::One;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
@@ -40,11 +39,11 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
 
     // Camera
-    let mut camera = camera::Camera::create(glm::vec3(5.0, 5.0, 5.0), glm::vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
     let monkey = scene_objects::monkey::Monkey::create(&gl).unwrap();
 
-    let directional_light = dust::light::DirectionalLight::create( glm::vec3(0.0, -1.0, 0.0)).unwrap();
+    let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -72,7 +71,7 @@ fn main() {
         // Draw
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
-        let transformation = glm::Matrix4::one();
+        let transformation = Mat4::identity();
         monkey.reflect(&transformation, &camera).unwrap();
 
         // Light pass

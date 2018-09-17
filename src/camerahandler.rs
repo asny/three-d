@@ -1,5 +1,5 @@
 use camera;
-use glm::*;
+use gust::*;
 
 pub enum CameraState
 {
@@ -42,8 +42,7 @@ impl CameraHandler
                 let camera_position = camera.position;
                 let change = *position - camera.target;
                 camera.set_view(camera_position + change, *position);
-            },
-            _ => {}
+            }
         }
     }
 
@@ -55,13 +54,13 @@ impl CameraHandler
                 let y = yrel as f32;
                 let direction = camera.direction();
                 let mut up_direction = vec3(0., 1., 0.);
-                let right_direction = cross(direction, up_direction);
-                up_direction = cross(right_direction, direction);
+                let right_direction = direction.cross(&up_direction);
+                up_direction = right_direction.cross(&direction);
                 let mut camera_position = camera.position;
                 let target = camera.target;
-                let zoom = length(camera_position - target);
+                let zoom = (camera_position - target).norm();
                 camera_position = camera_position + (right_direction * x + up_direction * y) * 0.1;
-                camera_position = target + normalize(camera_position - target) * zoom;
+                camera_position = target + (camera_position - target).normalize() * zoom;
                 camera.set_view(camera_position, target);
             },
             _ => {}
@@ -74,7 +73,7 @@ impl CameraHandler
             CameraState::SPHERICAL => {
                 let mut position = camera.position;
                 let target = camera.target;
-                let mut zoom = length(position - target);
+                let mut zoom = (position - target).norm();
                 zoom += wheel as f32;
                 zoom = zoom.max(1.0);
                 position = target - camera.direction() * zoom;

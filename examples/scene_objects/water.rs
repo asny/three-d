@@ -3,13 +3,11 @@ extern crate image;
 use dust::core::program;
 use gl;
 use dust::traits;
-use gust::static_mesh::StaticMesh;
+use gust::*;
 use dust::*;
 use dust::core::*;
 use dust::core::texture::Texture;
-use glm::*;
 use self::image::{GenericImage};
-use num_traits::identities::One;
 
 const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 2;
@@ -29,7 +27,7 @@ impl Water
 {
     pub fn create(gl: &gl::Gl) -> Water
     {
-        let mesh = StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
+        let mesh = mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water").unwrap();
@@ -50,7 +48,7 @@ impl Water
         self.program.depth_write(false);
         self.program.depth_test(state::DepthTestType::LEQUAL);
 
-        self.program.add_uniform_mat4("modelMatrix", &Matrix4::one())?;
+        self.program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
 

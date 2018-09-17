@@ -1,11 +1,10 @@
 use dust::core::program;
 use gl;
-use dust::traits;
+use gust::*;
+use dust::*;
 use dust::core::surface;
 use std::rc::Rc;
 use dust::camera;
-use glm;
-use gust::mesh::Attribute;
 
 pub struct Triangle {
     program: program::Program,
@@ -14,7 +13,7 @@ pub struct Triangle {
 
 impl traits::Reflecting for Triangle
 {
-    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
+    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
@@ -37,7 +36,7 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let mesh = ::gust::static_mesh::StaticMesh::create((0..3).collect(), vec![Attribute::new("position", 3, positions), Attribute::new("color", 3, colors)]).unwrap();
+        let mesh = mesh::StaticMesh::create((0..3).collect(), att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
         let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec!["position", "color"])?;

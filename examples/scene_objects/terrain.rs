@@ -4,15 +4,12 @@ extern crate noise;
 use dust::core::program;
 use gl;
 use dust::traits;
-use gust;
-use gust::static_mesh::StaticMesh;
+use gust::*;
 use dust::*;
 use dust::core::*;
 use dust::core::texture::Texture;
-use glm::*;
 use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
-use num_traits::identities::One;
 
 pub const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 8;
@@ -36,7 +33,7 @@ impl Terrain
     pub fn create(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
-        let mesh = StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
+        let mesh = mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
@@ -68,11 +65,11 @@ impl Terrain
         self.noise_texture.bind(2);
         self.program.add_uniform_int("noiseTexture", &2)?;
 
-        let transformation = Matrix4::one();
+        let transformation = Mat4::identity();
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transpose(&inverse(&transformation)))?;
+        self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose())?;
 
         self.model.render()?;
 
@@ -139,7 +136,7 @@ impl Terrain
                 let z = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
                 let dx = self.get_height_at(x + 0.5 * h, z) - self.get_height_at(x - 0.5 * h, z);
                 let dz = self.get_height_at(x, z + 0.5 * h) - self.get_height_at(x, z - 0.5 * h);
-                let normal = normalize(vec3(-dx, h, -dz));
+                let normal = vec3(-dx, h, -dz).normalize();
                 data[offset + vertex_id * stride] = normal.x;
                 data[offset + vertex_id * stride + 1] = normal.y;
                 data[offset + vertex_id * stride + 2] = normal.z;

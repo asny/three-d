@@ -6,7 +6,6 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 [dependencies]
 gust = { path = "../Gust" }
 gl = { path = "lib/gl" }
-num-traits = "0.2.2"
 
 [dev-dependencies]
 sdl2 = "0.31.0"

@@ -1,4 +1,4 @@
-use glm::*;
+use gust::*;
 
 pub struct Camera {
     pub position: Vec3,
@@ -25,16 +25,16 @@ impl Camera
 
     pub fn direction(&self) -> Vec3
     {
-        normalize(self.target - self.position)
+        (self.target - self.position).normalize()
     }
 
-    pub fn get_view(&self) -> Matrix4<f32>
+    pub fn get_view(&self) -> Mat4
     {
-        ext::look_at(self.position, self.target, vec3(0., 1., 0.))
+        Mat4::look_at_rh(&na::Point::from_coordinates(self.position), &na::Point::from_coordinates(self.target), &vec3(0., 1., 0.))
     }
 
-    pub fn get_projection(&self) -> Matrix4<f32>
+    pub fn get_projection(&self) -> Mat4
     {
-        ext::perspective(radians(45.0), (self.width as f32)/(self.height as f32), self.z_near, self.z_far)
+        Mat4::new_perspective((self.width as f32)/(self.height as f32), 0.25 * ::std::f32::consts::PI, self.z_near, self.z_far)
     }
 }

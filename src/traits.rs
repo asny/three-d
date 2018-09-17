@@ -1,9 +1,8 @@
-use gust::mesh;
 use core::program;
 use core::surface;
 use core::texture;
-use glm;
 use camera;
+use gust::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -41,5 +40,5 @@ pub trait Emitting {
 }
 
 pub trait Reflecting {
-    fn reflect(&self, transformation: &glm::Mat4, camera: &camera::Camera) -> Result<(), Error>;
+    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>;
 }
