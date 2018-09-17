@@ -1,6 +1,17 @@
 pub extern crate num_traits;
 pub extern crate gl;
+#[macro_use]
 pub extern crate gust;
+
+#[macro_export]
+macro_rules! att {
+    ($( $name: expr => ($data: expr, $no_components: expr)),*) => {{
+         let mut vec = Vec::new();
+         $( vec.push(gust::mesh::Attribute::new($name, $no_components, $data)); )*
+         vec
+    }}
+}
+
 pub use gust::glm;
 pub use gust::mesh;
 

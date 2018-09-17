@@ -3,9 +3,6 @@ extern crate image;
 use dust::core::program;
 use gl;
 use dust::traits;
-use gust;
-use gust::mesh::Attribute;
-use gust::ids::*;
 use gust::static_mesh::StaticMesh;
 use dust::*;
 use dust::core::*;
@@ -32,8 +29,8 @@ impl Water
 {
     pub fn create(gl: &gl::Gl) -> Water
     {
-        let mut mesh = StaticMesh::create(indices(), vec![Attribute::new("position", 3, vec![0.0;3 * VERTICES_IN_TOTAL]),
-                                                          Attribute::new("uv_coordinate", 2, vec![0.0;2 * VERTICES_IN_TOTAL])]).unwrap();
+        let mesh = StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
+                                                      "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();

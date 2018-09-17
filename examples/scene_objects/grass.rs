@@ -4,10 +4,9 @@ use gl;
 use glm::*;
 use self::rand::prelude::*;
 
-use gust;
-use gust::mesh::Attribute;
 use gust::static_mesh::StaticMesh;
 
+use dust::*;
 use scene_objects::terrain::*;
 use dust::{traits, camera};
 use dust::core::{buffer, program, surface, state};
@@ -44,13 +43,13 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mut mesh = StaticMesh::create(indices, vec![Attribute::new("position", 3, positions)]).unwrap();
+        let mesh = StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
         model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
 
-        let mut position_buffer = buffer::VertexBuffer::create(gl).unwrap();
+        let position_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
         program.set_used();
         program.setup_attribute("root_position", 3, 3, 0, 1).unwrap();
@@ -76,7 +75,7 @@ impl Grass
     pub fn create_straws(&mut self, terrain: &Terrain)
     {
         let mut root_positions = Vec::new();
-        for i in 0..NO_STRAWS {
+        for _ in 0..NO_STRAWS {
             let p = Grass::random_position(terrain);
             root_positions.push(p.x);
             root_positions.push(p.y);
