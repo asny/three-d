@@ -1,9 +1,6 @@
+
 use gl;
 use dust::*;
-use dust::core::program;
-use dust::traits;
-use dust::core::surface;
-use dust::camera;
 
 pub struct Monkey {
     program: program::Program,

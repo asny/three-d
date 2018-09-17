@@ -1,15 +1,8 @@
 extern crate image;
 
-use dust::core::program;
 use gl;
-use dust::traits;
-use gust::*;
+use dust::*;
 use std::rc::Rc;
-use dust::core::texture;
-use dust::core::texture::Texture;
-use dust::core::surface;
-use dust::camera;
-use dust::core::state;
 use self::image::{GenericImage};
 
 pub struct TexturedBox {
@@ -40,7 +33,7 @@ impl TexturedBox
 {
     pub fn create(gl: &gl::Gl) -> Result<Rc<traits::Reflecting>, traits::Error>
     {
-        let mesh = models::create_cube().unwrap();
+        let mesh = mesh_generator::create_cube().unwrap();
         let program = program::Program::from_resource(gl, "examples/assets/shaders/texture")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position", "normal"])?;

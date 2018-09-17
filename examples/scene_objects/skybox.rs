@@ -1,14 +1,7 @@
 extern crate image;
 
 use gl;
-use dust::traits;
-use gust;
-use dust::core::program;
-use dust::core::texture;
-use dust::core::texture::Texture;
-use dust::core::surface;
-use dust::core::state;
-use dust::camera;
+use dust::*;
 use self::image::{GenericImage};
 
 pub struct Skybox {
@@ -21,7 +14,7 @@ impl Skybox
 {
     pub fn create(gl: &gl::Gl) -> Skybox
     {
-        let mesh = gust::loader::load_obj_as_static_mesh("examples/assets/models/box.obj").unwrap();
+        let mesh = mesh_loader::load_obj_as_static_mesh("examples/assets/models/box.obj").unwrap();
         let program = program::Program::from_resource(gl, "examples/assets/shaders/skybox").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
         model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();

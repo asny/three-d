@@ -1,12 +1,8 @@
 extern crate image;
 extern crate noise;
 
-use dust::core::program;
 use gl;
-use dust::traits;
 use dust::*;
-use dust::core::*;
-use dust::core::texture::Texture;
 use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 

@@ -32,3 +32,7 @@ mod emscripten;
 pub use gust::types::*;
 pub use gust::mesh as mesh;
 pub use gust::loader as mesh_loader;
+pub use gust::models as mesh_generator;
+
+pub use core::*;
+pub use texture::Texture;

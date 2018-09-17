@@ -9,7 +9,6 @@ use std::time::Instant;
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
-use gust::*;
 use dust::*;
 use dust::traits::Reflecting;
 

@@ -2,10 +2,8 @@ extern crate rand;
 
 use gl;
 use self::rand::prelude::*;
-
 use dust::*;
 use scene_objects::terrain::*;
-use dust::core::{buffer, program, surface, state};
 
 pub struct Grass {
     program: program::Program,

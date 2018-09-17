@@ -1,11 +1,7 @@
 extern crate image;
 
-use dust::core::program;
 use gl;
-use dust::traits;
 use dust::*;
-use dust::core::*;
-use dust::core::texture::Texture;
 use self::image::{GenericImage};
 
 const SIZE: f32 = 64.0;

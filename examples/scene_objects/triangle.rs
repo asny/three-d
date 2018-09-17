@@ -1,9 +1,7 @@
-use dust::core::program;
+
 use gl;
 use dust::*;
-use dust::core::surface;
 use std::rc::Rc;
-use dust::camera;
 
 pub struct Triangle {
     program: program::Program,
