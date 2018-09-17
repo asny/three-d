@@ -11,7 +11,7 @@ macro_rules! att {
 }
 
 pub mod core;
-pub mod loader;
+mod loader;
 
 pub mod traits;
 pub mod light;
@@ -30,3 +30,5 @@ extern crate emscripten_sys;
 mod emscripten;
 
 pub use gust::types::*;
+pub use gust::mesh as mesh;
+pub use gust::loader as mesh_loader;

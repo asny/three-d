@@ -1,6 +1,5 @@
 use dust::core::program;
 use gl;
-use gust::*;
 use dust::*;
 use dust::core::surface;
 use std::rc::Rc;

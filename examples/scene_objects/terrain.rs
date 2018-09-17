@@ -4,7 +4,6 @@ extern crate noise;
 use dust::core::program;
 use gl;
 use dust::traits;
-use gust::*;
 use dust::*;
 use dust::core::*;
 use dust::core::texture::Texture;
