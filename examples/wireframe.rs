@@ -44,6 +44,7 @@ fn main() {
     let mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     println!("Done creating mesh");
     let wireframe = ::default_objects::wireframe::Wireframe::create(&gl, &mesh);
+    let model = ::default_objects::standard::Standard::create(&gl, &mesh);
 
     let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
 
@@ -73,6 +74,8 @@ fn main() {
         // draw
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
+        let transformation = Mat4::identity();
+        model.render(&transformation, &camera);
         wireframe.render(&camera);
 
         // Light pass
