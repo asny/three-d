@@ -73,8 +73,7 @@ fn main() {
         // draw
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
-        let transformation = Mat4::identity();
-        wireframe.render(&transformation, &camera);
+        wireframe.render(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();

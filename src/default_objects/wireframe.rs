@@ -40,7 +40,7 @@ impl Wireframe
         Wireframe { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0) }
     }
 
-    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
+    pub fn render(&self, camera: &camera::Camera)
     {
         self.program.cull(state::CullType::NONE);
         self.program.depth_test(state::DepthTestType::NONE);
@@ -48,10 +48,8 @@ impl Wireframe
         self.program.polygon_mode(state::PolygonType::Fill);
 
         self.program.add_uniform_vec3("color", &self.color).unwrap();
-        self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection()).unwrap();
-        self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose()).unwrap();
         self.surface.render_instances(self.no_edges).unwrap();
     }
 }
