@@ -15,7 +15,7 @@ impl Wireframe
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/default_objects/shaders/wireframe").unwrap();
 
-        let edge_mesh = ::mesh_generator::create_connected_cube().unwrap();
+        let edge_mesh = ::mesh_loader::load_obj_as_static_mesh("../Dust/src/default_objects/models/cylinder.obj").unwrap();
         let mut surface = surface::TriangleSurface::create(gl, &edge_mesh).unwrap();
         surface.add_attributes(&edge_mesh, &program, &vec!["position"]).unwrap();
 
