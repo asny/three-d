@@ -42,9 +42,9 @@ impl Wireframe
 
     pub fn render(&self, camera: &camera::Camera)
     {
-        self.program.cull(state::CullType::NONE);
-        self.program.depth_test(state::DepthTestType::NONE);
-        self.program.depth_write(false);
+        self.program.cull(state::CullType::BACK);
+        self.program.depth_test(state::DepthTestType::LEQUAL);
+        self.program.depth_write(true);
         self.program.polygon_mode(state::PolygonType::Fill);
 
         self.program.add_uniform_vec3("color", &self.color).unwrap();
