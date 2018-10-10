@@ -27,11 +27,11 @@ void main()
 {
     pos = position;
     pos.x *= distance(position1, position0);
-    pos.y *= 0.1;
-    pos.z *= 0.1;
+    pos.y *= 0.01;
+    pos.z *= 0.01;
 
-    vec3 axis = normalize(cross(vec3(1.0, 0.0, 0.0), position1 - position0));
-    float angle = dot(vec3(1.0, 0.0, 0.0), normalize(position1 - position0));
+    vec3 axis = cross(vec3(1.0, 0.0, 0.0), normalize(position1 - position0));
+    float angle = -acos(dot(vec3(1.0, 0.0, 0.0), normalize(position1 - position0)));
     mat4 rot = rotationMatrix(axis, angle);
 
     pos = (rot * vec4(pos, 1.0)).xyz;
