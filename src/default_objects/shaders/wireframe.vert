@@ -10,7 +10,7 @@ in vec3 position;
 out vec3 pos;
 out vec3 nor;
 
-mat4 rotationMatrix(vec3 axis, float c)
+mat4 transformation(vec3 axis, float c, vec3 translation)
 {
     axis = normalize(axis);
     float s = sqrt(1.0 - c*c);
@@ -19,7 +19,7 @@ mat4 rotationMatrix(vec3 axis, float c)
     return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
                 oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
                 oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-                0.0,                                0.0,                                0.0,                                1.0);
+                translation.x,                     translation.y,          translation.z,                                1.0);
 }
 
 void main()
@@ -41,11 +41,10 @@ void main()
         axis = -cross(vec3(1.0, 0.0, 0.0), dir);
     }
 
-    mat4 rot = rotationMatrix(axis, cos_angle);
+    mat4 rot = transformation(axis, cos_angle, position0);
 
     pos = (rot * vec4(pos, 1.0)).xyz;
 
-    pos += position0;
     nor = vec3(0.0, 1.0, 0.0);
 
     gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
