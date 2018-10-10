@@ -41,11 +41,11 @@ void main()
         axis = -cross(vec3(1.0, 0.0, 0.0), dir);
     }
 
-    mat4 rot = transformation(axis, cos_angle, position0);
+    mat4 local2world = transformation(axis, cos_angle, position0);
 
-    pos = (rot * vec4(pos, 1.0)).xyz;
+    pos = (local2world * vec4(pos, 1.0)).xyz;
 
-    nor = vec3(0.0, 1.0, 0.0);
+    nor = normalize(mat3(transpose(inverse(local2world))) * vec3(0.0, position.y, position.z));
 
     gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
 }
