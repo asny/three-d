@@ -37,9 +37,6 @@ fn main() {
     // Renderer
     let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
 
-    // Scene
-    let mut scene = scene::Scene::create();
-
     // Camera
     let camera = camera::Camera::create(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), width, height);
 

@@ -23,7 +23,3 @@ impl DirectionalLight
         Ok(DirectionalLight {direction, base})
     }
 }
-
-impl traits::Emitting for DirectionalLight
-{
-}

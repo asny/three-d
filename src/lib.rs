@@ -21,7 +21,6 @@ pub mod eventhandler;
 pub mod camerahandler;
 pub mod camera;
 pub mod pipeline;
-pub mod scene;
 pub mod renderer;
 
 #[cfg(target_os = "emscripten")]

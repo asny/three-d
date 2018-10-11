@@ -10,7 +10,6 @@ use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
 use dust::*;
-use dust::traits::Reflecting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
