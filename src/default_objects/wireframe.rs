@@ -9,17 +9,6 @@ pub struct Wireframe {
     pub color: Vec3
 }
 
-fn rotation(axis: Vec3, cos_angle: f32) -> Mat4
-{
-    let c = cos_angle;
-    let s = (1.0 - c*c).sqrt();
-    let oc = 1.0 - c;
-    return Mat4::new(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-                0.0,                                0.0,                                0.0,                                1.0);
-}
-
 impl Wireframe
 {
     pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh) -> Wireframe
@@ -54,7 +43,7 @@ impl Wireframe
             else {
                 vec3(1.0, 0.0, 0.0).cross(&dir).normalize()
             };
-            let local_to_world = rotation(rotation_axis, cos_angle) * Mat4::new_nonuniform_scaling(&vec3(length, 0.01, 0.01));
+            let local_to_world = rotation_matrix_from_axis_cos_angle(rotation_axis, cos_angle) * Mat4::new_nonuniform_scaling(&vec3(length, 0.01, 0.01));
             let normal_matrix = local_to_world.try_inverse().unwrap().transpose();
 
             for i in 0..3 {
