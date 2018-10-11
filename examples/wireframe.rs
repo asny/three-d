@@ -45,9 +45,9 @@ fn main() {
     println!("Done creating mesh");
     let wireframe = ::objects::Wireframe::create(&gl, &mesh);
     mesh.update_vertex_normals();
-    let model = ::objects::Phong::create(&gl, &mesh);
+    let model = ::objects::ShadedColor::create(&gl, &mesh);
 
-    let plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
+    let plane = ::objects::ShadedColor::create(&gl, &mesh_generator::create_plane().unwrap());
 
     let light1 = dust::light::DirectionalLight::create(vec3(0.0, -1.0, -1.0)).unwrap();
     let light2 = dust::light::DirectionalLight::create(vec3(-1.0, -1.0, 0.0)).unwrap();

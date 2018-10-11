@@ -41,9 +41,9 @@ fn main() {
     let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
     let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
-    let monkey = objects::Phong::create(&gl, &mesh);
+    let monkey = objects::ShadedColor::create(&gl, &mesh);
 
-    let plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
+    let plane = ::objects::ShadedColor::create(&gl, &mesh_generator::create_plane().unwrap());
 
     let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0)).unwrap();
 
