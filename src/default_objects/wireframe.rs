@@ -36,14 +36,7 @@ impl Wireframe
 
             let length = (p1 - p0).norm();
             let dir = (p1 - p0)/length;
-            let cos_angle = vec3(1.0, 0.0, 0.0).dot(&dir);
-            let rotation_axis = if cos_angle.abs() > 0.999 {
-                vec3(0.0, 1.0, 0.0)
-            }
-            else {
-                vec3(1.0, 0.0, 0.0).cross(&dir).normalize()
-            };
-            let local_to_world = rotation_matrix_from_axis_cos_angle(rotation_axis, cos_angle) * Mat4::new_nonuniform_scaling(&vec3(length, 0.01, 0.01));
+            let local_to_world = rotation_matrix_from_dir_to_dir(&vec3(1.0, 0.0, 0.0), &dir) * Mat4::new_nonuniform_scaling(&vec3(length, 0.01, 0.01));
             let normal_matrix = local_to_world.try_inverse().unwrap().transpose();
 
             for i in 0..3 {
