@@ -2,22 +2,22 @@
 use gl;
 use ::*;
 
-pub struct ShadedColor {
+pub struct ShadedColoredMesh {
     program: program::Program,
     model: surface::TriangleSurface,
     pub color: Vec3
 }
 
-impl ShadedColor
+impl ShadedColoredMesh
 {
-    pub fn create(gl: &gl::Gl, mesh: &Renderable) -> ShadedColor
+    pub fn create(gl: &gl::Gl, mesh: &Renderable) -> ShadedColoredMesh
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh",
                                                       "../Dust/src/objects/shaders/shaded_color").unwrap();
         let mut model = surface::TriangleSurface::create(gl, mesh).unwrap();
         model.add_attributes(mesh, &program, &vec!["position", "normal"]).unwrap();
 
-        ShadedColor { program, model, color: vec3(1.0, 1.0, 1.0) }
+        ShadedColoredMesh { program, model, color: vec3(1.0, 1.0, 1.0) }
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
