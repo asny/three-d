@@ -9,7 +9,6 @@ use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
 use dust::*;
-use dust::traits::Reflecting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
@@ -41,7 +40,8 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
-    let monkey = scene_objects::monkey::Monkey::create(&gl).unwrap();
+    let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
+    let monkey = objects::Phong::create(&gl, &mesh);
 
     let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0)).unwrap();
 
@@ -72,7 +72,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
         let transformation = Mat4::identity();
-        monkey.reflect(&transformation, &camera).unwrap();
+        monkey.render(&transformation, &camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
