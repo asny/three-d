@@ -50,7 +50,17 @@ fn main() {
 
     let cube = mesh_generator::create_cube().unwrap();
     let textured_box = objects::ShadedTexturedMesh::create(&gl, &cube, texture);
-    let skybox = scene_objects::skybox::Skybox::create(&gl);
+
+    let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
+    let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
+    let top = image::open("examples/assets/textures/skybox_evening/top.jpg").unwrap();
+    let left = image::open("examples/assets/textures/skybox_evening/left.jpg").unwrap();
+    let right = image::open("examples/assets/textures/skybox_evening/right.jpg").unwrap();
+    let mut texture3d = texture::Texture3D::create(&gl).unwrap();
+    texture3d.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
+                      [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
+                          &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+    let skybox = objects::Skybox::create(&gl, texture3d);
 
     let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
 
