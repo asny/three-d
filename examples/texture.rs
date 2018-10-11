@@ -1,5 +1,8 @@
 extern crate sdl2;
 extern crate dust;
+extern crate image;
+
+use self::image::{GenericImage};
 
 mod scene_objects;
 
@@ -40,7 +43,13 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
-    let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
+
+    let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
+    let mut texture = texture::Texture2D::create(&gl).unwrap();
+    texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
+
+    let cube = mesh_generator::create_cube().unwrap();
+    let textured_box = objects::ShadedTexturedMesh::create(&gl, &cube, texture);
     let skybox = scene_objects::skybox::Skybox::create(&gl);
 
     let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
@@ -72,7 +81,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
         let transformation = Mat4::identity();
-        textured_box.reflect(&transformation, &camera).unwrap();
+        textured_box.render(&transformation, &camera);
         skybox.render(&camera).unwrap();
 
         // Light pass
