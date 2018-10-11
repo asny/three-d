@@ -34,7 +34,11 @@ impl Wireframe
         for halfedge_id in mesh.halfedge_iterator() {
             let (p0, p1) = mesh.edge_positions(&halfedge_id);
 
-            let local_to_world = Mat4::new_nonuniform_scaling(&vec3(1.0, 0.2, 0.2));
+            let length = (p1 - p0).norm();
+            let dir = (p1 - p0)/length;
+            let cross = vec3(1.0, 0.0, 0.0).cross(&dir);
+            let axis = Unit::new_normalize(cross);
+            let local_to_world = Mat4::from_axis_angle(&axis, cross.norm().asin()) * Mat4::new_nonuniform_scaling(&vec3(length, 0.01, 0.01));
             let normal_matrix = local_to_world.try_inverse().unwrap().transpose();
 
             for i in 0..3 {
