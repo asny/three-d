@@ -46,7 +46,8 @@ fn main() {
     let wireframe = ::default_objects::wireframe::Wireframe::create(&gl, &mesh);
     let model = ::default_objects::standard::Standard::create(&gl, &mesh);
 
-    let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
+    let light1 = dust::light::DirectionalLight::create(vec3(0.0, -1.0, -1.0)).unwrap();
+    let light2 = dust::light::DirectionalLight::create(vec3(-1.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -80,7 +81,8 @@ fn main() {
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
-        renderer.shine_directional_light(&light).unwrap();
+        renderer.shine_directional_light(&light1).unwrap();
+        renderer.shine_directional_light(&light2).unwrap();
 
         window.gl_swap_window();
     };
