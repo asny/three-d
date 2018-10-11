@@ -43,6 +43,8 @@ fn main() {
     let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
     let monkey = objects::Phong::create(&gl, &mesh);
 
+    let plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
+
     let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
@@ -71,8 +73,8 @@ fn main() {
         // Draw
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
-        let transformation = Mat4::identity();
-        monkey.render(&transformation, &camera);
+        monkey.render(&Mat4::identity(), &camera);
+        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();

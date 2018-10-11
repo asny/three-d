@@ -47,7 +47,7 @@ fn main() {
     mesh.update_vertex_normals();
     let model = ::objects::Phong::create(&gl, &mesh);
 
-    let mut plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
+    let plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
 
     let light1 = dust::light::DirectionalLight::create(vec3(0.0, -1.0, -1.0)).unwrap();
     let light2 = dust::light::DirectionalLight::create(vec3(-1.0, -1.0, 0.0)).unwrap();
