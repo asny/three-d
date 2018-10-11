@@ -12,8 +12,8 @@ impl ShadedColoredMesh
 {
     pub fn create(gl: &gl::Gl, mesh: &Renderable) -> ShadedColoredMesh
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh",
-                                                      "../Dust/src/objects/shaders/shaded_color").unwrap();
+        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
+                                                      "../Dust/src/objects/shaders/shaded_colored").unwrap();
         let mut model = surface::TriangleSurface::create(gl, mesh).unwrap();
         model.add_attributes(mesh, &program, &vec!["position", "normal"]).unwrap();
 
