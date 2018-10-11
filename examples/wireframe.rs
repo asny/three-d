@@ -41,12 +41,13 @@ fn main() {
     let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
     println!("Start creating mesh");
-    let mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
+    let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     println!("Done creating mesh");
     let wireframe = ::objects::Wireframe::create(&gl, &mesh);
+    mesh.update_vertex_normals();
     let model = ::objects::Phong::create(&gl, &mesh);
 
-    let plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
+    let mut plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
 
     let light1 = dust::light::DirectionalLight::create(vec3(0.0, -1.0, -1.0)).unwrap();
     let light2 = dust::light::DirectionalLight::create(vec3(-1.0, -1.0, 0.0)).unwrap();
