@@ -2,50 +2,30 @@
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-in vec3 position0;
-in vec3 position1;
+in vec3 local2worldX;
+in vec3 local2worldY;
+in vec3 local2worldZ;
+in vec3 translation;
+
 
 in vec3 position;
 
 out vec3 pos;
 out vec3 nor;
 
-mat4 transformation(vec3 axis, float c, vec3 translation)
+mat4 transformation()
 {
-    axis = normalize(axis);
-    float s = sqrt(1.0 - c*c);
-    float oc = 1.0 - c;
-
-    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-                translation.x,                     translation.y,          translation.z,                                1.0);
+    return mat4(local2worldX.x, local2worldX.y,  local2worldX.z, 0.0,
+                local2worldY.x, local2worldY.y,  local2worldY.z, 0.0,
+                local2worldZ.x, local2worldZ.y,  local2worldZ.z, 0.0,
+                translation.x, translation.y, translation.z, 1.0);
 }
 
 void main()
 {
-    pos = position;
-    pos.x *= distance(position1, position0);
-    pos.y *= 0.02;
-    pos.z *= 0.02;
+    pos = (transformation() * vec4(0.1 * position, 1.0)).xyz;
 
-    vec3 dir = normalize(position1 - position0);
-    float cos_angle = dot(vec3(1.0, 0.0, 0.0), dir);
-    vec3 axis;
-    if(cos_angle > 0.99 || cos_angle < -0.99)
-    {
-        axis = -cross(vec3(0.0, 1.0, 0.0), dir);
-    }
-    else
-    {
-        axis = -cross(vec3(1.0, 0.0, 0.0), dir);
-    }
-
-    mat4 local2world = transformation(axis, cos_angle, position0);
-
-    pos = (local2world * vec4(pos, 1.0)).xyz;
-
-    nor = normalize(mat3(transpose(inverse(local2world))) * vec3(0.0, position.y, position.z));
+    nor = vec3(0.0, 1.0, 0.0);//normalize(mat3(normalMatrix) * vec3(0.0, position.y, position.z));
 
     gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
 }

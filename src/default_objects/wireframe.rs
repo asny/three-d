@@ -19,23 +19,29 @@ impl Wireframe
         let mut surface = surface::TriangleSurface::create(gl, &edge_mesh).unwrap();
         surface.add_attributes(&edge_mesh, &program, &vec!["position"]).unwrap();
 
-        let mut position_buffer = buffer::VertexBuffer::create(gl).unwrap();
+        let mut instance_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
         program.set_used();
-        program.setup_attribute("position0", 3, 6, 0, 1).unwrap();
-        program.setup_attribute("position1", 3, 6, 3, 1).unwrap();
+        program.setup_attribute("local2worldX", 3, 12, 0, 1).unwrap();
+        program.setup_attribute("local2worldY", 3, 12, 3, 1).unwrap();
+        program.setup_attribute("local2worldZ", 3, 12, 6, 1).unwrap();
+        program.setup_attribute("translation", 3, 12, 9, 1).unwrap();
 
-        let mut positions = Vec::new();
+        let mut data = Vec::new();
         for halfedge_id in mesh.halfedge_iterator() {
             let (p0, p1) = mesh.edge_positions(&halfedge_id);
-            positions.push(p0.x);
-            positions.push(p0.y);
-            positions.push(p0.z);
-            positions.push(p1.x);
-            positions.push(p1.y);
-            positions.push(p1.z);
+
+            let local_to_world = Mat4::identity();
+            let normal_matrix = local_to_world.try_inverse().unwrap().transpose();
+
+            for i in 0..4 {
+                for j in 0..3 {
+                    data.push(*local_to_world.column(i).row(j).iter().next().unwrap());
+                }
+            }
+
         }
-        position_buffer.fill_with(positions);
+        instance_buffer.fill_with(data);
 
         Wireframe { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0) }
     }
