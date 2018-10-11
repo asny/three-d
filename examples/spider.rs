@@ -46,7 +46,7 @@ fn main() {
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights
-    let directional_light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
+    let directional_light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0));
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();

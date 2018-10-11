@@ -62,7 +62,7 @@ fn main() {
                           &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
     let skybox = objects::Skybox::create(&gl, texture3d);
 
-    let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
+    let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0));
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();

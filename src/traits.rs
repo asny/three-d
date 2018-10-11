@@ -1,7 +1,6 @@
 use core::program;
 use core::surface;
 use core::texture;
-use camera;
 use gust::*;
 
 #[derive(Debug)]

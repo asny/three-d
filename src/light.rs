@@ -1,4 +1,3 @@
-use traits;
 use gust::*;
 
 pub struct Light {
@@ -14,12 +13,12 @@ pub struct DirectionalLight {
 
 impl DirectionalLight
 {
-    pub fn create(direction: Vec3) -> Result<DirectionalLight, traits::Error>
+    pub fn create(direction: Vec3) -> DirectionalLight
     {
         let color = vec3(1., 1., 1.);
         let ambient_intensity = 0.2;
         let diffuse_intensity = 0.5;
         let base = Light {color, ambient_intensity, diffuse_intensity};
-        Ok(DirectionalLight {direction, base})
+        DirectionalLight {direction, base}
     }
 }
