@@ -34,7 +34,7 @@ impl Triangle
             0.0, 0.0, 1.0    // top
         ];
         let mesh = mesh::StaticMesh::create((0..3).collect(), att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
-        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color")?;
+        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color")?;
         let mut model = surface::TriangleSurface::create(gl, &mesh)?;
         model.add_attributes(&mesh, &program,&vec!["position", "color"])?;
 

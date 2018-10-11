@@ -4,8 +4,7 @@ use dust::*;
 use scene_objects::environment::Environment;
 
 pub struct Spider {
-    program: program::Program,
-    model: surface::TriangleSurface,
+    model: objects::Phong,
     position: Vec3,
     view_direction: Vec3,
     local2world: Mat4,
@@ -21,12 +20,7 @@ impl traits::Reflecting for Spider
 {
     fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
     {
-        self.program.add_uniform_vec3("color", &vec3(1.0, 1.0, 1.0))?;
-        self.program.add_uniform_mat4("modelMatrix", &self.local2world)?;
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &self.local2world.try_inverse().unwrap().transpose())?;
-        self.model.render()?;
+        self.model.render(transformation, camera);
         Ok(())
     }
 }
@@ -36,11 +30,9 @@ impl Spider
     pub fn create(gl: &gl::Gl) -> Result<Spider, traits::Error>
     {
         let mesh = mesh_loader::load_obj_as_static_mesh("/examples/assets/models/spider.obj").unwrap();
-        let program = program::Program::from_resource(&gl, "examples/assets/shaders/standard")?;
-        let mut model = surface::TriangleSurface::create(gl, &mesh)?;
-        model.add_attributes(&mesh, &program,&vec!["position", "normal"])?;
+        let model = objects::Phong::create(gl, &mesh);
 
-        Ok(Spider { program, model, position: vec3(0.0, 0.0, 5.0), view_direction: vec3(0.0, 0.0, -1.0), local2world: Mat4::identity(),
+        Ok(Spider { model, position: vec3(0.0, 0.0, 5.0), view_direction: vec3(0.0, 0.0, -1.0), local2world: Mat4::identity(),
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})
     }
 

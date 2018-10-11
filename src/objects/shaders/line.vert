@@ -34,8 +34,6 @@ mat3 normalMatrix()
 void main()
 {
     pos = (local2world() * vec4(position, 1.0)).xyz;
-
     nor = normalize(normalMatrix() * vec3(0.0, position.y, position.z));
-
     gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
 }

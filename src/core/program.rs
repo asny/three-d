@@ -38,20 +38,11 @@ pub struct Program {
 
 impl Program
 {
-    pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Program, Error>
+    pub fn from_resource(gl: &gl::Gl, vertex_shader_name: &str, fragment_shader_name: &str) -> Result<Program, Error>
     {
-        const POSSIBLE_EXT: [&str; 2] = [
-            ".vert",
-            ".frag",
-        ];
-
-        let shaders = POSSIBLE_EXT.iter()
-            .map(|file_extension| {
-                shader::Shader::from_resource(gl, &format!("{}{}", name, file_extension))
-            })
-            .collect::<Result<Vec<shader::Shader>, shader::Error>>()?;
-
-        Program::from_shaders(gl, &shaders[..])
+        let shaders = [shader::Shader::from_resource(gl, &format!("{}{}", vertex_shader_name, ".vert"))?,
+            shader::Shader::from_resource(gl, &format!("{}{}", fragment_shader_name, ".frag"))?];
+        Program::from_shaders(gl, &shaders)
     }
 
     pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>

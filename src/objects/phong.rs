@@ -12,7 +12,8 @@ impl Phong
 {
     pub fn create(gl: &gl::Gl, mesh: &Renderable) -> Phong
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/standard").unwrap();
+        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh",
+                                                      "../Dust/src/objects/shaders/color").unwrap();
         let mut model = surface::TriangleSurface::create(gl, mesh).unwrap();
         model.add_attributes(mesh, &program, &vec!["position", "normal"]).unwrap();
 
