@@ -22,10 +22,13 @@ impl Wireframe
         let mut instance_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
         program.set_used();
-        program.setup_attribute("local2worldX", 3, 12, 0, 1).unwrap();
-        program.setup_attribute("local2worldY", 3, 12, 3, 1).unwrap();
-        program.setup_attribute("local2worldZ", 3, 12, 6, 1).unwrap();
-        program.setup_attribute("translation", 3, 12, 9, 1).unwrap();
+        program.setup_attribute("local2worldX", 3, 21, 0, 1).unwrap();
+        program.setup_attribute("local2worldY", 3, 21, 3, 1).unwrap();
+        program.setup_attribute("local2worldZ", 3, 21, 6, 1).unwrap();
+        program.setup_attribute("translation", 3, 21, 9, 1).unwrap();
+        program.setup_attribute("normalMatrixX", 3, 21, 12, 1).unwrap();
+        program.setup_attribute("normalMatrixY", 3, 21, 15, 1).unwrap();
+        program.setup_attribute("normalMatrixZ", 3, 21, 18, 1).unwrap();
 
         let mut data = Vec::new();
         for halfedge_id in mesh.halfedge_iterator() {
@@ -34,9 +37,19 @@ impl Wireframe
             let local_to_world = Mat4::identity();
             let normal_matrix = local_to_world.try_inverse().unwrap().transpose();
 
-            for i in 0..4 {
+            for i in 0..3 {
                 for j in 0..3 {
                     data.push(*local_to_world.column(i).row(j).iter().next().unwrap());
+                }
+            }
+
+            for val in p0.iter() {
+                data.push(*val);
+            }
+
+            for i in 0..3 {
+                for j in 0..3 {
+                    data.push(*normal_matrix.column(i).row(j).iter().next().unwrap());
                 }
             }
 
