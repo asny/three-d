@@ -16,15 +16,6 @@ pub struct Spider {
     pub is_jumping: bool
 }
 
-impl traits::Reflecting for Spider
-{
-    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), traits::Error>
-    {
-        self.model.render(transformation, camera);
-        Ok(())
-    }
-}
-
 impl Spider
 {
     pub fn create(gl: &gl::Gl) -> Result<Spider, traits::Error>
@@ -90,5 +81,10 @@ impl Spider
             spider_translation = Mat4::identity();//translate(&Mat4::one(), world_position);
         }
         self.local2world = spider_translation;// * spider_rotation_yaw * spider_rotation_pitch;
+    }
+
+    pub fn render(&self, camera: &camera::Camera)
+    {
+        self.model.render(&self.local2world, camera);
     }
 }

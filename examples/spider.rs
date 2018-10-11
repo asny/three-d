@@ -120,7 +120,7 @@ fn main() {
         let transformation = Mat4::identity();
         environment.render_opague(&camera).unwrap();
         textured_box.reflect(&transformation, &camera).unwrap();
-        spider.reflect(&transformation, &camera).unwrap();
+        spider.render(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
