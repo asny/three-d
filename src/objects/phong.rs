@@ -2,21 +2,21 @@
 use gl;
 use ::*;
 
-pub struct Standard {
+pub struct Phong {
     program: program::Program,
     model: surface::TriangleSurface,
     pub color: Vec3
 }
 
-impl Standard
+impl Phong
 {
-    pub fn create(gl: &gl::Gl, mesh: &Renderable) -> Standard
+    pub fn create(gl: &gl::Gl, mesh: &Renderable) -> Phong
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/default_objects/shaders/standard").unwrap();
+        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/standard").unwrap();
         let mut model = surface::TriangleSurface::create(gl, mesh).unwrap();
         model.add_attributes(mesh, &program, &vec!["position"]).unwrap();
 
-        Standard { program, model, color: vec3(1.0, 1.0, 1.0) }
+        Phong { program, model, color: vec3(1.0, 1.0, 1.0) }
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)

@@ -43,10 +43,10 @@ fn main() {
     println!("Start creating mesh");
     let mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     println!("Done creating mesh");
-    let wireframe = ::default_objects::wireframe::Wireframe::create(&gl, &mesh);
-    let model = ::default_objects::standard::Standard::create(&gl, &mesh);
+    let wireframe = ::objects::Wireframe::create(&gl, &mesh);
+    let model = ::objects::Phong::create(&gl, &mesh);
 
-    let plane = ::default_objects::standard::Standard::create(&gl, &mesh_generator::create_plane().unwrap());
+    let plane = ::objects::Phong::create(&gl, &mesh_generator::create_plane().unwrap());
 
     let light1 = dust::light::DirectionalLight::create(vec3(0.0, -1.0, -1.0)).unwrap();
     let light2 = dust::light::DirectionalLight::create(vec3(-1.0, -1.0, 0.0)).unwrap();

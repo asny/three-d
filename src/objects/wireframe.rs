@@ -13,7 +13,7 @@ impl Wireframe
 {
     pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh) -> Wireframe
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/default_objects/shaders/wireframe").unwrap();
+        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/wireframe").unwrap();
 
         let edge_mesh = ::mesh_generator::create_cylinder().unwrap();
         let mut surface = surface::TriangleSurface::create(gl, &edge_mesh).unwrap();

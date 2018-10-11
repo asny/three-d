@@ -11,7 +11,7 @@ macro_rules! att {
 }
 
 pub mod core;
-pub mod default_objects;
+pub mod objects;
 mod loader;
 
 pub mod traits;
