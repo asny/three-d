@@ -46,6 +46,8 @@ fn main() {
     let wireframe = ::default_objects::wireframe::Wireframe::create(&gl, &mesh);
     let model = ::default_objects::standard::Standard::create(&gl, &mesh);
 
+    let plane = ::default_objects::standard::Standard::create(&gl, &mesh_generator::create_plane().unwrap());
+
     let light1 = dust::light::DirectionalLight::create(vec3(0.0, -1.0, -1.0)).unwrap();
     let light2 = dust::light::DirectionalLight::create(vec3(-1.0, -1.0, 0.0)).unwrap();
 
@@ -75,8 +77,8 @@ fn main() {
         // draw
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
-        let transformation = Mat4::identity();
-        model.render(&transformation, &camera);
+        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
+        model.render(&Mat4::identity(), &camera);
         wireframe.render(&camera);
 
         // Light pass
