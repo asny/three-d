@@ -8,7 +8,5 @@ out vec3 coords;
 void main()
 {
     coords = position;
-
-    // Calculate position
     gl_Position = (projectionMatrix * mat4(mat3(viewMatrix)) * vec4(position, 1.)).xyww;
 }
