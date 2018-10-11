@@ -35,12 +35,17 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
 
     // Camera
-    let camera = camera::Camera::create(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
-    let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
+    let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
+    let monkey = objects::ShadedColoredMesh::create(&gl, &mesh);
+
+    let plane = ::objects::ShadedColoredMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+
+    let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -52,15 +57,28 @@ fn main() {
                 Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                     process::exit(1);
                 },
+                Event::MouseMotion {xrel, yrel, mousestate, .. } => {
+                    if mousestate.left()
+                    {
+                        eventhandler::rotate(&mut camera, xrel, yrel);
+                    }
+                },
+                Event::MouseWheel {y, .. } => {
+                    eventhandler::zoom(&mut camera, y);
+                },
                 _ => {}
             }
         }
 
-        // draw
-        renderer.render_pass_begin().unwrap();
+        // Draw
+        // Geometry pass
+        renderer.geometry_pass_begin(&camera).unwrap();
+        monkey.render(&Mat4::identity(), &camera);
+        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
 
-        let transformation = Mat4::identity();
-        model.render(&camera).unwrap();
+        // Light pass
+        renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_directional_light(&directional_light).unwrap();
 
         window.gl_swap_window();
     };

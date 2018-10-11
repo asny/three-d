@@ -9,7 +9,6 @@ use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
 use dust::*;
-use dust::traits::Reflecting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
@@ -41,9 +40,17 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
-    let monkey = scene_objects::monkey::Monkey::create(&gl).unwrap();
+    println!("Start creating mesh");
+    let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
+    println!("Done creating mesh");
+    let wireframe = ::objects::Wireframe::create(&gl, &mesh);
+    mesh.update_vertex_normals();
+    let model = ::objects::ShadedColoredMesh::create(&gl, &mesh);
 
-    let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0)).unwrap();
+    let plane = ::objects::ShadedColoredMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+
+    let light1 = dust::light::DirectionalLight::create(vec3(0.0, -1.0, -1.0)).unwrap();
+    let light2 = dust::light::DirectionalLight::create(vec3(-1.0, -1.0, 0.0)).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -68,15 +75,17 @@ fn main() {
             }
         }
 
-        // Draw
+        // draw
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
-        let transformation = Mat4::identity();
-        monkey.reflect(&transformation, &camera).unwrap();
+        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
+        model.render(&Mat4::identity(), &camera);
+        wireframe.render(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
-        renderer.shine_directional_light(&directional_light).unwrap();
+        renderer.shine_directional_light(&light1).unwrap();
+        renderer.shine_directional_light(&light2).unwrap();
 
         window.gl_swap_window();
     };

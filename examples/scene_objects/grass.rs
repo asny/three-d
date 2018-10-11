@@ -39,7 +39,8 @@ impl Grass
         ];
         let mesh = mesh::StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/grass").unwrap();
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/grass",
+                                                      "examples/assets/shaders/grass").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
         model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
 

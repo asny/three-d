@@ -10,7 +10,6 @@ use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
 use dust::*;
-use dust::traits::Reflecting;
 
 fn main() {
     let ctx = sdl2::init().unwrap();
@@ -43,7 +42,6 @@ fn main() {
     let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
     // Models
-    let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
     let mut environment = scene_objects::environment::Environment::create(&gl);
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
@@ -119,8 +117,7 @@ fn main() {
         renderer.geometry_pass_begin(&camera).unwrap();
         let transformation = Mat4::identity();
         environment.render_opague(&camera).unwrap();
-        textured_box.reflect(&transformation, &camera).unwrap();
-        spider.reflect(&transformation, &camera).unwrap();
+        spider.render(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();

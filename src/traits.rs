@@ -35,10 +35,3 @@ impl From<mesh::Error> for Error {
         Error::Mesh(other)
     }
 }
-
-pub trait Emitting {
-}
-
-pub trait Reflecting {
-    fn reflect(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>;
-}

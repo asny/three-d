@@ -25,7 +25,8 @@ impl Water
         let mesh = mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/water").unwrap();
+        let program = program::Program::from_resource(gl, "examples/assets/shaders/water",
+                                                      "examples/assets/shaders/water").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
         let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate", "position"]).unwrap();
 

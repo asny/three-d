@@ -11,6 +11,7 @@ macro_rules! att {
 }
 
 pub mod core;
+pub mod objects;
 mod loader;
 
 pub mod traits;
@@ -20,7 +21,6 @@ pub mod eventhandler;
 pub mod camerahandler;
 pub mod camera;
 pub mod pipeline;
-pub mod scene;
 pub mod renderer;
 
 #[cfg(target_os = "emscripten")]

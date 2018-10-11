@@ -1,5 +1,8 @@
 extern crate sdl2;
 extern crate dust;
+extern crate image;
+
+use self::image::{GenericImage};
 
 mod scene_objects;
 
@@ -40,8 +43,24 @@ fn main() {
     // Camera
     let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
-    let textured_box = scene_objects::textured_box::TexturedBox::create(&gl).unwrap();
-    let skybox = scene_objects::skybox::Skybox::create(&gl);
+
+    let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
+    let mut texture = texture::Texture2D::create(&gl).unwrap();
+    texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
+
+    let cube = mesh_generator::create_cube().unwrap();
+    let textured_box = objects::ShadedTexturedMesh::create(&gl, &cube, texture);
+
+    let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
+    let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
+    let top = image::open("examples/assets/textures/skybox_evening/top.jpg").unwrap();
+    let left = image::open("examples/assets/textures/skybox_evening/left.jpg").unwrap();
+    let right = image::open("examples/assets/textures/skybox_evening/right.jpg").unwrap();
+    let mut texture3d = texture::Texture3D::create(&gl).unwrap();
+    texture3d.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
+                      [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
+                          &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+    let skybox = objects::Skybox::create(&gl, texture3d);
 
     let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0)).unwrap();
 
@@ -72,7 +91,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass_begin(&camera).unwrap();
         let transformation = Mat4::identity();
-        textured_box.reflect(&transformation, &camera).unwrap();
+        textured_box.render(&transformation, &camera);
         skybox.render(&camera).unwrap();
 
         // Light pass

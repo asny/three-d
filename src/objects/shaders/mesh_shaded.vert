@@ -13,6 +13,5 @@ void main()
 {
     pos = (modelMatrix * vec4(position, 1.)).xyz;
     nor = mat3(normalMatrix) * normal;
-
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
 }
