@@ -13,7 +13,7 @@ pub struct DirectionalLight {
 
 impl DirectionalLight
 {
-    pub fn create(direction: Vec3) -> DirectionalLight
+    pub fn new(direction: Vec3) -> DirectionalLight
     {
         let color = vec3(1., 1., 1.);
         let ambient_intensity = 0.2;

@@ -45,7 +45,7 @@ fn main() {
 
     let plane = ::objects::ShadedColoredMesh::create(&gl, &mesh_generator::create_plane().unwrap());
 
-    let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0));
+    let directional_light = dust::light::DirectionalLight::new( vec3(0.0, -1.0, 0.0));
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
