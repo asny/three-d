@@ -71,8 +71,8 @@ impl ForwardPipeline
 
 pub struct DeferredPipeline {
     gl: gl::Gl,
-    pub width: usize,
-    pub height: usize,
+    width: usize,
+    height: usize,
     light_pass_program: program::Program,
     copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
