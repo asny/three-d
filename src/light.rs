@@ -12,8 +12,8 @@ pub struct Light {
 pub struct DirectionalLight {
     pub base: Light,
     pub direction: Vec3,
-    pub shadow_render_target: Option<DepthRenderTarget>,
-    pub shadow_camera: Option<camera::ShadowCamera>
+    shadow_render_target: Option<DepthRenderTarget>,
+    shadow_camera: Option<camera::ShadowCamera>
 }
 
 impl DirectionalLight
@@ -41,6 +41,16 @@ impl DirectionalLight
             camera.set_view(*target, *target + self.direction);
         }
 
+    }
+
+    pub fn shadow_cast_begin(&self)
+    {
+        if let Some(ref rendertarget) = self.shadow_render_target
+        {
+            use rendertarget::Rendertarget;
+            rendertarget.bind();
+            rendertarget.clear();
+        }
     }
 
     pub fn shadow_camera(&self) -> &camera::ShadowCamera

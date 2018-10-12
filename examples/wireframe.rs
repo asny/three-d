@@ -86,11 +86,11 @@ fn main() {
         wireframe.render(&camera);
 
         // Shadow pass
-        renderer.shadow_cast_begin(&light1).unwrap();
+        light1.shadow_cast_begin();
         plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), light1.shadow_camera());
         model.render(&Mat4::identity(), light1.shadow_camera());
 
-        renderer.shadow_cast_begin(&light2).unwrap();
+        light2.shadow_cast_begin();
         plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), light2.shadow_camera());
         model.render(&Mat4::identity(), light2.shadow_camera());
 

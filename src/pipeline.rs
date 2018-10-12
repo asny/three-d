@@ -114,7 +114,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn shadow_cast_begin(&self, light: &light::DirectionalLight) -> Result<(), Error>
+    /*pub fn shadow_cast_begin(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
         if let Some(ref rendertarget) = light.shadow_render_target
         {
@@ -131,7 +131,7 @@ impl DeferredPipeline
         }
 
         Ok(())
-    }
+    }*/
 
     pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
