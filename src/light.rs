@@ -44,12 +44,11 @@ impl DirectionalLight
 
     pub fn shadow_cast_begin(&self)
     {
-        if let Some(ref rendertarget) = self.shadow_render_target
-        {
-            use rendertarget::Rendertarget;
-            rendertarget.bind();
-            rendertarget.clear();
-        }
+        let rendertarget = self.shadow_render_target.as_ref().unwrap();
+
+        use rendertarget::Rendertarget;
+        rendertarget.bind();
+        rendertarget.clear();
     }
 
     pub fn shadow_camera(&self) -> &camera::ShadowCamera
