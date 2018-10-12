@@ -11,14 +11,14 @@ pub trait Camera
 
 struct BaseCamera {
     position: Vec3,
-    target: Vec3,
-    z_near: f32,
-    z_far: f32
+    target: Vec3
 }
 
 pub struct PerspectiveCamera {
     base: BaseCamera,
-    aspect: f32
+    aspect: f32,
+    z_near: f32,
+    z_far: f32
 }
 
 
@@ -26,7 +26,7 @@ impl PerspectiveCamera
 {
     pub fn new(position: Vec3, target: Vec3, aspect: f32) -> PerspectiveCamera
     {
-        PerspectiveCamera { base: BaseCamera { position, target, z_near: 0.1, z_far: 1000.0 }, aspect }
+        PerspectiveCamera { base: BaseCamera { position, target }, z_near: 0.1, z_far: 1000.0, aspect }
     }
 
     fn set_aspect(&mut self, aspect: f32)
@@ -44,7 +44,7 @@ impl Camera for PerspectiveCamera
 
     fn get_projection(&self) -> Mat4
     {
-        Mat4::new_perspective(self.aspect, 0.25 * ::std::f32::consts::PI, self.base.z_near, self.base.z_far)
+        Mat4::new_perspective(self.aspect, 0.25 * ::std::f32::consts::PI, self.z_near, self.z_far)
     }
 
     fn position(&self) -> &Vec3
@@ -73,7 +73,7 @@ impl ShadowCamera
 {
     pub fn new(position: Vec3, target: Vec3, radius: f32) -> ShadowCamera
     {
-        ShadowCamera { base: BaseCamera { position, target, z_near: 0.1, z_far: 1000.0 }, radius }
+        ShadowCamera { base: BaseCamera { position, target }, radius }
     }
 }
 
@@ -87,7 +87,7 @@ impl Camera for ShadowCamera
 
     fn get_projection(&self) -> Mat4
     {
-        Mat4::new_orthographic(-self.radius, self.radius, -self.radius, self.radius, self.base.z_near, self.base.z_far)
+        Mat4::new_orthographic(-self.radius, self.radius, -self.radius, self.radius, -self.radius, self.radius)
     }
 
     fn position(&self) -> &Vec3
