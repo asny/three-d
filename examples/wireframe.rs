@@ -78,21 +78,23 @@ fn main() {
             }
         }
 
-        // draw
-        // Geometry pass
-        renderer.geometry_pass_begin().unwrap();
-        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
-        model.render(&Mat4::identity(), &camera);
-        wireframe.render(&camera);
+        // Draw
+        let render_scene = |camera| {
+            plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), camera);
+            model.render(&Mat4::identity(), camera);
+            wireframe.render(camera);
+        };
 
         // Shadow pass
         light1.shadow_cast_begin();
-        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), light1.shadow_camera());
-        model.render(&Mat4::identity(), light1.shadow_camera());
+        render_scene(light1.shadow_camera());
 
         light2.shadow_cast_begin();
-        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), light2.shadow_camera());
-        model.render(&Mat4::identity(), light2.shadow_camera());
+        render_scene(light2.shadow_camera());
+
+        // Geometry pass
+        renderer.geometry_pass_begin().unwrap();
+        render_scene(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
