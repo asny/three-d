@@ -20,7 +20,7 @@ impl ShadedColoredMesh
         ShadedColoredMesh { program, model, color: vec3(1.0, 1.0, 1.0) }
     }
 
-    pub fn render(&self, transformation: &Mat4, camera: &camera::PerspectiveCamera)
+    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
         self.program.add_uniform_vec3("color", &self.color).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();

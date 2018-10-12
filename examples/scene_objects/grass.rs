@@ -80,7 +80,7 @@ impl Grass
         self.position_buffer.fill_with(root_positions);
     }
 
-    pub fn render(&self, camera: &camera::PerspectiveCamera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull(state::CullType::NONE);
 

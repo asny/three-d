@@ -20,7 +20,7 @@ impl Skybox
         Skybox { program, model, texture }
     }
 
-    pub fn render(&self, camera: &camera::PerspectiveCamera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
@@ -30,7 +30,7 @@ impl Skybox
         self.program.add_uniform_int("texture0", &0)?;
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_vec3("cameraPosition", &camera.position)?;
+        self.program.add_uniform_vec3("cameraPosition", camera.position())?;
 
         self.model.render()?;
         Ok(())

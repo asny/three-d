@@ -46,7 +46,7 @@ impl Terrain
         terrain
     }
 
-    pub fn render(&self, camera: &camera::PerspectiveCamera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
     {
         self.program.cull(state::CullType::BACK);
         self.program.depth_write(true);

@@ -140,7 +140,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass_begin(&self, camera: &camera::PerspectiveCamera) -> Result<(), Error>
+    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {
@@ -170,7 +170,7 @@ impl DeferredPipeline
         self.geometry_pass_depth_texture().bind(3);
         self.light_pass_program.add_uniform_int("depthMap", &3)?;
 
-        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
+        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
 
         Ok(())
     }
