@@ -13,7 +13,7 @@ pub struct DirectionalLight {
     pub base: Light,
     pub direction: Vec3,
     pub shadow_render_target: Option<DepthRenderTarget>,
-    shadow_camera: Option<camera::ShadowCamera>
+    shadow_camera: Option<camera::OrthographicCamera>
 }
 
 impl DirectionalLight
@@ -31,7 +31,7 @@ impl DirectionalLight
     {
         let mut light = DirectionalLight::new(direction);
         light.shadow_render_target = Some(DepthRenderTarget::create(gl, 1024, 1024).unwrap());
-        light.shadow_camera = Some(camera::ShadowCamera::new(vec3(0.0, 0.0, 0.0),light.direction, radius));
+        light.shadow_camera = Some(camera::OrthographicCamera::new(vec3(0.0, 0.0, 0.0), light.direction, radius));
         light
     }
 
@@ -51,7 +51,7 @@ impl DirectionalLight
         rendertarget.clear();
     }
 
-    pub fn shadow_camera(&self) -> &camera::ShadowCamera
+    pub fn shadow_camera(&self) -> &camera::OrthographicCamera
     {
         self.shadow_camera.as_ref().unwrap()
     }

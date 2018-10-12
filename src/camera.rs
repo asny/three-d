@@ -21,7 +21,6 @@ pub struct PerspectiveCamera {
     z_far: f32
 }
 
-
 impl PerspectiveCamera
 {
     pub fn new(position: Vec3, target: Vec3, aspect: f32) -> PerspectiveCamera
@@ -64,20 +63,20 @@ impl Camera for PerspectiveCamera
     }
 }
 
-pub struct ShadowCamera {
+pub struct OrthographicCamera {
     base: BaseCamera,
     radius: f32
 }
 
-impl ShadowCamera
+impl OrthographicCamera
 {
-    pub fn new(position: Vec3, target: Vec3, radius: f32) -> ShadowCamera
+    pub fn new(position: Vec3, target: Vec3, radius: f32) -> OrthographicCamera
     {
-        ShadowCamera { base: BaseCamera { position, target }, radius }
+        OrthographicCamera { base: BaseCamera { position, target }, radius }
     }
 }
 
-impl Camera for ShadowCamera
+impl Camera for OrthographicCamera
 {
     fn get_view(&self) -> Mat4
     {
