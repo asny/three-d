@@ -5,8 +5,10 @@ pub trait Camera
     fn get_view(&self) -> Mat4;
     fn get_projection(&self) -> Mat4;
     fn position(&self) -> &Vec3;
+    fn target(&self) -> &Vec3;
     fn screen_width(&self) -> usize;
     fn screen_height(&self) -> usize;
+    fn set_view(&mut self, position: Vec3, target: Vec3);
 }
 
 pub struct PerspectiveCamera {
@@ -24,17 +26,6 @@ impl PerspectiveCamera
     pub fn create(position: Vec3, target: Vec3, width: usize, height: usize) -> PerspectiveCamera
     {
         PerspectiveCamera { position, target, z_near: 0.1, z_far: 1000.0, width, height }
-    }
-
-    pub fn set_view(&mut self, position: Vec3, target: Vec3)
-    {
-        self.position = position;
-        self.target = target;
-    }
-
-    pub fn direction(&self) -> Vec3
-    {
-        (self.target - self.position).normalize()
     }
 }
 
@@ -55,6 +46,11 @@ impl Camera for PerspectiveCamera
         &self.position
     }
 
+    fn target(&self) -> &Vec3
+    {
+        &self.target
+    }
+
     fn screen_width(&self) -> usize
     {
         self.width
@@ -63,5 +59,11 @@ impl Camera for PerspectiveCamera
     fn screen_height(&self) -> usize
     {
         self.height
+    }
+
+    fn set_view(&mut self, position: Vec3, target: Vec3)
+    {
+        self.position = position;
+        self.target = target;
     }
 }
