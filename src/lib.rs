@@ -16,6 +16,7 @@ mod loader;
 
 pub mod traits;
 pub mod light;
+pub mod screen;
 
 pub mod eventhandler;
 pub mod camerahandler;

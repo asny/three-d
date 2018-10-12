@@ -3,6 +3,7 @@ use camera;
 use traits;
 use gl;
 use light;
+use screen;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
 use core::state;
@@ -39,24 +40,20 @@ impl From<rendertarget::Error> for Error {
 
 pub struct ForwardPipeline {
     gl: gl::Gl,
-    width: usize,
-    height: usize,
     rendertarget: rendertarget::ScreenRendertarget
 }
 
 impl ForwardPipeline
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ForwardPipeline, Error>
+    pub fn create(gl: &gl::Gl, screen: &screen::Screen) -> Result<ForwardPipeline, Error>
     {
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
-        Ok(ForwardPipeline {gl: gl.clone(), width, height, rendertarget})
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen.width, screen.height)?;
+        Ok(ForwardPipeline {gl: gl.clone(), rendertarget})
     }
 
-    pub fn resize(&mut self, width: usize, height: usize) -> Result<(), Error>
+    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, width, height)?;
-        self.width = width;
-        self.height = height;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
         Ok(())
     }
 
@@ -71,8 +68,6 @@ impl ForwardPipeline
 
 pub struct DeferredPipeline {
     gl: gl::Gl,
-    width: usize,
-    height: usize,
     light_pass_program: program::Program,
     copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
@@ -83,28 +78,26 @@ pub struct DeferredPipeline {
 
 impl DeferredPipeline
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
+    pub fn create(gl: &gl::Gl, screen: &screen::Screen, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass",
                                                                  "../Dust/examples/assets/shaders/light_pass")?;
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen.width, screen.height)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen.width, screen.height, 3)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
-            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, width, height, 1)?);
+            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, screen.width, screen.height, 1)?);
             copy_program = Some(program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
                                                                 "../Dust/examples/assets/shaders/copy")?);
         }
-        Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
 
-    pub fn resize(&mut self, width: usize, height: usize) -> Result<(), Error>
+    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, width, height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, width, height, 3)?;
-        self.width = width;
-        self.height = height;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen.width, screen.height, 3)?;
         Ok(())
     }
 

@@ -35,8 +35,11 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Screen
+    let screen = screen::Screen {width, height};
+
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, true).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, true).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
@@ -125,7 +128,7 @@ fn main() {
         renderer.copy_to_screen().unwrap();
 
         // After effects
-        environment.render_transparent(time, &camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
+        environment.render_transparent(time, &camera, &screen, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
     };

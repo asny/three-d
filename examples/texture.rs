@@ -26,6 +26,7 @@ fn main() {
 
     let width: usize = 900;
     let height: usize = 700;
+    let screen = screen::Screen {width, height};
     let window = video_ctx
         .window("Dust", width as u32, height as u32)
         .opengl()
@@ -38,7 +39,7 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
