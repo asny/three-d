@@ -57,12 +57,10 @@ impl ForwardPipeline
         Ok(())
     }
 
-    pub fn render_pass_begin(&self) -> Result<(), Error>
+    pub fn render_pass_begin(&self)
     {
         self.rendertarget.bind();
         self.rendertarget.clear();
-
-        Ok(())
     }
 }
 

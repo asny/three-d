@@ -60,7 +60,7 @@ fn main() {
         }
 
         // draw
-        renderer.render_pass_begin().unwrap();
+        renderer.render_pass_begin();
 
         let transformation = Mat4::identity();
         model.render(&camera).unwrap();
