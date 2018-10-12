@@ -175,6 +175,14 @@ impl DeferredPipeline
         GLUniform::use(shader, "shadowCubeMap", 5);
         GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
 
+        use camera::Camera;
+        let bias_matrix = ::Mat4::new(
+                             0.5, 0.0, 0.0, 0.0,
+                             0.0, 0.5, 0.0, 0.0,
+                             0.0, 0.0, 0.5, 0.0,
+                             0.5, 0.5, 0.5, 1.0);
+        self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * light.shadow_camera().get_projection() * light.shadow_camera().get_view()))?;
+
         self.light_pass_program.add_uniform_int("lightType", &1)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;

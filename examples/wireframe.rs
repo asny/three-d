@@ -52,8 +52,8 @@ fn main() {
 
     let plane = ::objects::ShadedColoredMesh::create(&gl, &mesh_generator::create_plane().unwrap());
 
-    let light1 = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
-    let light2 = dust::light::DirectionalLight::new(vec3(-1.0, -1.0, 0.0));
+    let light1 = dust::light::DirectionalLight::new_that_cast_shadow(&gl, vec3(0.0, -1.0, -1.0), 10.0);
+    let light2 = dust::light::DirectionalLight::new_that_cast_shadow(&gl, vec3(-1.0, -1.0, 0.0), 10.0);
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -84,6 +84,15 @@ fn main() {
         plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
         model.render(&Mat4::identity(), &camera);
         wireframe.render(&camera);
+
+        // Shadow pass
+        renderer.shadow_cast_begin(&light1).unwrap();
+        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), light1.shadow_camera());
+        model.render(&Mat4::identity(), light1.shadow_camera());
+
+        renderer.shadow_cast_begin(&light2).unwrap();
+        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), light2.shadow_camera());
+        model.render(&Mat4::identity(), light2.shadow_camera());
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
