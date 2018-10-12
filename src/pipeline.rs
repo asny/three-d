@@ -15,7 +15,8 @@ pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Traits(traits::Error),
-    LightPassRendertargetNotAvailable {message: String}
+    LightPassRendertargetNotAvailable {message: String},
+    ShadowRendertargetNotAvailable {message: String}
 }
 
 impl From<traits::Error> for Error {
@@ -115,6 +116,23 @@ impl DeferredPipeline
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
         state::cull(&self.gl, state::CullType::NONE);
+        state::blend(&self.gl, state::BlendType::NONE);
+
+        Ok(())
+    }
+
+    pub fn shadow_cast_begin(&self, light: &light::DirectionalLight) -> Result<(), Error>
+    {
+        if light.shadow_render_target.is_none() {
+            return Err(Error::ShadowRendertargetNotAvailable {message: format!("Trying to cast shadows with no shadow render target available")} )
+        }
+        let rendertarget = light.shadow_render_target.unwrap();
+        rendertarget.bind();
+        rendertarget.clear();
+
+        state::depth_write(&self.gl,true);
+        state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
+        state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::NONE);
 
         Ok(())
