@@ -6,8 +6,6 @@ pub trait Camera
     fn get_projection(&self) -> Mat4;
     fn position(&self) -> &Vec3;
     fn target(&self) -> &Vec3;
-    fn screen_width(&self) -> usize;
-    fn screen_height(&self) -> usize;
     fn set_view(&mut self, position: Vec3, target: Vec3);
 }
 
@@ -55,16 +53,6 @@ impl Camera for PerspectiveCamera
         &self.base.target
     }
 
-    fn screen_width(&self) -> usize
-    {
-        self.width
-    }
-
-    fn screen_height(&self) -> usize
-    {
-        self.height
-    }
-
     fn set_view(&mut self, position: Vec3, target: Vec3)
     {
         self.base.position = position;
@@ -106,16 +94,6 @@ impl Camera for ShadowCamera
     fn target(&self) -> &Vec3
     {
         &self.base.target
-    }
-
-    fn screen_width(&self) -> usize
-    {
-        2 * self.radius
-    }
-
-    fn screen_height(&self) -> usize
-    {
-        2 * self.radius
     }
 
     fn set_view(&mut self, position: Vec3, target: Vec3)
