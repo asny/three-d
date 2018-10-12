@@ -7,7 +7,6 @@ pub trait Camera
     fn position(&self) -> &Vec3;
     fn target(&self) -> &Vec3;
     fn set_view(&mut self, position: Vec3, target: Vec3);
-    fn set_target_screen_size(&mut self, width: usize, height: usize);
 }
 
 struct BaseCamera {
@@ -25,9 +24,14 @@ pub struct PerspectiveCamera {
 
 impl PerspectiveCamera
 {
-    pub fn new(position: Vec3, target: Vec3, width: usize, height: usize) -> PerspectiveCamera
+    pub fn new(position: Vec3, target: Vec3, aspect: f32) -> PerspectiveCamera
     {
-        PerspectiveCamera { base: BaseCamera { position, target, z_near: 0.1, z_far: 1000.0 }, aspect: (width as f32)/(height as f32) }
+        PerspectiveCamera { base: BaseCamera { position, target, z_near: 0.1, z_far: 1000.0 }, aspect }
+    }
+
+    fn set_aspect(&mut self, aspect: f32)
+    {
+        self.aspect = aspect;
     }
 }
 
@@ -58,24 +62,18 @@ impl Camera for PerspectiveCamera
         self.base.position = position;
         self.base.target = target;
     }
-
-    fn set_target_screen_size(&mut self, width: usize, height: usize)
-    {
-        self.aspect = (width as f32)/(height as f32);
-    }
 }
 
 pub struct ShadowCamera {
     base: BaseCamera,
-    half_width: usize,
-    half_height: usize
+    radius: f32
 }
 
 impl ShadowCamera
 {
-    pub fn new(position: Vec3, target: Vec3, radius: usize) -> ShadowCamera
+    pub fn new(position: Vec3, target: Vec3, radius: f32) -> ShadowCamera
     {
-        ShadowCamera { base: BaseCamera { position, target, z_near: 0.1, z_far: 1000.0 }, half_width: radius, half_height: radius }
+        ShadowCamera { base: BaseCamera { position, target, z_near: 0.1, z_far: 1000.0 }, radius }
     }
 }
 
@@ -89,7 +87,7 @@ impl Camera for ShadowCamera
 
     fn get_projection(&self) -> Mat4
     {
-        Mat4::new_orthographic(-(self.half_width as f32), self.half_width as f32, -(self.half_height as f32), self.half_height as f32, self.base.z_near, self.base.z_far)
+        Mat4::new_orthographic(-self.radius, self.radius, -self.radius, self.radius, self.base.z_near, self.base.z_far)
     }
 
     fn position(&self) -> &Vec3
@@ -106,11 +104,5 @@ impl Camera for ShadowCamera
     {
         self.base.position = position;
         self.base.target = target;
-    }
-
-    fn set_target_screen_size(&mut self, width: usize, height: usize)
-    {
-        self.half_width = width/2;
-        self.half_height = height/2;
     }
 }
