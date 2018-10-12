@@ -116,7 +116,7 @@ vec4 calculate_light(BaseLight light,
 
 vec4 calculate_directional_light(vec3 position, vec3 normal)
 {
-    float shadow = 1.0;//calculate_shadow(position);
+    float shadow = calculate_shadow(position);
     return calculate_light(directionalLight.base,
                              directionalLight.direction,
                              position,

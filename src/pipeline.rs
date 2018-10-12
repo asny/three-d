@@ -183,6 +183,11 @@ impl DeferredPipeline
                              0.5, 0.5, 0.5, 1.0);
         self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * light.shadow_camera().get_projection() * light.shadow_camera().get_view()))?;
 
+        light.shadow_render_target.as_ref().unwrap().target.bind(4);
+        self.light_pass_program.add_uniform_int("shadowMap", &4)?;
+
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &5)?;
+
         self.light_pass_program.add_uniform_int("lightType", &1)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
