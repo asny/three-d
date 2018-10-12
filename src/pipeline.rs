@@ -180,7 +180,7 @@ impl DeferredPipeline
                              0.5, 0.0, 0.0, 0.0,
                              0.0, 0.5, 0.0, 0.0,
                              0.0, 0.0, 0.5, 0.0,
-                             0.5, 0.5, 0.5, 1.0);
+                             0.5, 0.5, 0.5, 1.0).transpose();
         self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * light.shadow_camera().get_projection() * light.shadow_camera().get_view()))?;
 
         light.shadow_render_target.as_ref().unwrap().target.bind(4);
