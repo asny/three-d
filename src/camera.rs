@@ -12,12 +12,12 @@ pub trait Camera
 }
 
 pub struct PerspectiveCamera {
-    pub position: Vec3,
-    pub target: Vec3,
+    position: Vec3,
+    target: Vec3,
     z_near: f32,
     z_far: f32,
-    pub width: usize,
-    pub height: usize
+    width: usize,
+    height: usize
 }
 
 
