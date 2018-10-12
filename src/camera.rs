@@ -12,8 +12,8 @@ pub trait Camera
 }
 
 struct BaseCamera {
-    pub position: Vec3,
-    pub target: Vec3,
+    position: Vec3,
+    target: Vec3,
     z_near: f32,
     z_far: f32
 }
