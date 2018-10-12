@@ -37,7 +37,7 @@ impl Water
         water
     }
 
-    pub fn render(&self, time: f32, camera: &camera::Camera, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture) -> Result<(), traits::Error>
+    pub fn render(&self, time: f32, camera: &camera::PerspectiveCamera, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture) -> Result<(), traits::Error>
     {
         self.program.blend(state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         self.program.cull(state::CullType::NONE);

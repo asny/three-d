@@ -1,6 +1,6 @@
 use gust::*;
 
-pub struct Camera {
+pub struct PerspectiveCamera {
     pub position: Vec3,
     pub target: Vec3,
     z_near: f32,
@@ -10,11 +10,11 @@ pub struct Camera {
 }
 
 
-impl Camera
+impl PerspectiveCamera
 {
-    pub fn create(position: Vec3, target: Vec3, width: usize, height: usize) -> Camera
+    pub fn create(position: Vec3, target: Vec3, width: usize, height: usize) -> PerspectiveCamera
     {
-        Camera { position, target, z_near: 0.1, z_far: 1000.0, width, height }
+        PerspectiveCamera { position, target, z_near: 0.1, z_far: 1000.0, width, height }
     }
 
     pub fn set_view(&mut self, position: Vec3, target: Vec3)

@@ -32,7 +32,7 @@ impl CameraHandler
 
     }
 
-    pub fn translate(&mut self, camera: &mut camera::Camera, position: &Vec3, front_direction: &Vec3)
+    pub fn translate(&mut self, camera: &mut camera::PerspectiveCamera, position: &Vec3, front_direction: &Vec3)
     {
         match self.state {
             CameraState::FIRST => {
@@ -46,7 +46,7 @@ impl CameraHandler
         }
     }
 
-    pub fn rotate(&mut self, camera: &mut camera::Camera, xrel: i32, yrel: i32)
+    pub fn rotate(&mut self, camera: &mut camera::PerspectiveCamera, xrel: i32, yrel: i32)
     {
         match self.state {
             CameraState::SPHERICAL => {
@@ -67,7 +67,7 @@ impl CameraHandler
         }
     }
 
-    pub fn zoom(&mut self, camera: &mut camera::Camera, wheel: i32)
+    pub fn zoom(&mut self, camera: &mut camera::PerspectiveCamera, wheel: i32)
     {
         match self.state {
             CameraState::SPHERICAL => {

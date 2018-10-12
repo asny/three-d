@@ -83,7 +83,7 @@ impl Spider
         self.local2world = spider_translation;// * spider_rotation_yaw * spider_rotation_pitch;
     }
 
-    pub fn render(&self, camera: &camera::Camera)
+    pub fn render(&self, camera: &camera::PerspectiveCamera)
     {
         self.model.render(&self.local2world, camera);
     }

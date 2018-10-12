@@ -29,7 +29,7 @@ impl Triangle
         Ok(Triangle { program, model })
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::PerspectiveCamera) -> Result<(), traits::Error>
     {
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;

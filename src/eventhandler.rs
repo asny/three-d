@@ -1,7 +1,7 @@
 use camera;
 use gust::*;
 
-pub fn rotate(camera: &mut camera::Camera, xrel: i32, yrel: i32)
+pub fn rotate(camera: &mut camera::PerspectiveCamera, xrel: i32, yrel: i32)
 {
     let x = -xrel as f32;
     let y = yrel as f32;
@@ -17,7 +17,7 @@ pub fn rotate(camera: &mut camera::Camera, xrel: i32, yrel: i32)
     camera.set_view(camera_position, target);
 }
 
-pub fn zoom(camera: &mut camera::Camera, wheel:i32)
+pub fn zoom(camera: &mut camera::PerspectiveCamera, wheel:i32)
 {
     let mut position = camera.position;
     let target = camera.target;

@@ -62,7 +62,7 @@ impl Wireframe
         Wireframe { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0) }
     }
 
-    pub fn render(&self, camera: &camera::Camera)
+    pub fn render(&self, camera: &camera::PerspectiveCamera)
     {
         self.program.cull(state::CullType::BACK);
         self.program.depth_test(state::DepthTestType::LEQUAL);

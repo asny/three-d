@@ -108,7 +108,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn geometry_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn geometry_pass_begin(&self, camera: &camera::PerspectiveCamera) -> Result<(), Error>
     {
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
@@ -140,7 +140,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn light_pass_begin(&self, camera: &camera::PerspectiveCamera) -> Result<(), Error>
     {
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {

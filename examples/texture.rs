@@ -41,7 +41,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
 
     // Camera
-    let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::PerspectiveCamera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
 
 
     let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();

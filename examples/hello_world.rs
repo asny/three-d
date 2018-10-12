@@ -38,7 +38,7 @@ fn main() {
     let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
 
     // Camera
-    let camera = camera::Camera::create(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), width, height);
+    let camera = camera::PerspectiveCamera::create(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), width, height);
 
     let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
 

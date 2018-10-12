@@ -20,7 +20,7 @@ impl Skybox
         Skybox { program, model, texture }
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::PerspectiveCamera) -> Result<(), traits::Error>
     {
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);

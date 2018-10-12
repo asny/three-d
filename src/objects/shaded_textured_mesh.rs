@@ -20,7 +20,7 @@ impl ShadedTexturedMesh
         ShadedTexturedMesh { program, model, texture }
     }
 
-    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
+    pub fn render(&self, transformation: &Mat4, camera: &camera::PerspectiveCamera)
     {
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0).unwrap();
