@@ -123,17 +123,19 @@ impl DeferredPipeline
 
     pub fn shadow_cast_begin(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
-        if light.shadow_render_target.is_none() {
+        if let Some(ref rendertarget) = light.shadow_render_target
+        {
+            rendertarget.bind();
+            rendertarget.clear();
+
+            state::depth_write(&self.gl,true);
+            state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
+            state::cull(&self.gl,state::CullType::BACK);
+            state::blend(&self.gl, state::BlendType::NONE);
+        }
+        else {
             return Err(Error::ShadowRendertargetNotAvailable {message: format!("Trying to cast shadows with no shadow render target available")} )
         }
-        let rendertarget = light.shadow_render_target.unwrap();
-        rendertarget.bind();
-        rendertarget.clear();
-
-        state::depth_write(&self.gl,true);
-        state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
-        state::cull(&self.gl,state::CullType::BACK);
-        state::blend(&self.gl, state::BlendType::NONE);
 
         Ok(())
     }
