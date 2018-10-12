@@ -25,6 +25,7 @@ impl Skybox
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
         self.program.depth_test(state::DepthTestType::LEQUAL);
+        self.program.polygon_mode(state::PolygonType::Fill);
 
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;

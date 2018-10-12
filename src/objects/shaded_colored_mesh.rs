@@ -22,6 +22,11 @@ impl ShadedColoredMesh
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
+        self.program.cull(state::CullType::BACK);
+        self.program.depth_test(state::DepthTestType::LEQUAL);
+        self.program.depth_write(true);
+        self.program.polygon_mode(state::PolygonType::Fill);
+
         self.program.add_uniform_vec3("color", &self.color).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view()).unwrap();

@@ -22,6 +22,11 @@ impl ShadedTexturedMesh
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
+        self.program.cull(state::CullType::BACK);
+        self.program.depth_test(state::DepthTestType::LEQUAL);
+        self.program.depth_write(true);
+        self.program.polygon_mode(state::PolygonType::Fill);
+
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
