@@ -23,7 +23,7 @@ pub struct PerspectiveCamera {
 
 impl PerspectiveCamera
 {
-    pub fn create(position: Vec3, target: Vec3, width: usize, height: usize) -> PerspectiveCamera
+    pub fn new(position: Vec3, target: Vec3, width: usize, height: usize) -> PerspectiveCamera
     {
         PerspectiveCamera { position, target, z_near: 0.1, z_far: 1000.0, width, height }
     }
