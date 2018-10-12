@@ -101,7 +101,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn geometry_pass_begin(&self, camera: &camera::PerspectiveCamera) -> Result<(), Error>
+    pub fn geometry_pass_begin(&self) -> Result<(), Error>
     {
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();

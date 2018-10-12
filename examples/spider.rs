@@ -42,7 +42,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, true).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.width, screen.height);
 
     // Models
     let mut environment = scene_objects::environment::Environment::create(&gl);
@@ -117,7 +117,7 @@ fn main() {
 
         // Draw
         // Geometry pass
-        renderer.geometry_pass_begin(&camera).unwrap();
+        renderer.geometry_pass_begin().unwrap();
         let transformation = Mat4::identity();
         environment.render_opague(&camera).unwrap();
         spider.render(&camera);

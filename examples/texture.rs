@@ -42,7 +42,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.width, screen.height);
 
 
     let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
@@ -90,7 +90,7 @@ fn main() {
 
         // draw
         // Geometry pass
-        renderer.geometry_pass_begin(&camera).unwrap();
+        renderer.geometry_pass_begin().unwrap();
         let transformation = Mat4::identity();
         textured_box.render(&transformation, &camera);
         skybox.render(&camera).unwrap();

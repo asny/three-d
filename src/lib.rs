@@ -36,5 +36,7 @@ pub use gust::mesh::Renderable;
 pub use gust::loader as mesh_loader;
 pub use gust::models as mesh_generator;
 
+pub use camera::Camera;
+
 pub use core::*;
 pub use texture::Texture;
