@@ -2,6 +2,7 @@ uniform sampler2D positionMap;
 uniform sampler2D colorMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
+uniform sampler2D surfaceParametersMap;
 uniform sampler2D shadowMap;
 uniform samplerCube shadowCubeMap;
 
@@ -57,9 +58,6 @@ uniform PointLight pointLight;
 uniform SpotLight spotLight;
 uniform int lightType;
 
-const float specularIntensity = 0.f;
-const float specularPower = 5.f;
-
 float is_visible(vec4 shadow_coord, vec2 offset)
 {
     if ( texture(shadowMap, (shadow_coord.xy + offset)/shadow_coord.w).x < (shadow_coord.z - 0.005)/shadow_coord.w){
@@ -91,8 +89,13 @@ vec4 calculate_light(BaseLight light,
                        vec3 normal,
                        float shadow)
 {
+    vec4 surface_parameters = texture(surfaceParametersMap, uv);
+    float surface_diffuse_intensity = surface_parameters.x;
+    float surface_specular_intensity = surface_parameters.y;
+    float surface_specular_power = surface_parameters.z;
+
     vec4 AmbientColor = vec4(light.color * light.ambientIntensity, 1.0);
-    float DiffuseFactor = dot(normal, -lightDirection);
+    float DiffuseFactor = surface_diffuse_intensity * dot(normal, -lightDirection);
 
     vec4 DiffuseColor  = vec4(0, 0, 0, 0);
     vec4 SpecularColor = vec4(0, 0, 0, 0);
@@ -106,8 +109,8 @@ vec4 calculate_light(BaseLight light,
         float SpecularFactor = dot(VertexToEye, lightReflect);
         if (SpecularFactor > 0.0)
         {
-            SpecularFactor = pow(SpecularFactor, specularPower);
-            SpecularColor = vec4(light.color * specularIntensity * SpecularFactor, 1.0);
+            SpecularFactor = pow(SpecularFactor, surface_specular_power);
+            SpecularColor = vec4(light.color * surface_specular_intensity * SpecularFactor, 1.0);
         }
     }
 

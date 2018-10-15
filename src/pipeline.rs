@@ -81,7 +81,7 @@ impl DeferredPipeline
         let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass",
                                                                  "../Dust/examples/assets/shaders/light_pass")?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen.width, screen.height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen.width, screen.height, 3)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen.width, screen.height, 4)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
@@ -95,7 +95,7 @@ impl DeferredPipeline
     pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
     {
         self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen.width, screen.height, 3)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen.width, screen.height, 4)?;
         Ok(())
     }
 
@@ -158,8 +158,11 @@ impl DeferredPipeline
         self.geometry_pass_normal_texture().bind(2);
         self.light_pass_program.add_uniform_int("normalMap", &2)?;
 
-        self.geometry_pass_depth_texture().bind(3);
-        self.light_pass_program.add_uniform_int("depthMap", &3)?;
+        self.geometry_pass_surface_parameters_texture().bind(3);
+        self.light_pass_program.add_uniform_int("surfaceParametersMap", &3)?;
+
+        self.geometry_pass_depth_texture().bind(4);
+        self.light_pass_program.add_uniform_int("depthMap", &4)?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
 
@@ -168,11 +171,6 @@ impl DeferredPipeline
 
     pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
-        /*shadow_render_target.bind_texture_for_reading(4);
-        GLUniform::use(shader, "shadowMap", 4);
-        GLUniform::use(shader, "shadowCubeMap", 5);
-        GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
-
         use camera::Camera;
         let bias_matrix = ::Mat4::new(
                              0.5, 0.0, 0.0, 0.0,
@@ -181,10 +179,10 @@ impl DeferredPipeline
                              0.5, 0.5, 0.5, 1.0).transpose();
         self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * light.shadow_camera().get_projection() * light.shadow_camera().get_view()))?;
 
-        light.shadow_render_target.as_ref().unwrap().target.bind(4);
-        self.light_pass_program.add_uniform_int("shadowMap", &4)?;
+        light.shadow_render_target.as_ref().unwrap().target.bind(5);
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
 
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &1)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
@@ -230,6 +228,11 @@ impl DeferredPipeline
     pub fn geometry_pass_normal_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.targets[2]
+    }
+
+    pub fn geometry_pass_surface_parameters_texture(&self) -> &Texture
+    {
+        &self.geometry_pass_rendertarget.targets[3]
     }
 
     pub fn geometry_pass_depth_texture(&self) -> &Texture
