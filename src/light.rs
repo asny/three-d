@@ -36,7 +36,7 @@ impl DirectionalLight
         let ambient_intensity = 0.2;
         let diffuse_intensity = 0.5;
         let base = Light {color, ambient_intensity, diffuse_intensity};
-        DirectionalLight {direction, base, shadow_rendertarget: None, shadow_camera: None}
+        DirectionalLight {direction: direction.normalize(), base, shadow_rendertarget: None, shadow_camera: None}
     }
 
     pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32) -> Result<(), Error>
