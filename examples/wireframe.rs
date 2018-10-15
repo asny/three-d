@@ -43,16 +43,19 @@ fn main() {
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
 
-    println!("Start creating mesh");
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
-    println!("Done creating mesh");
-    let mut wireframe = ::objects::ShadedEdges::create(&gl, &mesh);
-    wireframe.diffuse_intensity = 0.8;
-    wireframe.specular_intensity = 0.2;
-    wireframe.specular_power = 5.0;
-
     mesh.update_vertex_normals();
     let model = ::objects::ShadedMesh::create(&gl, &mesh);
+
+    let mut edges = ::objects::ShadedEdges::create(&gl, &mesh);
+    edges.diffuse_intensity = 0.8;
+    edges.specular_intensity = 0.2;
+    edges.specular_power = 5.0;
+
+    let mut vertices = ::objects::ShadedVertices::create(&gl, &mesh);
+    vertices.diffuse_intensity = 0.8;
+    vertices.specular_intensity = 0.2;
+    vertices.specular_power = 5.0;
 
     let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
     plane.diffuse_intensity = 0.1;
@@ -97,7 +100,8 @@ fn main() {
         let render_scene = |camera: &Camera| {
             plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), camera);
             //model.render(&Mat4::identity(), camera);
-            wireframe.render(camera);
+            edges.render(camera);
+            vertices.render(camera);
         };
 
         // Shadow pass
