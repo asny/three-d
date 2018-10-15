@@ -45,8 +45,8 @@ impl Water
         self.program.depth_test(state::DepthTestType::LEQUAL);
 
         self.program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
 
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
         self.program.add_uniform_vec2("screenSize", &vec2(screen.width as f32, screen.height as f32))?;

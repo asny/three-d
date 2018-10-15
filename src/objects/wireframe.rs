@@ -80,8 +80,8 @@ impl Wireframe
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
         self.program.add_uniform_vec3("color", &self.color).unwrap();
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view()).unwrap();
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection()).unwrap();
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
         self.surface.render_instances(self.no_edges).unwrap();
     }
 }

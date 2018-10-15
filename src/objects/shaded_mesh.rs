@@ -47,8 +47,8 @@ impl ShadedMesh
         }
 
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view()).unwrap();
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection()).unwrap();
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
         self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose()).unwrap();
         self.model.render().unwrap();
     }

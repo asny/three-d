@@ -49,10 +49,10 @@ impl DirectionalLight
         DirectionalLight {direction: direction.normalize(), base, shadow_rendertarget: None, shadow_camera: None}
     }
 
-    pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32) -> Result<(), Error>
+    pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32, depth: f32) -> Result<(), Error>
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
-        self.shadow_camera = Some(camera::OrthographicCamera::new(vec3(0.0, 0.0, 0.0), self.direction, radius));
+        self.shadow_camera = Some(camera::OrthographicCamera::new(-self.direction, vec3(0.0, 0.0, 0.0), 2.0 * radius, 2.0 * radius, 2.0 * depth));
         Ok(())
     }
 

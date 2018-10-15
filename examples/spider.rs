@@ -42,7 +42,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, true).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.aspect());
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.aspect(), 0.1, 1000.0);
 
     // Models
     let mut environment = scene_objects::environment::Environment::create(&gl);
