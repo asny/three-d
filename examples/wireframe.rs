@@ -56,7 +56,7 @@ fn main() {
     vertices.diffuse_intensity = 0.8;
     vertices.specular_intensity = 0.2;
     vertices.specular_power = 5.0;
-    vertices.scale = 0.1;
+    vertices.scale = 0.03;
 
     let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
     plane.diffuse_intensity = 0.1;
