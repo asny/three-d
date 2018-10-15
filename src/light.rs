@@ -52,14 +52,28 @@ impl DirectionalLight
     pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32, depth: f32) -> Result<(), Error>
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
-        self.shadow_camera = Some(camera::OrthographicCamera::new(-self.direction, vec3(0.0, 0.0, 0.0), 2.0 * radius, 2.0 * radius, 2.0 * depth));
+        let up = self.compute_up_direction();
+        self.shadow_camera = Some(camera::OrthographicCamera::new(- self.direction, vec3(0.0, 0.0, 0.0), up,
+                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
         Ok(())
     }
 
     pub fn set_target(&mut self, target: &Vec3)
     {
+        let up = self.compute_up_direction();
         if let Some(ref mut camera) = self.shadow_camera {
-            camera.set_view(*target, *target + self.direction);
+            camera.set_view(*target - self.direction, *target, up);
+        }
+    }
+
+    fn compute_up_direction(&self) -> Vec3
+    {
+        if vec3(1.0, 0.0, 0.0).dot(&self.direction).abs() > 0.9
+        {
+            (vec3(0.0, 1.0, 0.0).cross(&self.direction)).normalize()
+        }
+        else {
+            (vec3(1.0, 0.0, 0.0).cross(&self.direction)).normalize()
         }
     }
 

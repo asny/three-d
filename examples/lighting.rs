@@ -41,7 +41,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.aspect(), 0.1, 1000.0);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), screen.aspect(), 0.1, 1000.0);
 
     let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
     let mut monkey = objects::ShadedMesh::create(&gl, &mesh);
@@ -52,7 +52,7 @@ fn main() {
     ambient_light.base.intensity = 0.2;
 
     let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
-    directional_light.enable_shadows(&gl, 5.0, 1000.0).unwrap();
+    directional_light.enable_shadows(&gl, 5.0, 10.0).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
