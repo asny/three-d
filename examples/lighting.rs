@@ -74,10 +74,18 @@ fn main() {
         }
 
         // Draw
+        let render_scene = |camera: &Camera| {
+            monkey.render(&Mat4::identity(), camera);
+            plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), camera);
+        };
+
+        // Shadow pass
+        directional_light.shadow_cast_begin();
+        render_scene(directional_light.shadow_camera());
+
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
-        monkey.render(&Mat4::identity(), &camera);
-        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
+        render_scene(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();

@@ -79,7 +79,7 @@ fn main() {
         }
 
         // Draw
-        let render_scene = |camera| {
+        let render_scene = |camera: &Camera| {
             plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), camera);
             model.render(&Mat4::identity(), camera);
             wireframe.render(camera);
