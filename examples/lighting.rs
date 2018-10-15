@@ -44,7 +44,7 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.aspect());
 
     let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
-    let monkey = objects::ShadedMesh::create(&gl, &mesh);
+    let mut monkey = objects::ShadedMesh::create(&gl, &mesh);
 
     let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
 
@@ -75,6 +75,7 @@ fn main() {
                 },
                 _ => {}
             }
+            handle_surface_parameters(&mut monkey, event);
         }
 
         // Draw
@@ -100,4 +101,36 @@ fn main() {
     };
 
     renderer::set_main_loop(main_loop);
+}
+
+
+fn handle_surface_parameters(surface: &mut ::objects::ShadedMesh, event: Event)
+{
+    match event {
+        Event::KeyDown { keycode: Some(Keycode::S), .. } => {
+            surface.diffuse_intensity = (surface.diffuse_intensity + 0.1).min(1.0);
+            println!("Diffuse intensity: {}", surface.diffuse_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::A), .. } => {
+            surface.diffuse_intensity = (surface.diffuse_intensity - 0.1).max(0.0);
+            println!("Diffuse intensity: {}", surface.diffuse_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::F), .. } => {
+            surface.specular_intensity = (surface.specular_intensity + 0.1).min(1.0);
+            println!("Specular intensity: {}", surface.specular_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::D), .. } => {
+            surface.specular_intensity = (surface.specular_intensity - 0.1).max(0.0);
+            println!("Specular intensity: {}", surface.specular_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::H), .. } => {
+            surface.specular_power = surface.specular_power + 1.0;
+            println!("Specular power: {}", surface.specular_power);
+        },
+        Event::KeyDown { keycode: Some(Keycode::G), .. } => {
+            surface.specular_power = (surface.specular_power - 1.0).max(0.0);
+            println!("Specular power: {}", surface.specular_power);
+        },
+        _ => {}
+    }
 }
