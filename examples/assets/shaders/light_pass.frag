@@ -92,14 +92,14 @@ vec4 calculate_light(BaseLight light,
     float surface_specular_power = surface_parameters.z;
 
     vec4 AmbientColor = vec4(light.color * light.ambientIntensity, 1.0);
-    float DiffuseFactor = surface_diffuse_intensity * dot(normal, -lightDirection);
+    float DiffuseFactor = dot(normal, -lightDirection);
 
     vec4 DiffuseColor  = vec4(0, 0, 0, 0);
     vec4 SpecularColor = vec4(0, 0, 0, 0);
 
     if (DiffuseFactor > 0.0)
     {
-        DiffuseColor = vec4(light.color * light.diffuseIntensity * DiffuseFactor, 1.0);
+        DiffuseColor = vec4(light.color * surface_diffuse_intensity * light.diffuseIntensity * DiffuseFactor, 1.0);
 
         vec3 VertexToEye = normalize(eyePosition - position);
         vec3 lightReflect = normalize(reflect(lightDirection, normal));
