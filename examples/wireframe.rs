@@ -41,7 +41,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.aspect(), 0.1, 1000.0);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
 
     println!("Start creating mesh");
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
@@ -63,11 +63,11 @@ fn main() {
     ambient_light.base.intensity = 0.2;
 
     let mut light1 = dust::light::DirectionalLight::new(vec3(-1.0, -1.0, -1.0));
-    light1.enable_shadows(&gl, 10.0).unwrap();
+    light1.enable_shadows(&gl, 4.0, 10.0).unwrap();
     light1.base.intensity = 0.5;
 
     let mut light2 = dust::light::DirectionalLight::new(vec3(1.0, -1.0, 1.0));
-    light2.enable_shadows(&gl, 10.0).unwrap();
+    light2.enable_shadows(&gl, 4.0, 10.0).unwrap();
     light2.base.intensity = 0.5;
 
     // set up event handling

@@ -42,7 +42,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.aspect(), 0.1, 1000.0);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
 
     let cube = mesh_generator::create_cube().unwrap();
     let mut textured_box = objects::ShadedMesh::create(&gl, &cube);
