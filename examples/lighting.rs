@@ -48,7 +48,10 @@ fn main() {
 
     let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
 
-    let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    let mut ambient_light = ::light::AmbientLight::new();
+    ambient_light.base.intensity = 0.2;
+
+    let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
     directional_light.enable_shadows(&gl, 10.0).unwrap();
 
     // set up event handling
@@ -90,6 +93,7 @@ fn main() {
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
 
         window.gl_swap_window();
