@@ -20,7 +20,7 @@ impl ShadedVertices
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/vertex_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
 
-        let vertex_mesh = ::mesh_generator::create_cylinder().unwrap();
+        let vertex_mesh = ::mesh_generator::create_sphere(5).unwrap();
         let mut surface = surface::TriangleSurface::create(gl, &vertex_mesh).unwrap();
         surface.add_attributes(&vertex_mesh, &program, &vec!["position"]).unwrap();
 
