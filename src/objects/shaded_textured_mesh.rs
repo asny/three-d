@@ -15,7 +15,7 @@ impl ShadedTexturedMesh
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded_textured",
                                                       "../Dust/src/objects/shaders/shaded_textured").unwrap();
         let mut model = surface::TriangleSurface::create(gl, mesh).unwrap();
-        model.add_attributes(mesh, &program, &vec!["position", "normal", "uv_coordinate"]).unwrap();
+        model.add_attributes(mesh, &program, &vec!["position", "normal"]).unwrap();
 
         ShadedTexturedMesh { program, model, texture }
     }
