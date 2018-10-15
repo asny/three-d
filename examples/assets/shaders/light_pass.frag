@@ -65,7 +65,10 @@ uniform int lightType;
 
 float is_visible(vec4 shadow_coord, vec2 offset)
 {
-    return texture(shadowMap, (shadow_coord.xy + offset)/shadow_coord.w).x < (shadow_coord.z - 0.005)/shadow_coord.w ? 0.0f : 1.0f;
+    vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
+    float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
+    float shadow_cast_distance = texture(shadowMap, uv).x;
+    return uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
 float calculate_shadow(vec3 position)
@@ -82,7 +85,7 @@ float calculate_shadow(vec3 position)
     {
         visibility += is_visible(shadow_coord, poissonDisk[i] * 0.001f);
     }
-    return visibility/4.f;
+    return visibility * 0.25;
 }
 
 vec4 calculate_light(BaseLight light,

@@ -52,7 +52,7 @@ fn main() {
     ambient_light.base.intensity = 0.2;
 
     let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
-    directional_light.enable_shadows(&gl, 5.0, 10.0).unwrap();
+    directional_light.enable_shadows(&gl, 2.0, 10.0).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
