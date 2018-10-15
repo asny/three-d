@@ -189,7 +189,7 @@ void main()
 {
     float depth = texture(depthMap, uv).r;
    	vec4 col = vec4(texture(colorMap, uv).xyz, 1.);
-    if(depth < 1.)
+    if(depth < 0.99999)
     {
         vec3 pos = texture(positionMap, uv).xyz;
         vec3 normal = normalize(texture(normalMap, uv).xyz);
