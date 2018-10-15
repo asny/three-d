@@ -84,8 +84,8 @@ impl Grass
     {
         self.program.cull(state::CullType::NONE);
 
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
 
         self.model.render_instances(NO_STRAWS)?;
         Ok(())

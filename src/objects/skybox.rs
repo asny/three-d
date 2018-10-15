@@ -25,12 +25,13 @@ impl Skybox
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
         self.program.depth_test(state::DepthTestType::LEQUAL);
+        self.program.polygon_mode(state::PolygonType::Fill);
 
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
-        self.program.add_uniform_vec3("cameraPosition", &camera.position)?;
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
+        self.program.add_uniform_vec3("cameraPosition", camera.position())?;
 
         self.model.render()?;
         Ok(())

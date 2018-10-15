@@ -2,6 +2,7 @@ uniform sampler2D positionMap;
 uniform sampler2D colorMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
+uniform sampler2D surfaceParametersMap;
 uniform sampler2D shadowMap;
 uniform samplerCube shadowCubeMap;
 
@@ -21,8 +22,12 @@ in vec2 uv;
 struct BaseLight
 {
     vec3 color;
-    float ambientIntensity;
-    float diffuseIntensity;
+    float intensity;
+};
+
+struct AmbientLight
+{
+    BaseLight base;
 };
 
 struct DirectionalLight
@@ -52,20 +57,18 @@ struct SpotLight
     float cutoff;
 };
 
+uniform AmbientLight ambientLight;
 uniform DirectionalLight directionalLight;
 uniform PointLight pointLight;
 uniform SpotLight spotLight;
 uniform int lightType;
 
-const float specularIntensity = 0.f;
-const float specularPower = 5.f;
-
 float is_visible(vec4 shadow_coord, vec2 offset)
 {
-    if ( texture(shadowMap, (shadow_coord.xy + offset)/shadow_coord.w).x < (shadow_coord.z - 0.005)/shadow_coord.w){
-        return 0.5f;
-    }
-    return 1.f;
+    vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
+    float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
+    float shadow_cast_distance = texture(shadowMap, uv).x;
+    return uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
 float calculate_shadow(vec3 position)
@@ -82,16 +85,19 @@ float calculate_shadow(vec3 position)
     {
         visibility += is_visible(shadow_coord, poissonDisk[i] * 0.001f);
     }
-    return visibility/4.f;
+    return visibility * 0.25;
 }
 
 vec4 calculate_light(BaseLight light,
                        vec3 lightDirection,
                        vec3 position,
-                       vec3 normal,
-                       float shadow)
+                       vec3 normal)
 {
-    vec4 AmbientColor = vec4(light.color * light.ambientIntensity, 1.0);
+    vec4 surface_parameters = texture(surfaceParametersMap, uv);
+    float surface_diffuse_intensity = surface_parameters.x;
+    float surface_specular_intensity = surface_parameters.y;
+    float surface_specular_power = surface_parameters.z;
+
     float DiffuseFactor = dot(normal, -lightDirection);
 
     vec4 DiffuseColor  = vec4(0, 0, 0, 0);
@@ -99,28 +105,19 @@ vec4 calculate_light(BaseLight light,
 
     if (DiffuseFactor > 0.0)
     {
-        DiffuseColor = vec4(light.color * light.diffuseIntensity * DiffuseFactor, 1.0);
+        DiffuseColor = vec4(light.color * surface_diffuse_intensity * light.intensity * DiffuseFactor, 1.0);
 
         vec3 VertexToEye = normalize(eyePosition - position);
         vec3 lightReflect = normalize(reflect(lightDirection, normal));
         float SpecularFactor = dot(VertexToEye, lightReflect);
         if (SpecularFactor > 0.0)
         {
-            SpecularFactor = pow(SpecularFactor, specularPower);
-            SpecularColor = vec4(light.color * specularIntensity * SpecularFactor, 1.0);
+            SpecularFactor = pow(SpecularFactor, surface_specular_power);
+            SpecularColor = vec4(light.color * surface_specular_intensity * light.intensity  * SpecularFactor, 1.0);
         }
     }
 
-    return AmbientColor + shadow * ( DiffuseColor + SpecularColor );
-}
-
-vec4 calculate_directional_light(vec3 position, vec3 normal)
-{
-    float shadow = 1.0;//calculate_shadow(position);
-    return calculate_light(directionalLight.base,
-                             directionalLight.direction,
-                             position,
-                             normal, shadow);
+    return DiffuseColor + SpecularColor;
 }
 
 vec4 calculate_point_light(vec3 position, vec3 normal)
@@ -174,7 +171,7 @@ vec4 calculate_point_light(vec3 position, vec3 normal)
         shadow = 0.5f;
     }
 
-    vec4 color = calculate_light(pointLight.base, lightDirection, position, normal, shadow);
+    vec4 color = shadow * calculate_light(pointLight.base, lightDirection, position, normal);
 
     float attenuation =  pointLight.attenuation.constant +
         pointLight.attenuation.linear * distance +
@@ -189,19 +186,23 @@ void main()
 {
     float depth = texture(depthMap, uv).r;
    	vec4 col = vec4(texture(colorMap, uv).xyz, 1.);
-    if(depth < 1.)
+    if(depth < 0.99999)
     {
-        vec3 pos = texture(positionMap, uv).xyz;
+        vec3 position = texture(positionMap, uv).xyz;
         vec3 normal = normalize(texture(normalMap, uv).xyz);
 
         vec4 light;
-        if(lightType == 1)
+        if(lightType == 0)
         {
-            light = calculate_directional_light(pos, normal);
+            light = vec4(ambientLight.base.color * ambientLight.base.intensity, 1.0);
+        }
+        else if(lightType == 1)
+        {
+            light = calculate_shadow(position) * calculate_light(directionalLight.base, directionalLight.direction, position, normal);
         }
         else if(lightType == 2)
         {
-            light = vec4(1.0);//calculate_point_light(pos, normal);
+            light = vec4(1.0);//calculate_point_light(position, normal);
         }
 
         col *= light;

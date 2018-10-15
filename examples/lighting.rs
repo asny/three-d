@@ -34,18 +34,25 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Screen
+    let screen = screen::Screen {width, height};
+
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), screen.aspect(), 0.1, 1000.0);
 
     let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
-    let monkey = objects::ShadedColoredMesh::create(&gl, &mesh);
+    let mut monkey = objects::ShadedMesh::create(&gl, &mesh);
 
-    let plane = ::objects::ShadedColoredMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+    let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
 
-    let directional_light = dust::light::DirectionalLight::create( vec3(0.0, -1.0, 0.0));
+    let mut ambient_light = ::light::AmbientLight::new();
+    ambient_light.base.intensity = 0.2;
+
+    let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
+    directional_light.enable_shadows(&gl, 2.0, 10.0).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -68,20 +75,93 @@ fn main() {
                 },
                 _ => {}
             }
+            handle_ambient_light_parameters(&event, &mut ambient_light);
+            handle_directional_light_parameters(&event, &mut directional_light);
+            handle_surface_parameters(&event, &mut monkey);
         }
 
         // Draw
+        let render_scene = |camera: &Camera| {
+            monkey.render(&Mat4::identity(), camera);
+            plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), camera);
+        };
+
+        // Shadow pass
+        directional_light.shadow_cast_begin().unwrap();
+        render_scene(directional_light.shadow_camera().unwrap());
+
         // Geometry pass
-        renderer.geometry_pass_begin(&camera).unwrap();
-        monkey.render(&Mat4::identity(), &camera);
-        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
+        renderer.geometry_pass_begin().unwrap();
+        render_scene(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
 
         window.gl_swap_window();
     };
 
     renderer::set_main_loop(main_loop);
+}
+
+fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLight)
+{
+    match event {
+        Event::KeyDown { keycode: Some(Keycode::X), .. } => {
+            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
+            println!("Ambient light intensity: {}", light.base.intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::Z), .. } => {
+            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
+            println!("Ambient light intensity: {}", light.base.intensity);
+        },
+        _ => {}
+    }
+}
+
+fn handle_directional_light_parameters(event: &Event, light: &mut light::DirectionalLight)
+{
+    match event {
+        Event::KeyDown { keycode: Some(Keycode::V), .. } => {
+            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
+            println!("Directional light intensity: {}", light.base.intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::C), .. } => {
+            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
+            println!("Directional light intensity: {}", light.base.intensity);
+        },
+        _ => {}
+    }
+}
+
+fn handle_surface_parameters(event: &Event, surface: &mut ::objects::ShadedMesh)
+{
+    match event {
+        Event::KeyDown { keycode: Some(Keycode::S), .. } => {
+            surface.diffuse_intensity = (surface.diffuse_intensity + 0.1).min(1.0);
+            println!("Diffuse intensity: {}", surface.diffuse_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::A), .. } => {
+            surface.diffuse_intensity = (surface.diffuse_intensity - 0.1).max(0.0);
+            println!("Diffuse intensity: {}", surface.diffuse_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::F), .. } => {
+            surface.specular_intensity = (surface.specular_intensity + 0.1).min(1.0);
+            println!("Specular intensity: {}", surface.specular_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::D), .. } => {
+            surface.specular_intensity = (surface.specular_intensity - 0.1).max(0.0);
+            println!("Specular intensity: {}", surface.specular_intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::H), .. } => {
+            surface.specular_power = surface.specular_power + 1.0;
+            println!("Specular power: {}", surface.specular_power);
+        },
+        Event::KeyDown { keycode: Some(Keycode::G), .. } => {
+            surface.specular_power = (surface.specular_power - 1.0).max(0.0);
+            println!("Specular power: {}", surface.specular_power);
+        },
+        _ => {}
+    }
 }

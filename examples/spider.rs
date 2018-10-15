@@ -35,18 +35,21 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Screen
+    let screen = screen::Screen {width, height};
+
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, true).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, true).unwrap();
 
     // Camera
-    let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
 
     // Models
     let mut environment = scene_objects::environment::Environment::create(&gl);
     let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
 
     // Lights
-    let directional_light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0));
+    let directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -114,7 +117,7 @@ fn main() {
 
         // Draw
         // Geometry pass
-        renderer.geometry_pass_begin(&camera).unwrap();
+        renderer.geometry_pass_begin().unwrap();
         let transformation = Mat4::identity();
         environment.render_opague(&camera).unwrap();
         spider.render(&camera);
@@ -125,7 +128,7 @@ fn main() {
         renderer.copy_to_screen().unwrap();
 
         // After effects
-        environment.render_transparent(time, &camera, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
+        environment.render_transparent(time, &camera, &screen, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
 
         window.gl_swap_window();
     };

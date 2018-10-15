@@ -99,6 +99,46 @@ impl Drop for ColorRendertarget {
     }
 }
 
+// DEPTH RENDER TARGET
+pub struct DepthRenderTarget {
+    gl: gl::Gl,
+    id: u32,
+    width: usize,
+    height: usize,
+    pub target: texture::Texture2D
+}
+
+impl DepthRenderTarget
+{
+    pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
+    {
+        let id = generate(gl)?;
+        bind(gl, id, width, height);
+
+        let target = texture::Texture2D::create_as_depth_target(gl, width, height)?;
+        Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
+    }
+}
+
+impl Rendertarget for DepthRenderTarget
+{
+    fn bind(&self)
+    {
+        bind(&self.gl, self.id, self.width, self.height);
+    }
+
+    fn clear(&self)
+    {
+        clear(&self.gl);
+    }
+}
+
+impl Drop for DepthRenderTarget {
+    fn drop(&mut self) {
+        drop(&self.gl, &self.id);
+    }
+}
+
 
 // COMMON FUNCTIONS
 fn generate(gl: &gl::Gl) -> Result<u32, Error>

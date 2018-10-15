@@ -26,6 +26,7 @@ fn main() {
 
     let width: usize = 900;
     let height: usize = 700;
+    let screen = screen::Screen {width, height};
     let window = video_ctx
         .window("Dust", width as u32, height as u32)
         .opengl()
@@ -38,18 +39,17 @@ fn main() {
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, width, height, false).unwrap();
+    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::Camera::create(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), width, height);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
 
-
+    let cube = mesh_generator::create_cube().unwrap();
+    let mut textured_box = objects::ShadedMesh::create(&gl, &cube);
     let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
     let mut texture = texture::Texture2D::create(&gl).unwrap();
     texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
-
-    let cube = mesh_generator::create_cube().unwrap();
-    let textured_box = objects::ShadedTexturedMesh::create(&gl, &cube, texture);
+    textured_box.texture = Some(texture);
 
     let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
     let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
@@ -62,7 +62,7 @@ fn main() {
                           &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
     let skybox = objects::Skybox::create(&gl, texture3d);
 
-    let light = dust::light::DirectionalLight::create(vec3(0.0, -1.0, 0.0));
+    let light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -89,7 +89,7 @@ fn main() {
 
         // draw
         // Geometry pass
-        renderer.geometry_pass_begin(&camera).unwrap();
+        renderer.geometry_pass_begin().unwrap();
         let transformation = Mat4::identity();
         textured_box.render(&transformation, &camera);
         skybox.render(&camera).unwrap();

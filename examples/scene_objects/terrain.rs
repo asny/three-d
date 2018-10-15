@@ -63,8 +63,8 @@ impl Terrain
 
         let transformation = Mat4::identity();
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
-        self.program.add_uniform_mat4("viewMatrix", &camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", &camera.get_projection())?;
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
         self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose())?;
 
         self.model.render()?;

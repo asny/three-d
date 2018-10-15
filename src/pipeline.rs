@@ -3,6 +3,7 @@ use camera;
 use traits;
 use gl;
 use light;
+use screen;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
 use core::state;
@@ -38,40 +39,32 @@ impl From<rendertarget::Error> for Error {
 
 pub struct ForwardPipeline {
     gl: gl::Gl,
-    width: usize,
-    height: usize,
     rendertarget: rendertarget::ScreenRendertarget
 }
 
 impl ForwardPipeline
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ForwardPipeline, Error>
+    pub fn create(gl: &gl::Gl, screen: &screen::Screen) -> Result<ForwardPipeline, Error>
     {
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
-        Ok(ForwardPipeline {gl: gl.clone(), width, height, rendertarget})
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen.width, screen.height)?;
+        Ok(ForwardPipeline {gl: gl.clone(), rendertarget})
     }
 
-    pub fn resize(&mut self, width: usize, height: usize) -> Result<(), Error>
+    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, width, height)?;
-        self.width = width;
-        self.height = height;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
         Ok(())
     }
 
-    pub fn render_pass_begin(&self) -> Result<(), Error>
+    pub fn render_pass_begin(&self)
     {
         self.rendertarget.bind();
         self.rendertarget.clear();
-
-        Ok(())
     }
 }
 
 pub struct DeferredPipeline {
     gl: gl::Gl,
-    pub width: usize,
-    pub height: usize,
     light_pass_program: program::Program,
     copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
@@ -82,32 +75,30 @@ pub struct DeferredPipeline {
 
 impl DeferredPipeline
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
+    pub fn create(gl: &gl::Gl, screen: &screen::Screen, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass",
                                                                  "../Dust/examples/assets/shaders/light_pass")?;
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 3)?;
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen.width, screen.height)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen.width, screen.height, 4)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
-            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, width, height, 1)?);
+            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, screen.width, screen.height, 1)?);
             copy_program = Some(program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
                                                                 "../Dust/examples/assets/shaders/copy")?);
         }
-        Ok(DeferredPipeline { gl: gl.clone(), width, height, light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
 
-    pub fn resize(&mut self, width: usize, height: usize) -> Result<(), Error>
+    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, width, height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, width, height, 3)?;
-        self.width = width;
-        self.height = height;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen.width, screen.height, 4)?;
         Ok(())
     }
 
-    pub fn geometry_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn geometry_pass_begin(&self) -> Result<(), Error>
     {
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
@@ -147,26 +138,51 @@ impl DeferredPipeline
         self.geometry_pass_normal_texture().bind(2);
         self.light_pass_program.add_uniform_int("normalMap", &2)?;
 
-        self.geometry_pass_depth_texture().bind(3);
-        self.light_pass_program.add_uniform_int("depthMap", &3)?;
+        self.geometry_pass_surface_parameters_texture().bind(3);
+        self.light_pass_program.add_uniform_int("surfaceParametersMap", &3)?;
 
-        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position)?;
+        self.geometry_pass_depth_texture().bind(4);
+        self.light_pass_program.add_uniform_int("depthMap", &4)?;
 
+        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
+
+        Ok(())
+    }
+
+    pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
+    {
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+
+        self.light_pass_program.add_uniform_int("lightType", &0)?;
+        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
         Ok(())
     }
 
     pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
-        /*shadow_render_target.bind_texture_for_reading(4);
-        GLUniform::use(shader, "shadowMap", 4);
-        GLUniform::use(shader, "shadowCubeMap", 5);
-        GLUniform::use(shader, "shadowMVP", bias_matrix * get_projection() * get_view());*/
+        if let Ok(shadow_camera) = light.shadow_camera() {
+            use camera::Camera;
+            let bias_matrix = ::Mat4::new(
+                                 0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 0.5, 0.0,
+                                 0.5, 0.5, 0.5, 1.0).transpose();
+            self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
+
+            light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
+        }
+
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &1)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &light.base.ambient_intensity)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &light.base.diffuse_intensity)?;
+        self.light_pass_program.add_uniform_float("directionalLight.base.intensity", &light.base.intensity)?;
 
         full_screen_quad::render(&self.gl, &self.light_pass_program);
         Ok(())
@@ -206,6 +222,11 @@ impl DeferredPipeline
     pub fn geometry_pass_normal_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.targets[2]
+    }
+
+    pub fn geometry_pass_surface_parameters_texture(&self) -> &Texture
+    {
+        &self.geometry_pass_rendertarget.targets[3]
     }
 
     pub fn geometry_pass_depth_texture(&self) -> &Texture

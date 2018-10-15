@@ -34,11 +34,14 @@ fn main() {
     let _gl_context = window.gl_create_context().unwrap();
     let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
+    // Screen
+    let screen = screen::Screen {width, height};
+
     // Renderer
-    let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
+    let renderer = pipeline::ForwardPipeline::create(&gl, &screen).unwrap();
 
     // Camera
-    let camera = camera::Camera::create(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), width, height);
+    let camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), screen.aspect(), 0.1, 10.0);
 
     let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
 
@@ -57,7 +60,7 @@ fn main() {
         }
 
         // draw
-        renderer.render_pass_begin().unwrap();
+        renderer.render_pass_begin();
 
         let transformation = Mat4::identity();
         model.render(&camera).unwrap();

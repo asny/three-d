@@ -16,6 +16,7 @@ mod loader;
 
 pub mod traits;
 pub mod light;
+pub mod screen;
 
 pub mod eventhandler;
 pub mod camerahandler;
@@ -34,6 +35,8 @@ pub use gust::mesh as mesh;
 pub use gust::mesh::Renderable;
 pub use gust::loader as mesh_loader;
 pub use gust::models as mesh_generator;
+
+pub use camera::Camera;
 
 pub use core::*;
 pub use texture::Texture;

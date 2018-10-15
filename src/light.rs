@@ -1,24 +1,99 @@
 use gust::*;
+use core::rendertarget::{self, DepthRenderTarget};
+use gl;
+use camera::{self, Camera};
+
+#[derive(Debug)]
+pub enum Error {
+    Rendertarget(rendertarget::Error),
+    ShadowRendertargetNotAvailable {message: String}
+}
+
+impl From<rendertarget::Error> for Error {
+    fn from(other: rendertarget::Error) -> Self {
+        Error::Rendertarget(other)
+    }
+}
 
 pub struct Light {
     pub color: Vec3,
-    pub ambient_intensity: f32,
-    pub diffuse_intensity: f32
+    pub intensity: f32
+}
+
+pub struct AmbientLight
+{
+    pub base: Light
+}
+
+impl AmbientLight
+{
+    pub fn new() -> AmbientLight
+    {
+        let base = Light { color: vec3(1.0, 1.0, 1.0), intensity: 0.2 };
+        AmbientLight { base }
+    }
 }
 
 pub struct DirectionalLight {
     pub base: Light,
-    pub direction: Vec3
+    pub direction: Vec3,
+    pub shadow_rendertarget: Option<DepthRenderTarget>,
+    shadow_camera: Option<camera::OrthographicCamera>
 }
 
 impl DirectionalLight
 {
-    pub fn create(direction: Vec3) -> DirectionalLight
+    pub fn new(direction: Vec3) -> DirectionalLight
     {
-        let color = vec3(1., 1., 1.);
-        let ambient_intensity = 0.2;
-        let diffuse_intensity = 0.5;
-        let base = Light {color, ambient_intensity, diffuse_intensity};
-        DirectionalLight {direction, base}
+        let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
+        DirectionalLight {direction: direction.normalize(), base, shadow_rendertarget: None, shadow_camera: None}
+    }
+
+    pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32, depth: f32) -> Result<(), Error>
+    {
+        self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
+        let up = self.compute_up_direction();
+        self.shadow_camera = Some(camera::OrthographicCamera::new(- self.direction, vec3(0.0, 0.0, 0.0), up,
+                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
+        Ok(())
+    }
+
+    pub fn set_target(&mut self, target: &Vec3)
+    {
+        let up = self.compute_up_direction();
+        if let Some(ref mut camera) = self.shadow_camera {
+            camera.set_view(*target - self.direction, *target, up);
+        }
+    }
+
+    fn compute_up_direction(&self) -> Vec3
+    {
+        if vec3(1.0, 0.0, 0.0).dot(&self.direction).abs() > 0.9
+        {
+            (vec3(0.0, 1.0, 0.0).cross(&self.direction)).normalize()
+        }
+        else {
+            (vec3(1.0, 0.0, 0.0).cross(&self.direction)).normalize()
+        }
+    }
+
+    pub fn shadow_cast_begin(&self) -> Result<(), Error>
+    {
+        if let Some(ref rendertarget) = self.shadow_rendertarget
+        {
+            use rendertarget::Rendertarget;
+            rendertarget.bind();
+            rendertarget.clear();
+            return Ok(())
+        }
+        Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
+    }
+
+    pub fn shadow_camera(&self) -> Result<&camera::OrthographicCamera, Error>
+    {
+        if let Some(ref camera) = self.shadow_camera {
+            return Ok(camera)
+        }
+        Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
     }
 }
