@@ -16,8 +16,7 @@ pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Traits(traits::Error),
-    LightPassRendertargetNotAvailable {message: String},
-    ShadowRendertargetNotAvailable {message: String}
+    LightPassRendertargetNotAvailable {message: String}
 }
 
 impl From<traits::Error> for Error {
@@ -171,17 +170,19 @@ impl DeferredPipeline
 
     pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
-        use camera::Camera;
-        let bias_matrix = ::Mat4::new(
-                             0.5, 0.0, 0.0, 0.0,
-                             0.0, 0.5, 0.0, 0.0,
-                             0.0, 0.0, 0.5, 0.0,
-                             0.5, 0.5, 0.5, 1.0).transpose();
-        self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * light.shadow_camera().get_projection() * light.shadow_camera().get_view()))?;
+        if let Ok(shadow_camera) = light.shadow_camera() {
+            use camera::Camera;
+            let bias_matrix = ::Mat4::new(
+                                 0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 0.5, 0.0,
+                                 0.5, 0.5, 0.5, 1.0).transpose();
+            self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * shadow_camera.get_projection() * shadow_camera.get_view()))?;
 
-        light.shadow_render_target.as_ref().unwrap().target.bind(5);
+            light.shadow_render_target.as_ref().unwrap().target.bind(5);
+        }
+
         self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-
         self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &1)?;

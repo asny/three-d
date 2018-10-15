@@ -1,7 +1,19 @@
 use gust::*;
-use core::rendertarget::DepthRenderTarget;
+use core::rendertarget::{self, DepthRenderTarget};
 use gl;
 use camera::{self, Camera};
+
+#[derive(Debug)]
+pub enum Error {
+    Rendertarget(rendertarget::Error),
+    ShadowRendertargetNotAvailable {message: String}
+}
+
+impl From<rendertarget::Error> for Error {
+    fn from(other: rendertarget::Error) -> Self {
+        Error::Rendertarget(other)
+    }
+}
 
 pub struct Light {
     pub color: Vec3,
@@ -27,12 +39,11 @@ impl DirectionalLight
         DirectionalLight {direction, base, shadow_render_target: None, shadow_camera: None}
     }
 
-    pub fn new_that_cast_shadow(gl: &gl::Gl, direction: Vec3, radius: f32) -> DirectionalLight
+    pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32) -> Result<(), Error>
     {
-        let mut light = DirectionalLight::new(direction);
-        light.shadow_render_target = Some(DepthRenderTarget::create(gl, 1024, 1024).unwrap());
-        light.shadow_camera = Some(camera::OrthographicCamera::new(vec3(0.0, 0.0, 0.0), light.direction, radius));
-        light
+        self.shadow_render_target = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
+        self.shadow_camera = Some(camera::OrthographicCamera::new(vec3(0.0, 0.0, 0.0), self.direction, radius));
+        Ok(())
     }
 
     pub fn set_target(&mut self, target: &Vec3)
@@ -42,17 +53,22 @@ impl DirectionalLight
         }
     }
 
-    pub fn shadow_cast_begin(&self)
+    pub fn shadow_cast_begin(&self) -> Result<(), Error>
     {
+        if self.shadow_render_target.is_none() { return Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")}) }
         let rendertarget = self.shadow_render_target.as_ref().unwrap();
 
         use rendertarget::Rendertarget;
         rendertarget.bind();
         rendertarget.clear();
+        Ok(())
     }
 
-    pub fn shadow_camera(&self) -> &camera::OrthographicCamera
+    pub fn shadow_camera(&self) -> Result<&camera::OrthographicCamera, Error>
     {
-        self.shadow_camera.as_ref().unwrap()
+        if let Some(ref camera) = self.shadow_camera {
+            return Ok(camera)
+        }
+        Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
     }
 }

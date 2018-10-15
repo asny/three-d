@@ -48,7 +48,8 @@ fn main() {
 
     let plane = ::objects::ShadedColoredMesh::create(&gl, &mesh_generator::create_plane().unwrap());
 
-    let directional_light = dust::light::DirectionalLight::new_that_cast_shadow(&gl, vec3(0.0, -1.0, 0.0), 10.0);
+    let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    directional_light.enable_shadows(&gl, 10.0).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -80,8 +81,8 @@ fn main() {
         };
 
         // Shadow pass
-        directional_light.shadow_cast_begin();
-        render_scene(directional_light.shadow_camera());
+        directional_light.shadow_cast_begin().unwrap();
+        render_scene(directional_light.shadow_camera().unwrap());
 
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
