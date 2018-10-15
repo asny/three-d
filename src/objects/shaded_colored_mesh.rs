@@ -5,7 +5,10 @@ use ::*;
 pub struct ShadedColoredMesh {
     program: program::Program,
     model: surface::TriangleSurface,
-    pub color: Vec3
+    pub color: Vec3,
+    pub diffuse_intensity: f32,
+    pub specular_intensity: f32,
+    pub specular_power: f32
 }
 
 impl ShadedColoredMesh
@@ -17,7 +20,7 @@ impl ShadedColoredMesh
         let mut model = surface::TriangleSurface::create(gl, mesh).unwrap();
         model.add_attributes(mesh, &program, &vec!["position", "normal"]).unwrap();
 
-        ShadedColoredMesh { program, model, color: vec3(1.0, 1.0, 1.0) }
+        ShadedColoredMesh { program, model, color: vec3(1.0, 1.0, 1.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
@@ -27,6 +30,9 @@ impl ShadedColoredMesh
         self.program.depth_write(true);
         self.program.polygon_mode(state::PolygonType::Fill);
 
+        self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
+        self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
+        self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
         self.program.add_uniform_vec3("color", &self.color).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view()).unwrap();
