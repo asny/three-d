@@ -9,7 +9,8 @@ pub struct ShadedVertices {
     pub color: Vec3,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
-    pub specular_power: f32
+    pub specular_power: f32,
+    pub scale: f32
 }
 
 impl ShadedVertices
@@ -36,7 +37,7 @@ impl ShadedVertices
         }
         instance_buffer.fill_with(data);
 
-        ShadedVertices { program, surface, no_vertices: mesh.no_vertices(), color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
+        ShadedVertices { program, surface, no_vertices: mesh.no_vertices(), color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -52,6 +53,8 @@ impl ShadedVertices
 
         self.program.add_uniform_int("use_texture", &0).unwrap();
         self.program.add_uniform_vec3("color", &self.color).unwrap();
+
+        self.program.add_uniform_float("scale", &self.scale).unwrap();
 
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();

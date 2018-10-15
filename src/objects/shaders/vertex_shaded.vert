@@ -1,6 +1,7 @@
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
+uniform float scale;
 
 in vec3 translation;
 
@@ -11,7 +12,7 @@ out vec3 nor;
 
 void main()
 {
-    pos = position + translation;
+    pos = scale * position + translation;
     nor = normalize(position);
     gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
 }
