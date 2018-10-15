@@ -32,10 +32,7 @@ impl DirectionalLight
 {
     pub fn new(direction: Vec3) -> DirectionalLight
     {
-        let color = vec3(1., 1., 1.);
-        let ambient_intensity = 0.2;
-        let diffuse_intensity = 0.5;
-        let base = Light {color, ambient_intensity, diffuse_intensity};
+        let base = Light {color: vec3(1.0, 1.0, 1.0), ambient_intensity: 0.2, diffuse_intensity: 0.5};
         DirectionalLight {direction: direction.normalize(), base, shadow_rendertarget: None, shadow_camera: None}
     }
 
