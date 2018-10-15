@@ -60,10 +60,7 @@ uniform int lightType;
 
 float is_visible(vec4 shadow_coord, vec2 offset)
 {
-    if ( texture(shadowMap, (shadow_coord.xy + offset)/shadow_coord.w).x < (shadow_coord.z - 0.005)/shadow_coord.w){
-        return 0.5f;
-    }
-    return 1.f;
+    return texture(shadowMap, (shadow_coord.xy + offset)/shadow_coord.w).x < (shadow_coord.z - 0.005)/shadow_coord.w ? 0.0f : 1.0f;
 }
 
 float calculate_shadow(vec3 position)
