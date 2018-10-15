@@ -6,7 +6,10 @@ pub struct Wireframe {
     program: program::Program,
     surface: surface::TriangleSurface,
     no_edges: usize,
-    pub color: Vec3
+    pub color: Vec3,
+    pub diffuse_intensity: f32,
+    pub specular_intensity: f32,
+    pub specular_power: f32
 }
 
 impl Wireframe
@@ -14,7 +17,7 @@ impl Wireframe
     pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh) -> Wireframe
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
-                                                      "../Dust/src/objects/shaders/shaded_colored").unwrap();
+                                                      "../Dust/src/objects/shaders/shaded").unwrap();
 
         let edge_mesh = ::mesh_generator::create_cylinder().unwrap();
         let mut surface = surface::TriangleSurface::create(gl, &edge_mesh).unwrap();
@@ -59,7 +62,7 @@ impl Wireframe
         }
         instance_buffer.fill_with(data);
 
-        Wireframe { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0) }
+        Wireframe { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -68,6 +71,13 @@ impl Wireframe
         self.program.depth_test(state::DepthTestType::LEQUAL);
         self.program.depth_write(true);
         self.program.polygon_mode(state::PolygonType::Fill);
+
+        self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
+        self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
+        self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
+
+        self.program.add_uniform_int("use_texture", &0).unwrap();
+        self.program.add_uniform_vec3("color", &self.color).unwrap();
 
         self.program.add_uniform_vec3("color", &self.color).unwrap();
         self.program.add_uniform_mat4("viewMatrix", &camera.get_view()).unwrap();
