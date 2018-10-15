@@ -48,9 +48,9 @@ fn main() {
     println!("Done creating mesh");
     let wireframe = ::objects::Wireframe::create(&gl, &mesh);
     mesh.update_vertex_normals();
-    let model = ::objects::ShadedColoredMesh::create(&gl, &mesh);
+    let model = ::objects::ShadedMesh::create(&gl, &mesh);
 
-    let plane = ::objects::ShadedColoredMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+    let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
 
     let mut light1 = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
     light1.enable_shadows(&gl, 10.0).unwrap();
