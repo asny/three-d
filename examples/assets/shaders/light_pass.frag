@@ -200,7 +200,7 @@ void main()
         }
         else if(lightType == 1)
         {
-            light = vec4(directionalLight.base.color * directionalLight.base.intensity, 1.0) + calculate_directional_light(pos, normal);
+            light = calculate_directional_light(pos, normal);
         }
         else if(lightType == 2)
         {
