@@ -46,25 +46,29 @@ fn main() {
     println!("Start creating mesh");
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     println!("Done creating mesh");
-    let wireframe = ::objects::Wireframe::create(&gl, &mesh);
+    let mut wireframe = ::objects::Wireframe::create(&gl, &mesh);
+    wireframe.diffuse_intensity = 0.8;
+    wireframe.specular_intensity = 0.2;
+    wireframe.specular_power = 5.0;
+
     mesh.update_vertex_normals();
     let model = ::objects::ShadedMesh::create(&gl, &mesh);
 
     let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
-    plane.diffuse_intensity = 0.5;
-    plane.specular_intensity = 0.2;
-    plane.specular_power = 5.0;
+    plane.diffuse_intensity = 0.1;
+    plane.specular_intensity = 0.3;
+    plane.specular_power = 40.0;
 
     let mut ambient_light = ::light::AmbientLight::new();
-    ambient_light.base.intensity = 0.5;
+    ambient_light.base.intensity = 0.2;
 
-    let mut light1 = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
+    let mut light1 = dust::light::DirectionalLight::new(vec3(-1.0, -1.0, -1.0));
     light1.enable_shadows(&gl, 10.0).unwrap();
-    light1.base.intensity = 0.2;
+    light1.base.intensity = 0.5;
 
-    let mut light2 = dust::light::DirectionalLight::new(vec3(-1.0, -1.0, 0.0));
+    let mut light2 = dust::light::DirectionalLight::new(vec3(1.0, -1.0, 1.0));
     light2.enable_shadows(&gl, 10.0).unwrap();
-    light2.base.intensity = 0.2;
+    light2.base.intensity = 0.5;
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -92,7 +96,7 @@ fn main() {
         // Draw
         let render_scene = |camera: &Camera| {
             plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), camera);
-            model.render(&Mat4::identity(), camera);
+            //model.render(&Mat4::identity(), camera);
             wireframe.render(camera);
         };
 
