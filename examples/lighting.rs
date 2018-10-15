@@ -75,7 +75,9 @@ fn main() {
                 },
                 _ => {}
             }
-            handle_surface_parameters(&mut monkey, event);
+            handle_ambient_light_parameters(&event, &mut ambient_light);
+            handle_directional_light_parameters(&event, &mut directional_light);
+            handle_surface_parameters(&event, &mut monkey);
         }
 
         // Draw
@@ -103,8 +105,37 @@ fn main() {
     renderer::set_main_loop(main_loop);
 }
 
+fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLight)
+{
+    match event {
+        Event::KeyDown { keycode: Some(Keycode::X), .. } => {
+            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
+            println!("Ambient light intensity: {}", light.base.intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::Z), .. } => {
+            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
+            println!("Ambient light intensity: {}", light.base.intensity);
+        },
+        _ => {}
+    }
+}
 
-fn handle_surface_parameters(surface: &mut ::objects::ShadedMesh, event: Event)
+fn handle_directional_light_parameters(event: &Event, light: &mut light::DirectionalLight)
+{
+    match event {
+        Event::KeyDown { keycode: Some(Keycode::V), .. } => {
+            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
+            println!("Directional light intensity: {}", light.base.intensity);
+        },
+        Event::KeyDown { keycode: Some(Keycode::C), .. } => {
+            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
+            println!("Directional light intensity: {}", light.base.intensity);
+        },
+        _ => {}
+    }
+}
+
+fn handle_surface_parameters(event: &Event, surface: &mut ::objects::ShadedMesh)
 {
     match event {
         Event::KeyDown { keycode: Some(Keycode::S), .. } => {
