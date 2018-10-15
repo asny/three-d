@@ -2,7 +2,7 @@
 use gl;
 use ::*;
 
-pub struct Wireframe {
+pub struct ShadedEdges {
     program: program::Program,
     surface: surface::TriangleSurface,
     no_edges: usize,
@@ -12,9 +12,9 @@ pub struct Wireframe {
     pub specular_power: f32
 }
 
-impl Wireframe
+impl ShadedEdges
 {
-    pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh) -> Wireframe
+    pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh) -> ShadedEdges
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
@@ -62,7 +62,7 @@ impl Wireframe
         }
         instance_buffer.fill_with(data);
 
-        Wireframe { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
+        ShadedEdges { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -79,7 +79,6 @@ impl Wireframe
         self.program.add_uniform_int("use_texture", &0).unwrap();
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
-        self.program.add_uniform_vec3("color", &self.color).unwrap();
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
         self.surface.render_instances(self.no_edges).unwrap();

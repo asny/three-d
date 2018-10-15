@@ -46,7 +46,7 @@ fn main() {
     println!("Start creating mesh");
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     println!("Done creating mesh");
-    let mut wireframe = ::objects::Wireframe::create(&gl, &mesh);
+    let mut wireframe = ::objects::ShadedEdges::create(&gl, &mesh);
     wireframe.diffuse_intensity = 0.8;
     wireframe.specular_intensity = 0.2;
     wireframe.specular_power = 5.0;
