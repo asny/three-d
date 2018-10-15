@@ -44,13 +44,12 @@ fn main() {
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), screen.aspect());
 
-
+    let cube = mesh_generator::create_cube().unwrap();
+    let mut textured_box = objects::ShadedColoredMesh::create(&gl, &cube);
     let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
     let mut texture = texture::Texture2D::create(&gl).unwrap();
     texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
-
-    let cube = mesh_generator::create_cube().unwrap();
-    let textured_box = objects::ShadedTexturedMesh::create(&gl, &cube, texture);
+    textured_box.texture = Some(texture);
 
     let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
     let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
