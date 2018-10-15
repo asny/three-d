@@ -117,11 +117,6 @@ vec4 calculate_light(BaseLight light,
     return DiffuseColor + SpecularColor;
 }
 
-vec4 calculate_directional_light(vec3 position, vec3 normal)
-{
-    return calculate_shadow(position) * calculate_light(directionalLight.base, directionalLight.direction, position, normal);
-}
-
 vec4 calculate_point_light(vec3 position, vec3 normal)
 {
     vec3 lightDirection = position - pointLight.position;
@@ -190,7 +185,7 @@ void main()
    	vec4 col = vec4(texture(colorMap, uv).xyz, 1.);
     if(depth < 0.99999)
     {
-        vec3 pos = texture(positionMap, uv).xyz;
+        vec3 position = texture(positionMap, uv).xyz;
         vec3 normal = normalize(texture(normalMap, uv).xyz);
 
         vec4 light;
@@ -200,11 +195,11 @@ void main()
         }
         else if(lightType == 1)
         {
-            light = calculate_directional_light(pos, normal);
+            light = calculate_shadow(position) * calculate_light(directionalLight.base, directionalLight.direction, position, normal);
         }
         else if(lightType == 2)
         {
-            light = vec4(1.0);//calculate_point_light(pos, normal);
+            light = vec4(1.0);//calculate_point_light(position, normal);
         }
 
         col *= light;
