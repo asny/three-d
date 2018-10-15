@@ -168,6 +168,19 @@ impl DeferredPipeline
         Ok(())
     }
 
+    pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
+    {
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+
+        self.light_pass_program.add_uniform_int("lightType", &0)?;
+        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        Ok(())
+    }
+
     pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
@@ -188,8 +201,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_int("lightType", &1)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.ambientIntensity", &light.base.ambient_intensity)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.diffuseIntensity", &light.base.diffuse_intensity)?;
+        self.light_pass_program.add_uniform_float("directionalLight.base.intensity", &light.base.intensity)?;
 
         full_screen_quad::render(&self.gl, &self.light_pass_program);
         Ok(())

@@ -50,12 +50,21 @@ fn main() {
     mesh.update_vertex_normals();
     let model = ::objects::ShadedMesh::create(&gl, &mesh);
 
-    let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+    let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+    plane.diffuse_intensity = 0.5;
+    plane.specular_intensity = 0.2;
+    plane.specular_power = 5.0;
+
+    let mut ambient_light = ::light::AmbientLight::new();
+    ambient_light.base.intensity = 0.5;
 
     let mut light1 = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
     light1.enable_shadows(&gl, 10.0).unwrap();
+    light1.base.intensity = 0.2;
+
     let mut light2 = dust::light::DirectionalLight::new(vec3(-1.0, -1.0, 0.0));
     light2.enable_shadows(&gl, 10.0).unwrap();
+    light2.base.intensity = 0.2;
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -100,6 +109,7 @@ fn main() {
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&light1).unwrap();
         renderer.shine_directional_light(&light2).unwrap();
 

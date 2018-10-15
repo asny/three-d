@@ -17,8 +17,21 @@ impl From<rendertarget::Error> for Error {
 
 pub struct Light {
     pub color: Vec3,
-    pub ambient_intensity: f32,
-    pub diffuse_intensity: f32
+    pub intensity: f32
+}
+
+pub struct AmbientLight
+{
+    pub base: Light
+}
+
+impl AmbientLight
+{
+    pub fn new() -> AmbientLight
+    {
+        let base = Light { color: vec3(1.0, 1.0, 1.0), intensity: 0.2 };
+        AmbientLight { base }
+    }
 }
 
 pub struct DirectionalLight {
@@ -32,7 +45,7 @@ impl DirectionalLight
 {
     pub fn new(direction: Vec3) -> DirectionalLight
     {
-        let base = Light {color: vec3(1.0, 1.0, 1.0), ambient_intensity: 0.2, diffuse_intensity: 0.5};
+        let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
         DirectionalLight {direction: direction.normalize(), base, shadow_rendertarget: None, shadow_camera: None}
     }
 
