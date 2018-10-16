@@ -95,7 +95,7 @@ fn main() {
         };
 
         // Mirror pass
-        plane.mirror_pass_begin(&camera.position(), &vec3(0.0, 0.0, 0.0), &camera.up());
+        plane.mirror_pass_begin(&camera);
         render_scene(plane.mirror_camera());
 
         // Shadow pass
@@ -141,13 +141,11 @@ impl Plane
 {
     pub fn create(gl: &gl::Gl) -> Plane
     {
-        let mut mesh = mesh_generator::create_plane().unwrap().to_dynamic();
-        mesh.scale(10.0);
-
-        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
+        let mut mesh = mesh_generator::create_plane().unwrap();
+        let program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/mirror_plane",
                                                       "../Dust/examples/assets/shaders/mirror_plane").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        model.add_attributes(&mesh, &program, &vec!["position", "normal"]).unwrap();
+        model.add_attributes(&mesh, &program, &vec!["position", "normal", "uv_coordinate"]).unwrap();
 
         // Mirror
         let mirror_rendertarget = ::core::rendertarget::ColorRendertarget::create(&gl, 1024, 1024, 1).unwrap();
@@ -158,14 +156,21 @@ impl Plane
             diffuse_intensity: 0.1, specular_intensity: 0.3, specular_power: 40.0 }
     }
 
-    pub fn mirror_pass_begin(&mut self, eye: &Vec3, target: &Vec3, up: &Vec3)
+    pub fn mirror_pass_begin(&mut self, camera: &camera::Camera)
     {
-        let factor = 0.5 * (eye.y - self.height).abs() / (target.y - self.height).abs();
-        let mirror_pos = target * factor + eye * (1.0 - factor);
-        self.mirror_camera.set_view(mirror_pos, *target, *up);
+        let p = self.mirror_pos(camera);
+        self.mirror_camera.set_view(p, *camera.target(), *camera.up());
         use ::rendertarget::Rendertarget;
         self.mirror_rendertarget.bind();
         self.mirror_rendertarget.clear();
+    }
+
+    fn mirror_pos(&self, camera: &camera::Camera) -> Vec3
+    {
+        let eye = camera.position();
+        let target = camera.target();
+        let factor = 0.5 * (eye.y - self.height).abs() / (target.y - self.height).abs();
+        target * factor + eye * (1.0 - factor)
     }
 
     pub fn mirror_camera(&self) -> &camera::Camera
@@ -184,11 +189,14 @@ impl Plane
         self.program.add_uniform_int("tex", &0).unwrap();
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
+        let mirror_pos = self.mirror_pos(camera);
+        self.program.add_uniform_vec2("mirror_center_uv", &(vec2(mirror_pos.x + 10.0, mirror_pos.z  + 10.0) / 20.0)).unwrap();
+
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
         self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
 
-        let transformation = Mat4::new_translation(&vec3(0.0, self.height, 0.0));
+        let transformation = Mat4::new_translation(&vec3(0.0, self.height, 0.0)) * Mat4::new_scaling(10.0);
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
