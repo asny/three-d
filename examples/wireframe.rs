@@ -169,7 +169,7 @@ impl Plane
     {
         let eye = camera.position();
         let target = camera.target();
-        let factor = 0.5 * (eye.y - self.height).abs() / (target.y - self.height).abs();
+        let factor = (eye.y - self.height).abs() / ((eye.y - self.height).abs() + (target.y - self.height).abs());
         target * factor + eye * (1.0 - factor)
     }
 
