@@ -150,7 +150,7 @@ impl Plane
         // Mirror
         let mirror_rendertarget = ::core::rendertarget::ColorRendertarget::create(&gl, 1024, 1024, 1).unwrap();
         let mut mirror_camera = camera::OrthographicCamera::new(vec3(5.0, 0.0, 5.0), vec3(0.0, 5.0, 0.0),
-                                                               vec3(0.0, 1.0, 0.0),10.0, 10.0, 100.0);
+                                                               vec3(0.0, 1.0, 0.0),20.0, 20.0, 100.0);
 
         Plane { program, model, mirror_rendertarget, mirror_camera, height: -1.0, color: vec3(1.0, 1.0, 1.0), texture: None,
             diffuse_intensity: 0.1, specular_intensity: 0.3, specular_power: 40.0 }

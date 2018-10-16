@@ -19,7 +19,7 @@ impl ShadedEdges
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
 
-        let edge_mesh = ::mesh_generator::create_cylinder(1, 20).unwrap();
+        let edge_mesh = ::mesh_generator::create_cylinder(1, 10).unwrap();
         let mut surface = surface::TriangleSurface::create(gl, &edge_mesh).unwrap();
         surface.add_attributes(&edge_mesh, &program, &vec!["position"]).unwrap();
 
