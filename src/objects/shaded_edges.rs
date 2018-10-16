@@ -14,7 +14,7 @@ pub struct ShadedEdges {
 
 impl ShadedEdges
 {
-    pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh) -> ShadedEdges
+    pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh, tube_radius: f32) -> ShadedEdges
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
@@ -40,7 +40,7 @@ impl ShadedEdges
 
             let length = (p1 - p0).norm();
             let dir = (p1 - p0)/length;
-            let local_to_world = rotation_matrix_from_dir_to_dir(&vec3(1.0, 0.0, 0.0), &dir) * Mat4::new_nonuniform_scaling(&vec3(length, 0.01, 0.01));
+            let local_to_world = rotation_matrix_from_dir_to_dir(&vec3(1.0, 0.0, 0.0), &dir) * Mat4::new_nonuniform_scaling(&vec3(length, tube_radius, tube_radius));
             let normal_matrix = local_to_world.try_inverse().unwrap().transpose();
 
             for i in 0..3 {

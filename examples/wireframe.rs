@@ -47,16 +47,8 @@ fn main() {
     mesh.update_vertex_normals();
     let model = ::objects::ShadedMesh::create(&gl, &mesh);
 
-    let mut edges = ::objects::ShadedEdges::create(&gl, &mesh);
-    edges.diffuse_intensity = 0.8;
-    edges.specular_intensity = 0.2;
-    edges.specular_power = 5.0;
-
-    let mut vertices = ::objects::ShadedVertices::create(&gl, &mesh);
-    vertices.diffuse_intensity = 0.8;
-    vertices.specular_intensity = 0.2;
-    vertices.specular_power = 5.0;
-    vertices.scale = 0.03;
+    let mut wireframe = ::objects::Wireframe::create(&gl, &mesh, 0.015);
+    wireframe.set_parameters(0.8, 0.2, 5.0);
 
     let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
     plane.diffuse_intensity = 0.1;
@@ -101,8 +93,7 @@ fn main() {
         let render_scene = |camera: &Camera| {
             plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), camera);
             //model.render(&Mat4::identity(), camera);
-            edges.render(camera);
-            vertices.render(camera);
+            wireframe.render(camera);
         };
 
         // Shadow pass
