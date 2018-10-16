@@ -17,7 +17,7 @@ layout (location = 3) out vec4 surface_parameters;
 
 void main()
 {
-    float blend = 0.5;
+    float blend = 0.1;
     vec2 coords = mirror_center_uv - uv + vec2(0.5, 0.5);
     out_color = vec4(blend * texture(tex, coords).rgb + (1.0 - blend) * color , 1.0);
     position = vec4(pos, 1.0);
