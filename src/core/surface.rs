@@ -53,7 +53,7 @@ impl TriangleSurface
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        buffer.fill_from_attributes(mesh, attribute_names);
+        buffer.fill_from_attributes(mesh, attribute_names)?;
 
         // Link data and program
         program.setup_attributes(&buffer)?;

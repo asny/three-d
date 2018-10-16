@@ -5,7 +5,8 @@ pub use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
-    Mesh(mesh::Error)
+    Mesh(mesh::Error),
+    AttributeNotFound {message: String}
 }
 
 impl From<mesh::Error> for Error {
@@ -52,10 +53,15 @@ impl VertexBuffer
         self.attributes_infos.iter()
     }
 
-    pub fn fill_from_attributes(&mut self, mesh: &mesh::Renderable, attribute_names: &Vec<&str>)
+    pub fn fill_from_attributes(&mut self, mesh: &mesh::Renderable, attribute_names: &Vec<&str>) -> Result<(), Error>
     {
         self.attributes_infos = Vec::new();
-        self.stride = attribute_names.iter().map(|name| mesh.get_attribute(name).unwrap().no_components).sum();
+        self.stride = 0;
+        for attribute_name in attribute_names {
+            self.stride = self.stride + mesh.get_attribute(attribute_name).ok_or(
+                    Error::AttributeNotFound {message: format!("The attribute {} is needed for rendering but is not found in mesh.", attribute_name)}
+                )?.no_components;
+        }
 
         let no_vertices = mesh.no_vertices();
         let mut data: Vec<f32> = vec![0.0; self.stride * no_vertices];
@@ -76,6 +82,7 @@ impl VertexBuffer
         }
 
         self.fill_with(data);
+        Ok(())
     }
 
     pub fn fill_with(&mut self, data: Vec<f32>)
