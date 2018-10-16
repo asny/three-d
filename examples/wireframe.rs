@@ -95,7 +95,7 @@ fn main() {
         };
 
         // Mirror pass
-        plane.mirror_pass_begin(&camera.position(), &vec3(0.0, 0.0, 0.0));
+        plane.mirror_pass_begin(&camera.position(), &vec3(0.0, 0.0, 0.0), &camera.up());
         render_scene(plane.mirror_camera());
 
         // Shadow pass
@@ -158,11 +158,11 @@ impl Plane
             diffuse_intensity: 0.1, specular_intensity: 0.3, specular_power: 40.0 }
     }
 
-    pub fn mirror_pass_begin(&mut self, eye: &Vec3, target: &Vec3)
+    pub fn mirror_pass_begin(&mut self, eye: &Vec3, target: &Vec3, up: &Vec3)
     {
         let factor = 0.5 * (eye.y - self.height).abs() / (target.y - self.height).abs();
         let mirror_pos = target * factor + eye * (1.0 - factor);
-        self.mirror_camera.set_view(mirror_pos, *target, vec3(0.0, 1.0, 0.0).normalize());
+        self.mirror_camera.set_view(mirror_pos, *target, *up);
         use ::rendertarget::Rendertarget;
         self.mirror_rendertarget.bind();
         self.mirror_rendertarget.clear();
