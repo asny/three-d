@@ -33,6 +33,7 @@ pub fn polygon_mode(gl: &gl::Gl, polygon_type: PolygonType)
 pub enum BlendType {
     NONE,
     SRC_ALPHA__ONE_MINUS_SRC_ALPHA,
+    DST_ALPHA__ONE_MINUS_DST_ALPHA,
     ONE__ONE
 }
 
@@ -49,6 +50,10 @@ pub fn blend(gl: &gl::Gl, blend_type: BlendType)
                 BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA => {
                     gl.Enable(gl::BLEND);
                     gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+                },
+                BlendType::DST_ALPHA__ONE_MINUS_DST_ALPHA => {
+                    gl.Enable(gl::BLEND);
+                    gl.BlendFunc(gl::DST_ALPHA, gl::ONE_MINUS_DST_ALPHA);
                 },
                 BlendType::ONE__ONE => {
                     gl.Enable(gl::BLEND);
