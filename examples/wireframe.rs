@@ -47,12 +47,16 @@ fn main() {
     // Objects
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     mesh.update_vertex_normals();
+    mesh.translate(&vec3(0.0, 2.0, 0.0));
     let model = ::objects::ShadedMesh::create(&gl, &mesh);
 
     let mut wireframe = ::objects::Wireframe::create(&gl, &mesh, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let mut plane = Plane::create(&gl);
+    let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+    plane.diffuse_intensity = 0.1;
+    plane.specular_intensity = 0.3;
+    plane.specular_power = 40.0;
 
     let mut ambient_light = ::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
@@ -93,30 +97,39 @@ fn main() {
             //model.render(&Mat4::identity(), camera);
             wireframe.render(camera);
         };
-
-        // Mirror pass
-        plane.mirror_pass_begin(&camera);
-        render_scene(plane.mirror_camera());
+        let transformation = Mat4::new_translation(&vec3(0.0, 0.0, 0.0)) * Mat4::new_scaling(10.0);
 
         // Shadow pass
         light1.shadow_cast_begin().unwrap();
         render_scene(light1.shadow_camera().unwrap());
-        plane.render(&camera);
+        plane.render(&transformation, &camera);
 
         light2.shadow_cast_begin().unwrap();
         render_scene(light2.shadow_camera().unwrap());
-        plane.render(&camera);
+        plane.render(&transformation, &camera);
 
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
         render_scene(&camera);
-        plane.render(&camera);
+        plane.render(&transformation, &camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&light1).unwrap();
         renderer.shine_directional_light(&light2).unwrap();
+
+        // Mirror pass
+        //plane.mirror_pass_begin(&camera);
+        let eye = *camera.position();
+        let y = eye.y - 2.0 * (eye.y - (-1.0)).abs();
+        let mirror_pos = vec3(eye.x, -eye.y, eye.z);
+
+        let target = *camera.target();
+        let up = *camera.up();
+        camera.set_view(mirror_pos, target, vec3(up.x, -up.y, up.z));
+        render_scene(&camera);
+        camera.set_view(eye, target, up);
 
         window.gl_swap_window();
     };
@@ -168,9 +181,8 @@ impl Plane
     fn mirror_pos(&self, camera: &camera::Camera) -> Vec3
     {
         let eye = camera.position();
-        let target = camera.target();
-        let factor = (eye.y - self.height).abs() / ((eye.y - self.height).abs() + (target.y - self.height).abs());
-        target * factor + eye * (1.0 - factor)
+        let y = eye.y - 2.0 * (eye.y - self.height).abs();
+        vec3(eye.x, y, eye.z)
     }
 
     pub fn mirror_camera(&self) -> &camera::Camera
