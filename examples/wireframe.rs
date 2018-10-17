@@ -41,7 +41,7 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0),
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 2.0, 0.0),
                                                     vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
 
     // Objects
@@ -97,21 +97,20 @@ fn main() {
             //model.render(&Mat4::identity(), camera);
             wireframe.render(camera);
         };
-        let transformation = Mat4::new_translation(&vec3(0.0, 0.0, 0.0)) * Mat4::new_scaling(10.0);
 
         // Shadow pass
         light1.shadow_cast_begin().unwrap();
         render_scene(light1.shadow_camera().unwrap());
-        plane.render(&transformation, &camera);
+        plane.render(&Mat4::new_scaling(10.0), &camera);
 
         light2.shadow_cast_begin().unwrap();
         render_scene(light2.shadow_camera().unwrap());
-        plane.render(&transformation, &camera);
+        plane.render(&Mat4::new_scaling(10.0), &camera);
 
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
         render_scene(&camera);
-        plane.render(&transformation, &camera);
+        plane.render(&Mat4::new_scaling(10.0), &camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
@@ -120,104 +119,15 @@ fn main() {
         renderer.shine_directional_light(&light2).unwrap();
 
         // Mirror pass
-        //plane.mirror_pass_begin(&camera);
-        let eye = *camera.position();
-        let y = eye.y - 2.0 * (eye.y - (-1.0)).abs();
-        let mirror_pos = vec3(eye.x, -eye.y, eye.z);
-
+        let camera_pos = *camera.position();
         let target = *camera.target();
         let up = *camera.up();
-        camera.set_view(mirror_pos, target, vec3(up.x, -up.y, up.z));
+        camera.set_view(vec3(camera_pos.x, -camera_pos.y, camera_pos.z), vec3(target.x, -target.y, target.z), vec3(up.x, -up.y, up.z));
         render_scene(&camera);
-        camera.set_view(eye, target, up);
+        camera.set_view(camera_pos, target, up);
 
         window.gl_swap_window();
     };
 
     renderer::set_main_loop(main_loop);
-}
-
-pub struct Plane {
-    program: program::Program,
-    model: surface::TriangleSurface,
-    mirror_rendertarget: ::core::rendertarget::ColorRendertarget,
-    mirror_camera: camera::OrthographicCamera,
-    pub height: f32,
-    pub color: Vec3,
-    pub texture: Option<texture::Texture2D>,
-    pub diffuse_intensity: f32,
-    pub specular_intensity: f32,
-    pub specular_power: f32
-}
-
-impl Plane
-{
-    pub fn create(gl: &gl::Gl) -> Plane
-    {
-        let mut mesh = mesh_generator::create_plane().unwrap();
-        let program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/mirror_plane",
-                                                      "../Dust/examples/assets/shaders/mirror_plane").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        model.add_attributes(&mesh, &program, &vec!["position", "normal", "uv_coordinate"]).unwrap();
-
-        // Mirror
-        let mirror_rendertarget = ::core::rendertarget::ColorRendertarget::create(&gl, 1024, 1024, 1).unwrap();
-        let mut mirror_camera = camera::OrthographicCamera::new(vec3(5.0, 0.0, 5.0), vec3(0.0, 5.0, 0.0),
-                                                               vec3(0.0, 1.0, 0.0),20.0, 20.0, 100.0);
-
-        Plane { program, model, mirror_rendertarget, mirror_camera, height: -1.0, color: vec3(1.0, 1.0, 1.0), texture: None,
-            diffuse_intensity: 0.1, specular_intensity: 0.3, specular_power: 40.0 }
-    }
-
-    pub fn mirror_pass_begin(&mut self, camera: &camera::Camera)
-    {
-        let p = self.mirror_pos(camera);
-        self.mirror_camera.set_view(p, *camera.target(), *camera.up());
-        use ::rendertarget::Rendertarget;
-        self.mirror_rendertarget.bind();
-        self.mirror_rendertarget.clear();
-    }
-
-    fn mirror_pos(&self, camera: &camera::Camera) -> Vec3
-    {
-        let eye = camera.position();
-        let y = eye.y - 2.0 * (eye.y - self.height).abs();
-        vec3(eye.x, y, eye.z)
-    }
-
-    pub fn mirror_camera(&self) -> &camera::Camera
-    {
-        &self.mirror_camera
-    }
-
-    pub fn render(&self, camera: &camera::Camera)
-    {
-        self.program.cull(state::CullType::BACK);
-        self.program.depth_test(state::DepthTestType::LEQUAL);
-        self.program.depth_write(true);
-        self.program.polygon_mode(state::PolygonType::Fill);
-
-        self.mirror_rendertarget.targets[0].bind(0);
-        self.program.add_uniform_int("tex", &0).unwrap();
-        self.program.add_uniform_vec3("color", &self.color).unwrap();
-
-        let mirror_pos = self.mirror_pos(camera);
-        self.program.add_uniform_vec2("mirror_center", &vec2(mirror_pos.x, mirror_pos.z)).unwrap();
-        self.program.add_uniform_vec2("mirror_size", &vec2(20.0, 20.0)).unwrap();
-
-        let mirror_dir = vec2(camera.target().x - mirror_pos.x, camera.target().z - mirror_pos.z).normalize();
-        let mirror_rotation = Mat2::new(mirror_dir.x, mirror_dir.y, -mirror_dir.y, mirror_dir.x);
-        self.program.add_uniform_mat2("mirror_rotation", &mirror_rotation).unwrap();
-
-        self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
-        self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
-        self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
-
-        let transformation = Mat4::new_translation(&vec3(0.0, self.height, 0.0)) * Mat4::new_scaling(10.0);
-        self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
-        self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose()).unwrap();
-        self.model.render().unwrap();
-    }
 }
