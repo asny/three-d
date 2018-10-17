@@ -123,6 +123,8 @@ fn main() {
         let target = *camera.target();
         let up = *camera.up();
         camera.set_view(vec3(camera_pos.x, -camera_pos.y, camera_pos.z), vec3(target.x, -target.y, target.z), vec3(up.x, -up.y, up.z));
+        // TODO: Use geometry + light pass and add it as a after effect
+        state::blend(&gl,state::BlendType::ONE__ONE);
         render_scene(&camera);
         camera.set_view(camera_pos, target, up);
 
