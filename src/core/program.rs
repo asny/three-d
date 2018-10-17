@@ -140,6 +140,24 @@ impl Program
         Ok(())
     }
 
+    pub fn add_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
+    {
+        let location= self.get_uniform_location(name)?;
+        unsafe {
+            self.gl.UniformMatrix2fv(location, 1, gl::FALSE, &data[0]);
+        }
+        Ok(())
+    }
+
+    pub fn add_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
+    {
+        let location= self.get_uniform_location(name)?;
+        unsafe {
+            self.gl.UniformMatrix3fv(location, 1, gl::FALSE, &data[0]);
+        }
+        Ok(())
+    }
+
     pub fn add_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
