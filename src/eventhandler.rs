@@ -22,9 +22,9 @@ pub fn zoom(camera: &mut camera::Camera, wheel:i32)
     let mut position = *camera.position();
     let target = *camera.target();
     let up = *camera.up();
-    let mut zoom = position.norm();
+    let mut zoom = (position - target).norm();
     zoom += wheel as f32;
     zoom = zoom.max(1.0);
-    position = (position - target).normalize() * zoom;
+    position = target + (position - target).normalize() * zoom;
     camera.set_view(position, target, up);
 }

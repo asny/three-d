@@ -78,7 +78,7 @@ impl CameraHandler
                 let mut zoom = (position - target).norm();
                 zoom += wheel as f32;
                 zoom = zoom.max(1.0);
-                position = target - (*camera.target() - *camera.position()).normalize() * zoom;
+                position = target + (*camera.position() - *camera.target()).normalize() * zoom;
                 camera.set_view(position, target, up);
             },
             _ => {}
