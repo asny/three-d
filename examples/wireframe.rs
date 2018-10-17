@@ -190,7 +190,12 @@ impl Plane
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
         let mirror_pos = self.mirror_pos(camera);
-        self.program.add_uniform_vec2("mirror_center_uv", &(vec2(mirror_pos.x + 10.0, mirror_pos.z  + 10.0) / 20.0)).unwrap();
+        self.program.add_uniform_vec2("mirror_center", &vec2(mirror_pos.x, mirror_pos.z)).unwrap();
+        self.program.add_uniform_vec2("mirror_size", &vec2(20.0, 20.0)).unwrap();
+
+        let mirror_dir = vec2(camera.target().x - mirror_pos.x, camera.target().z - mirror_pos.z).normalize();
+        let mirror_rotation = Mat2::new(mirror_dir.x, mirror_dir.y, -mirror_dir.y, mirror_dir.x);
+        self.program.add_uniform_mat2("mirror_rotation", &mirror_rotation).unwrap();
 
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();

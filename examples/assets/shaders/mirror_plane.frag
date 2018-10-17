@@ -4,7 +4,9 @@ uniform vec3 color;
 uniform float diffuse_intensity;
 uniform float specular_intensity;
 uniform float specular_power;
-uniform vec2 mirror_center_uv;
+uniform vec2 mirror_center;
+uniform mat2 mirror_rotation;
+uniform vec2 mirror_size;
 
 in vec3 nor;
 in vec3 pos;
@@ -17,8 +19,10 @@ layout (location = 3) out vec4 surface_parameters;
 
 void main()
 {
+    vec2 pos_mirror = mirror_rotation * (pos.xz - mirror_center);
+    vec2 coords = (pos_mirror + 0.5 * mirror_size) / mirror_size;
+
     float blend = 0.1;
-    vec2 coords = mirror_center_uv - uv + vec2(0.5, 0.5);
     out_color = vec4(blend * texture(tex, coords).rgb + (1.0 - blend) * color , 1.0);
     position = vec4(pos, 1.0);
     normal = vec4(nor, 1.0);
