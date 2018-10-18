@@ -132,9 +132,7 @@ vec4 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
         attenuation.linear * distance +
         attenuation.exp * distance * distance;
 
-    //attenuation = max(1.0, attenuation);
-
-    return color / att;
+    return color / max(1.0, att);
 }
 
 vec4 calculate_directional_light(vec3 position)
