@@ -42,13 +42,13 @@ fn main() {
     let mirror_renderer = pipeline::DeferredPipeline::new(&gl, &screen.width/2, &screen.height/2, true).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 2.0, 0.0),
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 1.0, 0.0),
                                                     vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
 
     // Objects
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     mesh.update_vertex_normals();
-    mesh.translate(&vec3(0.0, 2.0, 0.0));
+    mesh.translate(&vec3(0.0, 1.0, 0.0));
     let model = ::objects::ShadedMesh::create(&gl, &mesh);
 
     let mut wireframe = ::objects::Wireframe::create(&gl, &mesh, 0.015);
@@ -106,11 +106,11 @@ fn main() {
         // Shadow pass
         light1.shadow_cast_begin().unwrap();
         render_scene(light1.shadow_camera().unwrap());
-        plane.render(&Mat4::new_scaling(10.0), &camera);
+        plane.render(&Mat4::new_scaling(100.0), &camera);
 
         light2.shadow_cast_begin().unwrap();
         render_scene(light2.shadow_camera().unwrap());
-        plane.render(&Mat4::new_scaling(10.0), &camera);
+        plane.render(&Mat4::new_scaling(100.0), &camera);
 
         // Mirror pass
         camera.mirror_in_xz_plane();
@@ -129,7 +129,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
         render_scene(&camera);
-        plane.render(&Mat4::new_scaling(10.0), &camera);
+        plane.render(&Mat4::new_scaling(100.0), &camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
