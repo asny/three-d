@@ -8,6 +8,7 @@ pub trait Camera
     fn target(&self) -> &Vec3;
     fn up(&self) -> &Vec3;
     fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3);
+    fn mirror_in_xz_plane(&mut self);
 }
 
 struct BaseCamera {
@@ -27,6 +28,13 @@ impl BaseCamera
         self.up = dir.cross(&up.normalize().cross(&dir));
         self.view = Mat4::look_at_rh(&na::Point::from_coordinates(self.position), &na::Point::from_coordinates(self.target), &self.up);
     }
+
+    pub fn mirror_in_xz_plane(&mut self)
+    {
+        self.view[(0,1)] = -self.view[(0,1)];
+        self.view[(1,1)] = -self.view[(1,1)];
+        self.view[(2,1)] = -self.view[(2,1)];
+    }
 }
 
 pub struct PerspectiveCamera {
@@ -44,7 +52,7 @@ impl PerspectiveCamera
         camera
     }
 
-    fn set_extent(&mut self, aspect: f32, z_near: f32, z_far: f32)
+    pub fn set_extent(&mut self, aspect: f32, z_near: f32, z_far: f32)
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
         self.projection = Mat4::new_perspective(aspect, 0.25 * ::std::f32::consts::PI, z_near, z_far);
@@ -81,6 +89,11 @@ impl Camera for PerspectiveCamera
     fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3)
     {
         self.base.set_view(position, target, up);
+    }
+
+    fn mirror_in_xz_plane(&mut self)
+    {
+        self.base.mirror_in_xz_plane();
     }
 }
 
@@ -135,5 +148,10 @@ impl Camera for OrthographicCamera
     fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3)
     {
         self.base.set_view(position, target, up);
+    }
+
+    fn mirror_in_xz_plane(&mut self)
+    {
+        self.base.mirror_in_xz_plane();
     }
 }
