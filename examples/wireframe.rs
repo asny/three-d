@@ -39,6 +39,7 @@ fn main() {
 
     // Renderer
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
+    let mirror_renderer = pipeline::DeferredPipeline::new(&gl, &screen.width/2, &screen.height/2, true).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 2.0, 0.0),
@@ -68,6 +69,10 @@ fn main() {
     let mut light2 = dust::light::DirectionalLight::new(vec3(1.0, -1.0, 1.0));
     light2.enable_shadows(&gl, 4.0, 10.0).unwrap();
     light2.base.intensity = 0.5;
+
+    // Mirror
+    let mirror_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
+                                                                 "../Dust/examples/assets/shaders/mirror").unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -107,6 +112,20 @@ fn main() {
         render_scene(light2.shadow_camera().unwrap());
         plane.render(&Mat4::new_scaling(10.0), &camera);
 
+        // Mirror pass
+        camera.mirror_in_xz_plane();
+
+        mirror_renderer.geometry_pass_begin().unwrap();
+        render_scene(&camera);
+
+        // Light pass
+        mirror_renderer.light_pass_begin(&camera).unwrap();
+        mirror_renderer.shine_ambient_light(&ambient_light).unwrap();
+        mirror_renderer.shine_directional_light(&light1).unwrap();
+        mirror_renderer.shine_directional_light(&light2).unwrap();
+
+        camera.mirror_in_xz_plane();
+
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
         render_scene(&camera);
@@ -118,12 +137,15 @@ fn main() {
         renderer.shine_directional_light(&light1).unwrap();
         renderer.shine_directional_light(&light2).unwrap();
 
-        // Mirror pass
-        camera.mirror_in_xz_plane();
-        // TODO: Use geometry + light pass and add it as a after effect
-        state::blend(&gl,state::BlendType::ONE__ONE);
-        render_scene(&camera);
-        camera.mirror_in_xz_plane();
+        // TODO: Add mirror after effect
+        state::blend(&gl,state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
+        state::depth_write(&gl,false);
+        state::depth_test(&gl, state::DepthTestType::NONE);
+        state::cull(&gl,state::CullType::BACK);
+
+        mirror_renderer.light_pass_color_texture().unwrap().bind(0);
+        mirror_program.add_uniform_int("colorMap", &0).unwrap();
+        full_screen_quad::render(&gl, &mirror_program);
 
         window.gl_swap_window();
     };
