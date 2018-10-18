@@ -211,6 +211,25 @@ impl DeferredPipeline
         Ok(())
     }
 
+    pub fn shine_spot_light(&self, light: &light::SpotLight) -> Result<(), Error>
+    {
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+
+        self.light_pass_program.add_uniform_int("lightType", &3)?;
+        self.light_pass_program.add_uniform_vec3("spotLight.position", &light.position)?;
+        self.light_pass_program.add_uniform_vec3("spotLight.direction", &light.direction)?;
+        self.light_pass_program.add_uniform_vec3("spotLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("spotLight.base.intensity", &light.base.intensity)?;
+        self.light_pass_program.add_uniform_float("spotLight.attenuation.constant", &light.attenuation.constant)?;
+        self.light_pass_program.add_uniform_float("spotLight.attenuation.linear", &light.attenuation.linear)?;
+        self.light_pass_program.add_uniform_float("spotLight.attenuation.exp", &light.attenuation.exp)?;
+        self.light_pass_program.add_uniform_float("spotLight.cutoff", &light.cutoff.cos())?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        Ok(())
+    }
+
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         let program = self.copy_program()?;
