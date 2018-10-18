@@ -136,8 +136,7 @@ fn main() {
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&light1).unwrap();
         renderer.shine_directional_light(&light2).unwrap();
-
-        // TODO: Add mirror after effect
+        
         state::blend(&gl,state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         state::depth_write(&gl,false);
         state::depth_test(&gl, state::DepthTestType::NONE);
