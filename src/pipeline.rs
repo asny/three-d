@@ -194,6 +194,23 @@ impl DeferredPipeline
         Ok(())
     }
 
+    pub fn shine_point_light(&self, light: &light::PointLight) -> Result<(), Error>
+    {
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+
+        self.light_pass_program.add_uniform_int("lightType", &2)?;
+        self.light_pass_program.add_uniform_vec3("pointLight.position", &light.position)?;
+        self.light_pass_program.add_uniform_vec3("pointLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("pointLight.base.intensity", &light.base.intensity)?;
+        self.light_pass_program.add_uniform_float("pointLight.attenuation.constant", &light.attenuation.constant)?;
+        self.light_pass_program.add_uniform_float("pointLight.attenuation.linear", &light.attenuation.linear)?;
+        self.light_pass_program.add_uniform_float("pointLight.attenuation.exp", &light.attenuation.exp)?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        Ok(())
+    }
+
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         let program = self.copy_program()?;

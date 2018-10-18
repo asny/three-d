@@ -97,3 +97,28 @@ impl DirectionalLight
         Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
     }
 }
+
+pub struct Attenuation {
+    pub constant: f32,// = 0.1f;
+    pub linear: f32,// = 0.01f;
+    pub exp: f32// = 0.001f;
+}
+
+pub struct PointLight {
+    pub base: Light,
+    pub position: Vec3,
+    pub attenuation: Attenuation
+    // TODO: Shadows
+}
+
+impl PointLight
+{
+    pub fn new(position: Vec3) -> PointLight
+    {
+        let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
+        let attenuation = Attenuation {constant: 0.1, linear: 0.01, exp: 0.001};
+        PointLight {base, position, attenuation}
+    }
+}
+
+}
