@@ -52,7 +52,14 @@ fn main() {
     ambient_light.base.intensity = 0.2;
 
     let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
+    directional_light.base.color = vec3(1.0, 0.0, 0.0);
     directional_light.enable_shadows(&gl, 2.0, 10.0).unwrap();
+
+    let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
+    point_light.base.color = vec3(0.0, 1.0, 0.0);
+
+    let mut spot_light = dust::light::SpotLight::new(vec3(0.0, 5.0, 5.0), vec3(0.0, -1.0, -1.0));
+    spot_light.base.color = vec3(0.0, 0.0, 1.0);
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -98,6 +105,8 @@ fn main() {
         renderer.light_pass_begin(&camera).unwrap();
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
+        renderer.shine_point_light(&point_light).unwrap();
+        renderer.shine_spot_light(&spot_light).unwrap();
 
         window.gl_swap_window();
     };

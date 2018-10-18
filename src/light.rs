@@ -137,7 +137,7 @@ impl SpotLight
     pub fn new(position: Vec3, direction: Vec3) -> SpotLight
     {
         let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
-        let attenuation = Attenuation {constant: 0.1, linear: 0.01, exp: 0.001};
+        let attenuation = Attenuation {constant: 0.2, linear: 0.02, exp: 0.002};
         SpotLight {base, direction: direction.normalize(), position, shadow_rendertarget: None, shadow_camera: None, attenuation, cutoff: 0.1 * std::f32::consts::PI}
     }
 
