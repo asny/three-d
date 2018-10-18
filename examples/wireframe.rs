@@ -62,12 +62,12 @@ fn main() {
     let mut ambient_light = ::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
 
-    let mut light1 = dust::light::DirectionalLight::new(vec3(-1.0, -1.0, -1.0));
-    light1.enable_shadows(&gl, 4.0, 10.0).unwrap();
+    let mut light1 = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
+    light1.enable_shadows(&gl, 20.0).unwrap();
     light1.base.intensity = 0.5;
 
-    let mut light2 = dust::light::DirectionalLight::new(vec3(1.0, -1.0, 1.0));
-    light2.enable_shadows(&gl, 4.0, 10.0).unwrap();
+    let mut light2 = dust::light::SpotLight::new(vec3(-5.0, 5.0, 5.0), vec3(1.0, -1.0, -1.0));
+    light2.enable_shadows(&gl, 20.0).unwrap();
     light2.base.intensity = 0.5;
 
     // Mirror
@@ -121,8 +121,8 @@ fn main() {
         // Light pass
         mirror_renderer.light_pass_begin(&camera).unwrap();
         mirror_renderer.shine_ambient_light(&ambient_light).unwrap();
-        mirror_renderer.shine_directional_light(&light1).unwrap();
-        mirror_renderer.shine_directional_light(&light2).unwrap();
+        mirror_renderer.shine_spot_light(&light1).unwrap();
+        mirror_renderer.shine_spot_light(&light2).unwrap();
 
         camera.mirror_in_xz_plane();
 
@@ -134,9 +134,9 @@ fn main() {
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
         renderer.shine_ambient_light(&ambient_light).unwrap();
-        renderer.shine_directional_light(&light1).unwrap();
-        renderer.shine_directional_light(&light2).unwrap();
-        
+        renderer.shine_spot_light(&light1).unwrap();
+        renderer.shine_spot_light(&light2).unwrap();
+
         state::blend(&gl,state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         state::depth_write(&gl,false);
         state::depth_test(&gl, state::DepthTestType::NONE);

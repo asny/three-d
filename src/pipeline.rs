@@ -194,6 +194,54 @@ impl DeferredPipeline
         Ok(())
     }
 
+    pub fn shine_point_light(&self, light: &light::PointLight) -> Result<(), Error>
+    {
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+
+        self.light_pass_program.add_uniform_int("lightType", &2)?;
+        self.light_pass_program.add_uniform_vec3("pointLight.position", &light.position)?;
+        self.light_pass_program.add_uniform_vec3("pointLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("pointLight.base.intensity", &light.base.intensity)?;
+        self.light_pass_program.add_uniform_float("pointLight.attenuation.constant", &light.attenuation.constant)?;
+        self.light_pass_program.add_uniform_float("pointLight.attenuation.linear", &light.attenuation.linear)?;
+        self.light_pass_program.add_uniform_float("pointLight.attenuation.exp", &light.attenuation.exp)?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        Ok(())
+    }
+
+    pub fn shine_spot_light(&self, light: &light::SpotLight) -> Result<(), Error>
+    {
+        if let Ok(shadow_camera) = light.shadow_camera() {
+            use camera::Camera;
+            let bias_matrix = ::Mat4::new(
+                                 0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 0.5, 0.0,
+                                 0.5, 0.5, 0.5, 1.0).transpose();
+            self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
+
+            light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
+        }
+
+        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+
+        self.light_pass_program.add_uniform_int("lightType", &3)?;
+        self.light_pass_program.add_uniform_vec3("spotLight.position", &light.position)?;
+        self.light_pass_program.add_uniform_vec3("spotLight.direction", &light.direction)?;
+        self.light_pass_program.add_uniform_vec3("spotLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("spotLight.base.intensity", &light.base.intensity)?;
+        self.light_pass_program.add_uniform_float("spotLight.attenuation.constant", &light.attenuation.constant)?;
+        self.light_pass_program.add_uniform_float("spotLight.attenuation.linear", &light.attenuation.linear)?;
+        self.light_pass_program.add_uniform_float("spotLight.attenuation.exp", &light.attenuation.exp)?;
+        self.light_pass_program.add_uniform_float("spotLight.cutoff", &light.cutoff.cos())?;
+
+        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        Ok(())
+    }
+
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         let program = self.copy_program()?;

@@ -25,6 +25,13 @@ struct BaseLight
     float intensity;
 };
 
+struct Attenuation
+{
+    float constant;
+    float linear;
+    float exp;
+};
+
 struct AmbientLight
 {
     BaseLight base;
@@ -36,13 +43,6 @@ struct DirectionalLight
     vec3 direction;
 };
 
-struct Attenuation
-{
-    float constant;
-    float linear;
-    float exp;
-};
-
 struct PointLight
 {
     BaseLight base;
@@ -52,8 +52,10 @@ struct PointLight
 
 struct SpotLight
 {
-    PointLight base;
+    BaseLight base;
+    vec3 position;
     vec3 direction;
+    Attenuation attenuation;
     float cutoff;
 };
 
@@ -88,11 +90,9 @@ float calculate_shadow(vec3 position)
     return visibility * 0.25;
 }
 
-vec4 calculate_light(BaseLight light,
-                       vec3 lightDirection,
-                       vec3 position,
-                       vec3 normal)
+vec4 calculate_light(BaseLight light, vec3 lightDirection, vec3 position)
 {
+    vec3 normal = normalize(texture(normalMap, uv).xyz);
     vec4 surface_parameters = texture(surfaceParametersMap, uv);
     float surface_diffuse_intensity = surface_parameters.x;
     float surface_specular_intensity = surface_parameters.y;
@@ -120,13 +120,31 @@ vec4 calculate_light(BaseLight light,
     return DiffuseColor + SpecularColor;
 }
 
-vec4 calculate_point_light(vec3 position, vec3 normal)
+vec4 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 light_position, vec3 position)
 {
-    vec3 lightDirection = position - pointLight.position;
-    float distance = length(lightDirection);
-    lightDirection = normalize(lightDirection);
+    vec3 light_direction = position - light_position;
+    float distance = length(light_direction);
+    light_direction = light_direction / distance;
 
-    mat4 shadowMatrix;
+    vec4 color = calculate_light(light, light_direction, position);
+
+    float att =  attenuation.constant +
+        attenuation.linear * distance +
+        attenuation.exp * distance * distance;
+
+    return color / max(1.0, att);
+}
+
+vec4 calculate_directional_light(vec3 position)
+{
+    return calculate_shadow(position) * calculate_light(directionalLight.base, directionalLight.direction, position);
+}
+
+vec4 calculate_point_light(vec3 position)
+{
+    vec4 color = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position);
+
+    /*mat4 shadowMatrix;
     float x = abs(lightDirection.x);
     float y = abs(lightDirection.y);
     float z = abs(lightDirection.z);
@@ -169,17 +187,23 @@ vec4 calculate_point_light(vec3 position, vec3 normal)
     if ( texture(shadowCubeMap, lightDirection).x < (shadow_coord.z - 0.005)/shadow_coord.w)
     {
         shadow = 0.5f;
+    }*/
+
+    return color;
+}
+
+vec4 calculate_spot_light(vec3 position)
+{
+    vec3 light_direction = normalize(position - spotLight.position);
+    float SpotFactor = dot(light_direction, spotLight.direction);
+
+    if (SpotFactor > spotLight.cutoff) {
+        vec4 color = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position);
+        return calculate_shadow(position) * color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
     }
-
-    vec4 color = shadow * calculate_light(pointLight.base, lightDirection, position, normal);
-
-    float attenuation =  pointLight.attenuation.constant +
-        pointLight.attenuation.linear * distance +
-        pointLight.attenuation.exp * distance * distance;
-
-    attenuation = max(1.0, attenuation);
-
-    return color / attenuation;
+    else {
+        return vec4(0,0,0,0);
+    }
 }
 
 void main()
@@ -189,7 +213,6 @@ void main()
     if(depth < 0.99999)
     {
         vec3 position = texture(positionMap, uv).xyz;
-        vec3 normal = normalize(texture(normalMap, uv).xyz);
 
         vec4 light;
         if(lightType == 0)
@@ -198,11 +221,15 @@ void main()
         }
         else if(lightType == 1)
         {
-            light = calculate_shadow(position) * calculate_light(directionalLight.base, directionalLight.direction, position, normal);
+            light = calculate_directional_light(position);
         }
         else if(lightType == 2)
         {
-            light = vec4(1.0);//calculate_point_light(position, normal);
+            light = calculate_point_light(position);
+        }
+        else if(lightType == 3)
+        {
+            light = calculate_spot_light(position);
         }
 
         col *= light;
