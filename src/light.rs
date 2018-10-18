@@ -141,21 +141,12 @@ impl SpotLight
         SpotLight {base, direction: direction.normalize(), position, shadow_rendertarget: None, shadow_camera: None, attenuation, cutoff: 0.1 * std::f32::consts::PI}
     }
 
-    /*pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32, depth: f32) -> Result<(), Error>
+    pub fn enable_shadows(&mut self, gl: &gl::Gl, depth: f32) -> Result<(), Error>
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
         let up = self.compute_up_direction();
-        self.shadow_camera = Some(camera::PerspectiveCamera::new(- self.direction, vec3(0.0, 0.0, 0.0), up,
-                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
+        self.shadow_camera = Some(camera::PerspectiveCamera::new(self.position,self.position + self.direction, up, 1.0, 0.1, depth));
         Ok(())
-    }
-
-    pub fn set_target(&mut self, target: &Vec3)
-    {
-        let up = self.compute_up_direction();
-        if let Some(ref mut camera) = self.shadow_camera {
-            camera.set_view(*target - self.direction, *target, up);
-        }
     }
 
     fn compute_up_direction(&self) -> Vec3
@@ -181,11 +172,11 @@ impl SpotLight
         Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
     }
 
-    pub fn shadow_camera(&self) -> Result<&camera::OrthographicCamera, Error>
+    pub fn shadow_camera(&self) -> Result<&camera::PerspectiveCamera, Error>
     {
         if let Some(ref camera) = self.shadow_camera {
             return Ok(camera)
         }
         Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
-    }*/
+    }
 }

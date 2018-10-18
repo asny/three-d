@@ -199,7 +199,7 @@ vec4 calculate_spot_light(vec3 position)
 
     if (SpotFactor > spotLight.cutoff) {
         vec4 color = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position);
-        return color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
+        return calculate_shadow(position) * color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
     }
     else {
         return vec4(0,0,0,0);
