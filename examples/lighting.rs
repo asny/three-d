@@ -51,15 +51,16 @@ fn main() {
     let mut ambient_light = ::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
 
-    let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, -1.0));
+    let mut directional_light = dust::light::DirectionalLight::new(vec3(1.0, -1.0, -1.0));
     directional_light.base.color = vec3(1.0, 0.0, 0.0);
     directional_light.enable_shadows(&gl, 2.0, 10.0).unwrap();
 
     let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
     point_light.base.color = vec3(0.0, 1.0, 0.0);
 
-    let mut spot_light = dust::light::SpotLight::new(vec3(0.0, 5.0, 5.0), vec3(0.0, -1.0, -1.0));
+    let mut spot_light = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
     spot_light.base.color = vec3(0.0, 0.0, 1.0);
+    spot_light.enable_shadows(&gl, 20.0).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -96,6 +97,9 @@ fn main() {
         // Shadow pass
         directional_light.shadow_cast_begin().unwrap();
         render_scene(directional_light.shadow_camera().unwrap());
+
+        spot_light.shadow_cast_begin().unwrap();
+        render_scene(spot_light.shadow_camera().unwrap());
 
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
