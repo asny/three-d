@@ -42,9 +42,11 @@ fn main() {
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),screen.aspect(), 0.1, 1000.0);
+    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                    0.5 * ::std::f32::consts::PI, screen.aspect(), 0.1, 100.0);
 
-    let cube = mesh_generator::create_cube().unwrap();
+    let mut cube = mesh_generator::create_cube().unwrap().to_dynamic();
+    cube.update_vertex_normals();
     let mut textured_box = objects::ShadedMesh::create(&gl, &cube);
     let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
     let mut texture = texture::Texture2D::create(&gl).unwrap();

@@ -44,18 +44,18 @@ pub struct PerspectiveCamera {
 
 impl PerspectiveCamera
 {
-    pub fn new(position: Vec3, target: Vec3, up: Vec3, aspect: f32, z_near: f32, z_far: f32) -> PerspectiveCamera
+    pub fn new(position: Vec3, target: Vec3, up: Vec3, aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> PerspectiveCamera
     {
         let mut camera = PerspectiveCamera { base: BaseCamera {position, target, up, view: Mat4::identity()}, projection: Mat4::identity() };
         camera.set_view(position, target, up);
-        camera.set_extent(aspect, z_near, z_far);
+        camera.set_extent(aspect, fovy, z_near, z_far);
         camera
     }
 
-    pub fn set_extent(&mut self, aspect: f32, z_near: f32, z_far: f32)
+    pub fn set_extent(&mut self, aspect: f32, fovy: f32, z_near: f32, z_far: f32)
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
-        self.projection = Mat4::new_perspective(aspect, 0.25 * ::std::f32::consts::PI, z_near, z_far);
+        self.projection = Mat4::new_perspective(aspect, fovy, z_near, z_far);
     }
 }
 
