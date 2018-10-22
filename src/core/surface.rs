@@ -1,6 +1,6 @@
 use gl;
 use std;
-use gust::mesh::Renderable;
+use core::renderable::Renderable;
 use core::buffer;
 use core::program;
 

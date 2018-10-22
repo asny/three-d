@@ -1,16 +1,11 @@
 use gl;
 use std;
-use gust::mesh;
+use core::renderable::Renderable;
 pub use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
-    Mesh(mesh::Error),
     AttributeNotFound {message: String}
-}
-
-impl From<mesh::Error> for Error {
-    fn from(other: mesh::Error) -> Self { Error::Mesh(other) }
 }
 
 pub struct Att {
@@ -53,12 +48,12 @@ impl VertexBuffer
         self.attributes_infos.iter()
     }
 
-    pub fn fill_from_attributes(&mut self, mesh: &mesh::Renderable, attribute_names: &Vec<&str>) -> Result<(), Error>
+    pub fn fill_from_attributes(&mut self, mesh: &Renderable, attribute_names: &Vec<&str>) -> Result<(), Error>
     {
         self.attributes_infos = Vec::new();
         self.stride = 0;
         for attribute_name in attribute_names {
-            self.stride = self.stride + mesh.get_attribute(attribute_name).ok_or(
+            self.stride = self.stride + mesh.attribute(attribute_name).ok_or(
                     Error::AttributeNotFound {message: format!("The attribute {} is needed for rendering but is not found in mesh.", attribute_name)}
                 )?.no_components;
         }
@@ -68,7 +63,7 @@ impl VertexBuffer
         let mut offset = 0;
         for name in attribute_names.iter()
         {
-            let attribute = mesh.get_attribute(name).unwrap();
+            let attribute = mesh.attribute(name).unwrap();
             let no_components = attribute.no_components;
             self.attributes_infos.push(Att {name: name.to_string(), no_components});
             let mut index = offset;
