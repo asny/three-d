@@ -55,9 +55,9 @@ fn main() {
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
     let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
-    plane.diffuse_intensity = 0.1;
-    plane.specular_intensity = 0.3;
-    plane.specular_power = 40.0;
+    plane.diffuse_intensity = 0.2;
+    plane.specular_intensity = 0.4;
+    plane.specular_power = 20.0;
 
     let mut ambient_light = ::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
@@ -69,6 +69,14 @@ fn main() {
     let mut light2 = dust::light::SpotLight::new(vec3(-5.0, 5.0, 5.0), vec3(1.0, -1.0, -1.0));
     light2.enable_shadows(&gl, 20.0).unwrap();
     light2.base.intensity = 0.5;
+
+    let mut light3 = dust::light::SpotLight::new(vec3(-5.0, 5.0, -5.0), vec3(1.0, -1.0, 1.0));
+    light3.enable_shadows(&gl, 20.0).unwrap();
+    light3.base.intensity = 0.5;
+
+    let mut light4 = dust::light::SpotLight::new(vec3(5.0, 5.0, -5.0), vec3(-1.0, -1.0, 1.0));
+    light4.enable_shadows(&gl, 20.0).unwrap();
+    light4.base.intensity = 0.5;
 
     // Mirror
     let mirror_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
@@ -110,6 +118,12 @@ fn main() {
         light2.shadow_cast_begin().unwrap();
         render_scene(light2.shadow_camera().unwrap());
 
+        light3.shadow_cast_begin().unwrap();
+        render_scene(light3.shadow_camera().unwrap());
+
+        light4.shadow_cast_begin().unwrap();
+        render_scene(light4.shadow_camera().unwrap());
+
         // Mirror pass
         camera.mirror_in_xz_plane();
 
@@ -121,6 +135,8 @@ fn main() {
         mirror_renderer.shine_ambient_light(&ambient_light).unwrap();
         mirror_renderer.shine_spot_light(&light1).unwrap();
         mirror_renderer.shine_spot_light(&light2).unwrap();
+        mirror_renderer.shine_spot_light(&light3).unwrap();
+        mirror_renderer.shine_spot_light(&light4).unwrap();
 
         camera.mirror_in_xz_plane();
 
@@ -134,6 +150,8 @@ fn main() {
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_spot_light(&light1).unwrap();
         renderer.shine_spot_light(&light2).unwrap();
+        renderer.shine_spot_light(&light3).unwrap();
+        renderer.shine_spot_light(&light4).unwrap();
 
         state::blend(&gl,state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         state::depth_write(&gl,false);
