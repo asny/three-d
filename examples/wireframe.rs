@@ -127,10 +127,11 @@ fn main() {
         // Mirror pass
         camera.mirror_in_xz_plane();
 
+        // Mirror pass (Geometry pass)
         mirror_renderer.geometry_pass_begin().unwrap();
         render_scene(&camera);
 
-        // Light pass
+        // Mirror pass (Light pass)
         mirror_renderer.light_pass_begin(&camera).unwrap();
         mirror_renderer.shine_ambient_light(&ambient_light).unwrap();
         mirror_renderer.shine_spot_light(&light1).unwrap();
@@ -153,6 +154,7 @@ fn main() {
         renderer.shine_spot_light(&light3).unwrap();
         renderer.shine_spot_light(&light4).unwrap();
 
+        // Blend with the result of the mirror pass
         state::blend(&gl,state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         state::depth_write(&gl,false);
         state::depth_test(&gl, state::DepthTestType::NONE);
