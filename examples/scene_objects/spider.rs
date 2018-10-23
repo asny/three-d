@@ -21,7 +21,7 @@ impl Spider
     pub fn create(gl: &gl::Gl) -> Result<Spider, traits::Error>
     {
         let mesh = mesh_loader::load_obj_as_static_mesh("/examples/assets/models/spider.obj").unwrap();
-        let model = objects::ShadedMesh::create(gl, &mesh);
+        let model = objects::ShadedMesh::create(gl, &mesh).unwrap();
 
         Ok(Spider { model, position: vec3(0.0, 0.0, 5.0), view_direction: vec3(0.0, 0.0, -1.0), local2world: Mat4::identity(),
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})

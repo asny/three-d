@@ -49,12 +49,12 @@ fn main() {
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     mesh.update_vertex_normals();
     mesh.translate(&vec3(0.0, 1.0, 0.0));
-    let model = ::objects::ShadedMesh::create(&gl, &mesh.to_static());
+    let model = ::objects::ShadedMesh::create(&gl, &mesh.to_static()).unwrap();
 
     let mut wireframe = ::objects::Wireframe::create(&gl, &mesh, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+    let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;

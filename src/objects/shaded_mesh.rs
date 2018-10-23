@@ -3,6 +3,31 @@ use gl;
 use ::*;
 use mesh::StaticMesh;
 
+#[derive(Debug)]
+pub enum Error {
+    Buffer(buffer::Error),
+    Program(program::Error),
+    Surface(surface::Error)
+}
+
+impl From<program::Error> for Error {
+    fn from(other: program::Error) -> Self {
+        Error::Program(other)
+    }
+}
+
+impl From<buffer::Error> for Error {
+    fn from(other: buffer::Error) -> Self {
+        Error::Buffer(other)
+    }
+}
+
+impl From<surface::Error> for Error {
+    fn from(other: surface::Error) -> Self {
+        Error::Surface(other)
+    }
+}
+
 pub struct ShadedMesh {
     program: program::Program,
     model: surface::TriangleSurface,
@@ -15,14 +40,14 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn create(gl: &gl::Gl, mesh: &StaticMesh) -> ShadedMesh
+    pub fn create(gl: &gl::Gl, mesh: &StaticMesh) -> Result<ShadedMesh, Error>
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
-                                                      "../Dust/src/objects/shaders/shaded").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, mesh).unwrap();
-        model.add_attributes(mesh, &program, &vec!["position", "normal"]).unwrap();
+                                                      "../Dust/src/objects/shaders/shaded")?;
+        let mut model = surface::TriangleSurface::create(gl, mesh)?;
+        model.add_attributes(mesh, &program, &vec!["position", "normal"])?;
 
-        ShadedMesh { program, model, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
+        Ok(ShadedMesh { program, model, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)

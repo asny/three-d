@@ -45,9 +45,9 @@ fn main() {
                                                     screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
 
     let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
-    let mut monkey = objects::ShadedMesh::create(&gl, &mesh);
+    let mut monkey = objects::ShadedMesh::create(&gl, &mesh).unwrap();
 
-    let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap());
+    let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
 
     let mut ambient_light = ::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
