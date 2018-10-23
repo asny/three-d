@@ -29,8 +29,10 @@ impl From<surface::Error> for Error {
 }
 
 pub struct ShadedMesh {
+    gl: gl::Gl,
     program: program::Program,
     model: surface::TriangleSurface,
+    buffer: buffer::VertexBuffer,
     pub color: Vec3,
     pub texture: Option<texture::Texture2D>,
     pub diffuse_intensity: f32,
@@ -45,9 +47,22 @@ impl ShadedMesh
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
                                                       "../Dust/src/objects/shaders/shaded")?;
         let mut model = surface::TriangleSurface::create(gl, mesh)?;
-        model.add_attributes(mesh, &program, &vec!["position", "normal"])?;
+        let buffer = model.add_attributes(mesh, &program, &vec!["position", "normal"])?;
 
-        Ok(ShadedMesh { program, model, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+        Ok(ShadedMesh { gl: gl.clone(), program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+    }
+
+    pub fn update_attributes(&mut self, mesh: &StaticMesh) -> Result<(), Error>
+    {
+        self.buffer.fill_from_attributes(mesh, &vec!["position", "normal"])?;
+        Ok(())
+    }
+
+    pub fn update_mesh(&mut self, mesh: &StaticMesh) -> Result<(), Error>
+    {
+        self.model = surface::TriangleSurface::create(&self.gl, mesh)?;
+        self.buffer = self.model.add_attributes(mesh, &self.program, &vec!["position", "normal"])?;
+        Ok(())
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
