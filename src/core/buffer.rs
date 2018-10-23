@@ -1,6 +1,6 @@
 use gl;
 use std;
-use core::renderable::Renderable;
+use mesh::StaticMesh;
 pub use std::slice::Iter;
 
 #[derive(Debug)]
@@ -48,7 +48,7 @@ impl VertexBuffer
         self.attributes_infos.iter()
     }
 
-    pub fn fill_from_attributes(&mut self, mesh: &Renderable, attribute_names: &Vec<&str>) -> Result<(), Error>
+    pub fn fill_from_attributes(&mut self, mesh: &StaticMesh, attribute_names: &Vec<&str>) -> Result<(), Error>
     {
         self.attributes_infos = Vec::new();
         self.stride = 0;
@@ -113,7 +113,7 @@ impl ElementBuffer
         Ok(buffer)
     }
 
-    pub fn fill_with(&self, data: Vec<u32>)
+    pub fn fill_with(&self, data: &Vec<u32>)
     {
         bind(&self.gl, self.id, gl::ELEMENT_ARRAY_BUFFER);
         unsafe {

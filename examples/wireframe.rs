@@ -49,7 +49,7 @@ fn main() {
     let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
     mesh.update_vertex_normals();
     mesh.translate(&vec3(0.0, 1.0, 0.0));
-    let model = ::objects::ShadedMesh::create(&gl, &mesh);
+    let model = ::objects::ShadedMesh::create(&gl, &mesh.to_static());
 
     let mut wireframe = ::objects::Wireframe::create(&gl, &mesh, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);

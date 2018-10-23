@@ -1,6 +1,7 @@
 
 use gl;
 use ::*;
+use mesh::StaticMesh;
 
 pub struct ShadedMesh {
     program: program::Program,
@@ -14,7 +15,7 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn create(gl: &gl::Gl, mesh: &Renderable) -> ShadedMesh
+    pub fn create(gl: &gl::Gl, mesh: &StaticMesh) -> ShadedMesh
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();

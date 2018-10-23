@@ -1,6 +1,6 @@
 use gl;
 use std;
-use core::renderable::Renderable;
+use mesh::StaticMesh;
 use core::buffer;
 use core::program;
 
@@ -30,7 +30,7 @@ pub struct TriangleSurface {
 
 impl TriangleSurface
 {
-    pub fn create(gl: &gl::Gl, mesh: &Renderable) -> Result<TriangleSurface, Error>
+    pub fn create(gl: &gl::Gl, mesh: &StaticMesh) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
@@ -47,7 +47,7 @@ impl TriangleSurface
         Ok(model)
     }
 
-    pub fn add_attributes(&mut self, mesh: &Renderable, program: &program::Program, attribute_names: &Vec<&str>) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&mut self, mesh: &StaticMesh, program: &program::Program, attribute_names: &Vec<&str>) -> Result<buffer::VertexBuffer, Error>
     {
         // Create buffer
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
