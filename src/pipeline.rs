@@ -242,6 +242,19 @@ impl DeferredPipeline
         Ok(())
     }
 
+    pub fn get_screen_pixels(&self) -> Result<(Vec<u8>, usize, usize), Error>
+    {
+        match self.light_pass_rendertarget {
+            Some(ref rendertarget) => {
+                let pixels = rendertarget.targets[0].get_pixels(rendertarget.width, rendertarget.height);
+                return Ok((pixels, rendertarget.width, rendertarget.height))
+            },
+            None => {
+                return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
+            }
+        }
+    }
+
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         let program = self.copy_program()?;

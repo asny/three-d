@@ -51,8 +51,8 @@ impl Rendertarget for ScreenRendertarget
 pub struct ColorRendertarget {
     gl: gl::Gl,
     id: u32,
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     pub targets: Vec<texture::Texture2D>,
     pub depth_target: texture::Texture2D
 }
