@@ -67,7 +67,7 @@ impl ShadedMesh
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
-        self.program.cull(state::CullType::BACK);
+        self.program.cull(state::CullType::NONE);
         self.program.depth_test(state::DepthTestType::LEQUAL);
         self.program.depth_write(true);
         self.program.polygon_mode(state::PolygonType::Fill);
