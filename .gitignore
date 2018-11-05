@@ -1,6 +1,6 @@
 .DS_Store
 .idea
-user
+ss
 
 # Emscripten generated files
 *.data
