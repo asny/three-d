@@ -105,6 +105,8 @@ fn main() {
             }
         }
 
+        eventhandler::rotate(&mut camera, -1, 0);
+
         // Draw
         let render_scene = |camera: &Camera| {
             //model.render(&Mat4::identity(), camera);
