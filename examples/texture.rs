@@ -1,8 +1,5 @@
 extern crate sdl2;
 extern crate dust;
-extern crate image;
-
-use self::image::{GenericImage};
 
 mod scene_objects;
 

@@ -1,6 +1,4 @@
-extern crate image;
 
-use self::image::{GenericImage};
 use scene_objects::terrain::Terrain;
 use scene_objects::water::Water;
 use scene_objects::grass::Grass;
@@ -17,15 +15,8 @@ pub struct Environment
 impl Environment {
     pub fn create(gl: &gl::Gl) -> Environment
     {
-        let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
-        let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
-        let top = image::open("examples/assets/textures/skybox_evening/top.jpg").unwrap();
-        let left = image::open("examples/assets/textures/skybox_evening/left.jpg").unwrap();
-        let right = image::open("examples/assets/textures/skybox_evening/right.jpg").unwrap();
-        let mut texture = texture::Texture3D::create(gl).unwrap();
-        texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                          [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+        let texture = texture::Texture3D::new_from_files(&gl, "examples/assets/textures/skybox_evening/",
+                                                       "back.jpg", "front.jpg", "top.jpg", "left.jpg", "right.jpg").unwrap();
 
         let skybox = objects::Skybox::create(&gl, texture);
         let terrain = Terrain::create(gl);
