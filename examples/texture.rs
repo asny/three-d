@@ -48,10 +48,7 @@ fn main() {
     let mut cube = mesh_generator::create_cube().unwrap().to_dynamic();
     cube.update_vertex_normals();
     let mut textured_box = objects::ShadedMesh::create(&gl, &cube.to_static()).unwrap();
-    let img = image::open("examples/assets/textures/test_texture.jpg").unwrap();
-    let mut texture = texture::Texture2D::create(&gl).unwrap();
-    texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
-    textured_box.texture = Some(texture);
+    textured_box.texture = Some(texture::Texture2D::new_from_file(&gl, "examples/assets/textures/test_texture.jpg").unwrap());
 
     let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
     let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();

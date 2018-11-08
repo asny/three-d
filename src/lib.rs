@@ -1,5 +1,6 @@
 pub extern crate gl;
 pub extern crate gust;
+extern crate image;
 
 #[macro_export]
 macro_rules! att {

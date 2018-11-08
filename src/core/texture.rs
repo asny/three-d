@@ -1,9 +1,17 @@
 use gl;
 use std;
+use image;
+use image::GenericImage;
 
 #[derive(Debug)]
 pub enum Error {
+    Image(image::ImageError)
+}
 
+impl From<image::ImageError> for Error {
+    fn from(other: image::ImageError) -> Self {
+        Error::Image(other)
+    }
 }
 
 
@@ -33,6 +41,14 @@ impl Texture2D
             gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
         }
 
+        Ok(texture)
+    }
+
+    pub fn new_from_file(gl: &gl::Gl, path: &str) -> Result<Texture2D, Error>
+    {
+        let img = image::open(path)?;
+        let mut texture = Texture2D::create(gl)?;
+        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
         Ok(texture)
     }
 
