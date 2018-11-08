@@ -41,13 +41,15 @@ fn main() {
     // Renderer
     let renderer = pipeline::DeferredPipeline::create(&gl, &screen, true).unwrap();
 
-    // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                    screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
-
     // Models
     let mut environment = scene_objects::environment::Environment::create(&gl);
-    let mut spider = scene_objects::spider::Spider::create(&gl).unwrap();
+    let mut spider = scene_objects::spider::Spider::create(&gl, vec3(0.0, 0.0, 5.0), vec3(0.0, 0.0, -1.0)).unwrap();
+
+    // Camera
+    let mut camera = camera::PerspectiveCamera::new(spider.get_position(&environment),
+                                                    spider.get_position(&environment) + spider.get_view_direction(&environment),
+                                                    spider.get_up_direction(),
+                                                    screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
 
     // Lights
     let directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
@@ -113,7 +115,7 @@ fn main() {
         // Update
         spider.update(elapsed_time, &environment);
         let spider_pos = spider.get_position(&environment);
-        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment));
+        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment), &spider.get_up_direction());
         environment.set_position(&spider_pos);
 
         // Draw

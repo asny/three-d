@@ -18,12 +18,12 @@ pub struct Spider {
 
 impl Spider
 {
-    pub fn create(gl: &gl::Gl) -> Result<Spider, traits::Error>
+    pub fn create(gl: &gl::Gl, position: Vec3, view_direction: Vec3) -> Result<Spider, traits::Error>
     {
         let mesh = mesh_loader::load_obj_as_static_mesh("/examples/assets/models/spider.obj").unwrap();
         let model = objects::ShadedMesh::create(gl, &mesh).unwrap();
 
-        Ok(Spider { model, position: vec3(0.0, 0.0, 5.0), view_direction: vec3(0.0, 0.0, -1.0), local2world: Mat4::identity(),
+        Ok(Spider { model, position, view_direction, local2world: Mat4::identity(),
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})
     }
 
@@ -40,6 +40,11 @@ impl Spider
         let height2 = environment.get_height_at(self.position.x + self.view_direction.x, self.position.z + self.view_direction.z);
         let y_view_dir = 0.25 * ((height2 - height0) + (height1 - height0));
         vec3(self.view_direction.x, y_view_dir, self.view_direction.z).normalize()
+    }
+
+    pub fn get_up_direction(&self) -> Vec3
+    {
+        vec3(0.0, 1.0, 0.0)
     }
 
     pub fn update(&mut self, time: f32, environment: &Environment)

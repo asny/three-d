@@ -32,17 +32,16 @@ impl CameraHandler
 
     }
 
-    pub fn translate(&mut self, camera: &mut camera::Camera, position: &Vec3, front_direction: &Vec3)
+    pub fn translate(&mut self, camera: &mut camera::Camera, position: &Vec3, view_direction: &Vec3, up: &Vec3)
     {
-        let up = *camera.up();
         match self.state {
             CameraState::FIRST => {
-                camera.set_view(*position, *position + *front_direction, up);
+                camera.set_view(*position, *position + *view_direction, *up);
             },
             CameraState::SPHERICAL => {
                 let camera_position = *camera.position();
                 let change = *position - *camera.target();
-                camera.set_view(camera_position + change, *position, up);
+                camera.set_view(camera_position + change, *position, *up);
             }
         }
     }
