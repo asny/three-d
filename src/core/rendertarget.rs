@@ -68,14 +68,14 @@ impl ColorRendertarget
         let mut targets = Vec::new();
         for i in 0..no_targets {
             draw_buffers.push(gl::COLOR_ATTACHMENT0 + i as u32);
-            targets.push(texture::Texture2D::create_as_color_target(gl, width, height, i as u32)?)
+            targets.push(texture::Texture2D::new_as_color_target(gl, width, height, i as u32)?)
         }
 
         unsafe {
             gl.DrawBuffers(no_targets as i32, draw_buffers.as_ptr());
         }
 
-        let depth_target = texture::Texture2D::create_as_depth_target(gl, width, height)?;
+        let depth_target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
         Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target })
     }
 }
@@ -115,7 +115,7 @@ impl DepthRenderTarget
         let id = generate(gl)?;
         bind(gl, id, width, height);
 
-        let target = texture::Texture2D::create_as_depth_target(gl, width, height)?;
+        let target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
         Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
     }
 }

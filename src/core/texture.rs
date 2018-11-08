@@ -28,7 +28,7 @@ pub struct Texture2D {
 // TEXTURE 2D
 impl Texture2D
 {
-    pub fn create(gl: &gl::Gl) -> Result<Texture2D, Error>
+    pub fn new(gl: &gl::Gl) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
@@ -47,12 +47,12 @@ impl Texture2D
     pub fn new_from_file(gl: &gl::Gl, path: &str) -> Result<Texture2D, Error>
     {
         let img = image::open(path)?;
-        let mut texture = Texture2D::create(gl)?;
+        let mut texture = Texture2D::new(gl)?;
         texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
         Ok(texture)
     }
 
-    pub fn create_as_color_target(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
+    pub fn new_as_color_target(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
@@ -79,7 +79,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn create_as_depth_target(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
+    pub fn new_as_depth_target(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
