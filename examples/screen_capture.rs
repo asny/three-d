@@ -1,6 +1,5 @@
 extern crate sdl2;
 extern crate dust;
-extern crate image;
 
 mod scene_objects;
 
@@ -103,8 +102,7 @@ fn main() {
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
 
-        let image_data = renderer.get_screen_pixels().unwrap();
-        image::save_buffer(&std::path::Path::new(&format!("image{}.png", i)), &image_data.0, image_data.1 as u32, image_data.2 as u32, image::RGB(8)).unwrap();
+        renderer.save_screenshot(&format!("image{}.png", i)).unwrap();
         i = i+1;
 
         renderer.copy_to_screen().unwrap();

@@ -7,7 +7,7 @@ use screen;
 use core::rendertarget;
 use core::rendertarget::Rendertarget;
 use core::state;
-use core::texture::Texture;
+use core::texture::{self,Texture};
 use core::program;
 use core::full_screen_quad;
 
@@ -16,6 +16,7 @@ pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Traits(traits::Error),
+    Texture(texture::Error),
     LightPassRendertargetNotAvailable {message: String}
 }
 
@@ -34,6 +35,12 @@ impl From<program::Error> for Error {
 impl From<rendertarget::Error> for Error {
     fn from(other: rendertarget::Error) -> Self {
         Error::Rendertarget(other)
+    }
+}
+
+impl From<texture::Error> for Error {
+    fn from(other: texture::Error) -> Self {
+        Error::Texture(other)
     }
 }
 
@@ -242,12 +249,12 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn get_screen_pixels(&self) -> Result<(Vec<u8>, usize, usize), Error>
+    pub fn save_screenshot(&self, path: &str) -> Result<(), Error>
     {
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {
-                let pixels = rendertarget.targets[0].get_pixels(rendertarget.width, rendertarget.height);
-                return Ok((pixels, rendertarget.width, rendertarget.height))
+                rendertarget.targets[0].save_as_file(path, rendertarget.width, rendertarget.height)?;
+                Ok(())
             },
             None => {
                 return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})

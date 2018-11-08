@@ -5,7 +5,8 @@ use image::GenericImage;
 
 #[derive(Debug)]
 pub enum Error {
-    Image(image::ImageError)
+    Image(image::ImageError),
+    IO(std::io::Error)
 }
 
 impl From<image::ImageError> for Error {
@@ -14,6 +15,11 @@ impl From<image::ImageError> for Error {
     }
 }
 
+impl From<std::io::Error> for Error {
+    fn from(other: std::io::Error) -> Self {
+        Error::IO(other)
+    }
+}
 
 pub trait Texture {
     fn bind(&self, location: u32);
@@ -153,6 +159,13 @@ impl Texture2D
             self.gl.GetTexImage(self.target, 0, gl::RGB, gl::FLOAT, pixels.as_ptr() as *mut gl::types::GLvoid);
         }
         pixels.iter().map(|x| (*x * 255.0) as u8).collect()
+    }
+
+    pub fn save_as_file(&self, path: &str, width: usize, height: usize) -> Result<(), Error>
+    {
+        let pixels = self.get_pixels(width, height);
+        image::save_buffer(&std::path::Path::new(path), &pixels, width as u32, height as u32, image::RGB(8))?;
+        Ok(())
     }
 
 }
