@@ -50,15 +50,8 @@ fn main() {
     let mut textured_box = objects::ShadedMesh::create(&gl, &cube.to_static()).unwrap();
     textured_box.texture = Some(texture::Texture2D::new_from_file(&gl, "examples/assets/textures/test_texture.jpg").unwrap());
 
-    let back = image::open("examples/assets/textures/skybox_evening/back.jpg").unwrap();
-    let front = image::open("examples/assets/textures/skybox_evening/front.jpg").unwrap();
-    let top = image::open("examples/assets/textures/skybox_evening/top.jpg").unwrap();
-    let left = image::open("examples/assets/textures/skybox_evening/left.jpg").unwrap();
-    let right = image::open("examples/assets/textures/skybox_evening/right.jpg").unwrap();
-    let mut texture3d = texture::Texture3D::create(&gl).unwrap();
-    texture3d.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                      [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                          &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+    let texture3d = texture::Texture3D::new_from_files(&gl, "examples/assets/textures/skybox_evening/",
+                                                       "back.jpg", "front.jpg", "top.jpg", "left.jpg", "right.jpg").unwrap();
     let skybox = objects::Skybox::create(&gl, texture3d);
 
     let light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));

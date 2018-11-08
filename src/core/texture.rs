@@ -199,6 +199,21 @@ impl Texture3D
         Ok(texture)
     }
 
+    pub fn new_from_files(gl: &gl::Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
+    {
+        let back = image::open(format!("{}{}", path, back_name))?;
+        let front = image::open(format!("{}{}", path, front_name))?;
+        let top = image::open(format!("{}{}", path, top_name))?;
+        let left = image::open(format!("{}{}", path, left_name))?;
+        let right = image::open(format!("{}{}", path, right_name))?;
+
+        let mut texture = Texture3D::create(gl)?;
+        texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
+                          [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
+                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+        Ok(texture)
+    }
+
     pub fn fill_with(&mut self, width: usize, height: usize, data: [&Vec<u8>; 6])
     {
         bind(&self.gl, self.id, self.target);
