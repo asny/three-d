@@ -1,9 +1,7 @@
-extern crate image;
 extern crate noise;
 
 use gl;
 use dust::*;
-use self::image::{GenericImage};
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 
 pub const SIZE: f32 = 64.0;
@@ -37,9 +35,9 @@ impl Terrain
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
         let buffer = model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position", "normal"]).unwrap();
 
-        let ground_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
-        let lake_texture = texture_from_img(gl,"examples/assets/textures/bottom.png").unwrap();
-        let noise_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let ground_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let lake_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/bottom.png").unwrap();
+        let noise_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
 
         let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
@@ -144,14 +142,6 @@ impl Terrain
     {
         get_height_at(&self.noise_generator, x, z)
     }
-}
-
-fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, texture::Error>
-{
-    let img = image::open(name).unwrap();
-    let mut texture = texture::Texture2D::create(gl)?;
-    texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
-    Ok(texture)
 }
 
 fn get_height_at(noise_generator: &Box<NoiseFn<Point2<f64>>>, x: f32, z: f32) -> f32

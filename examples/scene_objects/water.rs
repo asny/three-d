@@ -1,8 +1,5 @@
-extern crate image;
-
 use gl;
 use dust::*;
-use self::image::{GenericImage};
 
 const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 2;
@@ -30,7 +27,7 @@ impl Water
         let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
         let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate", "position"]).unwrap();
 
-        let foam_texture = texture_from_img(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let foam_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
 
         let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
         water.set_center(&vec3(0.0, 0.0, 0.0));
@@ -103,14 +100,6 @@ impl Water
             }
         }
     }
-}
-
-fn texture_from_img(gl: &gl::Gl, name: &str) -> Result<texture::Texture2D, traits::Error>
-{
-    let img = image::open(name).unwrap();
-    let mut texture = texture::Texture2D::create(gl)?;
-    texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
-    Ok(texture)
 }
 
 fn indices() -> Vec<u32>
