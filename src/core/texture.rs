@@ -182,7 +182,7 @@ pub struct Texture3D {
 // TEXTURE 3D
 impl Texture3D
 {
-    pub fn create(gl: &gl::Gl) -> Result<Texture3D, Error>
+    pub fn new(gl: &gl::Gl) -> Result<Texture3D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture3D { gl: gl.clone(), id, target: gl::TEXTURE_CUBE_MAP };
@@ -207,14 +207,14 @@ impl Texture3D
         let left = image::open(format!("{}{}", path, left_name))?;
         let right = image::open(format!("{}{}", path, right_name))?;
 
-        let mut texture = Texture3D::create(gl)?;
-        texture.fill_with(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                          [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
+        let mut texture = Texture3D::new(gl)?;
+        texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
+                             [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
                               &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
         Ok(texture)
     }
 
-    pub fn fill_with(&mut self, width: usize, height: usize, data: [&Vec<u8>; 6])
+    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&Vec<u8>; 6])
     {
         bind(&self.gl, self.id, self.target);
         for i in 0..6 {
