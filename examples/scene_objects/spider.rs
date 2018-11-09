@@ -20,8 +20,8 @@ impl Spider
 {
     pub fn create(gl: &gl::Gl, position: Vec3, view_direction: Vec3) -> Result<Spider, traits::Error>
     {
-        let mesh = mesh_loader::load_obj_as_static_mesh("/examples/assets/models/spider.obj").unwrap();
-        let model = objects::ShadedMesh::create(gl, &mesh).unwrap();
+        let mesh = mesh_loader::load_obj("/examples/assets/models/spider.obj").unwrap();
+        let model = objects::ShadedMesh::create(gl, mesh.first().unwrap()).unwrap();
 
         Ok(Spider { model, position, view_direction, local2world: Mat4::identity(),
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false})
