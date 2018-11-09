@@ -9,6 +9,7 @@ in vec3 pos;
 layout (location = 0) out vec4 color;
 layout (location = 1) out vec4 position;
 layout (location = 2) out vec4 normal;
+layout (location = 3) out vec4 surface_parameters;
 
 const vec3 absorptionColor = vec3(0.,0.3,0.3);
 
@@ -31,4 +32,5 @@ void main()
     }
     color = vec4(mix(sand_color, blend_color, sand_factor), 1.);
     normal = vec4(nor, 1.0);
+    surface_parameters = vec4(0.5, 0.0, 0.0, 0.0);
 }

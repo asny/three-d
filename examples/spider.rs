@@ -52,7 +52,11 @@ fn main() {
                                                     screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
 
     // Lights
-    let directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    let mut ambient_light = ::light::AmbientLight::new();
+    ambient_light.base.intensity = 0.2;
+
+    let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    directional_light.enable_shadows(&gl, 10.0, 10.0).unwrap();
 
     // set up event handling
     let mut events = ctx.event_pump().unwrap();
@@ -118,15 +122,21 @@ fn main() {
         camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment), &spider.get_up_direction());
         environment.set_position(&spider_pos);
 
+        // Shadow pass
+        directional_light.set_target(&spider_pos);
+        directional_light.shadow_cast_begin().unwrap();
+        //environment.render_opague(directional_light.shadow_camera().unwrap()).unwrap();
+        spider.render(directional_light.shadow_camera().unwrap());
+
         // Draw
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
-        let transformation = Mat4::identity();
         environment.render_opague(&camera).unwrap();
         spider.render(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
         renderer.copy_to_screen().unwrap();
 
