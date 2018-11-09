@@ -83,7 +83,7 @@ impl Spider
             // Compute spider model matrix
             //let spider_rotation_yaw = orientation(normalize(vec3(world_view_direction.x, 0.0, world_view_direction.z)), vec3(0.0, 0.0, 1.0));
             //let spider_rotation_pitch = orientation(normalize(vec3(0.0, world_view_direction.y, 1.0)), vec3(0.0, 0.0, 1.0));
-            spider_translation = Mat4::identity();//translate(&Mat4::one(), world_position);
+            spider_translation = Mat4::new_translation(&world_position);
         }
         self.local2world = spider_translation;// * spider_rotation_yaw * spider_rotation_pitch;
     }
