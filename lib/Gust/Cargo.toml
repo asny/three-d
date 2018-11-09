@@ -1,8 +1,0 @@
-[package]
-name = "gust"
-version = "0.1.0"
-authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
-
-[dependencies]
-glm = "0.2.3"
-tobj = "0.1.6"
