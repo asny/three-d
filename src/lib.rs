@@ -1,12 +1,12 @@
 pub extern crate gl;
-pub extern crate gust;
+pub extern crate geo_proc;
 extern crate image;
 
 #[macro_export]
 macro_rules! att {
     ($( $name: expr => ($data: expr, $no_components: expr)),*) => {{
          let mut vec = Vec::new();
-         $( vec.push(gust::mesh::Attribute::new($name, $no_components, $data)); )*
+         $( vec.push(geo_proc::mesh::Attribute::new($name, $no_components, $data)); )*
          vec
     }}
 }
@@ -31,10 +31,10 @@ extern crate emscripten_sys;
 #[cfg(target_os = "emscripten")]
 mod emscripten;
 
-pub use gust::types::*;
-pub use gust::mesh as mesh;
-pub use gust::loader as mesh_loader;
-pub use gust::models as mesh_generator;
+pub use geo_proc::types::*;
+pub use geo_proc::mesh as mesh;
+pub use geo_proc::loader as mesh_loader;
+pub use geo_proc::models as mesh_generator;
 
 pub use camera::Camera;
 

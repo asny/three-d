@@ -1,7 +1,7 @@
 use core::program;
 use core::surface;
 use core::texture;
-use gust::*;
+use geo_proc::*;
 
 #[derive(Debug)]
 pub enum Error {

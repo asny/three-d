@@ -1,4 +1,4 @@
-use gust::*;
+use geo_proc::*;
 
 pub trait Camera
 {

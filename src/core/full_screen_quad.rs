@@ -1,6 +1,6 @@
 use gl;
-use gust::mesh::Attribute;
-use gust::static_mesh::StaticMesh;
+use geo_proc::mesh::Attribute;
+use geo_proc::static_mesh::StaticMesh;
 use core::surface;
 use core::program;
 

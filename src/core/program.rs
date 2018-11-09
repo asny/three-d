@@ -5,7 +5,7 @@ use core::shader;
 use core::state;
 use core::buffer;
 
-use gust::types::*;
+use geo_proc::types::*;
 
 use std::ffi::{CString};
 
