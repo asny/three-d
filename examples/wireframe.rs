@@ -46,7 +46,7 @@ fn main() {
                                                     vec3(0.0, 1.0, 0.0),screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
 
     // Objects
-    let mut mesh = gust::loader::load_obj_as_dynamic_mesh("../Dust/examples/assets/models/box.obj").unwrap();
+    let mut mesh = mesh_loader::load_obj("../Dust/examples/assets/models/box.obj").unwrap().first().unwrap().to_dynamic();
     mesh.update_vertex_normals();
     mesh.translate(&vec3(0.0, 1.0, 0.0));
     let model = ::objects::ShadedMesh::create(&gl, &mesh.to_static()).unwrap();
