@@ -26,7 +26,7 @@ impl BaseCamera
         self.target = target;
         let dir = (target - position).normalize();
         self.up = dir.cross(&up.normalize().cross(&dir));
-        self.view = Mat4::look_at_rh(&na::Point::from_coordinates(self.position), &na::Point::from_coordinates(self.target), &self.up);
+        self.view = Mat4::look_at_rh(&Point::from_coordinates(self.position), &Point::from_coordinates(self.target), &self.up);
     }
 
     pub fn mirror_in_xz_plane(&mut self)
