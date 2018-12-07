@@ -1,6 +1,3 @@
-pub extern crate gl;
-pub extern crate geo_proc;
-extern crate image;
 
 #[macro_export]
 macro_rules! att {
@@ -26,17 +23,14 @@ pub mod pipeline;
 pub mod renderer;
 
 #[cfg(target_os = "emscripten")]
-extern crate emscripten_sys;
-
-#[cfg(target_os = "emscripten")]
 mod emscripten;
 
+pub use gl;
+pub use geo_proc;
 pub use geo_proc::types::*;
 pub use geo_proc::mesh as mesh;
 pub use geo_proc::loader as mesh_loader;
 pub use geo_proc::models as mesh_generator;
-
 pub use crate::camera::Camera;
-
 pub use crate::core::*;
 pub use crate::texture::Texture;
