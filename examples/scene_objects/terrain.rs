@@ -1,6 +1,6 @@
 extern crate noise;
 
-use gl;
+use crate::gl;
 use dust::*;
 use self::noise::{NoiseFn, Point2, SuperSimplex};
 

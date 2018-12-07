@@ -1,8 +1,8 @@
 use gl;
 use std;
-use mesh::StaticMesh;
-use core::buffer;
-use core::program;
+use crate::mesh::StaticMesh;
+use crate::core::buffer;
+use crate::core::program;
 
 #[derive(Debug)]
 pub enum Error {

@@ -1,7 +1,7 @@
 
-use scene_objects::terrain::Terrain;
-use scene_objects::water::Water;
-use scene_objects::grass::Grass;
+use crate::scene_objects::terrain::Terrain;
+use crate::scene_objects::water::Water;
+use crate::scene_objects::grass::Grass;
 use dust::*;
 
 pub struct Environment

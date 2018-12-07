@@ -1,5 +1,5 @@
 use gl;
-use ::*;
+use crate::*;
 
 pub struct Skybox {
     program: program::Program,

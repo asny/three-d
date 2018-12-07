@@ -2,6 +2,7 @@
 name = "dust"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 geo-proc = { git = "https://github.com/asny/geo-proc" }

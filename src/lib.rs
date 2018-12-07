@@ -36,7 +36,7 @@ pub use geo_proc::mesh as mesh;
 pub use geo_proc::loader as mesh_loader;
 pub use geo_proc::models as mesh_generator;
 
-pub use camera::Camera;
+pub use crate::camera::Camera;
 
-pub use core::*;
-pub use texture::Texture;
+pub use crate::core::*;
+pub use crate::texture::Texture;

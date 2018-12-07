@@ -44,13 +44,13 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
 
-    let mut mesh = ::mesh_generator::create_sphere(1).unwrap().to_dynamic();
+    let mut mesh = crate::mesh_generator::create_sphere(1).unwrap().to_dynamic();
     mesh.update_vertex_normals();
-    let mut shaded_mesh = objects::ShadedMesh::create(&gl, &mesh.to_static()).unwrap();
+    let shaded_mesh = objects::ShadedMesh::create(&gl, &mesh.to_static()).unwrap();
 
-    let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
+    let plane = crate::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
 
-    let mut ambient_light = ::light::AmbientLight::new();
+    let mut ambient_light = crate::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
 
     let mut directional_light = dust::light::DirectionalLight::new(vec3(1.0, -1.0, -1.0));

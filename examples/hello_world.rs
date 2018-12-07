@@ -63,7 +63,6 @@ fn main() {
         // draw
         renderer.render_pass_begin();
 
-        let transformation = Mat4::identity();
         model.render(&camera).unwrap();
 
         window.gl_swap_window();

@@ -1,8 +1,8 @@
 use gl;
 use geo_proc::mesh::Attribute;
 use geo_proc::static_mesh::StaticMesh;
-use core::surface;
-use core::program;
+use crate::core::surface;
+use crate::core::program;
 
 pub fn render(gl: &gl::Gl, program: &program::Program)
 {

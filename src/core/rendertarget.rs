@@ -1,7 +1,7 @@
 use gl;
 use std;
-use core::state;
-use core::texture;
+use crate::core::state;
+use crate::core::texture;
 
 #[derive(Debug)]
 pub enum Error {

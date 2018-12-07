@@ -1,6 +1,6 @@
 use gl;
 use std;
-use mesh::StaticMesh;
+use crate::mesh::StaticMesh;
 pub use std::slice::Iter;
 
 #[derive(Debug)]

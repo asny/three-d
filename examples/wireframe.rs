@@ -49,17 +49,17 @@ fn main() {
     let mut mesh = mesh_loader::load_obj("../Dust/examples/assets/models/box.obj").unwrap().first().unwrap().to_dynamic();
     mesh.update_vertex_normals();
     mesh.translate(&vec3(0.0, 1.0, 0.0));
-    let model = ::objects::ShadedMesh::create(&gl, &mesh.to_static()).unwrap();
+    let _model = crate::objects::ShadedMesh::create(&gl, &mesh.to_static()).unwrap();
 
-    let mut wireframe = ::objects::Wireframe::create(&gl, &mesh, 0.015);
+    let mut wireframe = crate::objects::Wireframe::create(&gl, &mesh, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let mut plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
+    let mut plane = crate::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;
 
-    let mut ambient_light = ::light::AmbientLight::new();
+    let mut ambient_light = crate::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
 
     let mut light1 = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));

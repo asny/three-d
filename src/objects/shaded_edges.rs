@@ -1,6 +1,6 @@
 
 use gl;
-use ::*;
+use crate::*;
 
 pub struct ShadedEdges {
     program: program::Program,
@@ -14,12 +14,12 @@ pub struct ShadedEdges {
 
 impl ShadedEdges
 {
-    pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh, tube_radius: f32) -> ShadedEdges
+    pub fn create(gl: &gl::Gl, mesh: &crate::mesh::DynamicMesh, tube_radius: f32) -> ShadedEdges
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
 
-        let edge_mesh = ::mesh_generator::create_cylinder(1, 10).unwrap();
+        let edge_mesh = crate::mesh_generator::create_cylinder(1, 10).unwrap();
         let mut surface = surface::TriangleSurface::create(gl, &edge_mesh).unwrap();
         surface.add_attributes(&edge_mesh, &program, &vec!["position"]).unwrap();
 

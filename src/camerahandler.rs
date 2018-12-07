@@ -1,4 +1,4 @@
-use camera;
+use crate::camera;
 use geo_proc::*;
 
 pub enum CameraState

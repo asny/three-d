@@ -44,12 +44,12 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
 
-    let mesh = gust::loader::load_obj_as_static_mesh("../Dust/examples/assets/models/suzanne.obj").unwrap();
+    let mesh = crate::mesh_loader::load_obj("../Dust/examples/assets/models/suzanne.obj").unwrap().first().unwrap().clone();
     let mut monkey = objects::ShadedMesh::create(&gl, &mesh).unwrap();
 
-    let plane = ::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
+    let plane = crate::objects::ShadedMesh::create(&gl, &mesh_generator::create_plane().unwrap()).unwrap();
 
-    let mut ambient_light = ::light::AmbientLight::new();
+    let mut ambient_light = crate::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
 
     let mut directional_light = dust::light::DirectionalLight::new(vec3(1.0, -1.0, -1.0));
@@ -149,7 +149,7 @@ fn handle_directional_light_parameters(event: &Event, light: &mut light::Directi
     }
 }
 
-fn handle_surface_parameters(event: &Event, surface: &mut ::objects::ShadedMesh)
+fn handle_surface_parameters(event: &Event, surface: &mut crate::objects::ShadedMesh)
 {
     match event {
         Event::KeyDown { keycode: Some(Keycode::S), .. } => {

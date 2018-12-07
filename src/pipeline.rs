@@ -1,15 +1,15 @@
 
-use camera;
-use traits;
+use crate::camera;
+use crate::traits;
 use gl;
-use light;
-use screen;
-use core::rendertarget;
-use core::rendertarget::Rendertarget;
-use core::state;
-use core::texture::{self,Texture};
-use core::program;
-use core::full_screen_quad;
+use crate::light;
+use crate::screen;
+use crate::core::rendertarget;
+use crate::core::rendertarget::Rendertarget;
+use crate::core::state;
+use crate::core::texture::{self,Texture};
+use crate::core::program;
+use crate::core::full_screen_quad;
 
 #[derive(Debug)]
 pub enum Error {
@@ -178,8 +178,8 @@ impl DeferredPipeline
     pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
-            use camera::Camera;
-            let bias_matrix = ::Mat4::new(
+            use crate::camera::Camera;
+            let bias_matrix = crate::Mat4::new(
                                  0.5, 0.0, 0.0, 0.0,
                                  0.0, 0.5, 0.0, 0.0,
                                  0.0, 0.0, 0.5, 0.0,
@@ -221,8 +221,8 @@ impl DeferredPipeline
     pub fn shine_spot_light(&self, light: &light::SpotLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
-            use camera::Camera;
-            let bias_matrix = ::Mat4::new(
+            use crate::camera::Camera;
+            let bias_matrix = crate::Mat4::new(
                                  0.5, 0.0, 0.0, 0.0,
                                  0.0, 0.5, 0.0, 0.0,
                                  0.0, 0.0, 0.5, 0.0,

@@ -4,8 +4,8 @@ pub mod wireframe;
 pub mod shaded_mesh;
 pub mod skybox;
 
-pub use objects::shaded_vertices::ShadedVertices as ShadedVertices;
-pub use objects::shaded_edges::ShadedEdges as ShadedEdges;
-pub use objects::wireframe::Wireframe as Wireframe;
-pub use objects::shaded_mesh::ShadedMesh as ShadedMesh;
-pub use objects::skybox::Skybox as Skybox;
+pub use crate::objects::shaded_vertices::ShadedVertices as ShadedVertices;
+pub use crate::objects::shaded_edges::ShadedEdges as ShadedEdges;
+pub use crate::objects::wireframe::Wireframe as Wireframe;
+pub use crate::objects::shaded_mesh::ShadedMesh as ShadedMesh;
+pub use crate::objects::skybox::Skybox as Skybox;

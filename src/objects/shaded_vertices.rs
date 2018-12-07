@@ -1,6 +1,6 @@
 
 use gl;
-use ::*;
+use crate::*;
 
 pub struct ShadedVertices {
     program: program::Program,
@@ -15,12 +15,12 @@ pub struct ShadedVertices {
 
 impl ShadedVertices
 {
-    pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh) -> ShadedVertices
+    pub fn create(gl: &gl::Gl, mesh: &crate::mesh::DynamicMesh) -> ShadedVertices
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/vertex_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
 
-        let vertex_mesh = ::mesh_generator::create_sphere(2).unwrap();
+        let vertex_mesh = crate::mesh_generator::create_sphere(2).unwrap();
         let mut surface = surface::TriangleSurface::create(gl, &vertex_mesh).unwrap();
         surface.add_attributes(&vertex_mesh, &program, &vec!["position"]).unwrap();
 

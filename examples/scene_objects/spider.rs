@@ -1,7 +1,7 @@
 
-use gl;
+use crate::gl;
 use dust::*;
-use scene_objects::environment::Environment;
+use crate::scene_objects::environment::Environment;
 
 pub struct Spider {
     model: objects::ShadedMesh,
@@ -78,7 +78,7 @@ impl Spider
         {
             // Get world position and view direction
             let world_position = self.get_position(environment);
-            let world_view_direction = self.get_view_direction(environment);
+            let _world_view_direction = self.get_view_direction(environment);
 
             // Compute spider model matrix
             //let spider_rotation_yaw = orientation(normalize(vec3(world_view_direction.x, 0.0, world_view_direction.z)), vec3(0.0, 0.0, 1.0));

@@ -1,4 +1,4 @@
-use camera;
+use crate::camera;
 use geo_proc::*;
 
 pub fn rotate(camera: &mut camera::Camera, xrel: i32, yrel: i32)

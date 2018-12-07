@@ -1,5 +1,5 @@
 
-use gl;
+use crate::gl;
 use dust::*;
 
 pub struct Triangle {

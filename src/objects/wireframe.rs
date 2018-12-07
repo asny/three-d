@@ -1,7 +1,7 @@
 
 use gl;
-use ::*;
-use ::objects::*;
+use crate::*;
+use crate::objects::*;
 
 pub struct Wireframe {
     edges: ShadedEdges,
@@ -10,9 +10,9 @@ pub struct Wireframe {
 
 impl Wireframe
 {
-    pub fn create(gl: &gl::Gl, mesh: &::mesh::DynamicMesh, tube_radius: f32) -> Wireframe
+    pub fn create(gl: &gl::Gl, mesh: &crate::mesh::DynamicMesh, tube_radius: f32) -> Wireframe
     {
-        let mut edges = ShadedEdges::create(&gl, &mesh, tube_radius);
+        let edges = ShadedEdges::create(&gl, &mesh, tube_radius);
         let mut vertices = ShadedVertices::create(&gl, &mesh);
         vertices.scale = 2.0 * tube_radius;
 

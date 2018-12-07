@@ -1,7 +1,7 @@
 
 use gl;
-use ::*;
-use mesh::StaticMesh;
+use crate::*;
+use crate::mesh::StaticMesh;
 
 #[derive(Debug)]
 pub enum Error {

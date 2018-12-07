@@ -72,7 +72,7 @@ pub fn fetch(url: &str)
 }
 
 #[cfg(not(target_os = "emscripten"))]
-pub fn fetch(url: &str)
+pub fn fetch(_url: &str)
 {
 
 }

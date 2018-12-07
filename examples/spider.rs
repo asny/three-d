@@ -52,10 +52,10 @@ fn main() {
                                                     screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
 
     // Lights
-    let mut ambient_light = ::light::AmbientLight::new();
+    let mut ambient_light = crate::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
 
-    let mut directional_light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    let mut directional_light = crate::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
     directional_light.enable_shadows(&gl, 10.0, 10.0).unwrap();
 
     // set up event handling

@@ -1,6 +1,6 @@
-use core::program;
-use core::surface;
-use core::texture;
+use crate::core::program;
+use crate::core::surface;
+use crate::core::texture;
 use geo_proc::*;
 
 #[derive(Debug)]

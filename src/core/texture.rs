@@ -153,7 +153,7 @@ impl Texture2D
 
     pub fn get_pixels(&self, width: usize, height: usize) -> Vec<u8>
     {
-        let mut pixels = vec![0.0 as f32; width * height * 3];
+        let pixels = vec![0.0 as f32; width * height * 3];
         bind(&self.gl, self.id, self.target);
         unsafe {
             self.gl.GetTexImage(self.target, 0, gl::RGB, gl::FLOAT, pixels.as_ptr() as *mut gl::types::GLvoid);

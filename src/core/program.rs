@@ -1,9 +1,9 @@
 use gl;
 use std;
 
-use core::shader;
-use core::state;
-use core::buffer;
+use crate::core::shader;
+use crate::core::state;
+use crate::core::buffer;
 
 use geo_proc::types::*;
 

@@ -1,6 +1,6 @@
 use gl;
 use std;
-use loader;
+use crate::loader;
 use std::ffi::{CString};
 
 #[derive(Debug)]

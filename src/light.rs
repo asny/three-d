@@ -1,6 +1,6 @@
-use core::rendertarget::{self, DepthRenderTarget};
+use crate::core::rendertarget::{self, DepthRenderTarget};
 use gl;
-use camera::{self, Camera};
+use crate::camera::{self, Camera};
 use std;
 use geo_proc::*;
 
@@ -82,7 +82,7 @@ impl DirectionalLight
     {
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
-            use rendertarget::Rendertarget;
+            use crate::rendertarget::Rendertarget;
             rendertarget.bind();
             rendertarget.clear();
             return Ok(())
@@ -165,7 +165,7 @@ impl SpotLight
     {
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
-            use rendertarget::Rendertarget;
+            use crate::rendertarget::Rendertarget;
             rendertarget.bind();
             rendertarget.clear();
             return Ok(())
