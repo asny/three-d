@@ -1,7 +1,5 @@
-extern crate rand;
 
-use crate::gl;
-use self::rand::prelude::*;
+use rand::prelude::*;
 use dust::*;
 use crate::scene_objects::terrain::*;
 

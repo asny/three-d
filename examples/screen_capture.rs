@@ -1,5 +1,3 @@
-extern crate sdl2;
-extern crate dust;
 
 mod scene_objects;
 

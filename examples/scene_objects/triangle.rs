@@ -1,5 +1,5 @@
 
-use crate::*;
+use dust::*;
 
 pub struct Triangle {
     program: program::Program,

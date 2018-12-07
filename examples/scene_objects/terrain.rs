@@ -1,8 +1,6 @@
-extern crate noise;
 
-use crate::gl;
+use noise::{NoiseFn, Point2, SuperSimplex};
 use dust::*;
-use self::noise::{NoiseFn, Point2, SuperSimplex};
 
 pub const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 8;
