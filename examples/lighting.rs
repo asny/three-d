@@ -102,7 +102,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
         render_scene(&camera);
-        plane.render(&(Mat4::new_translation(&vec3(0.0, -1.0, 0.0)) * Mat4::new_scaling(10.0)), &camera);
+        plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0)) * Mat4::from_scale(10.0)), &camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
