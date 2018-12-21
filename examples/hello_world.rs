@@ -40,7 +40,7 @@ fn main() {
 
     // Camera
     let camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 10.0);
+                                                degrees(45.0), screen.aspect(), 0.1, 10.0);
 
     let model = scene_objects::triangle::Triangle::create(&gl).unwrap();
 

@@ -145,7 +145,7 @@ impl SpotLight
         self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
         let up = self.compute_up_direction();
         self.shadow_camera = Some(camera::PerspectiveCamera::new(self.position,self.position + self.direction, up,
-                                                                 1.0, 2.0 * self.cutoff, 0.1, depth));
+                                                                 degrees(45.0), 2.0 * self.cutoff, 0.1, depth));
         Ok(())
     }
 

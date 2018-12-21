@@ -46,8 +46,8 @@ fn main() {
     // Camera
     let mut camera = camera::PerspectiveCamera::new(spider.get_position(&environment),
                                                     spider.get_position(&environment) + spider.get_view_direction(&environment),
-                                                    spider.get_up_direction(),
-                                                    screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
+                                                    spider.get_up_direction(), degrees(45.0),
+                                                    screen.aspect(), 0.1, 1000.0);
 
     // Lights
     let mut ambient_light = crate::light::AmbientLight::new();

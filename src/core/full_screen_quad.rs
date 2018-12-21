@@ -22,7 +22,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                 ];
                 let attributes = vec![Attribute::new("position", 3, positions),
                                       Attribute::new("uv_coordinate", 2, uv_coordinates)];
-                let mut mesh = StaticMesh::create((0..3).collect(), attributes).unwrap();
+                let mesh = StaticMesh::create((0..3).collect(), attributes).unwrap();
 
                 let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
                 model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position"]).unwrap();

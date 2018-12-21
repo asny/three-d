@@ -40,7 +40,7 @@ fn main() {
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                    screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
+                                                    degrees(45.0), screen.aspect(), 0.1, 1000.0);
 
     let mesh = crate::mesh_loader::load_obj("../Dust/examples/assets/models/suzanne.obj").unwrap().first().unwrap().clone();
     let mut monkey = objects::ShadedMesh::create(&gl, &mesh).unwrap();

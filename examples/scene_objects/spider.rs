@@ -62,13 +62,13 @@ impl Spider
         }
         if self.is_rotating_left
         {
-            let m = Mat4::from_angle_y( Deg(time * ANGULAR_SPEED) );
+            let m = Mat4::from_angle_y( radians(time * ANGULAR_SPEED) );
             let v = m * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
             self.view_direction = vec3(v.x, v.y, v.z);
         }
         if self.is_rotating_right
         {
-            let m = Mat4::from_angle_y( Deg(- time * ANGULAR_SPEED) );
+            let m = Mat4::from_angle_y( radians(- time * ANGULAR_SPEED) );
             let v = m * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
             self.view_direction = vec3(v.x, v.y, v.z);
         }
