@@ -30,5 +30,5 @@ pub use crate::camera::Camera;
 pub use crate::texture::Texture;
 pub use crate::core::*;
 pub use crate::types::*;
-pub use crate::models as mesh_generator;
+pub use crate::mesh_generator;
 pub use crate::mesh_loader;
