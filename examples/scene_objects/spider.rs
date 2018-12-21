@@ -62,13 +62,13 @@ impl Spider
         }
         if self.is_rotating_left
         {
-            let m = Mat4::new_rotation( time * ANGULAR_SPEED * vec3(0.0, 1.0, 0.0) );
+            let m = Mat4::from_angle_y( Deg(time * ANGULAR_SPEED) );
             let v = m * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
             self.view_direction = vec3(v.x, v.y, v.z);
         }
         if self.is_rotating_right
         {
-            let m = Mat4::new_rotation( - time * ANGULAR_SPEED * vec3(0.0, 1.0, 0.0) );
+            let m = Mat4::from_angle_y( Deg(- time * ANGULAR_SPEED) );
             let v = m * vec4(self.view_direction.x, self.view_direction.y, self.view_direction.z, 1.0);
             self.view_direction = vec3(v.x, v.y, v.z);
         }
@@ -82,7 +82,7 @@ impl Spider
             // Compute spider model matrix
             //let spider_rotation_yaw = orientation(normalize(vec3(world_view_direction.x, 0.0, world_view_direction.z)), vec3(0.0, 0.0, 1.0));
             //let spider_rotation_pitch = orientation(normalize(vec3(0.0, world_view_direction.y, 1.0)), vec3(0.0, 0.0, 1.0));
-            spider_translation = Mat4::new_translation(&world_position);
+            spider_translation = Mat4::from_translation(world_position);
         }
         self.local2world = spider_translation;// * spider_rotation_yaw * spider_rotation_pitch;
     }

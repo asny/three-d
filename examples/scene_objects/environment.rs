@@ -42,7 +42,7 @@ impl Environment {
 
     pub fn set_position(&mut self, position: &Vec3)
     {
-        if (*self.terrain.get_center() - *position).norm() > 10.0
+        if (*self.terrain.get_center() - *position).magnitude() > 10.0
         {
             self.terrain.set_center(position);
             self.water.set_center(position);

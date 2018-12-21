@@ -5,9 +5,10 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-geo-proc = { git = "https://github.com/asny/geo-proc" }
 gl = { path = "lib/gl" }
 image = "0.19.0"
+cgmath = "0.16.1"
+tobj = "0.1.6"
 
 [dev-dependencies]
 sdl2 = "0.31.0"

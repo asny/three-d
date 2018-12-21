@@ -10,7 +10,7 @@ pub struct Wireframe {
 
 impl Wireframe
 {
-    pub fn create(gl: &gl::Gl, mesh: &crate::mesh::DynamicMesh, tube_radius: f32) -> Wireframe
+    pub fn create(gl: &gl::Gl, mesh: &geo_proc::dynamic_mesh::DynamicMesh, tube_radius: f32) -> Wireframe
     {
         let edges = ShadedEdges::create(&gl, &mesh, tube_radius);
         let mut vertices = ShadedVertices::create(&gl, &mesh);

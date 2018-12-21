@@ -1,6 +1,5 @@
 use gl;
-use std;
-use crate::mesh::StaticMesh;
+use crate::static_mesh::StaticMesh;
 use crate::core::buffer;
 use crate::core::program;
 

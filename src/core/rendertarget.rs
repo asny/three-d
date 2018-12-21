@@ -1,5 +1,4 @@
 use gl;
-use std;
 use crate::core::state;
 use crate::core::texture;
 

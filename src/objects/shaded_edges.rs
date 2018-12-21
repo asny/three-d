@@ -14,7 +14,7 @@ pub struct ShadedEdges {
 
 impl ShadedEdges
 {
-    pub fn create(gl: &gl::Gl, mesh: &crate::mesh::DynamicMesh, tube_radius: f32) -> ShadedEdges
+    pub fn create(gl: &gl::Gl, mesh: &geo_proc::dynamic_mesh::DynamicMesh, tube_radius: f32) -> ShadedEdges
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();

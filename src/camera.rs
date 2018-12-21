@@ -1,4 +1,4 @@
-use geo_proc::*;
+use crate::*;
 
 pub trait Camera
 {
@@ -25,15 +25,15 @@ impl BaseCamera
         self.position = position;
         self.target = target;
         let dir = (target - position).normalize();
-        self.up = dir.cross(&up.normalize().cross(&dir));
-        self.view = Mat4::look_at_rh(&Point::from_coordinates(self.position), &Point::from_coordinates(self.target), &self.up);
+        self.up = dir.cross(up.normalize().cross(dir));
+        self.view = Mat4::look_at(Point::from_vec(self.position), Point::from_vec(self.target), self.up);
     }
 
     pub fn mirror_in_xz_plane(&mut self)
     {
-        self.view[(0,1)] = -self.view[(0,1)];
-        self.view[(1,1)] = -self.view[(1,1)];
-        self.view[(2,1)] = -self.view[(2,1)];
+        self.view[0][1] = -self.view[0][1];
+        self.view[1][1] = -self.view[1][1];
+        self.view[2][1] = -self.view[2][1];
     }
 }
 
@@ -55,7 +55,7 @@ impl PerspectiveCamera
     pub fn set_extent(&mut self, aspect: f32, fovy: f32, z_near: f32, z_far: f32)
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
-        self.projection = Mat4::new_perspective(aspect, fovy, z_near, z_far);
+        self.projection = perspective(Deg(fovy), aspect, z_near, z_far);
     }
 }
 
@@ -114,7 +114,7 @@ impl OrthographicCamera
 
     fn set_extent(&mut self, width: f32, height: f32, depth: f32)
     {
-        self.projection = Mat4::new_orthographic(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, -0.5 * depth, 0.5 * depth);
+        self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, -0.5 * depth, 0.5 * depth);
     }
 }
 

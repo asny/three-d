@@ -10,6 +10,7 @@ use crate::core::state;
 use crate::core::texture::{self,Texture};
 use crate::core::program;
 use crate::core::full_screen_quad;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {

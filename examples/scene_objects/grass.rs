@@ -35,7 +35,7 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mesh = mesh::StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
+        let mesh = core::static_mesh::StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass",
                                                       "examples/assets/shaders/grass").unwrap();

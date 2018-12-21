@@ -1,5 +1,4 @@
 use gl;
-use std;
 use image;
 use image::GenericImage;
 

@@ -1,14 +1,14 @@
 use crate::core::program;
 use crate::core::surface;
 use crate::core::texture;
-use geo_proc::*;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
     Program(program::Error),
     Model(surface::Error),
     Texture(texture::Error),
-    Mesh(mesh::Error)
+    Mesh(static_mesh::Error)
 }
 
 impl From<program::Error> for Error {
@@ -29,8 +29,8 @@ impl From<texture::Error> for Error {
     }
 }
 
-impl From<mesh::Error> for Error {
-    fn from(other: mesh::Error) -> Self {
+impl From<static_mesh::Error> for Error {
+    fn from(other: static_mesh::Error) -> Self {
         Error::Mesh(other)
     }
 }

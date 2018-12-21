@@ -1,6 +1,5 @@
 use gl;
-use geo_proc::mesh::Attribute;
-use geo_proc::static_mesh::StaticMesh;
+use crate::static_mesh::{Attribute, StaticMesh};
 use crate::core::surface;
 use crate::core::program;
 

@@ -6,3 +6,7 @@ mod shader;
 pub mod state;
 pub mod texture;
 pub mod surface;
+pub mod static_mesh;
+pub mod models;
+pub mod types;
+pub mod mesh_loader;

@@ -1,8 +1,7 @@
 use crate::core::rendertarget::{self, DepthRenderTarget};
 use gl;
 use crate::camera::{self, Camera};
-use std;
-use geo_proc::*;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -69,12 +68,12 @@ impl DirectionalLight
 
     fn compute_up_direction(&self) -> Vec3
     {
-        if vec3(1.0, 0.0, 0.0).dot(&self.direction).abs() > 0.9
+        if vec3(1.0, 0.0, 0.0).dot(self.direction).abs() > 0.9
         {
-            (vec3(0.0, 1.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(0.0, 1.0, 0.0).cross(self.direction)).normalize()
         }
         else {
-            (vec3(1.0, 0.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(1.0, 0.0, 0.0).cross(self.direction)).normalize()
         }
     }
 
@@ -152,12 +151,12 @@ impl SpotLight
 
     fn compute_up_direction(&self) -> Vec3
     {
-        if vec3(1.0, 0.0, 0.0).dot(&self.direction).abs() > 0.9
+        if vec3(1.0, 0.0, 0.0).dot(self.direction).abs() > 0.9
         {
-            (vec3(0.0, 1.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(0.0, 1.0, 0.0).cross(self.direction)).normalize()
         }
         else {
-            (vec3(1.0, 0.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(1.0, 0.0, 0.0).cross(self.direction)).normalize()
         }
     }
 

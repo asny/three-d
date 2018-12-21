@@ -24,7 +24,7 @@ impl Terrain
     pub fn create(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
-        let mesh = mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
+        let mesh = core::static_mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
@@ -61,7 +61,7 @@ impl Terrain
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
         self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose())?;
+        self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
 
         self.model.render()?;
 
