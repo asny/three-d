@@ -1,5 +1,5 @@
 use gl;
-use crate::static_mesh::{Attribute, StaticMesh};
+use crate::static_mesh::{Attribute};
 use crate::core::surface;
 use crate::core::program;
 
@@ -10,6 +10,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
         match FULL_SCREEN__QUAD
         {
             None => {
+                let indices: Vec<u32> = (0..3).collect();
                 let positions: Vec<f32> = vec![
                     -3.0, -1.0, 0.0,
                     3.0, -1.0, 0.0,
@@ -22,10 +23,9 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                 ];
                 let attributes = vec![Attribute::new("position", 3, positions),
                                       Attribute::new("uv_coordinate", 2, uv_coordinates)];
-                let mesh = StaticMesh::create((0..3).collect(), attributes).unwrap();
 
-                let mut model = surface::TriangleSurface::create(gl, &mesh.indices()).unwrap();
-                model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position"]).unwrap();
+                let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+                model.add_attributes(&program, &attributes).unwrap();
                 model.render().unwrap();
                 FULL_SCREEN__QUAD = Some(model);
             },

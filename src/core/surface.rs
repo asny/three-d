@@ -1,5 +1,5 @@
 use gl;
-use crate::static_mesh::StaticMesh;
+use crate::static_mesh::Attribute;
 use crate::core::buffer;
 use crate::core::program;
 
@@ -45,13 +45,13 @@ impl TriangleSurface
         Ok(model)
     }
 
-    pub fn add_attributes(&mut self, mesh: &StaticMesh, program: &program::Program, attribute_names: &Vec<&str>) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&mut self, program: &program::Program, attributes: &[Attribute]) -> Result<buffer::VertexBuffer, Error>
     {
         // Create buffer
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        buffer.fill_from_attributes(mesh, attribute_names)?;
+        buffer.fill_from_attributes(attributes)?;
 
         // Link data and program
         program.setup_attributes(&buffer)?;

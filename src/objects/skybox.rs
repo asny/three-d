@@ -1,5 +1,6 @@
 use gl;
 use crate::*;
+use crate::static_mesh::Attribute;
 
 pub struct Skybox {
     program: program::Program,
@@ -11,11 +12,14 @@ impl Skybox
 {
     pub fn create(gl: &gl::Gl, texture: texture::Texture3D) -> Skybox
     {
-        let mesh = mesh_generator::create_cube().unwrap();
         let program = program::Program::from_resource(gl, "../Dust/src/objects/shaders/skybox",
                                                       "../Dust/src/objects/shaders/skybox").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh.indices()).unwrap();
-        model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
+
+        let positions = get_positions();
+        let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
+        let attributes = vec![Attribute::new("position", 3, positions)];
+        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        model.add_attributes(&program, &attributes).unwrap();
 
         Skybox { program, model, texture }
     }
@@ -41,4 +45,51 @@ impl Skybox
     {
         &self.texture
     }
+}
+
+fn get_positions() -> Vec<f32>
+{
+    vec![
+        1.0, 1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, -1.0,
+
+        -1.0, -1.0, -1.0,
+        1.0, -1.0, -1.0,
+        1.0, -1.0, 1.0,
+        1.0, -1.0, 1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, -1.0, -1.0,
+
+        1.0, -1.0, -1.0,
+        -1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, -1.0,
+        -1.0, -1.0, -1.0,
+
+        -1.0, -1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, 1.0,
+
+        1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, -1.0, -1.0,
+
+        -1.0, 1.0, -1.0,
+        -1.0, -1.0, -1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, -1.0
+    ]
 }
