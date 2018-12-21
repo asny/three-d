@@ -40,9 +40,8 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), screen.aspect(), 0.1, 100.0);
 
-    let mut cube = mesh_generator::create_cube().unwrap().to_dynamic();
-    cube.update_vertex_normals();
-    let mut textured_box = objects::ShadedMesh::create(&gl, &cube.to_static()).unwrap();
+    let mut cube = mesh_generator::create_unconnected_cube().unwrap();
+    let mut textured_box = objects::ShadedMesh::create(&gl, &cube).unwrap();
     textured_box.texture = Some(texture::Texture2D::new_from_file(&gl, "examples/assets/textures/test_texture.jpg").unwrap());
 
     let texture3d = texture::Texture3D::new_from_files(&gl, "examples/assets/textures/skybox_evening/",
