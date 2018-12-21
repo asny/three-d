@@ -39,7 +39,7 @@ impl Grass
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass",
                                                       "examples/assets/shaders/grass").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh.indices()).unwrap();
         model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
 
         let position_buffer = buffer::VertexBuffer::create(gl).unwrap();

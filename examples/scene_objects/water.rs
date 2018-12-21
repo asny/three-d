@@ -24,7 +24,7 @@ impl Water
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water",
                                                       "examples/assets/shaders/water").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh.indices()).unwrap();
         let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate", "position"]).unwrap();
 
         let foam_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();

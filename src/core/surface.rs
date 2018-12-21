@@ -29,14 +29,13 @@ pub struct TriangleSurface {
 
 impl TriangleSurface
 {
-    pub fn create(gl: &gl::Gl, mesh: &StaticMesh) -> Result<TriangleSurface, Error>
+    pub fn create(gl: &gl::Gl, indices: &[u32]) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
 
-        let indices = mesh.indices();
         let model = TriangleSurface { gl: gl.clone(), id, count: indices.len() };
         model.bind();
 

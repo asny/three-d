@@ -14,7 +14,7 @@ impl Skybox
         let mesh = mesh_generator::create_cube().unwrap();
         let program = program::Program::from_resource(gl, "../Dust/src/objects/shaders/skybox",
                                                       "../Dust/src/objects/shaders/skybox").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &mesh.indices()).unwrap();
         model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
 
         Skybox { program, model, texture }

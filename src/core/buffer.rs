@@ -112,7 +112,7 @@ impl ElementBuffer
         Ok(buffer)
     }
 
-    pub fn fill_with(&self, data: &Vec<u32>)
+    pub fn fill_with(&self, data: &[u32])
     {
         bind(&self.gl, self.id, gl::ELEMENT_ARRAY_BUFFER);
         unsafe {

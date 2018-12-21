@@ -46,7 +46,7 @@ impl ShadedMesh
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
                                                       "../Dust/src/objects/shaders/shaded")?;
-        let mut model = surface::TriangleSurface::create(gl, mesh)?;
+        let mut model = surface::TriangleSurface::create(gl, mesh.indices())?;
         let buffer = model.add_attributes(mesh, &program, &vec!["position", "normal"])?;
 
         Ok(ShadedMesh { gl: gl.clone(), program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
@@ -60,7 +60,7 @@ impl ShadedMesh
 
     pub fn update_mesh(&mut self, mesh: &StaticMesh) -> Result<(), Error>
     {
-        self.model = surface::TriangleSurface::create(&self.gl, mesh)?;
+        self.model = surface::TriangleSurface::create(&self.gl, mesh.indices())?;
         self.buffer = self.model.add_attributes(mesh, &self.program, &vec!["position", "normal"])?;
         Ok(())
     }
