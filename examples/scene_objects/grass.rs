@@ -35,12 +35,10 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mesh = core::static_mesh::StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
-
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass",
                                                       "examples/assets/shaders/grass").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh.indices()).unwrap();
-        model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
 
         let position_buffer = buffer::VertexBuffer::create(gl).unwrap();
 

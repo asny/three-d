@@ -24,14 +24,13 @@ impl Terrain
     pub fn create(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
-        let mesh = core::static_mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
-                                                      "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
-                                                      "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain",
                                                       "examples/assets/shaders/terrain").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh.indices()).unwrap();
-        let buffer = model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position", "normal"]).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
+        let buffer = model.add_attributes(&program,&att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
+                                                      "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
+                                                      "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
         let ground_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
         let lake_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/bottom.png").unwrap();

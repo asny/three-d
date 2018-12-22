@@ -41,7 +41,9 @@ fn main() {
                                                     degrees(45.0), screen.aspect(), 0.1, 100.0);
 
     let mut cube = mesh_generator::create_unconnected_cube().unwrap();
-    let mut textured_box = objects::ShadedMesh::create(&gl, &cube).unwrap();
+    let mut textured_box = objects::ShadedMesh::create(&gl, &cube.indices(),
+                                                       &att!["position"=> (cube.attribute("position").unwrap().data.clone(), 3),
+                                                                    "normal"=> (cube.attribute("normal").unwrap().data.clone(), 3)]).unwrap();
     textured_box.texture = Some(texture::Texture2D::new_from_file(&gl, "examples/assets/textures/test_texture.jpg").unwrap());
 
     let texture3d = texture::Texture3D::new_from_files(&gl, "examples/assets/textures/skybox_evening/",

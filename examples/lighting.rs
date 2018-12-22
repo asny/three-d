@@ -44,13 +44,13 @@ fn main() {
 
     let mesh = crate::mesh_loader::load_obj("../Dust/examples/assets/models/suzanne.obj").unwrap().first().unwrap().clone();
 
-    let attributes = vec![dust::static_mesh::Attribute::new("position", 3, mesh.attribute("position").unwrap().data),
-        dust::static_mesh::Attribute::new("normal", 3, mesh.attribute("normal").unwrap().data)];
+    let attributes = vec![dust::static_mesh::Attribute::new("position", 3, mesh.attribute("position").unwrap().data.clone()),
+        dust::static_mesh::Attribute::new("normal", 3, mesh.attribute("normal").unwrap().data.clone())];
     let mut monkey = objects::ShadedMesh::create(&gl, &mesh.indices(), &attributes).unwrap();
 
     let plane_mesh = mesh_generator::create_plane().unwrap();
-    let plane_attributes = vec![dust::static_mesh::Attribute::new("position", 3, plane_mesh.attribute("position").unwrap().data),
-        dust::static_mesh::Attribute::new("normal", 3, plane_mesh.attribute("normal").unwrap().data)];
+    let plane_attributes = vec![dust::static_mesh::Attribute::new("position", 3, plane_mesh.attribute("position").unwrap().data.clone()),
+        dust::static_mesh::Attribute::new("normal", 3, plane_mesh.attribute("normal").unwrap().data.clone())];
     let plane = crate::objects::ShadedMesh::create(&gl, &plane_mesh.indices(), &plane_attributes).unwrap();
 
     let mut ambient_light = crate::light::AmbientLight::new();
