@@ -1,10 +1,10 @@
 use gl;
 use crate::*;
-use crate::static_mesh::Attribute;
+use crate::surface::*;
 
 pub struct Skybox {
     program: program::Program,
-    model: surface::TriangleSurface,
+    model: TriangleSurface,
     texture: texture::Texture3D
 }
 
@@ -18,7 +18,7 @@ impl Skybox
         let positions = get_positions();
         let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
         let attributes = vec![Attribute::new("position", 3, positions)];
-        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        let mut model = TriangleSurface::create(gl, &indices).unwrap();
         model.add_attributes(&program, &attributes).unwrap();
 
         Skybox { program, model, texture }

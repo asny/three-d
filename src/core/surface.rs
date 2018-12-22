@@ -1,7 +1,7 @@
 use gl;
-use crate::static_mesh::Attribute;
 use crate::core::buffer;
 use crate::core::program;
+pub use crate::core::buffer::Attribute;
 
 #[derive(Debug)]
 pub enum Error {

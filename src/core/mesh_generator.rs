@@ -1,5 +1,5 @@
 
-use crate::static_mesh::*;
+use crate::static_mesh::{StaticMesh, Error};
 use crate::*;
 
 pub fn create_icosahedron() -> Result<StaticMesh, Error>

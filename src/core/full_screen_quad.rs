@@ -1,12 +1,11 @@
 use gl;
-use crate::static_mesh::{Attribute};
-use crate::core::surface;
-use crate::core::program;
+use crate::surface::*;
+use crate::program;
 
 pub fn render(gl: &gl::Gl, program: &program::Program)
 {
     unsafe {
-        static mut FULL_SCREEN__QUAD: Option<surface::TriangleSurface> = None;
+        static mut FULL_SCREEN__QUAD: Option<TriangleSurface> = None;
         match FULL_SCREEN__QUAD
         {
             None => {
@@ -24,7 +23,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                 let attributes = vec![Attribute::new("position", 3, positions),
                                       Attribute::new("uv_coordinate", 2, uv_coordinates)];
 
-                let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+                let mut model = TriangleSurface::create(gl, &indices).unwrap();
                 model.add_attributes(&program, &attributes).unwrap();
                 model.render().unwrap();
                 FULL_SCREEN__QUAD = Some(model);

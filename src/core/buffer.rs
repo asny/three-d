@@ -1,10 +1,23 @@
 use gl;
-use crate::static_mesh::Attribute;
 pub use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
     AttributeNotFound {message: String}
+}
+
+#[derive(Clone, Debug)]
+pub struct Attribute {
+    pub name: String,
+    pub no_components: usize,
+    pub data: Vec<f32>
+}
+
+impl Attribute {
+    pub fn new(name: &str, no_components: usize, data: Vec<f32>) -> Attribute
+    {
+        Attribute {name: name.to_string(), no_components, data}
+    }
 }
 
 pub struct Att {
