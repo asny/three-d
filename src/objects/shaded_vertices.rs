@@ -15,29 +15,35 @@ pub struct ShadedVertices {
 
 impl ShadedVertices
 {
-    pub fn create(gl: &gl::Gl, mesh: &geo_proc::dynamic_mesh::DynamicMesh) -> ShadedVertices
+    pub fn new(gl: &gl::Gl, positions: &[f32]) -> ShadedVertices
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/vertex_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
 
-        let vertex_mesh = crate::mesh_generator::create_icosahedron().unwrap();
-        let mut surface = surface::TriangleSurface::create(gl, &vertex_mesh).unwrap();
-        surface.add_attributes(&vertex_mesh, &program, &vec!["position"]).unwrap();
+        let x = 0.525731112119133606;
+        let z = 0.850650808352039932;
+
+        let ball_positions = vec!(
+           -x, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0, -z,
+           0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0, -z, -x,
+           z, x, 0.0, -z, x, 0.0, z, -x, 0.0, -z, -x, 0.0
+        );
+        let ball_indices = vec!(
+           0,1,4, 0,4,9, 9,4,5, 4,8,5, 4,1,8,
+           8,1,10, 8,10,3, 5,8,3, 5,3,2, 2,3,7,
+           7,3,10, 7,10,6, 7,6,11, 11,6,0, 0,6,1,
+           6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
+        );
+        let mut surface = surface::TriangleSurface::create(gl, &ball_indices).unwrap();
+        surface.add_attributes(&program, &att!["position" => (ball_positions, 3)]).unwrap();
 
         let mut instance_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
         program.set_used();
         program.setup_attribute("translation", 3, 3, 0, 1).unwrap();
+        instance_buffer.fill_with(positions);
 
-        let mut data = Vec::new();
-        for vertex_id in mesh.vertex_iterator() {
-            for val in mesh.position(&vertex_id).iter() {
-                data.push(*val);
-            }
-        }
-        instance_buffer.fill_with(data);
-
-        ShadedVertices { program, surface, no_vertices: mesh.no_vertices(), color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
+        ShadedVertices { program, surface, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
     }
 
     pub fn render(&self, camera: &camera::Camera)

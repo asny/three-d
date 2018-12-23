@@ -86,11 +86,11 @@ impl VertexBuffer
             offset = offset + no_components;
         }
 
-        self.fill_with(data);
+        self.fill_with(&data);
         Ok(())
     }
 
-    pub fn fill_with(&mut self, data: Vec<f32>)
+    pub fn fill_with(&mut self, data: &[f32])
     {
         self.bind();
         unsafe {

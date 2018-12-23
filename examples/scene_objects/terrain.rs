@@ -80,7 +80,7 @@ impl Terrain
         self.update_normals(&mut data, 5, STRIDE);
         self.update_uv_coordinates(&mut data, 0, STRIDE);
 
-        self.buffer.fill_with(data);
+        self.buffer.fill_with(&data);
     }
 
     fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
