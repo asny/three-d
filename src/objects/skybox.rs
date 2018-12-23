@@ -17,9 +17,8 @@ impl Skybox
 
         let positions = get_positions();
         let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
-        let attributes = vec![Attribute::new("position", 3, positions)];
         let mut model = TriangleSurface::create(gl, &indices).unwrap();
-        model.add_attributes(&program, &attributes).unwrap();
+        model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
 
         Skybox { program, model, texture }
     }

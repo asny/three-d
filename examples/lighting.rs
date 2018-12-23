@@ -44,14 +44,27 @@ fn main() {
 
     let mesh = crate::mesh_loader::load_obj("../Dust/examples/assets/models/suzanne.obj").unwrap().first().unwrap().clone();
 
-    let attributes = vec![dust::static_mesh::Attribute::new("position", 3, mesh.attribute("position").unwrap().data.clone()),
-        dust::static_mesh::Attribute::new("normal", 3, mesh.attribute("normal").unwrap().data.clone())];
+    let attributes = att!["position" => (mesh.attribute("position").unwrap().data.clone(), 3),
+        "normal" => (mesh.attribute("normal").unwrap().data.clone(), 3)];
     let mut monkey = objects::ShadedMesh::create(&gl, &mesh.indices(), &attributes).unwrap();
 
-    let plane_mesh = mesh_generator::create_plane().unwrap();
-    let plane_attributes = vec![dust::static_mesh::Attribute::new("position", 3, plane_mesh.attribute("position").unwrap().data.clone()),
-        dust::static_mesh::Attribute::new("normal", 3, plane_mesh.attribute("normal").unwrap().data.clone())];
-    let plane = crate::objects::ShadedMesh::create(&gl, &plane_mesh.indices(), &plane_attributes).unwrap();
+    let plane_positions: Vec<f32> = vec![
+        -1.0, 0.0, -1.0,
+        1.0, 0.0, -1.0,
+        1.0, 0.0, 1.0,
+        -1.0, 0.0, 1.0
+    ];
+    let plane_normals: Vec<f32> = vec![
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0
+    ];
+    let plane_indices: Vec<u32> = vec![
+        0, 2, 1,
+        0, 3, 2,
+    ];
+    let plane = crate::objects::ShadedMesh::create(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
 
     let mut ambient_light = crate::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
