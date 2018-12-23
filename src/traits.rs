@@ -7,8 +7,7 @@ use crate::*;
 pub enum Error {
     Program(program::Error),
     Model(surface::Error),
-    Texture(texture::Error),
-    Mesh(static_mesh::Error)
+    Texture(texture::Error)
 }
 
 impl From<program::Error> for Error {
@@ -26,11 +25,5 @@ impl From<surface::Error> for Error {
 impl From<texture::Error> for Error {
     fn from(other: texture::Error) -> Self {
         Error::Texture(other)
-    }
-}
-
-impl From<static_mesh::Error> for Error {
-    fn from(other: static_mesh::Error) -> Self {
-        Error::Mesh(other)
     }
 }
