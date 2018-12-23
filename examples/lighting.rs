@@ -42,11 +42,10 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), screen.aspect(), 0.1, 1000.0);
 
-    let mesh = crate::mesh_loader::load_obj("../Dust/examples/assets/models/suzanne.obj").unwrap().first().unwrap().clone();
-
-    let attributes = att!["position" => (mesh.attribute("position").unwrap().data.clone(), 3),
-        "normal" => (mesh.attribute("normal").unwrap().data.clone(), 3)];
-    let mut monkey = objects::ShadedMesh::create(&gl, &mesh.indices(), &attributes).unwrap();
+    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
+    let mesh = meshes.first().unwrap();
+    let mut monkey = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (mesh.mesh.positions.clone(), 3),
+                                                                    "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,

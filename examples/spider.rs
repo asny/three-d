@@ -41,7 +41,7 @@ fn main() {
 
     // Models
     let mut environment = scene_objects::environment::Environment::create(&gl);
-    let mut spider = scene_objects::spider::Spider::create(&gl, vec3(0.0, 0.0, 5.0), vec3(0.0, 0.0, -1.0)).unwrap();
+    let mut spider = scene_objects::spider::Spider::create(&gl, vec3(0.0, 0.0, 5.0), vec3(0.0, 0.0, -1.0));
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(spider.get_position(&environment),
