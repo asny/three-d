@@ -8,7 +8,7 @@ pub struct Triangle {
 
 impl Triangle
 {
-    pub fn create(gl: &gl::Gl) -> Result<Triangle, traits::Error>
+    pub fn create(gl: &gl::Gl) -> Triangle
     {
         let indices: Vec<u32> = (0..3).collect();
         let positions: Vec<f32> = vec![
@@ -21,18 +21,17 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color")?;
-        let mut model = surface::TriangleSurface::create(gl, &indices)?;
-        model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)])?;
+        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
 
-        Ok(Triangle { program, model })
+        Triangle { program, model }
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera)
     {
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
-        self.model.render()?;
-        Ok(())
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+        self.model.render().unwrap();
     }
 }

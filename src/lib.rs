@@ -12,7 +12,6 @@ pub mod core;
 pub mod objects;
 mod loader;
 
-pub mod traits;
 pub mod light;
 pub mod screen;
 

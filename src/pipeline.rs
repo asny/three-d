@@ -1,6 +1,5 @@
 
 use crate::camera;
-use crate::traits;
 use gl;
 use crate::light;
 use crate::screen;
@@ -16,15 +15,8 @@ use crate::*;
 pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
-    Traits(traits::Error),
     Texture(texture::Error),
     LightPassRendertargetNotAvailable {message: String}
-}
-
-impl From<traits::Error> for Error {
-    fn from(other: traits::Error) -> Self {
-        Error::Traits(other)
-    }
 }
 
 impl From<program::Error> for Error {
