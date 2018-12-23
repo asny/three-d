@@ -41,30 +41,28 @@ impl Terrain
         terrain
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera)
     {
         self.program.cull(state::CullType::BACK);
         self.program.depth_write(true);
         self.program.depth_test(state::DepthTestType::LEQUAL);
 
         self.ground_texture.bind(0);
-        self.program.add_uniform_int("groundTexture", &0)?;
+        self.program.add_uniform_int("groundTexture", &0).unwrap();
 
         self.lake_texture.bind(1);
-        self.program.add_uniform_int("lakeTexture", &1)?;
+        self.program.add_uniform_int("lakeTexture", &1).unwrap();
 
         self.noise_texture.bind(2);
-        self.program.add_uniform_int("noiseTexture", &2)?;
+        self.program.add_uniform_int("noiseTexture", &2).unwrap();
 
         let transformation = Mat4::identity();
-        self.program.add_uniform_mat4("modelMatrix", &transformation)?;
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+        self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
-        self.model.render()?;
-
-        Ok(())
+        self.model.render().unwrap();
     }
 
     pub fn get_center(&self) -> &Vec3

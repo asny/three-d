@@ -129,7 +129,7 @@ fn main() {
         // Draw
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
-        environment.render_opague(&camera).unwrap();
+        environment.render_opague(&camera);
         spider.render(&camera);
 
         // Light pass
@@ -139,7 +139,7 @@ fn main() {
         renderer.copy_to_screen().unwrap();
 
         // After effects
-        environment.render_transparent(time, &camera, &screen, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
+        environment.render_transparent(time, &camera, &screen, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
 
         window.gl_swap_window();
     };
