@@ -20,8 +20,8 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
                     2.0, 0.0,
                     0.5, 1.5
                 ];
-                let attributes = vec![Attribute::new("position", 3, positions),
-                                      Attribute::new("uv_coordinate", 2, uv_coordinates)];
+                let attributes = vec![Attribute::new("position", 3, positions).unwrap(),
+                                      Attribute::new("uv_coordinate", 2, uv_coordinates).unwrap()];
 
                 let mut model = TriangleSurface::create(gl, &indices).unwrap();
                 model.add_attributes(&program, &attributes).unwrap();

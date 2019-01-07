@@ -3,7 +3,8 @@ pub use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
-    AttributeNotFound {message: String}
+    AttributeNotFound {message: String},
+    AttributeHasZeroLength {message: String}
 }
 
 #[derive(Clone, Debug)]
@@ -14,9 +15,10 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    pub fn new(name: &str, no_components: usize, data: Vec<f32>) -> Attribute
+    pub fn new(name: &str, no_components: usize, data: Vec<f32>) -> Result<Attribute, Error>
     {
-        Attribute {name: name.to_string(), no_components, data}
+        if data.len() == 0 { return Err(Error::AttributeHasZeroLength {message: format!("The attribute {} does not contain any data.", name)}); }
+        Ok(Attribute {name: name.to_string(), no_components, data})
     }
 }
 
