@@ -44,7 +44,7 @@ fn main() {
                                                     vec3(0.0, 1.0, 0.0),degrees(45.0), screen.aspect(), 0.1, 1000.0);
 
     // Objects
-    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/box.obj")).unwrap();
+    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
     let mesh = meshes.first().unwrap();
     let mut positions = mesh.mesh.positions.clone();
     for i in 0..positions.len() {
