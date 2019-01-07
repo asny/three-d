@@ -29,7 +29,6 @@ impl From<surface::Error> for Error {
 }
 
 pub struct ShadedMesh {
-    gl: gl::Gl,
     program: program::Program,
     model: surface::TriangleSurface,
     buffer: buffer::VertexBuffer,
@@ -49,7 +48,7 @@ impl ShadedMesh
         let mut model = surface::TriangleSurface::create(gl, indices)?;
         let buffer = model.add_attributes(&program, attributes)?;
 
-        Ok(ShadedMesh { gl: gl.clone(), program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+        Ok(ShadedMesh { program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
     }
 
     pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
