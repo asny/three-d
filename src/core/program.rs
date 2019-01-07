@@ -115,7 +115,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.Uniform2fv(location, 1, &data[0]);
+            self.gl.Uniform2fv(location, 1, data.as_ptr());
         }
         Ok(())
     }
@@ -124,7 +124,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.Uniform3fv(location, 1, &data[0]);
+            self.gl.Uniform3fv(location, 1, data.as_ptr());
         }
         Ok(())
     }
@@ -134,7 +134,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.Uniform4fv(location, 1, &data[0]);
+            self.gl.Uniform4fv(location, 1, data.as_ptr());
         }
         Ok(())
     }
