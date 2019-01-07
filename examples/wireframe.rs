@@ -44,13 +44,20 @@ fn main() {
                                                     vec3(0.0, 1.0, 0.0),degrees(45.0), screen.aspect(), 0.1, 1000.0);
 
     // Objects
-    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
+    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/box.obj")).unwrap();
     let mesh = meshes.first().unwrap();
-    let mut model = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (mesh.mesh.positions.clone(), 3),
-                                                                    "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
+    let mut positions = mesh.mesh.positions.clone();
+    for i in 0..positions.len() {
+        if i%3 == 1 {
+            positions[i] += 2.0;
+        }
+    }
 
-    let mut wireframe = crate::objects::Wireframe::create(&gl, &mesh.mesh.indices, &mesh.mesh.positions, 0.015);
+    let mut wireframe = crate::objects::Wireframe::create(&gl, &mesh.mesh.indices, &positions, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);
+
+    let mut model = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (positions, 3),
+                                                                    "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
