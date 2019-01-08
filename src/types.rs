@@ -40,7 +40,7 @@ pub fn rotation_matrix_from_dir_to_dir(source_dir: Vec3, target_dir: Vec3) -> Ma
         return Mat4::identity();
     }
     if c < -0.99999 {
-        return -Mat4::identity();
+        return Mat4::from_scale(-1.0);
     }
     let axis = source_dir.cross(target_dir).normalize();
 

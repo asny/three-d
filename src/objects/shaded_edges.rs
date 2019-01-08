@@ -60,9 +60,9 @@ impl ShadedEdges
 
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {
-            let i1 = indices[f] as usize;
-            let i2 = indices[f+1] as usize;
-            let i3 = indices[f+2] as usize;
+            let i1 = indices[3*f] as usize;
+            let i2 = indices[3*f+1] as usize;
+            let i3 = indices[3*f+2] as usize;
             index_pairs.insert(if i1 < i2 {(i1, i2)} else {(i2, i1)});
             index_pairs.insert(if i1 < i3 {(i1, i3)} else {(i3, i1)});
             index_pairs.insert(if i2 < i3 {(i2, i3)} else {(i3, i2)});
