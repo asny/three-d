@@ -1,11 +1,10 @@
 use gl;
-use std;
 
 use crate::core::shader;
 use crate::core::state;
 use crate::core::buffer;
 
-use geo_proc::types::*;
+use crate::types::*;
 
 use std::ffi::{CString};
 
@@ -116,7 +115,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.Uniform2fv(location, 1, &data[0]);
+            self.gl.Uniform2fv(location, 1, data.as_ptr());
         }
         Ok(())
     }
@@ -125,7 +124,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.Uniform3fv(location, 1, &data[0]);
+            self.gl.Uniform3fv(location, 1, data.as_ptr());
         }
         Ok(())
     }
@@ -135,7 +134,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.Uniform4fv(location, 1, &data[0]);
+            self.gl.Uniform4fv(location, 1, data.as_ptr());
         }
         Ok(())
     }
@@ -144,7 +143,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.UniformMatrix2fv(location, 1, gl::FALSE, &data[0]);
+            self.gl.UniformMatrix2fv(location, 1, gl::FALSE, data.as_ptr());
         }
         Ok(())
     }
@@ -153,7 +152,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.UniformMatrix3fv(location, 1, gl::FALSE, &data[0]);
+            self.gl.UniformMatrix3fv(location, 1, gl::FALSE, data.as_ptr());
         }
         Ok(())
     }
@@ -162,7 +161,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.UniformMatrix4fv(location, 1, gl::FALSE, &data[0]);
+            self.gl.UniformMatrix4fv(location, 1, gl::FALSE, data.as_ptr());
         }
         Ok(())
     }

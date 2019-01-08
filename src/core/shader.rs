@@ -1,5 +1,4 @@
 use gl;
-use std;
 use crate::loader;
 use std::ffi::{CString};
 

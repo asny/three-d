@@ -1,8 +1,7 @@
 use gl;
-use std;
-use crate::mesh::StaticMesh;
 use crate::core::buffer;
 use crate::core::program;
+pub use crate::core::buffer::Attribute;
 
 #[derive(Debug)]
 pub enum Error {
@@ -30,14 +29,13 @@ pub struct TriangleSurface {
 
 impl TriangleSurface
 {
-    pub fn create(gl: &gl::Gl, mesh: &StaticMesh) -> Result<TriangleSurface, Error>
+    pub fn create(gl: &gl::Gl, indices: &[u32]) -> Result<TriangleSurface, Error>
     {
         let mut id: gl::types::GLuint = 0;
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
 
-        let indices = mesh.indices();
         let model = TriangleSurface { gl: gl.clone(), id, count: indices.len() };
         model.bind();
 
@@ -47,13 +45,13 @@ impl TriangleSurface
         Ok(model)
     }
 
-    pub fn add_attributes(&mut self, mesh: &StaticMesh, program: &program::Program, attribute_names: &Vec<&str>) -> Result<buffer::VertexBuffer, Error>
+    pub fn add_attributes(&mut self, program: &program::Program, attributes: &[Attribute]) -> Result<buffer::VertexBuffer, Error>
     {
         // Create buffer
         let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
 
         // Add data to the buffer
-        buffer.fill_from_attributes(mesh, attribute_names)?;
+        buffer.fill_from_attributes(attributes)?;
 
         // Link data and program
         program.setup_attributes(&buffer)?;

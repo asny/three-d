@@ -1,11 +1,25 @@
 use gl;
-use std;
-use crate::mesh::StaticMesh;
 pub use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
-    AttributeNotFound {message: String}
+    AttributeNotFound {message: String},
+    AttributeHasZeroLength {message: String}
+}
+
+#[derive(Clone, Debug)]
+pub struct Attribute {
+    pub name: String,
+    pub no_components: usize,
+    pub data: Vec<f32>
+}
+
+impl Attribute {
+    pub fn new(name: &str, no_components: usize, data: Vec<f32>) -> Result<Attribute, Error>
+    {
+        if data.len() == 0 { return Err(Error::AttributeHasZeroLength {message: format!("The attribute {} does not contain any data.", name)}); }
+        Ok(Attribute {name: name.to_string(), no_components, data})
+    }
 }
 
 pub struct Att {
@@ -48,24 +62,22 @@ impl VertexBuffer
         self.attributes_infos.iter()
     }
 
-    pub fn fill_from_attributes(&mut self, mesh: &StaticMesh, attribute_names: &Vec<&str>) -> Result<(), Error>
+    pub fn fill_from_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
     {
         self.attributes_infos = Vec::new();
+        let mut no_vertices = 0;
         self.stride = 0;
-        for attribute_name in attribute_names {
-            self.stride = self.stride + mesh.attribute(attribute_name).ok_or(
-                    Error::AttributeNotFound {message: format!("The attribute {} is needed for rendering but is not found in mesh.", attribute_name)}
-                )?.no_components;
+        for attribute in attributes {
+            self.stride = self.stride + attribute.no_components;
+            no_vertices = attribute.data.len() / attribute.no_components;
         }
 
-        let no_vertices = mesh.no_vertices();
         let mut data: Vec<f32> = vec![0.0; self.stride * no_vertices];
         let mut offset = 0;
-        for name in attribute_names.iter()
+        for attribute in attributes
         {
-            let attribute = mesh.attribute(name).unwrap();
             let no_components = attribute.no_components;
-            self.attributes_infos.push(Att {name: name.to_string(), no_components});
+            self.attributes_infos.push(Att {name: attribute.name.clone(), no_components});
             let mut index = offset;
             for i in 0..no_vertices {
                 for j in 0..no_components {
@@ -76,11 +88,11 @@ impl VertexBuffer
             offset = offset + no_components;
         }
 
-        self.fill_with(data);
+        self.fill_with(&data);
         Ok(())
     }
 
-    pub fn fill_with(&mut self, data: Vec<f32>)
+    pub fn fill_with(&mut self, data: &[f32])
     {
         self.bind();
         unsafe {
@@ -113,7 +125,7 @@ impl ElementBuffer
         Ok(buffer)
     }
 
-    pub fn fill_with(&self, data: &Vec<u32>)
+    pub fn fill_with(&self, data: &[u32])
     {
         bind(&self.gl, self.id, gl::ELEMENT_ARRAY_BUFFER);
         unsafe {

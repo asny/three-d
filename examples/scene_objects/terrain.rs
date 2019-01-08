@@ -24,14 +24,13 @@ impl Terrain
     pub fn create(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
-        let mesh = mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
-                                                      "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
-                                                      "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
 
         let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain",
                                                       "examples/assets/shaders/terrain").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        let buffer = model.add_attributes(&mesh, &program,&vec!["uv_coordinate", "position", "normal"]).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
+        let buffer = model.add_attributes(&program,&att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
+                                                      "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
+                                                      "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
 
         let ground_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
         let lake_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/bottom.png").unwrap();
@@ -42,30 +41,28 @@ impl Terrain
         terrain
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera)
     {
         self.program.cull(state::CullType::BACK);
         self.program.depth_write(true);
         self.program.depth_test(state::DepthTestType::LEQUAL);
 
         self.ground_texture.bind(0);
-        self.program.add_uniform_int("groundTexture", &0)?;
+        self.program.add_uniform_int("groundTexture", &0).unwrap();
 
         self.lake_texture.bind(1);
-        self.program.add_uniform_int("lakeTexture", &1)?;
+        self.program.add_uniform_int("lakeTexture", &1).unwrap();
 
         self.noise_texture.bind(2);
-        self.program.add_uniform_int("noiseTexture", &2)?;
+        self.program.add_uniform_int("noiseTexture", &2).unwrap();
 
         let transformation = Mat4::identity();
-        self.program.add_uniform_mat4("modelMatrix", &transformation)?;
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
-        self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose())?;
+        self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+        self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
-        self.model.render()?;
-
-        Ok(())
+        self.model.render().unwrap();
     }
 
     pub fn get_center(&self) -> &Vec3
@@ -83,7 +80,7 @@ impl Terrain
         self.update_normals(&mut data, 5, STRIDE);
         self.update_uv_coordinates(&mut data, 0, STRIDE);
 
-        self.buffer.fill_with(data);
+        self.buffer.fill_with(&data);
     }
 
     fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)

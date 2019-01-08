@@ -1,6 +1,5 @@
 
 use crate::camera;
-use crate::traits;
 use gl;
 use crate::light;
 use crate::screen;
@@ -15,15 +14,8 @@ use crate::core::full_screen_quad;
 pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
-    Traits(traits::Error),
     Texture(texture::Error),
     LightPassRendertargetNotAvailable {message: String}
-}
-
-impl From<traits::Error> for Error {
-    fn from(other: traits::Error) -> Self {
-        Error::Traits(other)
-    }
 }
 
 impl From<program::Error> for Error {
@@ -183,7 +175,7 @@ impl DeferredPipeline
                                  0.5, 0.0, 0.0, 0.0,
                                  0.0, 0.5, 0.0, 0.0,
                                  0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0).transpose();
+                                 0.5, 0.5, 0.5, 1.0);
             self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
 
             light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
@@ -226,7 +218,7 @@ impl DeferredPipeline
                                  0.5, 0.0, 0.0, 0.0,
                                  0.0, 0.5, 0.0, 0.0,
                                  0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0).transpose();
+                                 0.5, 0.5, 0.5, 1.0);
             self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
 
             light.shadow_rendertarget.as_ref().unwrap().target.bind(5);

@@ -1,8 +1,7 @@
 use crate::core::rendertarget::{self, DepthRenderTarget};
 use gl;
 use crate::camera::{self, Camera};
-use std;
-use geo_proc::*;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -69,12 +68,12 @@ impl DirectionalLight
 
     fn compute_up_direction(&self) -> Vec3
     {
-        if vec3(1.0, 0.0, 0.0).dot(&self.direction).abs() > 0.9
+        if vec3(1.0, 0.0, 0.0).dot(self.direction).abs() > 0.9
         {
-            (vec3(0.0, 1.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(0.0, 1.0, 0.0).cross(self.direction)).normalize()
         }
         else {
-            (vec3(1.0, 0.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(1.0, 0.0, 0.0).cross(self.direction)).normalize()
         }
     }
 
@@ -146,18 +145,18 @@ impl SpotLight
         self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
         let up = self.compute_up_direction();
         self.shadow_camera = Some(camera::PerspectiveCamera::new(self.position,self.position + self.direction, up,
-                                                                 1.0, 2.0 * self.cutoff, 0.1, depth));
+                                                                 degrees(45.0), 2.0 * self.cutoff, 0.1, depth));
         Ok(())
     }
 
     fn compute_up_direction(&self) -> Vec3
     {
-        if vec3(1.0, 0.0, 0.0).dot(&self.direction).abs() > 0.9
+        if vec3(1.0, 0.0, 0.0).dot(self.direction).abs() > 0.9
         {
-            (vec3(0.0, 1.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(0.0, 1.0, 0.0).cross(self.direction)).normalize()
         }
         else {
-            (vec3(1.0, 0.0, 0.0).cross(&self.direction)).normalize()
+            (vec3(1.0, 0.0, 0.0).cross(self.direction)).normalize()
         }
     }
 

@@ -26,23 +26,21 @@ impl Environment {
         Environment {terrain, skybox, water, grass}
     }
 
-    pub fn render_opague(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render_opague(&self, camera: &camera::Camera)
     {
-        self.skybox.render(camera)?;
-        self.terrain.render(camera)?;
-        self.grass.render(camera)?;
-        Ok(())
+        self.skybox.render(camera).unwrap();
+        self.terrain.render(camera);
+        self.grass.render(camera);
     }
 
-    pub fn render_transparent(&self, time: f32, camera: &camera::Camera, screen: &screen::Screen, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture) -> Result<(), traits::Error>
+    pub fn render_transparent(&self, time: f32, camera: &camera::Camera, screen: &screen::Screen, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture)
     {
-        self.water.render(time, camera, screen, color_texture, position_texture, self.skybox.get_texture())?;
-        Ok(())
+        self.water.render(time, camera, screen, color_texture, position_texture, self.skybox.get_texture());
     }
 
     pub fn set_position(&mut self, position: &Vec3)
     {
-        if (*self.terrain.get_center() - *position).norm() > 10.0
+        if (*self.terrain.get_center() - *position).magnitude() > 10.0
         {
             self.terrain.set_center(position);
             self.water.set_center(position);

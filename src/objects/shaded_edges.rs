@@ -14,14 +14,38 @@ pub struct ShadedEdges {
 
 impl ShadedEdges
 {
-    pub fn create(gl: &gl::Gl, mesh: &crate::mesh::DynamicMesh, tube_radius: f32) -> ShadedEdges
+    pub fn create(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
                                                       "../Dust/src/objects/shaders/shaded").unwrap();
 
-        let edge_mesh = crate::mesh_generator::create_cylinder(1, 10).unwrap();
-        let mut surface = surface::TriangleSurface::create(gl, &edge_mesh).unwrap();
-        surface.add_attributes(&edge_mesh, &program, &vec!["position"]).unwrap();
+        let x_subdivisions = 1;
+        let angle_subdivisions = 10;
+        let mut cylinder_positions = Vec::new();
+        let mut cylinder_indices = Vec::new();
+        for i in 0..x_subdivisions+1 {
+            let x = i as f32 / x_subdivisions as f32;
+            for j in 0..angle_subdivisions {
+                let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
+
+                cylinder_positions.push(x);
+                cylinder_positions.push(angle.cos());
+                cylinder_positions.push(angle.sin());
+            }
+        }
+        for i in 0..x_subdivisions as u32 {
+            for j in 0..angle_subdivisions as u32 {
+                cylinder_indices.push(i * angle_subdivisions as u32 + j);
+                cylinder_indices.push(i * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                cylinder_indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+
+                cylinder_indices.push(i * angle_subdivisions as u32 + j);
+                cylinder_indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                cylinder_indices.push((i+1) * angle_subdivisions as u32 + j);
+            }
+        }
+        let mut surface = surface::TriangleSurface::create(gl, &cylinder_indices).unwrap();
+        surface.add_attributes(&program, &att!["position" => (cylinder_positions, 3)]).unwrap();
 
         let mut instance_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
@@ -34,35 +58,47 @@ impl ShadedEdges
         program.setup_attribute("normalMatrixY", 3, 21, 15, 1).unwrap();
         program.setup_attribute("normalMatrixZ", 3, 21, 18, 1).unwrap();
 
-        let mut data = Vec::new();
-        for halfedge_id in mesh.halfedge_iterator() {
-            let (p0, p1) = mesh.edge_positions(&halfedge_id);
+        let mut index_pairs = std::collections::HashSet::new();
+        for f in 0..indices.len()/3 {
+            let i1 = indices[3*f] as usize;
+            let i2 = indices[3*f+1] as usize;
+            let i3 = indices[3*f+2] as usize;
+            index_pairs.insert(if i1 < i2 {(i1, i2)} else {(i2, i1)});
+            index_pairs.insert(if i1 < i3 {(i1, i3)} else {(i3, i1)});
+            index_pairs.insert(if i2 < i3 {(i2, i3)} else {(i3, i2)});
+        }
+        let no_edges = index_pairs.len();
 
-            let length = (p1 - p0).norm();
+        let mut data = Vec::new();
+        for (i0, i1) in index_pairs {
+            let p0 = vec3(positions[i0 * 3], positions[i0 * 3+1], positions[i0 * 3+2]);
+            let p1 = vec3(positions[i1 * 3], positions[i1 * 3+1], positions[i1 * 3+2]);
+
+            let length = (p1 - p0).magnitude();
             let dir = (p1 - p0)/length;
-            let local_to_world = rotation_matrix_from_dir_to_dir(&vec3(1.0, 0.0, 0.0), &dir) * Mat4::new_nonuniform_scaling(&vec3(length, tube_radius, tube_radius));
-            let normal_matrix = local_to_world.try_inverse().unwrap().transpose();
+            let local_to_world = rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), dir) * Mat4::from_nonuniform_scale(length, tube_radius, tube_radius);
+            let normal_matrix = local_to_world.invert().unwrap().transpose();
 
             for i in 0..3 {
                 for j in 0..3 {
-                    data.push(*local_to_world.column(i).row(j).iter().next().unwrap());
+                    data.push(local_to_world[i][j]);
                 }
             }
 
-            for val in p0.iter() {
-                data.push(*val);
+            for i in 0..3 {
+                data.push(p0[i]);
             }
 
             for i in 0..3 {
                 for j in 0..3 {
-                    data.push(*normal_matrix.column(i).row(j).iter().next().unwrap());
+                    data.push(normal_matrix[i][j]);
                 }
             }
 
         }
-        instance_buffer.fill_with(data);
+        instance_buffer.fill_with(&data);
 
-        ShadedEdges { program, surface, no_edges: mesh.no_halfedges(), color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
+        ShadedEdges { program, surface, no_edges, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
     pub fn render(&self, camera: &camera::Camera)

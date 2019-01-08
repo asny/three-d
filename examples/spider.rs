@@ -41,13 +41,13 @@ fn main() {
 
     // Models
     let mut environment = scene_objects::environment::Environment::create(&gl);
-    let mut spider = scene_objects::spider::Spider::create(&gl, vec3(0.0, 0.0, 5.0), vec3(0.0, 0.0, -1.0)).unwrap();
+    let mut spider = scene_objects::spider::Spider::create(&gl, vec3(0.0, 0.0, 5.0), vec3(0.0, 0.0, -1.0));
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(spider.get_position(&environment),
                                                     spider.get_position(&environment) + spider.get_view_direction(&environment),
-                                                    spider.get_up_direction(),
-                                                    screen.aspect(), 0.25 * ::std::f32::consts::PI, 0.1, 1000.0);
+                                                    spider.get_up_direction(), degrees(45.0),
+                                                    screen.aspect(), 0.1, 1000.0);
 
     // Lights
     let mut ambient_light = crate::light::AmbientLight::new();
@@ -129,7 +129,7 @@ fn main() {
         // Draw
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
-        environment.render_opague(&camera).unwrap();
+        environment.render_opague(&camera);
         spider.render(&camera);
 
         // Light pass
@@ -139,7 +139,7 @@ fn main() {
         renderer.copy_to_screen().unwrap();
 
         // After effects
-        environment.render_transparent(time, &camera, &screen, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture()).unwrap();
+        environment.render_transparent(time, &camera, &screen, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
 
         window.gl_swap_window();
     };

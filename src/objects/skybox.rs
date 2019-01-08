@@ -1,9 +1,28 @@
 use gl;
 use crate::*;
+use crate::surface::*;
+
+#[derive(Debug)]
+pub enum Error {
+    Program(program::Error),
+    Model(surface::Error)
+}
+
+impl From<program::Error> for Error {
+    fn from(other: program::Error) -> Self {
+        Error::Program(other)
+    }
+}
+
+impl From<surface::Error> for Error {
+    fn from(other: surface::Error) -> Self {
+        Error::Model(other)
+    }
+}
 
 pub struct Skybox {
     program: program::Program,
-    model: surface::TriangleSurface,
+    model: TriangleSurface,
     texture: texture::Texture3D
 }
 
@@ -11,16 +30,18 @@ impl Skybox
 {
     pub fn create(gl: &gl::Gl, texture: texture::Texture3D) -> Skybox
     {
-        let mesh = mesh_generator::create_cube().unwrap();
         let program = program::Program::from_resource(gl, "../Dust/src/objects/shaders/skybox",
                                                       "../Dust/src/objects/shaders/skybox").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
+
+        let positions = get_positions();
+        let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
+        let mut model = TriangleSurface::create(gl, &indices).unwrap();
+        model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
 
         Skybox { program, model, texture }
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
@@ -41,4 +62,51 @@ impl Skybox
     {
         &self.texture
     }
+}
+
+fn get_positions() -> Vec<f32>
+{
+    vec![
+        1.0, 1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, -1.0,
+
+        -1.0, -1.0, -1.0,
+        1.0, -1.0, -1.0,
+        1.0, -1.0, 1.0,
+        1.0, -1.0, 1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, -1.0, -1.0,
+
+        1.0, -1.0, -1.0,
+        -1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, -1.0,
+        -1.0, -1.0, -1.0,
+
+        -1.0, -1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, 1.0,
+
+        1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, -1.0, -1.0,
+
+        -1.0, 1.0, -1.0,
+        -1.0, -1.0, -1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, -1.0
+    ]
 }

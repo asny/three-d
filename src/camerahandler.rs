@@ -1,5 +1,5 @@
 use crate::camera;
-use geo_proc::*;
+use crate::*;
 
 pub enum CameraState
 {
@@ -54,11 +54,11 @@ impl CameraHandler
                 let y = yrel as f32;
                 let direction = (*camera.target() - *camera.position()).normalize();
                 let mut up_direction = vec3(0., 1., 0.);
-                let right_direction = direction.cross(&up_direction);
-                up_direction = right_direction.cross(&direction);
+                let right_direction = direction.cross(up_direction);
+                up_direction = right_direction.cross(direction);
                 let mut camera_position = *camera.position();
                 let target = *camera.target();
-                let zoom = (camera_position - target).norm();
+                let zoom = (camera_position - target).magnitude();
                 camera_position = camera_position + (right_direction * x + up_direction * y) * 0.1;
                 camera_position = target + (camera_position - target).normalize() * zoom;
                 camera.set_view(camera_position, target, up_direction);
@@ -74,7 +74,7 @@ impl CameraHandler
                 let mut position = *camera.position();
                 let target = *camera.target();
                 let up = *camera.up();
-                let mut zoom = (position - target).norm();
+                let mut zoom = (position - target).magnitude();
                 zoom += wheel as f32;
                 zoom = zoom.max(1.0);
                 position = target + (*camera.position() - *camera.target()).normalize() * zoom;

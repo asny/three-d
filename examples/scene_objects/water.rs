@@ -19,13 +19,11 @@ impl Water
 {
     pub fn create(gl: &gl::Gl) -> Water
     {
-        let mesh = mesh::StaticMesh::create(indices(), att!["position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
-                                                      "uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2)]).unwrap();
-
         let program = program::Program::from_resource(gl, "examples/assets/shaders/water",
                                                       "examples/assets/shaders/water").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        let buffer = model.add_attributes(&mesh, &program, &vec!["uv_coordinate", "position"]).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
+        let buffer = model.add_attributes(&program, &att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
+                                                      "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
 
         let foam_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
 
@@ -34,33 +32,32 @@ impl Water
         water
     }
 
-    pub fn render(&self, time: f32, camera: &camera::Camera, screen: &screen::Screen, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture) -> Result<(), traits::Error>
+    pub fn render(&self, time: f32, camera: &camera::Camera, screen: &screen::Screen, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture)
     {
         self.program.blend(state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         self.program.cull(state::CullType::NONE);
         self.program.depth_write(false);
         self.program.depth_test(state::DepthTestType::LEQUAL);
 
-        self.program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
+        self.program.add_uniform_mat4("modelMatrix", &Mat4::identity()).unwrap();
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
-        self.program.add_uniform_vec3("eyePosition", camera.position())?;
-        self.program.add_uniform_vec2("screenSize", &vec2(screen.width as f32, screen.height as f32))?;
+        self.program.add_uniform_vec3("eyePosition", camera.position()).unwrap();
+        self.program.add_uniform_vec2("screenSize", &vec2(screen.width as f32, screen.height as f32)).unwrap();
 
-        self.program.add_uniform_float("time", &time)?;
+        self.program.add_uniform_float("time", &time).unwrap();
 
         color_texture.bind(0);
-        self.program.add_uniform_int("colorMap", &0)?;
+        self.program.add_uniform_int("colorMap", &0).unwrap();
 
         position_texture.bind(1);
-        self.program.add_uniform_int("positionMap", &1)?;
+        self.program.add_uniform_int("positionMap", &1).unwrap();
 
         skybox_texture.bind(2);
-        self.program.add_uniform_int("environmentMap", &2)?;
+        self.program.add_uniform_int("environmentMap", &2).unwrap();
 
-        self.model.render()?;
-        Ok(())
+        self.model.render().unwrap();
     }
 
     pub fn set_center(&mut self, center: &Vec3)
@@ -71,7 +68,7 @@ impl Water
         self.update_positions(&mut data, 2, 5);
         self.update_uv_coordinates(&mut data, 0, 5);
 
-        self.buffer.fill_with(data);
+        self.buffer.fill_with(&data);
     }
 
     fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)

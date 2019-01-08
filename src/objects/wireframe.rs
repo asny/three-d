@@ -10,10 +10,10 @@ pub struct Wireframe {
 
 impl Wireframe
 {
-    pub fn create(gl: &gl::Gl, mesh: &crate::mesh::DynamicMesh, tube_radius: f32) -> Wireframe
+    pub fn create(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Wireframe
     {
-        let edges = ShadedEdges::create(&gl, &mesh, tube_radius);
-        let mut vertices = ShadedVertices::create(&gl, &mesh);
+        let edges = ShadedEdges::create(&gl, indices, positions, tube_radius);
+        let mut vertices = ShadedVertices::new(&gl, positions);
         vertices.scale = 2.0 * tube_radius;
 
         Wireframe {edges, vertices}

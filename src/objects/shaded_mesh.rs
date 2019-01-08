@@ -1,7 +1,7 @@
 
 use gl;
 use crate::*;
-use crate::mesh::StaticMesh;
+use crate::surface::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -29,7 +29,6 @@ impl From<surface::Error> for Error {
 }
 
 pub struct ShadedMesh {
-    gl: gl::Gl,
     program: program::Program,
     model: surface::TriangleSurface,
     buffer: buffer::VertexBuffer,
@@ -42,26 +41,19 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn create(gl: &gl::Gl, mesh: &StaticMesh) -> Result<ShadedMesh, Error>
+    pub fn create(gl: &gl::Gl, indices: &[u32], attributes: &[Attribute]) -> Result<ShadedMesh, Error>
     {
         let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
                                                       "../Dust/src/objects/shaders/shaded")?;
-        let mut model = surface::TriangleSurface::create(gl, mesh)?;
-        let buffer = model.add_attributes(mesh, &program, &vec!["position", "normal"])?;
+        let mut model = surface::TriangleSurface::create(gl, indices)?;
+        let buffer = model.add_attributes(&program, attributes)?;
 
-        Ok(ShadedMesh { gl: gl.clone(), program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+        Ok(ShadedMesh { program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
     }
 
-    pub fn update_attributes(&mut self, mesh: &StaticMesh) -> Result<(), Error>
+    pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
     {
-        self.buffer.fill_from_attributes(mesh, &vec!["position", "normal"])?;
-        Ok(())
-    }
-
-    pub fn update_mesh(&mut self, mesh: &StaticMesh) -> Result<(), Error>
-    {
-        self.model = surface::TriangleSurface::create(&self.gl, mesh)?;
-        self.buffer = self.model.add_attributes(mesh, &self.program, &vec!["position", "normal"])?;
+        self.buffer.fill_from_attributes(attributes)?;
         Ok(())
     }
 
@@ -90,7 +82,7 @@ impl ShadedMesh
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
-        self.program.add_uniform_mat4("normalMatrix", &transformation.try_inverse().unwrap().transpose()).unwrap();
+        self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
         self.model.render().unwrap();
     }
 }

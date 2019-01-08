@@ -35,12 +35,10 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let mesh = mesh::StaticMesh::create(indices, att!["position" => (positions, 3)]).unwrap();
-
         let program = program::Program::from_resource(gl, "examples/assets/shaders/grass",
                                                       "examples/assets/shaders/grass").unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &mesh).unwrap();
-        model.add_attributes(&mesh, &program,&vec!["position"]).unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
 
         let position_buffer = buffer::VertexBuffer::create(gl).unwrap();
 
@@ -75,17 +73,16 @@ impl Grass
             root_positions.push(p.z);
         }
 
-        self.position_buffer.fill_with(root_positions);
+        self.position_buffer.fill_with(&root_positions);
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), traits::Error>
+    pub fn render(&self, camera: &camera::Camera)
     {
         self.program.cull(state::CullType::NONE);
 
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
-        self.model.render_instances(NO_STRAWS)?;
-        Ok(())
+        self.model.render_instances(NO_STRAWS).unwrap();
     }
 }
