@@ -3,34 +3,27 @@ mod scene_objects;
 
 use std::process;
 
-use sdl2::event::{Event};
-use sdl2::keyboard::Keycode;
-
 use dust::*;
+use glutin::dpi::*;
+use glutin::GlContext;
 
 fn main() {
-    let ctx = sdl2::init().unwrap();
-    let video_ctx = ctx.video().unwrap();
-
-    #[cfg(target_os = "macos")] // Use OpenGL 4.1 since that is the newest version supported on macOS
-    {
-        let gl_attr = video_ctx.gl_attr();
-        gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(4, 1);
-    }
 
     let width: usize = 900;
     let height: usize = 700;
-    let window = video_ctx
-        .window("Dust", width as u32, height as u32)
-        .opengl()
-        .position_centered()
-        .resizable()
-        .build()
-        .unwrap();
+    let mut events_loop = glutin::EventsLoop::new();
+    let window = glutin::WindowBuilder::new()
+        .with_title("Hello, world!")
+        .with_dimensions(LogicalSize::new(width as f64, height as f64));
+    let context = glutin::ContextBuilder::new()
+        .with_vsync(true);
+    let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
-    let _gl_context = window.gl_create_context().unwrap();
-    let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
+    unsafe {
+        gl_window.make_current().unwrap();
+    }
+
+    let gl = gl::Gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
 
     // Screen
     let screen = screen::Screen {width, height};
@@ -44,26 +37,28 @@ fn main() {
 
     let model = scene_objects::triangle::Triangle::create(&gl);
 
-    // set up event handling
-    let mut events = ctx.event_pump().unwrap();
-
     // main loop
     let main_loop = || {
-        for event in events.poll_iter() {
+        events_loop.poll_events(|event| {
             match event {
-                Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
-                    process::exit(1);
+                glutin::Event::WindowEvent{ event, .. } => match event {
+                    glutin::WindowEvent::CloseRequested => process::exit(1),
+                    glutin::WindowEvent::Resized(logical_size) => {
+                        let dpi_factor = gl_window.get_hidpi_factor();
+                        gl_window.resize(logical_size.to_physical(dpi_factor));
+                    },
+                    _ => ()
                 },
-                _ => {}
+                _ => ()
             }
-        }
+        });
 
         // draw
         renderer.render_pass_begin();
 
         model.render(&camera);
 
-        window.gl_swap_window();
+        gl_window.swap_buffers().unwrap();
     };
 
     renderer::set_main_loop(main_loop);
