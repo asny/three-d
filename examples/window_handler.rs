@@ -13,9 +13,9 @@ impl WindowHandler
     {
         let width: usize = 900;
         let height: usize = 700;
-        let window = glutin::WindowBuilder::new()
+        let window = WindowBuilder::new()
             .with_title(title)
-            .with_dimensions(glutin::dpi::LogicalSize::new(width as f64, height as f64));
+            .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64));
 
         WindowHandler::new(window)
     }
@@ -26,7 +26,7 @@ impl WindowHandler
 
         let context = ContextBuilder::new().with_vsync(true);
 
-        let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
+        let gl_window = GlWindow::new(window, context, &events_loop).unwrap();
 
         unsafe {
             gl_window.make_current().unwrap();
@@ -49,9 +49,9 @@ impl WindowHandler
     {
         self.events_loop.poll_events(|event| {
             match event {
-                glutin::Event::WindowEvent{ event, .. } => match event {
-                    glutin::WindowEvent::CloseRequested => std::process::exit(1),
-                    glutin::WindowEvent::Resized(logical_size) => {
+                Event::WindowEvent{ event, .. } => match event {
+                    WindowEvent::CloseRequested => std::process::exit(1),
+                    WindowEvent::Resized(logical_size) => {
                         //let dpi_factor = self.gl_window.get_hidpi_factor();
                         //self.gl_window.resize(logical_size.to_physical(dpi_factor));
                     },

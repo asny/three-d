@@ -7,11 +7,11 @@ use dust::*;
 fn main() {
 
     let mut window_handler = window_handler::WindowHandler::new_default("Hello, world!");
-    let (width, height) = window_handler.size();
 
     let gl = gl::Gl::load_with(|s| window_handler.get_proc_address(s));
 
     // Screen
+    let (width, height) = window_handler.size();
     let screen = screen::Screen {width, height};
 
     // Renderer
