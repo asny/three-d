@@ -4,7 +4,8 @@ use glutin::*;
 pub struct WindowHandler
 {
     gl_window: GlWindow,
-    events_loop: EventsLoop
+    events_loop: EventsLoop,
+    gl: gl::Gl
 }
 
 impl WindowHandler
@@ -31,7 +32,8 @@ impl WindowHandler
         unsafe {
             gl_window.make_current().unwrap();
         }
-        WindowHandler {gl_window, events_loop}
+        let gl = gl::Gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
+        WindowHandler {gl_window, events_loop, gl}
     }
 
     pub fn size(&self) -> (usize, usize)
@@ -40,9 +42,9 @@ impl WindowHandler
         (size.0 as usize, size.1 as usize)
     }
 
-    pub fn get_proc_address(&self, address: &str) -> *const std::os::raw::c_void
+    pub fn gl(&self) -> gl::Gl
     {
-        self.gl_window.get_proc_address(address) as *const std::os::raw::c_void
+        self.gl.clone()
     }
 
     pub fn handle_events(&mut self)
