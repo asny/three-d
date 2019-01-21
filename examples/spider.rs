@@ -1,37 +1,15 @@
 
 mod scene_objects;
+mod window_handler;
 
-use std::process;
 use std::time::Instant;
-
-use sdl2::event::{Event};
-use sdl2::keyboard::Keycode;
-
+use crate::window_handler::WindowHandler;
 use dust::*;
 
 fn main() {
-    let ctx = sdl2::init().unwrap();
-    let video_ctx = ctx.video().unwrap();
-
-    #[cfg(target_os = "macos")] // Use OpenGL 4.1 since that is the newest version supported on macOS
-    {
-        let gl_attr = video_ctx.gl_attr();
-        gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(4, 1);
-    }
-
-    let width: usize = 900;
-    let height: usize = 700;
-    let window = video_ctx
-        .window("Dust", width as u32, height as u32)
-        .opengl()
-        .position_centered()
-        .resizable()
-        .build()
-        .unwrap();
-
-    let _gl_context = window.gl_create_context().unwrap();
-    let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
+    let mut window_handler = WindowHandler::new_default("Hello, world!");
+    let (width, height) = window_handler.size();
+    let gl = window_handler.gl();
 
     // Renderer
     let renderer = pipeline::DeferredPipeline::new(&gl, width, height, true).unwrap();
@@ -53,58 +31,47 @@ fn main() {
     let mut directional_light = crate::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
     directional_light.enable_shadows(&gl, 10.0, 10.0).unwrap();
 
-    // set up event handling
-    let mut events = ctx.event_pump().unwrap();
-
-    let mut camerahandler = camerahandler::CameraHandler::create();
+    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::FIRST);
     let mut now = Instant::now();
     let mut time = 0.0;
+
     // main loop
-    let main_loop = || {
-        for event in events.poll_iter() {
+    loop {
+        window_handler.handle_events( |event| {
+            WindowHandler::handle_window_close_events(event);
+            WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
+            use glutin::*;
             match event {
-                Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
-                    process::exit(1);
-                },
-                Event::KeyDown {keycode: Some(Keycode::W), ..} => {
-                    spider.is_moving_forward = true;
-                },
-                Event::KeyUp {keycode: Some(Keycode::W), ..} => {
-                    spider.is_moving_forward = false;
-                },
-                Event::KeyDown {keycode: Some(Keycode::D), ..} => {
-                    spider.is_rotating_right = true;
-                },
-                Event::KeyUp {keycode: Some(Keycode::D), ..} => {
-                    spider.is_rotating_right = false;
-                },
-                Event::KeyDown {keycode: Some(Keycode::A), ..} => {
-                    spider.is_rotating_left = true;
-                },
-                Event::KeyUp {keycode: Some(Keycode::A), ..} => {
-                    spider.is_rotating_left = false;
-                },
-                Event::KeyDown {keycode: Some(Keycode::S), ..} => {
-                    spider.is_moving_backward = true;
-                },
-                Event::KeyUp {keycode: Some(Keycode::S), ..} => {
-                    spider.is_moving_backward = false;
-                },
-                Event::MouseMotion {xrel, yrel, mousestate, .. } => {
-                    if mousestate.left()
-                    {
-                        camerahandler.rotate(&mut camera, xrel, yrel);
-                    }
-                },
-                Event::MouseWheel {y, .. } => {
-                    camerahandler.zoom(&mut camera, y);
-                },
-                Event::KeyDown {keycode: Some(Keycode::Tab), ..} => {
-                    camerahandler.next_state();
+                Event::WindowEvent{ event, .. } => match event {
+                    WindowEvent::KeyboardInput {input, ..} => {
+                        if let Some(keycode) = input.virtual_keycode
+                        {
+                            match keycode {
+                                VirtualKeyCode::W => {
+                                    spider.is_moving_forward = input.state == ElementState::Pressed;
+
+                                },
+                                VirtualKeyCode::D => {
+                                    spider.is_rotating_right = input.state == ElementState::Pressed;
+
+                                },
+                                VirtualKeyCode::A => {
+                                    spider.is_rotating_left = input.state == ElementState::Pressed;
+
+                                },
+                                VirtualKeyCode::S => {
+                                    spider.is_moving_backward = input.state == ElementState::Pressed;
+
+                                },
+                                _ => {}
+                            }
+                        }
+                    },
+                    _ => {}
                 },
                 _ => {}
             }
-        }
+        });
 
         let new_now = Instant::now();
         let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
@@ -114,7 +81,7 @@ fn main() {
         // Update
         spider.update(elapsed_time, &environment);
         let spider_pos = spider.get_position(&environment);
-        camerahandler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment), &spider.get_up_direction());
+        camera_handler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment), &spider.get_up_direction());
         environment.set_position(&spider_pos);
 
         // Shadow pass
@@ -138,8 +105,6 @@ fn main() {
         // After effects
         environment.render_transparent(time, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
 
-        window.gl_swap_window();
+        window_handler.swap_buffers();
     };
-
-    renderer::set_main_loop(main_loop);
 }

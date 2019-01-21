@@ -4,7 +4,6 @@ mod window_handler;
 
 use crate::window_handler::WindowHandler;
 use dust::*;
-use glutin::*;
 
 fn main() {
     let mut window_handler = WindowHandler::new_default("Hello, world!");

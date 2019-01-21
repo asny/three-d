@@ -14,11 +14,6 @@ pub struct CameraHandler {
 
 impl CameraHandler
 {
-    pub fn create() -> CameraHandler
-    {
-        CameraHandler {state: CameraState::FIRST, rotation_in_progress: false}
-    }
-
     pub fn new(state: CameraState) -> CameraHandler
     {
         CameraHandler {state, rotation_in_progress: false}
