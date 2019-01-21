@@ -15,7 +15,6 @@ mod loader;
 
 pub mod light;
 
-pub mod eventhandler;
 pub mod camerahandler;
 pub mod camera;
 pub mod pipeline;
