@@ -55,8 +55,7 @@ fn main() {
     spot_light.base.color = vec3(0.0, 0.0, 1.0);
     spot_light.enable_shadows(&gl, 20.0).unwrap();
 
-    let mut camera_handler = camerahandler::CameraHandler::create();
-    camera_handler.set_state(camerahandler::CameraState::SPHERICAL);
+    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
     loop {

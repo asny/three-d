@@ -78,8 +78,7 @@ fn main() {
     let mirror_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
                                                                  "../Dust/examples/assets/shaders/mirror").unwrap();
 
-    let mut camera_handler = camerahandler::CameraHandler::create();
-    camera_handler.set_state(camerahandler::CameraState::SPHERICAL);
+    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
     loop {
