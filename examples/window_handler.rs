@@ -51,9 +51,13 @@ impl WindowHandler
             match event {
                 Event::WindowEvent{ event, .. } => match event {
                     WindowEvent::CloseRequested => std::process::exit(1),
-                    WindowEvent::Resized(logical_size) => {
-                        //let dpi_factor = self.gl_window.get_hidpi_factor();
-                        //self.gl_window.resize(logical_size.to_physical(dpi_factor));
+                    WindowEvent::KeyboardInput {input, ..} => {
+                        if let Some(keycode) = input.virtual_keycode {
+                            if keycode == VirtualKeyCode::Escape
+                            {
+                                std::process::exit(1);
+                            }
+                        }
                     },
                     _ => ()
                 },
