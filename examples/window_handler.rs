@@ -14,8 +14,8 @@ impl WindowHandler
 {
     pub fn new_default(title: &str) -> WindowHandler
     {
-        let width: usize = 900;
-        let height: usize = 700;
+        let width: usize = 1024;
+        let height: usize = 512;
         let window = WindowBuilder::new()
             .with_title(title)
             .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64));
