@@ -74,11 +74,6 @@ pub struct DeferredPipeline {
 
 impl DeferredPipeline
 {
-    pub fn create(gl: &gl::Gl, screen: &screen::Screen, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
-    {
-        DeferredPipeline::new(gl, screen.width, screen.height, use_light_pass_rendertarget)
-    }
-
     pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass",

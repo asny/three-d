@@ -37,7 +37,7 @@ fn main() {
     let screen = screen::Screen {width, height};
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, true).unwrap();
+    let renderer = pipeline::DeferredPipeline::new(&gl, screen.width, screen.height, true).unwrap();
 
     // Models
     let mut environment = scene_objects::environment::Environment::create(&gl);
