@@ -75,8 +75,21 @@ impl WindowHandler
                         camera_handler.zoom(camera, *y as i32);
                     }
                 },
+                WindowEvent::MouseInput {state, button, ..} => {
+                    if *button == MouseButton::Left
+                    {
+                        if *state == ElementState::Pressed { camera_handler.start_rotation(); }
+                        else { camera_handler.end_rotation() }
+                    }
+                },
                 _ => ()
             },
+            Event::DeviceEvent{ event, .. } => match event {
+                DeviceEvent::MouseMotion {delta} => {
+                    camera_handler.rotate(camera, delta.0 as i32, delta.1 as i32);
+                },
+                _ => {}
+            }
             _ => ()
         }
 
