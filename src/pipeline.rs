@@ -74,22 +74,21 @@ pub struct DeferredPipeline {
 
 impl DeferredPipeline
 {
-
     pub fn create(gl: &gl::Gl, screen: &screen::Screen, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         DeferredPipeline::new(gl, screen.width, screen.height, use_light_pass_rendertarget)
     }
 
-    pub fn new(gl: &gl::Gl, width: usize, height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass",
                                                                  "../Dust/examples/assets/shaders/light_pass")?;
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 4)?;
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 4)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
-            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, width, height, 1)?);
+            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 1)?);
             copy_program = Some(program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
                                                                 "../Dust/examples/assets/shaders/copy")?);
         }
