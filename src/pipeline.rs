@@ -2,7 +2,6 @@
 use crate::camera;
 use gl;
 use crate::light;
-use crate::screen;
 use crate::core::rendertarget;
 use crate::core::rendertarget::Rendertarget;
 use crate::core::state;
@@ -90,10 +89,10 @@ impl DeferredPipeline
         Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
 
-    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
+    pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen.width, screen.height, 4)?;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen_width, screen_height)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen_width, screen_height, 4)?;
         Ok(())
     }
 
