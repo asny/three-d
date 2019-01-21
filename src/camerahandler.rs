@@ -57,13 +57,13 @@ impl CameraHandler
         }
     }
 
-    pub fn rotate(&mut self, camera: &mut camera::Camera, xrel: i32, yrel: i32)
+    pub fn rotate(&mut self, camera: &mut camera::Camera, xrel: f32, yrel: f32)
     {
         if self.rotation_in_progress {
             match self.state {
                 CameraState::SPHERICAL => {
-                    let x = -xrel as f32;
-                    let y = yrel as f32;
+                    let x = -xrel;
+                    let y = yrel;
                     let direction = (*camera.target() - *camera.position()).normalize();
                     let mut up_direction = vec3(0., 1., 0.);
                     let right_direction = direction.cross(up_direction);
@@ -80,7 +80,7 @@ impl CameraHandler
         }
     }
 
-    pub fn zoom(&mut self, camera: &mut camera::Camera, wheel: i32)
+    pub fn zoom(&mut self, camera: &mut camera::Camera, wheel: f32)
     {
         match self.state {
             CameraState::SPHERICAL => {
@@ -88,7 +88,7 @@ impl CameraHandler
                 let target = *camera.target();
                 let up = *camera.up();
                 let mut zoom = (position - target).magnitude();
-                zoom += wheel as f32;
+                zoom += wheel;
                 zoom = zoom.max(1.0);
                 position = target + (*camera.position() - *camera.target()).normalize() * zoom;
                 camera.set_view(position, target, up);

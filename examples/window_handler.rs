@@ -70,9 +70,9 @@ impl WindowHandler
                     }
                 },
                 WindowEvent::MouseWheel {delta, ..} => {
-                    if let MouseScrollDelta::LineDelta(x,y) = delta
+                    if let MouseScrollDelta::LineDelta(_, y) = delta
                     {
-                        camera_handler.zoom(camera, *y as i32);
+                        camera_handler.zoom(camera, *y);
                     }
                 },
                 WindowEvent::MouseInput {state, button, ..} => {
@@ -86,7 +86,7 @@ impl WindowHandler
             },
             Event::DeviceEvent{ event, .. } => match event {
                 DeviceEvent::MouseMotion {delta} => {
-                    camera_handler.rotate(camera, delta.0 as i32, delta.1 as i32);
+                    camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
                 },
                 _ => {}
             }
