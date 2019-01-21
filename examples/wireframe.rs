@@ -1,47 +1,21 @@
 
-mod scene_objects;
+mod window_handler;
 
-use std::process;
-
-use sdl2::event::{Event};
-use sdl2::keyboard::Keycode;
-
+use crate::window_handler::WindowHandler;
 use dust::*;
 
 fn main() {
-    let ctx = sdl2::init().unwrap();
-    let video_ctx = ctx.video().unwrap();
-
-    #[cfg(target_os = "macos")] // Use OpenGL 4.1 since that is the newest version supported on macOS
-    {
-        let gl_attr = video_ctx.gl_attr();
-        gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(4, 1);
-    }
-
-    let width: usize = 900;
-    let height: usize = 700;
-    let window = video_ctx
-        .window("Dust", width as u32, height as u32)
-        .opengl()
-        .position_centered()
-        .resizable()
-        .build()
-        .unwrap();
-
-    let _gl_context = window.gl_create_context().unwrap();
-    let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
-
-    // Screen
-    let screen = screen::Screen {width, height};
+    let mut window_handler = WindowHandler::new_default("Wireframe");
+    let (width, height) = window_handler.size();
+    let gl = window_handler.gl();
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
-    let mirror_renderer = pipeline::DeferredPipeline::new(&gl, &screen.width/2, &screen.height/2, true).unwrap();
+    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, false).unwrap();
+    let mirror_renderer = pipeline::DeferredPipeline::new(&gl, width/2, height/2, true).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 1.0, 0.0),
-                                                    vec3(0.0, 1.0, 0.0),degrees(45.0), screen.aspect(), 0.1, 1000.0);
+                                                    vec3(0.0, 1.0, 0.0),degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
     let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
@@ -56,7 +30,7 @@ fn main() {
     let mut wireframe = crate::objects::Wireframe::create(&gl, &mesh.mesh.indices, &positions, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let mut model = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (positions, 3),
+    let model = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (positions, 3),
                                                                     "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
 
     let plane_positions: Vec<f32> = vec![
@@ -103,34 +77,18 @@ fn main() {
     let mirror_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
                                                                  "../Dust/examples/assets/shaders/mirror").unwrap();
 
-    // set up event handling
-    let mut events = ctx.event_pump().unwrap();
+    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    let main_loop = || {
-        for event in events.poll_iter() {
-            match event {
-                Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
-                    process::exit(1);
-                },
-                Event::MouseMotion {xrel, yrel, mousestate, .. } => {
-                    if mousestate.left()
-                    {
-                        eventhandler::rotate(&mut camera, xrel, yrel);
-                    }
-                },
-                Event::MouseWheel {y, .. } => {
-                    eventhandler::zoom(&mut camera, y);
-                },
-                _ => {}
-            }
-        }
-
-        eventhandler::rotate(&mut camera, -1, 0);
+    loop {
+        window_handler.handle_events( |event| {
+            WindowHandler::handle_window_close_events(event);
+            WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
+        });
 
         // Draw
         let render_scene = |camera: &Camera| {
-            //model.render(&Mat4::identity(), camera);
+            model.render(&Mat4::identity(), camera);
             wireframe.render(camera);
         };
 
@@ -187,8 +145,6 @@ fn main() {
         mirror_program.add_uniform_int("colorMap", &0).unwrap();
         full_screen_quad::render(&gl, &mirror_program);
 
-        window.gl_swap_window();
+        window_handler.swap_buffers();
     };
-
-    renderer::set_main_loop(main_loop);
 }

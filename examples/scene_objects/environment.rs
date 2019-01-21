@@ -33,9 +33,9 @@ impl Environment {
         self.grass.render(camera);
     }
 
-    pub fn render_transparent(&self, time: f32, camera: &camera::Camera, screen: &screen::Screen, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture)
+    pub fn render_transparent(&self, time: f32, camera: &camera::Camera, screen_width: usize, screen_height: usize, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture)
     {
-        self.water.render(time, camera, screen, color_texture, position_texture, self.skybox.get_texture());
+        self.water.render(time, camera, screen_width, screen_height, color_texture, position_texture, self.skybox.get_texture());
     }
 
     pub fn set_position(&mut self, position: &Vec3)

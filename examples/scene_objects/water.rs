@@ -32,7 +32,7 @@ impl Water
         water
     }
 
-    pub fn render(&self, time: f32, camera: &camera::Camera, screen: &screen::Screen, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture)
+    pub fn render(&self, time: f32, camera: &camera::Camera, screen_width: usize, screen_height: usize, color_texture: &Texture, position_texture: &Texture, skybox_texture: &Texture)
     {
         self.program.blend(state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
         self.program.cull(state::CullType::NONE);
@@ -44,7 +44,7 @@ impl Water
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
         self.program.add_uniform_vec3("eyePosition", camera.position()).unwrap();
-        self.program.add_uniform_vec2("screenSize", &vec2(screen.width as f32, screen.height as f32)).unwrap();
+        self.program.add_uniform_vec2("screenSize", &vec2(screen_width as f32, screen_height as f32)).unwrap();
 
         self.program.add_uniform_float("time", &time).unwrap();
 

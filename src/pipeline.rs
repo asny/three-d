@@ -2,7 +2,6 @@
 use crate::camera;
 use gl;
 use crate::light;
-use crate::screen;
 use crate::core::rendertarget;
 use crate::core::rendertarget::Rendertarget;
 use crate::core::state;
@@ -43,15 +42,15 @@ pub struct ForwardPipeline {
 
 impl ForwardPipeline
 {
-    pub fn create(gl: &gl::Gl, screen: &screen::Screen) -> Result<ForwardPipeline, Error>
+    pub fn create(gl: &gl::Gl, screen_width: usize, screen_height: usize) -> Result<ForwardPipeline, Error>
     {
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen.width, screen.height)?;
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
         Ok(ForwardPipeline {gl: gl.clone(), rendertarget})
     }
 
-    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
+    pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen_width, screen_height)?;
         Ok(())
     }
 
@@ -74,32 +73,26 @@ pub struct DeferredPipeline {
 
 impl DeferredPipeline
 {
-
-    pub fn create(gl: &gl::Gl, screen: &screen::Screen, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
-    {
-        DeferredPipeline::new(gl, screen.width, screen.height, use_light_pass_rendertarget)
-    }
-
-    pub fn new(gl: &gl::Gl, width: usize, height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass",
                                                                  "../Dust/examples/assets/shaders/light_pass")?;
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, width, height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, width, height, 4)?;
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 4)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
-            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, width, height, 1)?);
+            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 1)?);
             copy_program = Some(program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
                                                                 "../Dust/examples/assets/shaders/copy")?);
         }
         Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
 
-    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
+    pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen.width, screen.height, 4)?;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen_width, screen_height)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen_width, screen_height, 4)?;
         Ok(())
     }
 

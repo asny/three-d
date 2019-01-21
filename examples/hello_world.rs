@@ -1,70 +1,69 @@
 
-mod scene_objects;
-
-use std::process;
-
-use sdl2::event::{Event};
-use sdl2::keyboard::Keycode;
+mod window_handler;
 
 use dust::*;
+use crate::window_handler::WindowHandler;
 
 fn main() {
-    let ctx = sdl2::init().unwrap();
-    let video_ctx = ctx.video().unwrap();
 
-    #[cfg(target_os = "macos")] // Use OpenGL 4.1 since that is the newest version supported on macOS
-    {
-        let gl_attr = video_ctx.gl_attr();
-        gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(4, 1);
-    }
-
-    let width: usize = 900;
-    let height: usize = 700;
-    let window = video_ctx
-        .window("Dust", width as u32, height as u32)
-        .opengl()
-        .position_centered()
-        .resizable()
-        .build()
-        .unwrap();
-
-    let _gl_context = window.gl_create_context().unwrap();
-    let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
-
-    // Screen
-    let screen = screen::Screen {width, height};
+    let mut window_handler = WindowHandler::new_default("Hello, world!");
+    let (width, height) = window_handler.size();
 
     // Renderer
-    let renderer = pipeline::ForwardPipeline::create(&gl, &screen).unwrap();
+    let renderer = pipeline::ForwardPipeline::create(&window_handler.gl(), width, height).unwrap();
 
     // Camera
     let camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), screen.aspect(), 0.1, 10.0);
+                                                degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
-    let model = scene_objects::triangle::Triangle::create(&gl);
-
-    // set up event handling
-    let mut events = ctx.event_pump().unwrap();
+    let model = crate::Triangle::create(&window_handler.gl());
 
     // main loop
-    let main_loop = || {
-        for event in events.poll_iter() {
-            match event {
-                Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
-                    process::exit(1);
-                },
-                _ => {}
-            }
-        }
+    loop {
+        window_handler.handle_events(|event| {
+            WindowHandler::handle_window_close_events(event);
+        });
 
         // draw
         renderer.render_pass_begin();
 
         model.render(&camera);
 
-        window.gl_swap_window();
+        window_handler.swap_buffers();
     };
+}
 
-    renderer::set_main_loop(main_loop);
+pub struct Triangle {
+    program: program::Program,
+    model: surface::TriangleSurface
+}
+
+impl Triangle
+{
+    pub fn create(gl: &gl::Gl) -> Triangle
+    {
+        let indices: Vec<u32> = (0..3).collect();
+        let positions: Vec<f32> = vec![
+            0.5, -0.5, 0.0, // bottom right
+            -0.5, -0.5, 0.0,// bottom left
+            0.0,  0.5, 0.0 // top
+        ];
+        let colors: Vec<f32> = vec![
+            1.0, 0.0, 0.0,   // bottom right
+            0.0, 1.0, 0.0,   // bottom left
+            0.0, 0.0, 1.0    // top
+        ];
+        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color").unwrap();
+        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
+
+        Triangle { program, model }
+    }
+
+    pub fn render(&self, camera: &camera::Camera)
+    {
+        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+        self.model.render().unwrap();
+    }
 }

@@ -10,7 +10,7 @@ image = "0.19.0"
 cgmath = "0.16.1"
 
 [dev-dependencies]
-sdl2 = "0.31.0"
+glutin = "*"
 noise = "0.5.1"
 rand = "0.5.5"
 tobj = "0.1.6"
