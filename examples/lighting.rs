@@ -1,46 +1,22 @@
 
 mod scene_objects;
+mod window_handler;
 
-use std::process;
-
-use sdl2::event::{Event};
-use sdl2::keyboard::Keycode;
-
+use crate::window_handler::WindowHandler;
 use dust::*;
+use glutin::*;
 
 fn main() {
-    let ctx = sdl2::init().unwrap();
-    let video_ctx = ctx.video().unwrap();
-
-    #[cfg(target_os = "macos")] // Use OpenGL 4.1 since that is the newest version supported on macOS
-    {
-        let gl_attr = video_ctx.gl_attr();
-        gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(4, 1);
-    }
-
-    let width: usize = 900;
-    let height: usize = 700;
-    let window = video_ctx
-        .window("Dust", width as u32, height as u32)
-        .opengl()
-        .position_centered()
-        .resizable()
-        .build()
-        .unwrap();
-
-    let _gl_context = window.gl_create_context().unwrap();
-    let gl = gl::Gl::load_with(|s| video_ctx.gl_get_proc_address(s) as *const std::os::raw::c_void);
-
-    // Screen
-    let screen = screen::Screen {width, height};
+    let mut window_handler = WindowHandler::new_default("Hello, world!");
+    let (width, height) = window_handler.size();
+    let gl = window_handler.gl();
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::create(&gl, &screen, false).unwrap();
+    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, false).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                    degrees(45.0), screen.aspect(), 0.1, 1000.0);
+                                                    degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
     let mesh = meshes.first().unwrap();
@@ -79,31 +55,18 @@ fn main() {
     spot_light.base.color = vec3(0.0, 0.0, 1.0);
     spot_light.enable_shadows(&gl, 20.0).unwrap();
 
-    // set up event handling
-    let mut events = ctx.event_pump().unwrap();
+    let mut camera_handler = camerahandler::CameraHandler::create();
+    camera_handler.set_state(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    let main_loop = || {
-        for event in events.poll_iter() {
-            match event {
-                Event::Quit {..} | Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
-                    process::exit(1);
-                },
-                Event::MouseMotion {xrel, yrel, mousestate, .. } => {
-                    if mousestate.left()
-                    {
-                        eventhandler::rotate(&mut camera, xrel, yrel);
-                    }
-                },
-                Event::MouseWheel {y, .. } => {
-                    eventhandler::zoom(&mut camera, y);
-                },
-                _ => {}
-            }
-            handle_ambient_light_parameters(&event, &mut ambient_light);
-            handle_directional_light_parameters(&event, &mut directional_light);
-            handle_surface_parameters(&event, &mut monkey);
-        }
+    loop {
+        window_handler.handle_events( |event| {
+            WindowHandler::handle_window_close_events(event);
+            WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
+            handle_ambient_light_parameters(event, &mut ambient_light);
+            handle_directional_light_parameters(event, &mut directional_light);
+            handle_surface_parameters(event, &mut monkey);
+        });
 
         // Draw
         let render_scene = |camera: &Camera| {
@@ -129,22 +92,31 @@ fn main() {
         renderer.shine_point_light(&point_light).unwrap();
         renderer.shine_spot_light(&spot_light).unwrap();
 
-        window.gl_swap_window();
+        window_handler.swap_buffers();
     };
-
-    renderer::set_main_loop(main_loop);
 }
 
 fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLight)
 {
     match event {
-        Event::KeyDown { keycode: Some(Keycode::X), .. } => {
-            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
-            println!("Ambient light intensity: {}", light.base.intensity);
-        },
-        Event::KeyDown { keycode: Some(Keycode::Z), .. } => {
-            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
-            println!("Ambient light intensity: {}", light.base.intensity);
+        Event::WindowEvent{ event, .. } => match event {
+            WindowEvent::KeyboardInput {input, ..} => {
+                if let Some(keycode) = input.virtual_keycode
+                {
+                    match keycode {
+                        VirtualKeyCode::X => {
+                            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
+                            println!("Ambient light intensity: {}", light.base.intensity);
+                        },
+                        VirtualKeyCode::Z => {
+                            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
+                            println!("Ambient light intensity: {}", light.base.intensity);
+                        },
+                        _ => {}
+                    }
+                }
+            },
+            _ => {}
         },
         _ => {}
     }
@@ -153,13 +125,24 @@ fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLigh
 fn handle_directional_light_parameters(event: &Event, light: &mut light::DirectionalLight)
 {
     match event {
-        Event::KeyDown { keycode: Some(Keycode::V), .. } => {
-            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
-            println!("Directional light intensity: {}", light.base.intensity);
-        },
-        Event::KeyDown { keycode: Some(Keycode::C), .. } => {
-            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
-            println!("Directional light intensity: {}", light.base.intensity);
+        Event::WindowEvent{ event, .. } => match event {
+            WindowEvent::KeyboardInput {input, ..} => {
+                if let Some(keycode) = input.virtual_keycode
+                {
+                    match keycode {
+                        VirtualKeyCode::V => {
+                            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
+                            println!("Directional light intensity: {}", light.base.intensity);
+                        },
+                        VirtualKeyCode::C => {
+                            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
+                            println!("Directional light intensity: {}", light.base.intensity);
+                        },
+                        _ => {}
+                    }
+                }
+            },
+            _ => {}
         },
         _ => {}
     }
@@ -168,29 +151,40 @@ fn handle_directional_light_parameters(event: &Event, light: &mut light::Directi
 fn handle_surface_parameters(event: &Event, surface: &mut crate::objects::ShadedMesh)
 {
     match event {
-        Event::KeyDown { keycode: Some(Keycode::S), .. } => {
-            surface.diffuse_intensity = (surface.diffuse_intensity + 0.1).min(1.0);
-            println!("Diffuse intensity: {}", surface.diffuse_intensity);
-        },
-        Event::KeyDown { keycode: Some(Keycode::A), .. } => {
-            surface.diffuse_intensity = (surface.diffuse_intensity - 0.1).max(0.0);
-            println!("Diffuse intensity: {}", surface.diffuse_intensity);
-        },
-        Event::KeyDown { keycode: Some(Keycode::F), .. } => {
-            surface.specular_intensity = (surface.specular_intensity + 0.1).min(1.0);
-            println!("Specular intensity: {}", surface.specular_intensity);
-        },
-        Event::KeyDown { keycode: Some(Keycode::D), .. } => {
-            surface.specular_intensity = (surface.specular_intensity - 0.1).max(0.0);
-            println!("Specular intensity: {}", surface.specular_intensity);
-        },
-        Event::KeyDown { keycode: Some(Keycode::H), .. } => {
-            surface.specular_power = surface.specular_power + 1.0;
-            println!("Specular power: {}", surface.specular_power);
-        },
-        Event::KeyDown { keycode: Some(Keycode::G), .. } => {
-            surface.specular_power = (surface.specular_power - 1.0).max(0.0);
-            println!("Specular power: {}", surface.specular_power);
+        Event::WindowEvent{ event, .. } => match event {
+            WindowEvent::KeyboardInput {input, ..} => {
+                if let Some(keycode) = input.virtual_keycode
+                {
+                    match keycode {
+                        VirtualKeyCode::S => {
+                            surface.diffuse_intensity = (surface.diffuse_intensity + 0.1).min(1.0);
+                            println!("Diffuse intensity: {}", surface.diffuse_intensity);
+                        },
+                        VirtualKeyCode::A => {
+                            surface.diffuse_intensity = (surface.diffuse_intensity - 0.1).max(0.0);
+                            println!("Diffuse intensity: {}", surface.diffuse_intensity);
+                        },
+                        VirtualKeyCode::F => {
+                            surface.specular_intensity = (surface.specular_intensity + 0.1).min(1.0);
+                            println!("Specular intensity: {}", surface.specular_intensity);
+                        },
+                        VirtualKeyCode::D => {
+                            surface.specular_intensity = (surface.specular_intensity - 0.1).max(0.0);
+                            println!("Specular intensity: {}", surface.specular_intensity);
+                        },
+                        VirtualKeyCode::H => {
+                            surface.specular_power = surface.specular_power + 1.0;
+                            println!("Specular power: {}", surface.specular_power);
+                        },
+                        VirtualKeyCode::G => {
+                            surface.specular_power = (surface.specular_power - 1.0).max(0.0);
+                            println!("Specular power: {}", surface.specular_power);
+                        },
+                        _ => {}
+                    }
+                }
+            },
+            _ => {}
         },
         _ => {}
     }
