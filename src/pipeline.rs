@@ -43,15 +43,15 @@ pub struct ForwardPipeline {
 
 impl ForwardPipeline
 {
-    pub fn create(gl: &gl::Gl, screen: &screen::Screen) -> Result<ForwardPipeline, Error>
+    pub fn create(gl: &gl::Gl, screen_width: usize, screen_height: usize) -> Result<ForwardPipeline, Error>
     {
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen.width, screen.height)?;
+        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
         Ok(ForwardPipeline {gl: gl.clone(), rendertarget})
     }
 
-    pub fn resize(&mut self, screen: &screen::Screen) -> Result<(), Error>
+    pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen.width, screen.height)?;
+        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen_width, screen_height)?;
         Ok(())
     }
 
