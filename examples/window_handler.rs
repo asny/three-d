@@ -1,5 +1,7 @@
 
 use glutin::*;
+use dust::camerahandler::CameraHandler;
+use dust::camera::Camera;
 
 pub struct WindowHandler
 {
@@ -47,25 +49,57 @@ impl WindowHandler
         self.gl.clone()
     }
 
-    pub fn handle_events(&mut self)
+    pub fn handle_events<F>(&mut self, mut callback: F)
+        where F: FnMut(&Event)
     {
         self.events_loop.poll_events(|event| {
-            match event {
-                Event::WindowEvent{ event, .. } => match event {
-                    WindowEvent::CloseRequested => std::process::exit(1),
-                    WindowEvent::KeyboardInput {input, ..} => {
-                        if let Some(keycode) = input.virtual_keycode {
-                            if keycode == VirtualKeyCode::Escape
-                            {
-                                std::process::exit(1);
-                            }
+            callback(&event);
+        });
+    }
+
+    pub fn handle_camera_events(event: &Event, camera_handler: &mut CameraHandler, camera: &mut Camera)
+    {
+        match event {
+            Event::WindowEvent{ event, .. } => match event {
+                WindowEvent::KeyboardInput {input, ..} => {
+                    if let Some(keycode) = input.virtual_keycode {
+                        if keycode == VirtualKeyCode::Tab && input.state == ElementState::Pressed
+                        {
+                            camera_handler.next_state();
                         }
-                    },
-                    _ => ()
+                    }
+                },
+                WindowEvent::MouseWheel {delta, ..} => {
+                    if let MouseScrollDelta::LineDelta(x,y) = delta
+                    {
+                        camera_handler.zoom(camera, *y as i32);
+                    }
                 },
                 _ => ()
-            }
-        });
+            },
+            _ => ()
+        }
+
+
+    }
+
+    pub fn handle_window_close_events(event: &Event)
+    {
+        match event {
+            Event::WindowEvent{ event, .. } => match event {
+                WindowEvent::CloseRequested => std::process::exit(1),
+                WindowEvent::KeyboardInput {input, ..} => {
+                    if let Some(keycode) = input.virtual_keycode {
+                        if keycode == VirtualKeyCode::Escape
+                        {
+                            std::process::exit(1);
+                        }
+                    }
+                },
+                _ => ()
+            },
+            _ => ()
+        }
     }
 
     pub fn swap_buffers(&self)

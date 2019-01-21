@@ -3,10 +3,11 @@ mod scene_objects;
 mod window_handler;
 
 use dust::*;
+use crate::window_handler::WindowHandler;
 
 fn main() {
 
-    let mut window_handler = window_handler::WindowHandler::new_default("Hello, world!");
+    let mut window_handler = WindowHandler::new_default("Hello, world!");
     let (width, height) = window_handler.size();
 
     // Renderer
@@ -20,7 +21,9 @@ fn main() {
 
     // main loop
     loop {
-        window_handler.handle_events();
+        window_handler.handle_events(|event| {
+            WindowHandler::handle_window_close_events(event);
+        });
 
         // draw
         renderer.render_pass_begin();
