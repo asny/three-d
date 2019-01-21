@@ -1,5 +1,4 @@
 
-mod scene_objects;
 mod window_handler;
 
 use crate::window_handler::WindowHandler;
@@ -19,7 +18,7 @@ fn main() {
 
     let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
     let mesh = meshes.first().unwrap();
-    let mut shaded_mesh = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (mesh.mesh.positions.clone(), 3),
+    let shaded_mesh = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (mesh.mesh.positions.clone(), 3),
                                                                     "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
 
     let plane_positions: Vec<f32> = vec![

@@ -3,11 +3,10 @@ mod scene_objects;
 mod window_handler;
 
 use std::time::Instant;
-use crate::window_handler::WindowHandler;
 use dust::*;
 
 fn main() {
-    let mut window_handler = WindowHandler::new_default("Hello, world!");
+    let mut window_handler = window_handler::WindowHandler::new_default("Hello, world!");
     let (width, height) = window_handler.size();
     let gl = window_handler.gl();
 
@@ -38,8 +37,8 @@ fn main() {
     // main loop
     loop {
         window_handler.handle_events( |event| {
-            WindowHandler::handle_window_close_events(event);
-            WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
+            window_handler::WindowHandler::handle_window_close_events(event);
+            window_handler::WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
             use glutin::*;
             match event {
                 Event::WindowEvent{ event, .. } => match event {

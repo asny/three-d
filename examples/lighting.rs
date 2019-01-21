@@ -1,5 +1,4 @@
 
-mod scene_objects;
 mod window_handler;
 
 use crate::window_handler::WindowHandler;

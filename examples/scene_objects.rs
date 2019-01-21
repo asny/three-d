@@ -1,4 +1,3 @@
-pub mod triangle;
 pub mod terrain;
 pub mod water;
 pub mod grass;

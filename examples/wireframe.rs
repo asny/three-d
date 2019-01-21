@@ -1,5 +1,4 @@
 
-mod scene_objects;
 mod window_handler;
 
 use crate::window_handler::WindowHandler;
@@ -31,7 +30,7 @@ fn main() {
     let mut wireframe = crate::objects::Wireframe::create(&gl, &mesh.mesh.indices, &positions, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let mut model = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (positions, 3),
+    let model = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (positions, 3),
                                                                     "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
 
     let plane_positions: Vec<f32> = vec![
@@ -89,7 +88,7 @@ fn main() {
 
         // Draw
         let render_scene = |camera: &Camera| {
-            //model.render(&Mat4::identity(), camera);
+            model.render(&Mat4::identity(), camera);
             wireframe.render(camera);
         };
 
