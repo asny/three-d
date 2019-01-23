@@ -2,6 +2,10 @@
 .idea
 ss
 
+/examples/web/target/
+/examples/web/www/node_modules/
+/examples/web/www/pkg/
+
 # Emscripten generated files
 *.data
 *.html
