@@ -1,13 +1,14 @@
 [package]
 name = "hello_world_web"
 version = "0.1.0"
-authors = ["The wasm-bindgen Developers"]
+authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
+dust = { path = "../../" }
 js-sys = "0.3.10"
 wasm-bindgen = "0.2.33"
 

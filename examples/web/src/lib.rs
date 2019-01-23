@@ -2,6 +2,7 @@ use js_sys::WebAssembly;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
+use dust::*;
 
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue> {
