@@ -15,7 +15,11 @@ pub fn start() -> Result<(), JsValue> {
         .unwrap()
         .dyn_into::<WebGlRenderingContext>()?;
 
-    let vert_shader = compile_shader(
+    let gl = gl::Gl::new(context);
+
+    let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
+
+    /*let vert_shader = compile_shader(
         &context,
         WebGlRenderingContext::VERTEX_SHADER,
         r#"
@@ -62,7 +66,7 @@ pub fn start() -> Result<(), JsValue> {
         WebGlRenderingContext::TRIANGLES,
         0,
         (vertices.len() / 3) as i32,
-    );
+    );*/
     Ok(())
 }
 

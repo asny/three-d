@@ -2,9 +2,19 @@
 name = "gl"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
+edition = "2018"
 
-[build-dependencies]
+[target.'cfg(target_arch = "x86_64")'.build-dependencies]
 gl_generator = "0.9.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+version = "0.3.4"
+features = [
+  'WebGlBuffer',
+  'WebGlRenderingContext',
+  'WebGlProgram',
+  'WebGlShader',
+]
 
 [features]
 debug = []
