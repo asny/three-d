@@ -15,7 +15,7 @@ use bindings::Gl as InnerGl;
 // WEBGL
 
 #[cfg(target_arch = "wasm32")]
-use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlBuffer, WebGlUniformLocation};
+use web_sys::{WebGlRenderingContext};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
@@ -38,10 +38,10 @@ mod defines
 #[cfg(target_arch = "wasm32")]
 mod defines
 {
-    pub use WebGlUniformLocation as UniformLocation;
-    pub use WebGlShader as Shader;
-    pub use WebGlProgram as Program;
-    pub use WebGlBuffer as Buffer;
+    pub use web_sys::WebGlUniformLocation as UniformLocation;
+    pub use web_sys::WebGlShader as Shader;
+    pub use web_sys::WebGlProgram as Program;
+    pub use web_sys::WebGlBuffer as Buffer;
 }
 
 pub use defines::*;
@@ -100,7 +100,7 @@ impl Gl {
 
     pub fn create_program(&self) -> Program
     {
-        Program {inner: self.inner.create_program().unwrap()}
+        self.inner.create_program().unwrap()
     }
 }
 
@@ -211,7 +211,7 @@ pub fn shader_from_source(
         .as_bool()
         .unwrap_or(false)
     {
-        Ok(Shader {inner: shader})
+        Ok(shader)
     } else {
         Err(gl
             .get_shader_info_log(&shader)
@@ -298,27 +298,27 @@ pub fn link_program(gl: &Gl, program: &Program) -> Result<(), String>
 #[cfg(target_arch = "wasm32")]
 pub fn link_program(gl: &Gl, program: &Program) -> Result<(), String>
 {
-    gl.link_program(&**program);
+    gl.link_program(program);
 
     if gl
-        .get_program_parameter(&program, WebGlRenderingContext::LINK_STATUS)
+        .get_program_parameter(program, WebGlRenderingContext::LINK_STATUS)
         .as_bool()
         .unwrap_or(false)
     {
         Ok(())
     } else {
         Err(gl
-            .get_program_info_log(&program)
+            .get_program_info_log(program)
             .unwrap_or_else(|| "Unknown error creating program object".into()))
     }
 }
 
-use std::ffi::{CString};
-fn create_whitespace_cstring_with_len(len: usize) -> CString {
+#[cfg(target_arch = "x86_64")]
+fn create_whitespace_cstring_with_len(len: usize) -> std::ffi::CString {
     // allocate buffer of correct size
     let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);
     // fill it with len spaces
     buffer.extend([b' '].iter().cycle().take(len));
     // convert buffer to CString
-    unsafe { CString::from_vec_unchecked(buffer) }
+    unsafe { std::ffi::CString::from_vec_unchecked(buffer) }
 }
