@@ -172,11 +172,6 @@ impl Gl {
         unsafe { self.inner.CreateProgram() }
     }
 
-    pub fn link_program(&self, program: &Program)
-    {
-        unsafe { self.inner.LinkProgram(*program); }
-    }
-
     pub fn uniform1i(&self, location: UniformLocation, data: i32)
     {
         unsafe {
