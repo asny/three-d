@@ -149,7 +149,7 @@ impl Program
         let location: i32;
         let c_str = CString::new(name)?;
         unsafe {
-            location = self.gl.GetUniformLocation(self.id, c_str.as_ptr());
+            location = self.gl.GetUniformLocation(*self.id, c_str.as_ptr());
         }
         Ok(location)
     }
@@ -172,7 +172,7 @@ impl Program
     {
         let c_str = CString::new(name)?;
         unsafe {
-            let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
+            let location = self.gl.GetAttribLocation(*self.id, c_str.as_ptr());
             if location == -1
             {
                 return Err(Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)});
@@ -221,10 +221,10 @@ impl Program
     pub fn set_used(&self) {
         unsafe {
             static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
-            if self.id != CURRENTLY_USED
+            if *self.id != CURRENTLY_USED
             {
-                self.gl.UseProgram(self.id);
-                CURRENTLY_USED = self.id;
+                self.gl.UseProgram(*self.id);
+                CURRENTLY_USED = *self.id;
             }
         }
     }
@@ -233,7 +233,7 @@ impl Program
 impl Drop for Program {
     fn drop(&mut self) {
         unsafe {
-            self.gl.DeleteProgram(self.id);
+            self.gl.DeleteProgram(*self.id);
         }
     }
 }

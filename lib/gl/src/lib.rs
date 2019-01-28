@@ -158,7 +158,6 @@ impl Gl {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
 impl Deref for Gl {
     type Target = InnerGl;
 
@@ -274,13 +273,13 @@ pub fn shader_from_source(
 pub fn shader_from_source(
     gl: &Gl,
     source: &str,
-    kind: types::GLenum
+    shader_type: types::GLenum
 ) -> Result<Shader, String>
 {
     use std::ffi::{CStr, CString};
     let c_str: &CStr = &CString::new(source).unwrap();
 
-    let id = unsafe { gl.inner.CreateShader(kind) };
+    let id = unsafe { gl.inner.CreateShader(shader_type) };
     unsafe {
         gl.inner.ShaderSource(id, 1, &c_str.as_ptr(), std::ptr::null());
         gl.inner.CompileShader(id);
