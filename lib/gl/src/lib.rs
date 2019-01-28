@@ -31,6 +31,8 @@ mod defines
 {
     pub type UniformLocation = i32;
     pub type Shader = u32;
+    pub type Program = u32;
+    pub type Buffer = u32;
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -38,6 +40,8 @@ mod defines
 {
     pub use WebGlUniformLocation as UniformLocation;
     pub use WebGlShader as Shader;
+    pub use WebGlProgram as Program;
+    pub use WebGlBuffer as Buffer;
 }
 
 pub use defines::*;
@@ -123,14 +127,14 @@ impl Gl {
         unsafe {
             self.inner.GenBuffers(1, &mut id);
         }
-        Some(Buffer {inner: id})
+        Some(id)
     }
 
     pub fn bind_buffer(&self, target: u32, buffer: Option<&Buffer>)
     {
         unsafe {
             static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            let id = **buffer.unwrap();
+            let id = *buffer.unwrap();
             if id != CURRENTLY_USED
             {
                 self.inner.BindBuffer(target, id);
@@ -165,13 +169,12 @@ impl Gl {
 
     pub fn create_program(&self) -> Program
     {
-        let program_id = unsafe { self.inner.CreateProgram() };
-        Program {inner: program_id}
+        unsafe { self.inner.CreateProgram() }
     }
 
     pub fn link_program(&self, program: &Program)
     {
-        unsafe { self.inner.LinkProgram(**program); }
+        unsafe { self.inner.LinkProgram(*program); }
     }
 
     pub fn uniform1i(&self, location: UniformLocation, data: i32)
@@ -187,58 +190,6 @@ impl Deref for Gl {
     type Target = InnerGl;
 
     fn deref(&self) -> &InnerGl {
-        &self.inner
-    }
-}
-
-pub struct Buffer {
-    #[cfg(target_arch = "wasm32")]
-    inner: WebGlBuffer,
-
-    #[cfg(target_arch = "x86_64")]
-    inner: u32
-}
-
-#[cfg(target_arch = "wasm32")]
-impl Deref for Buffer {
-    type Target = WebGlBuffer;
-
-    fn deref(&self) -> &WebGlBuffer {
-        &self.inner
-    }
-}
-
-#[cfg(target_arch = "x86_64")]
-impl Deref for Buffer {
-    type Target = u32;
-
-    fn deref(&self) -> &u32 {
-        &self.inner
-    }
-}
-
-pub struct Program {
-    #[cfg(target_arch = "wasm32")]
-    inner: WebGlProgram,
-
-    #[cfg(target_arch = "x86_64")]
-    inner: u32
-}
-
-#[cfg(target_arch = "wasm32")]
-impl Deref for Program {
-    type Target = WebGlProgram;
-
-    fn deref(&self) -> &WebGlProgram {
-        &self.inner
-    }
-}
-
-#[cfg(target_arch = "x86_64")]
-impl Deref for Program {
-    type Target = u32;
-
-    fn deref(&self) -> &u32 {
         &self.inner
     }
 }
@@ -315,24 +266,24 @@ pub fn shader_from_source(
 #[cfg(target_arch = "x86_64")]
 pub fn link_program(gl: &Gl, program: &Program) -> Result<(), String>
 {
-    unsafe { gl.inner.LinkProgram(**program); }
+    unsafe { gl.inner.LinkProgram(*program); }
 
     let mut success: types::GLint = 1;
     unsafe {
-        gl.inner.GetProgramiv(**program, LINK_STATUS, &mut success);
+        gl.inner.GetProgramiv(*program, LINK_STATUS, &mut success);
     }
 
     if success == 0 {
         let mut len: types::GLint = 0;
         unsafe {
-            gl.inner.GetProgramiv(**program, INFO_LOG_LENGTH, &mut len);
+            gl.inner.GetProgramiv(*program, INFO_LOG_LENGTH, &mut len);
         }
 
         let error = create_whitespace_cstring_with_len(len as usize);
 
         unsafe {
             gl.inner.GetProgramInfoLog(
-                **program,
+                *program,
                 len,
                 std::ptr::null_mut(),
                 error.as_ptr() as *mut types::GLchar
