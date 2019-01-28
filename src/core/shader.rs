@@ -66,14 +66,14 @@ impl Shader
     pub fn attach_shader(&self, program: &gl::Program)
     {
         unsafe {
-            self.gl.AttachShader(**program, *self.id);
+            self.gl.AttachShader(**program, self.id);
         }
     }
 
     pub fn detach_shader(&self, program: &gl::Program)
     {
         unsafe {
-            self.gl.DetachShader(**program, *self.id);
+            self.gl.DetachShader(**program, self.id);
         }
     }
 }

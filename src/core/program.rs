@@ -73,9 +73,7 @@ impl Program
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
-        unsafe {
-            self.gl.Uniform1iv(location, 1, data);
-        }
+        self.gl.uniform1i(location, *data);
         Ok(())
     }
 
@@ -143,14 +141,14 @@ impl Program
         Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> Result<i32, Error>
+    fn get_uniform_location(&self, name: &str) -> Result<gl::UniformLocation, Error>
     {
         self.set_used();
         let location: i32;
         let c_str = CString::new(name)?;
-        unsafe {
-            location = self.gl.GetUniformLocation(*self.id, c_str.as_ptr());
-        }
+        let location = unsafe {
+            self.gl.GetUniformLocation(*self.id, c_str.as_ptr())
+        };
         Ok(location)
     }
 

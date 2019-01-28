@@ -15,7 +15,7 @@ use bindings::Gl as InnerGl;
 // WEBGL
 
 #[cfg(target_arch = "wasm32")]
-use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlBuffer};
+use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlBuffer, WebGlUniformLocation};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
@@ -24,6 +24,23 @@ use WebGlRenderingContext as InnerGl;
 
 #[cfg(target_arch = "wasm32")]
 pub type bindings = WebGlRenderingContext;
+
+
+#[cfg(target_arch = "x86_64")]
+mod defines
+{
+    pub type UniformLocation = i32;
+    pub type Shader = u32;
+}
+
+#[cfg(target_arch = "wasm32")]
+mod defines
+{
+    pub use WebGlUniformLocation as UniformLocation;
+    pub use WebGlShader as Shader;
+}
+
+pub use defines::*;
 
 
 use std::rc::Rc;
@@ -96,7 +113,7 @@ impl Gl {
     pub fn delete_shader(&self, shader: Option<&Shader>)
     {
         unsafe {
-            self.inner.DeleteShader(**shader.unwrap());
+            self.inner.DeleteShader(*shader.unwrap());
         }
     }
 
@@ -156,8 +173,16 @@ impl Gl {
     {
         unsafe { self.inner.LinkProgram(**program); }
     }
+
+    pub fn uniform1i(&self, location: UniformLocation, data: i32)
+    {
+        unsafe {
+            self.inner.Uniform1i(location, data);
+        }
+    }
 }
 
+//#[cfg(target_arch = "wasm32")]
 impl Deref for Gl {
     type Target = InnerGl;
 
@@ -211,32 +236,6 @@ impl Deref for Program {
 
 #[cfg(target_arch = "x86_64")]
 impl Deref for Program {
-    type Target = u32;
-
-    fn deref(&self) -> &u32 {
-        &self.inner
-    }
-}
-
-pub struct Shader {
-    #[cfg(target_arch = "wasm32")]
-    inner: WebGlShader,
-
-    #[cfg(target_arch = "x86_64")]
-    inner: u32
-}
-
-#[cfg(target_arch = "wasm32")]
-impl Deref for Shader {
-    type Target = WebGlShader;
-
-    fn deref(&self) -> &WebGlShader {
-        &self.inner
-    }
-}
-
-#[cfg(target_arch = "x86_64")]
-impl Deref for Shader {
     type Target = u32;
 
     fn deref(&self) -> &u32 {
@@ -310,7 +309,7 @@ pub fn shader_from_source(
         return Err(format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned()));
     }
 
-    Ok(Shader {inner: id})
+    Ok(id)
 }
 
 #[cfg(target_arch = "x86_64")]
