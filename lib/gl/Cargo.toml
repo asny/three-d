@@ -16,5 +16,11 @@ features = [
   'WebGlShader',
 ]
 
+[target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
+version = "0.2.33"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.js-sys]
+version = "0.3.10"
+
 [features]
 debug = []

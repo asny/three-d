@@ -70,30 +70,6 @@ pub fn start() -> Result<(), JsValue> {
     Ok(())
 }
 
-pub fn compile_shader(
-    context: &WebGlRenderingContext,
-    shader_type: u32,
-    source: &str,
-) -> Result<WebGlShader, String> {
-    let shader = context
-        .create_shader(shader_type)
-        .ok_or_else(|| String::from("Unable to create shader object"))?;
-    context.shader_source(&shader, source);
-    context.compile_shader(&shader);
-
-    if context
-        .get_shader_parameter(&shader, WebGlRenderingContext::COMPILE_STATUS)
-        .as_bool()
-        .unwrap_or(false)
-    {
-        Ok(shader)
-    } else {
-        Err(context
-            .get_shader_info_log(&shader)
-            .unwrap_or_else(|| "Unknown error creating shader".into()))
-    }
-}
-
 pub fn link_program<'a, T: IntoIterator<Item = &'a WebGlShader>>(
     context: &WebGlRenderingContext,
     shaders: T,

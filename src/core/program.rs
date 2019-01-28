@@ -29,10 +29,9 @@ impl From<std::ffi::NulError> for Error {
     }
 }
 
-#[derive(Clone)]
 pub struct Program {
     gl: gl::Gl,
-    id: gl::types::GLuint,
+    id: gl::Program,
 }
 
 impl Program
@@ -53,44 +52,22 @@ impl Program
 
     pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
-        let program_id = unsafe { gl.CreateProgram() };
+        let program = gl.create_program();
 
         for shader in shaders {
-            unsafe { gl.AttachShader(program_id, shader.id()); }
+            shader.attach_shader(&program);
         }
 
-        unsafe { gl.LinkProgram(program_id); }
-
-        let mut success: gl::types::GLint = 1;
-        unsafe {
-            gl.GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
-        }
-
-        if success == 0 {
-            let mut len: gl::types::GLint = 0;
-            unsafe {
-                gl.GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut len);
-            }
-
-            let error = create_whitespace_cstring_with_len(len as usize);
-
-            unsafe {
-                gl.GetProgramInfoLog(
-                    program_id,
-                    len,
-                    std::ptr::null_mut(),
-                    error.as_ptr() as *mut gl::types::GLchar
-                );
-            }
-
-            return Err(Error::FailedToLinkProgram {message: error.to_string_lossy().into_owned() });;
+        if let Err(message) = gl::link_program(gl, &program)
+        {
+            return Err(Error::FailedToLinkProgram {message})
         }
 
         for shader in shaders {
-            unsafe { gl.DetachShader(program_id, shader.id()); }
+            shader.detach_shader(&program);
         }
 
-        Ok(Program { gl: gl.clone(), id: program_id })
+        Ok(Program { gl: gl.clone(), id: program })
     }
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
@@ -259,13 +236,4 @@ impl Drop for Program {
             self.gl.DeleteProgram(self.id);
         }
     }
-}
-
-fn create_whitespace_cstring_with_len(len: usize) -> CString {
-    // allocate buffer of correct size
-    let mut buffer: Vec<u8> = Vec::with_capacity(len + 1);
-    // fill it with len spaces
-    buffer.extend([b' '].iter().cycle().take(len));
-    // convert buffer to CString
-    unsafe { CString::from_vec_unchecked(buffer) }
 }
