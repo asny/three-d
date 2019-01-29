@@ -190,6 +190,21 @@ impl Gl {
         }
     }
 
+    pub fn vertex_attrib_pointer(&self, location: AttributeLocation, size: u32, data_type: u32, normalized: bool, stride: u32, offset: u32, divisor: u32)
+    {
+        unsafe {
+            self.inner.VertexAttribPointer(
+                location as types::GLuint, // index of the generic vertex attribute
+                size as types::GLint, // the number of components per generic vertex attribute
+                data_type as types::GLenum, // data type
+                normalized as types::GLboolean, // normalized (int-to-float conversion)
+                (stride * std::mem::size_of::<f32>() as u32) as types::GLint, // stride (byte offset between consecutive attributes)
+                (offset * std::mem::size_of::<f32>() as u32) as *const std::os::raw::c_void // offset of the first component
+            );
+            self.inner.VertexAttribDivisor(location as types::GLuint, divisor as types::GLuint);
+        }
+    }
+
     pub fn get_uniform_location(&self, program: &Program, name: &str) -> Option<UniformLocation>
     {
         let c_str = std::ffi::CString::new(name).unwrap();

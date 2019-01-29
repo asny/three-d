@@ -152,18 +152,7 @@ impl Program
         let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
             || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
         self.gl.enable_vertex_attrib_array(location);
-        unsafe {
-
-            self.gl.VertexAttribPointer(
-                location as gl::types::GLuint, // index of the generic vertex attribute
-                no_components as gl::types::GLint, // the number of components per generic vertex attribute
-                gl::FLOAT, // data type
-                gl::FALSE, // normalized (int-to-float conversion)
-                (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-                (offset * std::mem::size_of::<f32>()) as *const std::os::raw::c_void // offset of the first component
-            );
-            self.gl.VertexAttribDivisor(location as gl::types::GLuint, divisor as gl::types::GLuint);
-        }
+        self.gl.vertex_attrib_pointer(location, no_components as u32, gl::FLOAT, false, stride as u32, offset as u32, divisor as u32);
         Ok(())
     }
 
