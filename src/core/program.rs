@@ -6,15 +6,14 @@ use crate::core::buffer;
 
 use crate::types::*;
 
-use std::ffi::{CString};
-
 #[derive(Debug)]
 pub enum Error {
     Shader(shader::Error),
     FailedToLinkProgram {message: String},
     FailedToCreateCString(std::ffi::NulError),
     FailedToFindPositions {message: String},
-    FailedToFindAttribute {message: String}
+    FailedToFindAttribute {message: String},
+    FailedToFindUniform {message: String}
 }
 
 impl From<shader::Error> for Error {
@@ -81,7 +80,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         unsafe {
-            self.gl.Uniform1fv(location, 1, data);
+            self.gl.uniform1f(location, *data);
         }
         Ok(())
     }
@@ -89,67 +88,49 @@ impl Program
     pub fn add_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
-        unsafe {
-            self.gl.Uniform2fv(location, 1, data.as_ptr());
-        }
+        self.gl.uniform2fv(location, &[data.x, data.y]);
         Ok(())
     }
 
     pub fn add_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
-        unsafe {
-            self.gl.Uniform3fv(location, 1, data.as_ptr());
-        }
+        self.gl.uniform3fv(location, &[data.x, data.y, data.z]);
         Ok(())
     }
-
 
     pub fn add_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
-        unsafe {
-            self.gl.Uniform4fv(location, 1, data.as_ptr());
-        }
+        self.gl.uniform4fv(location, &[data.x, data.y, data.z, data.w]);
         Ok(())
     }
 
     pub fn add_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
-        unsafe {
-            self.gl.UniformMatrix2fv(location, 1, gl::FALSE, data.as_ptr());
-        }
+        self.gl.uniform_matrix2fv(location, &[data.x.x, data.x.y, data.y.x, data.y.y]);
         Ok(())
     }
 
     pub fn add_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
-        unsafe {
-            self.gl.UniformMatrix3fv(location, 1, gl::FALSE, data.as_ptr());
-        }
+        self.gl.uniform_matrix3fv(location, &[data.x.x, data.x.y, data.x.z, data.y.x, data.y.y, data.y.z, data.z.x, data.z.y, data.z.z]);
         Ok(())
     }
 
     pub fn add_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
-        unsafe {
-            self.gl.UniformMatrix4fv(location, 1, gl::FALSE, data.as_ptr());
-        }
+        self.gl.uniform_matrix4fv(location, &[data.x.x, data.x.y, data.x.z, data.x.w, data.y.x, data.y.y, data.y.z, data.y.w, data.z.x, data.z.y, data.z.z, data.z.w, data.w.x, data.w.y, data.w.z, data.w.w]);
         Ok(())
     }
 
     fn get_uniform_location(&self, name: &str) -> Result<gl::UniformLocation, Error>
     {
         self.set_used();
-        let location: i32;
-        let c_str = CString::new(name)?;
-        let location = unsafe {
-            self.gl.GetUniformLocation(self.id, c_str.as_ptr())
-        };
-        Ok(location)
+        self.gl.get_uniform_location(&self.id, name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find {}", name)})
     }
 
     pub fn setup_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
@@ -168,15 +149,11 @@ impl Program
 
     pub fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
-        let c_str = CString::new(name)?;
+        let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
+            || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
+        self.gl.enable_vertex_attrib_array(location);
         unsafe {
-            let location = self.gl.GetAttribLocation(self.id, c_str.as_ptr());
-            if location == -1
-            {
-                return Err(Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)});
-            }
 
-            self.gl.EnableVertexAttribArray(location as gl::types::GLuint);
             self.gl.VertexAttribPointer(
                 location as gl::types::GLuint, // index of the generic vertex attribute
                 no_components as gl::types::GLint, // the number of components per generic vertex attribute

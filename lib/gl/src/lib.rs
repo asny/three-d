@@ -29,7 +29,8 @@ pub type bindings = WebGlRenderingContext;
 #[cfg(target_arch = "x86_64")]
 mod defines
 {
-    pub type UniformLocation = i32;
+    pub type AttributeLocation = u32;
+    pub type UniformLocation = u32;
     pub type Shader = u32;
     pub type Program = u32;
     pub type Buffer = u32;
@@ -38,6 +39,7 @@ mod defines
 #[cfg(target_arch = "wasm32")]
 mod defines
 {
+    pub type AttributeLocation = u32;
     pub use web_sys::WebGlUniformLocation as UniformLocation;
     pub use web_sys::WebGlShader as Shader;
     pub use web_sys::WebGlProgram as Program;
@@ -172,10 +174,84 @@ impl Gl {
         unsafe { self.inner.CreateProgram() }
     }
 
+    pub fn get_attrib_location(&self, program: &Program, name: &str) -> Option<AttributeLocation>
+    {
+        let c_str = std::ffi::CString::new(name).unwrap();
+        let location = unsafe {
+            self.inner.GetAttribLocation(*program, c_str.as_ptr())
+        };
+        if location == -1 { None } else { Some(location as AttributeLocation) }
+    }
+
+    pub fn enable_vertex_attrib_array(&self, location: AttributeLocation)
+    {
+        unsafe {
+            self.inner.EnableVertexAttribArray(location);
+        }
+    }
+
+    pub fn get_uniform_location(&self, program: &Program, name: &str) -> Option<UniformLocation>
+    {
+        let c_str = std::ffi::CString::new(name).unwrap();
+        let location = unsafe {
+            self.inner.GetUniformLocation(*program, c_str.as_ptr())
+        };
+        if location == -1 { None } else { Some(location as UniformLocation) }
+    }
+
     pub fn uniform1i(&self, location: UniformLocation, data: i32)
     {
         unsafe {
-            self.inner.Uniform1i(location, data);
+            self.inner.Uniform1i(location as i32, data);
+        }
+    }
+
+    pub fn uniform1f(&self, location: UniformLocation, data: f32)
+    {
+        unsafe {
+            self.inner.Uniform1f(location as i32, data);
+        }
+    }
+
+    pub fn uniform2fv(&self, location: UniformLocation, data: &[f32])
+    {
+        unsafe {
+            self.inner.Uniform2fv(location as i32, 1, data.as_ptr());
+        }
+    }
+
+    pub fn uniform3fv(&self, location: UniformLocation, data: &[f32])
+    {
+        unsafe {
+            self.inner.Uniform3fv(location as i32, 1, data.as_ptr());
+        }
+    }
+
+    pub fn uniform4fv(&self, location: UniformLocation, data: &[f32])
+    {
+        unsafe {
+            self.inner.Uniform4fv(location as i32, 1, data.as_ptr());
+        }
+    }
+
+    pub fn uniform_matrix2fv(&self, location: UniformLocation, data: &[f32])
+    {
+        unsafe {
+            self.inner.UniformMatrix2fv(location as i32, 1, FALSE, data.as_ptr());
+        }
+    }
+
+    pub fn uniform_matrix3fv(&self, location: UniformLocation, data: &[f32])
+    {
+        unsafe {
+            self.inner.UniformMatrix3fv(location as i32, 1, FALSE, data.as_ptr());
+        }
+    }
+
+    pub fn uniform_matrix4fv(&self, location: UniformLocation, data: &[f32])
+    {
+        unsafe {
+            self.inner.UniformMatrix4fv(location as i32, 1, FALSE, data.as_ptr());
         }
     }
 }
