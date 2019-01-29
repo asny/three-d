@@ -183,21 +183,12 @@ impl Program
     }
 
     pub fn set_used(&self) {
-        unsafe {
-            static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
-            if self.id != CURRENTLY_USED
-            {
-                self.gl.UseProgram(self.id);
-                CURRENTLY_USED = self.id;
-            }
-        }
+        self.gl.use_program(&self.id);
     }
 }
 
 impl Drop for Program {
     fn drop(&mut self) {
-        unsafe {
-            self.gl.DeleteProgram(self.id);
-        }
+        self.gl.delete_program(&self.id);
     }
 }

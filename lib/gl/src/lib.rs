@@ -174,6 +174,26 @@ impl Gl {
         unsafe { self.inner.CreateProgram() }
     }
 
+    pub fn use_program(&self, program: &Program)
+    {
+        unsafe {
+            static mut CURRENTLY_USED: u32 = std::u32::MAX;
+            let id = *program;
+            if id != CURRENTLY_USED
+            {
+                self.inner.UseProgram(id);
+                CURRENTLY_USED = id;
+            }
+        }
+    }
+
+    pub fn delete_program(&self, program: &Program)
+    {
+        unsafe {
+            self.inner.DeleteProgram(*program);
+        }
+    }
+
     pub fn get_attrib_location(&self, program: &Program, name: &str) -> Option<AttributeLocation>
     {
         let c_str = std::ffi::CString::new(name).unwrap();
