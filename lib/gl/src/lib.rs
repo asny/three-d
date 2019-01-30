@@ -32,6 +32,7 @@ mod defines
     pub type Shader = u32;
     pub type Program = u32;
     pub type Buffer = u32;
+    pub type Framebuffer = u32;
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -42,6 +43,7 @@ mod defines
     pub use web_sys::WebGlShader as Shader;
     pub use web_sys::WebGlProgram as Program;
     pub use web_sys::WebGlBuffer as Buffer;
+    pub use web_sys::WebGlFramebuffer as Framebuffer;
 }
 
 pub use defines::*;
@@ -286,6 +288,22 @@ impl Gl {
         unsafe {
             self.inner.UniformMatrix4fv(location as i32, 1, FALSE, data.as_ptr());
         }
+    }
+
+    pub fn draw_buffers(&self, draw_buffers: &[u32])
+    {
+        unsafe {
+            self.inner.DrawBuffers(draw_buffers.len() as i32, draw_buffers.as_ptr());
+        }
+    }
+
+    pub fn create_framebuffer(&self) -> Option<Framebuffer>
+    {
+        let mut id: u32 = 0;
+        unsafe {
+            self.inner.GenFramebuffers(1, &mut id);
+        }
+        Some(id)
     }
 }
 

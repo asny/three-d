@@ -4,7 +4,8 @@ use crate::core::texture;
 
 #[derive(Debug)]
 pub enum Error {
-    Texture(texture::Error)
+    Texture(texture::Error),
+    FailedToCreateFramebuffer {message: String}
 }
 
 impl From<texture::Error> for Error {
@@ -70,9 +71,7 @@ impl ColorRendertarget
             targets.push(texture::Texture2D::new_as_color_target(gl, width, height, i as u32)?)
         }
 
-        unsafe {
-            gl.DrawBuffers(no_targets as i32, draw_buffers.as_ptr());
-        }
+        gl.draw_buffers(&draw_buffers);
 
         let depth_target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
         Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target })
@@ -142,11 +141,7 @@ impl Drop for DepthRenderTarget {
 // COMMON FUNCTIONS
 fn generate(gl: &gl::Gl) -> Result<u32, Error>
 {
-    let mut id: u32 = 0;
-    unsafe {
-        gl.GenFramebuffers(1, &mut id);
-    }
-    Ok(id)
+    gl.create_framebuffer().ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )
 }
 
 fn bind(gl: &gl::Gl, id: u32, width: usize, height: usize)
