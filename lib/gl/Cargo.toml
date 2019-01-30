@@ -11,7 +11,7 @@ gl_generator = "0.9.0"
 version = "0.3.4"
 features = [
   'WebGlBuffer',
-  'WebGlRenderingContext',
+  'WebGl2RenderingContext',
   'WebGlProgram',
   'WebGlShader',
   'WebGlUniformLocation',

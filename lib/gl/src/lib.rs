@@ -15,15 +15,13 @@ use bindings::Gl as InnerGl;
 // WEBGL
 
 #[cfg(target_arch = "wasm32")]
-use web_sys::{WebGlRenderingContext};
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
-use WebGlRenderingContext as InnerGl;
+use web_sys::WebGl2RenderingContext as InnerGl;
 
 #[cfg(target_arch = "wasm32")]
-pub type bindings = WebGlRenderingContext;
+pub type bindings = InnerGl;
 
 
 #[cfg(target_arch = "x86_64")]
@@ -59,7 +57,7 @@ pub struct Gl {
 
 #[cfg(target_arch = "wasm32")]
 impl Gl {
-    pub fn new(webgl_context: WebGlRenderingContext) -> Gl
+    pub fn new(webgl_context: InnerGl) -> Gl
     {
         Gl {
             inner: Rc::new(webgl_context)
@@ -313,7 +311,7 @@ pub fn shader_from_source(
     gl.compile_shader(&shader);
 
     if gl
-        .get_shader_parameter(&shader, WebGlRenderingContext::COMPILE_STATUS)
+        .get_shader_parameter(&shader, bindings::COMPILE_STATUS)
         .as_bool()
         .unwrap_or(false)
     {
@@ -407,7 +405,7 @@ pub fn link_program(gl: &Gl, program: &Program) -> Result<(), String>
     gl.link_program(program);
 
     if gl
-        .get_program_parameter(program, WebGlRenderingContext::LINK_STATUS)
+        .get_program_parameter(program, bindings::LINK_STATUS)
         .as_bool()
         .unwrap_or(false)
     {
