@@ -78,7 +78,7 @@ impl Program
 
     pub fn add_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error>
     {
-        let location= self.get_uniform_location(name)?;
+        let location = self.get_uniform_location(name)?;
         unsafe {
             self.gl.uniform1f(location, *data);
         }
@@ -87,14 +87,14 @@ impl Program
 
     pub fn add_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error>
     {
-        let location= self.get_uniform_location(name)?;
+        let location = self.get_uniform_location(name)?;
         self.gl.uniform2fv(location, &[data.x, data.y]);
         Ok(())
     }
 
     pub fn add_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error>
     {
-        let location= self.get_uniform_location(name)?;
+        let location = self.get_uniform_location(name)?;
         self.gl.uniform3fv(location, &[data.x, data.y, data.z]);
         Ok(())
     }
@@ -108,21 +108,21 @@ impl Program
 
     pub fn add_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
     {
-        let location= self.get_uniform_location(name)?;
+        let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix2fv(location, &[data.x.x, data.x.y, data.y.x, data.y.y]);
         Ok(())
     }
 
     pub fn add_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
     {
-        let location= self.get_uniform_location(name)?;
+        let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix3fv(location, &[data.x.x, data.x.y, data.x.z, data.y.x, data.y.y, data.y.z, data.z.x, data.z.y, data.z.z]);
         Ok(())
     }
 
     pub fn add_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
     {
-        let location= self.get_uniform_location(name)?;
+        let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix4fv(location, &[data.x.x, data.x.y, data.x.z, data.x.w, data.y.x, data.y.y, data.y.z, data.y.w, data.z.x, data.z.y, data.z.z, data.z.w, data.w.x, data.w.y, data.w.z, data.w.w]);
         Ok(())
     }

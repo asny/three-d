@@ -107,6 +107,47 @@ impl Gl {
     {
         self.inner.create_program().unwrap()
     }
+
+    pub fn bind_vertex_array(&self, array: &VertexArrayObject)
+    {
+        self.inner.bind_vertex_array(Some(array));
+    }
+
+    pub fn delete_texture(&self, texture: &Texture)
+    {
+        self.inner.delete_texture(Some(texture));
+    }
+
+    pub fn bind_texture(&self, target: u32, texture: &Texture)
+    {
+        self.inner.bind_texture(target, Some(texture));
+    }
+
+    pub fn tex_image_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32)
+    {
+        self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(target,
+                                                                                              level as i32,
+                                                                                              internalformat as i32,
+                                                                                              width as i32,
+                                                                                              height as i32,
+                                                                                              border as i32,
+                                                                                              format,
+                                                                                              data_type,
+                                                                                              None).unwrap();
+    }
+
+    pub fn tex_image_2d_with_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
+    {
+        self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(target,
+                                                                                              level as i32,
+                                                                                              internalformat as i32,
+                                                                                              width as i32,
+                                                                                              height as i32,
+                                                                                              border as i32,
+                                                                                              format,
+                                                                                              data_type,
+                                                                                              Some(pixels)).unwrap();
+    }
 }
 
 #[cfg(target_arch = "x86_64")]
