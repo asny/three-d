@@ -33,6 +33,7 @@ mod defines
     pub type Program = u32;
     pub type Buffer = u32;
     pub type Framebuffer = u32;
+    pub type Texture = u32;
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -44,6 +45,7 @@ mod defines
     pub use web_sys::WebGlProgram as Program;
     pub use web_sys::WebGlBuffer as Buffer;
     pub use web_sys::WebGlFramebuffer as Framebuffer;
+    pub use web_sys::WebGlTexture as Texture;
 }
 
 pub use defines::*;
@@ -406,6 +408,29 @@ impl Gl {
             else {
                 self.inner.DepthMask(FALSE);
             }
+        }
+    }
+
+    pub fn create_texture(&self) -> Option<Texture>
+    {
+        let mut id: u32 = 0;
+        unsafe {
+            self.inner.GenTextures(1, &mut id);
+        }
+        Some(id)
+    }
+
+    pub fn active_texture(&self, texture: u32)
+    {
+        unsafe {
+            self.inner.ActiveTexture(texture);
+        }
+    }
+
+    pub fn bind_texture(&self, target: u32, texture: &Texture)
+    {
+        unsafe {
+            self.inner.BindTexture(target, *texture);
         }
     }
 

@@ -5,7 +5,8 @@ use image::GenericImage;
 #[derive(Debug)]
 pub enum Error {
     Image(image::ImageError),
-    IO(std::io::Error)
+    IO(std::io::Error),
+    FailedToCreateTexture {message: String}
 }
 
 impl From<image::ImageError> for Error {
@@ -26,7 +27,7 @@ pub trait Texture {
 
 pub struct Texture2D {
     gl: gl::Gl,
-    id: u32,
+    id: gl::Texture,
     target: u32
 }
 
@@ -38,7 +39,7 @@ impl Texture2D
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
-        bind(&texture.gl, texture.id, texture.target);
+        bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
@@ -60,7 +61,7 @@ impl Texture2D
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
-        bind(&texture.gl, texture.id, texture.target);
+        bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
@@ -86,7 +87,7 @@ impl Texture2D
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
-        bind(&texture.gl, texture.id, texture.target);
+        bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
@@ -111,7 +112,7 @@ impl Texture2D
     pub fn fill_with_u8(&mut self, width: usize, height: usize, data: &Vec<u8>)
     {
         let d = extend_data(data, width * height, 0);
-        bind(&self.gl, self.id, self.target);
+        bind(&self.gl, &self.id, self.target);
         unsafe {
             let format = gl::RGB;
             let internal_format = gl::RGB8;
@@ -131,7 +132,7 @@ impl Texture2D
     {
         let no_elements = 1;
         let d = extend_data(data, width * height, 0.0);
-        bind(&self.gl, self.id, self.target);
+        bind(&self.gl, &self.id, self.target);
         unsafe {
             let format = if no_elements == 1 {gl::RED} else {gl::RGB};
             let internal_format = if no_elements == 1 {gl::R32F} else {gl::RGB32F};
@@ -150,7 +151,7 @@ impl Texture2D
     pub fn get_pixels(&self, width: usize, height: usize) -> Vec<u8>
     {
         let pixels = vec![0.0 as f32; width * height * 3];
-        bind(&self.gl, self.id, self.target);
+        bind(&self.gl, &self.id, self.target);
         unsafe {
             self.gl.GetTexImage(self.target, 0, gl::RGB, gl::FLOAT, pixels.as_ptr() as *mut gl::types::GLvoid);
         }
@@ -170,7 +171,7 @@ impl Texture for Texture2D
 {
     fn bind(&self, location: u32)
     {
-        bind_at(&self.gl, self.id, self.target, location);
+        bind_at(&self.gl, &self.id, self.target, location);
     }
 }
 
@@ -184,7 +185,7 @@ impl Drop for Texture2D
 
 pub struct Texture3D {
     gl: gl::Gl,
-    id: u32,
+    id: gl::Texture,
     target: u32
 }
 
@@ -196,7 +197,7 @@ impl Texture3D
         let id = generate(gl)?;
         let texture = Texture3D { gl: gl.clone(), id, target: gl::TEXTURE_CUBE_MAP };
 
-        bind(&texture.gl, texture.id, texture.target);
+        bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
         gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
@@ -223,7 +224,7 @@ impl Texture3D
 
     pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&Vec<u8>; 6])
     {
-        bind(&self.gl, self.id, self.target);
+        bind(&self.gl, &self.id, self.target);
         for i in 0..6 {
             unsafe {
                 let format = gl::RGB;
@@ -247,7 +248,7 @@ impl Texture for Texture3D
 {
     fn bind(&self, location: u32)
     {
-        bind_at(&self.gl, self.id, self.target, location);
+        bind_at(&self.gl, &self.id, self.target, location);
     }
 }
 
@@ -260,28 +261,20 @@ impl Drop for Texture3D
 }
 
 // COMMON FUNCTIONS
-fn generate(gl: &gl::Gl) -> Result<u32, Error>
+fn generate(gl: &gl::Gl) -> Result<gl::Texture, Error>
 {
-    let mut id: u32 = 0;
-    unsafe {
-        gl.GenTextures(1, &mut id);
-    }
-    Ok(id)
+    gl.create_texture().ok_or_else(|| Error::FailedToCreateTexture {message: "Failed to create texture".to_string()} )
 }
 
-fn bind_at(gl: &gl::Gl, id: u32, target: u32, location: u32)
+fn bind_at(gl: &gl::Gl, id: &gl::Texture, target: u32, location: u32)
 {
-    unsafe {
-        gl.ActiveTexture(gl::TEXTURE0 + location);
-    }
+    gl.active_texture(gl::TEXTURE0 + location);
     bind(gl, id, target);
 }
 
-fn bind(gl: &gl::Gl, id: u32, target: u32)
+fn bind(gl: &gl::Gl, id: &gl::Texture, target: u32)
 {
-    unsafe {
-        gl.BindTexture(target, id);
-    }
+    gl.bind_texture(target, id)
 }
 
 fn drop(gl: &gl::Gl, id: &u32)
