@@ -56,11 +56,11 @@ impl Shader
     }
 
     pub fn from_vert_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::VERTEX_SHADER, "")
+        Shader::from_source(gl, source, gl::bindings::VERTEX_SHADER, "")
     }
 
     pub fn from_frag_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::FRAGMENT_SHADER, "")
+        Shader::from_source(gl, source, gl::bindings::FRAGMENT_SHADER, "")
     }
 
     pub fn attach_shader(&self, program: &gl::Program)

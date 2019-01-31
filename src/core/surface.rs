@@ -23,7 +23,7 @@ impl From<buffer::Error> for Error {
 
 pub struct TriangleSurface {
     gl: gl::Gl,
-    id: gl::types::GLuint,
+    id: gl::bindings::types::GLuint,
     count: usize
 }
 
@@ -31,7 +31,7 @@ impl TriangleSurface
 {
     pub fn create(gl: &gl::Gl, indices: &[u32]) -> Result<TriangleSurface, Error>
     {
-        let mut id: gl::types::GLuint = 0;
+        let mut id: gl::bindings::types::GLuint = 0;
         unsafe {
             gl.GenVertexArrays(1, &mut id);
         }
@@ -64,9 +64,9 @@ impl TriangleSurface
         self.bind();
         unsafe {
             self.gl.DrawElements(
-                gl::TRIANGLES, // mode
+                gl::bindings::TRIANGLES, // mode
                 self.count as i32, // number of indices to be rendered
-                gl::UNSIGNED_INT,
+                gl::bindings::UNSIGNED_INT,
                 std::ptr::null() // starting index in the enabled arrays
             );
         }
@@ -78,9 +78,9 @@ impl TriangleSurface
         self.bind();
         unsafe {
             self.gl.DrawElementsInstanced(
-                gl::TRIANGLES, // mode
+                gl::bindings::TRIANGLES, // mode
                 self.count as i32, // number of indices to be rendered
-                gl::UNSIGNED_INT,
+                gl::bindings::UNSIGNED_INT,
                 std::ptr::null(), // starting index in the enabled arrays
                 no_instances as i32
             );
@@ -97,7 +97,7 @@ impl TriangleSurface
 fn bind(gl: &gl::Gl, id: u32)
 {
     unsafe {
-        static mut CURRENTLY_USED: gl::types::GLuint = std::u32::MAX;
+        static mut CURRENTLY_USED: gl::bindings::types::GLuint = std::u32::MAX;
         if id != CURRENTLY_USED
         {
             gl.BindVertexArray(id);

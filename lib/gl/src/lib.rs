@@ -7,7 +7,7 @@ pub mod bindings {
 }
 
 #[cfg(target_arch = "x86_64")]
-pub use bindings::*;
+use bindings::*;
 
 #[cfg(target_arch = "x86_64")]
 use bindings::Gl as InnerGl;
@@ -22,7 +22,6 @@ use web_sys::WebGl2RenderingContext as InnerGl;
 
 #[cfg(target_arch = "wasm32")]
 pub type bindings = InnerGl;
-
 
 #[cfg(target_arch = "x86_64")]
 mod defines

@@ -46,7 +46,7 @@ impl VertexBuffer
 
     pub fn bind(&self)
     {
-        bind(&self.gl, &self.id, gl::ARRAY_BUFFER);
+        bind(&self.gl, &self.id, gl::bindings::ARRAY_BUFFER);
     }
 
     pub fn stride(&self) -> usize
@@ -92,7 +92,7 @@ impl VertexBuffer
     pub fn fill_with(&mut self, data: &[f32])
     {
         self.bind();
-        self.gl.buffer_data_f32(gl::ARRAY_BUFFER, data, gl::STATIC_DRAW);
+        self.gl.buffer_data_f32(gl::bindings::ARRAY_BUFFER, data, gl::bindings::STATIC_DRAW);
     }
 }
 
@@ -108,14 +108,14 @@ impl ElementBuffer
     {
         let id = gl.create_buffer().unwrap();
         let buffer = ElementBuffer{gl: gl.clone(), id };
-        bind(&buffer.gl, &buffer.id, gl::ELEMENT_ARRAY_BUFFER);
+        bind(&buffer.gl, &buffer.id, gl::bindings::ELEMENT_ARRAY_BUFFER);
         Ok(buffer)
     }
 
     pub fn fill_with(&self, data: &[u32])
     {
-        bind(&self.gl, &self.id, gl::ELEMENT_ARRAY_BUFFER);
-        self.gl.buffer_data_u32(gl::ELEMENT_ARRAY_BUFFER, data, gl::STATIC_DRAW);
+        bind(&self.gl, &self.id, gl::bindings::ELEMENT_ARRAY_BUFFER);
+        self.gl.buffer_data_u32(gl::bindings::ELEMENT_ARRAY_BUFFER, data, gl::bindings::STATIC_DRAW);
     }
 }
 

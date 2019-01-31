@@ -152,7 +152,7 @@ impl Program
         let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
             || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
         self.gl.enable_vertex_attrib_array(location);
-        self.gl.vertex_attrib_pointer(location, no_components as u32, gl::FLOAT, false, stride as u32, offset as u32, divisor as u32);
+        self.gl.vertex_attrib_pointer(location, no_components as u32, gl::bindings::FLOAT, false, stride as u32, offset as u32, divisor as u32);
         Ok(())
     }
 

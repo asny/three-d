@@ -67,7 +67,7 @@ impl ColorRendertarget
         let mut draw_buffers = Vec::new();
         let mut targets = Vec::new();
         for i in 0..no_targets {
-            draw_buffers.push(gl::COLOR_ATTACHMENT0 + i as u32);
+            draw_buffers.push(gl::bindings::COLOR_ATTACHMENT0 + i as u32);
             targets.push(texture::Texture2D::new_as_color_target(gl, width, height, i as u32)?)
         }
 
@@ -154,7 +154,7 @@ fn clear(gl: &gl::Gl)
 {
     state::depth_write(gl,true);
     gl.clear_color(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+    gl.clear(gl::bindings::COLOR_BUFFER_BIT | gl::bindings::DEPTH_BUFFER_BIT);
 }
 
 fn drop(gl: &gl::Gl, id: &gl::Framebuffer)
