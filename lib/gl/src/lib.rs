@@ -123,6 +123,20 @@ impl Gl {
         }
     }
 
+    pub fn attach_shader(&self, program: &Program, shader: &Shader)
+    {
+        unsafe {
+            self.inner.AttachShader(*program, *shader);
+        }
+    }
+
+    pub fn detach_shader(&self, program: &Program, shader: &Shader)
+    {
+        unsafe {
+            self.inner.DetachShader(*program, *shader);
+        }
+    }
+
     pub fn create_buffer(&self) -> Option<Buffer>
     {
         let mut id: u32 = 0;
