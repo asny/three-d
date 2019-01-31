@@ -33,6 +33,7 @@ mod defines
     pub type Buffer = u32;
     pub type Framebuffer = u32;
     pub type Texture = u32;
+    pub type VertexArrayObject = u32;
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -45,6 +46,7 @@ mod defines
     pub use web_sys::WebGlBuffer as Buffer;
     pub use web_sys::WebGlFramebuffer as Framebuffer;
     pub use web_sys::WebGlTexture as Texture;
+    pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
 }
 
 pub use defines::*;
@@ -181,6 +183,28 @@ impl Gl {
                 data.as_ptr() as *const types::GLvoid, // pointer to data
                 usage
             );
+        }
+    }
+
+    pub fn create_vertex_array(&self) -> Option<VertexArrayObject>
+    {
+        let mut id: u32 = 0;
+        unsafe {
+            self.inner.GenVertexArrays(1, &mut id);
+        }
+        Some(id)
+    }
+
+    pub fn bind_vertex_array(&self, array: &VertexArrayObject)
+    {
+        unsafe {
+            static mut CURRENTLY_USED: u32 = std::u32::MAX;
+            let id = *array;
+            if id != CURRENTLY_USED
+            {
+                self.inner.BindVertexArray(id);
+                CURRENTLY_USED = id;
+            }
         }
     }
 

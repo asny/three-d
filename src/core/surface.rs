@@ -23,7 +23,7 @@ impl From<buffer::Error> for Error {
 
 pub struct TriangleSurface {
     gl: gl::Gl,
-    id: gl::bindings::types::GLuint,
+    id: gl::VertexArrayObject,
     count: usize
 }
 
@@ -31,10 +31,7 @@ impl TriangleSurface
 {
     pub fn create(gl: &gl::Gl, indices: &[u32]) -> Result<TriangleSurface, Error>
     {
-        let mut id: gl::bindings::types::GLuint = 0;
-        unsafe {
-            gl.GenVertexArrays(1, &mut id);
-        }
+        let id = gl.create_vertex_array().unwrap();
 
         let model = TriangleSurface { gl: gl.clone(), id, count: indices.len() };
         model.bind();
@@ -90,18 +87,6 @@ impl TriangleSurface
 
     fn bind(&self)
     {
-        bind(&self.gl, self.id);
-    }
-}
-
-fn bind(gl: &gl::Gl, id: u32)
-{
-    unsafe {
-        static mut CURRENTLY_USED: gl::bindings::types::GLuint = std::u32::MAX;
-        if id != CURRENTLY_USED
-        {
-            gl.BindVertexArray(id);
-            CURRENTLY_USED = id;
-        }
+        self.gl.bind_vertex_array(&self.id);
     }
 }

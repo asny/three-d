@@ -17,6 +17,7 @@ features = [
   'WebGlShader',
   'WebGlTexture',
   'WebGlUniformLocation',
+  'WebGlVertexArrayObject'
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
