@@ -153,6 +153,16 @@ impl Gl {
     {
         unimplemented!();
     }
+
+    pub fn framebuffer_texture_2d(&self, target: u32, attachment: u32, textarget: u32, texture: &Texture, level: u32)
+    {
+        self.inner.framebuffer_texture_2d(target, attachment, textarget, Some(texture), level as i32);
+    }
+    
+    pub fn bind_framebuffer(&self, target: u32, framebuffer: &Framebuffer)
+    {
+        self.inner.bind_framebuffer(target, Some(framebuffer));
+    }
 }
 
 #[cfg(target_arch = "x86_64")]
