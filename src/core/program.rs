@@ -177,11 +177,6 @@ impl Program
         state::depth_write(&self.gl, enable);
     }
 
-    pub fn polygon_mode(&self, polygon_type: state::PolygonType)
-    {
-        state::polygon_mode(&self.gl, polygon_type);
-    }
-
     pub fn set_used(&self) {
         self.gl.use_program(&self.id);
     }
