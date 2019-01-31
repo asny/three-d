@@ -257,8 +257,8 @@ impl Gl {
                 size as types::GLint, // the number of components per generic vertex attribute
                 data_type as types::GLenum, // data type
                 normalized as types::GLboolean, // normalized (int-to-float conversion)
-                (stride * std::mem::size_of::<f32>() as u32) as types::GLint, // stride (byte offset between consecutive attributes)
-                (offset * std::mem::size_of::<f32>() as u32) as *const std::os::raw::c_void // offset of the first component
+                byte_size_for_type(data_type, stride) as types::GLint, // stride (byte offset between consecutive attributes)
+                byte_size_for_type(data_type, offset) as *const types::GLvoid // offset of the first component
             );
             self.inner.VertexAttribDivisor(location as types::GLuint, divisor as types::GLuint);
         }
@@ -463,9 +463,34 @@ impl Gl {
             self.inner.TexParameteri(target, pname, param);
         }
     }
+
+    pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32)
+    {
+        unsafe {
+            self.inner.DrawElements(
+                mode as types::GLenum,
+                count as types::GLint, // number of indices to be rendered
+                data_type as types::GLenum,
+                byte_size_for_type(data_type, offset) as *const types::GLvoid, // starting index in the enabled arrays
+            );
+        }
+    }
+
+    pub fn draw_elements_instanced(&self, mode: u32, count: u32, data_type: u32, offset: u32, instance_count: u32)
+    {
+        unsafe {
+            self.inner.DrawElementsInstanced(
+                mode as types::GLenum,
+                count as types::GLint, // number of indices to be rendered
+                data_type as types::GLenum,
+                byte_size_for_type(data_type, offset) as *const types::GLvoid, // starting index in the enabled arrays
+                instance_count as types::GLint
+            );
+        }
+    }
 }
 
-//#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")]
 impl Deref for Gl {
     type Target = InnerGl;
 
@@ -601,4 +626,17 @@ fn create_whitespace_cstring_with_len(len: usize) -> std::ffi::CString {
     buffer.extend([b' '].iter().cycle().take(len));
     // convert buffer to CString
     unsafe { std::ffi::CString::from_vec_unchecked(buffer) }
+}
+
+fn byte_size_for_type(data_type: u32, count: u32) -> u32
+{
+    match data_type {
+        bindings::FLOAT => {
+            count * std::mem::size_of::<f32>() as u32
+        },
+        bindings::UNSIGNED_INT => {
+            count * std::mem::size_of::<u32>() as u32
+        }
+        _ => { 0 }
+    }
 }
