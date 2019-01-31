@@ -360,9 +360,57 @@ impl Gl {
             self.inner.Clear(mask);
         }
     }
+
+    pub fn enable(&self, cap: u32)
+    {
+        unsafe {
+            self.inner.Enable(cap);
+        }
+    }
+
+    pub fn disable(&self, cap: u32)
+    {
+        unsafe {
+            self.inner.Disable(cap);
+        }
+    }
+
+    pub fn blend_func(&self, sfactor: u32, dfactor: u32)
+    {
+        unsafe {
+            self.inner.BlendFunc(sfactor, dfactor);
+        }
+    }
+
+    pub fn cull_face(&self, mode: u32)
+    {
+        unsafe {
+            self.inner.CullFace(mode);
+        }
+    }
+
+    pub fn depth_func(&self, func: u32)
+    {
+        unsafe {
+            self.inner.DepthFunc(func);
+        }
+    }
+
+    pub fn depth_mask(&self, flag: bool)
+    {
+        unsafe {
+            if flag
+            {
+                self.inner.DepthMask(TRUE);
+            }
+            else {
+                self.inner.DepthMask(FALSE);
+            }
+        }
+    }
 }
 
-#[cfg(target_arch = "wasm32")]
+//#[cfg(target_arch = "wasm32")]
 impl Deref for Gl {
     type Target = InnerGl;
 
