@@ -143,7 +143,7 @@ impl Texture2D
         let pixels = vec![0.0 as f32; width * height * 3];
         bind(&self.gl, &self.id, self.target);
         unsafe {
-            self.gl.GetTexImage(self.target, 0, gl::bindings::RGB, gl::bindings::FLOAT, pixels.as_ptr() as *mut gl::bindings::types::GLvoid);
+            //Todo: self.gl.GetTexImage(self.target, 0, gl::bindings::RGB, gl::bindings::FLOAT, pixels.as_ptr() as *mut gl::bindings::types::GLvoid);
         }
         pixels.iter().map(|x| (*x * 255.0) as u8).collect()
     }
