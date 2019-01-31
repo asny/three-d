@@ -23,7 +23,7 @@ impl Shader
 {
     pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Shader, Error>
     {
-        const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] = [
+        const POSSIBLE_EXT: [(&str, u32); 2] = [
             (".vert", gl::bindings::VERTEX_SHADER),
             (".frag", gl::bindings::FRAGMENT_SHADER),
         ];
@@ -40,7 +40,7 @@ impl Shader
         Shader::from_source(gl, &source, shader_kind, name)
     }
 
-    pub fn from_source(gl: &gl::Gl, source: &str, kind: gl::types::GLenum, name: &str) -> Result<Shader, Error>
+    pub fn from_source(gl: &gl::Gl, source: &str, kind: u32, name: &str) -> Result<Shader, Error>
     {
         #[cfg(not(target_os = "emscripten"))]
         let header = "#version 330 core\nprecision mediump float;\n";
