@@ -136,7 +136,7 @@ impl Gl {
                                                                                               None).unwrap();
     }
 
-    pub fn tex_image_2d_with_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
+    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
     {
         self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(target,
                                                                                               level as i32,
@@ -147,6 +147,11 @@ impl Gl {
                                                                                               format,
                                                                                               data_type,
                                                                                               Some(pixels)).unwrap();
+    }
+
+    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [f32])
+    {
+        unimplemented!();
     }
 }
 
@@ -505,7 +510,14 @@ impl Gl {
         }
     }
 
-    pub fn tex_image_2d_with_data<T>(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [T])
+    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
+    {
+        unsafe {
+            self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, border as i32, format, data_type, pixels.as_ptr() as *const types::GLvoid);
+        }
+    }
+
+    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [f32])
     {
         unsafe {
             self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, border as i32, format, data_type, pixels.as_ptr() as *const types::GLvoid);

@@ -109,7 +109,7 @@ impl Texture2D
     {
         let mut d = extend_data(data, width * height, 0);
         bind(&self.gl, &self.id, self.target);
-        self.gl.tex_image_2d_with_data(self.target,
+        self.gl.tex_image_2d_with_u8_data(self.target,
                              0,
                              gl::bindings::RGB8,
                              width as u32,
@@ -127,7 +127,7 @@ impl Texture2D
         bind(&self.gl, &self.id, self.target);
         let format = if no_elements == 1 {gl::bindings::RED} else {gl::bindings::RGB};
         let internal_format = if no_elements == 1 {gl::bindings::R32F} else {gl::bindings::RGB32F};
-        self.gl.tex_image_2d_with_data(self.target,
+        self.gl.tex_image_2d_with_f32_data(self.target,
                              0,
                              internal_format,
                              width as u32,
@@ -218,7 +218,7 @@ impl Texture3D
         for i in 0..6 {
             let format = gl::bindings::RGB;
             let internal_format = gl::bindings::RGB8;
-            self.gl.tex_image_2d_with_data(gl::bindings::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+            self.gl.tex_image_2d_with_u8_data(gl::bindings::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
                                            0,
                                            internal_format,
                                            width as u32,
