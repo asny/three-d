@@ -39,12 +39,10 @@ impl Texture2D
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
         bind(&texture.gl, texture.id, texture.target);
-        unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-        }
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
 
         Ok(texture)
     }
@@ -63,12 +61,11 @@ impl Texture2D
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
         bind(&texture.gl, texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-
             gl.TexImage2D(texture.target,
                              0,
                              gl::RGBA32F as i32,
@@ -90,11 +87,11 @@ impl Texture2D
         let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
 
         bind(&texture.gl, texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
 
             gl.TexImage2D(texture.target,
                              0,
@@ -200,13 +197,11 @@ impl Texture3D
         let texture = Texture3D { gl: gl.clone(), id, target: gl::TEXTURE_CUBE_MAP };
 
         bind(&texture.gl, texture.id, texture.target);
-        unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE as i32);
-        }
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE as i32);
 
         Ok(texture)
     }

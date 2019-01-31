@@ -408,6 +408,13 @@ impl Gl {
             }
         }
     }
+
+    pub fn tex_parameteri(&self, target: u32, pname: u32, param: i32)
+    {
+        unsafe {
+            self.inner.TexParameteri(target, pname, param);
+        }
+    }
 }
 
 //#[cfg(target_arch = "wasm32")]
