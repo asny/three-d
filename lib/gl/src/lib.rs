@@ -305,9 +305,50 @@ impl Gl {
         }
         Some(id)
     }
+
+    pub fn bind_framebuffer(&self, target: u32, framebuffer: &Framebuffer)
+    {
+        let id = *framebuffer;
+        unsafe {
+            static mut CURRENTLY_USED: u32 = std::u32::MAX;
+            if id != CURRENTLY_USED
+            {
+                self.inner.BindFramebuffer(target, id);
+                CURRENTLY_USED = id;
+            }
+        }
+    }
+
+    pub fn delete_framebuffer(&self, framebuffer: &Framebuffer)
+    {
+        unsafe {
+            self.inner.DeleteFramebuffers(1, framebuffer);
+        }
+    }
+
+    pub fn viewport(&self, x: i32, y: i32, width: i32, height: i32)
+    {
+        unsafe {
+            self.inner.Viewport(x, y, width, height);
+        }
+    }
+
+    pub fn clear_color(&self, red: f32, green: f32, blue: f32, alpha: f32)
+    {
+        unsafe {
+            self.inner.ClearColor(red, green, blue, alpha);
+        }
+    }
+
+    pub fn clear(&self, mask: u32)
+    {
+        unsafe {
+            self.inner.Clear(mask);
+        }
+    }
 }
 
-//#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")]
 impl Deref for Gl {
     type Target = InnerGl;
 
