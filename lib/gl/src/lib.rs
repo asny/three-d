@@ -457,6 +457,20 @@ impl Gl {
         }
     }
 
+    pub fn tex_image_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32)
+    {
+        unsafe {
+            self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, border as i32, format, data_type, std::ptr::null() as *const types::GLvoid);
+        }
+    }
+
+    pub fn tex_image_2d_with_data<T>(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [T])
+    {
+        unsafe {
+            self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, border as i32, format, data_type, pixels.as_ptr() as *const types::GLvoid);
+        }
+    }
+
     pub fn tex_parameteri(&self, target: u32, pname: u32, param: i32)
     {
         unsafe {

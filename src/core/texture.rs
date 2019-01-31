@@ -52,7 +52,7 @@ impl Texture2D
     {
         let img = image::open(path)?;
         let mut texture = Texture2D::new(gl)?;
-        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
+        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &mut img.raw_pixels());
         Ok(texture)
     }
 
@@ -66,16 +66,17 @@ impl Texture2D
         gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MAG_FILTER, gl::bindings::NEAREST as i32);
         gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_S, gl::bindings::CLAMP_TO_EDGE as i32);
         gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_T, gl::bindings::CLAMP_TO_EDGE as i32);
-        unsafe {
-            gl.TexImage2D(texture.target,
+
+        gl.tex_image_2d(texture.target,
                              0,
-                             gl::bindings::RGBA32F as i32,
-                             width as i32,
-                             height as i32,
+                             gl::bindings::RGBA32F,
+                             width as u32,
+                             height as u32,
                              0,
                              gl::bindings::RGBA,
-                             gl::bindings::FLOAT,
-                             std::ptr::null());
+                             gl::bindings::FLOAT);
+
+        unsafe {
             gl.FramebufferTexture2D(gl::bindings::FRAMEBUFFER, gl::bindings::COLOR_ATTACHMENT0 + channel, gl::bindings::TEXTURE_2D, id, 0);
         }
 
@@ -92,60 +93,54 @@ impl Texture2D
         gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MAG_FILTER, gl::bindings::NEAREST as i32);
         gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_S, gl::bindings::CLAMP_TO_EDGE as i32);
         gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_T, gl::bindings::CLAMP_TO_EDGE as i32);
-        unsafe {
 
-            gl.TexImage2D(texture.target,
-                             0,
-                             gl::bindings::DEPTH_COMPONENT32F as i32,
-                             width as i32,
-                             height as i32,
-                             0,
-                             gl::bindings::DEPTH_COMPONENT,
-                             gl::bindings::FLOAT,
-                             std::ptr::null());
+        gl.tex_image_2d(texture.target,
+                          0,
+                          gl::bindings::DEPTH_COMPONENT32F,
+                          width as u32,
+                          height as u32,
+                          0,
+                          gl::bindings::DEPTH_COMPONENT,
+                          gl::bindings::FLOAT);
+
+        unsafe {
             gl.FramebufferTexture2D(gl::bindings::FRAMEBUFFER, gl::bindings::DEPTH_ATTACHMENT, gl::bindings::TEXTURE_2D, id, 0);
         }
 
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: &Vec<u8>)
+    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: &[u8])
     {
-        let d = extend_data(data, width * height, 0);
+        let mut d = extend_data(data, width * height, 0);
         bind(&self.gl, &self.id, self.target);
-        unsafe {
-            let format = gl::bindings::RGB;
-            let internal_format = gl::bindings::RGB8;
-            self.gl.TexImage2D(self.target,
+        self.gl.tex_image_2d_with_data(self.target,
                              0,
-                             internal_format as i32,
-                             width as i32,
-                             height as i32,
+                             gl::bindings::RGB8,
+                             width as u32,
+                             height as u32,
                              0,
-                             format,
+                             gl::bindings::RGB,
                              gl::bindings::UNSIGNED_BYTE,
-                             d.as_ptr() as *const gl::bindings::types::GLvoid);
-        }
+                             &mut d);
     }
 
-    pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &Vec<f32>)
+    pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &[f32])
     {
         let no_elements = 1;
-        let d = extend_data(data, width * height, 0.0);
+        let mut d = extend_data(data, width * height, 0.0);
         bind(&self.gl, &self.id, self.target);
-        unsafe {
-            let format = if no_elements == 1 {gl::bindings::RED} else {gl::bindings::RGB};
-            let internal_format = if no_elements == 1 {gl::bindings::R32F} else {gl::bindings::RGB32F};
-            self.gl.TexImage2D(self.target,
+        let format = if no_elements == 1 {gl::bindings::RED} else {gl::bindings::RGB};
+        let internal_format = if no_elements == 1 {gl::bindings::R32F} else {gl::bindings::RGB32F};
+        self.gl.tex_image_2d_with_data(self.target,
                              0,
-                             internal_format as i32,
-                             width as i32,
-                             height as i32,
+                             internal_format,
+                             width as u32,
+                             height as u32,
                              0,
                              format,
                              gl::bindings::FLOAT,
-                             d.as_ptr() as *const gl::bindings::types::GLvoid);
-        }
+                             &mut d);
     }
 
     pub fn get_pixels(&self, width: usize, height: usize) -> Vec<u8>
@@ -284,15 +279,13 @@ fn drop(gl: &gl::Gl, id: &u32)
     }
 }
 
-fn extend_data<T>(data: &Vec<T>, desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
+fn extend_data<T>(data: &[T], desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
 {
-    let mut d = data.clone();
-    if d.len() < desired_length
+    let mut result = Vec::new();
+    result.extend_from_slice(data);
+    if data.len() < desired_length
     {
-        use std::iter;
-        let mut fill = Vec::new();
-        fill.extend(iter::repeat(value).take(desired_length - data.len()));
-        d.append(&mut fill);
+        result.extend(std::iter::repeat(value).take(desired_length - data.len()));
     }
-    d
+    result
 }

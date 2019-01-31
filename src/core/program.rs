@@ -71,7 +71,7 @@ impl Program
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
     {
-        let location= self.get_uniform_location(name)?;
+        let location = self.get_uniform_location(name)?;
         self.gl.uniform1i(location, *data);
         Ok(())
     }
