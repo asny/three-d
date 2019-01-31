@@ -150,7 +150,7 @@ impl DeferredPipeline
     pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
     {
         self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &0)?;
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
@@ -175,7 +175,7 @@ impl DeferredPipeline
         }
 
         self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &1)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
@@ -189,7 +189,7 @@ impl DeferredPipeline
     pub fn shine_point_light(&self, light: &light::PointLight) -> Result<(), Error>
     {
         self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &2)?;
         self.light_pass_program.add_uniform_vec3("pointLight.position", &light.position)?;
@@ -218,7 +218,7 @@ impl DeferredPipeline
         }
 
         self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &3)?;
         self.light_pass_program.add_uniform_vec3("spotLight.position", &light.position)?;
