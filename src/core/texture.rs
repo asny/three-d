@@ -75,10 +75,7 @@ impl Texture2D
                              0,
                              gl::bindings::RGBA,
                              gl::bindings::FLOAT);
-
-        unsafe {
-            gl.FramebufferTexture2D(gl::bindings::FRAMEBUFFER, gl::bindings::COLOR_ATTACHMENT0 + channel, gl::bindings::TEXTURE_2D, id, 0);
-        }
+        gl.framebuffer_texture_2d(gl::bindings::FRAMEBUFFER, gl::bindings::COLOR_ATTACHMENT0 + channel, gl::bindings::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
     }
@@ -103,9 +100,7 @@ impl Texture2D
                           gl::bindings::DEPTH_COMPONENT,
                           gl::bindings::FLOAT);
 
-        unsafe {
-            gl.FramebufferTexture2D(gl::bindings::FRAMEBUFFER, gl::bindings::DEPTH_ATTACHMENT, gl::bindings::TEXTURE_2D, id, 0);
-        }
+        gl.framebuffer_texture_2d(gl::bindings::FRAMEBUFFER, gl::bindings::DEPTH_ATTACHMENT, gl::bindings::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
     }
@@ -212,29 +207,26 @@ impl Texture3D
 
         let mut texture = Texture3D::new(gl)?;
         texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                             [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+                             [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
+                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&Vec<u8>; 6])
+    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&mut [u8]; 6])
     {
         bind(&self.gl, &self.id, self.target);
         for i in 0..6 {
-            unsafe {
-                let format = gl::bindings::RGB;
-                let internal_format = gl::bindings::RGB8;
-                let d = data[i];
-                self.gl.TexImage2D(gl::bindings::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
-                                 0,
-                                 internal_format as i32,
-                                 width as i32,
-                                 height as i32,
-                                 0,
-                                 format,
-                                 gl::bindings::UNSIGNED_BYTE,
-                                 d.as_ptr() as *const gl::bindings::types::GLvoid);
-            }
+            let format = gl::bindings::RGB;
+            let internal_format = gl::bindings::RGB8;
+            self.gl.tex_image_2d_with_data(gl::bindings::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+                                           0,
+                                           internal_format,
+                                           width as u32,
+                                           height as u32,
+                                           0,
+                                           format,
+                                           gl::bindings::UNSIGNED_BYTE,
+                                           data[i]);
         }
     }
 }
@@ -272,11 +264,9 @@ fn bind(gl: &gl::Gl, id: &gl::Texture, target: u32)
     gl.bind_texture(target, id)
 }
 
-fn drop(gl: &gl::Gl, id: &u32)
+fn drop(gl: &gl::Gl, id: &gl::Texture)
 {
-    unsafe {
-        gl.DeleteTextures(1, id);
-    }
+    gl.delete_texture(id);
 }
 
 fn extend_data<T>(data: &[T], desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone

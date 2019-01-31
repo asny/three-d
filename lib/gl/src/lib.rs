@@ -478,6 +478,20 @@ impl Gl {
         }
     }
 
+    pub fn delete_texture(&self, texture: &Texture)
+    {
+        unsafe {
+            self.inner.DeleteTextures(1, texture);
+        }
+    }
+
+    pub fn framebuffer_texture_2d(&self, target: u32, attachment: u32, textarget: u32, texture: &Texture, level: u32)
+    {
+        unsafe {
+            self.inner.FramebufferTexture2D(target, attachment, textarget, *texture, level as i32);
+        }
+    }
+
     pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32)
     {
         unsafe {
