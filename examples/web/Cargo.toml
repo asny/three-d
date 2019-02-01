@@ -4,25 +4,8 @@ version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
-[target.'cfg(target_arch = "wasm32")'.lib]
-crate-type = ["cdylib"]
-
 [dependencies]
 dust = { path = "../../" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = "0.3.10"
 wasm-bindgen = "0.2.33"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
-version = "0.3.4"
-features = [
-  'Document',
-  'Element',
-  'HtmlCanvasElement',
-  'WebGlBuffer',
-  'WebGlRenderingContext',
-  'WebGlProgram',
-  'WebGlShader',
-  'Window',
-]
