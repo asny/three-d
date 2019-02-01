@@ -42,9 +42,10 @@ impl Shader
 
     pub fn from_source(gl: &gl::Gl, source: &str, kind: u32, name: &str) -> Result<Shader, Error>
     {
-        #[cfg(not(target_os = "emscripten"))]
+        #[cfg(target_arch = "x86_64")]
         let header = "#version 330 core\nprecision mediump float;\n";
-        #[cfg(target_os = "emscripten")]
+
+        #[cfg(target_arch = "wasm32")]
         let header = "#version 300 es\nprecision mediump float;\n";
 
         let s: &str = &[header, source].concat();
