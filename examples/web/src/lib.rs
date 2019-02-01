@@ -1,9 +1,18 @@
 
-use wasm_bindgen::prelude::*;
 use dust::*;
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue>
+{
+    run();
+    Ok(())
+}
+
+pub fn run()
 {
     let mut window = window::Window::new_default("Hello, world!");
     let (width, height) = window.size();
@@ -19,6 +28,11 @@ pub fn start() -> Result<(), JsValue>
     // main loop
     window.render_loop(
         |window| {
+            #[cfg(target_arch = "x86_64")]
+            window.handle_events(|event| {
+                window::Window::handle_window_close_events(event);
+            });
+
             // draw
             renderer.render_pass_begin();
 
@@ -26,8 +40,6 @@ pub fn start() -> Result<(), JsValue>
         }
 
     );
-
-    Ok(())
 }
 
 pub struct Triangle {
