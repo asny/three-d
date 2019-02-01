@@ -390,7 +390,7 @@ impl Gl {
         }
     }
 
-    pub fn vertex_attrib_divisor(&self, index: u32, divisor: u32)
+    pub fn vertex_attrib_divisor(&self, location: AttributeLocation, divisor: u32)
     {
         unsafe {
             self.inner.VertexAttribDivisor(location as types::GLuint, divisor as types::GLuint);
