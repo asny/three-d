@@ -38,7 +38,6 @@ pub fn run()
 
             model.render(&camera);
         }
-
     );
 }
 

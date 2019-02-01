@@ -14,7 +14,9 @@ cgmath = "0.16.1"
 noise = "0.5.1"
 rand = "0.5.5"
 tobj = "0.1.6"
-hello_world_web = { path = "examples/web" }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen = "0.2.33"
 
 [features]
 gl_debug = ["gl/debug"]

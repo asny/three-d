@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cargo +nightly build --target wasm32-unknown-unknown --example hello_world
+wasm-bindgen target/wasm32-unknown-unknown/debug/dust.wasm --out-dir ./examples/web/www/pkg/
