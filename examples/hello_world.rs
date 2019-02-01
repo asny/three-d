@@ -1,23 +1,7 @@
 use dust::*;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(start)]
-pub fn start() -> Result<(), JsValue>
-{
-    run();
-    Ok(())
-}
-
-#[cfg(target_arch = "x86_64")]
 fn main() {
-    run();
-}
 
-fn run()
-{
     let mut window = window::Window::new_default("Hello, world!");
     let (width, height) = window.size();
 
