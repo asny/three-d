@@ -21,6 +21,7 @@ use wasm_bindgen::prelude::*;
 use web_sys::WebGl2RenderingContext as InnerGl;
 
 #[cfg(target_arch = "wasm32")]
+#[allow(non_camel_case_types)]
 pub type consts = InnerGl;
 
 #[cfg(target_arch = "x86_64")]
