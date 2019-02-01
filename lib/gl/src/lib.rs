@@ -7,10 +7,10 @@ pub mod consts {
 }
 
 #[cfg(target_arch = "x86_64")]
-use consts::*;
+use crate::consts::*;
 
 #[cfg(target_arch = "x86_64")]
-use consts::Gl as InnerGl;
+use crate::consts::Gl as InnerGl;
 
 // WEBGL
 
@@ -50,7 +50,7 @@ mod defines
     pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
 }
 
-pub use defines::*;
+pub use crate::defines::*;
 
 
 use std::rc::Rc;
