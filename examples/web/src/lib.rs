@@ -5,7 +5,7 @@ use dust::*;
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue>
 {
-    let window = window::Window::new_default("Hello, world!");
+    let mut window = window::Window::new_default("Hello, world!");
     let (width, height) = window.size();
 
     let renderer = pipeline::ForwardPipeline::create(&window.gl(), width, height).unwrap();
@@ -17,14 +17,15 @@ pub fn start() -> Result<(), JsValue>
     let model = crate::Triangle::create(&window.gl());
 
     // main loop
-    //loop {
-        // draw
-        renderer.render_pass_begin();
+    window.render_loop(
+        |window| {
+            // draw
+            renderer.render_pass_begin();
 
-        model.render(&camera);
+            model.render(&camera);
+        }
 
-        //window_handler.swap_buffers();
-    //};
+    );
 
     Ok(())
 }

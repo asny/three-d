@@ -26,6 +26,12 @@ impl Window
         Window { gl, canvas }
     }
 
+    pub fn render_loop<F>(&mut self, mut render: F)
+        where F: FnMut(&mut Window)
+    {
+        render(self);
+    }
+
     pub fn size(&self) -> (usize, usize)
     {
         (self.canvas.width() as usize, self.canvas.height() as usize)
