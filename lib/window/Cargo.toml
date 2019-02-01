@@ -13,21 +13,11 @@ version = "*"
 [target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3.4"
 features = [
-  'WebGlBuffer',
-  'WebGlFramebuffer',
   'WebGl2RenderingContext',
-  'WebGlProgram',
-  'WebGlShader',
-  'WebGlTexture',
-  'WebGlUniformLocation',
-  'WebGlVertexArrayObject'
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
 version = "0.2.33"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies.js-sys]
-version = "0.3.10"
 
 [features]
 debug = []
