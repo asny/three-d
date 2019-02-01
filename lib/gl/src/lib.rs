@@ -158,10 +158,20 @@ impl Gl {
     {
         self.inner.framebuffer_texture_2d(target, attachment, textarget, Some(texture), level as i32);
     }
-    
-    pub fn bind_framebuffer(&self, target: u32, framebuffer: &Framebuffer)
+
+    pub fn get_attrib_location(&self, program: &Program, name: &str) -> Option<AttributeLocation>
     {
-        self.inner.bind_framebuffer(target, Some(framebuffer));
+        Some(self.inner.get_attrib_location(program, name) as u32)
+    }
+
+    pub fn use_program(&self, program: &Program)
+    {
+        self.inner.use_program(Some(program));
+    }
+
+    pub fn delete_program(&self, program: &Program)
+    {
+        self.inner.delete_program(Some(program));
     }
 }
 
@@ -401,9 +411,9 @@ impl Gl {
         Some(id)
     }
 
-    pub fn bind_framebuffer(&self, target: u32, framebuffer: &Framebuffer)
+    pub fn bind_framebuffer(&self, target: u32, framebuffer: Option<&Framebuffer>)
     {
-        let id = *framebuffer;
+        let id = if let Some(fb) = framebuffer {*fb} else {0};
         unsafe {
             static mut CURRENTLY_USED: u32 = std::u32::MAX;
             if id != CURRENTLY_USED
@@ -414,10 +424,11 @@ impl Gl {
         }
     }
 
-    pub fn delete_framebuffer(&self, framebuffer: &Framebuffer)
+    pub fn delete_framebuffer(&self, framebuffer: Option<&Framebuffer>)
     {
+        let id = if let Some(fb) = framebuffer {fb} else {&0};
         unsafe {
-            self.inner.DeleteFramebuffers(1, framebuffer);
+            self.inner.DeleteFramebuffers(1, id);
         }
     }
 

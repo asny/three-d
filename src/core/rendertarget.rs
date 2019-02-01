@@ -38,7 +38,8 @@ impl Rendertarget for ScreenRendertarget
 {
     fn bind(&self)
     {
-        bind(&self.gl, &0, self.width, self.height);
+        self.gl.bind_framebuffer(gl::bindings::FRAMEBUFFER, None);
+        self.gl.viewport(0, 0, self.width as i32, self.height as i32);
     }
 
     fn clear(&self)
@@ -50,7 +51,7 @@ impl Rendertarget for ScreenRendertarget
 // COLOR RENDER TARGET
 pub struct ColorRendertarget {
     gl: gl::Gl,
-    id: u32,
+    id: gl::Framebuffer,
     pub width: usize,
     pub height: usize,
     pub targets: Vec<texture::Texture2D>,
@@ -93,7 +94,7 @@ impl Rendertarget for ColorRendertarget
 
 impl Drop for ColorRendertarget {
     fn drop(&mut self) {
-        drop(&self.gl, &self.id);
+        self.gl.delete_framebuffer(Some(&self.id));
     }
 }
 
@@ -133,20 +134,20 @@ impl Rendertarget for DepthRenderTarget
 
 impl Drop for DepthRenderTarget {
     fn drop(&mut self) {
-        drop(&self.gl, &self.id);
+        self.gl.delete_framebuffer(Some(&self.id));
     }
 }
 
 
 // COMMON FUNCTIONS
-fn generate(gl: &gl::Gl) -> Result<u32, Error>
+fn generate(gl: &gl::Gl) -> Result<gl::Framebuffer, Error>
 {
     gl.create_framebuffer().ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )
 }
 
 fn bind(gl: &gl::Gl, id: &gl::Framebuffer, width: usize, height: usize)
 {
-    gl.bind_framebuffer(gl::bindings::FRAMEBUFFER, &id);
+    gl.bind_framebuffer(gl::bindings::FRAMEBUFFER, Some(&id));
     gl.viewport(0, 0, width as i32, height as i32);
 }
 
@@ -155,9 +156,4 @@ fn clear(gl: &gl::Gl)
     state::depth_write(gl,true);
     gl.clear_color(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl::bindings::COLOR_BUFFER_BIT | gl::bindings::DEPTH_BUFFER_BIT);
-}
-
-fn drop(gl: &gl::Gl, id: &gl::Framebuffer)
-{
-    gl.delete_framebuffer(id);
 }
