@@ -38,7 +38,7 @@ impl Rendertarget for ScreenRendertarget
 {
     fn bind(&self)
     {
-        self.gl.bind_framebuffer(gl::bindings::FRAMEBUFFER, None);
+        self.gl.bind_framebuffer(gl::consts::FRAMEBUFFER, None);
         self.gl.viewport(0, 0, self.width as i32, self.height as i32);
     }
 
@@ -68,7 +68,7 @@ impl ColorRendertarget
         let mut draw_buffers = Vec::new();
         let mut targets = Vec::new();
         for i in 0..no_targets {
-            draw_buffers.push(gl::bindings::COLOR_ATTACHMENT0 + i as u32);
+            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
             targets.push(texture::Texture2D::new_as_color_target(gl, width, height, i as u32)?)
         }
 
@@ -147,7 +147,7 @@ fn generate(gl: &gl::Gl) -> Result<gl::Framebuffer, Error>
 
 fn bind(gl: &gl::Gl, id: &gl::Framebuffer, width: usize, height: usize)
 {
-    gl.bind_framebuffer(gl::bindings::FRAMEBUFFER, Some(&id));
+    gl.bind_framebuffer(gl::consts::FRAMEBUFFER, Some(&id));
     gl.viewport(0, 0, width as i32, height as i32);
 }
 
@@ -155,5 +155,5 @@ fn clear(gl: &gl::Gl)
 {
     state::depth_write(gl,true);
     gl.clear_color(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl::bindings::COLOR_BUFFER_BIT | gl::bindings::DEPTH_BUFFER_BIT);
+    gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
 }

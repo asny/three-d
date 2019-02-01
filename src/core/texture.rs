@@ -37,13 +37,13 @@ impl Texture2D
     pub fn new(gl: &gl::Gl) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::bindings::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
 
         bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MIN_FILTER, gl::bindings::LINEAR as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MAG_FILTER, gl::bindings::LINEAR as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_S, gl::bindings::REPEAT as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_T, gl::bindings::REPEAT as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::REPEAT as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::REPEAT as i32);
 
         Ok(texture)
     }
@@ -59,23 +59,23 @@ impl Texture2D
     pub fn new_as_color_target(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::bindings::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
 
         bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MIN_FILTER, gl::bindings::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MAG_FILTER, gl::bindings::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_S, gl::bindings::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_T, gl::bindings::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
 
         gl.tex_image_2d(texture.target,
-                             0,
-                             gl::bindings::RGBA32F,
-                             width as u32,
-                             height as u32,
-                             0,
-                             gl::bindings::RGBA,
-                             gl::bindings::FLOAT);
-        gl.framebuffer_texture_2d(gl::bindings::FRAMEBUFFER, gl::bindings::COLOR_ATTACHMENT0 + channel, gl::bindings::TEXTURE_2D, &texture.id, 0);
+                        0,
+                        gl::consts::RGBA32F,
+                        width as u32,
+                        height as u32,
+                        0,
+                        gl::consts::RGBA,
+                        gl::consts::FLOAT);
+        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel, gl::consts::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
     }
@@ -83,24 +83,24 @@ impl Texture2D
     pub fn new_as_depth_target(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::bindings::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
 
         bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MIN_FILTER, gl::bindings::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MAG_FILTER, gl::bindings::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_S, gl::bindings::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_T, gl::bindings::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
 
         gl.tex_image_2d(texture.target,
-                          0,
-                          gl::bindings::DEPTH_COMPONENT32F,
-                          width as u32,
-                          height as u32,
-                          0,
-                          gl::bindings::DEPTH_COMPONENT,
-                          gl::bindings::FLOAT);
+                        0,
+                        gl::consts::DEPTH_COMPONENT32F,
+                        width as u32,
+                        height as u32,
+                        0,
+                        gl::consts::DEPTH_COMPONENT,
+                        gl::consts::FLOAT);
 
-        gl.framebuffer_texture_2d(gl::bindings::FRAMEBUFFER, gl::bindings::DEPTH_ATTACHMENT, gl::bindings::TEXTURE_2D, &texture.id, 0);
+        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, gl::consts::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
     }
@@ -110,14 +110,14 @@ impl Texture2D
         let mut d = extend_data(data, width * height, 0);
         bind(&self.gl, &self.id, self.target);
         self.gl.tex_image_2d_with_u8_data(self.target,
-                             0,
-                             gl::bindings::RGB8,
-                             width as u32,
-                             height as u32,
-                             0,
-                             gl::bindings::RGB,
-                             gl::bindings::UNSIGNED_BYTE,
-                             &mut d);
+                                          0,
+                                          gl::consts::RGB8,
+                                          width as u32,
+                                          height as u32,
+                                          0,
+                                          gl::consts::RGB,
+                                          gl::consts::UNSIGNED_BYTE,
+                                          &mut d);
     }
 
     pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &[f32])
@@ -125,26 +125,24 @@ impl Texture2D
         let no_elements = 1;
         let mut d = extend_data(data, width * height, 0.0);
         bind(&self.gl, &self.id, self.target);
-        let format = if no_elements == 1 {gl::bindings::RED} else {gl::bindings::RGB};
-        let internal_format = if no_elements == 1 {gl::bindings::R32F} else {gl::bindings::RGB32F};
+        let format = if no_elements == 1 {gl::consts::RED} else {gl::consts::RGB};
+        let internal_format = if no_elements == 1 {gl::consts::R32F} else {gl::consts::RGB32F};
         self.gl.tex_image_2d_with_f32_data(self.target,
-                             0,
-                             internal_format,
-                             width as u32,
-                             height as u32,
-                             0,
-                             format,
-                             gl::bindings::FLOAT,
-                             &mut d);
+                                           0,
+                                           internal_format,
+                                           width as u32,
+                                           height as u32,
+                                           0,
+                                           format,
+                                           gl::consts::FLOAT,
+                                           &mut d);
     }
 
     pub fn get_pixels(&self, width: usize, height: usize) -> Vec<u8>
     {
         let pixels = vec![0.0 as f32; width * height * 3];
         bind(&self.gl, &self.id, self.target);
-        unsafe {
-            //Todo: self.gl.GetTexImage(self.target, 0, gl::bindings::RGB, gl::bindings::FLOAT, pixels.as_ptr() as *mut gl::bindings::types::GLvoid);
-        }
+        //Todo: self.gl.GetTexImage(self.target, 0, gl::bindings::RGB, gl::bindings::FLOAT, pixels.as_ptr() as *mut gl::bindings::types::GLvoid);
         pixels.iter().map(|x| (*x * 255.0) as u8).collect()
     }
 
@@ -185,14 +183,14 @@ impl Texture3D
     pub fn new(gl: &gl::Gl) -> Result<Texture3D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture3D { gl: gl.clone(), id, target: gl::bindings::TEXTURE_CUBE_MAP };
+        let texture = Texture3D { gl: gl.clone(), id, target: gl::consts::TEXTURE_CUBE_MAP };
 
         bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MIN_FILTER, gl::bindings::LINEAR as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_MAG_FILTER, gl::bindings::LINEAR as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_S, gl::bindings::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_T, gl::bindings::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::bindings::TEXTURE_WRAP_R, gl::bindings::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_R, gl::consts::CLAMP_TO_EDGE as i32);
 
         Ok(texture)
     }
@@ -216,17 +214,17 @@ impl Texture3D
     {
         bind(&self.gl, &self.id, self.target);
         for i in 0..6 {
-            let format = gl::bindings::RGB;
-            let internal_format = gl::bindings::RGB8;
-            self.gl.tex_image_2d_with_u8_data(gl::bindings::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
-                                           0,
-                                           internal_format,
-                                           width as u32,
-                                           height as u32,
-                                           0,
-                                           format,
-                                           gl::bindings::UNSIGNED_BYTE,
-                                           data[i]);
+            let format = gl::consts::RGB;
+            let internal_format = gl::consts::RGB8;
+            self.gl.tex_image_2d_with_u8_data(gl::consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+                                              0,
+                                              internal_format,
+                                              width as u32,
+                                              height as u32,
+                                              0,
+                                              format,
+                                              gl::consts::UNSIGNED_BYTE,
+                                              data[i]);
         }
     }
 }
@@ -255,7 +253,7 @@ fn generate(gl: &gl::Gl) -> Result<gl::Texture, Error>
 
 fn bind_at(gl: &gl::Gl, id: &gl::Texture, target: u32, location: u32)
 {
-    gl.active_texture(gl::bindings::TEXTURE0 + location);
+    gl.active_texture(gl::consts::TEXTURE0 + location);
     bind(gl, id, target);
 }
 

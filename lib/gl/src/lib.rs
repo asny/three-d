@@ -2,15 +2,15 @@
 // GL
 
 #[cfg(target_arch = "x86_64")]
-pub mod bindings {
+pub mod consts {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
 #[cfg(target_arch = "x86_64")]
-use bindings::*;
+use consts::*;
 
 #[cfg(target_arch = "x86_64")]
-use bindings::Gl as InnerGl;
+use consts::Gl as InnerGl;
 
 // WEBGL
 
@@ -21,7 +21,7 @@ use wasm_bindgen::prelude::*;
 use web_sys::WebGl2RenderingContext as InnerGl;
 
 #[cfg(target_arch = "wasm32")]
-pub type bindings = InnerGl;
+pub type consts = InnerGl;
 
 #[cfg(target_arch = "x86_64")]
 mod defines
@@ -681,7 +681,7 @@ pub fn shader_from_source(
     gl.compile_shader(&shader);
 
     if gl
-        .get_shader_parameter(&shader, bindings::COMPILE_STATUS)
+        .get_shader_parameter(&shader, consts::COMPILE_STATUS)
         .as_bool()
         .unwrap_or(false)
     {
@@ -775,7 +775,7 @@ pub fn link_program(gl: &Gl, program: &Program) -> Result<(), String>
     gl.link_program(program);
 
     if gl
-        .get_program_parameter(program, bindings::LINK_STATUS)
+        .get_program_parameter(program, consts::LINK_STATUS)
         .as_bool()
         .unwrap_or(false)
     {
@@ -800,10 +800,10 @@ fn create_whitespace_cstring_with_len(len: usize) -> std::ffi::CString {
 fn byte_size_for_type(data_type: u32, count: u32) -> u32
 {
     match data_type {
-        bindings::FLOAT => {
+        consts::FLOAT => {
             count * std::mem::size_of::<f32>() as u32
         },
-        bindings::UNSIGNED_INT => {
+        consts::UNSIGNED_INT => {
             count * std::mem::size_of::<u32>() as u32
         }
         _ => { 0 }

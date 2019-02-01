@@ -16,19 +16,19 @@ pub fn blend(gl: &gl::Gl, blend_type: BlendType)
         {
             match blend_type {
                 BlendType::NONE => {
-                    gl.disable(gl::bindings::BLEND);
+                    gl.disable(gl::consts::BLEND);
                 },
                 BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA => {
-                    gl.enable(gl::bindings::BLEND);
-                    gl.blend_func(gl::bindings::SRC_ALPHA, gl::bindings::ONE_MINUS_SRC_ALPHA);
+                    gl.enable(gl::consts::BLEND);
+                    gl.blend_func(gl::consts::SRC_ALPHA, gl::consts::ONE_MINUS_SRC_ALPHA);
                 },
                 BlendType::DST_ALPHA__ONE_MINUS_DST_ALPHA => {
-                    gl.enable(gl::bindings::BLEND);
-                    gl.blend_func(gl::bindings::DST_ALPHA, gl::bindings::ONE_MINUS_DST_ALPHA);
+                    gl.enable(gl::consts::BLEND);
+                    gl.blend_func(gl::consts::DST_ALPHA, gl::consts::ONE_MINUS_DST_ALPHA);
                 },
                 BlendType::ONE__ONE => {
-                    gl.enable(gl::bindings::BLEND);
-                    gl.blend_func(gl::bindings::ONE, gl::bindings::ONE);
+                    gl.enable(gl::consts::BLEND);
+                    gl.blend_func(gl::consts::ONE, gl::consts::ONE);
                 }
             }
             CURRENT = blend_type;
@@ -51,15 +51,15 @@ pub fn cull(gl: &gl::Gl, cull_type: CullType)
         {
             match cull_type {
                 CullType::NONE => {
-                    gl.disable(gl::bindings::CULL_FACE);
+                    gl.disable(gl::consts::CULL_FACE);
                 },
                 CullType::BACK => {
-                    gl.enable(gl::bindings::CULL_FACE);
-                    gl.cull_face(gl::bindings::BACK);
+                    gl.enable(gl::consts::CULL_FACE);
+                    gl.cull_face(gl::consts::BACK);
                 },
                 CullType::FRONT => {
-                    gl.enable(gl::bindings::CULL_FACE);
-                    gl.cull_face(gl::bindings::FRONT);
+                    gl.enable(gl::consts::CULL_FACE);
+                    gl.cull_face(gl::consts::FRONT);
                 }
             }
             CURRENT = cull_type;
@@ -82,15 +82,15 @@ pub fn depth_test(gl: &gl::Gl, depth_test_type: DepthTestType)
         {
             match depth_test_type {
                 DepthTestType::NONE => {
-                    gl.disable(gl::bindings::DEPTH_TEST);
+                    gl.disable(gl::consts::DEPTH_TEST);
                 },
                 DepthTestType::LEQUAL => {
-                    gl.enable(gl::bindings::DEPTH_TEST);
-                    gl.depth_func(gl::bindings::LEQUAL);
+                    gl.enable(gl::consts::DEPTH_TEST);
+                    gl.depth_func(gl::consts::LEQUAL);
                 },
                 DepthTestType::LESS => {
-                    gl.enable(gl::bindings::DEPTH_TEST);
-                    gl.depth_func(gl::bindings::LESS);
+                    gl.enable(gl::consts::DEPTH_TEST);
+                    gl.depth_func(gl::consts::LESS);
                 }
             }
             CURRENT = depth_test_type;

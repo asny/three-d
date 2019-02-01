@@ -24,8 +24,8 @@ impl Shader
     pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Shader, Error>
     {
         const POSSIBLE_EXT: [(&str, u32); 2] = [
-            (".vert", gl::bindings::VERTEX_SHADER),
-            (".frag", gl::bindings::FRAGMENT_SHADER),
+            (".vert", gl::consts::VERTEX_SHADER),
+            (".frag", gl::consts::FRAGMENT_SHADER),
         ];
 
         let shader_kind = POSSIBLE_EXT.iter()
@@ -57,11 +57,11 @@ impl Shader
     }
 
     pub fn from_vert_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::bindings::VERTEX_SHADER, "")
+        Shader::from_source(gl, source, gl::consts::VERTEX_SHADER, "")
     }
 
     pub fn from_frag_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::bindings::FRAGMENT_SHADER, "")
+        Shader::from_source(gl, source, gl::consts::FRAGMENT_SHADER, "")
     }
 
     pub fn attach_shader(&self, program: &gl::Program)

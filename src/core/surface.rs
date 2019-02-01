@@ -59,14 +59,14 @@ impl TriangleSurface
     pub fn render(&self) -> Result<(), Error>
     {
         self.bind();
-        self.gl.draw_elements(gl::bindings::TRIANGLES,self.count as u32,gl::bindings::UNSIGNED_INT, 0);
+        self.gl.draw_elements(gl::consts::TRIANGLES, self.count as u32, gl::consts::UNSIGNED_INT, 0);
         Ok(())
     }
 
     pub fn render_instances(&self, no_instances: usize) -> Result<(), Error>
     {
         self.bind();
-        self.gl.draw_elements_instanced(gl::bindings::TRIANGLES, self.count as u32, gl::bindings::UNSIGNED_INT, 0, no_instances as u32);
+        self.gl.draw_elements_instanced(gl::consts::TRIANGLES, self.count as u32, gl::consts::UNSIGNED_INT, 0, no_instances as u32);
         Ok(())
     }
 
