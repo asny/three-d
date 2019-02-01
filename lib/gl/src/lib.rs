@@ -232,7 +232,8 @@ impl Gl {
 
     pub fn vertex_attrib_pointer(&self, location: AttributeLocation, size: u32, data_type: u32, normalized: bool, stride: u32, offset: u32)
     {
-        self.inner.vertex_attrib_pointer_with_i32(location, size as i32, data_type, normalized, stride as i32, offset as i32);
+        self.inner.vertex_attrib_pointer_with_i32(location, size as i32, data_type, normalized,
+                                                  byte_size_for_type(data_type, stride) as i32, byte_size_for_type(data_type, offset)  as i32);
     }
 }
 
