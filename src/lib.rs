@@ -19,9 +19,6 @@ pub mod camerahandler;
 pub mod camera;
 pub mod pipeline;
 
-#[cfg(target_os = "emscripten")]
-mod emscripten;
-
 pub use gl;
 pub use crate::camera::Camera;
 pub use crate::texture::Texture;

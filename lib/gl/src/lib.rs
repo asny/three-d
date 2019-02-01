@@ -53,7 +53,6 @@ pub use defines::*;
 
 
 use std::rc::Rc;
-use std::ops::Deref;
 
 #[derive(Clone)]
 pub struct Gl {
@@ -661,7 +660,7 @@ impl Gl {
 }
 
 #[cfg(target_arch = "wasm32")]
-impl Deref for Gl {
+impl std::ops::Deref for Gl {
     type Target = InnerGl;
 
     fn deref(&self) -> &InnerGl {

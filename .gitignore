@@ -6,7 +6,7 @@ ss
 /examples/web/www/node_modules/
 /examples/web/www/pkg/
 
-# Emscripten generated files
+# Web generated files
 *.data
 *.html
 *.html.map
