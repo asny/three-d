@@ -38,6 +38,15 @@ impl Window
         Window {gl_window, events_loop, gl}
     }
 
+    pub fn render_loop<F>(&mut self, mut render: F)
+        where F: FnMut(&mut Window)
+    {
+        loop {
+            render(self);
+            self.gl_window.swap_buffers().unwrap();
+        }
+    }
+
     pub fn size(&self) -> (usize, usize)
     {
         let size: (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
@@ -113,10 +122,5 @@ impl Window
             },
             _ => ()
         }
-    }
-
-    pub fn swap_buffers(&self)
-    {
-        self.gl_window.swap_buffers().unwrap();
     }
 }

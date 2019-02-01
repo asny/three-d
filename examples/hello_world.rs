@@ -15,19 +15,19 @@ fn main() {
 
     let model = crate::Triangle::create(&window.gl());
 
-    // main loop
-    loop {
-        window.handle_events(|event| {
-            window::Window::handle_window_close_events(event);
-        });
+    window.render_loop(
+        |window| {
+            window.handle_events(|event| {
+                window::Window::handle_window_close_events(event);
+            });
 
-        // draw
-        renderer.render_pass_begin();
+            // draw
+            renderer.render_pass_begin();
 
-        model.render(&camera);
+            model.render(&camera);
+        }
 
-        window.swap_buffers();
-    };
+    );
 }
 
 pub struct Triangle {
