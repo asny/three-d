@@ -1,18 +1,18 @@
 
 use glutin::*;
-use dust::camerahandler::CameraHandler;
-use dust::camera::Camera;
+//use dust::camerahandler::CameraHandler;
+//use dust::camera::Camera;
 
-pub struct WindowHandler
+pub struct Window
 {
     gl_window: GlWindow,
     events_loop: EventsLoop,
     gl: gl::Gl
 }
 
-impl WindowHandler
+impl Window
 {
-    pub fn new_default(title: &str) -> WindowHandler
+    pub fn new_default(title: &str) -> Window
     {
         let width: usize = 1024;
         let height: usize = 512;
@@ -20,10 +20,10 @@ impl WindowHandler
             .with_title(title)
             .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64));
 
-        WindowHandler::new(window)
+        Window::new(window)
     }
 
-    pub fn new(window: WindowBuilder) -> WindowHandler
+    pub fn new(window: WindowBuilder) -> Window
     {
         let events_loop = EventsLoop::new();
 
@@ -35,7 +35,7 @@ impl WindowHandler
             gl_window.make_current().unwrap();
         }
         let gl = gl::Gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
-        WindowHandler {gl_window, events_loop, gl}
+        Window {gl_window, events_loop, gl}
     }
 
     pub fn size(&self) -> (usize, usize)
@@ -57,7 +57,7 @@ impl WindowHandler
         });
     }
 
-    pub fn handle_camera_events(event: &Event, camera_handler: &mut CameraHandler, camera: &mut Camera)
+    /*pub fn handle_camera_events(event: &Event, camera_handler: &mut CameraHandler, camera: &mut Camera)
     {
         match event {
             Event::WindowEvent{ event, .. } => match event {
@@ -94,7 +94,7 @@ impl WindowHandler
         }
 
 
-    }
+    }*/
 
     pub fn handle_window_close_events(event: &Event)
     {

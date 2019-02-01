@@ -1,29 +1,20 @@
 
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use web_sys::WebGl2RenderingContext;
 use dust::*;
 
 #[wasm_bindgen(start)]
-pub fn start() -> Result<(), JsValue> {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id("canvas").unwrap();
-    let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
+pub fn start() -> Result<(), JsValue>
+{
+    let window = window::Window::new_default("Hello, world!");
+    let (width, height) = window.size();
 
-    let context = canvas
-        .get_context("webgl2")?
-        .unwrap()
-        .dyn_into::<WebGl2RenderingContext>()?;
-
-    let gl = gl::Gl::new(context);
-
-    let renderer = pipeline::ForwardPipeline::create(&gl, canvas.width() as usize, canvas.height() as usize).unwrap();
+    let renderer = pipeline::ForwardPipeline::create(&window.gl(), width, height).unwrap();
 
     // Camera
     let camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), canvas.width() as f32 / canvas.height() as f32, 0.1, 10.0);
+                                                degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
-    let model = crate::Triangle::create(&gl);
+    let model = crate::Triangle::create(&window.gl());
 
     // main loop
     //loop {
