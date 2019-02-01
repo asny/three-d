@@ -1,7 +1,7 @@
-use js_sys::WebAssembly;
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
+use web_sys::WebGl2RenderingContext;
 use dust::*;
 
 #[wasm_bindgen(start)]
@@ -11,117 +11,31 @@ pub fn start() -> Result<(), JsValue> {
     let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
 
     let context = canvas
-        .get_context("webgl")?
+        .get_context("webgl2")?
         .unwrap()
-        .dyn_into::<WebGlRenderingContext>()?;
+        .dyn_into::<WebGl2RenderingContext>()?;
 
     let gl = gl::Gl::new(context);
 
-    let renderer = pipeline::ForwardPipeline::create(&gl, width, height).unwrap();
-
-    /*let vert_shader = compile_shader(
-        &context,
-        WebGlRenderingContext::VERTEX_SHADER,
-        r#"
-        attribute vec4 position;
-        void main() {
-            gl_Position = position;
-        }
-    "#,
-    )?;
-    let frag_shader = compile_shader(
-        &context,
-        WebGlRenderingContext::FRAGMENT_SHADER,
-        r#"
-        void main() {
-            gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-        }
-    "#,
-    )?;
-    let program = link_program(&context, [vert_shader, frag_shader].iter())?;
-    context.use_program(Some(&program));
-
-    let vertices: [f32; 9] = [-0.7, -0.7, 0.0, 0.7, -0.7, 0.0, 0.0, 0.7, 0.0];
-    let memory_buffer = wasm_bindgen::memory()
-        .dyn_into::<WebAssembly::Memory>()?
-        .buffer();
-    let vertices_location = vertices.as_ptr() as u32 / 4;
-    let vert_array = js_sys::Float32Array::new(&memory_buffer)
-        .subarray(vertices_location, vertices_location + vertices.len() as u32);
-
-    let buffer = context.create_buffer().ok_or("failed to create buffer")?;
-    context.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, Some(&buffer));
-    context.buffer_data_with_array_buffer_view(
-        WebGlRenderingContext::ARRAY_BUFFER,
-        &vert_array,
-        WebGlRenderingContext::STATIC_DRAW,
-    );
-    context.vertex_attrib_pointer_with_i32(0, 3, WebGlRenderingContext::FLOAT, false, 0, 0);
-    context.enable_vertex_attrib_array(0);
-
-    context.clear_color(0.0, 0.0, 0.0, 1.0);
-    context.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
-
-    context.draw_arrays(
-        WebGlRenderingContext::TRIANGLES,
-        0,
-        (vertices.len() / 3) as i32,
-    );*/
-    Ok(())
-}
-
-pub fn link_program<'a, T: IntoIterator<Item = &'a WebGlShader>>(
-    context: &WebGlRenderingContext,
-    shaders: T,
-) -> Result<WebGlProgram, String> {
-    let program = context
-        .create_program()
-        .ok_or_else(|| String::from("Unable to create shader object"))?;
-    for shader in shaders {
-        context.attach_shader(&program, shader)
-    }
-    context.link_program(&program);
-
-    if context
-        .get_program_parameter(&program, WebGlRenderingContext::LINK_STATUS)
-        .as_bool()
-        .unwrap_or(false)
-    {
-        Ok(program)
-    } else {
-        Err(context
-            .get_program_info_log(&program)
-            .unwrap_or_else(|| "Unknown error creating program object".into()))
-    }
-}
-
-/*
-use dust::*;
-use crate::window_handler::WindowHandler;
-
-fn main() {
-
-    let mut window_handler = WindowHandler::new_default("Hello, world!");
-    let (width, height) = window_handler.size();
-
-    // Renderer
-    let renderer = pipeline::ForwardPipeline::create(&window_handler.gl(), width, height).unwrap();
+    let renderer = pipeline::ForwardPipeline::create(&gl, canvas.width() as usize, canvas.height() as usize).unwrap();
 
     // Camera
     let camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
+                                                degrees(45.0), canvas.width() as f32 / canvas.height() as f32, 0.1, 10.0);
 
-    let model = crate::Triangle::create(&window_handler.gl());
+    let model = crate::Triangle::create(&gl);
 
     // main loop
-    loop {
+    //loop {
         // draw
         renderer.render_pass_begin();
 
         model.render(&camera);
 
-        window_handler.swap_buffers();
-    };
+        //window_handler.swap_buffers();
+    //};
+
+    Ok(())
 }
 
 pub struct Triangle {
@@ -144,11 +58,42 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color").unwrap();
+        let program = Triangle::create_program(gl);
+        //let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color").unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
 
         Triangle { program, model }
+    }
+
+    fn create_program(gl: &gl::Gl) -> program::Program
+    {
+        program::Program::from_source(gl, r#"
+        uniform mat4 viewMatrix;
+        uniform mat4 projectionMatrix;
+
+        in vec3 position;
+        in vec3 color;
+
+        out vec3 col;
+
+        void main()
+        {
+          col = color;
+          gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0);
+        }
+        "#,
+        r#"
+            in vec3 col;
+
+            out vec4 fragmentColor;
+
+            void main()
+            {
+                fragmentColor = vec4(col, 1.0f);
+            }
+
+        "#).unwrap()
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -158,4 +103,3 @@ impl Triangle
         self.model.render().unwrap();
     }
 }
-*/
