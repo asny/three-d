@@ -173,6 +173,67 @@ impl Gl {
     {
         self.inner.delete_program(Some(program));
     }
+
+    pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32)
+    {
+        self.inner.draw_elements_with_i32(mode, count as i32, data_type, offset as i32);
+    }
+
+    pub fn draw_elements_instanced(&self, mode: u32, count: u32, data_type: u32, offset: u32, instance_count: u32)
+    {
+        self.inner.draw_elements_instanced_with_i32(mode, count as i32, data_type, offset as i32, instance_count as i32);
+    }
+
+    pub fn draw_buffers(&self, draw_buffers: &[u32])
+    {
+        unimplemented!();
+        self.inner.draw_buffers(&JsValue::undefined());
+    }
+
+    pub fn uniform1f(&self, location: UniformLocation, data: f32)
+    {
+        self.inner.uniform1f(Some(&location), data);
+    }
+
+    pub fn uniform1i(&self, location: UniformLocation, data: i32)
+    {
+        self.inner.uniform1i(Some(&location), data);
+    }
+
+    pub fn uniform2fv(&self, location: UniformLocation, data: &mut [f32])
+    {
+        self.inner.uniform2fv_with_f32_array(Some(&location), data);
+    }
+
+    pub fn uniform3fv(&self, location: UniformLocation, data: &mut [f32])
+    {
+        self.inner.uniform3fv_with_f32_array(Some(&location), data);
+    }
+
+    pub fn uniform4fv(&self, location: UniformLocation, data: &mut [f32])
+    {
+        self.inner.uniform4fv_with_f32_array(Some(&location), data);
+    }
+
+    pub fn uniform_matrix2fv(&self, location: UniformLocation, data: &mut [f32])
+    {
+        self.inner.uniform_matrix2fv_with_f32_array(Some(&location), false, data);
+    }
+
+    pub fn uniform_matrix3fv(&self, location: UniformLocation, data: &mut [f32])
+    {
+        self.inner.uniform_matrix3fv_with_f32_array(Some(&location), false, data);
+    }
+
+    pub fn uniform_matrix4fv(&self, location: UniformLocation, data: &mut [f32])
+    {
+        self.inner.uniform_matrix4fv_with_f32_array(Some(&location), false, data);
+    }
+
+    pub fn vertex_attrib_pointer(&self, location: AttributeLocation, size: u32, data_type: u32, normalized: bool, stride: u32, offset: u32)
+    {
+        self.inner.vertex_attrib_pointer_with_i32(location, size as i32, data_type, normalized, stride as i32, offset as i32);
+    }
 }
 
 #[cfg(target_arch = "x86_64")]
@@ -315,7 +376,7 @@ impl Gl {
         }
     }
 
-    pub fn vertex_attrib_pointer(&self, location: AttributeLocation, size: u32, data_type: u32, normalized: bool, stride: u32, offset: u32, divisor: u32)
+    pub fn vertex_attrib_pointer(&self, location: AttributeLocation, size: u32, data_type: u32, normalized: bool, stride: u32, offset: u32)
     {
         unsafe {
             self.inner.VertexAttribPointer(
@@ -326,6 +387,12 @@ impl Gl {
                 byte_size_for_type(data_type, stride) as types::GLint, // stride (byte offset between consecutive attributes)
                 byte_size_for_type(data_type, offset) as *const types::GLvoid // offset of the first component
             );
+        }
+    }
+
+    pub fn vertex_attrib_divisor(&self, index: u32, divisor: u32)
+    {
+        unsafe {
             self.inner.VertexAttribDivisor(location as types::GLuint, divisor as types::GLuint);
         }
     }
