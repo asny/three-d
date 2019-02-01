@@ -1,5 +1,3 @@
-extern crate gl_generator;
-
 use gl_generator::{Registry, Fallbacks, Api, Profile};
 use std::env;
 use std::fs::File;
