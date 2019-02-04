@@ -14,12 +14,11 @@ fn main() {
     let model = crate::Triangle::create(&window.gl());
 
     // main loop
-    window.render_loop(
-        |window| {
-            #[cfg(target_arch = "x86_64")]
+    window.render_loop(move || {
+            /*#[cfg(target_arch = "x86_64")]
             window.handle_events(|event| {
                 window::Window::handle_window_close_events(event);
-            });
+            });*/
 
             // draw
             renderer.render_pass_begin();
