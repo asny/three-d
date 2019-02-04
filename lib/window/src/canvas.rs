@@ -2,7 +2,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
-use std::cell::Cell;
 use std::cell::RefCell;
 use std::rc::Rc;
 use crate::event::*;
@@ -38,20 +37,10 @@ impl Window
 
         let mut i = 0;
         let events = Rc::new(RefCell::new(Vec::new()));
-        let e = events.clone();
-        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-            let button = match event.button() {
-                0 => Some(MouseButton::Left),
-                1 => Some(MouseButton::Middle),
-                2 => Some(MouseButton::Right),
-                _ => None
-            };
-            return if let Some(b) = button {
-                (*e).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b});
-            };
-        }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).unwrap();
-        closure.forget();
+
+        self.add_mousedown_event_listener(events.clone());
+        self.add_mouseup_event_listener(events.clone());
+        self.add_mousemove_event_listener(events.clone());
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             i += 1;
@@ -70,7 +59,49 @@ impl Window
         }) as Box<FnMut()>));
 
         request_animation_frame(g.borrow().as_ref().unwrap());
+    }
 
+    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            let button = match event.button() {
+                0 => Some(MouseButton::Left),
+                1 => Some(MouseButton::Middle),
+                2 => Some(MouseButton::Right),
+                _ => None
+            };
+            return if let Some(b) = button {
+                (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b});
+            };
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).unwrap();
+        closure.forget();
+    }
+
+    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            let button = match event.button() {
+                0 => Some(MouseButton::Left),
+                1 => Some(MouseButton::Middle),
+                2 => Some(MouseButton::Right),
+                _ => None
+            };
+            return if let Some(b) = button {
+                (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: b});
+            };
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref()).unwrap();
+        closure.forget();
+    }
+
+    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            (*events).borrow_mut().push(Event::MouseMotion {delta: (event.offset_x() as f64, event.offset_y() as f64)});
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref()).unwrap();
+        closure.forget();
     }
 
     pub fn size(&self) -> (usize, usize)
