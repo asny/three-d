@@ -26,8 +26,8 @@ impl Window
         Window { gl, canvas }
     }
 
-    pub fn render_loop<F: 'static, G: 'static>(&mut self, mut render: F, mut handle_events: G)
-        where F: FnMut(), G: FnMut(u32)
+    pub fn render_loop<F: 'static>(&mut self, mut callback: F)
+        where F: FnMut()
     {
         use std::cell::RefCell;
         use std::rc::Rc;
@@ -48,7 +48,7 @@ impl Window
                 let _ = f.borrow_mut().take();
                 return;
             }
-            render();
+            callback();
 
             request_animation_frame(f.borrow().as_ref().unwrap());
         }) as Box<FnMut()>));
