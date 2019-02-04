@@ -19,9 +19,11 @@ features = [
   'HtmlElement',
   'HtmlCanvasElement',
   'Window',
+  'Event',
   'MouseEvent',
   'EventTarget',
-  'WheelEvent'
+  'WheelEvent',
+  'KeyboardEvent',
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
