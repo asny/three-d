@@ -40,6 +40,7 @@ impl Window
         self.add_mousedown_event_listener(events.clone());
         self.add_mouseup_event_listener(events.clone());
         self.add_mousemove_event_listener(events.clone());
+        self.add_mousewheel_event_listener(events.clone());
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             callback(&(*events).borrow());
@@ -91,6 +92,15 @@ impl Window
             (*events).borrow_mut().push(Event::MouseMotion {delta: (event.offset_x() as f64, event.offset_y() as f64)});
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref()).unwrap();
+        closure.forget();
+    }
+
+    fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
+            (*events).borrow_mut().push(Event::MouseWheel {delta: event.delta_y() as f64});
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref()).unwrap();
         closure.forget();
     }
 
