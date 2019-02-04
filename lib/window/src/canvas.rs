@@ -57,11 +57,6 @@ impl Window
 
     }
 
-    pub fn handle_window_close_events(event: &u32)
-    {
-
-    }
-
     pub fn size(&self) -> (usize, usize)
     {
         (self.canvas.width() as usize, self.canvas.height() as usize)

@@ -19,7 +19,6 @@ fn main() {
         };
 
     let handle_events = |event| {
-        window::Window::handle_window_close_events(&event);
     };
 
     // main loop

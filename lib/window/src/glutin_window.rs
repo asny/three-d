@@ -43,6 +43,7 @@ impl Window
     {
         loop {
             self.events_loop.poll_events(|event| {
+                Self::handle_window_close_events(&event);
                 handle_events(event);
             });
             render();
@@ -100,7 +101,7 @@ impl Window
 
     }*/
 
-    pub fn handle_window_close_events(event: &Event)
+    fn handle_window_close_events(event: &Event)
     {
         match event {
             Event::WindowEvent{ event, .. } => match event {
