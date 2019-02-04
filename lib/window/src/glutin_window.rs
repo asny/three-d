@@ -1,5 +1,7 @@
 
 use glutin::*;
+use crate::event;
+
 //use dust::camerahandler::CameraHandler;
 //use dust::camera::Camera;
 
@@ -39,13 +41,19 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F)
-        where F: FnMut()
+        where F: FnMut(&Vec<event::Event>)
     {
+        let mut events = Vec::new();
         loop {
             self.events_loop.poll_events(|event| {
                 Self::handle_window_close_events(&event);
+                if let Some(e) = Self::map_event(&event)
+                {
+                    events.push(e);
+                }
             });
-            callback();
+            callback(&events);
+            events.clear();
             self.gl_window.swap_buffers().unwrap();
         }
     }
@@ -61,44 +69,56 @@ impl Window
         self.gl.clone()
     }
 
-    /*pub fn handle_camera_events(event: &Event, camera_handler: &mut CameraHandler, camera: &mut Camera)
+    /*pub fn handle_keyboard_event(event: &event::Event)
+    {
+        match event {
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::KeyboardInput { input, .. } => {
+                    if let Some(keycode) = input.virtual_keycode {
+                    }
+                },
+                _ => {}
+            },
+            _ => {}
+        }
+    }*/
+
+    pub fn map_event(event: &Event) -> Option<event::Event>
     {
         match event {
             Event::WindowEvent{ event, .. } => match event {
                 WindowEvent::KeyboardInput {input, ..} => {
                     if let Some(keycode) = input.virtual_keycode {
-                        if keycode == VirtualKeyCode::Tab && input.state == ElementState::Pressed
-                        {
-                            camera_handler.next_state();
-                        }
+                        return Some(event::Event {device: event::Device::Keyboard});
                     }
                 },
                 WindowEvent::MouseWheel {delta, ..} => {
                     if let MouseScrollDelta::LineDelta(_, y) = delta
                     {
-                        camera_handler.zoom(camera, *y);
                     }
                 },
                 WindowEvent::MouseInput {state, button, ..} => {
                     if *button == MouseButton::Left
                     {
-                        if *state == ElementState::Pressed { camera_handler.start_rotation(); }
-                        else { camera_handler.end_rotation() }
+                        if *state == ElementState::Pressed {
+
+                        }
+                        else {
+
+                        }
                     }
                 },
                 _ => ()
             },
             Event::DeviceEvent{ event, .. } => match event {
                 DeviceEvent::MouseMotion {delta} => {
-                    camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
                 },
                 _ => {}
             }
             _ => ()
         }
-
-
-    }*/
+        None
+    }
 
     fn handle_window_close_events(event: &Event)
     {

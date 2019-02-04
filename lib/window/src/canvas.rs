@@ -2,6 +2,10 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
+use std::cell::Cell;
+use std::cell::RefCell;
+use std::rc::Rc;
+use crate::event::*;
 
 pub struct Window
 {
@@ -27,17 +31,19 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F)
-        where F: FnMut()
+        where F: FnMut(&Vec<Event>)
     {
-        use std::cell::RefCell;
-        use std::rc::Rc;
-
-        let window = web_sys::window().expect("no global `window` exists");
-
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
 
         let mut i = 0;
+        let events = Rc::new(RefCell::new(Vec::new()));
+        let e = events.clone();
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            (*e).borrow_mut().push(Event {device: Device::Mouse});
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).unwrap();
+        closure.forget();
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             i += 1;
@@ -48,7 +54,9 @@ impl Window
                 let _ = f.borrow_mut().take();
                 return;
             }
-            callback();
+
+            callback(&(*events).borrow());
+            &(*events).borrow_mut().clear();
 
             request_animation_frame(f.borrow().as_ref().unwrap());
         }) as Box<FnMut()>));

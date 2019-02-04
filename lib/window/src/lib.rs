@@ -1,4 +1,6 @@
 
+pub mod event;
+
 #[cfg(target_arch = "x86_64")]
 pub mod glutin_window;
 #[cfg(target_arch = "x86_64")]
