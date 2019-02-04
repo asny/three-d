@@ -89,29 +89,33 @@ impl Window
             Event::WindowEvent{ event, .. } => match event {
                 WindowEvent::KeyboardInput {input, ..} => {
                     if let Some(keycode) = input.virtual_keycode {
-                        return Some(event::Event {device: event::Device::Keyboard});
+                        let state = if input.state == ElementState::Pressed {event::State::Pressed} else {event::State::Released};
+                        return Some(event::Event::Key {state, kind: format!("{:?}", keycode)});
                     }
                 },
                 WindowEvent::MouseWheel {delta, ..} => {
                     if let MouseScrollDelta::LineDelta(_, y) = delta
                     {
+                        return Some(event::Event::MouseWheel {delta: *y as f64});
                     }
                 },
                 WindowEvent::MouseInput {state, button, ..} => {
-                    if *button == MouseButton::Left
-                    {
-                        if *state == ElementState::Pressed {
-
-                        }
-                        else {
-
-                        }
-                    }
+                    let state = if *state == ElementState::Pressed {event::State::Pressed} else {event::State::Released};
+                    let button = match button {
+                        MouseButton::Left => Some(event::MouseButton::Left),
+                        MouseButton::Middle => Some(event::MouseButton::Middle),
+                        MouseButton::Right => Some(event::MouseButton::Right),
+                        _ => None
+                    };
+                    return if let Some(b) = button {
+                        Some(event::Event::MouseClick {state, button: b})
+                    } else { None };
                 },
                 _ => ()
             },
             Event::DeviceEvent{ event, .. } => match event {
                 DeviceEvent::MouseMotion {delta} => {
+                    return Some(event::Event::MouseMotion {delta: *delta});
                 },
                 _ => {}
             }

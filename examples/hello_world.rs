@@ -94,49 +94,25 @@ impl Triangle
 
 pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
 {
-    match event.device {
-        Device::Keyboard => {
-            //if keycode == VirtualKeyCode::Tab && input.state == ElementState::Pressed
+    match event {
+        Event::Key {state, kind} => {
+            if kind == "Tab" && *state == State::Pressed
             {
-                println!("Keyboard");
                 camera_handler.next_state();
             }
         },
-        Device::Mouse => {}
-    }
-
-        /*Event::WindowEvent{ event, .. } => match event {
-            WindowEvent::KeyboardInput {input, ..} => {
-                if let Some(keycode) = input.virtual_keycode {
-                    if keycode == VirtualKeyCode::Tab && input.state == ElementState::Pressed
-                    {
-                        camera_handler.next_state();
-                    }
-                }
-            },
-            WindowEvent::MouseWheel {delta, ..} => {
-                if let MouseScrollDelta::LineDelta(_, y) = delta
-                {
-                    camera_handler.zoom(camera, *y);
-                }
-            },
-            WindowEvent::MouseInput {state, button, ..} => {
-                if *button == MouseButton::Left
-                {
-                    if *state == ElementState::Pressed { camera_handler.start_rotation(); }
-                    else { camera_handler.end_rotation() }
-                }
-            },
-            _ => ()
+        Event::MouseClick {state, button} => {
+            if *button == MouseButton::Left
+            {
+                if *state == State::Pressed { camera_handler.start_rotation(); }
+                else { camera_handler.end_rotation() }
+            }
         },
-        Event::DeviceEvent{ event, .. } => match event {
-            DeviceEvent::MouseMotion {delta} => {
-                camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
-            },
-            _ => {}
+        Event::MouseMotion {delta} => {
+            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
+        },
+        Event::MouseWheel {delta} => {
+            camera_handler.zoom(camera, *delta as f32);
         }
-        _ => ()
-    }*/
-
-
+    }
 }

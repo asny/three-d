@@ -40,7 +40,15 @@ impl Window
         let events = Rc::new(RefCell::new(Vec::new()));
         let e = events.clone();
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-            (*e).borrow_mut().push(Event {device: Device::Mouse});
+            let button = match event.button() {
+                0 => Some(MouseButton::Left),
+                1 => Some(MouseButton::Middle),
+                2 => Some(MouseButton::Right),
+                _ => None
+            };
+            return if let Some(b) = button {
+                (*e).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b});
+            };
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).unwrap();
         closure.forget();

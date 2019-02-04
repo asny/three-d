@@ -1,12 +1,33 @@
 
-
-pub enum Device
+#[derive(Debug, Clone, PartialEq)]
+pub enum State
 {
-    Mouse,
-    Keyboard
+    Pressed,
+    Released
 }
 
-pub struct Event
+#[derive(Debug, Clone, PartialEq)]
+pub enum MouseButton {
+    Left,
+    Right,
+    Middle,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Event
 {
-    pub device: Device
+    MouseClick {
+        state: State,
+        button: MouseButton
+    },
+    MouseMotion {
+        delta: (f64, f64),
+    },
+    MouseWheel {
+        delta: f64,
+    },
+    Key {
+        state: State,
+        kind: String
+    },
 }
