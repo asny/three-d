@@ -35,7 +35,6 @@ impl Window
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
 
-        let mut i = 0;
         let events = Rc::new(RefCell::new(Vec::new()));
 
         self.add_mousedown_event_listener(events.clone());
@@ -43,15 +42,6 @@ impl Window
         self.add_mousemove_event_listener(events.clone());
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-            i += 1;
-            if i > 300 {
-                body().set_text_content(Some("All done!"));
-
-                // Drop our handle to this closure so that it will get cleaned up once we return.
-                let _ = f.borrow_mut().take();
-                return;
-            }
-
             callback(&(*events).borrow());
             &(*events).borrow_mut().clear();
 
@@ -123,14 +113,4 @@ fn request_animation_frame(f: &Closure<FnMut()>) {
     window()
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
-}
-
-fn document() -> web_sys::Document {
-    window()
-        .document()
-        .expect("should have a document on window")
-}
-
-fn body() -> web_sys::HtmlElement {
-    document().body().expect("document should have a body")
 }
