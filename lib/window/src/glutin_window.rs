@@ -38,11 +38,14 @@ impl Window
         Window {gl_window, events_loop, gl}
     }
 
-    pub fn render_loop<F>(&mut self, mut render: F)
-        where F: FnMut(&mut Window)
+    pub fn render_loop<F: 'static, G: 'static>(&mut self, mut render: F, mut handle_events: G)
+        where F: FnMut(), G: FnMut(Event)
     {
         loop {
-            render(self);
+            self.events_loop.poll_events(|event| {
+                handle_events(event);
+            });
+            render();
             self.gl_window.swap_buffers().unwrap();
         }
     }

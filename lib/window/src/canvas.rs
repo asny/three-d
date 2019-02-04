@@ -26,8 +26,8 @@ impl Window
         Window { gl, canvas }
     }
 
-    pub fn render_loop<F: 'static>(&mut self, mut render: F)
-        where F: FnMut()
+    pub fn render_loop<F: 'static, G: 'static>(&mut self, mut render: F, mut handle_events: G)
+        where F: FnMut(), G: FnMut(u32)
     {
         use std::cell::RefCell;
         use std::rc::Rc;
@@ -54,6 +54,11 @@ impl Window
         }) as Box<FnMut()>));
 
         request_animation_frame(g.borrow().as_ref().unwrap());
+
+    }
+
+    pub fn handle_window_close_events(event: &u32)
+    {
 
     }
 

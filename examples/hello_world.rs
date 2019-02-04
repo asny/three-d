@@ -13,19 +13,17 @@ fn main() {
 
     let model = crate::Triangle::create(&window.gl());
 
-    // main loop
-    window.render_loop(move || {
-            /*#[cfg(target_arch = "x86_64")]
-            window.handle_events(|event| {
-                window::Window::handle_window_close_events(event);
-            });*/
-
-            // draw
+    let render = move || {
             renderer.render_pass_begin();
-
             model.render(&camera);
-        }
-    );
+        };
+
+    let handle_events = |event| {
+        window::Window::handle_window_close_events(&event);
+    };
+
+    // main loop
+    window.render_loop(render, handle_events);
 }
 
 pub struct Triangle {
