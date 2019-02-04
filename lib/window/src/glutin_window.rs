@@ -69,20 +69,6 @@ impl Window
         self.gl.clone()
     }
 
-    /*pub fn handle_keyboard_event(event: &event::Event)
-    {
-        match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::KeyboardInput { input, .. } => {
-                    if let Some(keycode) = input.virtual_keycode {
-                    }
-                },
-                _ => {}
-            },
-            _ => {}
-        }
-    }*/
-
     pub fn map_event(event: &Event) -> Option<event::Event>
     {
         match event {
