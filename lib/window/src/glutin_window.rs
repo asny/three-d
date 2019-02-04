@@ -61,14 +61,6 @@ impl Window
         self.gl.clone()
     }
 
-    pub fn handle_events<F>(&mut self, mut callback: F)
-        where F: FnMut(&Event)
-    {
-        self.events_loop.poll_events(|event| {
-            callback(&event);
-        });
-    }
-
     /*pub fn handle_camera_events(event: &Event, camera_handler: &mut CameraHandler, camera: &mut Camera)
     {
         match event {
