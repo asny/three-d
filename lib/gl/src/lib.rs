@@ -197,6 +197,20 @@ impl Gl {
         self.inner.draw_buffers(&array);
     }
 
+    pub fn check_framebuffer_status(&self) -> Result<(), String>
+    {
+        let status = self.inner.check_framebuffer_status(consts::FRAMEBUFFER);
+
+        match status {
+            consts::FRAMEBUFFER_COMPLETE => {Ok(())},
+            consts::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => {Err("Any of the framebuffer attachment points are framebuffer incomplete.".to_string())},
+            consts::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => {Err("The framebuffer does not have at least one image attached to it.".to_string())},
+            consts::FRAMEBUFFER_UNSUPPORTED => {Err("The combination of internal formats of the attached images violates an implementation-dependent set of restrictions.".to_string())},
+            consts::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => {Err("The value of GL_RENDERBUFFER_SAMPLES is not the same for all attached renderbuffers; if the value of GL_TEXTURE_SAMPLES is the not same for all attached textures; or, if the attached images are a mix of renderbuffers and textures, the value of GL_RENDERBUFFER_SAMPLES does not match the value of GL_TEXTURE_SAMPLES.".to_string())},
+            _ => {Err("Unknown framebuffer error".to_string())}
+        }
+    }
+
     pub fn uniform1f(&self, location: UniformLocation, data: f32)
     {
         self.inner.uniform1f(Some(&location), data);
@@ -504,6 +518,26 @@ impl Gl {
         let id = if let Some(fb) = framebuffer {fb} else {&0};
         unsafe {
             self.inner.DeleteFramebuffers(1, id);
+        }
+    }
+
+    pub fn check_framebuffer_status(&self) -> Result<(), String>
+    {
+        let status = unsafe {
+            self.inner.CheckFramebufferStatus(consts::FRAMEBUFFER)
+        };
+
+        match status {
+            consts::FRAMEBUFFER_COMPLETE => {Ok(())},
+            consts::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => {Err("Any of the framebuffer attachment points are framebuffer incomplete.".to_string())},
+            consts::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => {Err("The value of GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is GL_NONE for any color attachment point(s) named by GL_DRAW_BUFFERi.".to_string())},
+            consts::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => {Err("The framebuffer does not have at least one image attached to it.".to_string())},
+            consts::FRAMEBUFFER_UNSUPPORTED => {Err("The combination of internal formats of the attached images violates an implementation-dependent set of restrictions.".to_string())},
+            consts::FRAMEBUFFER_UNDEFINED => {Err("The specified framebuffer is the default read or draw framebuffer, but the default framebuffer does not exist.".to_string())},
+            consts::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => {Err("GL_READ_BUFFER is not GL_NONE and the value of GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is GL_NONE for the color attachment point named by GL_READ_BUFFER.".to_string())},
+            consts::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => {Err("The value of GL_RENDERBUFFER_SAMPLES is not the same for all attached renderbuffers; if the value of GL_TEXTURE_SAMPLES is the not same for all attached textures; or, if the attached images are a mix of renderbuffers and textures, the value of GL_RENDERBUFFER_SAMPLES does not match the value of GL_TEXTURE_SAMPLES.".to_string())},
+            consts::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => {Err("Any framebuffer attachment is layered, and any populated attachment is not layered, or if all populated color attachments are not from textures of the same target.".to_string())},
+            _ => {Err("Unknown framebuffer error".to_string())}
         }
     }
 

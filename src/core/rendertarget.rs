@@ -75,6 +75,7 @@ impl ColorRendertarget
         gl.draw_buffers(&draw_buffers);
 
         let depth_target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
+        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target })
     }
 }
