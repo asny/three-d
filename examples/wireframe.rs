@@ -74,8 +74,9 @@ fn main() {
     light4.base.intensity = 0.5;
 
     // Mirror
-    let mirror_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
-                                                                 "../Dust/examples/assets/shaders/mirror").unwrap();
+    let mirror_program = program::Program::from_source(&gl,
+                                                    include_str!("assets/shaders/copy.vert"),
+                                                    include_str!("assets/shaders/mirror.frag")).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 

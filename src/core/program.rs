@@ -35,13 +35,6 @@ pub struct Program {
 
 impl Program
 {
-    pub fn from_resource(gl: &gl::Gl, vertex_shader_name: &str, fragment_shader_name: &str) -> Result<Program, Error>
-    {
-        let shaders = [shader::Shader::from_resource(gl, &format!("{}{}", vertex_shader_name, ".vert"))?,
-            shader::Shader::from_resource(gl, &format!("{}{}", fragment_shader_name, ".frag"))?];
-        Program::from_shaders(gl, &shaders)
-    }
-
     pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
     {
         let vert_shader = shader::Shader::from_source(gl, vertex_shader_source, gl::consts::VERTEX_SHADER, "")?;
