@@ -1,15 +1,14 @@
 use gl;
-use crate::loader;
 
 #[derive(Debug)]
 pub enum Error {
-    Loader(loader::Error),
+    Loader(io::Error),
     UnknownShaderType {message: String},
     FailedToCompileShader {name: String, message: String}
 }
 
-impl From<loader::Error> for Error {
-    fn from(other: loader::Error) -> Self {
+impl From<io::Error> for Error {
+    fn from(other: io::Error) -> Self {
         Error::Loader(other)
     }
 }
@@ -30,7 +29,7 @@ impl Shader
             _ => {Err(Error::UnknownShaderType {message: format!("Can not determine shader type for resource {:?}", name)})}
         }?;
 
-        let source = loader::load_string(name)?;
+        let source = io::load_string(name)?;
 
         Shader::from_source(gl, &source, shader_kind, name)
     }
