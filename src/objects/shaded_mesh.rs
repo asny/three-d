@@ -43,8 +43,9 @@ impl ShadedMesh
 {
     pub fn create(gl: &gl::Gl, indices: &[u32], attributes: &[Attribute]) -> Result<ShadedMesh, Error>
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
-                                                      "../Dust/src/objects/shaders/shaded")?;
+        let program = program::Program::from_source(&gl,
+                                                    include_str!("shaders/mesh_shaded.vert"),
+                                                    include_str!("shaders/shaded.frag"))?;
         let mut model = surface::TriangleSurface::create(gl, indices)?;
         let buffer = model.add_attributes(&program, attributes)?;
 

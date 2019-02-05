@@ -46,7 +46,9 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let program = program::Program::from_source(&gl, include_str!("assets/shaders/color.vert"), include_str!("assets/shaders/color.frag")).unwrap();
+        let program = program::Program::from_source(&gl,
+                                                    include_str!("assets/shaders/color.vert"),
+                                                    include_str!("assets/shaders/color.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
 

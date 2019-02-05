@@ -17,8 +17,9 @@ impl ShadedVertices
 {
     pub fn new(gl: &gl::Gl, positions: &[f32]) -> ShadedVertices
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/vertex_shaded",
-                                                      "../Dust/src/objects/shaders/shaded").unwrap();
+        let program = program::Program::from_source(&gl,
+                                                    include_str!("shaders/vertex_shaded.vert"),
+                                                    include_str!("shaders/shaded.frag")).unwrap();
 
         let x = 0.525731112119133606;
         let z = 0.850650808352039932;
