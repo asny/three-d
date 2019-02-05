@@ -116,6 +116,7 @@ impl DepthRenderTarget
         bind(gl, &id, width, height);
 
         let target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
+        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
     }
 }
