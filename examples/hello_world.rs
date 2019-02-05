@@ -46,42 +46,11 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let program = Triangle::create_program(gl);
-        //let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color").unwrap();
+        let program = program::Program::from_source(&gl, include_str!("assets/shaders/color.vert"), include_str!("assets/shaders/color.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
 
         Triangle { program, model }
-    }
-
-    fn create_program(gl: &gl::Gl) -> program::Program
-    {
-        program::Program::from_source(gl, r#"
-        uniform mat4 viewMatrix;
-        uniform mat4 projectionMatrix;
-
-        in vec3 position;
-        in vec3 color;
-
-        out vec3 col;
-
-        void main()
-        {
-          col = color;
-          gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0);
-        }
-        "#,
-        r#"
-            in vec3 col;
-
-            out vec4 fragmentColor;
-
-            void main()
-            {
-                fragmentColor = vec4(col, 1.0f);
-            }
-
-        "#).unwrap()
     }
 
     pub fn render(&self, camera: &camera::Camera)

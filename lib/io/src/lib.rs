@@ -53,8 +53,7 @@ fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
 #[cfg(target_arch = "wasm32")]
 pub fn load_string(resource_name: &str) -> Result<String, Error>
 {
-    
-
+    Ok("".to_string())
 }
 
 
