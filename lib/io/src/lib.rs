@@ -1,6 +1,6 @@
 
-use std::path::PathBuf;
-use std::{str, fs};
+use std::path::{Path, PathBuf};
+use std::{fs};
 use std::io::{self, BufReader};
 
 #[derive(Debug)]
@@ -15,6 +15,7 @@ impl From<io::Error> for Error {
     }
 }
 
+#[cfg(target_arch = "x86_64")]
 pub fn load_string(resource_name: &str) -> Result<String, Error>
 {
     let mut read_buffer = load_read_buffer(resource_name)?;
@@ -23,11 +24,11 @@ pub fn load_string(resource_name: &str) -> Result<String, Error>
     if buffer.iter().find(|i| **i == 0).is_some() {
         return Err(Error::FileContainsNil);
     }
-    let temp = str::from_utf8(buffer).unwrap();
+    let temp = std::str::from_utf8(buffer).unwrap();
     Ok(temp.to_string())
 }
 
-pub fn load_read_buffer(resource_name: &str) -> Result<Box<io::BufRead>, Error>
+fn load_read_buffer(resource_name: &str) -> Result<Box<io::BufRead>, Error>
 {
     let root_path: PathBuf = PathBuf::from("");
     let file = fs::File::open(
@@ -37,8 +38,6 @@ pub fn load_read_buffer(resource_name: &str) -> Result<Box<io::BufRead>, Error>
     let buffer = BufReader::new(file);
     Ok(Box::new(buffer))
 }
-
-use std::path::Path;
 
 fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
     let mut path: PathBuf = root_dir.into();
@@ -50,7 +49,16 @@ fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
     path
 }
 
-#[cfg(target_os = "emscripten")]
+
+#[cfg(target_arch = "wasm32")]
+pub fn load_string(resource_name: &str) -> Result<String, Error>
+{
+    
+
+}
+
+
+/*#[cfg(target_os = "emscripten")]
 pub fn load(name: &str) -> Result<Box<io::BufRead>, Error>
 {
     use emscripten::{emscripten};
@@ -98,3 +106,4 @@ pub fn load_async<F>(name: &str, mut on_load: F) where F: FnMut(Box<io::BufRead>
     let data = load_read_buffer(name).unwrap();
     on_load(data);
 }
+*/
