@@ -23,17 +23,12 @@ impl Shader
 {
     pub fn from_resource(gl: &gl::Gl, name: &str) -> Result<Shader, Error>
     {
-        const POSSIBLE_EXT: [(&str, u32); 2] = [
-            (".vert", gl::consts::VERTEX_SHADER),
-            (".frag", gl::consts::FRAGMENT_SHADER),
-        ];
-
-        let shader_kind = POSSIBLE_EXT.iter()
-            .find(|&&(file_extension, _)| {
-                name.ends_with(file_extension)
-            })
-            .map(|&(_, kind)| kind)
-            .ok_or_else(|| Error::UnknownShaderType {message: format!("Can not determine shader type for resource {:?}", name) })?;
+        let splitted: Vec<&str> = name.split('.').collect();
+        let shader_kind = match splitted.last() {
+            Some(&"vert") => {Ok(gl::consts::VERTEX_SHADER)},
+            Some(&"frag") => {Ok(gl::consts::FRAGMENT_SHADER)},
+            _ => {Err(Error::UnknownShaderType {message: format!("Can not determine shader type for resource {:?}", name)})}
+        }?;
 
         let source = loader::load_string(name)?;
 
