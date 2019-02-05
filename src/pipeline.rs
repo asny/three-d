@@ -76,8 +76,8 @@ impl DeferredPipeline
     pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_source(&gl,
-                                                    include_str!("../examples/assets/shaders/light_pass.vert"),
-                                                    include_str!("../examples/assets/shaders/light_pass.frag"))?;
+                                                    include_str!("shaders/light_pass.vert"),
+                                                    include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 4)?;
         let mut light_pass_rendertarget= None;
@@ -85,8 +85,8 @@ impl DeferredPipeline
         if use_light_pass_rendertarget {
             light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 1)?);
             copy_program = Some(program::Program::from_source(&gl,
-                                                    include_str!("../examples/assets/shaders/copy.vert"),
-                                                    include_str!("../examples/assets/shaders/copy.frag"))?);
+                                                    include_str!("shaders/copy.vert"),
+                                                    include_str!("shaders/copy.frag"))?);
         }
         Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
