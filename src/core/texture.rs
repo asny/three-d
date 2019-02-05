@@ -69,12 +69,12 @@ impl Texture2D
 
         gl.tex_image_2d(texture.target,
                         0,
-                        gl::consts::RGBA32F,
+                        gl::consts::RGBA,
                         width as u32,
                         height as u32,
                         0,
                         gl::consts::RGBA,
-                        gl::consts::FLOAT);
+                        gl::consts::UNSIGNED_BYTE);
         gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel, gl::consts::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
