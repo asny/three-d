@@ -151,7 +151,7 @@ impl DeferredPipeline
 
     pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
     {
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        //self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &0)?;
@@ -174,9 +174,9 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
 
             light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
+            self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         }
 
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &1)?;
@@ -190,7 +190,7 @@ impl DeferredPipeline
 
     pub fn shine_point_light(&self, light: &light::PointLight) -> Result<(), Error>
     {
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        //self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &2)?;
@@ -217,9 +217,9 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
 
             light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
+            self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         }
 
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &3)?;
