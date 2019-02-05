@@ -678,7 +678,10 @@ pub fn shader_from_source(
     let shader = gl
         .create_shader(shader_type)
         .ok_or_else(|| String::from("Unable to create shader object"))?;
-    gl.shader_source(&shader, source);
+
+    let header = "#version 300 es\nprecision mediump float;\n";
+    let s: &str = &[header, source].concat();
+    gl.shader_source(&shader, s);
     gl.compile_shader(&shader);
 
     if gl
@@ -701,8 +704,11 @@ pub fn shader_from_source(
     shader_type: types::GLenum
 ) -> Result<Shader, String>
 {
+    let header = "#version 330 core\nprecision mediump float;\n";
+    let s: &str = &[header, source].concat();
+
     use std::ffi::{CStr, CString};
-    let c_str: &CStr = &CString::new(source).unwrap();
+    let c_str: &CStr = &CString::new(s).unwrap();
 
     let id = unsafe { gl.inner.CreateShader(shader_type) };
     unsafe {

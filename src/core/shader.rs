@@ -42,26 +42,10 @@ impl Shader
 
     pub fn from_source(gl: &gl::Gl, source: &str, kind: u32, name: &str) -> Result<Shader, Error>
     {
-        #[cfg(target_arch = "x86_64")]
-        let header = "#version 330 core\nprecision mediump float;\n";
-
-        #[cfg(target_arch = "wasm32")]
-        let header = "#version 300 es\nprecision mediump float;\n";
-
-        let s: &str = &[header, source].concat();
-
-        match gl::shader_from_source(gl, s, kind) {
+        match gl::shader_from_source(gl, source, kind) {
             Ok(shader) => Ok(Shader {gl: gl.clone(), id: shader}),
             Err(message) => Err(Error::FailedToCompileShader {name: name.to_string(), message})
         }
-    }
-
-    pub fn from_vert_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::consts::VERTEX_SHADER, "")
-    }
-
-    pub fn from_frag_source(gl: &gl::Gl, source: &str) -> Result<Shader, Error> {
-        Shader::from_source(gl, source, gl::consts::FRAGMENT_SHADER, "")
     }
 
     pub fn attach_shader(&self, program: &gl::Program)
