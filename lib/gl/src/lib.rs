@@ -186,8 +186,15 @@ impl Gl {
 
     pub fn draw_buffers(&self, draw_buffers: &[u32])
     {
-        unimplemented!();
-        self.inner.draw_buffers(&JsValue::undefined());
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>().unwrap()
+            .buffer();
+        let data_location = draw_buffers.as_ptr() as u32 / 4;
+        let array = js_sys::Uint32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + draw_buffers.len() as u32);
+
+        self.inner.draw_buffers(&array);
     }
 
     pub fn uniform1f(&self, location: UniformLocation, data: f32)
