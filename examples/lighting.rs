@@ -21,8 +21,7 @@ fn main() {
 
     let mut positions = Vec::new();
     monkey_obj.vertices.iter().for_each(|v| {positions.push(v.x as f32); positions.push(v.y as f32); positions.push(v.z as f32);});
-    let mut normals = Vec::new();
-    monkey_obj.normals.iter().for_each(|v| {normals.push(v.x as f32); normals.push(v.y as f32); normals.push(v.z as f32);});
+    let mut normals = vec![0.0f32; monkey_obj.vertices.len()*3];
     let mut indices = Vec::new();
     for shape in monkey_obj.geometry.first().unwrap().shapes.iter() {
         match shape.primitive {
@@ -30,6 +29,21 @@ fn main() {
                 indices.push(i0.0 as u32);
                 indices.push(i1.0 as u32);
                 indices.push(i2.0 as u32);
+
+                let mut normal = monkey_obj.normals[i0.2.unwrap()];
+                normals[i0.0*3] = normal.x as f32;
+                normals[i0.0*3+1] = normal.y as f32;
+                normals[i0.0*3+2] = normal.z as f32;
+
+                normal = monkey_obj.normals[i1.2.unwrap()];
+                normals[i1.0*3] = normal.x as f32;
+                normals[i1.0*3+1] = normal.y as f32;
+                normals[i1.0*3+2] = normal.z as f32;
+
+                normal = monkey_obj.normals[i2.2.unwrap()];
+                normals[i2.0*3] = normal.x as f32;
+                normals[i2.0*3+1] = normal.y as f32;
+                normals[i2.0*3+2] = normal.z as f32;
             },
             _ => {}
         }
