@@ -123,6 +123,11 @@ impl Gl {
         self.inner.bind_texture(target, Some(texture));
     }
 
+    pub fn tex_storage_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32)
+    {
+        self.inner.tex_storage_2d(target, level as i32, internalformat, width as i32, height as i32);
+    }
+
     pub fn tex_image_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32)
     {
         self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(target,
@@ -630,6 +635,13 @@ impl Gl {
     {
         unsafe {
             self.inner.BindTexture(target, *texture);
+        }
+    }
+
+    pub fn tex_storage_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32)
+    {
+        unsafe {
+            self.inner.TexStorage2D(target, level as i32, internalformat, width as i32, height as i32);
         }
     }
 

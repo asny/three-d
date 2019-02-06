@@ -67,14 +67,11 @@ impl Texture2D
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
 
-        gl.tex_image_2d(texture.target,
-                        0,
-                        gl::consts::RGBA,
+        gl.tex_storage_2d(texture.target,
+                        1,
+                        gl::consts::RGBA16F,
                         width as u32,
-                        height as u32,
-                        0,
-                        gl::consts::RGBA,
-                        gl::consts::UNSIGNED_BYTE);
+                        height as u32);
         gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel, gl::consts::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
@@ -91,14 +88,11 @@ impl Texture2D
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
 
-        gl.tex_image_2d(texture.target,
-                        0,
+        gl.tex_storage_2d(texture.target,
+                        1,
                         gl::consts::DEPTH_COMPONENT32F,
                         width as u32,
-                        height as u32,
-                        0,
-                        gl::consts::DEPTH_COMPONENT,
-                        gl::consts::FLOAT);
+                        height as u32);
 
         gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, gl::consts::TEXTURE_2D, &texture.id, 0);
 
