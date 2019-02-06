@@ -24,6 +24,7 @@ impl Window
             .get_context("webgl2").unwrap()
             .unwrap()
             .dyn_into::<WebGl2RenderingContext>().unwrap();
+        context.get_extension("EXT_color_buffer_float").unwrap();
 
         let gl = gl::Gl::new(context);
         Window { gl, canvas }
