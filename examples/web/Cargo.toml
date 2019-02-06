@@ -11,3 +11,4 @@ crate-type = ["cdylib"]
 dust = { path = "../../" }
 window = { path = "../../lib/window" }
 wasm-bindgen = "0.2.33"
+wavefront_obj = "5.1.0"
