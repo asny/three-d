@@ -15,8 +15,7 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let monkey_file = include_str!("assets/models/suzanne.obj").to_string();
-    let monkey = objects::ShadedMesh::new_from_obj_source(&gl, monkey_file).unwrap();
+    let monkey = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
