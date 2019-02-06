@@ -15,10 +15,26 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
-    let mesh = meshes.first().unwrap();
-    let mut monkey = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (mesh.mesh.positions.clone(), 3),
-                                                                    "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
+    let monkey_file = include_str!("assets/models/suzanne.obj").to_string();
+    let monkey_objs = wavefront_obj::obj::parse(monkey_file).unwrap();
+    let monkey_obj = monkey_objs.objects.first().unwrap();
+
+    let mut positions = Vec::new();
+    monkey_obj.vertices.iter().for_each(|v| {positions.push(v.x as f32); positions.push(v.y as f32); positions.push(v.z as f32);});
+    let mut normals = Vec::new();
+    monkey_obj.normals.iter().for_each(|v| {normals.push(v.x as f32); normals.push(v.y as f32); normals.push(v.z as f32);});
+    let mut indices = Vec::new();
+    for shape in monkey_obj.geometry.first().unwrap().shapes.iter() {
+        match shape.primitive {
+            wavefront_obj::obj::Primitive::Triangle(i0, i1, i2) => {
+                indices.push(i0.0 as u32);
+                indices.push(i1.0 as u32);
+                indices.push(i2.0 as u32);
+            },
+            _ => {}
+        }
+    }
+    let mut monkey = objects::ShadedMesh::create(&gl, &indices, &att!["position" => (positions, 3), "normal" => (normals, 3)]).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
