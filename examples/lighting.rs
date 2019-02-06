@@ -16,39 +16,7 @@ fn main() {
                                                     degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let monkey_file = include_str!("assets/models/suzanne.obj").to_string();
-    let monkey_objs = wavefront_obj::obj::parse(monkey_file).unwrap();
-    let monkey_obj = monkey_objs.objects.first().unwrap();
-
-    let mut positions = Vec::new();
-    monkey_obj.vertices.iter().for_each(|v| {positions.push(v.x as f32); positions.push(v.y as f32); positions.push(v.z as f32);});
-    let mut normals = vec![0.0f32; monkey_obj.vertices.len()*3];
-    let mut indices = Vec::new();
-    for shape in monkey_obj.geometry.first().unwrap().shapes.iter() {
-        match shape.primitive {
-            wavefront_obj::obj::Primitive::Triangle(i0, i1, i2) => {
-                indices.push(i0.0 as u32);
-                indices.push(i1.0 as u32);
-                indices.push(i2.0 as u32);
-
-                let mut normal = monkey_obj.normals[i0.2.unwrap()];
-                normals[i0.0*3] = normal.x as f32;
-                normals[i0.0*3+1] = normal.y as f32;
-                normals[i0.0*3+2] = normal.z as f32;
-
-                normal = monkey_obj.normals[i1.2.unwrap()];
-                normals[i1.0*3] = normal.x as f32;
-                normals[i1.0*3+1] = normal.y as f32;
-                normals[i1.0*3+2] = normal.z as f32;
-
-                normal = monkey_obj.normals[i2.2.unwrap()];
-                normals[i2.0*3] = normal.x as f32;
-                normals[i2.0*3+1] = normal.y as f32;
-                normals[i2.0*3+2] = normal.z as f32;
-            },
-            _ => {}
-        }
-    }
-    let mut monkey = objects::ShadedMesh::create(&gl, &indices, &att!["position" => (positions, 3), "normal" => (normals, 3)]).unwrap();
+    let monkey = objects::ShadedMesh::new_from_obj_source(&gl, monkey_file).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
