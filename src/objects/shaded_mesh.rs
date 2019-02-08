@@ -41,7 +41,7 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn create(gl: &gl::Gl, indices: &[u32], attributes: &[Attribute]) -> Result<ShadedMesh, Error>
+    pub fn new(gl: &gl::Gl, indices: &[u32], attributes: &[Attribute]) -> Result<ShadedMesh, Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
@@ -86,7 +86,7 @@ impl ShadedMesh
                 _ => {}
             }
         }
-        Self::create(&gl, &indices, &att!["position" => (positions, 3), "normal" => (normals, 3)])
+        Self::new(&gl, &indices, &att!["position" => (positions, 3), "normal" => (normals, 3)])
     }
 
     pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
