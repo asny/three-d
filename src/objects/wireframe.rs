@@ -19,6 +19,31 @@ impl Wireframe
         Wireframe {edges, vertices}
     }
 
+    pub fn new_from_obj_source(gl: &gl::Gl, source: String, tube_radius: f32, translation: &Vec3) -> Wireframe
+    {
+        let objs = wavefront_obj::obj::parse(source).unwrap();
+        let obj = objs.objects.first().unwrap();
+
+        let mut positions = Vec::new();
+        obj.vertices.iter().for_each(|v| {positions.push(v.x as f32); positions.push(v.y as f32); positions.push(v.z as f32);});
+        let mut indices = Vec::new();
+        for shape in obj.geometry.first().unwrap().shapes.iter() {
+            match shape.primitive {
+                wavefront_obj::obj::Primitive::Triangle(i0, i1, i2) => {
+                    indices.push(i0.0 as u32);
+                    indices.push(i1.0 as u32);
+                    indices.push(i2.0 as u32);
+                },
+                _ => {}
+            }
+        }
+        for i in 0..positions.len() {
+            positions[i] += translation[i%3];
+        }
+
+        Self::new(&gl, &indices, &positions, 0.015)
+    }
+
     pub fn render(&self, camera: &camera::Camera)
     {
         self.edges.render(camera);

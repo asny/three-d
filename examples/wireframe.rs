@@ -17,29 +17,7 @@ fn main() {
 
     // Objects
     let obj_file = include_str!("assets/models/suzanne.obj").to_string();
-    let objs = wavefront_obj::obj::parse(obj_file.clone()).unwrap();
-    let obj = objs.objects.first().unwrap();
-
-    let mut positions = Vec::new();
-    obj.vertices.iter().for_each(|v| {positions.push(v.x as f32); positions.push(v.y as f32); positions.push(v.z as f32);});
-    let mut indices = Vec::new();
-    for shape in obj.geometry.first().unwrap().shapes.iter() {
-        match shape.primitive {
-            wavefront_obj::obj::Primitive::Triangle(i0, i1, i2) => {
-                indices.push(i0.0 as u32);
-                indices.push(i1.0 as u32);
-                indices.push(i2.0 as u32);
-            },
-            _ => {}
-        }
-    }
-    for i in 0..positions.len() {
-        if i%3 == 1 {
-            positions[i] += 2.0;
-        }
-    }
-
-    let mut wireframe = crate::objects::Wireframe::new(&gl, &indices, &positions, 0.015);
+    let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.015, &vec3(0.0, 2.0, 0.0));
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
     let model = objects::ShadedMesh::new_from_obj_source(&gl, obj_file).unwrap();
