@@ -39,7 +39,7 @@ fn main() {
         }
     }
 
-    let mut wireframe = crate::objects::Wireframe::create(&gl, &indices, &positions, 0.015);
+    let mut wireframe = crate::objects::Wireframe::new(&gl, &indices, &positions, 0.015);
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
     let model = objects::ShadedMesh::new_from_obj_source(&gl, obj_file).unwrap();
