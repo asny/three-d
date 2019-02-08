@@ -19,6 +19,7 @@ pub mod camera;
 pub mod pipeline;
 
 pub use gl;
+pub use window;
 pub use crate::camera::Camera;
 pub use crate::texture::Texture;
 pub use crate::core::*;
