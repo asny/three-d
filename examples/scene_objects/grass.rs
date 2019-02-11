@@ -35,8 +35,8 @@ impl Grass
             5, 6, 7,
             6, 7, 8
         ];
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/grass",
-                                                      "examples/assets/shaders/grass").unwrap();
+        let program = program::Program::from_source(gl, include_str!("../assets/shaders/grass.vert"),
+                                                      include_str!("../assets/shaders/grass.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
 

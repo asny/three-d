@@ -1,14 +1,14 @@
 
 mod scene_objects;
-mod window_handler;
 
 use std::time::Instant;
 use dust::*;
+use window::{event::*, Window};
 
 fn main() {
-    let mut window_handler = window_handler::WindowHandler::new_default("Hello, world!");
-    let (width, height) = window_handler.size();
-    let gl = window_handler.gl();
+    let mut window = Window::new_default("Spider");
+    let (width, height) = window.size();
+    let gl = window.gl();
 
     // Renderer
     let renderer = pipeline::DeferredPipeline::new(&gl, width, height, true).unwrap();
@@ -35,42 +35,32 @@ fn main() {
     let mut time = 0.0;
 
     // main loop
-    loop {
-        window_handler.handle_events( |event| {
-            window_handler::WindowHandler::handle_window_close_events(event);
-            window_handler::WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
-            use glutin::*;
+    window.render_loop(move |events|
+    {
+        for event in events {
+            handle_camera_events(event, &mut camera_handler, &mut camera);
             match event {
-                Event::WindowEvent{ event, .. } => match event {
-                    WindowEvent::KeyboardInput {input, ..} => {
-                        if let Some(keycode) = input.virtual_keycode
-                        {
-                            match keycode {
-                                VirtualKeyCode::W => {
-                                    spider.is_moving_forward = input.state == ElementState::Pressed;
-
-                                },
-                                VirtualKeyCode::D => {
-                                    spider.is_rotating_right = input.state == ElementState::Pressed;
-
-                                },
-                                VirtualKeyCode::A => {
-                                    spider.is_rotating_left = input.state == ElementState::Pressed;
-
-                                },
-                                VirtualKeyCode::S => {
-                                    spider.is_moving_backward = input.state == ElementState::Pressed;
-
-                                },
-                                _ => {}
-                            }
-                        }
-                    },
-                    _ => {}
+                Event::Key { state, kind } => {
+                    if kind == "W"
+                    {
+                        spider.is_moving_forward = *state == State::Pressed;
+                    }
+                    if kind == "D"
+                    {
+                        spider.is_rotating_right = *state == State::Pressed;
+                    }
+                    if kind == "A"
+                    {
+                        spider.is_rotating_left = *state == State::Pressed;
+                    }
+                    if kind == "S"
+                    {
+                        spider.is_moving_backward = *state == State::Pressed;
+                    }
                 },
                 _ => {}
             }
-        });
+        }
 
         let new_now = Instant::now();
         let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
@@ -103,7 +93,30 @@ fn main() {
 
         // After effects
         environment.render_transparent(time, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
+    });
+}
 
-        window_handler.swap_buffers();
-    };
+pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
+{
+    match event {
+        Event::Key {state, kind} => {
+            if kind == "Tab" && *state == State::Pressed
+            {
+                camera_handler.next_state();
+            }
+        },
+        Event::MouseClick {state, button} => {
+            if *button == MouseButton::Left
+            {
+                if *state == State::Pressed { camera_handler.start_rotation(); }
+                else { camera_handler.end_rotation() }
+            }
+        },
+        Event::MouseMotion {delta} => {
+            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
+        },
+        Event::MouseWheel {delta} => {
+            camera_handler.zoom(camera, *delta as f32);
+        }
+    }
 }

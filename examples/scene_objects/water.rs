@@ -19,8 +19,8 @@ impl Water
 {
     pub fn create(gl: &gl::Gl) -> Water
     {
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/water",
-                                                      "examples/assets/shaders/water").unwrap();
+        let program = program::Program::from_source(gl, include_str!("../assets/shaders/water.vert"),
+                                                      include_str!("../assets/shaders/water.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
         let buffer = model.add_attributes(&program, &att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
                                                       "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
