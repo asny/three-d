@@ -1,5 +1,4 @@
 
-use noise::{NoiseFn, Point2, SuperSimplex};
 use dust::*;
 
 pub const SIZE: f32 = 64.0;
@@ -14,7 +13,6 @@ pub struct Terrain {
     ground_texture: texture::Texture2D,
     lake_texture: texture::Texture2D,
     noise_texture: texture::Texture2D,
-    noise_generator: Box<NoiseFn<Point2<f64>>>,
     buffer: buffer::VertexBuffer,
     center: Vec3
 }
@@ -23,8 +21,6 @@ impl Terrain
 {
     pub fn create(gl: &gl::Gl) -> Terrain
     {
-        let noise_generator = Box::new(SuperSimplex::new());
-
         let program = program::Program::from_source(gl, include_str!("../assets/shaders/terrain.vert"),
                                                       include_str!("../assets/shaders/terrain.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
@@ -36,7 +32,7 @@ impl Terrain
         let lake_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/bottom.png")).unwrap();
         let noise_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();;
 
-        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
+        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
         terrain
     }
@@ -135,15 +131,10 @@ impl Terrain
 
     pub fn get_height_at(&self, x: f32, z: f32) -> f32
     {
-        get_height_at(&self.noise_generator, x, z)
+        f32::sin(x * 0.1 + z * 0.1) +
+            0.25 * f32::cos(x * 0.5 - z * 0.5) +
+            2.0 * f32::sin(x * 0.02 + z * 0.02)
     }
-}
-
-fn get_height_at(noise_generator: &Box<NoiseFn<Point2<f64>>>, x: f32, z: f32) -> f32
-{
-    (noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-            0.25 * noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-            2.0 * noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
 }
 
 fn indices() -> Vec<u32>

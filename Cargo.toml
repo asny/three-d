@@ -16,8 +16,7 @@ default-features = false
 features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
 
 [dev-dependencies]
-noise = "0.5.1"
-rand = "0.5.5"
+rand = "0.6.5"
 
 [features]
 gl_debug = ["gl/debug"]
