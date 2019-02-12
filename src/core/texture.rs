@@ -1,6 +1,6 @@
 use gl;
 use image;
-use image::GenericImage;
+use image::GenericImageView;
 
 #[derive(Debug)]
 pub enum Error {
@@ -48,6 +48,15 @@ impl Texture2D
         Ok(texture)
     }
 
+    pub fn new_from_bytes(gl: &gl::Gl, bytes: &[u8]) -> Result<Texture2D, Error>
+    {
+        let img = image::load_from_memory(bytes)?;
+        let mut texture = Texture2D::new(gl)?;
+        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &mut img.raw_pixels());
+        Ok(texture)
+    }
+
+    #[cfg(target_arch = "x86_64")]
     pub fn new_from_file(gl: &gl::Gl, path: &str) -> Result<Texture2D, Error>
     {
         let img = image::open(path)?;
@@ -140,6 +149,7 @@ impl Texture2D
         pixels.iter().map(|x| (*x * 255.0) as u8).collect()
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn save_as_file(&self, path: &str, width: usize, height: usize) -> Result<(), Error>
     {
         let pixels = self.get_pixels(width, height);
@@ -189,6 +199,22 @@ impl Texture3D
         Ok(texture)
     }
 
+    pub fn new_from_bytes(gl: &gl::Gl, back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
+    {
+        let back = image::load_from_memory(back_bytes)?;
+        let front = image::load_from_memory(front_bytes)?;
+        let top = image::load_from_memory(top_bytes)?;
+        let left = image::load_from_memory(left_bytes)?;
+        let right = image::load_from_memory(right_bytes)?;
+
+        let mut texture = Texture3D::new(gl)?;
+        texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
+                             [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
+                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
+        Ok(texture)
+    }
+
+    #[cfg(target_arch = "x86_64")]
     pub fn new_from_files(gl: &gl::Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
         let back = image::open(format!("{}{}", path, back_name))?;

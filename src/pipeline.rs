@@ -236,6 +236,7 @@ impl DeferredPipeline
         Ok(())
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn save_screenshot(&self, path: &str) -> Result<(), Error>
     {
         match self.light_pass_rendertarget {

@@ -18,10 +18,15 @@ fn main() {
     let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
     let mut textured_box = objects::ShadedMesh::new(&gl, &indices, &att!["position"=> (positions, 3),
                                                                     "normal"=> (normals(), 3)]).unwrap();
-    textured_box.texture = Some(texture::Texture2D::new_from_file(&gl, "examples/assets/textures/test_texture.jpg").unwrap());
 
-    let texture3d = texture::Texture3D::new_from_files(&gl, "examples/assets/textures/skybox_evening/",
-                                                       "back.jpg", "front.jpg", "top.jpg", "left.jpg", "right.jpg").unwrap();
+    textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("assets/textures/test_texture.jpg")).unwrap());
+
+    let texture3d = texture::Texture3D::new_from_bytes(&gl,
+                                                       include_bytes!("assets/textures/skybox_evening/back.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/front.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/top.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/left.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/right.jpg")).unwrap();
     let skybox = objects::Skybox::create(&gl, texture3d);
 
     let light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
