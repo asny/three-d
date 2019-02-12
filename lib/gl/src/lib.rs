@@ -732,7 +732,7 @@ pub fn shader_from_source(
         .create_shader(shader_type)
         .ok_or_else(|| String::from("Unable to create shader object"))?;
 
-    let header = "#version 300 es\nprecision mediump float;\n";
+    let header = "#version 300 es\nprecision highp float;\n";
     let s: &str = &[header, source].concat();
     gl.shader_source(&shader, s);
     gl.compile_shader(&shader);
@@ -757,7 +757,7 @@ pub fn shader_from_source(
     shader_type: types::GLenum
 ) -> Result<Shader, String>
 {
-    let header = "#version 330 core\nprecision mediump float;\n";
+    let header = "#version 330 core\nprecision highp float;\n";
     let s: &str = &[header, source].concat();
 
     use std::ffi::{CStr, CString};
