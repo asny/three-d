@@ -118,7 +118,7 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind: event.code()});
+                (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind: map_key_code(event.code())});
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -130,7 +130,7 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::Key {state: State::Released, kind: event.code()});
+                (*events).borrow_mut().push(Event::Key {state: State::Released, kind: map_key_code(event.code())});
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -147,6 +147,11 @@ impl Window
     {
         self.gl.clone()
     }
+}
+
+fn map_key_code(code: String) -> String
+{
+    code.trim_start_matches("Key").to_string()
 }
 
 fn window() -> web_sys::Window {
