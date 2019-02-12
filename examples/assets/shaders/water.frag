@@ -73,7 +73,7 @@ vec3 water(vec3 col, vec3 p1, vec3 p2)
     
     float dist = min(distance(p1, p2), 100.);
     vec3 colorChange = vec3(clamp( pow(c.r, dist), 0., 1.), clamp( pow(c.g, dist), 0., 1.), clamp( pow(c.b, dist), 0., 1.));
-    return colorChange * col + (1 - colorChange) * equilibriumColorAtInfinity;
+    return colorChange * col + (1. - colorChange) * equilibriumColorAtInfinity;
 }
 
 vec3 get_normal()

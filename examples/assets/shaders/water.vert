@@ -56,7 +56,7 @@ void main()
         
         float frequency = 2.0 * pi / wavelength;//sqrt(g * wavelength / (2.0 * pi)) * tanh(2.0 * pi * waterDepth / wavelength);
         float amplitude = wavelength / 100.0;
-        float steepness = wavelength_var[i]/(frequency * amplitude * noWaves);
+        float steepness = wavelength_var[i]/(frequency * amplitude * float(noWaves));
         float phase = speed * frequency;
         
         float theta = dot(dir, pos.xz);
