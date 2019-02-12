@@ -51,7 +51,7 @@ fn main() {
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    window.render_loop(move |events|
+    window.render_loop(move |events, _elapsed_time|
     {
         for event in events {
             handle_camera_events(event, &mut camera_handler, &mut camera);
