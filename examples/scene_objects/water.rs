@@ -25,7 +25,7 @@ impl Water
         let buffer = model.add_attributes(&program, &att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
                                                       "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
 
-        let foam_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let foam_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();
 
         let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
         water.set_center(&vec3(0.0, 0.0, 0.0));

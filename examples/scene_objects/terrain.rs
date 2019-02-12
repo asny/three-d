@@ -32,9 +32,9 @@ impl Terrain
                                                       "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
 
-        let ground_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
-        let lake_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/bottom.png").unwrap();
-        let noise_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let ground_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();
+        let lake_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/bottom.png")).unwrap();
+        let noise_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();;
 
         let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
