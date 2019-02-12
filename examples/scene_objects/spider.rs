@@ -46,8 +46,8 @@ impl Spider
 
     pub fn update(&mut self, time: f32, environment: &Environment)
     {
-        static SPEED: f32 = 2.0;
-        static ANGULAR_SPEED: f32 = 1.0;
+        static SPEED: f32 = 0.002;
+        static ANGULAR_SPEED: f32 = 0.001;
         static GRAVITY: f32 = -9.82;
 
         if self.is_moving_forward

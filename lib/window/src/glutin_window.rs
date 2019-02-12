@@ -41,9 +41,10 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F)
-        where F: FnMut(&Vec<event::Event>)
+        where F: FnMut(&Vec<event::Event>, f64)
     {
         let mut events = Vec::new();
+        let mut last_time = std::time::Instant::now();
         loop {
             self.events_loop.poll_events(|event| {
                 Self::handle_window_close_events(&event);
@@ -52,7 +53,13 @@ impl Window
                     events.push(e);
                 }
             });
-            callback(&events);
+
+            let now = std::time::Instant::now();
+            let duration = now.duration_since(last_time);
+            last_time = now;
+            let elapsed_time = duration.as_secs() as f64 * 1000.0 + duration.subsec_nanos() as f64 * 1e-6;
+
+            callback(&events, elapsed_time);
             events.clear();
             self.gl_window.swap_buffers().unwrap();
         }

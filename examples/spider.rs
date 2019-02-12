@@ -1,7 +1,6 @@
 
 mod scene_objects;
 
-use std::time::Instant;
 use dust::*;
 use window::{event::*, Window};
 
@@ -31,11 +30,10 @@ fn main() {
     directional_light.enable_shadows(&gl, 10.0, 10.0).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::FIRST);
-    let mut now = Instant::now();
     let mut time = 0.0;
 
     // main loop
-    window.render_loop(move |events|
+    window.render_loop(move |events, elapsed_time|
     {
         for event in events {
             handle_camera_events(event, &mut camera_handler, &mut camera);
@@ -61,14 +59,10 @@ fn main() {
                 _ => {}
             }
         }
-
-        let new_now = Instant::now();
-        let elapsed_time = 0.000000001 * new_now.duration_since(now).subsec_nanos() as f32;
-        now = new_now;
         time += elapsed_time;
 
         // Update
-        spider.update(elapsed_time, &environment);
+        spider.update(elapsed_time as f32, &environment);
         let spider_pos = spider.get_position(&environment);
         camera_handler.translate(&mut camera, &spider_pos, &spider.get_view_direction(&environment), &spider.get_up_direction());
         environment.set_position(&spider_pos);
@@ -92,7 +86,7 @@ fn main() {
         renderer.copy_to_screen().unwrap();
 
         // After effects
-        environment.render_transparent(time, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
+        environment.render_transparent(time as f32, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
     });
 }
 

@@ -9,14 +9,16 @@ use crate::event::*;
 pub struct Window
 {
     gl: gl::Gl,
-    canvas: web_sys::HtmlCanvasElement
+    canvas: web_sys::HtmlCanvasElement,
+    window: web_sys::Window
 }
 
 impl Window
 {
     pub fn new_default(title: &str) -> Window
     {
-        let document = web_sys::window().unwrap().document().unwrap();
+        let window = web_sys::window().unwrap();
+        let document = window.document().unwrap();
         let canvas = document.get_element_by_id("canvas").unwrap();
         let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
 
@@ -27,16 +29,18 @@ impl Window
         context.get_extension("EXT_color_buffer_float").unwrap();
 
         let gl = gl::Gl::new(context);
-        Window { gl, canvas }
+        Window { gl, canvas, window }
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F)
-        where F: FnMut(&Vec<Event>)
+        where F: FnMut(&Vec<Event>, f64)
     {
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
 
         let events = Rc::new(RefCell::new(Vec::new()));
+        let performance = self.window.performance().unwrap();
+        let mut last_time = performance.now();
 
         self.add_mousedown_event_listener(events.clone());
         self.add_mouseup_event_listener(events.clone());
@@ -46,7 +50,10 @@ impl Window
         self.add_key_up_event_listener(events.clone());
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-            callback(&(*events).borrow());
+            let now = performance.now();
+            let elapsed_time = now - last_time;
+            last_time = now;
+            callback(&(*events).borrow(), elapsed_time);
             &(*events).borrow_mut().clear();
 
             request_animation_frame(f.borrow().as_ref().unwrap());

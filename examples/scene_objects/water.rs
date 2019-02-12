@@ -46,7 +46,7 @@ impl Water
         self.program.add_uniform_vec3("eyePosition", camera.position()).unwrap();
         self.program.add_uniform_vec2("screenSize", &vec2(screen_width as f32, screen_height as f32)).unwrap();
 
-        self.program.add_uniform_float("time", &time).unwrap();
+        self.program.add_uniform_float("time", &(time * 0.001)).unwrap();
 
         color_texture.bind(0);
         self.program.add_uniform_int("colorMap", &0).unwrap();
