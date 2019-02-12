@@ -3,7 +3,7 @@ use gl;
 #[derive(Debug)]
 pub enum Error {
     UnknownShaderType {message: String},
-    FailedToCompileShader {name: String, message: String}
+    FailedToCompileShader {shader_type: String, message: String}
 }
 
 pub struct Shader {
@@ -13,11 +13,12 @@ pub struct Shader {
 
 impl Shader
 {
-    pub fn from_source(gl: &gl::Gl, source: &str, kind: u32, name: &str) -> Result<Shader, Error>
+    pub fn from_source(gl: &gl::Gl, src: &str, kind: u32) -> Result<Shader, Error>
     {
-        match gl::shader_from_source(gl, source, kind) {
+        match gl::shader_from_source(gl, src, kind) {
             Ok(shader) => Ok(Shader {gl: gl.clone(), id: shader}),
-            Err(message) => Err(Error::FailedToCompileShader {name: name.to_string(), message})
+            Err(message) => Err(Error::FailedToCompileShader {
+                shader_type: if kind == gl::consts::VERTEX_SHADER {"Vertex shader".to_string()} else {"Fragment shader".to_string()}, message})
         }
     }
 
