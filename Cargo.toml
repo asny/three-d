@@ -18,7 +18,6 @@ features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp
 [dev-dependencies]
 noise = "0.5.1"
 rand = "0.5.5"
-tobj = "0.1.6"
 
 [features]
 gl_debug = ["gl/debug"]
