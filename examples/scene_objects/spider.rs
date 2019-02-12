@@ -1,5 +1,4 @@
 
-use tobj;
 use dust::*;
 use crate::scene_objects::environment::Environment;
 
@@ -20,11 +19,7 @@ impl Spider
 {
     pub fn create(gl: &gl::Gl, position: Vec3, view_direction: Vec3) -> Spider
     {
-        let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/spider.obj")).unwrap();
-        let mesh = meshes.first().unwrap();
-        let model = objects::ShadedMesh::new(gl, &mesh.mesh.indices, &att!["position" => (mesh.mesh.positions.clone(), 3),
-                                                                        "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
-
+        let model = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("../assets/models/spider.obj").to_string()).unwrap();
         Spider { model, position, view_direction, local2world: Mat4::identity(),
         is_moving_backward: false, is_moving_forward: false, is_rotating_left: false, is_rotating_right: false, is_jumping: false}
     }
