@@ -1,0 +1,13 @@
+[package]
+name = "simplex"
+version = "0.1.0"
+authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+rand = "0.5"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.rand]
+rand = {version = "0.5", features = ["wasm-bindgen"] }

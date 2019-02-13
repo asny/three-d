@@ -9,6 +9,7 @@ gl = { path = "lib/gl" }
 cgmath = "0.16.1"
 wavefront_obj = "5.1.0"
 window = { path = "lib/window" }
+simplex = { path = "lib/simplex" }
 
 [dependencies.image]
 version = "0.21.0"
