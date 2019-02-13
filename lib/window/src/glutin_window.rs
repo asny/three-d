@@ -100,9 +100,7 @@ impl Window
                         MouseButton::Right => Some(event::MouseButton::Right),
                         _ => None
                     };
-                    return if let Some(b) = button {
-                        Some(event::Event::MouseClick {state, button: b})
-                    } else { None };
+                    return button.map(|b| event::Event::MouseClick { state, button: b });
                 },
                 _ => ()
             },
