@@ -87,9 +87,13 @@ impl Window
                     }
                 },
                 WindowEvent::MouseWheel {delta, ..} => {
-                    if let MouseScrollDelta::LineDelta(_, y) = delta
-                    {
-                        return Some(event::Event::MouseWheel {delta: *y as f64});
+                    match delta {
+                        MouseScrollDelta::LineDelta(_, y) => {
+                            return Some(event::Event::MouseWheel { delta: *y as f64 });
+                        },
+                        MouseScrollDelta::PixelDelta(logical_position) => {
+                            return Some(event::Event::MouseWheel { delta: logical_position.y });
+                        }
                     }
                 },
                 WindowEvent::MouseInput {state, button, ..} => {
