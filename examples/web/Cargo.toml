@@ -12,3 +12,4 @@ dust = { path = "../../" }
 wasm-bindgen = "0.2.33"
 rand = {version = "0.6.5", features = ["wasm-bindgen"] }
 console_error_panic_hook = "0.1.5"
+noise = {git = "https://github.com/Razaekel/noise-rs", branch = "develop", default-features = false}

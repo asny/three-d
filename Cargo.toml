@@ -9,7 +9,6 @@ gl = { path = "lib/gl" }
 cgmath = "0.16.1"
 wavefront_obj = "5.1.0"
 window = { path = "lib/window" }
-simplex = { path = "lib/simplex" }
 
 [dependencies.image]
 version = "0.21.0"
@@ -18,6 +17,7 @@ features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp
 
 [dev-dependencies]
 rand = "0.6.5"
+noise = {git = "https://github.com/Razaekel/noise-rs", branch = "develop"}
 
 [features]
 gl_debug = ["gl/debug"]
