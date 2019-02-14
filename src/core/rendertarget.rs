@@ -17,14 +17,13 @@ impl From<texture::Error> for Error {
 pub trait Rendertarget {
     fn bind(&self);
     fn clear(&self);
-    fn pixels(&self) -> Vec<u8>;
 }
 
 // SCREEN RENDER TARGET
 pub struct ScreenRendertarget {
     gl: gl::Gl,
-    width: usize,
-    height: usize
+    pub width: usize,
+    pub height: usize
 }
 
 impl ScreenRendertarget
@@ -32,6 +31,18 @@ impl ScreenRendertarget
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ScreenRendertarget, Error>
     {
         Ok(ScreenRendertarget { gl: gl.clone(), width, height })
+    }
+
+    pub fn pixels(&self, dst_data: &mut [u8])
+    {
+        self.bind();
+        self.gl.read_pixels(0, 0, self.width as u32, self.height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, dst_data);
+    }
+
+    pub fn depths(&self, dst_data: &mut [f32])
+    {
+        self.bind();
+        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
     }
 }
 
@@ -46,12 +57,6 @@ impl Rendertarget for ScreenRendertarget
     fn clear(&self)
     {
         clear(&self.gl);
-    }
-
-    fn pixels(&self) -> Vec<u8>
-    {
-        self.bind();
-        pixels(&self.gl, self.width, self.height)
     }
 }
 
@@ -85,6 +90,18 @@ impl ColorRendertarget
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target })
     }
+
+    pub fn pixels(&self, dst_data: &mut [u8])
+    {
+        self.bind();
+        self.gl.read_pixels(0, 0, self.width as u32, self.height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, dst_data);
+    }
+
+    pub fn depths(&self, dst_data: &mut [f32])
+    {
+        self.bind();
+        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
+    }
 }
 
 impl Rendertarget for ColorRendertarget
@@ -97,12 +114,6 @@ impl Rendertarget for ColorRendertarget
     fn clear(&self)
     {
         clear(&self.gl);
-    }
-
-    fn pixels(&self) -> Vec<u8>
-    {
-        self.bind();
-        pixels(&self.gl, self.width, self.height)
     }
 }
 
@@ -132,6 +143,12 @@ impl DepthRenderTarget
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
     }
+
+    pub fn depths(&self, dst_data: &mut [f32])
+    {
+        self.bind();
+        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
+    }
 }
 
 impl Rendertarget for DepthRenderTarget
@@ -144,12 +161,6 @@ impl Rendertarget for DepthRenderTarget
     fn clear(&self)
     {
         clear(&self.gl);
-    }
-
-    fn pixels(&self) -> Vec<u8>
-    {
-        self.bind();
-        pixels(&self.gl, self.width, self.height)
     }
 }
 
@@ -177,11 +188,4 @@ fn clear(gl: &gl::Gl)
     state::depth_write(gl,true);
     gl.clear_color(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
-}
-
-fn pixels(gl: &gl::Gl, width: usize, height: usize) -> Vec<u8>
-{
-    let mut pixels = vec![0u8; width * height * 3];
-    gl.read_pixels(0, 0, width as u32, height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, &mut pixels);
-    pixels
 }

@@ -8,7 +8,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, true).unwrap();
+    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, false).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -73,7 +73,6 @@ fn main() {
         renderer.save_screenshot(&format!("image{}.png", i)).unwrap();
         i = i+1;
 
-        renderer.copy_to_screen().unwrap();
     }).unwrap();
 }
 

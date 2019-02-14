@@ -246,16 +246,16 @@ impl DeferredPipeline
     #[cfg(target_arch = "x86_64")]
     pub fn save_screenshot(&self, path: &str) -> Result<(), Error>
     {
-        match self.light_pass_rendertarget {
-            Some(ref rendertarget) => {
-                let pixels = rendertarget.pixels();
-                image::save_buffer(&std::path::Path::new(path), &pixels, rendertarget.width as u32, rendertarget.height as u32, image::RGB(8))?;
-                Ok(())
-            },
-            None => {
-                return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
-            }
+        let mut pixels = vec![0u8; self.rendertarget.width * self.rendertarget.height * 3];
+        if let Some(ref rendertarget) = self.light_pass_rendertarget
+        {
+            rendertarget.pixels(&mut pixels);
         }
+        else {
+            self.rendertarget.pixels(&mut pixels);
+        }
+        image::save_buffer(&std::path::Path::new(path), &pixels, self.rendertarget.width as u32, self.rendertarget.height as u32, image::RGB(8))?;
+        Ok(())
     }
 
     pub fn copy_to_screen(&self) -> Result<(), Error>
