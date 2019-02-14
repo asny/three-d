@@ -50,10 +50,7 @@ impl Program
             shader.attach_shader(&program);
         }
 
-        if let Err(message) = gl::link_program(gl, &program)
-        {
-            return Err(Error::FailedToLinkProgram {message})
-        }
+        gl.link_program(&program).map_err(|message| Error::FailedToLinkProgram {message})?;
 
         for shader in shaders {
             shader.detach_shader(&program);

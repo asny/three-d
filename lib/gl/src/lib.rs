@@ -108,6 +108,17 @@ impl Gl {
         self.inner.create_program().unwrap()
     }
 
+    pub fn link_program(&self, program: &Program) -> Result<(), String>
+    {
+        self.link_program(program);
+        if self.get_program_parameter(program, consts::LINK_STATUS).as_bool().unwrap_or(false)
+        {
+            Ok(())
+        } else {
+            Err(self.get_program_info_log(program).unwrap_or_else(|| "Unknown error creating program object".into()))
+        }
+    }
+
     pub fn bind_vertex_array(&self, array: &VertexArrayObject)
     {
         self.inner.bind_vertex_array(Some(array));
@@ -365,6 +376,37 @@ impl Gl {
     pub fn create_program(&self) -> Program
     {
         unsafe { self.inner.CreateProgram() }
+    }
+
+    pub fn link_program(&self, program: &Program) -> Result<(), String>
+    {
+        unsafe { self.inner.LinkProgram(*program); }
+
+        let mut success: types::GLint = 1;
+        unsafe {
+            self.inner.GetProgramiv(*program, LINK_STATUS, &mut success);
+        }
+
+        if success == 0 {
+            let mut len: types::GLint = 0;
+            unsafe {
+                self.inner.GetProgramiv(*program, INFO_LOG_LENGTH, &mut len);
+            }
+
+            let error = create_whitespace_cstring_with_len(len as usize);
+
+            unsafe {
+                self.inner.GetProgramInfoLog(
+                    *program,
+                    len,
+                    std::ptr::null_mut(),
+                    error.as_ptr() as *mut types::GLchar
+                );
+            }
+
+            return Err(error.to_string_lossy().into_owned());;
+        }
+        Ok(())
     }
 
     pub fn use_program(&self, program: &Program)
@@ -809,56 +851,6 @@ pub fn shader_from_source(
     }
 
     Ok(id)
-}
-
-#[cfg(target_arch = "x86_64")]
-pub fn link_program(gl: &Gl, program: &Program) -> Result<(), String>
-{
-    unsafe { gl.inner.LinkProgram(*program); }
-
-    let mut success: types::GLint = 1;
-    unsafe {
-        gl.inner.GetProgramiv(*program, LINK_STATUS, &mut success);
-    }
-
-    if success == 0 {
-        let mut len: types::GLint = 0;
-        unsafe {
-            gl.inner.GetProgramiv(*program, INFO_LOG_LENGTH, &mut len);
-        }
-
-        let error = create_whitespace_cstring_with_len(len as usize);
-
-        unsafe {
-            gl.inner.GetProgramInfoLog(
-                *program,
-                len,
-                std::ptr::null_mut(),
-                error.as_ptr() as *mut types::GLchar
-            );
-        }
-
-        return Err(error.to_string_lossy().into_owned());;
-    }
-    Ok(())
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn link_program(gl: &Gl, program: &Program) -> Result<(), String>
-{
-    gl.link_program(program);
-
-    if gl
-        .get_program_parameter(program, consts::LINK_STATUS)
-        .as_bool()
-        .unwrap_or(false)
-    {
-        Ok(())
-    } else {
-        Err(gl
-            .get_program_info_log(program)
-            .unwrap_or_else(|| "Unknown error creating program object".into()))
-    }
 }
 
 #[cfg(target_arch = "x86_64")]
