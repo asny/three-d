@@ -11,10 +11,17 @@ use crate::core::full_screen_quad;
 
 #[derive(Debug)]
 pub enum Error {
+    IO(std::io::Error),
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Texture(texture::Error),
     LightPassRendertargetNotAvailable {message: String}
+}
+
+impl From<std::io::Error> for Error {
+    fn from(other: std::io::Error) -> Self {
+        Error::IO(other)
+    }
 }
 
 impl From<program::Error> for Error {
@@ -241,7 +248,8 @@ impl DeferredPipeline
     {
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {
-                rendertarget.targets[0].save_as_file(path, rendertarget.width, rendertarget.height)?;
+                let pixels = rendertarget.pixels();
+                image::save_buffer(&std::path::Path::new(path), &pixels, rendertarget.width as u32, rendertarget.height as u32, image::RGB(8))?;
                 Ok(())
             },
             None => {

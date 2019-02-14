@@ -140,23 +140,6 @@ impl Texture2D
                                            gl::consts::FLOAT,
                                            &mut d);
     }
-
-    pub fn get_pixels(&self, width: usize, height: usize) -> Vec<u8>
-    {
-        let pixels = vec![0.0 as f32; width * height * 3];
-        bind(&self.gl, &self.id, self.target);
-        //Todo: self.gl.GetTexImage(self.target, 0, gl::bindings::RGB, gl::bindings::FLOAT, pixels.as_ptr() as *mut gl::bindings::types::GLvoid);
-        pixels.iter().map(|x| (*x * 255.0) as u8).collect()
-    }
-
-    #[cfg(target_arch = "x86_64")]
-    pub fn save_as_file(&self, path: &str, width: usize, height: usize) -> Result<(), Error>
-    {
-        let pixels = self.get_pixels(width, height);
-        image::save_buffer(&std::path::Path::new(path), &pixels, width as u32, height as u32, image::RGB(8))?;
-        Ok(())
-    }
-
 }
 
 impl Texture for Texture2D

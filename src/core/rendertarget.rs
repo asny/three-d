@@ -17,6 +17,7 @@ impl From<texture::Error> for Error {
 pub trait Rendertarget {
     fn bind(&self);
     fn clear(&self);
+    fn pixels(&self) -> Vec<u8>;
 }
 
 // SCREEN RENDER TARGET
@@ -45,6 +46,12 @@ impl Rendertarget for ScreenRendertarget
     fn clear(&self)
     {
         clear(&self.gl);
+    }
+
+    fn pixels(&self) -> Vec<u8>
+    {
+        self.bind();
+        pixels(&self.gl, self.width, self.height)
     }
 }
 
@@ -91,6 +98,12 @@ impl Rendertarget for ColorRendertarget
     {
         clear(&self.gl);
     }
+
+    fn pixels(&self) -> Vec<u8>
+    {
+        self.bind();
+        pixels(&self.gl, self.width, self.height)
+    }
 }
 
 impl Drop for ColorRendertarget {
@@ -132,6 +145,12 @@ impl Rendertarget for DepthRenderTarget
     {
         clear(&self.gl);
     }
+
+    fn pixels(&self) -> Vec<u8>
+    {
+        self.bind();
+        pixels(&self.gl, self.width, self.height)
+    }
 }
 
 impl Drop for DepthRenderTarget {
@@ -158,4 +177,11 @@ fn clear(gl: &gl::Gl)
     state::depth_write(gl,true);
     gl.clear_color(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
+}
+
+fn pixels(gl: &gl::Gl, width: usize, height: usize) -> Vec<u8>
+{
+    let mut pixels = vec![0u8; width * height * 3];
+    gl.read_pixels(0, 0, width as u32, height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, &mut pixels);
+    pixels
 }
