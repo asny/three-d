@@ -33,9 +33,8 @@ impl Terrain
 
         let ground_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();
         let lake_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/bottom.png")).unwrap();
-        let noise_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();;
 
-        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
+        let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture: new_noise_texture(gl), buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
         terrain
     }
@@ -159,4 +158,18 @@ fn indices() -> Vec<u32>
         }
     }
     indices
+}
+
+fn new_noise_texture(gl: &gl::Gl) -> texture::Texture2D
+{
+    use rand::prelude::*;
+    let noise_size = 128;
+    let mut noise: Vec<f32> = Vec::with_capacity(noise_size * noise_size);
+    for i in 0..noise_size * noise_size
+    {
+        noise.push(random::<f32>());
+    }
+    let mut noise_texture = texture::Texture2D::new(gl).unwrap();
+    noise_texture.fill_with_f32(noise_size, noise_size, &noise);
+    noise_texture
 }
