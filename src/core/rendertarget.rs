@@ -28,7 +28,7 @@ pub struct ScreenRendertarget {
 
 impl ScreenRendertarget
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<ScreenRendertarget, Error>
+    pub fn new(gl: &gl::Gl, width: usize, height: usize) -> Result<ScreenRendertarget, Error>
     {
         Ok(ScreenRendertarget { gl: gl.clone(), width, height })
     }
@@ -74,7 +74,7 @@ pub struct ColorRendertarget {
 
 impl ColorRendertarget
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize, no_targets: usize) -> Result<ColorRendertarget, Error>
+    pub fn new(gl: &gl::Gl, width: usize, height: usize, no_targets: usize) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
         bind(gl, &id, width, height);
@@ -138,7 +138,7 @@ pub struct DepthRenderTarget {
 
 impl DepthRenderTarget
 {
-    pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
+    pub fn new(gl: &gl::Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
     {
         let id = generate(gl)?;
         bind(gl, &id, width, height);

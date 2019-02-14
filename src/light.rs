@@ -51,7 +51,7 @@ impl DirectionalLight
 
     pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32, depth: f32) -> Result<(), Error>
     {
-        self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
+        self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 1024, 1024)?);
         let up = self.compute_up_direction();
         self.shadow_camera = Some(camera::OrthographicCamera::new(- self.direction, vec3(0.0, 0.0, 0.0), up,
                                                                   2.0 * radius, 2.0 * radius, 2.0 * depth));
@@ -142,7 +142,7 @@ impl SpotLight
 
     pub fn enable_shadows(&mut self, gl: &gl::Gl, depth: f32) -> Result<(), Error>
     {
-        self.shadow_rendertarget = Some(DepthRenderTarget::create(gl, 1024, 1024)?);
+        self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 1024, 1024)?);
         let up = self.compute_up_direction();
         self.shadow_camera = Some(camera::PerspectiveCamera::new(self.position,self.position + self.direction, up,
                                                                  degrees(45.0), 2.0 * self.cutoff, 0.1, depth));

@@ -6,13 +6,13 @@ fn main() {
     let mut window = window::Window::new_default("Hello, world!").unwrap();
     let (width, height) = window.size();
 
-    let renderer = pipeline::ForwardPipeline::create(&window.gl(), width, height).unwrap();
+    let renderer = pipeline::ForwardPipeline::new(&window.gl(), width, height).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
-    let model = crate::Triangle::create(&window.gl());
+    let model = crate::Triangle::new(&window.gl());
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
@@ -33,7 +33,7 @@ pub struct Triangle {
 
 impl Triangle
 {
-    pub fn create(gl: &gl::Gl) -> Triangle
+    pub fn new(gl: &gl::Gl) -> Triangle
     {
         let indices: Vec<u32> = (0..3).collect();
         let positions: Vec<f32> = vec![
@@ -49,7 +49,7 @@ impl Triangle
         let program = program::Program::from_source(&gl,
                                                     include_str!("assets/shaders/color.vert"),
                                                     include_str!("assets/shaders/color.frag")).unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        let mut model = surface::TriangleSurface::new(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
 
         Triangle { program, model }

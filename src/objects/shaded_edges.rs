@@ -14,7 +14,7 @@ pub struct ShadedEdges {
 
 impl ShadedEdges
 {
-    pub fn create(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
+    pub fn new(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/line_shaded.vert"),
@@ -45,10 +45,10 @@ impl ShadedEdges
                 cylinder_indices.push((i+1) * angle_subdivisions as u32 + j);
             }
         }
-        let mut surface = surface::TriangleSurface::create(gl, &cylinder_indices).unwrap();
+        let mut surface = surface::TriangleSurface::new(gl, &cylinder_indices).unwrap();
         surface.add_attributes(&program, &att!["position" => (cylinder_positions, 3)]).unwrap();
 
-        let mut instance_buffer = buffer::VertexBuffer::create(gl).unwrap();
+        let mut instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
         program.set_used();
         program.setup_attribute("local2worldX", 3, 21, 0, 1).unwrap();

@@ -29,14 +29,14 @@ pub struct TriangleSurface {
 
 impl TriangleSurface
 {
-    pub fn create(gl: &gl::Gl, indices: &[u32]) -> Result<TriangleSurface, Error>
+    pub fn new(gl: &gl::Gl, indices: &[u32]) -> Result<TriangleSurface, Error>
     {
         let id = gl.create_vertex_array().unwrap();
 
         let model = TriangleSurface { gl: gl.clone(), id, count: indices.len() };
         model.bind();
 
-        let index_buffer = buffer::ElementBuffer::create(&gl)?;
+        let index_buffer = buffer::ElementBuffer::new(&gl)?;
         index_buffer.fill_with(indices);
 
         Ok(model)
@@ -45,7 +45,7 @@ impl TriangleSurface
     pub fn add_attributes(&mut self, program: &program::Program, attributes: &[Attribute]) -> Result<buffer::VertexBuffer, Error>
     {
         // Create buffer
-        let mut buffer = buffer::VertexBuffer::create(&self.gl)?;
+        let mut buffer = buffer::VertexBuffer::new(&self.gl)?;
 
         // Add data to the buffer
         buffer.fill_from_attributes(attributes)?;

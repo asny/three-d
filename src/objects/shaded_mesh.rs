@@ -46,7 +46,7 @@ impl ShadedMesh
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
-        let mut model = surface::TriangleSurface::create(gl, indices)?;
+        let mut model = surface::TriangleSurface::new(gl, indices)?;
         let buffer = model.add_attributes(&program, attributes)?;
 
         Ok(ShadedMesh { program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })

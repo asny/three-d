@@ -27,7 +27,7 @@ fn main() {
                                                        include_bytes!("assets/textures/skybox_evening/top.jpg"),
                                                        include_bytes!("assets/textures/skybox_evening/left.jpg"),
                                                        include_bytes!("assets/textures/skybox_evening/right.jpg")).unwrap();
-    let skybox = objects::Skybox::create(&gl, texture3d);
+    let skybox = objects::Skybox::new(&gl, texture3d);
 
     let ambient_light = crate::light::AmbientLight::new();
     let mut light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));

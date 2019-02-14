@@ -13,7 +13,7 @@ pub struct Environment
 }
 
 impl Environment {
-    pub fn create(gl: &gl::Gl) -> Environment
+    pub fn new(gl: &gl::Gl) -> Environment
     {
         let texture = texture::Texture3D::new_from_bytes(&gl,
                                                            include_bytes!("../assets/textures/skybox_evening/back.jpg"),
@@ -21,10 +21,10 @@ impl Environment {
                                                            include_bytes!("../assets/textures/skybox_evening/top.jpg"),
                                                            include_bytes!("../assets/textures/skybox_evening/left.jpg"),
                                                            include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap();
-        let skybox = objects::Skybox::create(&gl, texture);
-        let terrain = Terrain::create(gl);
-        let water = Water::create(gl);
-        let grass = Grass::create(gl, &terrain);
+        let skybox = objects::Skybox::new(&gl, texture);
+        let terrain = Terrain::new(gl);
+        let water = Water::new(gl);
+        let grass = Grass::new(gl, &terrain);
 
         Environment {terrain, skybox, water, grass}
     }

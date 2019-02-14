@@ -35,10 +35,10 @@ impl ShadedVertices
            7,3,10, 7,10,6, 7,6,11, 11,6,0, 0,6,1,
            6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
         );
-        let mut surface = surface::TriangleSurface::create(gl, &ball_indices).unwrap();
+        let mut surface = surface::TriangleSurface::new(gl, &ball_indices).unwrap();
         surface.add_attributes(&program, &att!["position" => (ball_positions, 3)]).unwrap();
 
-        let mut instance_buffer = buffer::VertexBuffer::create(gl).unwrap();
+        let mut instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
         program.set_used();
         program.setup_attribute("translation", 3, 3, 0, 1).unwrap();

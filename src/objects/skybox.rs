@@ -28,7 +28,7 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn create(gl: &gl::Gl, texture: texture::Texture3D) -> Skybox
+    pub fn new(gl: &gl::Gl, texture: texture::Texture3D) -> Skybox
     {
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/skybox.vert"),
@@ -36,7 +36,7 @@ impl Skybox
 
         let positions = get_positions();
         let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
-        let mut model = TriangleSurface::create(gl, &indices).unwrap();
+        let mut model = TriangleSurface::new(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
 
         Skybox { program, model, texture }

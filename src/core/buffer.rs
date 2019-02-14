@@ -36,7 +36,7 @@ pub struct VertexBuffer {
 
 impl VertexBuffer
 {
-    pub fn create(gl: &gl::Gl) -> Result<VertexBuffer, Error>
+    pub fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, attributes_infos: Vec::new() };
@@ -104,7 +104,7 @@ pub struct ElementBuffer {
 
 impl ElementBuffer
 {
-    pub fn create(gl: &gl::Gl) -> Result<ElementBuffer, Error>
+    pub fn new(gl: &gl::Gl) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let buffer = ElementBuffer{gl: gl.clone(), id };

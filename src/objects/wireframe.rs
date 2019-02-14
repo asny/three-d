@@ -12,7 +12,7 @@ impl Wireframe
 {
     pub fn new(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Wireframe
     {
-        let edges = ShadedEdges::create(&gl, indices, positions, tube_radius);
+        let edges = ShadedEdges::new(&gl, indices, positions, tube_radius);
         let mut vertices = ShadedVertices::new(&gl, positions);
         vertices.scale = 2.0 * tube_radius;
 

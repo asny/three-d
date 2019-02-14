@@ -49,15 +49,15 @@ pub struct ForwardPipeline {
 
 impl ForwardPipeline
 {
-    pub fn create(gl: &gl::Gl, screen_width: usize, screen_height: usize) -> Result<ForwardPipeline, Error>
+    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize) -> Result<ForwardPipeline, Error>
     {
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
+        let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height)?;
         Ok(ForwardPipeline {gl: gl.clone(), rendertarget})
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen_width, screen_height)?;
+        self.rendertarget = rendertarget::ScreenRendertarget::new(&self.gl, screen_width, screen_height)?;
         Ok(())
     }
 
@@ -85,12 +85,12 @@ impl DeferredPipeline
         let light_pass_program = program::Program::from_source(&gl,
                                                     include_str!("shaders/light_pass.vert"),
                                                     include_str!("shaders/light_pass.frag"))?;
-        let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 4)?;
+        let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
-            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 1)?);
+            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 1)?);
             copy_program = Some(program::Program::from_source(&gl,
                                                     include_str!("shaders/copy.vert"),
                                                     include_str!("shaders/copy.frag"))?);
@@ -100,8 +100,8 @@ impl DeferredPipeline
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::create(&self.gl, screen_width, screen_height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&self.gl, screen_width, screen_height, 4)?;
+        self.rendertarget = rendertarget::ScreenRendertarget::new(&self.gl, screen_width, screen_height)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4)?;
         Ok(())
     }
 

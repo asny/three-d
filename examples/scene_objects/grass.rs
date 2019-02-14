@@ -13,7 +13,7 @@ const NO_STRAWS: usize = 128;
 
 impl Grass
 {
-    pub fn create(gl: &gl::Gl, terrain: &Terrain) -> Grass
+    pub fn new(gl: &gl::Gl, terrain: &Terrain) -> Grass
     {
         let positions: Vec<f32> = vec![
             0.0, 0.0, 0.0,
@@ -37,10 +37,10 @@ impl Grass
         ];
         let program = program::Program::from_source(gl, include_str!("../assets/shaders/grass.vert"),
                                                       include_str!("../assets/shaders/grass.frag")).unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
+        let mut model = surface::TriangleSurface::new(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
 
-        let position_buffer = buffer::VertexBuffer::create(gl).unwrap();
+        let position_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
         program.set_used();
         program.setup_attribute("root_position", 3, 3, 0, 1).unwrap();

@@ -21,12 +21,12 @@ pub struct Terrain {
 
 impl Terrain
 {
-    pub fn create(gl: &gl::Gl) -> Terrain
+    pub fn new(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
         let program = program::Program::from_source(gl, include_str!("../assets/shaders/terrain.vert"),
                                                       include_str!("../assets/shaders/terrain.frag")).unwrap();
-        let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
+        let mut model = surface::TriangleSurface::new(gl, &indices()).unwrap();
         let buffer = model.add_attributes(&program,&att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
                                                       "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
