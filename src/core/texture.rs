@@ -129,7 +129,7 @@ impl Texture2D
         let mut d = extend_data(data, width * height, 0.0);
         bind(&self.gl, &self.id, self.target);
         let format = if no_elements == 1 {gl::consts::RED} else {gl::consts::RGB};
-        let internal_format = if no_elements == 1 {gl::consts::R32F} else {gl::consts::RGB32F};
+        let internal_format = if no_elements == 1 {gl::consts::R16F} else {gl::consts::RGB16F};
         self.gl.tex_image_2d_with_f32_data(self.target,
                                            0,
                                            internal_format,

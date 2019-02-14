@@ -144,7 +144,24 @@ impl Gl {
 
     pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [f32])
     {
-        unimplemented!();
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>().unwrap()
+            .buffer();
+        let data_location = pixels.as_ptr() as u32 / 4;
+        let array = js_sys::Float32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + pixels.len() as u32);
+
+        self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(target,
+                                                                                              level as i32,
+                                                                                              internalformat as i32,
+                                                                                              width as i32,
+                                                                                              height as i32,
+                                                                                              border as i32,
+                                                                                              format,
+                                                                                              data_type,
+                                                                                              Some(&array)).unwrap();
+
     }
 
     pub fn framebuffer_texture_2d(&self, target: u32, attachment: u32, textarget: u32, texture: &Texture, level: u32)
