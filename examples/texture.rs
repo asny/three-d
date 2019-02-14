@@ -29,7 +29,9 @@ fn main() {
                                                        include_bytes!("assets/textures/skybox_evening/right.jpg")).unwrap();
     let skybox = objects::Skybox::create(&gl, texture3d);
 
-    let light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    let ambient_light = crate::light::AmbientLight::new();
+    let mut light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    light.base.intensity = 1.0;
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
@@ -49,6 +51,7 @@ fn main() {
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&light).unwrap();
     }).unwrap();
 }
