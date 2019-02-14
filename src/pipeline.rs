@@ -158,8 +158,6 @@ impl DeferredPipeline
 
     pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
     {
-        //self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &0)?;
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
