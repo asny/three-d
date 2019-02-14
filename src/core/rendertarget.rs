@@ -33,12 +33,14 @@ impl ScreenRendertarget
         Ok(ScreenRendertarget { gl: gl.clone(), width, height })
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn pixels(&self, dst_data: &mut [u8])
     {
         self.bind();
         self.gl.read_pixels(0, 0, self.width as u32, self.height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, dst_data);
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn depths(&self, dst_data: &mut [f32])
     {
         self.bind();
@@ -91,12 +93,14 @@ impl ColorRendertarget
         Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target })
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn pixels(&self, dst_data: &mut [u8])
     {
         self.bind();
         self.gl.read_pixels(0, 0, self.width as u32, self.height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, dst_data);
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn depths(&self, dst_data: &mut [f32])
     {
         self.bind();
@@ -144,6 +148,7 @@ impl DepthRenderTarget
         Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn depths(&self, dst_data: &mut [f32])
     {
         self.bind();
