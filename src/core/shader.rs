@@ -18,8 +18,7 @@ impl Shader
     {
         let shader_type = if kind == gl::consts::VERTEX_SHADER {"Vertex shader".to_string()} else {"Fragment shader".to_string()};
         let shader = gl.create_shader(kind).ok_or(Error::FailedToCreateShader{ shader_type: shader_type.clone(), message:"Unable to create shader object".to_string() })?;
-
-        gl::shader_from_source(gl, src, &shader).map_err(|e| Error::FailedToCompileShader { shader_type, message: e })?;
+        gl.compile_shader(src, &shader).map_err(|e| Error::FailedToCompileShader { shader_type, message: e })?;
         Ok(Shader {gl: gl.clone(), id: shader})
     }
 

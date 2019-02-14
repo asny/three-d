@@ -100,6 +100,22 @@ impl Gl {
         );
     }
 
+    pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
+    {
+        let header = "#version 300 es\nprecision highp float;\n";
+        let s: &str = &[header, source].concat();
+
+        self.inner.shader_source(shader, s);
+        self.inner.compile_shader(shader);
+
+        if self.inner.get_shader_parameter(shader, consts::COMPILE_STATUS).as_bool().unwrap_or(false)
+        {
+            Ok(())
+        } else {
+            Err(self.inner.get_shader_info_log(shader).unwrap_or_else(|| "Unknown error creating shader".into()))
+        }
+    }
+
     pub fn create_program(&self) -> Program
     {
         self.inner.create_program().unwrap()
@@ -285,6 +301,38 @@ impl Gl {
     {
         let id = unsafe { self.inner.CreateShader(type_) };
         Some(id)
+    }
+
+    pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
+    {
+        let header = "#version 330 core\nprecision highp float;\n";
+        let s: &str = &[header, source].concat();
+
+        use std::ffi::{CStr, CString};
+        let c_str: &CStr = &CString::new(s).unwrap();
+
+        unsafe {
+            self.inner.ShaderSource(*shader, 1, &c_str.as_ptr(), std::ptr::null());
+            self.inner.CompileShader(*shader);
+        }
+
+        let mut success: types::GLint = 1;
+        unsafe {
+            self.inner.GetShaderiv(*shader, COMPILE_STATUS, &mut success);
+        }
+
+        if success == 0 {
+            let mut len: types::GLint = 0;
+            unsafe {
+                self.inner.GetShaderiv(*shader, INFO_LOG_LENGTH, &mut len);
+            }
+            let error = create_whitespace_cstring_with_len(len as usize);
+            unsafe {
+                self.inner.GetShaderInfoLog(*shader, len, std::ptr::null_mut(), error.as_ptr() as *mut types::GLchar);
+            }
+            return Err(format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned()));
+        }
+        Ok(())
     }
 
     pub fn delete_shader(&self, shader: Option<&Shader>)
@@ -779,64 +827,6 @@ impl std::ops::Deref for Gl {
     fn deref(&self) -> &InnerGl {
         &self.inner
     }
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn shader_from_source(gl: &Gl, source: &str, shader: &Shader) -> Result<(), String>
-{
-    let header = "#version 300 es\nprecision highp float;\n";
-    let s: &str = &[header, source].concat();
-
-    gl.shader_source(shader, s);
-    gl.compile_shader(shader);
-
-    if gl.get_shader_parameter(shader, consts::COMPILE_STATUS).as_bool().unwrap_or(false)
-    {
-        Ok(())
-    } else {
-        Err(gl.get_shader_info_log(shader).unwrap_or_else(|| "Unknown error creating shader".into()))
-    }
-}
-
-#[cfg(target_arch = "x86_64")]
-pub fn shader_from_source(gl: &Gl, source: &str, shader: &Shader) -> Result<(), String>
-{
-    let header = "#version 330 core\nprecision highp float;\n";
-    let s: &str = &[header, source].concat();
-
-    use std::ffi::{CStr, CString};
-    let c_str: &CStr = &CString::new(s).unwrap();
-
-    unsafe {
-        gl.inner.ShaderSource(*shader, 1, &c_str.as_ptr(), std::ptr::null());
-        gl.inner.CompileShader(*shader);
-    }
-
-    let mut success: types::GLint = 1;
-    unsafe {
-        gl.inner.GetShaderiv(*shader, COMPILE_STATUS, &mut success);
-    }
-
-    if success == 0 {
-        let mut len: types::GLint = 0;
-        unsafe {
-            gl.inner.GetShaderiv(*shader, INFO_LOG_LENGTH, &mut len);
-        }
-
-        let error = create_whitespace_cstring_with_len(len as usize);
-
-        unsafe {
-            gl.inner.GetShaderInfoLog(
-                *shader,
-                len,
-                std::ptr::null_mut(),
-                error.as_ptr() as *mut types::GLchar
-            );
-        }
-
-        return Err(format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned()));
-    }
-    Ok(())
 }
 
 #[cfg(target_arch = "x86_64")]
