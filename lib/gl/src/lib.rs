@@ -549,7 +549,7 @@ impl Gl {
 
     pub fn bind_framebuffer(&self, target: u32, framebuffer: Option<&Framebuffer>)
     {
-        let id = if let Some(fb) = framebuffer {*fb} else {0};
+        let id = match framebuffer { Some(fb) => *fb, None => 0 };
         unsafe {
             static mut CURRENTLY_USED: u32 = std::u32::MAX;
             if id != CURRENTLY_USED
@@ -562,7 +562,7 @@ impl Gl {
 
     pub fn delete_framebuffer(&self, framebuffer: Option<&Framebuffer>)
     {
-        let id = if let Some(fb) = framebuffer {fb} else {&0};
+        let id = match framebuffer { Some(fb) => fb, None => &0 };
         unsafe {
             self.inner.DeleteFramebuffers(1, id);
         }
