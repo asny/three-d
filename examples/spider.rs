@@ -5,7 +5,7 @@ use dust::*;
 use window::{event::*, Window};
 
 fn main() {
-    let mut window = Window::new_default("Spider");
+    let mut window = Window::new_default("Spider").unwrap();
     let (width, height) = window.size();
     let gl = window.gl();
 
@@ -87,7 +87,7 @@ fn main() {
 
         // After effects
         environment.render_transparent(time as f32, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
-    });
+    }).unwrap();
 }
 
 pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)

@@ -3,7 +3,7 @@ use window::{event::*, Window};
 use dust::*;
 
 fn main() {
-    let mut window = Window::new_default("Texture");
+    let mut window = Window::new_default("Texture").unwrap();
     let (width, height) = window.size();
     let gl = window.gl();
 
@@ -50,7 +50,7 @@ fn main() {
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
         renderer.shine_directional_light(&light).unwrap();
-    });
+    }).unwrap();
 }
 
 fn positions() -> Vec<f32>

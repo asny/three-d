@@ -3,7 +3,7 @@ use dust::window::event::*;
 
 fn main() {
 
-    let mut window = window::Window::new_default("Hello, world!");
+    let mut window = window::Window::new_default("Hello, world!").unwrap();
     let (width, height) = window.size();
 
     let renderer = pipeline::ForwardPipeline::create(&window.gl(), width, height).unwrap();
@@ -23,7 +23,7 @@ fn main() {
         }
         renderer.render_pass_begin();
         model.render(&camera);
-    });
+    }).unwrap();
 }
 
 pub struct Triangle {

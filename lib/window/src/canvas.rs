@@ -6,6 +6,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use crate::event::*;
 
+#[derive(Debug)]
+pub enum Error {
+    WindowCreationError {message: String},
+    ContextError {message: String},
+    PerformanceError {message: String}
+}
+
 pub struct Window
 {
     gl: gl::Gl,
@@ -15,31 +22,31 @@ pub struct Window
 
 impl Window
 {
-    pub fn new_default(title: &str) -> Window
+    pub fn new_default(title: &str) -> Result<Window, Error>
     {
-        let window = web_sys::window().unwrap();
-        let document = window.document().unwrap();
-        let canvas = document.get_element_by_id("canvas").unwrap();
-        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
+        let window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
+        let document = window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
+        let canvas = document.get_element_by_id("canvas").ok_or(Error::WindowCreationError {message: "Unable to get canvas, is the id different from 'canvas'?".to_string()})?;
+        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
 
         let context = canvas
-            .get_context("webgl2").unwrap()
-            .unwrap()
-            .dyn_into::<WebGl2RenderingContext>().unwrap();
-        context.get_extension("EXT_color_buffer_float").unwrap();
+            .get_context("webgl2").map_err(|e| Error::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
+            .ok_or(Error::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
+            .dyn_into::<WebGl2RenderingContext>().map_err(|e| Error::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;;
+        context.get_extension("EXT_color_buffer_float").map_err(|e| Error::ContextError {message: format!("Unable to get color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
 
         let gl = gl::Gl::new(context);
-        Window { gl, canvas, window }
+        Ok(Window { gl, canvas, window })
     }
 
-    pub fn render_loop<F: 'static>(&mut self, mut callback: F)
+    pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
         where F: FnMut(&Vec<Event>, f64)
     {
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
 
         let events = Rc::new(RefCell::new(Vec::new()));
-        let performance = self.window.performance().unwrap();
+        let performance = self.window.performance().ok_or(Error::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
         let mut last_time = performance.now();
 
         self.add_mousedown_event_listener(events.clone());
@@ -60,6 +67,7 @@ impl Window
         }) as Box<FnMut()>));
 
         request_animation_frame(g.borrow().as_ref().unwrap());
+        Ok(())
     }
 
     fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)

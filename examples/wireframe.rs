@@ -3,7 +3,7 @@ use window::{event::*, Window};
 use dust::*;
 
 fn main() {
-    let mut window = Window::new_default("Wireframe");
+    let mut window = Window::new_default("Wireframe").unwrap();
     let (width, height) = window.size();
     let gl = window.gl();
 
@@ -134,7 +134,7 @@ fn main() {
         mirror_renderer.light_pass_color_texture().unwrap().bind(0);
         mirror_program.add_uniform_int("colorMap", &0).unwrap();
         full_screen_quad::render(&gl, &mirror_program);
-    });
+    }).unwrap();
 }
 
 pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)

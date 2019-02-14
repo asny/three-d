@@ -2,8 +2,23 @@
 use glutin::*;
 use crate::event;
 
-//use dust::camerahandler::CameraHandler;
-//use dust::camera::Camera;
+#[derive(Debug)]
+pub enum Error {
+    WindowCreationError(glutin::CreationError),
+    ContextError(glutin::ContextError)
+}
+
+impl From<glutin::CreationError> for Error {
+    fn from(other: glutin::CreationError) -> Self {
+        Error::WindowCreationError(other)
+    }
+}
+
+impl From<glutin::ContextError> for Error {
+    fn from(other: glutin::ContextError) -> Self {
+        Error::ContextError(other)
+    }
+}
 
 pub struct Window
 {
@@ -14,7 +29,7 @@ pub struct Window
 
 impl Window
 {
-    pub fn new_default(title: &str) -> Window
+    pub fn new_default(title: &str) -> Result<Window, Error>
     {
         let width: usize = 1024;
         let height: usize = 512;
@@ -25,27 +40,28 @@ impl Window
         Window::new(window)
     }
 
-    pub fn new(window: WindowBuilder) -> Window
+    pub fn new(window: WindowBuilder) -> Result<Window, Error>
     {
         let events_loop = EventsLoop::new();
 
         let context = ContextBuilder::new().with_vsync(true);
 
-        let gl_window = GlWindow::new(window, context, &events_loop).unwrap();
+        let gl_window = GlWindow::new(window, context, &events_loop)?;
 
         unsafe {
-            gl_window.make_current().unwrap();
+            gl_window.make_current()?;
         }
         let gl = gl::Gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
-        Window {gl_window, events_loop, gl}
+        Ok(Window {gl_window, events_loop, gl})
     }
 
-    pub fn render_loop<F: 'static>(&mut self, mut callback: F)
+    pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
         where F: FnMut(&Vec<event::Event>, f64)
     {
         let mut events = Vec::new();
         let mut last_time = std::time::Instant::now();
-        loop {
+        let mut error = Ok(());
+        while error.is_ok() {
             self.events_loop.poll_events(|event| {
                 Self::handle_window_close_events(&event);
                 if let Some(e) = Self::map_event(&event)
@@ -61,8 +77,10 @@ impl Window
 
             callback(&events, elapsed_time);
             events.clear();
-            self.gl_window.swap_buffers().unwrap();
+            error = self.gl_window.swap_buffers();
         }
+        error?;
+        Ok(())
     }
 
     pub fn size(&self) -> (usize, usize)

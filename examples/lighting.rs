@@ -3,7 +3,7 @@ use window::{event::*, Window};
 use dust::*;
 
 fn main() {
-    let mut window = Window::new_default("Hello, world!");
+    let mut window = Window::new_default("Hello, world!").unwrap();
     let (width, height) = window.size();
     let gl = window.gl();
 
@@ -85,7 +85,7 @@ fn main() {
         renderer.shine_spot_light(&spot_light).unwrap();
 
         renderer.copy_to_screen().unwrap();
-    });
+    }).unwrap();
 }
 
 pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
