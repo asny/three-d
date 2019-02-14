@@ -281,6 +281,12 @@ impl Gl {
         }
     }
 
+    pub fn create_shader(&self, type_: u32) -> Option<Shader>
+    {
+        let id = unsafe { self.inner.CreateShader(type_) };
+        Some(id)
+    }
+
     pub fn delete_shader(&self, shader: Option<&Shader>)
     {
         unsafe {
@@ -776,39 +782,24 @@ impl std::ops::Deref for Gl {
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn shader_from_source(
-    gl: &Gl,
-    source: &str,
-    shader_type: u32
-) -> Result<Shader, String> {
-    let shader = gl
-        .create_shader(shader_type)
-        .ok_or_else(|| String::from("Unable to create shader object"))?;
-
+pub fn shader_from_source(gl: &Gl, source: &str, shader: &Shader) -> Result<(), String>
+{
     let header = "#version 300 es\nprecision highp float;\n";
     let s: &str = &[header, source].concat();
-    gl.shader_source(&shader, s);
-    gl.compile_shader(&shader);
 
-    if gl
-        .get_shader_parameter(&shader, consts::COMPILE_STATUS)
-        .as_bool()
-        .unwrap_or(false)
+    gl.shader_source(shader, s);
+    gl.compile_shader(shader);
+
+    if gl.get_shader_parameter(shader, consts::COMPILE_STATUS).as_bool().unwrap_or(false)
     {
-        Ok(shader)
+        Ok(())
     } else {
-        Err(gl
-            .get_shader_info_log(&shader)
-            .unwrap_or_else(|| "Unknown error creating shader".into()))
+        Err(gl.get_shader_info_log(shader).unwrap_or_else(|| "Unknown error creating shader".into()))
     }
 }
 
 #[cfg(target_arch = "x86_64")]
-pub fn shader_from_source(
-    gl: &Gl,
-    source: &str,
-    shader_type: types::GLenum
-) -> Result<Shader, String>
+pub fn shader_from_source(gl: &Gl, source: &str, shader: &Shader) -> Result<(), String>
 {
     let header = "#version 330 core\nprecision highp float;\n";
     let s: &str = &[header, source].concat();
@@ -816,28 +807,27 @@ pub fn shader_from_source(
     use std::ffi::{CStr, CString};
     let c_str: &CStr = &CString::new(s).unwrap();
 
-    let id = unsafe { gl.inner.CreateShader(shader_type) };
     unsafe {
-        gl.inner.ShaderSource(id, 1, &c_str.as_ptr(), std::ptr::null());
-        gl.inner.CompileShader(id);
+        gl.inner.ShaderSource(*shader, 1, &c_str.as_ptr(), std::ptr::null());
+        gl.inner.CompileShader(*shader);
     }
 
     let mut success: types::GLint = 1;
     unsafe {
-        gl.inner.GetShaderiv(id, COMPILE_STATUS, &mut success);
+        gl.inner.GetShaderiv(*shader, COMPILE_STATUS, &mut success);
     }
 
     if success == 0 {
         let mut len: types::GLint = 0;
         unsafe {
-            gl.inner.GetShaderiv(id, INFO_LOG_LENGTH, &mut len);
+            gl.inner.GetShaderiv(*shader, INFO_LOG_LENGTH, &mut len);
         }
 
         let error = create_whitespace_cstring_with_len(len as usize);
 
         unsafe {
             gl.inner.GetShaderInfoLog(
-                id,
+                *shader,
                 len,
                 std::ptr::null_mut(),
                 error.as_ptr() as *mut types::GLchar
@@ -846,8 +836,7 @@ pub fn shader_from_source(
 
         return Err(format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned()));
     }
-
-    Ok(id)
+    Ok(())
 }
 
 #[cfg(target_arch = "x86_64")]

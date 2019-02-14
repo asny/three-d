@@ -3,6 +3,7 @@ use gl;
 #[derive(Debug)]
 pub enum Error {
     UnknownShaderType {message: String},
+    FailedToCreateShader {shader_type: String, message: String},
     FailedToCompileShader {shader_type: String, message: String}
 }
 
@@ -15,11 +16,11 @@ impl Shader
 {
     pub fn from_source(gl: &gl::Gl, src: &str, kind: u32) -> Result<Shader, Error>
     {
-        match gl::shader_from_source(gl, src, kind) {
-            Ok(shader) => Ok(Shader {gl: gl.clone(), id: shader}),
-            Err(message) => Err(Error::FailedToCompileShader {
-                shader_type: if kind == gl::consts::VERTEX_SHADER {"Vertex shader".to_string()} else {"Fragment shader".to_string()}, message})
-        }
+        let shader_type = if kind == gl::consts::VERTEX_SHADER {"Vertex shader".to_string()} else {"Fragment shader".to_string()};
+        let shader = gl.create_shader(kind).ok_or(Error::FailedToCreateShader{ shader_type: shader_type.clone(), message:"Unable to create shader object".to_string() })?;
+
+        gl::shader_from_source(gl, src, &shader).map_err(|e| Error::FailedToCompileShader { shader_type, message: e })?;
+        Ok(Shader {gl: gl.clone(), id: shader})
     }
 
     pub fn attach_shader(&self, program: &gl::Program)
