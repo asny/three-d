@@ -10,7 +10,8 @@ use crate::event::*;
 pub enum Error {
     WindowCreationError {message: String},
     ContextError {message: String},
-    PerformanceError {message: String}
+    PerformanceError {message: String},
+    EventListenerError {message: String}
 }
 
 pub struct Window
@@ -49,12 +50,12 @@ impl Window
         let performance = self.window.performance().ok_or(Error::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
         let mut last_time = performance.now();
 
-        self.add_mousedown_event_listener(events.clone());
-        self.add_mouseup_event_listener(events.clone());
-        self.add_mousemove_event_listener(events.clone());
-        self.add_mousewheel_event_listener(events.clone());
-        self.add_key_down_event_listener(events.clone());
-        self.add_key_up_event_listener(events.clone());
+        self.add_mousedown_event_listener(events.clone())?;
+        self.add_mouseup_event_listener(events.clone())?;
+        self.add_mousemove_event_listener(events.clone())?;
+        self.add_mousewheel_event_listener(events.clone())?;
+        self.add_key_down_event_listener(events.clone())?;
+        self.add_key_up_event_listener(events.clone())?;
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             let now = performance.now();
@@ -70,7 +71,7 @@ impl Window
         Ok(())
     }
 
-    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             let button = match event.button() {
@@ -83,11 +84,12 @@ impl Window
                 (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b});
             };
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).unwrap();
+        self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse down event listener. Error code: {:?}", e)})?;
         closure.forget();
+        Ok(())
     }
 
-    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             let button = match event.button() {
@@ -100,29 +102,32 @@ impl Window
                 (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: b});
             };
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref()).unwrap();
+        self.canvas.add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse up event listener. Error code: {:?}", e)})?;
         closure.forget();
+        Ok(())
     }
 
-    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             (*events).borrow_mut().push(Event::MouseMotion {delta: (event.movement_x() as f64, event.movement_y() as f64)});
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref()).unwrap();
+        self.canvas.add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse move event listener. Error code: {:?}", e)})?;
         closure.forget();
+        Ok(())
     }
 
-    fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             (*events).borrow_mut().push(Event::MouseWheel {delta: 0.02499999912 * event.delta_y() as f64});
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref()).unwrap();
+        self.canvas.add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add wheel event listener. Error code: {:?}", e)})?;
         closure.forget();
+        Ok(())
     }
 
-    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
@@ -130,11 +135,12 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).unwrap();
+        window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key down event listener. Error code: {:?}", e)})?;
         closure.forget();
+        Ok(())
     }
 
-    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>)
+    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
@@ -142,8 +148,9 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        window().add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).unwrap();
+        window().add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key up event listener. Error code: {:?}", e)})?;
         closure.forget();
+        Ok(())
     }
 
     pub fn size(&self) -> (usize, usize)
