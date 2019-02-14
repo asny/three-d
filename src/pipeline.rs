@@ -11,10 +11,17 @@ use crate::core::full_screen_quad;
 
 #[derive(Debug)]
 pub enum Error {
+    IO(std::io::Error),
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Texture(texture::Error),
     LightPassRendertargetNotAvailable {message: String}
+}
+
+impl From<std::io::Error> for Error {
+    fn from(other: std::io::Error) -> Self {
+        Error::IO(other)
+    }
 }
 
 impl From<program::Error> for Error {
@@ -75,16 +82,18 @@ impl DeferredPipeline
 {
     pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
     {
-        let light_pass_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/light_pass",
-                                                                 "../Dust/examples/assets/shaders/light_pass")?;
+        let light_pass_program = program::Program::from_source(&gl,
+                                                    include_str!("shaders/light_pass.vert"),
+                                                    include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ScreenRendertarget::create(gl, screen_width, screen_height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 4)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
             light_pass_rendertarget = Some(rendertarget::ColorRendertarget::create(&gl, screen_width, screen_height, 1)?);
-            copy_program = Some(program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
-                                                                "../Dust/examples/assets/shaders/copy")?);
+            copy_program = Some(program::Program::from_source(&gl,
+                                                    include_str!("shaders/copy.vert"),
+                                                    include_str!("shaders/copy.frag"))?);
         }
         Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
@@ -149,8 +158,6 @@ impl DeferredPipeline
 
     pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
     {
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &0)?;
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
@@ -172,10 +179,10 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
 
             light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
+            self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         }
 
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &1)?;
         self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
@@ -188,8 +195,8 @@ impl DeferredPipeline
 
     pub fn shine_point_light(&self, light: &light::PointLight) -> Result<(), Error>
     {
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+        //self.light_pass_program.add_uniform_int("shadowMap", &5)?;
+        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &2)?;
         self.light_pass_program.add_uniform_vec3("pointLight.position", &light.position)?;
@@ -215,10 +222,10 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
 
             light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
+            self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         }
 
-        self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
+        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
 
         self.light_pass_program.add_uniform_int("lightType", &3)?;
         self.light_pass_program.add_uniform_vec3("spotLight.position", &light.position)?;
@@ -234,17 +241,19 @@ impl DeferredPipeline
         Ok(())
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub fn save_screenshot(&self, path: &str) -> Result<(), Error>
     {
-        match self.light_pass_rendertarget {
-            Some(ref rendertarget) => {
-                rendertarget.targets[0].save_as_file(path, rendertarget.width, rendertarget.height)?;
-                Ok(())
-            },
-            None => {
-                return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
-            }
+        let mut pixels = vec![0u8; self.rendertarget.width * self.rendertarget.height * 3];
+        if let Some(ref rendertarget) = self.light_pass_rendertarget
+        {
+            rendertarget.pixels(&mut pixels);
         }
+        else {
+            self.rendertarget.pixels(&mut pixels);
+        }
+        image::save_buffer(&std::path::Path::new(path), &pixels, self.rendertarget.width as u32, self.rendertarget.height as u32, image::RGB(8))?;
+        Ok(())
     }
 
     pub fn copy_to_screen(&self) -> Result<(), Error>

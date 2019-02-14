@@ -30,8 +30,9 @@ impl Skybox
 {
     pub fn create(gl: &gl::Gl, texture: texture::Texture3D) -> Skybox
     {
-        let program = program::Program::from_resource(gl, "../Dust/src/objects/shaders/skybox",
-                                                      "../Dust/src/objects/shaders/skybox").unwrap();
+        let program = program::Program::from_source(gl,
+                                                    include_str!("shaders/skybox.vert"),
+                                                    include_str!("shaders/skybox.frag")).unwrap();
 
         let positions = get_positions();
         let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
@@ -46,7 +47,6 @@ impl Skybox
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
         self.program.depth_test(state::DepthTestType::LEQUAL);
-        self.program.polygon_mode(state::PolygonType::Fill);
 
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;

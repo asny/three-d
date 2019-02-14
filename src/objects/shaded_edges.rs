@@ -16,8 +16,9 @@ impl ShadedEdges
 {
     pub fn create(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/line_shaded",
-                                                      "../Dust/src/objects/shaders/shaded").unwrap();
+        let program = program::Program::from_source(&gl,
+                                                    include_str!("shaders/line_shaded.vert"),
+                                                    include_str!("shaders/shaded.frag")).unwrap();
 
         let x_subdivisions = 1;
         let angle_subdivisions = 10;
@@ -106,7 +107,6 @@ impl ShadedEdges
         self.program.cull(state::CullType::BACK);
         self.program.depth_test(state::DepthTestType::LEQUAL);
         self.program.depth_write(true);
-        self.program.polygon_mode(state::PolygonType::Fill);
 
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();

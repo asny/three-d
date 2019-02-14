@@ -1,26 +1,20 @@
 
-mod window_handler;
-
-use crate::window_handler::WindowHandler;
+use window::{event::*, Window};
 use dust::*;
-use glutin::*;
 
 fn main() {
-    let mut window_handler = WindowHandler::new_default("Hello, world!");
-    let (width, height) = window_handler.size();
-    let gl = window_handler.gl();
+    let mut window = Window::new_default("Hello, world!").unwrap();
+    let (width, height) = window.size();
+    let gl = window.gl();
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, false).unwrap();
+    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, true).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
-    let mesh = meshes.first().unwrap();
-    let mut monkey = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (mesh.mesh.positions.clone(), 3),
-                                                                    "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
+    let monkey = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
@@ -38,7 +32,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let plane = crate::objects::ShadedMesh::create(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
+    let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
 
     let mut ambient_light = crate::light::AmbientLight::new();
     ambient_light.base.intensity = 0.2;
@@ -57,14 +51,14 @@ fn main() {
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    loop {
-        window_handler.handle_events( |event| {
-            WindowHandler::handle_window_close_events(event);
-            WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
-            handle_ambient_light_parameters(event, &mut ambient_light);
-            handle_directional_light_parameters(event, &mut directional_light);
-            handle_surface_parameters(event, &mut monkey);
-        });
+    window.render_loop(move |events, _elapsed_time|
+    {
+        for event in events {
+            handle_camera_events(event, &mut camera_handler, &mut camera);
+            //handle_ambient_light_parameters(event, &mut ambient_light);
+            //handle_directional_light_parameters(event, &mut directional_light);
+            //handle_surface_parameters(event, &mut monkey);
+        }
 
         // Draw
         let render_scene = |camera: &Camera| {
@@ -90,11 +84,36 @@ fn main() {
         renderer.shine_point_light(&point_light).unwrap();
         renderer.shine_spot_light(&spot_light).unwrap();
 
-        window_handler.swap_buffers();
-    };
+        renderer.copy_to_screen().unwrap();
+    }).unwrap();
 }
 
-fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLight)
+pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
+{
+    match event {
+        Event::Key {state, kind} => {
+            if kind == "Tab" && *state == State::Pressed
+            {
+                camera_handler.next_state();
+            }
+        },
+        Event::MouseClick {state, button} => {
+            if *button == MouseButton::Left
+            {
+                if *state == State::Pressed { camera_handler.start_rotation(); }
+                else { camera_handler.end_rotation() }
+            }
+        },
+        Event::MouseMotion {delta} => {
+            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
+        },
+        Event::MouseWheel {delta} => {
+            camera_handler.zoom(camera, *delta as f32);
+        }
+    }
+}
+
+/*fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLight)
 {
     match event {
         Event::WindowEvent{ event, .. } => match event {
@@ -186,4 +205,4 @@ fn handle_surface_parameters(event: &Event, surface: &mut crate::objects::Shaded
         },
         _ => {}
     }
-}
+}*/

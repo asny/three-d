@@ -1,13 +1,11 @@
 
-mod window_handler;
-
-use crate::window_handler::WindowHandler;
+use window::{event::*, Window};
 use dust::*;
 
 fn main() {
-    let mut window_handler = WindowHandler::new_default("Texture");
-    let (width, height) = window_handler.size();
-    let gl = window_handler.gl();
+    let mut window = Window::new_default("Texture").unwrap();
+    let (width, height) = window.size();
+    let gl = window.gl();
 
     // Renderer
     let renderer = pipeline::DeferredPipeline::new(&gl, width, height, false).unwrap();
@@ -18,24 +16,31 @@ fn main() {
 
     let positions = positions();
     let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
-    let mut textured_box = objects::ShadedMesh::create(&gl, &indices,&att!["position"=> (positions, 3),
+    let mut textured_box = objects::ShadedMesh::new(&gl, &indices, &att!["position"=> (positions, 3),
                                                                     "normal"=> (normals(), 3)]).unwrap();
-    textured_box.texture = Some(texture::Texture2D::new_from_file(&gl, "examples/assets/textures/test_texture.jpg").unwrap());
 
-    let texture3d = texture::Texture3D::new_from_files(&gl, "examples/assets/textures/skybox_evening/",
-                                                       "back.jpg", "front.jpg", "top.jpg", "left.jpg", "right.jpg").unwrap();
+    textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("assets/textures/test_texture.jpg")).unwrap());
+
+    let texture3d = texture::Texture3D::new_from_bytes(&gl,
+                                                       include_bytes!("assets/textures/skybox_evening/back.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/front.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/top.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/left.jpg"),
+                                                       include_bytes!("assets/textures/skybox_evening/right.jpg")).unwrap();
     let skybox = objects::Skybox::create(&gl, texture3d);
 
-    let light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    let ambient_light = crate::light::AmbientLight::new();
+    let mut light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
+    light.base.intensity = 1.0;
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    loop {
-        window_handler.handle_events( |event| {
-            WindowHandler::handle_window_close_events(event);
-            WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
-        });
+    window.render_loop(move |events, _elapsed_time|
+    {
+        for event in events {
+            handle_camera_events(event, &mut camera_handler, &mut camera);
+        }
 
         // draw
         // Geometry pass
@@ -46,10 +51,9 @@ fn main() {
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
+        renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&light).unwrap();
-
-        window_handler.swap_buffers();
-    };
+    }).unwrap();
 }
 
 fn positions() -> Vec<f32>
@@ -144,4 +148,29 @@ fn normals() -> Vec<f32>
         -1.0, 0.0, 0.0,
         -1.0, 0.0, 0.0
     ]
+}
+
+pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
+{
+    match event {
+        Event::Key {state, kind} => {
+            if kind == "Tab" && *state == State::Pressed
+            {
+                camera_handler.next_state();
+            }
+        },
+        Event::MouseClick {state, button} => {
+            if *button == MouseButton::Left
+            {
+                if *state == State::Pressed { camera_handler.start_rotation(); }
+                else { camera_handler.end_rotation() }
+            }
+        },
+        Event::MouseMotion {delta} => {
+            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
+        },
+        Event::MouseWheel {delta} => {
+            camera_handler.zoom(camera, *delta as f32);
+        }
+    }
 }

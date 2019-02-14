@@ -1,35 +1,14 @@
-mod bindings {
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
 
-pub use bindings::*;
+// GL
+#[cfg(target_arch = "x86_64")]
+pub mod ogl;
 
-use std::rc::Rc;
-use std::ops::Deref;
-#[cfg(target_os = "emscripten")]
-use bindings::Gles2 as InnerGl;
-#[cfg(not(target_os = "emscripten"))]
-use bindings::Gl as InnerGl;
+#[cfg(target_arch = "x86_64")]
+pub use crate::ogl::*;
 
-#[derive(Clone)]
-pub struct Gl {
-    inner: Rc<InnerGl>,
-}
+// WEBGL
+#[cfg(target_arch = "wasm32")]
+pub mod wgl2;
 
-impl Gl {
-    pub fn load_with<F>(loadfn: F) -> Gl
-        where for<'r> F: FnMut(&'r str) -> *const types::GLvoid
-    {
-        Gl {
-            inner: Rc::new(InnerGl::load_with(loadfn))
-        }
-    }
-}
-
-impl Deref for Gl {
-    type Target = InnerGl;
-
-    fn deref(&self) -> &InnerGl {
-        &self.inner
-    }
-}
+#[cfg(target_arch = "wasm32")]
+pub use crate::wgl2::*;

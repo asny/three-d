@@ -1,11 +1,12 @@
 use gl;
 use image;
-use image::GenericImage;
+use image::GenericImageView;
 
 #[derive(Debug)]
 pub enum Error {
     Image(image::ImageError),
-    IO(std::io::Error)
+    IO(std::io::Error),
+    FailedToCreateTexture {message: String}
 }
 
 impl From<image::ImageError> for Error {
@@ -26,7 +27,7 @@ pub trait Texture {
 
 pub struct Texture2D {
     gl: gl::Gl,
-    id: u32,
+    id: gl::Texture,
     target: u32
 }
 
@@ -36,50 +37,51 @@ impl Texture2D
     pub fn new(gl: &gl::Gl) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
 
-        bind(&texture.gl, texture.id, texture.target);
-        unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-        }
+        bind(&texture.gl, &texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::REPEAT as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::REPEAT as i32);
 
         Ok(texture)
     }
 
+    pub fn new_from_bytes(gl: &gl::Gl, bytes: &[u8]) -> Result<Texture2D, Error>
+    {
+        let img = image::load_from_memory(bytes)?;
+        let mut texture = Texture2D::new(gl)?;
+        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &mut img.raw_pixels());
+        Ok(texture)
+    }
+
+    #[cfg(target_arch = "x86_64")]
     pub fn new_from_file(gl: &gl::Gl, path: &str) -> Result<Texture2D, Error>
     {
         let img = image::open(path)?;
         let mut texture = Texture2D::new(gl)?;
-        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &img.raw_pixels());
+        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &mut img.raw_pixels());
         Ok(texture)
     }
 
     pub fn new_as_color_target(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
 
-        bind(&texture.gl, texture.id, texture.target);
-        unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+        bind(&texture.gl, &texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
 
-            gl.TexImage2D(texture.target,
-                             0,
-                             gl::RGBA32F as i32,
-                             width as i32,
-                             height as i32,
-                             0,
-                             gl::RGBA,
-                             gl::FLOAT,
-                             std::ptr::null());
-            gl.FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0 + channel, gl::TEXTURE_2D, id, 0);
-        }
+        gl.tex_storage_2d(texture.target,
+                        1,
+                        gl::consts::RGBA16F,
+                        width as u32,
+                        height as u32);
+        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel, gl::consts::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
     }
@@ -87,93 +89,64 @@ impl Texture2D
     pub fn new_as_depth_target(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
 
-        bind(&texture.gl, texture.id, texture.target);
-        unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+        bind(&texture.gl, &texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
 
-            gl.TexImage2D(texture.target,
-                             0,
-                             gl::DEPTH_COMPONENT32F as i32,
-                             width as i32,
-                             height as i32,
-                             0,
-                             gl::DEPTH_COMPONENT,
-                             gl::FLOAT,
-                             std::ptr::null());
-            gl.FramebufferTexture2D(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT, gl::TEXTURE_2D, id, 0);
-        }
+        gl.tex_storage_2d(texture.target,
+                        1,
+                        gl::consts::DEPTH_COMPONENT32F,
+                        width as u32,
+                        height as u32);
+
+        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, gl::consts::TEXTURE_2D, &texture.id, 0);
 
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: &Vec<u8>)
+    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: &[u8])
     {
-        let d = extend_data(data, width * height, 0);
-        bind(&self.gl, self.id, self.target);
-        unsafe {
-            let format = gl::RGB;
-            let internal_format = gl::RGB8;
-            self.gl.TexImage2D(self.target,
-                             0,
-                             internal_format as i32,
-                             width as i32,
-                             height as i32,
-                             0,
-                             format,
-                             gl::UNSIGNED_BYTE,
-                             d.as_ptr() as *const gl::types::GLvoid);
-        }
+        let mut d = extend_data(data, width * height, 0);
+        bind(&self.gl, &self.id, self.target);
+        self.gl.tex_image_2d_with_u8_data(self.target,
+                                          0,
+                                          gl::consts::RGB8,
+                                          width as u32,
+                                          height as u32,
+                                          0,
+                                          gl::consts::RGB,
+                                          gl::consts::UNSIGNED_BYTE,
+                                          &mut d);
     }
 
-    pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &Vec<f32>)
+    pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &[f32])
     {
         let no_elements = 1;
-        let d = extend_data(data, width * height, 0.0);
-        bind(&self.gl, self.id, self.target);
-        unsafe {
-            let format = if no_elements == 1 {gl::RED} else {gl::RGB};
-            let internal_format = if no_elements == 1 {gl::R32F} else {gl::RGB32F};
-            self.gl.TexImage2D(self.target,
-                             0,
-                             internal_format as i32,
-                             width as i32,
-                             height as i32,
-                             0,
-                             format,
-                             gl::FLOAT,
-                             d.as_ptr() as *const gl::types::GLvoid);
-        }
+        let mut d = extend_data(data, width * height, 0.0);
+        bind(&self.gl, &self.id, self.target);
+        let format = if no_elements == 1 {gl::consts::RED} else {gl::consts::RGB};
+        let internal_format = if no_elements == 1 {gl::consts::R32F} else {gl::consts::RGB32F};
+        self.gl.tex_image_2d_with_f32_data(self.target,
+                                           0,
+                                           internal_format,
+                                           width as u32,
+                                           height as u32,
+                                           0,
+                                           format,
+                                           gl::consts::FLOAT,
+                                           &mut d);
     }
-
-    pub fn get_pixels(&self, width: usize, height: usize) -> Vec<u8>
-    {
-        let pixels = vec![0.0 as f32; width * height * 3];
-        bind(&self.gl, self.id, self.target);
-        unsafe {
-            self.gl.GetTexImage(self.target, 0, gl::RGB, gl::FLOAT, pixels.as_ptr() as *mut gl::types::GLvoid);
-        }
-        pixels.iter().map(|x| (*x * 255.0) as u8).collect()
-    }
-
-    pub fn save_as_file(&self, path: &str, width: usize, height: usize) -> Result<(), Error>
-    {
-        let pixels = self.get_pixels(width, height);
-        image::save_buffer(&std::path::Path::new(path), &pixels, width as u32, height as u32, image::RGB(8))?;
-        Ok(())
-    }
-
 }
 
 impl Texture for Texture2D
 {
     fn bind(&self, location: u32)
     {
-        bind_at(&self.gl, self.id, self.target, location);
+        bind_at(&self.gl, &self.id, self.target, location);
     }
 }
 
@@ -187,7 +160,7 @@ impl Drop for Texture2D
 
 pub struct Texture3D {
     gl: gl::Gl,
-    id: u32,
+    id: gl::Texture,
     target: u32
 }
 
@@ -197,20 +170,34 @@ impl Texture3D
     pub fn new(gl: &gl::Gl) -> Result<Texture3D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture3D { gl: gl.clone(), id, target: gl::TEXTURE_CUBE_MAP };
+        let texture = Texture3D { gl: gl.clone(), id, target: gl::consts::TEXTURE_CUBE_MAP };
 
-        bind(&texture.gl, texture.id, texture.target);
-        unsafe {
-            gl.TexParameteri(texture.target, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-            gl.TexParameteri(texture.target, gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE as i32);
-        }
+        bind(&texture.gl, &texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_R, gl::consts::CLAMP_TO_EDGE as i32);
 
         Ok(texture)
     }
 
+    pub fn new_from_bytes(gl: &gl::Gl, back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
+    {
+        let back = image::load_from_memory(back_bytes)?;
+        let front = image::load_from_memory(front_bytes)?;
+        let top = image::load_from_memory(top_bytes)?;
+        let left = image::load_from_memory(left_bytes)?;
+        let right = image::load_from_memory(right_bytes)?;
+
+        let mut texture = Texture3D::new(gl)?;
+        texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
+                             [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
+                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
+        Ok(texture)
+    }
+
+    #[cfg(target_arch = "x86_64")]
     pub fn new_from_files(gl: &gl::Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
         let back = image::open(format!("{}{}", path, back_name))?;
@@ -221,29 +208,26 @@ impl Texture3D
 
         let mut texture = Texture3D::new(gl)?;
         texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                             [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()]);
+                             [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
+                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&Vec<u8>; 6])
+    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&mut [u8]; 6])
     {
-        bind(&self.gl, self.id, self.target);
+        bind(&self.gl, &self.id, self.target);
         for i in 0..6 {
-            unsafe {
-                let format = gl::RGB;
-                let internal_format = gl::RGB8;
-                let d = data[i];
-                self.gl.TexImage2D(gl::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
-                                 0,
-                                 internal_format as i32,
-                                 width as i32,
-                                 height as i32,
-                                 0,
-                                 format,
-                                 gl::UNSIGNED_BYTE,
-                                 d.as_ptr() as *const gl::types::GLvoid);
-            }
+            let format = gl::consts::RGB;
+            let internal_format = gl::consts::RGB8;
+            self.gl.tex_image_2d_with_u8_data(gl::consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+                                              0,
+                                              internal_format,
+                                              width as u32,
+                                              height as u32,
+                                              0,
+                                              format,
+                                              gl::consts::UNSIGNED_BYTE,
+                                              data[i]);
         }
     }
 }
@@ -252,7 +236,7 @@ impl Texture for Texture3D
 {
     fn bind(&self, location: u32)
     {
-        bind_at(&self.gl, self.id, self.target, location);
+        bind_at(&self.gl, &self.id, self.target, location);
     }
 }
 
@@ -265,46 +249,34 @@ impl Drop for Texture3D
 }
 
 // COMMON FUNCTIONS
-fn generate(gl: &gl::Gl) -> Result<u32, Error>
+fn generate(gl: &gl::Gl) -> Result<gl::Texture, Error>
 {
-    let mut id: u32 = 0;
-    unsafe {
-        gl.GenTextures(1, &mut id);
-    }
-    Ok(id)
+    gl.create_texture().ok_or_else(|| Error::FailedToCreateTexture {message: "Failed to create texture".to_string()} )
 }
 
-fn bind_at(gl: &gl::Gl, id: u32, target: u32, location: u32)
+fn bind_at(gl: &gl::Gl, id: &gl::Texture, target: u32, location: u32)
 {
-    unsafe {
-        gl.ActiveTexture(gl::TEXTURE0 + location);
-    }
+    gl.active_texture(gl::consts::TEXTURE0 + location);
     bind(gl, id, target);
 }
 
-fn bind(gl: &gl::Gl, id: u32, target: u32)
+fn bind(gl: &gl::Gl, id: &gl::Texture, target: u32)
 {
-    unsafe {
-        gl.BindTexture(target, id);
-    }
+    gl.bind_texture(target, id)
 }
 
-fn drop(gl: &gl::Gl, id: &u32)
+fn drop(gl: &gl::Gl, id: &gl::Texture)
 {
-    unsafe {
-        gl.DeleteTextures(1, id);
-    }
+    gl.delete_texture(id);
 }
 
-fn extend_data<T>(data: &Vec<T>, desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
+fn extend_data<T>(data: &[T], desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
 {
-    let mut d = data.clone();
-    if d.len() < desired_length
+    let mut result = Vec::new();
+    result.extend_from_slice(data);
+    if data.len() < desired_length
     {
-        use std::iter;
-        let mut fill = Vec::new();
-        fill.extend(iter::repeat(value).take(desired_length - data.len()));
-        d.append(&mut fill);
+        result.extend(std::iter::repeat(value).take(desired_length - data.len()));
     }
-    d
+    result
 }

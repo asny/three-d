@@ -1,36 +1,29 @@
-
-mod window_handler;
-
 use dust::*;
-use crate::window_handler::WindowHandler;
+use dust::window::event::*;
 
 fn main() {
 
-    let mut window_handler = WindowHandler::new_default("Hello, world!");
-    let (width, height) = window_handler.size();
+    let mut window = window::Window::new_default("Hello, world!").unwrap();
+    let (width, height) = window.size();
 
-    // Renderer
-    let renderer = pipeline::ForwardPipeline::create(&window_handler.gl(), width, height).unwrap();
+    let renderer = pipeline::ForwardPipeline::create(&window.gl(), width, height).unwrap();
 
     // Camera
-    let camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
-    let model = crate::Triangle::create(&window_handler.gl());
+    let model = crate::Triangle::create(&window.gl());
+
+    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    loop {
-        window_handler.handle_events(|event| {
-            WindowHandler::handle_window_close_events(event);
-        });
-
-        // draw
+    window.render_loop(move |events, _elapsed_time| {
+        for event in events {
+            handle_camera_events(&event, &mut camera_handler, &mut camera);
+        }
         renderer.render_pass_begin();
-
         model.render(&camera);
-
-        window_handler.swap_buffers();
-    };
+    }).unwrap();
 }
 
 pub struct Triangle {
@@ -53,7 +46,9 @@ impl Triangle
             0.0, 1.0, 0.0,   // bottom left
             0.0, 0.0, 1.0    // top
         ];
-        let program = program::Program::from_resource(&gl, "examples/assets/shaders/color", "examples/assets/shaders/color").unwrap();
+        let program = program::Program::from_source(&gl,
+                                                    include_str!("assets/shaders/color.vert"),
+                                                    include_str!("assets/shaders/color.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices).unwrap();
         model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
 
@@ -65,5 +60,30 @@ impl Triangle
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
         self.model.render().unwrap();
+    }
+}
+
+pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
+{
+    match event {
+        Event::Key {state, kind} => {
+            if kind == "Tab" && *state == State::Pressed
+            {
+                camera_handler.next_state();
+            }
+        },
+        Event::MouseClick {state, button} => {
+            if *button == MouseButton::Left
+            {
+                if *state == State::Pressed { camera_handler.start_rotation(); }
+                else { camera_handler.end_rotation() }
+            }
+        },
+        Event::MouseMotion {delta} => {
+            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
+        },
+        Event::MouseWheel {delta} => {
+            camera_handler.zoom(camera, *delta as f32);
+        }
     }
 }

@@ -4,7 +4,8 @@ use crate::core::texture;
 
 #[derive(Debug)]
 pub enum Error {
-    Texture(texture::Error)
+    Texture(texture::Error),
+    FailedToCreateFramebuffer {message: String}
 }
 
 impl From<texture::Error> for Error {
@@ -21,8 +22,8 @@ pub trait Rendertarget {
 // SCREEN RENDER TARGET
 pub struct ScreenRendertarget {
     gl: gl::Gl,
-    width: usize,
-    height: usize
+    pub width: usize,
+    pub height: usize
 }
 
 impl ScreenRendertarget
@@ -31,13 +32,28 @@ impl ScreenRendertarget
     {
         Ok(ScreenRendertarget { gl: gl.clone(), width, height })
     }
+
+    #[cfg(target_arch = "x86_64")]
+    pub fn pixels(&self, dst_data: &mut [u8])
+    {
+        self.bind();
+        self.gl.read_pixels(0, 0, self.width as u32, self.height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, dst_data);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    pub fn depths(&self, dst_data: &mut [f32])
+    {
+        self.bind();
+        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
+    }
 }
 
 impl Rendertarget for ScreenRendertarget
 {
     fn bind(&self)
     {
-        bind(&self.gl, 0, self.width, self.height);
+        self.gl.bind_framebuffer(gl::consts::FRAMEBUFFER, None);
+        self.gl.viewport(0, 0, self.width as i32, self.height as i32);
     }
 
     fn clear(&self)
@@ -49,7 +65,7 @@ impl Rendertarget for ScreenRendertarget
 // COLOR RENDER TARGET
 pub struct ColorRendertarget {
     gl: gl::Gl,
-    id: u32,
+    id: gl::Framebuffer,
     pub width: usize,
     pub height: usize,
     pub targets: Vec<texture::Texture2D>,
@@ -61,21 +77,34 @@ impl ColorRendertarget
     pub fn create(gl: &gl::Gl, width: usize, height: usize, no_targets: usize) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
-        bind(gl, id, width, height);
+        bind(gl, &id, width, height);
 
         let mut draw_buffers = Vec::new();
         let mut targets = Vec::new();
         for i in 0..no_targets {
-            draw_buffers.push(gl::COLOR_ATTACHMENT0 + i as u32);
+            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
             targets.push(texture::Texture2D::new_as_color_target(gl, width, height, i as u32)?)
         }
 
-        unsafe {
-            gl.DrawBuffers(no_targets as i32, draw_buffers.as_ptr());
-        }
+        gl.draw_buffers(&draw_buffers);
 
         let depth_target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
+        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target })
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    pub fn pixels(&self, dst_data: &mut [u8])
+    {
+        self.bind();
+        self.gl.read_pixels(0, 0, self.width as u32, self.height as u32, gl::consts::RGB, gl::consts::UNSIGNED_BYTE, dst_data);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    pub fn depths(&self, dst_data: &mut [f32])
+    {
+        self.bind();
+        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
     }
 }
 
@@ -83,7 +112,7 @@ impl Rendertarget for ColorRendertarget
 {
     fn bind(&self)
     {
-        bind(&self.gl, self.id, self.width, self.height);
+        bind(&self.gl, &self.id, self.width, self.height);
     }
 
     fn clear(&self)
@@ -94,14 +123,14 @@ impl Rendertarget for ColorRendertarget
 
 impl Drop for ColorRendertarget {
     fn drop(&mut self) {
-        drop(&self.gl, &self.id);
+        self.gl.delete_framebuffer(Some(&self.id));
     }
 }
 
 // DEPTH RENDER TARGET
 pub struct DepthRenderTarget {
     gl: gl::Gl,
-    id: u32,
+    id: gl::Framebuffer,
     width: usize,
     height: usize,
     pub target: texture::Texture2D
@@ -112,10 +141,18 @@ impl DepthRenderTarget
     pub fn create(gl: &gl::Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
     {
         let id = generate(gl)?;
-        bind(gl, id, width, height);
+        bind(gl, &id, width, height);
 
         let target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
+        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    pub fn depths(&self, dst_data: &mut [f32])
+    {
+        self.bind();
+        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
     }
 }
 
@@ -123,7 +160,7 @@ impl Rendertarget for DepthRenderTarget
 {
     fn bind(&self)
     {
-        bind(&self.gl, self.id, self.width, self.height);
+        bind(&self.gl, &self.id, self.width, self.height);
     }
 
     fn clear(&self)
@@ -134,46 +171,26 @@ impl Rendertarget for DepthRenderTarget
 
 impl Drop for DepthRenderTarget {
     fn drop(&mut self) {
-        drop(&self.gl, &self.id);
+        self.gl.delete_framebuffer(Some(&self.id));
     }
 }
 
 
 // COMMON FUNCTIONS
-fn generate(gl: &gl::Gl) -> Result<u32, Error>
+fn generate(gl: &gl::Gl) -> Result<gl::Framebuffer, Error>
 {
-    let mut id: u32 = 0;
-    unsafe {
-        gl.GenFramebuffers(1, &mut id);
-    }
-    Ok(id)
+    gl.create_framebuffer().ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )
 }
 
-fn bind(gl: &gl::Gl, id: u32, width: usize, height: usize)
+fn bind(gl: &gl::Gl, id: &gl::Framebuffer, width: usize, height: usize)
 {
-    unsafe {
-        static mut CURRENTLY_USED: u32 = std::u32::MAX;
-        if id != CURRENTLY_USED
-        {
-            gl.BindFramebuffer(gl::FRAMEBUFFER, id);
-            gl.Viewport(0, 0, width as i32, height as i32);
-            CURRENTLY_USED = id;
-        }
-    }
+    gl.bind_framebuffer(gl::consts::FRAMEBUFFER, Some(&id));
+    gl.viewport(0, 0, width as i32, height as i32);
 }
 
 fn clear(gl: &gl::Gl)
 {
     state::depth_write(gl,true);
-    unsafe {
-        gl.ClearColor(0.0, 0.0, 0.0, 0.0);
-        gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-    }
-}
-
-fn drop(gl: &gl::Gl, id: &u32)
-{
-    unsafe {
-        gl.DeleteFramebuffers(1, id);
-    }
+    gl.clear_color(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
 }

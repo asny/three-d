@@ -11,7 +11,6 @@ macro_rules! att {
 pub mod types;
 pub mod core;
 pub mod objects;
-mod loader;
 
 pub mod light;
 
@@ -19,10 +18,8 @@ pub mod camerahandler;
 pub mod camera;
 pub mod pipeline;
 
-#[cfg(target_os = "emscripten")]
-mod emscripten;
-
 pub use gl;
+pub use window;
 pub use crate::camera::Camera;
 pub use crate::texture::Texture;
 pub use crate::core::*;

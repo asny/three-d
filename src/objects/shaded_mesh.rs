@@ -41,14 +41,52 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn create(gl: &gl::Gl, indices: &[u32], attributes: &[Attribute]) -> Result<ShadedMesh, Error>
+    pub fn new(gl: &gl::Gl, indices: &[u32], attributes: &[Attribute]) -> Result<ShadedMesh, Error>
     {
-        let program = program::Program::from_resource(&gl, "../Dust/src/objects/shaders/mesh_shaded",
-                                                      "../Dust/src/objects/shaders/shaded")?;
+        let program = program::Program::from_source(&gl,
+                                                    include_str!("shaders/mesh_shaded.vert"),
+                                                    include_str!("shaders/shaded.frag"))?;
         let mut model = surface::TriangleSurface::create(gl, indices)?;
         let buffer = model.add_attributes(&program, attributes)?;
 
         Ok(ShadedMesh { program, model, buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+    }
+
+    pub fn new_from_obj_source(gl: &gl::Gl, source: String) -> Result<ShadedMesh, Error>
+    {
+        let objs = wavefront_obj::obj::parse(source).unwrap();
+        let obj = objs.objects.first().unwrap();
+
+        let mut positions = Vec::new();
+        obj.vertices.iter().for_each(|v| {positions.push(v.x as f32); positions.push(v.y as f32); positions.push(v.z as f32);});
+        let mut normals = vec![0.0f32; obj.vertices.len()*3];
+        let mut indices = Vec::new();
+        for shape in obj.geometry.first().unwrap().shapes.iter() {
+            match shape.primitive {
+                wavefront_obj::obj::Primitive::Triangle(i0, i1, i2) => {
+                    indices.push(i0.0 as u32);
+                    indices.push(i1.0 as u32);
+                    indices.push(i2.0 as u32);
+
+                    let mut normal = obj.normals[i0.2.unwrap()];
+                    normals[i0.0*3] = normal.x as f32;
+                    normals[i0.0*3+1] = normal.y as f32;
+                    normals[i0.0*3+2] = normal.z as f32;
+
+                    normal = obj.normals[i1.2.unwrap()];
+                    normals[i1.0*3] = normal.x as f32;
+                    normals[i1.0*3+1] = normal.y as f32;
+                    normals[i1.0*3+2] = normal.z as f32;
+
+                    normal = obj.normals[i2.2.unwrap()];
+                    normals[i2.0*3] = normal.x as f32;
+                    normals[i2.0*3+1] = normal.y as f32;
+                    normals[i2.0*3+2] = normal.z as f32;
+                },
+                _ => {}
+            }
+        }
+        Self::new(&gl, &indices, &att!["position" => (positions, 3), "normal" => (normals, 3)])
     }
 
     pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
@@ -62,7 +100,6 @@ impl ShadedMesh
         self.program.cull(state::CullType::NONE);
         self.program.depth_test(state::DepthTestType::LEQUAL);
         self.program.depth_write(true);
-        self.program.polygon_mode(state::PolygonType::Fill);
 
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();

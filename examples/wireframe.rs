@@ -1,13 +1,11 @@
 
-mod window_handler;
-
-use crate::window_handler::WindowHandler;
+use window::{event::*, Window};
 use dust::*;
 
 fn main() {
-    let mut window_handler = WindowHandler::new_default("Wireframe");
-    let (width, height) = window_handler.size();
-    let gl = window_handler.gl();
+    let mut window = Window::new_default("Wireframe").unwrap();
+    let (width, height) = window.size();
+    let gl = window.gl();
 
     // Renderer
     let renderer = pipeline::DeferredPipeline::new(&gl, width, height, false).unwrap();
@@ -18,20 +16,11 @@ fn main() {
                                                     vec3(0.0, 1.0, 0.0),degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
-    let (meshes, _materials) = tobj::load_obj(&std::path::PathBuf::from("../Dust/examples/assets/models/suzanne.obj")).unwrap();
-    let mesh = meshes.first().unwrap();
-    let mut positions = mesh.mesh.positions.clone();
-    for i in 0..positions.len() {
-        if i%3 == 1 {
-            positions[i] += 2.0;
-        }
-    }
-
-    let mut wireframe = crate::objects::Wireframe::create(&gl, &mesh.mesh.indices, &positions, 0.015);
+    let obj_file = include_str!("assets/models/suzanne.obj").to_string();
+    let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.015, &vec3(0.0, 2.0, 0.0));
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let model = objects::ShadedMesh::create(&gl, &mesh.mesh.indices, &att!["position" => (positions, 3),
-                                                                    "normal" => (mesh.mesh.normals.clone(), 3)]).unwrap();
+    let model = objects::ShadedMesh::new_from_obj_source(&gl, obj_file).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
@@ -49,7 +38,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let mut plane = crate::objects::ShadedMesh::create(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
+    let mut plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;
@@ -74,21 +63,22 @@ fn main() {
     light4.base.intensity = 0.5;
 
     // Mirror
-    let mirror_program = program::Program::from_resource(&gl, "../Dust/examples/assets/shaders/copy",
-                                                                 "../Dust/examples/assets/shaders/mirror").unwrap();
+    let mirror_program = program::Program::from_source(&gl,
+                                                    include_str!("assets/shaders/copy.vert"),
+                                                    include_str!("assets/shaders/mirror.frag")).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    loop {
-        window_handler.handle_events( |event| {
-            WindowHandler::handle_window_close_events(event);
-            WindowHandler::handle_camera_events(event, &mut camera_handler, &mut camera);
-        });
+    window.render_loop(move |events, _elapsed_time|
+    {
+        for event in events {
+            handle_camera_events(event, &mut camera_handler, &mut camera);
+        }
 
         // Draw
         let render_scene = |camera: &Camera| {
-            model.render(&Mat4::identity(), camera);
+            model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
             wireframe.render(camera);
         };
 
@@ -144,7 +134,30 @@ fn main() {
         mirror_renderer.light_pass_color_texture().unwrap().bind(0);
         mirror_program.add_uniform_int("colorMap", &0).unwrap();
         full_screen_quad::render(&gl, &mirror_program);
+    }).unwrap();
+}
 
-        window_handler.swap_buffers();
-    };
+pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
+{
+    match event {
+        Event::Key {state, kind} => {
+            if kind == "Tab" && *state == State::Pressed
+            {
+                camera_handler.next_state();
+            }
+        },
+        Event::MouseClick {state, button} => {
+            if *button == MouseButton::Left
+            {
+                if *state == State::Pressed { camera_handler.start_rotation(); }
+                else { camera_handler.end_rotation() }
+            }
+        },
+        Event::MouseMotion {delta} => {
+            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
+        },
+        Event::MouseWheel {delta} => {
+            camera_handler.zoom(camera, *delta as f32);
+        }
+    }
 }

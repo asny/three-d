@@ -19,13 +19,13 @@ impl Water
 {
     pub fn create(gl: &gl::Gl) -> Water
     {
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/water",
-                                                      "examples/assets/shaders/water").unwrap();
+        let program = program::Program::from_source(gl, include_str!("../assets/shaders/water.vert"),
+                                                      include_str!("../assets/shaders/water.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
         let buffer = model.add_attributes(&program, &att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
                                                       "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
 
-        let foam_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let foam_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();
 
         let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
         water.set_center(&vec3(0.0, 0.0, 0.0));
@@ -46,7 +46,7 @@ impl Water
         self.program.add_uniform_vec3("eyePosition", camera.position()).unwrap();
         self.program.add_uniform_vec2("screenSize", &vec2(screen_width as f32, screen_height as f32)).unwrap();
 
-        self.program.add_uniform_float("time", &time).unwrap();
+        self.program.add_uniform_float("time", &(time * 0.001)).unwrap();
 
         color_texture.bind(0);
         self.program.add_uniform_int("colorMap", &0).unwrap();

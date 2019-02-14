@@ -1,5 +1,3 @@
-extern crate gl_generator;
-
 use gl_generator::{Registry, Fallbacks, Api, Profile};
 use std::env;
 use std::fs::File;
@@ -13,27 +11,20 @@ fn main() {
     match env::var(key) {
         Ok(val) => {
             println!("{}: {:?}", key, val);
-            if val.find("emscripten").is_some()
-            {
-                setup_webgl(file_gl);
-            }
-            else {
-                setup_opengl(file_gl);
-            }
+            setup_opengl(file_gl);
         },
         Err(e) => println!("couldn't interpret {}: {}", key, e),
     }
 }
 
-fn setup_webgl(mut file_gl: File)
+/*fn setup_webgl(mut file_gl: File)
 {
     use gl_generator::{StaticStructGenerator};
     Registry::new(Api::Gles2, (3, 0), Profile::Core, Fallbacks::All, []).write_bindings(
         StaticStructGenerator,
         &mut file_gl
     ).unwrap();
-
-}
+}*/
 
 fn setup_opengl(mut file_gl: File)
 {

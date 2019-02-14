@@ -1,6 +1,6 @@
 
-use noise::{NoiseFn, Point2, SuperSimplex};
 use dust::*;
+use noise::{NoiseFn, Point2, SuperSimplex};
 
 pub const SIZE: f32 = 64.0;
 const VERTICES_PER_UNIT: usize = 8;
@@ -24,17 +24,16 @@ impl Terrain
     pub fn create(gl: &gl::Gl) -> Terrain
     {
         let noise_generator = Box::new(SuperSimplex::new());
-
-        let program = program::Program::from_resource(gl, "examples/assets/shaders/terrain",
-                                                      "examples/assets/shaders/terrain").unwrap();
+        let program = program::Program::from_source(gl, include_str!("../assets/shaders/terrain.vert"),
+                                                      include_str!("../assets/shaders/terrain.frag")).unwrap();
         let mut model = surface::TriangleSurface::create(gl, &indices()).unwrap();
         let buffer = model.add_attributes(&program,&att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
                                                       "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3),
                                                       "normal" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
 
-        let ground_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
-        let lake_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/bottom.png").unwrap();
-        let noise_texture = texture::Texture2D::new_from_file(gl,"examples/assets/textures/grass.jpg").unwrap();
+        let ground_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();
+        let lake_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/bottom.png")).unwrap();
+        let noise_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();;
 
         let mut terrain = Terrain { program, model, ground_texture, lake_texture, noise_texture, buffer, center: vec3(0.0, 0.0, 0.0), noise_generator};
         terrain.set_center(&vec3(0.0, 0.0, 0.0));
@@ -135,15 +134,11 @@ impl Terrain
 
     pub fn get_height_at(&self, x: f32, z: f32) -> f32
     {
-        get_height_at(&self.noise_generator, x, z)
-    }
-}
 
-fn get_height_at(noise_generator: &Box<NoiseFn<Point2<f64>>>, x: f32, z: f32) -> f32
-{
-    (noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
-            0.25 * noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
-            2.0 * noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
+        (self.noise_generator.get([x as f64 * 0.1, z as f64 * 0.1]) +
+                0.25 * self.noise_generator.get([x as f64 * 0.5, z as f64 * 0.5]) +
+                2.0 * self.noise_generator.get([x as f64 * 0.02, z as f64 * 0.02])) as f32
+    }
 }
 
 fn indices() -> Vec<u32>

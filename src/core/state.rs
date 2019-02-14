@@ -1,35 +1,6 @@
 use gl;
 
 #[derive(PartialEq)]
-pub enum PolygonType {
-    Point,
-    Line,
-    Fill
-}
-
-pub fn polygon_mode(gl: &gl::Gl, polygon_type: PolygonType)
-{
-    unsafe {
-        static mut CURRENT: PolygonType = PolygonType::Fill;
-        if polygon_type != CURRENT
-        {
-            match polygon_type {
-                PolygonType::Point => {
-                    gl.PolygonMode(gl::FRONT_AND_BACK, gl::POINT);
-                },
-                PolygonType::Line => {
-                    gl.PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-                },
-                PolygonType::Fill => {
-                    gl.PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
-                }
-            }
-            CURRENT = polygon_type;
-        }
-    }
-}
-
-#[derive(PartialEq)]
 pub enum BlendType {
     NONE,
     SRC_ALPHA__ONE_MINUS_SRC_ALPHA,
@@ -45,19 +16,19 @@ pub fn blend(gl: &gl::Gl, blend_type: BlendType)
         {
             match blend_type {
                 BlendType::NONE => {
-                    gl.Disable(gl::BLEND);
+                    gl.disable(gl::consts::BLEND);
                 },
                 BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA => {
-                    gl.Enable(gl::BLEND);
-                    gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+                    gl.enable(gl::consts::BLEND);
+                    gl.blend_func(gl::consts::SRC_ALPHA, gl::consts::ONE_MINUS_SRC_ALPHA);
                 },
                 BlendType::DST_ALPHA__ONE_MINUS_DST_ALPHA => {
-                    gl.Enable(gl::BLEND);
-                    gl.BlendFunc(gl::DST_ALPHA, gl::ONE_MINUS_DST_ALPHA);
+                    gl.enable(gl::consts::BLEND);
+                    gl.blend_func(gl::consts::DST_ALPHA, gl::consts::ONE_MINUS_DST_ALPHA);
                 },
                 BlendType::ONE__ONE => {
-                    gl.Enable(gl::BLEND);
-                    gl.BlendFunc(gl::ONE, gl::ONE);
+                    gl.enable(gl::consts::BLEND);
+                    gl.blend_func(gl::consts::ONE, gl::consts::ONE);
                 }
             }
             CURRENT = blend_type;
@@ -80,15 +51,15 @@ pub fn cull(gl: &gl::Gl, cull_type: CullType)
         {
             match cull_type {
                 CullType::NONE => {
-                    gl.Disable(gl::CULL_FACE);
+                    gl.disable(gl::consts::CULL_FACE);
                 },
                 CullType::BACK => {
-                    gl.Enable(gl::CULL_FACE);
-                    gl.CullFace(gl::BACK);
+                    gl.enable(gl::consts::CULL_FACE);
+                    gl.cull_face(gl::consts::BACK);
                 },
                 CullType::FRONT => {
-                    gl.Enable(gl::CULL_FACE);
-                    gl.CullFace(gl::FRONT);
+                    gl.enable(gl::consts::CULL_FACE);
+                    gl.cull_face(gl::consts::FRONT);
                 }
             }
             CURRENT = cull_type;
@@ -111,15 +82,15 @@ pub fn depth_test(gl: &gl::Gl, depth_test_type: DepthTestType)
         {
             match depth_test_type {
                 DepthTestType::NONE => {
-                    gl.Disable(gl::DEPTH_TEST);
+                    gl.disable(gl::consts::DEPTH_TEST);
                 },
                 DepthTestType::LEQUAL => {
-                    gl.Enable(gl::DEPTH_TEST);
-                    gl.DepthFunc(gl::LEQUAL);
+                    gl.enable(gl::consts::DEPTH_TEST);
+                    gl.depth_func(gl::consts::LEQUAL);
                 },
                 DepthTestType::LESS => {
-                    gl.Enable(gl::DEPTH_TEST);
-                    gl.DepthFunc(gl::LESS);
+                    gl.enable(gl::consts::DEPTH_TEST);
+                    gl.depth_func(gl::consts::LESS);
                 }
             }
             CURRENT = depth_test_type;
@@ -133,13 +104,7 @@ pub fn depth_write(gl: &gl::Gl, enable: bool)
         static mut CURRENTLY_ENABLED: bool = true;
         if enable != CURRENTLY_ENABLED
         {
-            if enable
-            {
-                gl.DepthMask(gl::TRUE);
-            }
-            else {
-                gl.DepthMask(gl::FALSE);
-            }
+            gl.depth_mask(enable);
             CURRENTLY_ENABLED = enable;
         }
     }
