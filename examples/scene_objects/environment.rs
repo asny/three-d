@@ -34,7 +34,7 @@ impl Environment {
     {
         self.skybox.render(camera).unwrap();
         self.terrain.render(camera);
-        self.grass.render(camera);
+        //self.grass.render(camera);
     }
 
     pub fn render_transparent(&self, time: f32, camera: &camera::Camera, screen_width: usize, screen_height: usize, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture)

@@ -78,13 +78,13 @@ fn main() {
         directional_light.set_target(&spider_pos);
         directional_light.shadow_cast_begin().unwrap();
         //environment.render_opague(directional_light.shadow_camera().unwrap()).unwrap();
-        spider.render(directional_light.shadow_camera().unwrap());
+        //spider.render(directional_light.shadow_camera().unwrap());
 
         // Draw
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
         environment.render_opague(&camera);
-        spider.render(&camera);
+        //spider.render(&camera);
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
