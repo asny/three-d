@@ -32,6 +32,9 @@ fn main() {
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::FIRST);
     let mut time = 0.0;
 
+    // Effects
+    let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
+
     // main loop
     window.render_loop(move |events, elapsed_time|
     {
@@ -54,6 +57,10 @@ fn main() {
                     if kind == "S"
                     {
                         spider.is_moving_backward = *state == State::Pressed;
+                    }
+                    if kind == "R" && *state == State::Pressed
+                    {
+                        debug_effect.change_type();
                     }
                 },
                 _ => {}
@@ -87,6 +94,8 @@ fn main() {
 
         // After effects
         environment.render_transparent(time as f32, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
+
+        debug_effect.apply(renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture(), renderer.geometry_pass_normal_texture(), renderer.geometry_pass_depth_texture()).unwrap();
     }).unwrap();
 }
 

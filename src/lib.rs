@@ -11,6 +11,7 @@ macro_rules! att {
 pub mod types;
 pub mod core;
 pub mod objects;
+pub mod effects;
 
 pub mod light;
 

@@ -165,7 +165,7 @@ fn new_noise_texture(gl: &gl::Gl) -> texture::Texture2D
     use rand::prelude::*;
     let noise_size = 128;
     let mut noise: Vec<f32> = Vec::with_capacity(noise_size * noise_size);
-    for i in 0..noise_size * noise_size
+    for _ in 0..noise_size * noise_size
     {
         noise.push(random::<f32>());
     }

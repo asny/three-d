@@ -74,8 +74,7 @@ pub struct DeferredPipeline {
     copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
-    light_pass_rendertarget: Option<rendertarget::ColorRendertarget>,
-    debug_program: program::Program
+    light_pass_rendertarget: Option<rendertarget::ColorRendertarget>
 }
 
 
@@ -96,10 +95,7 @@ impl DeferredPipeline
                                                     include_str!("shaders/copy.vert"),
                                                     include_str!("shaders/copy.frag"))?);
         }
-        let debug_program = program::Program::from_source(&gl,
-                                                    include_str!("shaders/effect.vert"),
-                                                    include_str!("shaders/debug_effect.frag"))?;
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, debug_program })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -278,33 +274,6 @@ impl DeferredPipeline
         program.add_uniform_int("depthMap", &1)?;
 
         full_screen_quad::render(&self.gl, program);
-        Ok(())
-    }
-
-    pub fn apply_post_effect(&self) -> Result<(), Error>
-    {
-        state::depth_write(&self.gl,false);
-        state::depth_test(&self.gl, state::DepthTestType::NONE);
-        state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
-
-        self.geometry_pass_color_texture().bind(0);
-        self.debug_program.add_uniform_int("colorMap", &0)?;
-
-        self.geometry_pass_position_texture().bind(1);
-        self.debug_program.add_uniform_int("positionMap", &1)?;
-
-        self.geometry_pass_normal_texture().bind(2);
-        self.debug_program.add_uniform_int("normalMap", &2)?;
-
-        self.geometry_pass_depth_texture().bind(3);
-        self.debug_program.add_uniform_int("depthMap", &3)?;
-
-        #[derive(Copy, Clone)]
-        enum Type {NONE = -1, POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3};
-        let debug_type = Type::POSITION;
-        self.debug_program.add_uniform_int("type", &(debug_type as i32))?;
-
-        full_screen_quad::render(&self.gl, &self.debug_program);
         Ok(())
     }
 
