@@ -1,6 +1,8 @@
 pub mod debug_effect;
+pub mod fog;
 
 pub use crate::effects::debug_effect::*;
+pub use crate::effects::fog::*;
 
 use crate::*;
 #[derive(Debug)]
