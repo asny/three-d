@@ -2,7 +2,7 @@
 use dust::*;
 use noise::{NoiseFn, Point2, SuperSimplex};
 
-pub const SIZE: f32 = 64.0;
+pub const SIZE: f32 = 128.0;
 const VERTICES_PER_UNIT: usize = 8;
 const VERTICES_PER_SIDE: usize = SIZE as usize * VERTICES_PER_UNIT;
 const VERTICES_IN_TOTAL: usize = VERTICES_PER_SIDE * VERTICES_PER_SIDE;
