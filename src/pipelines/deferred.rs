@@ -5,68 +5,10 @@ use crate::light;
 use crate::core::rendertarget;
 use crate::core::rendertarget::Rendertarget;
 use crate::core::state;
-use crate::core::texture::{self,Texture};
+use crate::core::texture::Texture;
 use crate::core::program;
 use crate::core::full_screen_quad;
-
-#[derive(Debug)]
-pub enum Error {
-    IO(std::io::Error),
-    Program(program::Error),
-    Rendertarget(rendertarget::Error),
-    Texture(texture::Error),
-    LightPassRendertargetNotAvailable {message: String}
-}
-
-impl From<std::io::Error> for Error {
-    fn from(other: std::io::Error) -> Self {
-        Error::IO(other)
-    }
-}
-
-impl From<program::Error> for Error {
-    fn from(other: program::Error) -> Self {
-        Error::Program(other)
-    }
-}
-
-impl From<rendertarget::Error> for Error {
-    fn from(other: rendertarget::Error) -> Self {
-        Error::Rendertarget(other)
-    }
-}
-
-impl From<texture::Error> for Error {
-    fn from(other: texture::Error) -> Self {
-        Error::Texture(other)
-    }
-}
-
-pub struct ForwardPipeline {
-    gl: gl::Gl,
-    rendertarget: rendertarget::ScreenRendertarget
-}
-
-impl ForwardPipeline
-{
-    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize) -> Result<ForwardPipeline, Error>
-    {
-        let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height)?;
-        Ok(ForwardPipeline {gl: gl.clone(), rendertarget})
-    }
-
-    pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
-    {
-        self.rendertarget = rendertarget::ScreenRendertarget::new(&self.gl, screen_width, screen_height)?;
-        Ok(())
-    }
-
-    pub fn render_pass_begin(&self)
-    {
-        self.rendertarget.bind();
-        self.rendertarget.clear();
-    }
-}
+use crate::pipelines::Error;
 
 pub struct DeferredPipeline {
     gl: gl::Gl,

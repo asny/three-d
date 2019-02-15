@@ -8,7 +8,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, true).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, true).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),

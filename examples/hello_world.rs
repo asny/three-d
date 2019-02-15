@@ -6,7 +6,7 @@ fn main() {
     let mut window = window::Window::new_default("Hello, world!").unwrap();
     let (width, height) = window.size();
 
-    let renderer = pipeline::ForwardPipeline::new(&window.gl(), width, height).unwrap();
+    let renderer = ForwardPipeline::new(&window.gl(), width, height).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),

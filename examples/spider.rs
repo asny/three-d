@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = pipeline::DeferredPipeline::new(&gl, width, height, true).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, true).unwrap();
 
     // Models
     let mut environment = scene_objects::environment::Environment::new(&gl);
