@@ -16,7 +16,7 @@ impl DebugEffect {
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),
-                                                    include_str!("shaders/debug_effect.frag"))?;
+                                                    include_str!("shaders/debug.frag"))?;
         Ok(DebugEffect {gl: gl.clone(), program, debug_type: Type::NONE})
     }
 
