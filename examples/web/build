@@ -1,4 +1,27 @@
 #!/bin/sh
 
-cargo +nightly build --target wasm32-unknown-unknown --release
-wasm-bindgen target/wasm32-unknown-unknown/debug/hello_world_web.wasm --out-dir ./www/pkg/
+# ./build.sh
+if [ -z "$RELEASE"  ]; then
+  # --------------------------------------------------
+  # DEVELOPMENT BUILD
+  # --------------------------------------------------
+
+  echo "Development build"
+
+  RUST_BACKTRACE=1 cargo +nightly build --target wasm32-unknown-unknown --release
+  wasm-bindgen ./target/wasm32-unknown-unknown/release/hello_world_web.wasm --out-dir ./www/pkg/ --no-typescript
+
+# RELEASE=1 ./build.sh
+else
+
+  # --------------------------------------------------
+  # RELEASE BUILD
+  # --------------------------------------------------
+
+  echo "Release build"
+
+  cargo +nightly build --target wasm32-unknown-unknown --release &&
+  wasm-bindgen ./target/wasm32-unknown-unknown/release/hello_world_web.wasm --out-dir ./www/pkg/ --no-typescript &&
+  wasm-opt -O3 -o ./www/pkg/optimized.wasm ./www/pkg/hello_world_web_bg.wasm  &&
+  mv ./www/pkg/optimized.wasm ./www/pkg/hello_world_web_bg.wasm
+fi
