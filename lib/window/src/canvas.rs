@@ -82,7 +82,7 @@ impl Window
                 _ => None
             };
             return if let Some(b) = button {
-                (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b});
+                (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b, position: (event.offset_x() as f64, event.offset_y() as f64)});
             };
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse down event listener. Error code: {:?}", e)})?;
@@ -100,7 +100,7 @@ impl Window
                 _ => None
             };
             return if let Some(b) = button {
-                (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: b});
+                (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: b, position: (event.offset_x() as f64, event.offset_y() as f64)});
             };
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse up event listener. Error code: {:?}", e)})?;

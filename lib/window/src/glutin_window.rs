@@ -96,6 +96,7 @@ impl Window
 
     pub fn map_event(event: &Event) -> Option<event::Event>
     {
+        static mut CURSOR_POS: Option<(f64, f64)> = None;
         match event {
             Event::WindowEvent{ event, .. } => match event {
                 WindowEvent::KeyboardInput {input, ..} => {
@@ -115,14 +116,22 @@ impl Window
                     }
                 },
                 WindowEvent::MouseInput {state, button, ..} => {
-                    let state = if *state == ElementState::Pressed {event::State::Pressed} else {event::State::Released};
-                    let button = match button {
-                        MouseButton::Left => Some(event::MouseButton::Left),
-                        MouseButton::Middle => Some(event::MouseButton::Middle),
-                        MouseButton::Right => Some(event::MouseButton::Right),
-                        _ => None
-                    };
-                    return button.map(|b| event::Event::MouseClick { state, button: b });
+                    if let Some(position) = unsafe {CURSOR_POS}
+                    {
+                        let state = if *state == ElementState::Pressed {event::State::Pressed} else {event::State::Released};
+                        let button = match button {
+                            MouseButton::Left => Some(event::MouseButton::Left),
+                            MouseButton::Middle => Some(event::MouseButton::Middle),
+                            MouseButton::Right => Some(event::MouseButton::Right),
+                            _ => None
+                        };
+                        return button.map(|b| event::Event::MouseClick { state, button: b, position });
+                    }
+                },
+                WindowEvent::CursorMoved {position, ..} => {
+                    unsafe {
+                        CURSOR_POS = Some((position.x, position.y));
+                    }
                 },
                 _ => ()
             },

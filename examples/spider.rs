@@ -108,7 +108,7 @@ pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahand
                 camera_handler.next_state();
             }
         },
-        Event::MouseClick {state, button} => {
+        Event::MouseClick {state, button, ..} => {
             if *button == MouseButton::Left
             {
                 if *state == State::Pressed { camera_handler.start_rotation(); }

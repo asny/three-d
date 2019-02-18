@@ -18,7 +18,8 @@ pub enum Event
 {
     MouseClick {
         state: State,
-        button: MouseButton
+        button: MouseButton,
+        position: (f64, f64)
     },
     MouseMotion {
         delta: (f64, f64),
