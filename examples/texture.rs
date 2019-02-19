@@ -4,7 +4,7 @@ use dust::*;
 
 fn main() {
     let mut window = Window::new_default("Texture").unwrap();
-    let (width, height) = window.size();
+    let (width, height) = window.framebuffer_size();
     let gl = window.gl();
 
     // Renderer

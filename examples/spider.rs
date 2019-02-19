@@ -6,7 +6,7 @@ use window::{event::*, Window};
 
 fn main() {
     let mut window = Window::new_default("Spider").unwrap();
-    let (width, height) = window.size();
+    let (width, height) = window.framebuffer_size();
     let gl = window.gl();
 
     // Renderer

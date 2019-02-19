@@ -83,10 +83,16 @@ impl Window
         Ok(())
     }
 
+    pub fn framebuffer_size(&self) -> (usize, usize)
+    {
+        let t: (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
+        (t.0 as usize, t.1 as usize)
+    }
+
     pub fn size(&self) -> (usize, usize)
     {
-        let size: (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
-        (size.0 as usize, size.1 as usize)
+        let t: (u32, u32) = self.gl_window.get_inner_size().unwrap().into();
+        (t.0 as usize, t.1 as usize)
     }
 
     pub fn gl(&self) -> gl::Gl
