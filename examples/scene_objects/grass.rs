@@ -42,8 +42,7 @@ impl Grass
 
         let position_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
-        program.set_used();
-        program.setup_attribute("root_position", 3, 3, 0, 1).unwrap();
+        program.setup_attribute(&position_buffer, "root_position", 3, 3, 0, 1).unwrap();
 
         let mut grass = Grass { program, model, position_buffer };
         grass.create_straws(terrain);

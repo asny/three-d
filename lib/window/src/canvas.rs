@@ -159,6 +159,11 @@ impl Window
         (self.canvas.width() as usize, self.canvas.height() as usize)
     }
 
+    pub fn framebuffer_size(&self) -> (usize, usize)
+    {
+        self.size()
+    }
+
     pub fn gl(&self) -> gl::Gl
     {
         self.gl.clone()
