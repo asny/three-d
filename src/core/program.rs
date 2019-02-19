@@ -123,20 +123,19 @@ impl Program
 
     pub fn setup_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
     {
-        self.set_used();
-        buffer.bind();
-
         let mut offset = 0;
         for att in buffer.attributes_iter() {
-            self.setup_attribute(att.name.as_ref(), att.no_components, buffer.stride(), offset, 0)?;
+            self.setup_attribute(buffer,att.name.as_ref(), att.no_components, buffer.stride(), offset, 0)?;
             offset = offset + att.no_components;
         }
 
         Ok(())
     }
 
-    pub fn setup_attribute(&self, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
+    pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
+        self.set_used();
+        buffer.bind();
         let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
             || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
         self.gl.enable_vertex_attrib_array(location);

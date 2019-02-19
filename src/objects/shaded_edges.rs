@@ -50,14 +50,13 @@ impl ShadedEdges
 
         let mut instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
-        program.set_used();
-        program.setup_attribute("local2worldX", 3, 21, 0, 1).unwrap();
-        program.setup_attribute("local2worldY", 3, 21, 3, 1).unwrap();
-        program.setup_attribute("local2worldZ", 3, 21, 6, 1).unwrap();
-        program.setup_attribute("translation", 3, 21, 9, 1).unwrap();
-        program.setup_attribute("normalMatrixX", 3, 21, 12, 1).unwrap();
-        program.setup_attribute("normalMatrixY", 3, 21, 15, 1).unwrap();
-        program.setup_attribute("normalMatrixZ", 3, 21, 18, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"local2worldX", 3, 21, 0, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"local2worldY", 3, 21, 3, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"local2worldZ", 3, 21, 6, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"translation", 3, 21, 9, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"normalMatrixX", 3, 21, 12, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"normalMatrixY", 3, 21, 15, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"normalMatrixZ", 3, 21, 18, 1).unwrap();
 
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {

@@ -40,8 +40,7 @@ impl ShadedVertices
 
         let mut instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
-        program.set_used();
-        program.setup_attribute("translation", 3, 3, 0, 1).unwrap();
+        program.setup_attribute(&instance_buffer,"translation", 3, 3, 0, 1).unwrap();
         instance_buffer.fill_with(positions);
 
         ShadedVertices { program, surface, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
