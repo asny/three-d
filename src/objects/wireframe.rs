@@ -44,6 +44,12 @@ impl Wireframe
         Self::new(&gl, &indices, &positions, 0.015)
     }
 
+    pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
+    {
+        self.vertices.update_positions(positions)?;
+        Ok(())
+    }
+
     pub fn render(&self, camera: &camera::Camera)
     {
         self.edges.render(camera);
