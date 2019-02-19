@@ -21,7 +21,5 @@ else
   echo "Release build"
 
   cargo +nightly build --target wasm32-unknown-unknown --release &&
-  wasm-bindgen ./target/wasm32-unknown-unknown/release/hello_world_web.wasm --out-dir ./www/ --no-typescript --no-modules &&
-  wasm-opt -O3 -o ./www/optimized.wasm ./www/hello_world_web_bg.wasm  &&
-  mv ./www/optimized.wasm ./www/hello_world_web_bg.wasm
+  wasm-bindgen ./target/wasm32-unknown-unknown/release/hello_world_web.wasm --out-dir ./www/ --no-typescript --no-modules
 fi
