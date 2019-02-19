@@ -4,6 +4,7 @@ use crate::*;
 
 pub struct ShadedVertices {
     program: program::Program,
+    instance_buffer: buffer::VertexBuffer,
     surface: surface::TriangleSurface,
     no_vertices: usize,
     pub color: Vec3,
@@ -43,7 +44,13 @@ impl ShadedVertices
         program.setup_attribute(&instance_buffer,"translation", 3, 3, 0, 1).unwrap();
         instance_buffer.fill_with(positions);
 
-        ShadedVertices { program, surface, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
+        ShadedVertices { program, instance_buffer, surface, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
+    }
+
+    pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
+    {
+        self.instance_buffer.fill_with(positions);
+        Ok(())
     }
 
     pub fn render(&self, camera: &camera::Camera)
