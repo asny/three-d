@@ -41,13 +41,13 @@ impl Wireframe
             positions[i] += translation[i%3];
         }
 
-        Self::new(&gl, &indices, &positions, 0.015)
+        Self::new(&gl, &indices, &positions, tube_radius)
     }
 
-    pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
+    pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.vertices.update_positions(positions)?;
-        Ok(())
+        self.vertices.update_positions(positions);
+        self.edges.update_positions(positions);
     }
 
     pub fn render(&self, camera: &camera::Camera)

@@ -4,8 +4,11 @@ use crate::*;
 
 pub struct ShadedEdges {
     program: program::Program,
+    instance_buffer: buffer::VertexBuffer,
     surface: surface::TriangleSurface,
+    index_pairs: std::collections::HashSet<(usize, usize)>,
     no_edges: usize,
+    tube_radius: f32,
     pub color: Vec3,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
@@ -48,7 +51,7 @@ impl ShadedEdges
         let mut surface = surface::TriangleSurface::new(gl, &cylinder_indices).unwrap();
         surface.add_attributes(&program, &att!["position" => (cylinder_positions, 3)]).unwrap();
 
-        let mut instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
+        let instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
         program.setup_attribute(&instance_buffer,"local2worldX", 3, 21, 0, 1).unwrap();
         program.setup_attribute(&instance_buffer,"local2worldY", 3, 21, 3, 1).unwrap();
@@ -69,14 +72,21 @@ impl ShadedEdges
         }
         let no_edges = index_pairs.len();
 
+        let mut object = ShadedEdges { program, instance_buffer, surface, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 };
+        object.update_positions(positions);
+        object
+    }
+
+    pub fn update_positions(&mut self, positions: &[f32])
+    {
         let mut data = Vec::new();
-        for (i0, i1) in index_pairs {
+        for (i0, i1) in self.index_pairs.iter() {
             let p0 = vec3(positions[i0 * 3], positions[i0 * 3+1], positions[i0 * 3+2]);
             let p1 = vec3(positions[i1 * 3], positions[i1 * 3+1], positions[i1 * 3+2]);
 
             let length = (p1 - p0).magnitude();
             let dir = (p1 - p0)/length;
-            let local_to_world = rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), dir) * Mat4::from_nonuniform_scale(length, tube_radius, tube_radius);
+            let local_to_world = rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), dir) * Mat4::from_nonuniform_scale(length, self.tube_radius, self.tube_radius);
             let normal_matrix = local_to_world.invert().unwrap().transpose();
 
             for i in 0..3 {
@@ -96,9 +106,7 @@ impl ShadedEdges
             }
 
         }
-        instance_buffer.fill_with(&data);
-
-        ShadedEdges { program, surface, no_edges, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
+        self.instance_buffer.fill_with(&data);
     }
 
     pub fn render(&self, camera: &camera::Camera)

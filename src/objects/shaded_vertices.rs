@@ -47,10 +47,9 @@ impl ShadedVertices
         ShadedVertices { program, instance_buffer, surface, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
     }
 
-    pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
+    pub fn update_positions(&mut self, positions: &[f32])
     {
         self.instance_buffer.fill_with(positions);
-        Ok(())
     }
 
     pub fn render(&self, camera: &camera::Camera)
