@@ -34,8 +34,7 @@ fn main() {
     ];
     let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
 
-    let mut ambient_light = crate::light::AmbientLight::new();
-    ambient_light.base.intensity = 0.2;
+    let ambient_light = crate::light::AmbientLight::new();
 
     let mut directional_light = dust::light::DirectionalLight::new(vec3(1.0, -1.0, -1.0));
     directional_light.base.color = vec3(1.0, 0.0, 0.0);

@@ -23,8 +23,7 @@ fn main() {
                                                     width as f32 / height as f32, 0.1, 1000.0);
 
     // Lights
-    let mut ambient_light = light::AmbientLight::new();
-    ambient_light.base.intensity = 0.2;
+    let ambient_light = light::AmbientLight::new();
 
     let mut directional_light = light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));
     directional_light.enable_shadows(&gl, 10.0, 10.0).unwrap();

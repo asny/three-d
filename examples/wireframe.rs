@@ -43,8 +43,7 @@ fn main() {
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;
 
-    let mut ambient_light = crate::light::AmbientLight::new();
-    ambient_light.base.intensity = 0.2;
+    let ambient_light = crate::light::AmbientLight::new();
 
     let mut light1 = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
     light1.enable_shadows(&gl, 20.0).unwrap();

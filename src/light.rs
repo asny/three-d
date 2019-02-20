@@ -29,7 +29,7 @@ impl AmbientLight
 {
     pub fn new() -> AmbientLight
     {
-        let base = Light { color: vec3(1.0, 1.0, 1.0), intensity: 0.2 };
+        let base = Light { color: vec3(1.0, 1.0, 1.0), intensity: 0.5 };
         AmbientLight { base }
     }
 }
