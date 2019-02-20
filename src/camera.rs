@@ -43,9 +43,8 @@ impl BaseCamera
 
     pub fn view_direction_at(&self, screen_coordinates: (f64, f64)) -> Vec3
     {
-        let screen_pos = vec4(2. * screen_coordinates.0 as f32 - 1., 1. - 2. * screen_coordinates.1 as f32, 1., 1.);
-        let ray_world = self.screen2ray * screen_pos;
-        vec3(ray_world.x, ray_world.y, ray_world.z).normalize()
+        let screen_pos = vec4(2. * screen_coordinates.0 as f32 - 1., 1. - 2. * screen_coordinates.1 as f32, 0., 1.);
+        (self.screen2ray * screen_pos).truncate().normalize()
     }
 
     pub fn update_screen2ray(&mut self)
