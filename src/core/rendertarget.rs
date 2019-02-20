@@ -1,6 +1,7 @@
 use gl;
 use crate::core::state;
 use crate::core::texture;
+use crate::types::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -23,14 +24,15 @@ pub trait Rendertarget {
 pub struct ScreenRendertarget {
     gl: gl::Gl,
     pub width: usize,
-    pub height: usize
+    pub height: usize,
+    clear_color: Vec4
 }
 
 impl ScreenRendertarget
 {
-    pub fn new(gl: &gl::Gl, width: usize, height: usize) -> Result<ScreenRendertarget, Error>
+    pub fn new(gl: &gl::Gl, width: usize, height: usize, clear_color: Vec4) -> Result<ScreenRendertarget, Error>
     {
-        Ok(ScreenRendertarget { gl: gl.clone(), width, height })
+        Ok(ScreenRendertarget { gl: gl.clone(), width, height, clear_color })
     }
 
     #[cfg(target_arch = "x86_64")]
@@ -58,7 +60,9 @@ impl Rendertarget for ScreenRendertarget
 
     fn clear(&self)
     {
-        clear(&self.gl);
+        state::depth_write(&self.gl,true);
+        self.gl.clear_color(self.clear_color.x, self.clear_color.y, self.clear_color.z, self.clear_color.w);
+        self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
     }
 }
 
@@ -69,12 +73,13 @@ pub struct ColorRendertarget {
     pub width: usize,
     pub height: usize,
     pub targets: Vec<texture::Texture2D>,
-    pub depth_target: texture::Texture2D
+    pub depth_target: texture::Texture2D,
+    pub clear_color: Vec4
 }
 
 impl ColorRendertarget
 {
-    pub fn new(gl: &gl::Gl, width: usize, height: usize, no_targets: usize) -> Result<ColorRendertarget, Error>
+    pub fn new(gl: &gl::Gl, width: usize, height: usize, no_targets: usize, clear_color: Vec4) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
         bind(gl, &id, width, height);
@@ -90,7 +95,7 @@ impl ColorRendertarget
 
         let depth_target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target })
+        Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target, clear_color })
     }
 
     #[cfg(target_arch = "x86_64")]
@@ -117,7 +122,9 @@ impl Rendertarget for ColorRendertarget
 
     fn clear(&self)
     {
-        clear(&self.gl);
+        state::depth_write(&self.gl,true);
+        self.gl.clear_color(self.clear_color.x, self.clear_color.y, self.clear_color.z, self.clear_color.w);
+        self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
     }
 }
 
@@ -165,7 +172,8 @@ impl Rendertarget for DepthRenderTarget
 
     fn clear(&self)
     {
-        clear(&self.gl);
+        state::depth_write(&self.gl,true);
+        self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
     }
 }
 
@@ -186,11 +194,4 @@ fn bind(gl: &gl::Gl, id: &gl::Framebuffer, width: usize, height: usize)
 {
     gl.bind_framebuffer(gl::consts::FRAMEBUFFER, Some(&id));
     gl.viewport(0, 0, width as i32, height as i32);
-}
-
-fn clear(gl: &gl::Gl)
-{
-    state::depth_write(gl,true);
-    gl.clear_color(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
 }

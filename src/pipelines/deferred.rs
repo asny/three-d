@@ -22,17 +22,17 @@ pub struct DeferredPipeline {
 
 impl DeferredPipeline
 {
-    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool, background_color: crate::types::Vec4) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_source(&gl,
                                                     include_str!("shaders/light_pass.vert"),
                                                     include_str!("shaders/light_pass.frag"))?;
-        let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4)?;
+        let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4, background_color)?;
         let mut light_pass_rendertarget= None;
         let mut copy_program = None;
         if use_light_pass_rendertarget {
-            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 1)?);
+            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 1, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?);
             copy_program = Some(program::Program::from_source(&gl,
                                                     include_str!("shaders/copy.vert"),
                                                     include_str!("shaders/copy.frag"))?);
@@ -42,8 +42,15 @@ impl DeferredPipeline
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ScreenRendertarget::new(&self.gl, screen_width, screen_height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4)?;
+        self.rendertarget.width = screen_width;
+        self.rendertarget.height = screen_height;
+        let clear_color = self.geometry_pass_rendertarget.clear_color;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, clear_color)?;
+        if let Some(ref rendertarget) = self.light_pass_rendertarget
+        {
+            let clear_color = rendertarget.clear_color;
+            self.light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 1, clear_color)?);
+        }
         Ok(())
     }
 
