@@ -26,7 +26,7 @@ $ cargo run --example hello_world --release
 npm install -g http-server
 
 # Install the wasm-bindgen tool
-cargo install -f wasm-bindgen@0.2.37
+cargo install -f wasm-bindgen@0.2.40
 
 # Build the 'hello world' example to WebAssembly
 cd examples/web/
