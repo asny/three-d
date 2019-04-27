@@ -1,5 +1,5 @@
 [package]
-name = "hello_world_web"
+name = "web"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
@@ -9,7 +9,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 dust = { path = "../../" }
-wasm-bindgen = "0.2.37"
+wasm-bindgen = "0.2.40"
 rand = {version = "0.6.5", features = ["wasm-bindgen"] }
 console_error_panic_hook = "0.1.5"
+log = "0.4"
+console_log = "0.1"
 noise = {git = "https://github.com/Razaekel/noise-rs", branch = "develop", default-features = false}

@@ -9,7 +9,7 @@ if [ -z "$RELEASE"  ]; then
   echo "Development build"
 
   RUST_BACKTRACE=1 cargo +nightly build --target wasm32-unknown-unknown --release
-  wasm-bindgen ./target/wasm32-unknown-unknown/release/hello_world_web.wasm --out-dir ./www/ --no-typescript --no-modules
+  wasm-bindgen ./target/wasm32-unknown-unknown/release/web.wasm --out-dir ./www/ --no-typescript --no-modules
 
 # RELEASE=1 ./build.sh
 else
@@ -21,5 +21,5 @@ else
   echo "Release build"
 
   cargo +nightly build --target wasm32-unknown-unknown --release &&
-  wasm-bindgen ./target/wasm32-unknown-unknown/release/hello_world_web.wasm --out-dir ./www/ --no-typescript --no-modules
+  wasm-bindgen ./target/wasm32-unknown-unknown/release/web.wasm --out-dir ./www/ --no-typescript --no-modules
 fi
