@@ -12,6 +12,7 @@ window = { path = "lib/window" }
 num = "0.2.0"
 num-traits = "0.2"
 num-derive = "0.2.4"
+log = "0.4"
 
 [dependencies.image]
 version = "0.21.0"
