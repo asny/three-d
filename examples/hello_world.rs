@@ -6,13 +6,31 @@ fn main() {
     let mut window = window::Window::new_default("Hello, world!").unwrap();
     let (width, height) = window.framebuffer_size();
 
-    let renderer = ForwardPipeline::new(&window.gl(), width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let gl = window.gl();
+    let renderer = ForwardPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
-    let model = crate::Triangle::new(&window.gl());
+    let indices: Vec<u32> = (0..3).collect();
+    let index_buffer = buffer::ElementBuffer::new_with(&gl, &indices).unwrap();
+
+    let positions: Vec<f32> = vec![
+        0.5, -0.5, 0.0, // bottom right
+        -0.5, -0.5, 0.0,// bottom left
+        0.0,  0.5, 0.0 // top
+    ];
+    let colors: Vec<f32> = vec![
+        1.0, 0.0, 0.0,   // bottom right
+        0.0, 1.0, 0.0,   // bottom left
+        0.0, 0.0, 1.0    // top
+    ];
+
+    let buffer = buffer::VertexBuffer::new_from_attributes(&gl, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
+    let program = program::Program::from_source(&gl,
+                                                include_str!("assets/shaders/color.vert"),
+                                                include_str!("assets/shaders/color.frag")).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
@@ -22,58 +40,17 @@ fn main() {
             handle_camera_events(&event, &mut camera_handler, &mut camera);
         }
         renderer.render_pass_begin();
-        model.render(&camera);
-    }).unwrap();
-}
 
-pub struct Triangle {
-    program: program::Program,
-    index_buffer: buffer::ElementBuffer,
-    buffer: buffer::VertexBuffer,
-    gl: gl::Gl
-}
-
-impl Triangle
-{
-    pub fn new(gl: &gl::Gl) -> Triangle
-    {
-        let indices: Vec<u32> = (0..3).collect();
-        let positions: Vec<f32> = vec![
-            0.5, -0.5, 0.0, // bottom right
-            -0.5, -0.5, 0.0,// bottom left
-            0.0,  0.5, 0.0 // top
-        ];
-        let colors: Vec<f32> = vec![
-            1.0, 0.0, 0.0,   // bottom right
-            0.0, 1.0, 0.0,   // bottom left
-            0.0, 0.0, 1.0    // top
-        ];
-        let program = program::Program::from_source(&gl,
-                                                    include_str!("assets/shaders/color.vert"),
-                                                    include_str!("assets/shaders/color.frag")).unwrap();
-
-
-        let index_buffer = buffer::ElementBuffer::new(&gl).unwrap();
-        index_buffer.fill_with(&indices);
-
-        let mut buffer = buffer::VertexBuffer::new(&gl).unwrap();
-        buffer.fill_from_attributes(&att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
-
-        Triangle { program, buffer, index_buffer, gl: gl.clone() }
-    }
-
-    pub fn render(&self, camera: &camera::Camera)
-    {
         // Link data and program
-        self.index_buffer.bind();
-        self.buffer.bind();
-        self.program.setup_attributes(&self.buffer).unwrap();
+        index_buffer.bind();
+        buffer.bind();
+        program.setup_attributes(&buffer).unwrap();
 
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+        program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+        program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
-        self.gl.draw_elements(gl::consts::TRIANGLES, 3, gl::consts::UNSIGNED_INT, 0);
-    }
+        gl.draw_elements(gl::consts::TRIANGLES, 3, gl::consts::UNSIGNED_INT, 0);
+    }).unwrap();
 }
 
 pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
