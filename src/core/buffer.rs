@@ -40,7 +40,6 @@ impl VertexBuffer
     {
         let id = gl.create_buffer().unwrap();
         let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, attributes_infos: Vec::new() };
-        buffer.bind();
         Ok(buffer)
     }
 
@@ -114,8 +113,7 @@ impl ElementBuffer
     pub fn new(gl: &gl::Gl) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = ElementBuffer{gl: gl.clone(), id };
-        buffer.bind();
+        let buffer = ElementBuffer{ gl: gl.clone(), id };
         Ok(buffer)
     }
 
@@ -133,7 +131,7 @@ impl ElementBuffer
 
     pub fn fill_with(&self, data: &[u32])
     {
-        bind(&self.gl, &self.id, gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.bind();
         self.gl.buffer_data_u32(gl::consts::ELEMENT_ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
     }
 }
