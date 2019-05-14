@@ -129,7 +129,7 @@ impl Program
     {
         let mut offset = 0;
         for att in buffer.attributes_iter() {
-            self.setup_attribute(buffer,att.name.as_ref(), att.no_components, buffer.stride(), offset, 0)?;
+            self.setup_attribute(buffer,&att.name, att.no_components, buffer.stride(), offset, 0)?;
             offset = offset + att.no_components;
         }
 
@@ -140,8 +140,7 @@ impl Program
     {
         self.set_used();
         buffer.bind();
-        let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
-            || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
+        let location = self.location(name)?;
         self.gl.enable_vertex_attrib_array(location);
         self.gl.vertex_attrib_pointer(location, no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(location, divisor as u32);
@@ -152,9 +151,7 @@ impl Program
     {
         self.set_used();
         for att in buffer.attributes_iter() {
-            let location = self.gl.get_attrib_location(&self.id, att.name.as_ref()).ok_or_else(
-                || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", att.name)})?;
-            self.gl.enable_vertex_attrib_array(location);
+            self.gl.enable_vertex_attrib_array(self.location(&att.name)?);
         }
         Ok(())
     }
@@ -163,12 +160,17 @@ impl Program
     {
         let mut offset = 0;
         for att in buffer.attributes_iter() {
-            let location = self.gl.get_attrib_location(&self.id, att.name.as_ref()).ok_or_else(
-                || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", att.name)})?;
-            self.gl.vertex_attrib_pointer(location, att.no_components as u32, gl::consts::FLOAT, false, buffer.stride() as u32, offset as u32);
+            self.gl.vertex_attrib_pointer(self.location(&att.name)?, att.no_components as u32, gl::consts::FLOAT, false, buffer.stride() as u32, offset as u32);
             offset = offset + att.no_components;
         }
         Ok(())
+    }
+
+    fn location(&self, name: &str) -> Result<u32, Error>
+    {
+        let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
+            || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
+        Ok(location)
     }
 
     // STATES
