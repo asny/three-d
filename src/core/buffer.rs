@@ -44,6 +44,13 @@ impl VertexBuffer
         Ok(buffer)
     }
 
+    pub fn new_from_attributes(gl: &gl::Gl, attributes: &[Attribute]) -> Result<VertexBuffer, Error>
+    {
+        let mut buffer = VertexBuffer::new(gl)?;
+        buffer.fill_from_attributes(attributes)?;
+        Ok(buffer)
+    }
+
     pub fn bind(&self)
     {
         bind(&self.gl, &self.id, gl::consts::ARRAY_BUFFER);
@@ -109,6 +116,13 @@ impl ElementBuffer
         let id = gl.create_buffer().unwrap();
         let buffer = ElementBuffer{gl: gl.clone(), id };
         buffer.bind();
+        Ok(buffer)
+    }
+
+    pub fn new_with(gl: &gl::Gl, data: &[u32]) -> Result<ElementBuffer, Error>
+    {
+        let buffer = ElementBuffer::new(gl)?;
+        buffer.fill_with(data);
         Ok(buffer)
     }
 
