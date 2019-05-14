@@ -28,7 +28,9 @@ fn main() {
 
 pub struct Triangle {
     program: program::Program,
-    model: surface::TriangleSurface
+    index_buffer: buffer::ElementBuffer,
+    buffer: buffer::VertexBuffer,
+    gl: gl::Gl
 }
 
 impl Triangle
@@ -49,17 +51,28 @@ impl Triangle
         let program = program::Program::from_source(&gl,
                                                     include_str!("assets/shaders/color.vert"),
                                                     include_str!("assets/shaders/color.frag")).unwrap();
-        let mut model = surface::TriangleSurface::new(gl, &indices).unwrap();
-        model.add_attributes(&program, &att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
 
-        Triangle { program, model }
+
+        let index_buffer = buffer::ElementBuffer::new(&gl).unwrap();
+        index_buffer.fill_with(&indices);
+
+        let mut buffer = buffer::VertexBuffer::new(&gl).unwrap();
+        buffer.fill_from_attributes(&att!["position" => (positions, 3), "color" => (colors, 3)]).unwrap();
+
+        Triangle { program, buffer, index_buffer, gl: gl.clone() }
     }
 
     pub fn render(&self, camera: &camera::Camera)
     {
+        // Link data and program
+        self.index_buffer.bind();
+        self.buffer.bind();
+        self.program.setup_attributes(&self.buffer).unwrap();
+
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
-        self.model.render().unwrap();
+
+        self.gl.draw_elements(gl::consts::TRIANGLES, 3, gl::consts::UNSIGNED_INT, 0);
     }
 }
 

@@ -44,6 +44,10 @@ impl Program
 
     pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
+        // Make static
+        let id = gl.create_vertex_array().unwrap();
+        gl.bind_vertex_array(&id);
+
         let program = gl.create_program();
 
         for shader in shaders {

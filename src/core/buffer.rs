@@ -108,8 +108,13 @@ impl ElementBuffer
     {
         let id = gl.create_buffer().unwrap();
         let buffer = ElementBuffer{gl: gl.clone(), id };
-        bind(&buffer.gl, &buffer.id, gl::consts::ELEMENT_ARRAY_BUFFER);
+        buffer.bind();
         Ok(buffer)
+    }
+
+    pub fn bind(&self)
+    {
+        bind(&self.gl, &self.id, gl::consts::ELEMENT_ARRAY_BUFFER);
     }
 
     pub fn fill_with(&self, data: &[u32])
