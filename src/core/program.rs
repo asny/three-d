@@ -148,6 +148,29 @@ impl Program
         Ok(())
     }
 
+    pub fn enable_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
+    {
+        self.set_used();
+        for att in buffer.attributes_iter() {
+            let location = self.gl.get_attrib_location(&self.id, att.name.as_ref()).ok_or_else(
+                || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", att.name)})?;
+            self.gl.enable_vertex_attrib_array(location);
+        }
+        Ok(())
+    }
+
+    pub fn link_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
+    {
+        let mut offset = 0;
+        for att in buffer.attributes_iter() {
+            let location = self.gl.get_attrib_location(&self.id, att.name.as_ref()).ok_or_else(
+                || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", att.name)})?;
+            self.gl.vertex_attrib_pointer(location, att.no_components as u32, gl::consts::FLOAT, false, buffer.stride() as u32, offset as u32);
+            offset = offset + att.no_components;
+        }
+        Ok(())
+    }
+
     // STATES
     pub fn blend(&self, blend_type: state::BlendType)
     {

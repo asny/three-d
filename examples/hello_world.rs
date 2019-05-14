@@ -31,20 +31,21 @@ fn main() {
     let program = program::Program::from_source(&gl,
                                                 include_str!("assets/shaders/color.vert"),
                                                 include_str!("assets/shaders/color.frag")).unwrap();
+    program.enable_attributes(&buffer).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    window.render_loop(move |events, _elapsed_time| {
+    window.render_loop(move |events, _elapsed_time|
+    {
         for event in events {
             handle_camera_events(&event, &mut camera_handler, &mut camera);
         }
         renderer.render_pass_begin();
 
-        // Link data and program
         index_buffer.bind();
         buffer.bind();
-        program.setup_attributes(&buffer).unwrap();
+        program.link_attributes(&buffer).unwrap();
 
         program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
