@@ -540,6 +540,17 @@ impl Gl {
         }
     }
 
+    pub fn draw_arrays(&self, mode: u32, first: u32, count: u32)
+    {
+        unsafe {
+            self.inner.DrawArrays(
+                mode as consts::types::GLenum,
+                first as i32, // starting index in the enabled arrays
+                count as i32 // number of vertices to be rendered
+            );
+        }
+    }
+
     pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32)
     {
         unsafe {

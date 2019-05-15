@@ -153,6 +153,17 @@ impl Program
         Ok(())
     }
 
+    pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
+    {
+        self.set_used();
+        buffer.bind();
+        let stride = buffer.stride();
+        let offset = buffer.offset_from(index);
+        let loc = self.location(&attribute_name)?;
+        self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, stride as u32, offset as u32);
+        Ok(())
+    }
+
     pub fn use_attribute_vec3_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
         self.set_used();
@@ -162,6 +173,12 @@ impl Program
         let loc = self.location(&attribute_name)?;
         self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
         Ok(())
+    }
+
+    pub fn draw_arrays(&self, no_vertices: u32)
+    {
+        self.set_used();
+        self.gl.draw_arrays(gl::consts::TRIANGLES, 0, no_vertices);
     }
 
     pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
