@@ -30,7 +30,7 @@ impl From<std::ffi::NulError> for Error {
 
 pub struct Program {
     gl: gl::Gl,
-    id: gl::Program,
+    id: gl::Program
 }
 
 impl Program
@@ -153,15 +153,22 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec3_float(&self, name: &str, buffer: &buffer::VertexBuffer, index: usize) -> Result<(), Error>
+    pub fn use_attribute_vec3_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
         self.set_used();
         buffer.bind();
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
-        let loc = self.location(&name)?;
+        let loc = self.location(&attribute_name)?;
         self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
         Ok(())
+    }
+
+    pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
+    {
+        self.set_used();
+        element_buffer.bind();
+        self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.no_vertices() as u32, gl::consts::UNSIGNED_INT, 0);
     }
 
     fn location(&self, name: &str) -> Result<u32, Error>

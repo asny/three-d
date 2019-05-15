@@ -36,7 +36,7 @@ impl TriangleSurface
         let model = TriangleSurface { gl: gl.clone(), id, count: indices.len() };
         model.bind();
 
-        let index_buffer = buffer::ElementBuffer::new(&gl)?;
+        let mut index_buffer = buffer::ElementBuffer::new(&gl)?;
         index_buffer.fill_with(indices);
 
         Ok(model)

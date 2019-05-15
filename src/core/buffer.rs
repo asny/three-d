@@ -40,7 +40,7 @@ impl VertexBuffer
     pub fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer{gl: gl.clone(), id, stride:0, attributes_infos: Vec::new() };
+        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, attributes_infos: Vec::new() };
         Ok(buffer)
     }
 
@@ -74,8 +74,8 @@ impl VertexBuffer
     pub fn fill_from_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
     {
         self.attributes_infos = Vec::new();
-        let mut no_vertices = 0;
         self.stride = 0;
+        let mut no_vertices = 0;
         for attribute in attributes {
             self.stride = self.stride + attribute.no_components;
             no_vertices = attribute.data.len() / attribute.no_components;
@@ -112,6 +112,7 @@ impl VertexBuffer
 pub struct ElementBuffer {
     gl: gl::Gl,
     id: gl::Buffer,
+    no_vertices: usize
 }
 
 impl ElementBuffer
@@ -119,15 +120,20 @@ impl ElementBuffer
     pub fn new(gl: &gl::Gl) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = ElementBuffer{ gl: gl.clone(), id };
+        let buffer = ElementBuffer{ gl: gl.clone(), id, no_vertices: 0 };
         Ok(buffer)
     }
 
     pub fn new_with(gl: &gl::Gl, data: &[u32]) -> Result<ElementBuffer, Error>
     {
-        let buffer = ElementBuffer::new(gl)?;
+        let mut buffer = ElementBuffer::new(gl)?;
         buffer.fill_with(data);
+        buffer.no_vertices = data.len();
         Ok(buffer)
+    }
+
+    pub fn no_vertices(&self) -> usize {
+        self.no_vertices
     }
 
     pub fn bind(&self)
@@ -135,7 +141,7 @@ impl ElementBuffer
         bind(&self.gl, &self.id, gl::consts::ELEMENT_ARRAY_BUFFER);
     }
 
-    pub fn fill_with(&self, data: &[u32])
+    pub fn fill_with(&mut self, data: &[u32])
     {
         self.bind();
         self.gl.buffer_data_u32(gl::consts::ELEMENT_ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);

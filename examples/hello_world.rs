@@ -43,14 +43,13 @@ fn main() {
 
         renderer.render_pass_begin();
 
-        index_buffer.bind();
-        program.use_attribute_vec3_float("position", &buffer, 0).unwrap();
-        program.use_attribute_vec3_float("color", &buffer, 1).unwrap();
+        program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
+        program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
 
         program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
-        gl.draw_elements(gl::consts::TRIANGLES, 3, gl::consts::UNSIGNED_INT, 0);
+        program.draw_elements(&index_buffer);
     }).unwrap();
 }
 
