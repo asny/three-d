@@ -147,21 +147,35 @@ impl Program
         Ok(())
     }
 
-    pub fn enable_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
+    pub fn enable_attributes(&self, names: &Vec<&str>) -> Result<(), Error>
     {
+        // Use list of vertex attribute names/locations from gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES)
+        /*let numAttribs = self.gl.getProgramParameter(program, gl::ACTIVE_ATTRIBUTES);
+        for (let i = 0; i < numAttribs; ++i) {
+          const info = gl.getActiveAttrib(program, i);
+          console.log('name:', info.name, 'type:', info.type, 'size:', info.size);
+        }*/
         self.set_used();
-        for att in buffer.attributes_iter() {
-            self.gl.enable_vertex_attrib_array(self.location(&att.name)?);
+        for name in names {
+            self.gl.enable_vertex_attrib_array(self.location(&name)?);
         }
         Ok(())
     }
 
-    pub fn link_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
+    pub fn link_attributes(&self, attributes: &Vec<(&str, u32)>) -> Result<(), Error>
     {
+        self.set_used();
+
+        let mut stride = 0;
+        for (_, no_components) in attributes {
+            stride += no_components;
+        }
+
         let mut offset = 0;
-        for att in buffer.attributes_iter() {
-            self.gl.vertex_attrib_pointer(self.location(&att.name)?, att.no_components as u32, gl::consts::FLOAT, false, buffer.stride() as u32, offset as u32);
-            offset = offset + att.no_components;
+        for (name, no_components) in attributes {
+            let loc = self.location(&name)?;
+            self.gl.vertex_attrib_pointer(loc, *no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
+            offset += no_components;
         }
         Ok(())
     }

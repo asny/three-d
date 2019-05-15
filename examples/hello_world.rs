@@ -31,7 +31,7 @@ fn main() {
     let program = program::Program::from_source(&gl,
                                                 include_str!("assets/shaders/color.vert"),
                                                 include_str!("assets/shaders/color.frag")).unwrap();
-    program.enable_attributes(&buffer).unwrap();
+    program.enable_attributes(&vec!["position", "color"]).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
@@ -41,11 +41,12 @@ fn main() {
         for event in events {
             handle_camera_events(&event, &mut camera_handler, &mut camera);
         }
+
         renderer.render_pass_begin();
 
         index_buffer.bind();
         buffer.bind();
-        program.link_attributes(&buffer).unwrap();
+        program.link_attributes(&vec![("position", 3), ("color", 3)]).unwrap();
 
         program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
