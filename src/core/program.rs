@@ -153,21 +153,14 @@ impl Program
         Ok(())
     }
 
-    pub fn link_attributes(&self, attributes: &Vec<(&str, u32)>) -> Result<(), Error>
+    pub fn use_attribute_vec3_float(&self, name: &str, buffer: &buffer::VertexBuffer, index: usize) -> Result<(), Error>
     {
         self.set_used();
-
-        let mut stride = 0;
-        for (_, no_components) in attributes {
-            stride += no_components;
-        }
-
-        let mut offset = 0;
-        for (name, no_components) in attributes {
-            let loc = self.location(&name)?;
-            self.gl.vertex_attrib_pointer(loc, *no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
-            offset += no_components;
-        }
+        buffer.bind();
+        let stride = buffer.stride();
+        let offset = buffer.offset_from(index);
+        let loc = self.location(&name)?;
+        self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
         Ok(())
     }
 

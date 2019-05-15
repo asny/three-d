@@ -24,7 +24,8 @@ impl Attribute {
 
 pub struct Att {
     pub name: String,
-    pub no_components: usize
+    pub no_components: usize,
+    pub offset: usize
 }
 
 pub struct VertexBuffer {
@@ -60,6 +61,11 @@ impl VertexBuffer
         self.stride
     }
 
+    pub fn offset_from(&self, index: usize) -> usize
+    {
+        self.attributes_infos[index].offset
+    }
+
     pub fn attributes_iter(&self) -> Iter<Att>
     {
         self.attributes_infos.iter()
@@ -80,7 +86,7 @@ impl VertexBuffer
         for attribute in attributes
         {
             let no_components = attribute.no_components;
-            self.attributes_infos.push(Att {name: attribute.name.clone(), no_components});
+            self.attributes_infos.push(Att {name: attribute.name.clone(), no_components, offset});
             let mut index = offset;
             for i in 0..no_vertices {
                 for j in 0..no_components {
