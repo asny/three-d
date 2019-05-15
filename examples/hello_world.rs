@@ -31,7 +31,6 @@ fn main() {
     let program = program::Program::from_source(&gl,
                                                 include_str!("assets/shaders/color.vert"),
                                                 include_str!("assets/shaders/color.frag")).unwrap();
-    program.enable_attributes(&vec!["position", "color"]).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 

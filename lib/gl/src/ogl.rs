@@ -15,6 +15,7 @@ pub mod defines
     pub type Framebuffer = u32;
     pub type Texture = u32;
     pub type VertexArrayObject = u32;
+    pub struct ActiveInfo { pub size: u32, pub _type: u32, pub name: String }
 }
 pub use crate::ogl::defines::*;
 
@@ -89,6 +90,30 @@ impl Gl {
         unsafe {
             self.inner.DetachShader(*program, *shader);
         }
+    }
+
+    pub fn get_program_parameter(&self, program: &Program, pname: u32) -> u32
+    {
+        let mut out = 0;
+        unsafe {
+            self.inner.GetProgramiv(*program, pname, &mut out);
+        }
+        out as u32
+    }
+
+    pub fn get_active_attrib(&self, program: &Program, index: u32) -> ActiveInfo
+    {
+        let mut length = 128;
+        let mut size = 0;
+        let mut _type = 0;
+        let name = create_whitespace_cstring_with_len(length as usize);
+        unsafe {
+            self.inner.GetActiveAttrib(*program, index, length, &mut length, &mut size, &mut _type, name.as_ptr() as *mut consts::types::GLchar);
+        }
+
+        let mut s = name.to_string_lossy().into_owned();
+        s.truncate(length as usize);
+        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
     }
 
     pub fn create_buffer(&self) -> Option<Buffer>

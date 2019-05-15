@@ -44,23 +44,29 @@ impl Program
 
     pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
-        // Make static
-        let id = gl.create_vertex_array().unwrap();
-        gl.bind_vertex_array(&id);
+        // TODO: Make static
+        gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
 
-        let program = gl.create_program();
-
-        for shader in shaders {
-            shader.attach_shader(&program);
-        }
-
-        gl.link_program(&program).map_err(|message| Error::FailedToLinkProgram {message})?;
+        let id = gl.create_program();
 
         for shader in shaders {
-            shader.detach_shader(&program);
+            shader.attach_shader(&id);
         }
 
-        Ok(Program { gl: gl.clone(), id: program })
+        gl.link_program(&id).map_err(|message| Error::FailedToLinkProgram {message})?;
+
+        for shader in shaders {
+            shader.detach_shader(&id);
+        }
+
+        let num_attribs = gl.get_program_parameter(&id, gl::consts::ACTIVE_ATTRIBUTES);
+        for i in 0..num_attribs {
+            let info = gl.get_active_attrib(&id, i);
+            println!("location: {}, name: {}, type: {}, size: {}", i, info.name, info._type, info.size);
+            gl.enable_vertex_attrib_array(i);
+        }
+
+        Ok(Program { gl: gl.clone(), id })
     }
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
@@ -144,21 +150,6 @@ impl Program
         self.gl.enable_vertex_attrib_array(location);
         self.gl.vertex_attrib_pointer(location, no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(location, divisor as u32);
-        Ok(())
-    }
-
-    pub fn enable_attributes(&self, names: &Vec<&str>) -> Result<(), Error>
-    {
-        // Use list of vertex attribute names/locations from gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES)
-        /*let numAttribs = self.gl.getProgramParameter(program, gl::ACTIVE_ATTRIBUTES);
-        for (let i = 0; i < numAttribs; ++i) {
-          const info = gl.getActiveAttrib(program, i);
-          console.log('name:', info.name, 'type:', info.type, 'size:', info.size);
-        }*/
-        self.set_used();
-        for name in names {
-            self.gl.enable_vertex_attrib_array(self.location(&name)?);
-        }
         Ok(())
     }
 
