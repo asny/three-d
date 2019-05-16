@@ -32,6 +32,7 @@ pub struct VertexBuffer {
     gl: gl::Gl,
     id: gl::Buffer,
     stride: usize,
+    count: usize,
     attributes_infos: Vec<Att>
 }
 
@@ -40,7 +41,7 @@ impl VertexBuffer
     pub fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, attributes_infos: Vec::new() };
+        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, count: 0, attributes_infos: Vec::new() };
         Ok(buffer)
     }
 
@@ -54,6 +55,11 @@ impl VertexBuffer
     pub fn bind(&self)
     {
         bind(&self.gl, &self.id, gl::consts::ARRAY_BUFFER);
+    }
+
+    pub fn count(&self) -> usize
+    {
+        self.count
     }
 
     pub fn stride(&self) -> usize
@@ -75,20 +81,20 @@ impl VertexBuffer
     {
         self.attributes_infos = Vec::new();
         self.stride = 0;
-        let mut no_vertices = 0;
+        self.count = 0;
         for attribute in attributes {
             self.stride = self.stride + attribute.no_components;
-            no_vertices = attribute.data.len() / attribute.no_components;
+            self.count = attribute.data.len() / attribute.no_components;
         }
 
-        let mut data: Vec<f32> = vec![0.0; self.stride * no_vertices];
+        let mut data: Vec<f32> = vec![0.0; self.stride * self.count];
         let mut offset = 0;
         for attribute in attributes
         {
             let no_components = attribute.no_components;
             self.attributes_infos.push(Att {name: attribute.name.clone(), no_components, offset});
             let mut index = offset;
-            for i in 0..no_vertices {
+            for i in 0..self.count {
                 for j in 0..no_components {
                     data[index + j] = attribute.data[i * no_components + j];
                 }
@@ -112,7 +118,7 @@ impl VertexBuffer
 pub struct ElementBuffer {
     gl: gl::Gl,
     id: gl::Buffer,
-    no_vertices: usize
+    count: usize
 }
 
 impl ElementBuffer
@@ -120,7 +126,7 @@ impl ElementBuffer
     pub fn new(gl: &gl::Gl) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = ElementBuffer{ gl: gl.clone(), id, no_vertices: 0 };
+        let buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };
         Ok(buffer)
     }
 
@@ -128,12 +134,12 @@ impl ElementBuffer
     {
         let mut buffer = ElementBuffer::new(gl)?;
         buffer.fill_with(data);
-        buffer.no_vertices = data.len();
+        buffer.count = data.len();
         Ok(buffer)
     }
 
-    pub fn no_vertices(&self) -> usize {
-        self.no_vertices
+    pub fn count(&self) -> usize {
+        self.count
     }
 
     pub fn bind(&self)

@@ -185,7 +185,7 @@ impl Program
     {
         self.set_used();
         element_buffer.bind();
-        self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.no_vertices() as u32, gl::consts::UNSIGNED_INT, 0);
+        self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0);
     }
 
     pub fn draw_subset_of_elements(&self, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
