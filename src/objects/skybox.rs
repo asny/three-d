@@ -1,6 +1,6 @@
 use gl;
 use crate::*;
-use crate::surface::*;
+use crate::buffer::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -22,7 +22,7 @@ impl From<surface::Error> for Error {
 
 pub struct Skybox {
     program: program::Program,
-    model: TriangleSurface,
+    vertex_buffer: VertexBuffer,
     texture: texture::Texture3D
 }
 
@@ -35,11 +35,9 @@ impl Skybox
                                                     include_str!("shaders/skybox.frag")).unwrap();
 
         let positions = get_positions();
-        let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
-        let mut model = TriangleSurface::new(gl, &indices).unwrap();
-        model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
+        let vertex_buffer = VertexBuffer::new_from_attributes(gl, &att!["position" => (positions, 3)]).unwrap();
 
-        Skybox { program, model, texture }
+        Skybox { program, vertex_buffer, texture }
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
@@ -54,7 +52,8 @@ impl Skybox
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
         self.program.add_uniform_vec3("cameraPosition", camera.position())?;
 
-        self.model.render()?;
+        self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;
+        self.program.draw_arrays(self.vertex_buffer.count() as u32);
         Ok(())
     }
 
