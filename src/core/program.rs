@@ -188,6 +188,13 @@ impl Program
         self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.no_vertices() as u32, gl::consts::UNSIGNED_INT, 0);
     }
 
+    pub fn draw_subset_of_elements(&self, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
+    {
+        self.set_used();
+        element_buffer.bind();
+        self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
+    }
+
     fn location(&self, name: &str) -> Result<u32, Error>
     {
         let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
