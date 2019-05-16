@@ -44,8 +44,14 @@ impl Program
 
     pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
-        // TODO: Make static
-        gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
+        unsafe {
+            static mut VAO: Option<u32> = None;
+            if(VAO.is_none())
+            {
+                VAO = Some(gl.create_vertex_array().unwrap());
+                gl.bind_vertex_array(VAO.as_ref().unwrap());
+            }
+        }
 
         let id = gl.create_program();
 
