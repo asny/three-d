@@ -60,6 +60,8 @@ impl Window
     {
         let mut events = Vec::new();
         let mut last_time = std::time::Instant::now();
+        let mut count = 0;
+        let mut accumulated_time = 0.0;
         let mut error = Ok(());
         while error.is_ok() {
             self.events_loop.poll_events(|event| {
@@ -74,6 +76,13 @@ impl Window
             let duration = now.duration_since(last_time);
             last_time = now;
             let elapsed_time = duration.as_secs() as f64 * 1000.0 + duration.subsec_nanos() as f64 * 1e-6;
+            accumulated_time += elapsed_time;
+            count += 1;
+            if accumulated_time > 1000.0 {
+                println!("FPS: {}", count as f64 / (accumulated_time * 0.001));
+                count = 0;
+                accumulated_time = 0.0;
+            }
 
             callback(&events, elapsed_time);
             events.clear();

@@ -53,6 +53,7 @@ impl Skybox
         self.program.add_uniform_vec3("cameraPosition", camera.position())?;
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;
+
         self.program.draw_arrays(self.vertex_buffer.count() as u32);
         Ok(())
     }
