@@ -175,10 +175,10 @@ impl Program
         Ok(())
     }
 
-    pub fn draw_arrays(&self, no_vertices: u32)
+    pub fn draw_arrays(&self, count: u32)
     {
         self.set_used();
-        self.gl.draw_arrays(gl::consts::TRIANGLES, 0, no_vertices);
+        self.gl.draw_arrays(gl::consts::TRIANGLES, 0, count);
     }
 
     pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)

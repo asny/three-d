@@ -13,9 +13,6 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
-    let indices: Vec<u32> = (0..3).collect();
-    let index_buffer = buffer::ElementBuffer::new_with(&gl, &indices).unwrap();
-
     let positions: Vec<f32> = vec![
         0.5, -0.5, 0.0, // bottom right
         -0.5, -0.5, 0.0,// bottom left
@@ -49,7 +46,7 @@ fn main() {
         program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
-        program.draw_elements(&index_buffer);
+        program.draw_arrays(3);
     }).unwrap();
 }
 
