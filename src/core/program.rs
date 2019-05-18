@@ -46,7 +46,7 @@ impl Program
     {
         unsafe {
             static mut VAO: Option<u32> = None;
-            if(VAO.is_none())
+            if VAO.is_none()
             {
                 VAO = Some(gl.create_vertex_array().unwrap());
                 gl.bind_vertex_array(VAO.as_ref().unwrap());
@@ -161,16 +161,29 @@ impl Program
 
     pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
+        self.use_attribute_vec2_float_divisor(buffer, attribute_name, index, 0)?;
+        Ok(())
+    }
+
+    pub fn use_attribute_vec2_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
+    {
         self.set_used();
         buffer.bind();
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
         self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, stride as u32, offset as u32);
+        self.gl.vertex_attrib_divisor(loc, divisor as u32);
         Ok(())
     }
 
     pub fn use_attribute_vec3_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
+    {
+        self.use_attribute_vec3_float_divisor(buffer, attribute_name, index, 0)?;
+        Ok(())
+    }
+
+    pub fn use_attribute_vec3_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
         self.set_used();
         buffer.bind();
@@ -178,6 +191,7 @@ impl Program
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
         self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
+        self.gl.vertex_attrib_divisor(loc, divisor as u32);
         Ok(())
     }
 
@@ -199,6 +213,13 @@ impl Program
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
+    }
+
+    pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, instance_buffer: &buffer::VertexBuffer)
+    {
+        self.set_used();
+        element_buffer.bind();
+        self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, instance_buffer.count() as u32);
     }
 
     fn location(&self, name: &str) -> Result<u32, Error>
