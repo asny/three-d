@@ -6,8 +6,7 @@ use crate::core::buffer::{VertexBuffer, ElementBuffer, Attribute};
 #[derive(Debug)]
 pub enum Error {
     Buffer(buffer::Error),
-    Program(program::Error),
-    Surface(surface::Error)
+    Program(program::Error)
 }
 
 impl From<program::Error> for Error {
