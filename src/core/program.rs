@@ -137,17 +137,6 @@ impl Program
         self.gl.get_uniform_location(&self.id, name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find {}", name)})
     }
 
-    pub fn setup_attributes(&self, buffer: &buffer::VertexBuffer) -> Result<(), Error>
-    {
-        let mut offset = 0;
-        for att in buffer.attributes_iter() {
-            self.setup_attribute(buffer,&att.name, att.no_components, buffer.stride(), offset, 0)?;
-            offset = offset + att.no_components;
-        }
-
-        Ok(())
-    }
-
     pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
         self.set_used();

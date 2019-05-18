@@ -22,18 +22,12 @@ impl Attribute {
     }
 }
 
-pub struct Att {
-    pub name: String,
-    pub no_components: usize,
-    pub offset: usize
-}
-
 pub struct VertexBuffer {
     gl: gl::Gl,
     id: gl::Buffer,
     stride: usize,
     count: usize,
-    attributes_infos: Vec<Att>
+    offsets: Vec<usize>
 }
 
 impl VertexBuffer
@@ -41,7 +35,7 @@ impl VertexBuffer
     pub fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, count: 0, attributes_infos: Vec::new() };
+        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, count: 0, offsets: Vec::new() };
         Ok(buffer)
     }
 
@@ -69,17 +63,12 @@ impl VertexBuffer
 
     pub fn offset_from(&self, index: usize) -> usize
     {
-        self.attributes_infos[index].offset
-    }
-
-    pub fn attributes_iter(&self) -> Iter<Att>
-    {
-        self.attributes_infos.iter()
+        self.offsets[index]
     }
 
     pub fn fill_from_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
     {
-        self.attributes_infos = Vec::new();
+        self.offsets = Vec::new();
         self.stride = 0;
         self.count = 0;
         for attribute in attributes {
@@ -92,7 +81,7 @@ impl VertexBuffer
         for attribute in attributes
         {
             let no_components = attribute.no_components;
-            self.attributes_infos.push(Att {name: attribute.name.clone(), no_components, offset});
+            self.offsets.push(offset);
             let mut index = offset;
             for i in 0..self.count {
                 for j in 0..no_components {
