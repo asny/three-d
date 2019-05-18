@@ -5,7 +5,8 @@ use crate::*;
 pub struct ShadedVertices {
     program: program::Program,
     instance_buffer: buffer::VertexBuffer,
-    surface: surface::TriangleSurface,
+    ball_index_buffer: buffer::ElementBuffer,
+    ball_vertex_buffer: buffer::VertexBuffer,
     no_vertices: usize,
     pub color: Vec3,
     pub diffuse_intensity: f32,
@@ -36,20 +37,18 @@ impl ShadedVertices
            7,3,10, 7,10,6, 7,6,11, 11,6,0, 0,6,1,
            6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
         );
-        let mut surface = surface::TriangleSurface::new(gl, &ball_indices).unwrap();
-        surface.add_attributes(&program, &att!["position" => (ball_positions, 3)]).unwrap();
+        let ball_index_buffer = buffer::ElementBuffer::new_with(gl, &ball_indices).unwrap();
+        let ball_vertex_buffer = buffer::VertexBuffer::new_from_attributes(gl,&att!["position" => (ball_positions, 3)]).unwrap();
+        let instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
 
-        let mut instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
-
-        program.setup_attribute(&instance_buffer,"translation", 3, 3, 0, 1).unwrap();
-        instance_buffer.fill_with(positions);
-
-        ShadedVertices { program, instance_buffer, surface, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
+        let mut object = ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 };
+        object.update_positions(positions);
+        object
     }
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.instance_buffer.fill_with(positions);
+        self.instance_buffer.fill_from_attributes(&att!["translation" => (positions.to_vec(), 3)]).unwrap();
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -69,6 +68,10 @@ impl ShadedVertices
 
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
-        self.surface.render_instances(self.no_vertices).unwrap();
+
+        self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();
+        self.program.use_attribute_vec3_float(&self.ball_vertex_buffer, "position", 0).unwrap();
+
+        self.program.draw_elements_instanced(&self.ball_index_buffer, &self.instance_buffer);
     }
 }
