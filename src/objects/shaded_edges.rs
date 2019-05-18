@@ -5,7 +5,8 @@ use crate::*;
 pub struct ShadedEdges {
     program: program::Program,
     instance_buffer: buffer::VertexBuffer,
-    surface: surface::TriangleSurface,
+    cylinder_index_buffer: buffer::ElementBuffer,
+    cylinder_vertex_buffer: buffer::VertexBuffer,
     index_pairs: std::collections::HashSet<(usize, usize)>,
     no_edges: usize,
     tube_radius: f32,
@@ -48,18 +49,10 @@ impl ShadedEdges
                 cylinder_indices.push((i+1) * angle_subdivisions as u32 + j);
             }
         }
-        let mut surface = surface::TriangleSurface::new(gl, &cylinder_indices).unwrap();
-        surface.add_attributes(&program, &att!["position" => (cylinder_positions, 3)]).unwrap();
+        let cylinder_index_buffer = buffer::ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
+        let cylinder_vertex_buffer = buffer::VertexBuffer::new_from_attributes(gl,&att!["position" => (cylinder_positions, 3)]).unwrap();
 
         let instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
-
-        program.setup_attribute(&instance_buffer,"local2worldX", 3, 21, 0, 1).unwrap();
-        program.setup_attribute(&instance_buffer,"local2worldY", 3, 21, 3, 1).unwrap();
-        program.setup_attribute(&instance_buffer,"local2worldZ", 3, 21, 6, 1).unwrap();
-        program.setup_attribute(&instance_buffer,"translation", 3, 21, 9, 1).unwrap();
-        program.setup_attribute(&instance_buffer,"normalMatrixX", 3, 21, 12, 1).unwrap();
-        program.setup_attribute(&instance_buffer,"normalMatrixY", 3, 21, 15, 1).unwrap();
-        program.setup_attribute(&instance_buffer,"normalMatrixZ", 3, 21, 18, 1).unwrap();
 
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {
@@ -72,7 +65,7 @@ impl ShadedEdges
         }
         let no_edges = index_pairs.len();
 
-        let mut object = ShadedEdges { program, instance_buffer, surface, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 };
+        let mut object = ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 };
         object.update_positions(positions);
         object
     }
@@ -124,6 +117,18 @@ impl ShadedEdges
 
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
-        self.surface.render_instances(self.no_edges).unwrap();
+
+        self.program.use_attribute_vec3_float(&self.cylinder_vertex_buffer, "position", 0).unwrap();
+
+        self.instance_buffer.bind();
+        self.program.setup_attribute(&self.instance_buffer,"local2worldX", 3, 21, 0, 1).unwrap();
+        self.program.setup_attribute(&self.instance_buffer,"local2worldY", 3, 21, 3, 1).unwrap();
+        self.program.setup_attribute(&self.instance_buffer,"local2worldZ", 3, 21, 6, 1).unwrap();
+        self.program.setup_attribute(&self.instance_buffer,"translation", 3, 21, 9, 1).unwrap();
+        self.program.setup_attribute(&self.instance_buffer,"normalMatrixX", 3, 21, 12, 1).unwrap();
+        self.program.setup_attribute(&self.instance_buffer,"normalMatrixY", 3, 21, 15, 1).unwrap();
+        self.program.setup_attribute(&self.instance_buffer,"normalMatrixZ", 3, 21, 18, 1).unwrap();
+
+        self.program.draw_elements_instanced(&self.cylinder_index_buffer,&self.instance_buffer);
     }
 }
