@@ -38,7 +38,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let mut plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
+    let mut plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;

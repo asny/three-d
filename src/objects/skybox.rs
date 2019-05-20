@@ -28,7 +28,7 @@ impl Skybox
                                                     include_str!("shaders/skybox.frag")).unwrap();
 
         let positions = get_positions();
-        let vertex_buffer = VertexBuffer::new_from_attributes(gl, &att!["position" => (positions, 3)]).unwrap();
+        let vertex_buffer = VertexBufferBuilder::new_with_vec3(gl, positions).unwrap();
 
         Skybox { program, vertex_buffer, texture }
     }

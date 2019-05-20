@@ -50,7 +50,7 @@ impl ShadedEdges
             }
         }
         let cylinder_index_buffer = buffer::ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
-        let cylinder_vertex_buffer = buffer::VertexBuffer::new_from_attributes(gl,&att!["position" => (cylinder_positions, 3)]).unwrap();
+        let cylinder_vertex_buffer = buffer::VertexBufferBuilder::new_with_vec3(gl,cylinder_positions).unwrap();
 
         let instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
 

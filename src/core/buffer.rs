@@ -7,18 +7,73 @@ pub enum Error {
     AttributeHasZeroLength {message: String}
 }
 
-#[derive(Clone, Debug)]
-pub struct Attribute {
-    pub name: String,
-    pub no_components: usize,
-    pub data: Vec<f32>
+pub struct VertexBufferBuilder {
+    gl: gl::Gl,
+    data: Vec<(Vec<f32>, usize)>
 }
 
-impl Attribute {
-    pub fn new(name: &str, no_components: usize, data: Vec<f32>) -> Result<Attribute, Error>
+impl VertexBufferBuilder {
+    pub fn new(gl: &gl::Gl) -> Result<VertexBufferBuilder, Error>
     {
-        if data.len() == 0 { return Err(Error::AttributeHasZeroLength {message: format!("The attribute {} does not contain any data.", name)}); }
-        Ok(Attribute {name: name.to_string(), no_components, data})
+        Ok(VertexBufferBuilder{gl: gl.clone(), data: Vec::new() })
+    }
+
+    pub fn add(&mut self, data: Vec<f32>, no_components: usize)
+    {
+        self.data.push((data, no_components));
+    }
+
+    pub fn build(&self) -> Result<VertexBuffer, Error>
+    {
+        // TODO: not use interleaved when not the same count (no_vertices)
+        let mut no_vertices = 0;
+        let mut offsets = Vec::new();
+        let mut stride = 0;
+        for (data, no_components) in self.data.iter() {
+
+            no_vertices = data.len() / no_components;
+            offsets.push(stride);
+            stride += no_components;
+        }
+
+        let mut data_out: Vec<f32> = vec![0.0; stride * no_vertices];
+        let mut offset = 0;
+        for (data, no_components) in self.data.iter()
+        {
+            let mut index = offset;
+            for i in 0..no_vertices {
+                for j in 0..*no_components {
+                    data_out[index + j] = data[i * no_components + j];
+                }
+                index += stride;
+            }
+            offset += no_components;
+        }
+
+        VertexBuffer::new_with_data(&self.gl, no_vertices, stride, offsets, &data_out)
+    }
+
+    pub fn new_with_vec3(gl: &gl::Gl, attribute: Vec<f32>) -> Result<VertexBuffer, Error>
+    {
+        let mut builder = VertexBufferBuilder::new(gl)?;
+        builder.add(attribute, 3);
+        builder.build()
+    }
+
+    pub fn new_with_vec3_vec3(gl: &gl::Gl, attribute0: Vec<f32>, attribute1: Vec<f32>) -> Result<VertexBuffer, Error>
+    {
+        let mut builder = VertexBufferBuilder::new(gl)?;
+        builder.add(attribute0, 3);
+        builder.add(attribute1, 3);
+        builder.build()
+    }
+
+    pub fn new_with_vec3_vec2(gl: &gl::Gl, attribute0: Vec<f32>, attribute1: Vec<f32>) -> Result<VertexBuffer, Error>
+    {
+        let mut builder = VertexBufferBuilder::new(gl)?;
+        builder.add(attribute0, 3);
+        builder.add(attribute1, 2);
+        builder.build()
     }
 }
 
@@ -26,24 +81,31 @@ pub struct VertexBuffer {
     gl: gl::Gl,
     id: gl::Buffer,
     stride: usize,
-    count: usize,
+    no_vertices: usize,
     offsets: Vec<usize>
 }
 
 impl VertexBuffer
 {
-    pub fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
+    pub(crate) fn new_with_data(gl: &gl::Gl, no_vertices: usize, stride: usize, offsets: Vec<usize>, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, count: 0, offsets: Vec::new() };
+        let mut buffer = VertexBuffer{gl: gl.clone(), id, stride, no_vertices, offsets };
+        buffer.fill_with(data);
         Ok(buffer)
     }
 
-    pub fn new_from_attributes(gl: &gl::Gl, attributes: &[Attribute]) -> Result<VertexBuffer, Error>
+    pub(crate) fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
     {
-        let mut buffer = VertexBuffer::new(gl)?;
-        buffer.fill_from_attributes(attributes)?;
+        let id = gl.create_buffer().unwrap();
+        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, no_vertices: 0, offsets: Vec::new() };
         Ok(buffer)
+    }
+
+    pub(crate) fn fill_with(&mut self, data: &[f32])
+    {
+        self.bind();
+        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
     }
 
     pub fn bind(&self)
@@ -53,7 +115,7 @@ impl VertexBuffer
 
     pub fn count(&self) -> usize
     {
-        self.count
+        self.no_vertices
     }
 
     pub fn stride(&self) -> usize
@@ -64,42 +126,6 @@ impl VertexBuffer
     pub fn offset_from(&self, index: usize) -> usize
     {
         self.offsets[index]
-    }
-
-    pub fn fill_from_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
-    {
-        self.offsets = Vec::new();
-        self.stride = 0;
-        self.count = 0;
-        for attribute in attributes {
-            self.stride = self.stride + attribute.no_components;
-            self.count = attribute.data.len() / attribute.no_components;
-        }
-
-        let mut data: Vec<f32> = vec![0.0; self.stride * self.count];
-        let mut offset = 0;
-        for attribute in attributes
-        {
-            let no_components = attribute.no_components;
-            self.offsets.push(offset);
-            let mut index = offset;
-            for i in 0..self.count {
-                for j in 0..no_components {
-                    data[index + j] = attribute.data[i * no_components + j];
-                }
-                index += self.stride;
-            }
-            offset = offset + no_components;
-        }
-
-        self.fill_with(&data);
-        Ok(())
-    }
-
-    pub fn fill_with(&mut self, data: &[f32])
-    {
-        self.bind();
-        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
     }
 }
 

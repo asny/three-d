@@ -32,7 +32,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
+    let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
     let ambient_light = crate::light::AmbientLight::new();
 

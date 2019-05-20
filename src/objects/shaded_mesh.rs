@@ -1,7 +1,7 @@
 
 use gl;
 use crate::*;
-use crate::core::buffer::{VertexBuffer, ElementBuffer, Attribute};
+use crate::core::buffer::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -34,12 +34,12 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn new(gl: &gl::Gl, indices: &[u32], attributes: &[Attribute]) -> Result<ShadedMesh, Error>
+    pub fn new(gl: &gl::Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<ShadedMesh, Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
-        let vertex_buffer = VertexBuffer::new_from_attributes(gl, attributes)?;
+        let vertex_buffer = VertexBufferBuilder::new_with_vec3_vec3(gl, positions.to_vec(), normals.to_vec())?;
         let index_buffer = ElementBuffer::new_with(gl, indices)?;
 
         Ok(ShadedMesh { program, index_buffer, vertex_buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
@@ -79,14 +79,14 @@ impl ShadedMesh
                 _ => {}
             }
         }
-        Self::new(&gl, &indices, &att!["position" => (positions, 3), "normal" => (normals, 3)])
+        Self::new(&gl, &indices, &positions, &normals)
     }
 
-    pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
+    /*pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
     {
         self.vertex_buffer.fill_from_attributes(attributes)?;
         Ok(())
-    }
+    }*/
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {

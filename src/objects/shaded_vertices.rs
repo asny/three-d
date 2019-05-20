@@ -38,17 +38,16 @@ impl ShadedVertices
            6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
         );
         let ball_index_buffer = buffer::ElementBuffer::new_with(gl, &ball_indices).unwrap();
-        let ball_vertex_buffer = buffer::VertexBuffer::new_from_attributes(gl,&att!["position" => (ball_positions, 3)]).unwrap();
-        let instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
+        let ball_vertex_buffer = buffer::VertexBufferBuilder::new_with_vec3(gl, ball_positions).unwrap();
+        let instance_buffer = buffer::VertexBufferBuilder::new_with_vec3(gl, positions.to_vec()).unwrap();
 
-        let mut object = ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 };
-        object.update_positions(positions);
-        object
+        ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0),
+            diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
     }
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.instance_buffer.fill_from_attributes(&att!["translation" => (positions.to_vec(), 3)]).unwrap();
+        self.instance_buffer.fill_with(positions);
     }
 
     pub fn render(&self, camera: &camera::Camera)

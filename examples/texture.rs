@@ -16,8 +16,7 @@ fn main() {
 
     let positions = positions();
     let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
-    let mut textured_box = objects::ShadedMesh::new(&gl, &indices, &att!["position"=> (positions, 3),
-                                                                    "normal"=> (normals(), 3)]).unwrap();
+    let mut textured_box = objects::ShadedMesh::new(&gl, &indices, &positions, &normals()).unwrap();
 
     textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("assets/textures/test_texture.jpg")).unwrap());
 
