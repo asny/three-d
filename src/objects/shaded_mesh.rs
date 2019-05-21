@@ -84,6 +84,7 @@ impl ShadedMesh
 
     /*pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
     {
+    TODO
         self.vertex_buffer.fill_from_attributes(attributes)?;
         Ok(())
     }*/

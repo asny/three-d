@@ -90,7 +90,7 @@ impl VertexBuffer
     pub(crate) fn new_with_data(gl: &gl::Gl, no_vertices: usize, stride: usize, offsets: Vec<usize>, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let mut buffer = VertexBuffer{gl: gl.clone(), id, stride, no_vertices, offsets };
+        let mut buffer = VertexBuffer {gl: gl.clone(), id, stride, no_vertices, offsets };
         buffer.fill_with(data);
         Ok(buffer)
     }
@@ -98,7 +98,7 @@ impl VertexBuffer
     pub(crate) fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer{gl: gl.clone(), id, stride: 0, no_vertices: 0, offsets: Vec::new() };
+        let buffer = VertexBuffer {gl: gl.clone(), id, stride: 0, no_vertices: 0, offsets: Vec::new() };
         Ok(buffer)
     }
 
