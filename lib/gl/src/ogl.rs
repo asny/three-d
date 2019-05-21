@@ -128,13 +128,7 @@ impl Gl {
     pub fn bind_buffer(&self, target: u32, buffer: Option<&Buffer>)
     {
         unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            let id = *buffer.unwrap();
-            if id != CURRENTLY_USED
-            {
-                self.inner.BindBuffer(target, id);
-                CURRENTLY_USED = id;
-            }
+            self.inner.BindBuffer(target, *buffer.unwrap());
         }
     }
 
@@ -174,13 +168,7 @@ impl Gl {
     pub fn bind_vertex_array(&self, array: &VertexArrayObject)
     {
         unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            let id = *array;
-            if id != CURRENTLY_USED
-            {
-                self.inner.BindVertexArray(id);
-                CURRENTLY_USED = id;
-            }
+            self.inner.BindVertexArray(*array);
         }
     }
 
@@ -223,13 +211,7 @@ impl Gl {
     pub fn use_program(&self, program: &Program)
     {
         unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            let id = *program;
-            if id != CURRENTLY_USED
-            {
-                self.inner.UseProgram(id);
-                CURRENTLY_USED = id;
-            }
+            self.inner.UseProgram(*program);
         }
     }
 
@@ -362,12 +344,7 @@ impl Gl {
     {
         let id = match framebuffer { Some(fb) => *fb, None => 0 };
         unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            if id != CURRENTLY_USED
-            {
-                self.inner.BindFramebuffer(target, id);
-                CURRENTLY_USED = id;
-            }
+            self.inner.BindFramebuffer(target, id);
         }
     }
 

@@ -35,6 +35,8 @@ impl Skybox
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
     {
+        self.program.set_used();
+
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
         self.program.depth_test(state::DepthTestType::LEQUAL);
@@ -45,6 +47,7 @@ impl Skybox
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
         self.program.add_uniform_vec3("cameraPosition", camera.position())?;
 
+        self.vertex_buffer.bind();
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;
 
         self.program.draw_arrays(self.vertex_buffer.count() as u32);

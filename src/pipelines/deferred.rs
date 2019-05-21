@@ -85,6 +85,8 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::ONE__ONE);
 
+        self.light_pass_program.set_used();
+
         self.geometry_pass_color_texture().bind(0);
         self.light_pass_program.add_uniform_int("colorMap", &0)?;
 
@@ -107,7 +109,6 @@ impl DeferredPipeline
 
     pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
     {
-
         self.light_pass_program.add_uniform_int("lightType", &0)?;
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;

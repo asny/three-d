@@ -91,6 +91,7 @@ impl ShadedMesh
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
+        self.program.set_used();
         self.program.cull(state::CullType::NONE);
         self.program.depth_test(state::DepthTestType::LEQUAL);
         self.program.depth_write(true);
@@ -115,9 +116,11 @@ impl ShadedMesh
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
         self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
+        self.vertex_buffer.bind();
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0).unwrap();
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "normal", 1).unwrap();
 
+        self.index_buffer.bind();
         self.program.draw_elements(&self.index_buffer);
     }
 }

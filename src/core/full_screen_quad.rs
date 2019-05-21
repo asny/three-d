@@ -25,6 +25,7 @@ pub fn render(gl: &gl::Gl, program: &program::Program)
             FULL_SCREEN__QUAD.as_ref().unwrap()
         };
 
+    buffer.bind();
     program.use_attribute_vec3_float(buffer, "position", 0).unwrap();
     program.use_attribute_vec2_float(buffer, "uv_coordinate", 1).unwrap();
 

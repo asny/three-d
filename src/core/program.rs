@@ -44,15 +44,7 @@ impl Program
 
     pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
-        unsafe {
-            static mut VAO: Option<u32> = None;
-            if VAO.is_none()
-            {
-                VAO = Some(gl.create_vertex_array().unwrap());
-                gl.bind_vertex_array(VAO.as_ref().unwrap());
-            }
-        }
-
+        Self::init(gl);
         let id = gl.create_program();
 
         for shader in shaders {
@@ -65,6 +57,7 @@ impl Program
             shader.detach_shader(&id);
         }
 
+        gl.use_program(&id);
         let num_attribs = gl.get_program_parameter(&id, gl::consts::ACTIVE_ATTRIBUTES);
         for i in 0..num_attribs {
             let info = gl.get_active_attrib(&id, i);
@@ -73,6 +66,18 @@ impl Program
         }
 
         Ok(Program { gl: gl.clone(), id })
+    }
+
+    fn init(gl: &gl::Gl)
+    {
+        unsafe {
+            static mut VAO: Option<u32> = None;
+            if VAO.is_none()
+            {
+                VAO = Some(gl.create_vertex_array().unwrap());
+                gl.bind_vertex_array(VAO.as_ref().unwrap());
+            }
+        }
     }
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
@@ -133,14 +138,11 @@ impl Program
 
     fn get_uniform_location(&self, name: &str) -> Result<gl::UniformLocation, Error>
     {
-        self.set_used();
         self.gl.get_uniform_location(&self.id, name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find {}", name)})
     }
 
     pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
-        self.set_used();
-        buffer.bind();
         let location = self.location(name)?;
         self.gl.enable_vertex_attrib_array(location);
         self.gl.vertex_attrib_pointer(location, no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
@@ -156,8 +158,6 @@ impl Program
 
     pub fn use_attribute_vec2_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
-        self.set_used();
-        buffer.bind();
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
@@ -174,8 +174,6 @@ impl Program
 
     pub fn use_attribute_vec3_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
-        self.set_used();
-        buffer.bind();
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
@@ -186,28 +184,21 @@ impl Program
 
     pub fn draw_arrays(&self, count: u32)
     {
-        self.set_used();
         self.gl.draw_arrays(gl::consts::TRIANGLES, 0, count);
     }
 
     pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
     {
-        self.set_used();
-        element_buffer.bind();
         self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0);
     }
 
     pub fn draw_subset_of_elements(&self, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
     {
-        self.set_used();
-        element_buffer.bind();
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
     }
 
     pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, instance_buffer: &buffer::VertexBuffer)
     {
-        self.set_used();
-        element_buffer.bind();
         self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, instance_buffer.count() as u32);
     }
 
