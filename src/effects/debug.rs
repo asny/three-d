@@ -31,6 +31,7 @@ impl DebugEffect {
         state::depth_test(&self.gl, state::DepthTestType::NONE);
         state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
 
+        self.program.set_used();
         color_texture.bind(0);
         self.program.add_uniform_int("colorMap", &0)?;
 

@@ -44,7 +44,6 @@ impl Program
 
     pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
-        Self::init(gl);
         let id = gl.create_program();
 
         for shader in shaders {
@@ -57,27 +56,15 @@ impl Program
             shader.detach_shader(&id);
         }
 
-        gl.use_program(&id);
         let num_attribs = gl.get_program_parameter(&id, gl::consts::ACTIVE_ATTRIBUTES);
         for i in 0..num_attribs {
             let info = gl.get_active_attrib(&id, i);
             println!("location: {}, name: {}, type: {}, size: {}", i, info.name, info._type, info.size);
             gl.enable_vertex_attrib_array(i);
         }
+        crate::core::hidden::init(gl);
 
         Ok(Program { gl: gl.clone(), id })
-    }
-
-    fn init(gl: &gl::Gl)
-    {
-        unsafe {
-            static mut VAO: Option<u32> = None;
-            if VAO.is_none()
-            {
-                VAO = Some(gl.create_vertex_array().unwrap());
-                gl.bind_vertex_array(VAO.as_ref().unwrap());
-            }
-        }
     }
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>

@@ -209,6 +209,7 @@ impl DeferredPipeline
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         let program = self.copy_program()?;
+        program.set_used();
         self.rendertarget.bind();
         self.rendertarget.clear();
 
