@@ -36,7 +36,8 @@ impl FogEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        full_screen_quad::render(&self.gl, &self.program);
+        full_screen_quad::bind(&self.gl, &self.program);
+        full_screen_quad::render(&self.program);
         Ok(())
     }
 

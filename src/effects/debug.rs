@@ -46,7 +46,8 @@ impl DebugEffect {
 
         self.program.add_uniform_int("type", &(self.debug_type as i32))?;
 
-        full_screen_quad::render(&self.gl, &self.program);
+        full_screen_quad::bind(&self.gl, &self.program);
+        full_screen_quad::render(&self.program);
         Ok(())
     }
 

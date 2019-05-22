@@ -104,6 +104,8 @@ impl DeferredPipeline
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
 
+        full_screen_quad::bind(&self.gl, &self.light_pass_program);
+
         Ok(())
     }
 
@@ -113,7 +115,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
 
-        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        full_screen_quad::render(&self.light_pass_program);
         Ok(())
     }
 
@@ -139,7 +141,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("directionalLight.base.intensity", &light.base.intensity)?;
 
-        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        full_screen_quad::render(&self.light_pass_program);
         Ok(())
     }
 
@@ -156,7 +158,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("pointLight.attenuation.linear", &light.attenuation.linear)?;
         self.light_pass_program.add_uniform_float("pointLight.attenuation.exp", &light.attenuation.exp)?;
 
-        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        full_screen_quad::render(&self.light_pass_program);
         Ok(())
     }
 
@@ -187,7 +189,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("spotLight.attenuation.exp", &light.attenuation.exp)?;
         self.light_pass_program.add_uniform_float("spotLight.cutoff", &light.cutoff.cos())?;
 
-        full_screen_quad::render(&self.gl, &self.light_pass_program);
+        full_screen_quad::render(&self.light_pass_program);
         Ok(())
     }
 
@@ -224,7 +226,8 @@ impl DeferredPipeline
         self.geometry_pass_depth_texture().bind(1);
         program.add_uniform_int("depthMap", &1)?;
 
-        full_screen_quad::render(&self.gl, program);
+        full_screen_quad::bind(&self.gl, program);
+        full_screen_quad::render(program);
         Ok(())
     }
 
