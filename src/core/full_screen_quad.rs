@@ -2,6 +2,7 @@ use gl;
 use crate::program;
 use crate::buffer::*;
 
+// TODO: Make non-static object
 pub fn bind(gl: &gl::Gl, program: &program::Program)
 {
     let buffer =
