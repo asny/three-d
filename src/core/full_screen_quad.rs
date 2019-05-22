@@ -7,10 +7,9 @@ pub fn bind(gl: &gl::Gl, program: &program::Program)
 {
     let buffer =
         unsafe {
-            static mut FULL_SCREEN__QUAD: Option<VertexBuffer> = None;
+            static mut FULL_SCREEN__QUAD: Option<StaticVertexBuffer> = None;
             if FULL_SCREEN__QUAD.is_none()
             {
-                let mut builder = VertexBufferBuilder::new(&gl).unwrap();
                 let positions = vec![
                     -3.0, -1.0, 0.0,
                     3.0, -1.0, 0.0,
@@ -21,7 +20,7 @@ pub fn bind(gl: &gl::Gl, program: &program::Program)
                     2.0, 0.0,
                     0.5, 1.5
                 ];
-                FULL_SCREEN__QUAD = Some(VertexBufferBuilder::new_with_vec3_vec2(&gl, positions, uvs).unwrap());
+                FULL_SCREEN__QUAD = Some(StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap());
             }
             FULL_SCREEN__QUAD.as_ref().unwrap()
         };

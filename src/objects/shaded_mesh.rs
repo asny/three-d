@@ -23,7 +23,7 @@ impl From<buffer::Error> for Error {
 
 pub struct ShadedMesh {
     program: program::Program,
-    vertex_buffer: buffer::VertexBuffer,
+    vertex_buffer: buffer::StaticVertexBuffer,
     index_buffer: buffer::ElementBuffer,
     pub color: Vec3,
     pub texture: Option<texture::Texture2D>,
@@ -39,7 +39,7 @@ impl ShadedMesh
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
-        let vertex_buffer = VertexBufferBuilder::new_with_vec3_vec3(gl, positions.to_vec(), normals.to_vec())?;
+        let vertex_buffer = StaticVertexBuffer::new_with_vec3_vec3(gl, &positions, &normals)?;
         let index_buffer = ElementBuffer::new_with(gl, indices)?;
 
         Ok(ShadedMesh { program, index_buffer, vertex_buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })

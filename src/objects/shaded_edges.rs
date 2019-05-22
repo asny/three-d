@@ -4,11 +4,11 @@ use crate::*;
 
 pub struct ShadedEdges {
     program: program::Program,
-    instance_buffer: buffer::VertexBuffer,
+    instance_buffer: buffer::StaticVertexBuffer,
     cylinder_index_buffer: buffer::ElementBuffer,
-    cylinder_vertex_buffer: buffer::VertexBuffer,
+    cylinder_vertex_buffer: buffer::StaticVertexBuffer,
     index_pairs: std::collections::HashSet<(usize, usize)>,
-    no_edges: usize,
+    no_edges: u32,
     tube_radius: f32,
     pub color: Vec3,
     pub diffuse_intensity: f32,
@@ -50,9 +50,9 @@ impl ShadedEdges
             }
         }
         let cylinder_index_buffer = buffer::ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
-        let cylinder_vertex_buffer = buffer::VertexBufferBuilder::new_with_vec3(gl,cylinder_positions).unwrap();
+        let cylinder_vertex_buffer = buffer::StaticVertexBuffer::new_with_vec3(gl,&cylinder_positions).unwrap();
 
-        let instance_buffer = buffer::VertexBuffer::new(gl).unwrap();
+        let instance_buffer = buffer::StaticVertexBuffer::new(gl).unwrap();
 
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {
@@ -63,7 +63,7 @@ impl ShadedEdges
             index_pairs.insert(if i1 < i3 {(i1, i3)} else {(i3, i1)});
             index_pairs.insert(if i2 < i3 {(i2, i3)} else {(i3, i2)});
         }
-        let no_edges = index_pairs.len();
+        let no_edges = index_pairs.len() as u32;
 
         let mut object = ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 };
         object.update_positions(positions);
@@ -99,7 +99,7 @@ impl ShadedEdges
             }
 
         }
-        self.instance_buffer.fill_with(&data);
+        //self.instance_buffer.fill_with(&data);
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -129,6 +129,6 @@ impl ShadedEdges
         self.program.setup_attribute(&self.instance_buffer,"normalMatrixY", 3, 21, 15, 1).unwrap();
         self.program.setup_attribute(&self.instance_buffer,"normalMatrixZ", 3, 21, 18, 1).unwrap();
 
-        self.program.draw_elements_instanced(&self.cylinder_index_buffer,&self.instance_buffer);
+        self.program.draw_elements_instanced(&self.cylinder_index_buffer,self.no_edges);
     }
 }

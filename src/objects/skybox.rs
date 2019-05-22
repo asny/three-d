@@ -15,7 +15,7 @@ impl From<program::Error> for Error {
 
 pub struct Skybox {
     program: program::Program,
-    vertex_buffer: VertexBuffer,
+    vertex_buffer: StaticVertexBuffer,
     texture: texture::Texture3D
 }
 
@@ -28,7 +28,7 @@ impl Skybox
                                                     include_str!("shaders/skybox.frag")).unwrap();
 
         let positions = get_positions();
-        let vertex_buffer = VertexBufferBuilder::new_with_vec3(gl, positions).unwrap();
+        let vertex_buffer = StaticVertexBuffer::new_with_vec3(gl, &positions).unwrap();
 
         Skybox { program, vertex_buffer, texture }
     }
@@ -50,7 +50,7 @@ impl Skybox
         self.vertex_buffer.bind();
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;
 
-        self.program.draw_arrays(self.vertex_buffer.count() as u32);
+        self.program.draw_arrays(36);
         Ok(())
     }
 

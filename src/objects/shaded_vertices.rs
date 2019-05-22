@@ -4,10 +4,10 @@ use crate::*;
 
 pub struct ShadedVertices {
     program: program::Program,
-    instance_buffer: buffer::VertexBuffer,
+    instance_buffer: buffer::StaticVertexBuffer,
     ball_index_buffer: buffer::ElementBuffer,
-    ball_vertex_buffer: buffer::VertexBuffer,
-    no_vertices: usize,
+    ball_vertex_buffer: buffer::StaticVertexBuffer,
+    no_vertices: u32,
     pub color: Vec3,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
@@ -38,16 +38,16 @@ impl ShadedVertices
            6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
         );
         let ball_index_buffer = buffer::ElementBuffer::new_with(gl, &ball_indices).unwrap();
-        let ball_vertex_buffer = buffer::VertexBufferBuilder::new_with_vec3(gl, ball_positions).unwrap();
-        let instance_buffer = buffer::VertexBufferBuilder::new_with_vec3(gl, positions.to_vec()).unwrap();
+        let ball_vertex_buffer = buffer::StaticVertexBuffer::new_with_vec3(gl, &ball_positions).unwrap();
+        let instance_buffer = buffer::StaticVertexBuffer::new_with_vec3(gl, positions).unwrap();
 
-        ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len()/3, color: vec3(1.0, 0.0, 0.0),
+        ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
     }
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.instance_buffer.fill_with(positions);
+        //TODO: self.instance_buffer.fill_with(positions);
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -71,6 +71,6 @@ impl ShadedVertices
         self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();
         self.program.use_attribute_vec3_float(&self.ball_vertex_buffer, "position", 0).unwrap();
 
-        self.program.draw_elements_instanced(&self.ball_index_buffer, &self.instance_buffer);
+        self.program.draw_elements_instanced(&self.ball_index_buffer, self.no_vertices);
     }
 }

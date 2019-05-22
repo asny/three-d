@@ -184,9 +184,9 @@ impl Program
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
     }
 
-    pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, instance_buffer: &buffer::VertexBuffer)
+    pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, count: u32)
     {
-        self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, instance_buffer.count() as u32);
+        self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, count);
     }
 
     fn location(&self, name: &str) -> Result<u32, Error>
