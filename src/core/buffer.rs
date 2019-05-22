@@ -10,7 +10,6 @@ pub struct VertexBuffer {
     id: gl::Buffer,
     stride: usize,
     offsets: Vec<usize>,
-    lengths: Vec<usize>,
     data: Vec<f32>
 }
 
@@ -19,18 +18,13 @@ impl VertexBuffer
     pub(crate) fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer {gl: gl.clone(), id, stride: 0, offsets: Vec::new(), lengths: Vec::new(), data: Vec::new() };
+        let buffer = VertexBuffer {gl: gl.clone(), id, stride: 0, offsets: Vec::new(), data: Vec::new() };
         Ok(buffer)
     }
 
     pub fn bind(&self)
     {
         bind(&self.gl, &self.id, gl::consts::ARRAY_BUFFER);
-    }
-
-    pub fn length_from(&self, index: usize) -> usize
-    {
-        self.lengths[index]
     }
 
     pub fn stride(&self) -> usize
@@ -70,14 +64,7 @@ impl VertexBuffer
 
     pub fn add(&mut self, data: &[f32], no_components: usize)
     {
-        self.lengths.push(data.len() / no_components);
-        if self.offsets.len() == 0
-        {
-            self.offsets.push(0);
-        }
-        else {
-            self.offsets.push(self.offsets.last().unwrap() + no_components);
-        }
+        self.offsets.push(self.offsets.last().and_then(|offset| Some(offset + data.len())).unwrap_or(0));
         self.data.extend_from_slice(data);
     }
 }

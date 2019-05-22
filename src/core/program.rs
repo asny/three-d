@@ -179,7 +179,7 @@ impl Program
         self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0);
     }
 
-    pub fn draw_subset_of_elements(&self, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
+    pub fn draw_subset_of_elements(&self, first: u32, count: u32)
     {
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
     }

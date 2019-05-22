@@ -5,7 +5,6 @@ use crate::core::rendertarget::Rendertarget;
 use crate::pipelines::Error;
 
 pub struct ForwardPipeline {
-    gl: gl::Gl,
     rendertarget: rendertarget::ScreenRendertarget
 }
 
@@ -14,7 +13,7 @@ impl ForwardPipeline
     pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, clear_color: crate::types::Vec4) -> Result<ForwardPipeline, Error>
     {
         let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height, clear_color)?;
-        Ok(ForwardPipeline {gl: gl.clone(), rendertarget})
+        Ok(ForwardPipeline {rendertarget})
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
