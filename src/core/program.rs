@@ -56,13 +56,13 @@ impl Program
             shader.detach_shader(&id);
         }
 
+        crate::core::hidden::init(gl);
         let num_attribs = gl.get_program_parameter(&id, gl::consts::ACTIVE_ATTRIBUTES);
         for i in 0..num_attribs {
             let info = gl.get_active_attrib(&id, i);
             println!("location: {}, name: {}, type: {}, size: {}", i, info.name, info._type, info.size);
             gl.enable_vertex_attrib_array(i);
         }
-        crate::core::hidden::init(gl);
 
         Ok(Program { gl: gl.clone(), id })
     }
