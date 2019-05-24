@@ -62,9 +62,17 @@ impl VertexBuffer
         out_data
     }*/
 
+    pub fn clear(&mut self)
+    {
+        self.data.clear();
+        self.offsets.clear();
+        self.stride = 0;
+        //TODO: Unbind data on gpu
+    }
+
     pub fn add(&mut self, data: &[f32], no_components: usize)
     {
-        self.offsets.push(self.offsets.last().and_then(|offset| Some(offset + data.len())).unwrap_or(0));
+        self.offsets.push(self.data.len());
         self.data.extend_from_slice(data);
     }
 }
@@ -139,8 +147,23 @@ impl DynamicVertexBuffer {
     pub fn send(&self)
     {
         self.buffer.bind();
+        //TODO: Unbind data on gpu: https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming
         self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::DYNAMIC_DRAW);
     }
+
+    pub fn update_data_at(&mut self, index: usize, data: &[f32])
+    {
+        let offset = self.buffer.offset_from(index);
+        for i in 0..data.len() {
+            self.buffer.data[i + offset] = data[i]
+        }
+    }
+
+    /*pub fn send_sub_data(&mut self, index: usize, data: &[f32])
+    {
+        self.update_data_at(index, data);
+        TODO: self.buffer.gl.buffer_sub_data_f32()
+    }*/
 }
 
 impl std::ops::Deref for DynamicVertexBuffer {
