@@ -52,6 +52,7 @@ impl ShadedVertices
 
     pub fn render(&self, camera: &camera::Camera)
     {
+        self.program.set_used();
         self.program.cull(state::CullType::BACK);
         self.program.depth_test(state::DepthTestType::LEQUAL);
         self.program.depth_write(true);
@@ -68,9 +69,13 @@ impl ShadedVertices
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
+        self.instance_buffer.bind();
         self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();
+
+        self.ball_vertex_buffer.bind();
         self.program.use_attribute_vec3_float(&self.ball_vertex_buffer, "position", 0).unwrap();
 
+        self.ball_index_buffer.bind();
         self.program.draw_elements_instanced(&self.ball_index_buffer, self.no_vertices);
     }
 }
