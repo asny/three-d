@@ -1,5 +1,6 @@
 use crate::*;
 use num_derive::FromPrimitive;
+use crate::core::full_screen_quad::FullScreen;
 
 #[derive(Copy, Clone, FromPrimitive)]
 enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
@@ -7,7 +8,8 @@ enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
 pub struct DebugEffect {
     gl: gl::Gl,
     program: program::Program,
-    debug_type: Type
+    debug_type: Type,
+    full_screen: FullScreen
 }
 
 impl DebugEffect {
@@ -17,7 +19,7 @@ impl DebugEffect {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),
                                                     include_str!("shaders/debug.frag"))?;
-        Ok(DebugEffect {gl: gl.clone(), program, debug_type: Type::NONE})
+        Ok(DebugEffect {gl: gl.clone(), program, debug_type: Type::NONE, full_screen: FullScreen::new(gl)})
     }
 
     pub fn change_type(&mut self)
@@ -25,7 +27,7 @@ impl DebugEffect {
         self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (Type::NONE as u32 + 1)).unwrap();
     }
 
-    pub fn apply(&self, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&mut self, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -45,8 +47,7 @@ impl DebugEffect {
 
         self.program.add_uniform_int("type", &(self.debug_type as i32))?;
 
-        full_screen_quad::bind(&self.gl, &self.program);
-        full_screen_quad::render(&self.program);
+        self.full_screen.render(&mut self.program);
         Ok(())
     }
 

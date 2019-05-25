@@ -22,13 +22,14 @@ pub use crate::ogl::defines::*;
 #[derive(Clone)]
 pub struct Gl {
     inner: std::rc::Rc<InnerGl>,
+    current_program: u32,
 }
 
 impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        let gl = Gl { inner: std::rc::Rc::new(InnerGl::load_with(loadfn))};
+        let gl = Gl { inner: std::rc::Rc::new(InnerGl::load_with(loadfn)), current_program: std::u32::MAX};
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
         gl
     }
@@ -223,10 +224,15 @@ impl Gl {
         Ok(())
     }
 
-    pub fn use_program(&self, program: &Program)
+    pub fn use_program(&mut self, program: &Program)
     {
-        unsafe {
-            self.inner.UseProgram(*program);
+        if self.current_program != *program
+        {
+            println!("Program {}", *program);
+            unsafe {
+                self.inner.UseProgram(*program);
+            }
+            self.current_program = *program;
         }
     }
 

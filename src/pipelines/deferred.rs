@@ -9,6 +9,7 @@ use crate::core::texture::Texture;
 use crate::core::program;
 use crate::core::full_screen_quad;
 use crate::pipelines::Error;
+use crate::core::full_screen_quad::FullScreen;
 
 pub struct DeferredPipeline {
     gl: gl::Gl,
@@ -16,7 +17,8 @@ pub struct DeferredPipeline {
     copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
-    light_pass_rendertarget: Option<rendertarget::ColorRendertarget>
+    light_pass_rendertarget: Option<rendertarget::ColorRendertarget>,
+    full_screen: FullScreen
 }
 
 
@@ -37,7 +39,7 @@ impl DeferredPipeline
                                                     include_str!("shaders/copy.vert"),
                                                     include_str!("shaders/copy.frag"))?);
         }
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, full_screen: FullScreen::new(gl) })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -67,7 +69,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn light_pass_begin(&mut self, camera: &camera::Camera) -> Result<(), Error>
     {
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {
@@ -102,22 +104,20 @@ impl DeferredPipeline
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
 
-        full_screen_quad::bind(&self.gl, &self.light_pass_program);
-
         Ok(())
     }
 
-    pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
+    pub fn shine_ambient_light(&mut self, light: &light::AmbientLight) -> Result<(), Error>
     {
         self.light_pass_program.add_uniform_int("lightType", &0)?;
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
 
-        full_screen_quad::render(&self.light_pass_program);
+        self.full_screen.render(&mut self.light_pass_program);
         Ok(())
     }
 
-    pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
+    pub fn shine_directional_light(&mut self, light: &light::DirectionalLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
             use crate::camera::Camera;
@@ -139,11 +139,11 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("directionalLight.base.intensity", &light.base.intensity)?;
 
-        full_screen_quad::render(&self.light_pass_program);
+        self.full_screen.render(&mut self.light_pass_program);
         Ok(())
     }
 
-    pub fn shine_point_light(&self, light: &light::PointLight) -> Result<(), Error>
+    pub fn shine_point_light(&mut self, light: &light::PointLight) -> Result<(), Error>
     {
         //self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
@@ -156,11 +156,11 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("pointLight.attenuation.linear", &light.attenuation.linear)?;
         self.light_pass_program.add_uniform_float("pointLight.attenuation.exp", &light.attenuation.exp)?;
 
-        full_screen_quad::render(&self.light_pass_program);
+        self.full_screen.render(&mut self.light_pass_program);
         Ok(())
     }
 
-    pub fn shine_spot_light(&self, light: &light::SpotLight) -> Result<(), Error>
+    pub fn shine_spot_light(&mut self, light: &light::SpotLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
             use crate::camera::Camera;
@@ -187,7 +187,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("spotLight.attenuation.exp", &light.attenuation.exp)?;
         self.light_pass_program.add_uniform_float("spotLight.cutoff", &light.cutoff.cos())?;
 
-        full_screen_quad::render(&self.light_pass_program);
+        self.full_screen.render(&mut self.light_pass_program);
         Ok(())
     }
 
@@ -206,10 +206,9 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn copy_to_screen(&self) -> Result<(), Error>
+    pub fn copy_to_screen(&mut self) -> Result<(), Error>
     {
         // TODO: Use blit instead
-        let program = self.copy_program()?;
         self.rendertarget.bind();
         self.rendertarget.clear();
 
@@ -219,13 +218,15 @@ impl DeferredPipeline
         state::blend(&self.gl, state::BlendType::NONE);
 
         self.light_pass_color_texture()?.bind(0);
-        program.add_uniform_int("colorMap", &0)?;
-
         self.geometry_pass_depth_texture().bind(1);
+
+        let fs = &self.full_screen;
+
+        let mut program = self.copy_program.as_mut().unwrap();
+        program.add_uniform_int("colorMap", &0)?;
         program.add_uniform_int("depthMap", &1)?;
 
-        full_screen_quad::bind(&self.gl, program);
-        full_screen_quad::render(program);
+        fs.render(program);
         Ok(())
     }
 
@@ -264,10 +265,10 @@ impl DeferredPipeline
         }
     }
 
-    pub fn copy_program(&self) -> Result<&program::Program, Error>
+    pub fn copy_program(&mut self) -> Result<&mut program::Program, Error>
     {
         match self.copy_program {
-            Some(ref program) => { return Ok(program) },
+            Some(ref mut program) => { return Ok(program) },
             None => {
                 return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
             }

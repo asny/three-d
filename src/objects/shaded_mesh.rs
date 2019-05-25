@@ -89,7 +89,7 @@ impl ShadedMesh
         Ok(())
     }*/
 
-    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
+    pub fn render(&mut self, transformation: &Mat4, camera: &camera::Camera)
     {
         self.program.cull(state::CullType::NONE);
         self.program.depth_test(state::DepthTestType::LEQUAL);

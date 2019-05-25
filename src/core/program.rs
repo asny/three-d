@@ -83,70 +83,70 @@ impl Program
         Ok(Program { gl: gl.clone(), id, vertex_attributes, uniforms })
     }
 
-    pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
+    pub fn add_uniform_int(&mut self, name: &str, data: &i32) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform1i(location, *data);
         Ok(())
     }
 
-    pub fn add_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error>
+    pub fn add_uniform_float(&mut self, name: &str, data: &f32) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform1f(location, *data);
         Ok(())
     }
 
-    pub fn add_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error>
+    pub fn add_uniform_vec2(&mut self, name: &str, data: &Vec2) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform2fv(location, &mut [data.x, data.y]);
         Ok(())
     }
 
-    pub fn add_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error>
+    pub fn add_uniform_vec3(&mut self, name: &str, data: &Vec3) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform3fv(location, &mut [data.x, data.y, data.z]);
         Ok(())
     }
 
-    pub fn add_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error>
+    pub fn add_uniform_vec4(&mut self, name: &str, data: &Vec4) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         self.gl.uniform4fv(location, &mut [data.x, data.y, data.z, data.w]);
         Ok(())
     }
 
-    pub fn add_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
+    pub fn add_uniform_mat2(&mut self, name: &str, data: &Mat2) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix2fv(location, &mut [data.x.x, data.x.y, data.y.x, data.y.y]);
         Ok(())
     }
 
-    pub fn add_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
+    pub fn add_uniform_mat3(&mut self, name: &str, data: &Mat3) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix3fv(location, &mut [data.x.x, data.x.y, data.x.z, data.y.x, data.y.y, data.y.z, data.z.x, data.z.y, data.z.z]);
         Ok(())
     }
 
-    pub fn add_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
+    pub fn add_uniform_mat4(&mut self, name: &str, data: &Mat4) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix4fv(location, &mut [data.x.x, data.x.y, data.x.z, data.x.w, data.y.x, data.y.y, data.y.z, data.y.w, data.z.x, data.z.y, data.z.z, data.z.w, data.w.x, data.w.y, data.w.z, data.w.w]);
         Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> Result<gl::UniformLocation, Error>
+    fn get_uniform_location(&mut self, name: &str) -> Result<gl::UniformLocation, Error>
     {
         self.set_used();
         let loc = self.uniforms.get(name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find uniform {}", name)})?;
         Ok(*loc)
     }
 
-    pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
+    pub fn setup_attribute(&mut self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
         buffer.bind();
         let location = self.location(name)?;
@@ -155,13 +155,13 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
+    pub fn use_attribute_vec2_float(&mut self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
         self.use_attribute_vec2_float_divisor(buffer, attribute_name, index, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec2_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
+    pub fn use_attribute_vec2_float_divisor(&mut self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
         buffer.bind();
         let stride = buffer.stride();
@@ -172,13 +172,13 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec3_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
+    pub fn use_attribute_vec3_float(&mut self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
         self.use_attribute_vec3_float_divisor(buffer, attribute_name, index, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec3_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
+    pub fn use_attribute_vec3_float_divisor(&mut self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
         buffer.bind();
         let stride = buffer.stride();
@@ -189,13 +189,13 @@ impl Program
         Ok(())
     }
 
-    pub fn draw_arrays(&self, count: u32)
+    pub fn draw_arrays(&mut self, count: u32)
     {
         self.set_used();
         self.gl.draw_arrays(gl::consts::TRIANGLES, 0, count);
     }
 
-    pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
+    pub fn draw_elements(&mut self, element_buffer: &buffer::ElementBuffer)
     {
         self.set_used();
         element_buffer.bind();
@@ -207,14 +207,14 @@ impl Program
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
     }*/
 
-    pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, count: u32)
+    pub fn draw_elements_instanced(&mut self, element_buffer: &buffer::ElementBuffer, count: u32)
     {
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, count);
     }
 
-    fn location(&self, name: &str) -> Result<u32, Error>
+    fn location(&mut self, name: &str) -> Result<u32, Error>
     {
         self.set_used();
         let location = self.vertex_attributes.get(name).ok_or_else(
@@ -243,7 +243,7 @@ impl Program
         state::depth_write(&self.gl, enable);
     }
 
-    pub(in crate::core) fn set_used(&self) {
+    pub(in crate::core) fn set_used(&mut self) {
         self.gl.use_program(&self.id);
     }
 }
