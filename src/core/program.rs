@@ -125,11 +125,13 @@ impl Program
 
     fn get_uniform_location(&self, name: &str) -> Result<gl::UniformLocation, Error>
     {
+        self.set_used();
         self.gl.get_uniform_location(&self.id, name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find {}", name)})
     }
 
     pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
+        buffer.bind();
         let location = self.location(name)?;
         self.gl.vertex_attrib_pointer(location, no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(location, divisor as u32);
@@ -144,6 +146,7 @@ impl Program
 
     pub fn use_attribute_vec2_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
+        buffer.bind();
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
@@ -160,6 +163,7 @@ impl Program
 
     pub fn use_attribute_vec3_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
+        buffer.bind();
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
@@ -170,26 +174,32 @@ impl Program
 
     pub fn draw_arrays(&self, count: u32)
     {
+        self.set_used();
         self.gl.draw_arrays(gl::consts::TRIANGLES, 0, count);
     }
 
     pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
     {
+        self.set_used();
+        element_buffer.bind();
         self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0);
     }
 
-    pub fn draw_subset_of_elements(&self, first: u32, count: u32)
+    /*pub fn draw_subset_of_elements(&self, first: u32, count: u32)
     {
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
-    }
+    }*/
 
     pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, count: u32)
     {
+        self.set_used();
+        element_buffer.bind();
         self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, count);
     }
 
     fn location(&self, name: &str) -> Result<u32, Error>
     {
+        self.set_used();
         let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
             || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
         Ok(location)
@@ -216,7 +226,7 @@ impl Program
         state::depth_write(&self.gl, enable);
     }
 
-    pub fn set_used(&self) {
+    pub(in crate::core) fn set_used(&self) {
         self.gl.use_program(&self.id);
     }
 }

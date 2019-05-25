@@ -85,8 +85,6 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::ONE__ONE);
 
-        self.light_pass_program.set_used();
-
         self.geometry_pass_color_texture().bind(0);
         self.light_pass_program.add_uniform_int("colorMap", &0)?;
 
@@ -212,7 +210,6 @@ impl DeferredPipeline
     {
         // TODO: Use blit instead
         let program = self.copy_program()?;
-        program.set_used();
         self.rendertarget.bind();
         self.rendertarget.clear();
 

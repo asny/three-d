@@ -130,7 +130,6 @@ fn main() {
         state::depth_test(&gl, state::DepthTestType::NONE);
         state::cull(&gl,state::CullType::BACK);
 
-        mirror_program.set_used();
         mirror_renderer.light_pass_color_texture().unwrap().bind(0);
         mirror_program.add_uniform_int("colorMap", &0).unwrap();
         full_screen_quad::bind(&gl, &mirror_program);

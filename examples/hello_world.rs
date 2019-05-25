@@ -39,9 +39,7 @@ fn main() {
         }
 
         renderer.render_pass_begin();
-        program.set_used();
 
-        buffer.bind();
         program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
         program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
 
