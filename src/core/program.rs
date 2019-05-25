@@ -131,7 +131,6 @@ impl Program
     pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
         let location = self.location(name)?;
-        self.gl.enable_vertex_attrib_array(location);
         self.gl.vertex_attrib_pointer(location, no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(location, divisor as u32);
         Ok(())

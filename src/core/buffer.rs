@@ -122,6 +122,11 @@ impl StaticVertexBuffer {
         self.buffer.bind();
         self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::STATIC_DRAW);
     }
+
+    pub fn add(&mut self, data: &[f32], no_components: usize)
+    {
+        self.buffer.add(data, no_components);
+    }
 }
 
 impl std::ops::Deref for StaticVertexBuffer {
