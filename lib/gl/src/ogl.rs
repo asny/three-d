@@ -28,9 +28,9 @@ impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        Gl {
-            inner: std::rc::Rc::new(InnerGl::load_with(loadfn))
-        }
+        let gl = Gl { inner: std::rc::Rc::new(InnerGl::load_with(loadfn))};
+        gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
+        gl
     }
 
     pub fn create_shader(&self, type_: u32) -> Option<Shader>

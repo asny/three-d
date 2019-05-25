@@ -59,8 +59,6 @@ impl Program
             shader.detach_shader(&id);
         }
 
-        crate::core::hidden::init(gl);
-
         // Init vertex attributes
         let num_attribs = gl.get_program_parameter(&id, gl::consts::ACTIVE_ATTRIBUTES);
         let mut vertex_attributes = HashMap::new();
