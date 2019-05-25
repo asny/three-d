@@ -116,6 +116,21 @@ impl Gl {
         ActiveInfo { size: size as u32, _type: _type as u32, name: s }
     }
 
+    pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
+    {
+        let mut length = 128;
+        let mut size = 0;
+        let mut _type = 0;
+        let name = create_whitespace_cstring_with_len(length as usize);
+        unsafe {
+            self.inner.GetActiveUniform(*program, index, length, &mut length, &mut size, &mut _type, name.as_ptr() as *mut consts::types::GLchar);
+        }
+
+        let mut s = name.to_string_lossy().into_owned();
+        s.truncate(length as usize);
+        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
+    }
+
     pub fn create_buffer(&self) -> Option<Buffer>
     {
         let mut id: u32 = 0;

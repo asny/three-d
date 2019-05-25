@@ -5,6 +5,7 @@ use crate::core::state;
 use crate::core::buffer;
 
 use crate::types::*;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Error {
@@ -30,7 +31,9 @@ impl From<std::ffi::NulError> for Error {
 
 pub struct Program {
     gl: gl::Gl,
-    id: gl::Program
+    id: gl::Program,
+    vertex_attributes: HashMap<String, u32>,
+    uniforms: HashMap<String, u32>
 }
 
 impl Program
@@ -57,14 +60,29 @@ impl Program
         }
 
         crate::core::hidden::init(gl);
+
+        // Init vertex attributes
         let num_attribs = gl.get_program_parameter(&id, gl::consts::ACTIVE_ATTRIBUTES);
+        let mut vertex_attributes = HashMap::new();
         for i in 0..num_attribs {
             let info = gl.get_active_attrib(&id, i);
-            println!("location: {}, name: {}, type: {}, size: {}", i, info.name, info._type, info.size);
-            gl.enable_vertex_attrib_array(i);
+            let location = gl.get_attrib_location(&id, &info.name).unwrap();
+            println!("Attribute location: {}, name: {}, type: {}, size: {}", location, info.name, info._type, info.size);
+            gl.enable_vertex_attrib_array(location);
+            vertex_attributes.insert(info.name, location);
         }
 
-        Ok(Program { gl: gl.clone(), id })
+        // Init uniforms
+        let num_uniforms = gl.get_program_parameter(&id, gl::consts::ACTIVE_UNIFORMS);
+        let mut uniforms = HashMap::new();
+        for i in 0..num_uniforms {
+            let info = gl.get_active_uniform(&id, i);
+            let location = gl.get_uniform_location(&id, &info.name).unwrap();
+            println!("Uniform location: {}, name: {}, type: {}, size: {}", location, info.name, info._type, info.size);
+            uniforms.insert(info.name, location);
+        }
+
+        Ok(Program { gl: gl.clone(), id, vertex_attributes, uniforms })
     }
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
@@ -126,7 +144,8 @@ impl Program
     fn get_uniform_location(&self, name: &str) -> Result<gl::UniformLocation, Error>
     {
         self.set_used();
-        self.gl.get_uniform_location(&self.id, name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find {}", name)})
+        let loc = self.uniforms.get(name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find uniform {}", name)})?;
+        Ok(*loc)
     }
 
     pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
@@ -200,9 +219,9 @@ impl Program
     fn location(&self, name: &str) -> Result<u32, Error>
     {
         self.set_used();
-        let location = self.gl.get_attrib_location(&self.id, name).ok_or_else(
+        let location = self.vertex_attributes.get(name).ok_or_else(
             || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
-        Ok(location)
+        Ok(*location)
     }
 
     // STATES
