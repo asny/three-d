@@ -8,7 +8,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = DeferredPipeline::new(&gl, width, height, false, vec4(0.0, 0.0, 0.0, 1.0)).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, false, vec4(0.0, 0.0, 0.0, 1.0)).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -26,7 +26,7 @@ fn main() {
                                                        include_bytes!("assets/textures/skybox_evening/top.jpg"),
                                                        include_bytes!("assets/textures/skybox_evening/left.jpg"),
                                                        include_bytes!("assets/textures/skybox_evening/right.jpg")).unwrap();
-    let mut skybox = objects::Skybox::new(&gl, texture3d);
+    let skybox = objects::Skybox::new(&gl, texture3d);
 
     let ambient_light = crate::light::AmbientLight::new();
     let mut light = dust::light::DirectionalLight::new(vec3(0.0, -1.0, 0.0));

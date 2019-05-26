@@ -21,7 +21,7 @@ impl FogEffect {
         Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, no_fog_height: 3.0, animation: 0.1, full_screen: FullScreen::new(gl)})
     }
 
-    pub fn apply(&mut self, time: f32, camera: &camera::Camera, position_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, time: f32, camera: &camera::Camera, position_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -37,7 +37,7 @@ impl FogEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        self.full_screen.render(&mut self.program);
+        self.full_screen.render(&self.program);
         Ok(())
     }
 

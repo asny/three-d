@@ -7,7 +7,6 @@ use crate::core::rendertarget::Rendertarget;
 use crate::core::state;
 use crate::core::texture::Texture;
 use crate::core::program;
-use crate::core::full_screen_quad;
 use crate::pipelines::Error;
 use crate::core::full_screen_quad::FullScreen;
 
@@ -69,7 +68,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass_begin(&mut self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {
@@ -107,17 +106,17 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn shine_ambient_light(&mut self, light: &light::AmbientLight) -> Result<(), Error>
+    pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
     {
         self.light_pass_program.add_uniform_int("lightType", &0)?;
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
 
-        self.full_screen.render(&mut self.light_pass_program);
+        self.full_screen.render(&self.light_pass_program);
         Ok(())
     }
 
-    pub fn shine_directional_light(&mut self, light: &light::DirectionalLight) -> Result<(), Error>
+    pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
             use crate::camera::Camera;
@@ -139,11 +138,11 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("directionalLight.base.intensity", &light.base.intensity)?;
 
-        self.full_screen.render(&mut self.light_pass_program);
+        self.full_screen.render(&self.light_pass_program);
         Ok(())
     }
 
-    pub fn shine_point_light(&mut self, light: &light::PointLight) -> Result<(), Error>
+    pub fn shine_point_light(&self, light: &light::PointLight) -> Result<(), Error>
     {
         //self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
@@ -156,11 +155,11 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("pointLight.attenuation.linear", &light.attenuation.linear)?;
         self.light_pass_program.add_uniform_float("pointLight.attenuation.exp", &light.attenuation.exp)?;
 
-        self.full_screen.render(&mut self.light_pass_program);
+        self.full_screen.render(&self.light_pass_program);
         Ok(())
     }
 
-    pub fn shine_spot_light(&mut self, light: &light::SpotLight) -> Result<(), Error>
+    pub fn shine_spot_light(&self, light: &light::SpotLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
             use crate::camera::Camera;
@@ -187,7 +186,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("spotLight.attenuation.exp", &light.attenuation.exp)?;
         self.light_pass_program.add_uniform_float("spotLight.cutoff", &light.cutoff.cos())?;
 
-        self.full_screen.render(&mut self.light_pass_program);
+        self.full_screen.render(&self.light_pass_program);
         Ok(())
     }
 
@@ -206,7 +205,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn copy_to_screen(&mut self) -> Result<(), Error>
+    pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         // TODO: Use blit instead
         self.rendertarget.bind();
@@ -217,16 +216,13 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::NONE);
 
+        let program = self.copy_program.as_ref().unwrap();
         self.light_pass_color_texture()?.bind(0);
-        self.geometry_pass_depth_texture().bind(1);
-
-        let fs = &self.full_screen;
-
-        let mut program = self.copy_program.as_mut().unwrap();
         program.add_uniform_int("colorMap", &0)?;
+        self.geometry_pass_depth_texture().bind(1);
         program.add_uniform_int("depthMap", &1)?;
 
-        fs.render(program);
+        self.full_screen.render(program);
         Ok(())
     }
 

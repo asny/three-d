@@ -1,4 +1,6 @@
 
+use std::cell::Cell;
+
 pub mod consts {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
@@ -22,14 +24,14 @@ pub use crate::ogl::defines::*;
 #[derive(Clone)]
 pub struct Gl {
     inner: std::rc::Rc<InnerGl>,
-    current_program: u32,
+    current_program: Cell<u32>,
 }
 
 impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        let gl = Gl { inner: std::rc::Rc::new(InnerGl::load_with(loadfn)), current_program: std::u32::MAX};
+        let gl = Gl { inner: std::rc::Rc::new(InnerGl::load_with(loadfn)), current_program: Cell::new(0)};
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
         gl
     }
@@ -224,15 +226,18 @@ impl Gl {
         Ok(())
     }
 
-    pub fn use_program(&mut self, program: &Program)
+    pub fn use_program(&self, program: &Program)
     {
-        if self.current_program != *program
+        let mut test = 0;
+        unsafe {self.inner.GetIntegerv(consts::CURRENT_PROGRAM, &mut test)};
+        println!("{} == {}", test, self.current_program.get());
+        if self.current_program.get() != *program
         {
             println!("Program {}", *program);
             unsafe {
                 self.inner.UseProgram(*program);
             }
-            self.current_program = *program;
+            self.current_program.set(*program);
         }
     }
 
