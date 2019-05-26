@@ -24,13 +24,14 @@ pub use crate::ogl::defines::*;
 pub struct Gl {
     inner: InnerGl,
     current_program: Cell<u32>,
+    current_buffer: Cell<u32>,
 }
 
 impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0)};
+        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0), current_buffer: Cell::new(0)};
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
         gl
     }
@@ -144,8 +145,13 @@ impl Gl {
 
     pub fn bind_buffer(&self, target: u32, buffer: Option<&Buffer>)
     {
-        unsafe {
-            self.inner.BindBuffer(target, *buffer.unwrap());
+        if self.current_buffer.get() != *buffer.unwrap()
+        {
+            println!("Buffer {} -> {}", self.current_buffer.get(), buffer.unwrap());
+            unsafe {
+                self.inner.BindBuffer(target, *buffer.unwrap());
+            }
+            self.current_buffer.set(*buffer.unwrap());
         }
     }
 
@@ -227,13 +233,9 @@ impl Gl {
 
     pub fn use_program(&self, program: &Program)
     {
-        let mut test = 0;
-        unsafe {self.inner.GetIntegerv(consts::CURRENT_PROGRAM, &mut test)};
         if self.current_program.get() != *program
         {
-        println!("Old: {} == {}", test, self.current_program.get());
-        println!("New: {}", program);
-            println!("CHANGE");
+            println!("Program {} -> {}", self.current_program.get(), program);
             unsafe {
                 self.inner.UseProgram(*program);
             }
