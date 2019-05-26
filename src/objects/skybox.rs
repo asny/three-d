@@ -32,7 +32,7 @@ impl Skybox
         Skybox { program, vertex_buffer, texture }
     }
 
-    pub fn render(&mut self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         self.program.cull(state::CullType::FRONT);
         self.program.depth_write(true);
