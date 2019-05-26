@@ -147,7 +147,7 @@ impl Gl {
     {
         if self.current_buffer.get() != *buffer.unwrap()
         {
-            println!("Buffer {} -> {}", self.current_buffer.get(), buffer.unwrap());
+            //println!("Buffer {} -> {}", self.current_buffer.get(), buffer.unwrap());
             unsafe {
                 self.inner.BindBuffer(target, *buffer.unwrap());
             }
@@ -235,7 +235,7 @@ impl Gl {
     {
         if self.current_program.get() != *program
         {
-            println!("Program {} -> {}", self.current_program.get(), program);
+            //println!("Program {} -> {}", self.current_program.get(), program);
             unsafe {
                 self.inner.UseProgram(*program);
             }

@@ -74,8 +74,6 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
         render_scene(&camera);
-
-        println!("Plane render begin");
         plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0)) * Mat4::from_scale(10.0)), &camera);
 
         // Light pass

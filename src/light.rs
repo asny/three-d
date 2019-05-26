@@ -78,7 +78,6 @@ impl DirectionalLight
 
     pub fn shadow_cast_begin(&self) -> Result<(), Error>
     {
-        println!("Shadow pass begin");
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
             use crate::rendertarget::Rendertarget;

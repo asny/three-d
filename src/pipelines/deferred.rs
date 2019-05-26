@@ -57,7 +57,6 @@ impl DeferredPipeline
 
     pub fn geometry_pass_begin(&self) -> Result<(), Error>
     {
-        println!("Geometry pass begin");
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
 
@@ -71,7 +70,6 @@ impl DeferredPipeline
 
     pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        println!("Light pass begin");
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {
                 rendertarget.bind();
@@ -209,7 +207,6 @@ impl DeferredPipeline
 
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
-        println!("Copy pass begin");
         // TODO: Use blit instead
         self.rendertarget.bind();
         self.rendertarget.clear();
