@@ -6,14 +6,14 @@ use crate::core::full_screen_quad::FullScreen;
 enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
 
 pub struct DebugEffect {
-    gl: gl::Gl,
+    gl: Gl,
     program: program::Program,
     debug_type: Type
 }
 
 impl DebugEffect {
 
-    pub fn new(gl: &gl::Gl) -> Result<DebugEffect, effects::Error>
+    pub fn new(gl: &Gl) -> Result<DebugEffect, effects::Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),

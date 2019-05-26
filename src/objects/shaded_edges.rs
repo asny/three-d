@@ -1,5 +1,4 @@
 
-use gl;
 use crate::*;
 
 pub struct ShadedEdges {
@@ -18,7 +17,7 @@ pub struct ShadedEdges {
 
 impl ShadedEdges
 {
-    pub fn new(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
+    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/line_shaded.vert"),

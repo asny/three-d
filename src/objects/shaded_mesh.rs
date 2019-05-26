@@ -1,5 +1,4 @@
 
-use gl;
 use crate::*;
 use crate::core::buffer::*;
 
@@ -34,7 +33,7 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn new(gl: &gl::Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<ShadedMesh, Error>
+    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<ShadedMesh, Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
@@ -45,7 +44,7 @@ impl ShadedMesh
         Ok(ShadedMesh { program, index_buffer, vertex_buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
     }
 
-    pub fn new_from_obj_source(gl: &gl::Gl, source: String) -> Result<ShadedMesh, Error>
+    pub fn new_from_obj_source(gl: &Gl, source: String) -> Result<ShadedMesh, Error>
     {
         let objs = wavefront_obj::obj::parse(source).unwrap();
         let obj = objs.objects.first().unwrap();

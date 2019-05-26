@@ -1,6 +1,6 @@
 
 use crate::camera;
-use gl;
+use crate::Gl;
 use crate::light;
 use crate::core::rendertarget;
 use crate::core::rendertarget::Rendertarget;
@@ -12,7 +12,7 @@ use crate::core::full_screen_quad::FullScreen;
 use crate::effects::debug::DebugEffect;
 
 pub struct DeferredPipeline {
-    gl: gl::Gl,
+    gl: Gl,
     light_pass_program: program::Program,
     copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
@@ -25,7 +25,7 @@ pub struct DeferredPipeline {
 
 impl DeferredPipeline
 {
-    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool, background_color: crate::types::Vec4) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool, background_color: crate::types::Vec4) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_source(&gl,
                                                     include_str!("shaders/light_pass.vert"),
@@ -59,6 +59,7 @@ impl DeferredPipeline
 
     pub fn geometry_pass_begin(&self) -> Result<(), Error>
     {
+        println!("Geometry pass begin");
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear();
 
@@ -72,6 +73,7 @@ impl DeferredPipeline
 
     pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
+        println!("Light pass begin");
         match self.light_pass_rendertarget {
             Some(ref rendertarget) => {
                 rendertarget.bind();
@@ -209,6 +211,7 @@ impl DeferredPipeline
 
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
+        println!("Copy pass begin");
         // TODO: Use blit instead
         self.rendertarget.bind();
         self.rendertarget.clear();

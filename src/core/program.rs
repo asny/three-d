@@ -1,8 +1,7 @@
-use gl;
-
 use crate::core::shader;
 use crate::core::state;
 use crate::core::buffer;
+use crate::Gl;
 
 use crate::types::*;
 use std::collections::HashMap;
@@ -30,7 +29,7 @@ impl From<std::ffi::NulError> for Error {
 }
 
 pub struct Program {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Program,
     vertex_attributes: HashMap<String, u32>,
     uniforms: HashMap<String, u32>
@@ -38,14 +37,14 @@ pub struct Program {
 
 impl Program
 {
-    pub fn from_source(gl: &gl::Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
+    pub fn from_source(gl: &Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
     {
         let vert_shader = shader::Shader::from_source(gl, vertex_shader_source, gl::consts::VERTEX_SHADER)?;
         let frag_shader = shader::Shader::from_source(gl, fragment_shader_source, gl::consts::FRAGMENT_SHADER)?;
         return Program::from_shaders( gl, &[vert_shader, frag_shader] );
     }
 
-    pub fn from_shaders(gl: &gl::Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
+    pub fn from_shaders(gl: &Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
     {
         let id = gl.create_program();
 

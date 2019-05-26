@@ -1,5 +1,4 @@
 
-use gl;
 use crate::*;
 
 pub struct ShadedVertices {
@@ -17,7 +16,7 @@ pub struct ShadedVertices {
 
 impl ShadedVertices
 {
-    pub fn new(gl: &gl::Gl, positions: &[f32]) -> ShadedVertices
+    pub fn new(gl: &Gl, positions: &[f32]) -> ShadedVertices
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/vertex_shaded.vert"),

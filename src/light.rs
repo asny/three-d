@@ -1,5 +1,4 @@
 use crate::core::rendertarget::{self, DepthRenderTarget};
-use gl;
 use crate::camera::{self, Camera};
 use crate::*;
 
@@ -49,7 +48,7 @@ impl DirectionalLight
         DirectionalLight {direction: direction.normalize(), base, shadow_rendertarget: None, shadow_camera: None}
     }
 
-    pub fn enable_shadows(&mut self, gl: &gl::Gl, radius: f32, depth: f32) -> Result<(), Error>
+    pub fn enable_shadows(&mut self, gl: &Gl, radius: f32, depth: f32) -> Result<(), Error>
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 1024, 1024)?);
         let up = self.compute_up_direction();
@@ -79,6 +78,7 @@ impl DirectionalLight
 
     pub fn shadow_cast_begin(&self) -> Result<(), Error>
     {
+        println!("Shadow pass begin");
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
             use crate::rendertarget::Rendertarget;
@@ -140,7 +140,7 @@ impl SpotLight
         SpotLight {base, direction: direction.normalize(), position, shadow_rendertarget: None, shadow_camera: None, attenuation, cutoff: 0.1 * std::f32::consts::PI}
     }
 
-    pub fn enable_shadows(&mut self, gl: &gl::Gl, depth: f32) -> Result<(), Error>
+    pub fn enable_shadows(&mut self, gl: &Gl, depth: f32) -> Result<(), Error>
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 1024, 1024)?);
         let up = self.compute_up_direction();

@@ -1,5 +1,5 @@
 
-use gl;
+use crate::Gl;
 use crate::core::rendertarget;
 use crate::core::rendertarget::Rendertarget;
 use crate::pipelines::Error;
@@ -10,7 +10,7 @@ pub struct ForwardPipeline {
 
 impl ForwardPipeline
 {
-    pub fn new(gl: &gl::Gl, screen_width: usize, screen_height: usize, clear_color: crate::types::Vec4) -> Result<ForwardPipeline, Error>
+    pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, clear_color: crate::types::Vec4) -> Result<ForwardPipeline, Error>
     {
         let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height, clear_color)?;
         Ok(ForwardPipeline {rendertarget})

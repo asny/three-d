@@ -1,4 +1,4 @@
-use gl;
+
 use crate::*;
 use crate::buffer::*;
 
@@ -21,7 +21,7 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(gl: &gl::Gl, texture: texture::Texture3D) -> Skybox
+    pub fn new(gl: &Gl, texture: texture::Texture3D) -> Skybox
     {
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/skybox.vert"),

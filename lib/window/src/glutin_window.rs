@@ -24,7 +24,7 @@ pub struct Window
 {
     gl_window: GlWindow,
     events_loop: EventsLoop,
-    gl: gl::Gl
+    gl: std::rc::Rc<gl::Gl>
 }
 
 impl Window
@@ -52,7 +52,7 @@ impl Window
             gl_window.make_current()?;
         }
         let gl = gl::Gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
-        Ok(Window {gl_window, events_loop, gl})
+        Ok(Window {gl_window, events_loop, gl: std::rc::Rc::new(gl)})
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
@@ -104,7 +104,7 @@ impl Window
         (t.0 as usize, t.1 as usize)
     }
 
-    pub fn gl(&self) -> gl::Gl
+    pub fn gl(&self) -> std::rc::Rc<gl::Gl>
     {
         self.gl.clone()
     }

@@ -21,9 +21,8 @@ pub mod defines
 }
 pub use crate::ogl::defines::*;
 
-#[derive(Clone)]
 pub struct Gl {
-    inner: std::rc::Rc<InnerGl>,
+    inner: InnerGl,
     current_program: Cell<u32>,
 }
 
@@ -31,7 +30,7 @@ impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        let gl = Gl { inner: std::rc::Rc::new(InnerGl::load_with(loadfn)), current_program: Cell::new(0)};
+        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0)};
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
         gl
     }
@@ -230,10 +229,11 @@ impl Gl {
     {
         let mut test = 0;
         unsafe {self.inner.GetIntegerv(consts::CURRENT_PROGRAM, &mut test)};
-        println!("{} == {}", test, self.current_program.get());
         if self.current_program.get() != *program
         {
-            println!("Program {}", *program);
+        println!("Old: {} == {}", test, self.current_program.get());
+        println!("New: {}", program);
+            println!("CHANGE");
             unsafe {
                 self.inner.UseProgram(*program);
             }

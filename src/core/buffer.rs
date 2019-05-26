@@ -1,12 +1,12 @@
-use gl;
-pub use std::slice::Iter;
+use crate::Gl;
+use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
 }
 
 pub struct VertexBuffer {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Buffer,
     stride: usize,
     offsets: Vec<usize>,
@@ -15,7 +15,7 @@ pub struct VertexBuffer {
 
 impl VertexBuffer
 {
-    pub(crate) fn new(gl: &gl::Gl) -> Result<VertexBuffer, Error>
+    pub(crate) fn new(gl: &Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let buffer = VertexBuffer {gl: gl.clone(), id, stride: 0, offsets: Vec::new(), data: Vec::new() };
@@ -84,13 +84,13 @@ pub struct StaticVertexBuffer {
 
 impl StaticVertexBuffer {
 
-    pub fn new(gl: &gl::Gl) -> Result<StaticVertexBuffer, Error>
+    pub fn new(gl: &Gl) -> Result<StaticVertexBuffer, Error>
     {
         let buffer = VertexBuffer::new(gl)?;
         Ok(StaticVertexBuffer { buffer })
     }
 
-    pub fn new_with_vec3(gl: &gl::Gl, attribute: &[f32]) -> Result<StaticVertexBuffer, Error>
+    pub fn new_with_vec3(gl: &Gl, attribute: &[f32]) -> Result<StaticVertexBuffer, Error>
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
         buffer.buffer.add(attribute, 3);
@@ -98,7 +98,7 @@ impl StaticVertexBuffer {
         Ok(buffer)
     }
 
-    pub fn new_with_vec3_vec3(gl: &gl::Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
+    pub fn new_with_vec3_vec3(gl: &Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
         buffer.buffer.add(attribute0, 3);
@@ -107,7 +107,7 @@ impl StaticVertexBuffer {
         Ok(buffer)
     }
 
-    pub fn new_with_vec3_vec2(gl: &gl::Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
+    pub fn new_with_vec3_vec2(gl: &Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
         buffer.buffer.add(attribute0, 3);
@@ -143,7 +143,7 @@ pub struct DynamicVertexBuffer {
 
 impl DynamicVertexBuffer {
 
-    pub fn new(gl: &gl::Gl) -> Result<DynamicVertexBuffer, Error>
+    pub fn new(gl: &Gl) -> Result<DynamicVertexBuffer, Error>
     {
         let buffer = VertexBuffer::new(gl)?;
         Ok(DynamicVertexBuffer { buffer })
@@ -180,21 +180,21 @@ impl std::ops::Deref for DynamicVertexBuffer {
 }
 
 pub struct ElementBuffer {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Buffer,
     count: usize
 }
 
 impl ElementBuffer
 {
-    pub fn new(gl: &gl::Gl) -> Result<ElementBuffer, Error>
+    pub fn new(gl: &Gl) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };
         Ok(buffer)
     }
 
-    pub fn new_with(gl: &gl::Gl, data: &[u32]) -> Result<ElementBuffer, Error>
+    pub fn new_with(gl: &Gl, data: &[u32]) -> Result<ElementBuffer, Error>
     {
         let mut buffer = ElementBuffer::new(gl)?;
         buffer.fill_with(data);

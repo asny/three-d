@@ -1,4 +1,4 @@
-use gl;
+use crate::Gl;
 use crate::program;
 use crate::buffer::*;
 
@@ -9,7 +9,7 @@ pub struct FullScreen
 
 impl FullScreen {
 
-    pub fn new(gl: &gl::Gl) -> FullScreen
+    pub fn new(gl: &Gl) -> FullScreen
     {
         let positions = vec![
             -3.0, -1.0, 0.0,

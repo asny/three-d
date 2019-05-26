@@ -2,7 +2,7 @@ use crate::*;
 use crate::core::full_screen_quad::FullScreen;
 
 pub struct FogEffect {
-    gl: gl::Gl,
+    gl: Gl,
     program: program::Program,
     pub color: Vec3,
     pub density: f32,
@@ -13,7 +13,7 @@ pub struct FogEffect {
 
 impl FogEffect {
 
-    pub fn new(gl: &gl::Gl) -> Result<FogEffect, effects::Error>
+    pub fn new(gl: &Gl) -> Result<FogEffect, effects::Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),
