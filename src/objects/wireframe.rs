@@ -49,7 +49,7 @@ impl Wireframe
         self.edges.update_positions(positions);
     }
 
-    pub fn render(&mut self, camera: &camera::Camera)
+    pub fn render(&self, camera: &camera::Camera)
     {
         self.edges.render(camera);
         self.vertices.render(camera);

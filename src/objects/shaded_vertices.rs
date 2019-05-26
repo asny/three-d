@@ -49,7 +49,7 @@ impl ShadedVertices
         //TODO: self.instance_buffer.fill_with(positions);
     }
 
-    pub fn render(&mut self, camera: &camera::Camera)
+    pub fn render(&self, camera: &camera::Camera)
     {
         self.program.cull(state::CullType::BACK);
         self.program.depth_test(state::DepthTestType::LEQUAL);

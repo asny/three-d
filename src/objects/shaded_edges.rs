@@ -98,11 +98,13 @@ impl ShadedEdges
             }
 
         }
-        //self.instance_buffer.fill_with(&data);
+        self.instance_buffer.add(&data, 0);
+        self.instance_buffer.send_data_at();
     }
 
     pub fn render(&self, camera: &camera::Camera)
     {
+        /*self.program.set_used();
         self.program.cull(state::CullType::BACK);
         self.program.depth_test(state::DepthTestType::LEQUAL);
         self.program.depth_write(true);
@@ -128,6 +130,6 @@ impl ShadedEdges
         self.program.setup_attribute(&self.instance_buffer,"normalMatrixY", 3, 21, 15, 1).unwrap();
         self.program.setup_attribute(&self.instance_buffer,"normalMatrixZ", 3, 21, 18, 1).unwrap();
 
-        self.program.draw_elements_instanced(&self.cylinder_index_buffer,self.no_edges);
+        self.program.draw_elements_instanced(&self.cylinder_index_buffer,self.no_edges);*/
     }
 }

@@ -132,8 +132,7 @@ fn main() {
 
         mirror_renderer.light_pass_color_texture().unwrap().bind(0);
         mirror_program.add_uniform_int("colorMap", &0).unwrap();
-        full_screen_quad::bind(&gl, &mirror_program);
-        full_screen_quad::render(&mirror_program);
+        renderer.full_screen().render(&mirror_program);
     }).unwrap();
 }
 
