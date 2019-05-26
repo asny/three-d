@@ -1,5 +1,4 @@
 use crate::*;
-use crate::core::full_screen_quad::FullScreen;
 
 pub struct FogEffect {
     gl: Gl,
@@ -7,8 +6,7 @@ pub struct FogEffect {
     pub color: Vec3,
     pub density: f32,
     pub no_fog_height: f32,
-    pub animation: f32,
-    full_screen: FullScreen
+    pub animation: f32
 }
 
 impl FogEffect {
@@ -18,10 +16,10 @@ impl FogEffect {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),
                                                     include_str!("shaders/fog.frag"))?;
-        Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, no_fog_height: 3.0, animation: 0.1, full_screen: FullScreen::new(gl)})
+        Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, no_fog_height: 3.0, animation: 0.1})
     }
 
-    pub fn apply(&self, time: f32, camera: &camera::Camera, position_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &objects::FullScreen, time: f32, camera: &camera::Camera, position_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -37,7 +35,7 @@ impl FogEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        self.full_screen.render(&self.program);
+        full_screen.render(&self.program);
         Ok(())
     }
 

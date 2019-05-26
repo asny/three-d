@@ -1,6 +1,5 @@
 use crate::*;
 use num_derive::FromPrimitive;
-use crate::core::full_screen_quad::FullScreen;
 
 #[derive(Copy, Clone, FromPrimitive)]
 enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
@@ -26,7 +25,7 @@ impl DebugEffect {
         self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (Type::NONE as u32 + 1)).unwrap();
     }
 
-    pub fn apply(&self, full_screen: &FullScreen, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &objects::FullScreen, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);

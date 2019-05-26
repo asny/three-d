@@ -8,7 +8,7 @@ use crate::core::state;
 use crate::core::texture::Texture;
 use crate::core::program;
 use crate::pipelines::Error;
-use crate::core::full_screen_quad::FullScreen;
+use crate::objects::FullScreen;
 
 pub struct DeferredPipeline {
     gl: Gl,
