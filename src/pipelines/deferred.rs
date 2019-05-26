@@ -9,7 +9,6 @@ use crate::core::texture::Texture;
 use crate::core::program;
 use crate::pipelines::Error;
 use crate::core::full_screen_quad::FullScreen;
-use crate::effects::debug::DebugEffect;
 
 pub struct DeferredPipeline {
     gl: Gl,
@@ -18,7 +17,6 @@ pub struct DeferredPipeline {
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     light_pass_rendertarget: Option<rendertarget::ColorRendertarget>,
-    debug_effect: DebugEffect,
     full_screen: FullScreen
 }
 
@@ -40,7 +38,7 @@ impl DeferredPipeline
                                                     include_str!("shaders/copy.vert"),
                                                     include_str!("shaders/copy.frag"))?);
         }
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, debug_effect: DebugEffect::new(gl)?, full_screen: FullScreen::new(gl) })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, full_screen: FullScreen::new(gl) })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -231,9 +229,9 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn debug_aftereffect(&self)
+    pub fn full_screen(&self) -> &FullScreen
     {
-        self.debug_effect.apply(&self.full_screen, self.geometry_pass_color_texture(), self.geometry_pass_position_texture(), self.geometry_pass_normal_texture(), self.geometry_pass_depth_texture()).unwrap();
+        &self.full_screen
     }
 
     pub fn geometry_pass_color_texture(&self) -> &Texture
