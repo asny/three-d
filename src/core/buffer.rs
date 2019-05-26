@@ -39,7 +39,7 @@ impl VertexBuffer
 
     /*pub fn optimize_data_layout(&mut self)
     {
-        // TODO: use interleaved when not the same count (no_vertices)
+        // TODO
         self.lengths = Vec::new();
         self.offsets = Vec::new();
         self.stride = 0;
@@ -127,6 +127,11 @@ impl StaticVertexBuffer {
     {
         self.buffer.add(data, no_components);
     }
+
+    pub fn clear(&mut self)
+    {
+        self.buffer.clear();
+    }
 }
 
 impl std::ops::Deref for StaticVertexBuffer {
@@ -162,6 +167,11 @@ impl DynamicVertexBuffer {
         for i in 0..data.len() {
             self.buffer.data[i + offset] = data[i]
         }
+    }
+
+    pub fn clear(&mut self)
+    {
+        self.buffer.clear();
     }
 
     /*pub fn update_and_send_data_at(&mut self, index: usize, data: &[f32])

@@ -46,7 +46,9 @@ impl ShadedVertices
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        //TODO: self.instance_buffer.fill_with(positions);
+        self.instance_buffer.clear();
+        self.instance_buffer.add(positions, 3);
+        self.instance_buffer.send_data();
     }
 
     pub fn render(&self, camera: &camera::Camera)

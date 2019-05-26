@@ -81,12 +81,14 @@ impl ShadedMesh
         Self::new(&gl, &indices, &positions, &normals)
     }
 
-    /*pub fn update_attributes(&mut self, attributes: &[Attribute]) -> Result<(), Error>
+    pub fn update_attributes(&mut self, positions: &[f32], normals: &[f32]) -> Result<(), Error>
     {
-    TODO
-        self.vertex_buffer.fill_from_attributes(attributes)?;
+        self.vertex_buffer.clear();
+        self.vertex_buffer.add(positions, 3);
+        self.vertex_buffer.add(normals, 3);
+        self.vertex_buffer.send_data();
         Ok(())
-    }*/
+    }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {

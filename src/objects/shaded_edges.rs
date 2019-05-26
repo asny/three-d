@@ -98,6 +98,7 @@ impl ShadedEdges
             }
 
         }
+        self.instance_buffer.clear();
         self.instance_buffer.add(&data, 0);
         self.instance_buffer.send_data();
     }
