@@ -196,15 +196,15 @@ impl Program
 
     pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
     {
-        self.set_used();
-        element_buffer.bind();
-        self.gl.draw_elements(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0);
+        self.draw_subset_of_elements(element_buffer, 0,element_buffer.count() as u32);
     }
 
-    /*pub fn draw_subset_of_elements(&self, first: u32, count: u32)
+    pub fn draw_subset_of_elements(&self, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
     {
+        self.set_used();
+        element_buffer.bind();
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
-    }*/
+    }
 
     pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, count: u32)
     {
