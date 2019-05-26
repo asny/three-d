@@ -99,7 +99,7 @@ impl ShadedEdges
 
         }
         self.instance_buffer.add(&data, 0);
-        self.instance_buffer.send_data_at();
+        self.instance_buffer.send_data();
     }
 
     pub fn render(&self, camera: &camera::Camera)
@@ -121,7 +121,6 @@ impl ShadedEdges
 
         self.program.use_attribute_vec3_float(&self.cylinder_vertex_buffer, "position", 0).unwrap();
 
-        self.instance_buffer.bind();
         self.program.setup_attribute(&self.instance_buffer,"local2worldX", 3, 21, 0, 1).unwrap();
         self.program.setup_attribute(&self.instance_buffer,"local2worldY", 3, 21, 3, 1).unwrap();
         self.program.setup_attribute(&self.instance_buffer,"local2worldZ", 3, 21, 6, 1).unwrap();

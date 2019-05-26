@@ -94,7 +94,7 @@ impl StaticVertexBuffer {
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
         buffer.buffer.add(attribute, 3);
-        buffer.send_data_at();
+        buffer.send_data();
         Ok(buffer)
     }
 
@@ -103,7 +103,7 @@ impl StaticVertexBuffer {
         let mut buffer = StaticVertexBuffer::new(gl)?;
         buffer.buffer.add(attribute0, 3);
         buffer.buffer.add(attribute1, 3);
-        buffer.send_data_at();
+        buffer.send_data();
         Ok(buffer)
     }
 
@@ -112,11 +112,11 @@ impl StaticVertexBuffer {
         let mut buffer = StaticVertexBuffer::new(gl)?;
         buffer.buffer.add(attribute0, 3);
         buffer.buffer.add(attribute1, 2);
-        buffer.send_data_at();
+        buffer.send_data();
         Ok(buffer)
     }
 
-    pub fn send_data_at(&mut self)
+    pub fn send_data(&mut self)
     {
         //TODO: self.buffer.optimize_data_layout();
         self.buffer.bind();
@@ -149,7 +149,7 @@ impl DynamicVertexBuffer {
         Ok(DynamicVertexBuffer { buffer })
     }
 
-    pub fn send_data_at(&self)
+    pub fn send_data(&self)
     {
         self.buffer.bind();
         //TODO: Unbind data on gpu: https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming
