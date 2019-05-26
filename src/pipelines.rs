@@ -4,9 +4,7 @@ pub mod deferred;
 pub use crate::pipelines::forward::*;
 pub use crate::pipelines::deferred::*;
 
-use crate::core::rendertarget;
-use crate::core::texture;
-use crate::core::program;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -14,6 +12,7 @@ pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Texture(texture::Error),
+    Effect(effects::Error),
     LightPassRendertargetNotAvailable {message: String}
 }
 
@@ -38,5 +37,11 @@ impl From<rendertarget::Error> for Error {
 impl From<texture::Error> for Error {
     fn from(other: texture::Error) -> Self {
         Error::Texture(other)
+    }
+}
+
+impl From<effects::Error> for Error {
+    fn from(other: effects::Error) -> Self {
+        Error::Effect(other)
     }
 }

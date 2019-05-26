@@ -8,8 +8,7 @@ enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
 pub struct DebugEffect {
     gl: gl::Gl,
     program: program::Program,
-    debug_type: Type,
-    full_screen: FullScreen
+    debug_type: Type
 }
 
 impl DebugEffect {
@@ -19,7 +18,7 @@ impl DebugEffect {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),
                                                     include_str!("shaders/debug.frag"))?;
-        Ok(DebugEffect {gl: gl.clone(), program, debug_type: Type::NONE, full_screen: FullScreen::new(gl)})
+        Ok(DebugEffect {gl: gl.clone(), program, debug_type: Type::NONE})
     }
 
     pub fn change_type(&mut self)
@@ -27,7 +26,7 @@ impl DebugEffect {
         self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (Type::NONE as u32 + 1)).unwrap();
     }
 
-    pub fn apply(&self, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &FullScreen, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -47,7 +46,7 @@ impl DebugEffect {
 
         self.program.add_uniform_int("type", &(self.debug_type as i32))?;
 
-        self.full_screen.render(&self.program);
+        full_screen.render(&self.program);
         Ok(())
     }
 
