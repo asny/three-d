@@ -18,6 +18,7 @@ impl From<texture::Error> for Error {
 pub trait Rendertarget {
     fn bind(&self);
     fn clear(&self);
+    fn bind_for_read(&self);
 }
 
 // SCREEN RENDER TARGET
@@ -54,8 +55,13 @@ impl Rendertarget for ScreenRendertarget
 {
     fn bind(&self)
     {
-        self.gl.bind_framebuffer(gl::consts::FRAMEBUFFER, None);
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, None);
         self.gl.viewport(0, 0, self.width as i32, self.height as i32);
+    }
+
+    fn bind_for_read(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
     }
 
     fn clear(&self)
@@ -120,6 +126,11 @@ impl Rendertarget for ColorRendertarget
         bind(&self.gl, &self.id, self.width, self.height);
     }
 
+    fn bind_for_read(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&self.id));
+    }
+
     fn clear(&self)
     {
         state::depth_write(&self.gl,true);
@@ -170,6 +181,11 @@ impl Rendertarget for DepthRenderTarget
         bind(&self.gl, &self.id, self.width, self.height);
     }
 
+    fn bind_for_read(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&self.id));
+    }
+
     fn clear(&self)
     {
         state::depth_write(&self.gl,true);
@@ -192,6 +208,6 @@ fn generate(gl: &Gl) -> Result<gl::Framebuffer, Error>
 
 fn bind(gl: &Gl, id: &gl::Framebuffer, width: usize, height: usize)
 {
-    gl.bind_framebuffer(gl::consts::FRAMEBUFFER, Some(&id));
+    gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
     gl.viewport(0, 0, width as i32, height as i32);
 }

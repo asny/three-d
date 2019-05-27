@@ -404,6 +404,15 @@ impl Gl {
         }
     }
 
+    pub fn blit_framebuffer(&self, src_x0: u32, src_y0: u32, src_x1: u32, src_y1: u32,
+                                    dst_x0: u32, dst_y0: u32, dst_x1: u32, dst_y1: u32, mask: u32, filter: u32)
+    {
+        unsafe {
+            self.inner.BlitFramebuffer(src_x0 as i32, src_y0 as i32, src_x1 as i32, src_y1 as i32,
+                                        dst_x0 as i32, dst_y0 as i32, dst_x1 as i32, dst_y1 as i32, mask, filter);
+        }
+    }
+
     pub fn viewport(&self, x: i32, y: i32, width: i32, height: i32)
     {
         unsafe {
