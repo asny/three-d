@@ -1,6 +1,5 @@
 
 use crate::*;
-use crate::buffer::*;
 
 #[derive(Debug)]
 pub enum Error {

@@ -1,5 +1,4 @@
 use crate::Gl;
-use std::slice::Iter;
 
 #[derive(Debug)]
 pub enum Error {
@@ -116,6 +115,16 @@ impl StaticVertexBuffer {
         Ok(buffer)
     }
 
+    pub fn new_with_vec3_vec3_vec2(gl: &Gl, attribute0: &[f32], attribute1: &[f32], attribute2: &[f32]) -> Result<StaticVertexBuffer, Error>
+    {
+        let mut buffer = StaticVertexBuffer::new(gl)?;
+        buffer.buffer.add(attribute0, 3);
+        buffer.buffer.add(attribute1, 3);
+        buffer.buffer.add(attribute2, 2);
+        buffer.send_data();
+        Ok(buffer)
+    }
+
     pub fn send_data(&mut self)
     {
         //TODO: self.buffer.optimize_data_layout();
@@ -167,6 +176,11 @@ impl DynamicVertexBuffer {
         for i in 0..data.len() {
             self.buffer.data[i + offset] = data[i]
         }
+    }
+
+    pub fn add(&mut self, data: &[f32], no_components: usize)
+    {
+        self.buffer.add(data, no_components);
     }
 
     pub fn clear(&mut self)

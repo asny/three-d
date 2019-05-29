@@ -17,5 +17,5 @@ pub use crate::camerahandler::CameraHandler;
 pub use crate::texture::Texture;
 pub use crate::core::*;
 pub use crate::types::*;
-
+pub use crate::buffer::*;
 pub use crate::pipelines::*;

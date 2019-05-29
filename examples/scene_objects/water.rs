@@ -9,25 +9,27 @@ const VERTEX_DISTANCE: f32 = 1.0 / VERTICES_PER_UNIT as f32;
 
 pub struct Water {
     program: program::Program,
-    model: surface::TriangleSurface,
+    index_buffer: buffer::ElementBuffer,
     foam_texture: texture::Texture2D,
-    buffer: buffer::VertexBuffer,
+    buffer: buffer::DynamicVertexBuffer,
     center: Vec3
 }
 
 impl Water
 {
-    pub fn new(gl: &gl::Gl) -> Water
+    pub fn new(gl: &Gl) -> Water
     {
         let program = program::Program::from_source(gl, include_str!("../assets/shaders/water.vert"),
                                                       include_str!("../assets/shaders/water.frag")).unwrap();
-        let mut model = surface::TriangleSurface::new(gl, &indices()).unwrap();
-        let buffer = model.add_attributes(&program, &att!["uv_coordinate" => (vec![0.0;2 * VERTICES_IN_TOTAL], 2),
-                                                      "position" => (vec![0.0;3 * VERTICES_IN_TOTAL], 3)]).unwrap();
+        let index_buffer = buffer::ElementBuffer::new_with(gl, &indices()).unwrap();
+        let mut buffer = DynamicVertexBuffer::new(gl).unwrap();
+        buffer.add(&vec![0.0; 3 * VERTICES_IN_TOTAL], 3);
+        buffer.add(&vec![0.0; 2 * VERTICES_IN_TOTAL], 2);
+        buffer.send_data();
 
         let foam_texture = texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/grass.jpg")).unwrap();
 
-        let mut water = Water { program, model, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
+        let mut water = Water { program, index_buffer, foam_texture, buffer, center: vec3(0.0, 0.0, 0.0)};
         water.set_center(&vec3(0.0, 0.0, 0.0));
         water
     }
@@ -57,45 +59,48 @@ impl Water
         skybox_texture.bind(2);
         self.program.add_uniform_int("environmentMap", &2).unwrap();
 
-        self.model.render().unwrap();
+        self.program.use_attribute_vec3_float(&self.buffer, "position", 0).unwrap();
+        self.program.use_attribute_vec2_float(&self.buffer, "uv_coordinate", 1).unwrap();
+        self.program.draw_elements(&self.index_buffer);
     }
 
     pub fn set_center(&mut self, center: &Vec3)
     {
         self.center = vec3(center.x.floor(), 0.0, center.z.floor());
-        let mut data = vec![0.0; 5 * VERTICES_IN_TOTAL];
 
-        self.update_positions(&mut data, 2, 5);
-        self.update_uv_coordinates(&mut data, 0, 5);
-
-        self.buffer.fill_with(&data);
+        self.update_positions();
+        self.update_uv_coordinates();
     }
 
-    fn update_positions(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
+    fn update_positions(&mut self)
     {
+        let mut data = vec![0.0; 3 * VERTICES_IN_TOTAL];
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
                 let vertex_id = r*VERTICES_PER_SIDE + c;
-                data[offset + vertex_id * stride] = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
-                data[offset + vertex_id * stride + 2] = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
+                data[vertex_id * 3] = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                data[vertex_id * 3 + 2] = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
             }
         }
+        self.buffer.update_data_at(0, &data);
     }
 
-    fn update_uv_coordinates(&mut self, data: &mut Vec<f32>, offset: usize, stride: usize)
+    fn update_uv_coordinates(&mut self)
     {
+        let mut data = vec![0.0; 2 * VERTICES_IN_TOTAL];
         let scale = 0.1;
         for r in 0..VERTICES_PER_SIDE
         {
             for c in 0..VERTICES_PER_SIDE
             {
                 let vertex_id = r*VERTICES_PER_SIDE + c;
-                data[offset + vertex_id * stride] = scale * (self.center.x + r as f32 * VERTEX_DISTANCE);
-                data[offset + vertex_id * stride + 1] = scale * (self.center.z + c as f32 * VERTEX_DISTANCE);
+                data[vertex_id * 2] = scale * (self.center.x + r as f32 * VERTEX_DISTANCE);
+                data[vertex_id * 2 + 1] = scale * (self.center.z + c as f32 * VERTEX_DISTANCE);
             }
         }
+        self.buffer.update_data_at(1, &data);
     }
 }
 

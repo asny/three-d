@@ -1,7 +1,7 @@
 
 use crate::scene_objects::terrain::Terrain;
 use crate::scene_objects::water::Water;
-use crate::scene_objects::grass::Grass;
+//use crate::scene_objects::grass::Grass;
 use dust::*;
 
 pub struct Environment
@@ -9,12 +9,12 @@ pub struct Environment
     skybox: objects::Skybox,
     terrain: Terrain,
     water: Water,
-    grass: Grass,
+    //grass: Grass,
     volume_effect: VolumeEffect
 }
 
 impl Environment {
-    pub fn new(gl: &gl::Gl) -> Environment
+    pub fn new(gl: &Gl) -> Environment
     {
         let texture = texture::Texture3D::new_from_bytes(&gl,
                                                            include_bytes!("../assets/textures/skybox_evening/back.jpg"),
@@ -25,9 +25,9 @@ impl Environment {
         let skybox = objects::Skybox::new(&gl, texture);
         let terrain = Terrain::new(gl);
         let water = Water::new(gl);
-        let grass = Grass::new(gl, &terrain);
+        //let grass = Grass::new(gl, &terrain);
 
-        Environment {terrain, skybox, water, grass, volume_effect: VolumeEffect::new(gl).unwrap()}
+        Environment {terrain, skybox, water, volume_effect: VolumeEffect::new(gl).unwrap()}
     }
 
     pub fn render_opague(&self, camera: &camera::Camera)
@@ -37,9 +37,9 @@ impl Environment {
         //self.grass.render(camera);
     }
 
-    pub fn render_transparent(&self, time: f32, camera: &camera::Camera, screen_width: usize, screen_height: usize, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture)
+    pub fn render_transparent(&self, full_screen: &objects::FullScreen, time: f32, camera: &camera::Camera, screen_width: usize, screen_height: usize, color_texture: &core::texture::Texture, position_texture: &core::texture::Texture)
     {
-        self.volume_effect.apply(time, camera, color_texture, position_texture).unwrap();
+        self.volume_effect.apply(full_screen, time, camera, color_texture, position_texture).unwrap();
         self.water.render(time, camera, screen_width, screen_height, color_texture, position_texture, self.skybox.get_texture());
     }
 
@@ -49,7 +49,7 @@ impl Environment {
         {
             self.terrain.set_center(position);
             self.water.set_center(position);
-            self.grass.create_straws(&self.terrain);
+            //self.grass.create_straws(&self.terrain);
         }
     }
 
@@ -60,13 +60,13 @@ impl Environment {
 }
 
 pub struct VolumeEffect {
-    gl: gl::Gl,
+    gl: Gl,
     program: program::Program
 }
 
 impl VolumeEffect {
 
-    pub fn new(gl: &gl::Gl) -> Result<VolumeEffect, effects::Error>
+    pub fn new(gl: &Gl) -> Result<VolumeEffect, effects::Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("../assets/shaders/effect.vert"),
@@ -74,7 +74,7 @@ impl VolumeEffect {
         Ok(VolumeEffect {gl: gl.clone(), program})
     }
 
-    pub fn apply(&self, time: f32, camera: &camera::Camera, shaded_color_texture: &Texture, position_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &objects::FullScreen, time: f32, camera: &camera::Camera, shaded_color_texture: &Texture, position_texture: &Texture) -> Result<(), effects::Error>
     {
         let color = vec3(0.8, 0.8, 0.8);
         let density = 0.08;
@@ -98,7 +98,7 @@ impl VolumeEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        full_screen_quad::render(&self.gl, &self.program);
+        full_screen.render(&self.program);
         Ok(())
     }
 }

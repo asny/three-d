@@ -17,7 +17,7 @@ pub struct Spider {
 
 impl Spider
 {
-    pub fn new(gl: &gl::Gl, position: Vec3, view_direction: Vec3) -> Spider
+    pub fn new(gl: &Gl, position: Vec3, view_direction: Vec3) -> Spider
     {
         let model = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("../assets/models/spider.obj").to_string()).unwrap();
         Spider { model, position, view_direction, local2world: Mat4::identity(),
