@@ -99,7 +99,7 @@ impl Texture2D
 
         gl.tex_storage_2d(texture.target,
                         1,
-                        gl::consts::DEPTH_COMPONENT32F,
+                        gl::consts::DEPTH_COMPONENT16,
                         width as u32,
                         height as u32);
 
