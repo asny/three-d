@@ -70,6 +70,7 @@ impl Water
 
         self.update_positions();
         self.update_uv_coordinates();
+        self.buffer.send_data();
     }
 
     fn update_positions(&mut self)
@@ -81,6 +82,7 @@ impl Water
             {
                 let vertex_id = r*VERTICES_PER_SIDE + c;
                 data[vertex_id * 3] = self.center.x - SIZE/2.0 + r as f32 * VERTEX_DISTANCE;
+                data[vertex_id * 3 + 1] = 0.0;
                 data[vertex_id * 3 + 2] = self.center.z - SIZE/2.0 + c as f32 * VERTEX_DISTANCE;
             }
         }
