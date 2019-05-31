@@ -130,6 +130,7 @@ impl StaticVertexBuffer {
         //TODO: self.buffer.optimize_data_layout();
         self.buffer.bind();
         self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
     }
 
     pub fn add(&mut self, data: &[f32], no_components: usize)
@@ -168,6 +169,7 @@ impl DynamicVertexBuffer {
         self.buffer.bind();
         //TODO: Unbind data on gpu: https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming
         self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::DYNAMIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
     }
 
     pub fn update_data_at(&mut self, index: usize, data: &[f32])
@@ -239,10 +241,12 @@ impl ElementBuffer
     {
         self.bind();
         self.gl.buffer_data_u32(gl::consts::ELEMENT_ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+
     }
 }
 
 fn bind(gl: &gl::Gl, id: &gl::Buffer, buffer_type: u32)
 {
-    gl.bind_buffer(buffer_type, Some(id));
+    gl.bind_buffer(buffer_type, id);
 }

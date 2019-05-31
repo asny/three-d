@@ -24,14 +24,15 @@ pub use crate::ogl::defines::*;
 pub struct Gl {
     inner: InnerGl,
     current_program: Cell<u32>,
-    current_buffer: Cell<u32>,
+    current_arraybuffer: Cell<u32>,
+    current_elementbuffer: Cell<u32>,
 }
 
 impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0), current_buffer: Cell::new(0)};
+        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0), current_arraybuffer: Cell::new(0), current_elementbuffer: Cell::new(0)};
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
         gl
     }
@@ -143,16 +144,41 @@ impl Gl {
         Some(id)
     }
 
-    pub fn bind_buffer(&self, target: u32, buffer: Option<&Buffer>)
+    pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
     {
-        if self.current_buffer.get() != *buffer.unwrap()
+        let id = *buffer;
+
+        let current = match target {
+            consts::ARRAY_BUFFER => &self.current_arraybuffer,
+            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
+            _ => unreachable!()
+        };
+
+        if current.get() != id
         {
-            //println!("Buffer {} -> {}", self.current_buffer.get(), buffer.unwrap());
-            unsafe {
-                self.inner.BindBuffer(target, *buffer.unwrap());
+            if current.get() != 0 {
+                panic!("Wrong buffer is bound: {}, {}", id, current.get())
             }
-            self.current_buffer.set(*buffer.unwrap());
+            println!("Buffer {}: {} -> {}", target, current.get(), id);
+            unsafe {
+                self.inner.BindBuffer(target, id);
+            }
+            current.set(id);
         }
+    }
+
+    pub fn unbind_buffer(&self, target: u32)
+    {
+        let current = match target {
+            consts::ARRAY_BUFFER => &self.current_arraybuffer,
+            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
+            _ => unreachable!()
+        };
+
+        unsafe {
+            self.inner.BindBuffer(target, 0);
+        }
+        current.set(0);
     }
 
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)
@@ -235,12 +261,23 @@ impl Gl {
     {
         if self.current_program.get() != *program
         {
-            //println!("Program {} -> {}", self.current_program.get(), program);
+            if self.current_program.get() != 0 {
+                panic!("Wrong program is bound.")
+            }
+            println!("Program {} -> {}", self.current_program.get(), program);
             unsafe {
                 self.inner.UseProgram(*program);
             }
             self.current_program.set(*program);
         }
+    }
+
+    pub fn unuse_program(&self)
+    {
+        unsafe {
+            self.inner.UseProgram(0);
+        }
+        self.current_program.set(0);
     }
 
     pub fn delete_program(&self, program: &Program)

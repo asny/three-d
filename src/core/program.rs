@@ -147,10 +147,12 @@ impl Program
 
     pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
     {
+        // TODO: Remove
         buffer.bind();
         let location = self.location(name)?;
         self.gl.vertex_attrib_pointer(location, no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(location, divisor as u32);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
         Ok(())
     }
 
@@ -168,6 +170,7 @@ impl Program
         let loc = self.location(&attribute_name)?;
         self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
         Ok(())
     }
 
@@ -185,6 +188,7 @@ impl Program
         let loc = self.location(&attribute_name)?;
         self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
         Ok(())
     }
 
@@ -192,6 +196,7 @@ impl Program
     {
         self.set_used();
         self.gl.draw_arrays(gl::consts::TRIANGLES, 0, count);
+        self.gl.unuse_program();
     }
 
     pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
@@ -204,6 +209,8 @@ impl Program
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
+        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.gl.unuse_program();
     }
 
     pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, count: u32)
@@ -211,6 +218,8 @@ impl Program
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, count);
+        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.gl.unuse_program();
     }
 
     fn location(&self, name: &str) -> Result<u32, Error>
@@ -242,7 +251,7 @@ impl Program
         state::depth_write(&self.gl, enable);
     }
 
-    pub(in crate::core) fn set_used(&self) {
+    fn set_used(&self) {
         self.gl.use_program(&self.id);
     }
 }
