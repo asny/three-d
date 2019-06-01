@@ -8,8 +8,9 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, false, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    let mirror_renderer = DeferredPipeline::new(&gl, width/2, height/2, true, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mirror_renderer = DeferredPipeline::new(&gl, width/2, height/2, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width/2, width/2, 1, crate::types::vec4(0.0, 0.0, 0.0, 0.0)).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 1.0, 0.0),
@@ -102,7 +103,7 @@ fn main() {
         render_scene(&camera);
 
         // Mirror pass (Light pass)
-        mirror_renderer.light_pass_begin(&camera).unwrap();
+        mirror_renderer.light_pass_render_to(&camera, &light_pass_rendertarget).unwrap();
         mirror_renderer.shine_ambient_light(&ambient_light).unwrap();
         mirror_renderer.shine_spot_light(&light1).unwrap();
         mirror_renderer.shine_spot_light(&light2).unwrap();
@@ -130,7 +131,7 @@ fn main() {
         state::depth_test(&gl, state::DepthTestType::NONE);
         state::cull(&gl,state::CullType::BACK);
 
-        mirror_renderer.light_pass_color_texture().unwrap().bind(0);
+        light_pass_rendertarget.targets[0].bind(0);
         mirror_program.add_uniform_int("colorMap", &0).unwrap();
         renderer.full_screen().render(&mirror_program);
     }).unwrap();

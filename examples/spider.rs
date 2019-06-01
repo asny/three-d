@@ -10,7 +10,8 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, true, vec4(1.0, 1.0, 1.0, 1.0)).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, vec4(1.0, 1.0, 1.0, 1.0)).unwrap();
+    let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width, height, 1, crate::types::vec4(0.0, 0.0, 0.0, 0.0)).unwrap();
     let copy_effect = effects::CopyEffect::new(&gl).unwrap();
 
     // Models
@@ -87,11 +88,13 @@ fn main() {
         //spider.render(&camera);
 
         // Light pass
-        renderer.light_pass_begin(&camera).unwrap();
+        renderer.light_pass_render_to(&camera, &light_pass_rendertarget).unwrap();
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
-        renderer.copy_to_screen().unwrap();
-        copy_effect.apply(renderer.full_screen(), renderer.light_pass_color_texture().unwrap(), renderer.geometry_pass_depth_texture()).unwrap();
+
+        renderer.screen_rendertarget().bind();
+        renderer.screen_rendertarget().clear();
+        copy_effect.apply(renderer.full_screen(), &light_pass_rendertarget.targets[0], renderer.geometry_pass_depth_texture()).unwrap();
 
         // After effects
         environment.render_transparent(renderer.full_screen(), time as f32, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());

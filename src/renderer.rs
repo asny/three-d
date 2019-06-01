@@ -42,25 +42,20 @@ pub struct DeferredPipeline {
     light_pass_program: program::Program,
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
-    light_pass_rendertarget: Option<rendertarget::ColorRendertarget>,
     full_screen: FullScreen
 }
 
 
 impl DeferredPipeline
 {
-    pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool, background_color: crate::types::Vec4) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, background_color: crate::types::Vec4) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_source(&gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4, background_color)?;
-        let mut light_pass_rendertarget= None;
-        if use_light_pass_rendertarget {
-            light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 1, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?);
-        }
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, full_screen: FullScreen::new(gl) })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl) })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -69,11 +64,6 @@ impl DeferredPipeline
         self.rendertarget.height = screen_height;
         let clear_color = self.geometry_pass_rendertarget.clear_color;
         self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, clear_color)?;
-        if let Some(ref rendertarget) = self.light_pass_rendertarget
-        {
-            let clear_color = rendertarget.clear_color;
-            self.light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 1, clear_color)?);
-        }
         Ok(())
     }
 
@@ -92,16 +82,14 @@ impl DeferredPipeline
 
     pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        match self.light_pass_rendertarget {
-            Some(ref rendertarget) => {
-                rendertarget.bind();
-                rendertarget.clear();
-            },
-            None => {
-                self.rendertarget.bind();
-                self.rendertarget.clear();
-            }
-        }
+        self.light_pass_render_to(camera, &self.rendertarget)?;
+        Ok(())
+    }
+
+    pub fn light_pass_render_to(&self, camera: &camera::Camera, rendertarget: &Rendertarget) -> Result<(), Error>
+    {
+        rendertarget.bind();
+        rendertarget.clear();
 
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -212,16 +200,14 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn copy_to_screen(&self) -> Result<(), Error>
-    {
-        self.rendertarget.bind();
-        self.rendertarget.clear();
-        Ok(())
-    }
-
     pub fn full_screen(&self) -> &FullScreen
     {
         &self.full_screen
+    }
+
+    pub fn screen_rendertarget(&self) -> &ScreenRendertarget
+    {
+        &self.rendertarget
     }
 
     pub fn geometry_pass_color_texture(&self) -> &Texture
@@ -247,15 +233,5 @@ impl DeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertarget.depth_target
-    }
-
-    pub fn light_pass_color_texture(&self) -> Result<&Texture, Error>
-    {
-        match self.light_pass_rendertarget {
-            Some(ref rendertarget) => { return Ok(&rendertarget.targets[0]) },
-            None => {
-                return Err(Error::LightPassRendertargetNotAvailable{message: format!("Light pass render target is not available, consider creating the pipeline with 'use_light_pass_rendertarget' set to true")})
-            }
-        }
     }
 }
