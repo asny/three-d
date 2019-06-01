@@ -4,9 +4,7 @@ pub mod deferred;
 pub use crate::pipelines::forward::*;
 pub use crate::pipelines::deferred::*;
 
-use crate::core::rendertarget;
-use crate::core::texture;
-use crate::core::program;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {

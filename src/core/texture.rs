@@ -1,4 +1,4 @@
-use gl;
+use crate::Gl;
 use image;
 use image::GenericImageView;
 
@@ -26,7 +26,7 @@ pub trait Texture {
 }
 
 pub struct Texture2D {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Texture,
     target: u32
 }
@@ -34,7 +34,7 @@ pub struct Texture2D {
 // TEXTURE 2D
 impl Texture2D
 {
-    pub fn new(gl: &gl::Gl) -> Result<Texture2D, Error>
+    pub fn new(gl: &Gl) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
@@ -48,7 +48,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn new_from_bytes(gl: &gl::Gl, bytes: &[u8]) -> Result<Texture2D, Error>
+    pub fn new_from_bytes(gl: &Gl, bytes: &[u8]) -> Result<Texture2D, Error>
     {
         let img = image::load_from_memory(bytes)?;
         let mut texture = Texture2D::new(gl)?;
@@ -57,7 +57,7 @@ impl Texture2D
     }
 
     #[cfg(target_arch = "x86_64")]
-    pub fn new_from_file(gl: &gl::Gl, path: &str) -> Result<Texture2D, Error>
+    pub fn new_from_file(gl: &Gl, path: &str) -> Result<Texture2D, Error>
     {
         let img = image::open(path)?;
         let mut texture = Texture2D::new(gl)?;
@@ -65,7 +65,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn new_as_color_target(gl: &gl::Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
+    pub fn new_as_color_target(gl: &Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
@@ -86,7 +86,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn new_as_depth_target(gl: &gl::Gl, width: usize, height: usize) -> Result<Texture2D, Error>
+    pub fn new_as_depth_target(gl: &Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
@@ -159,7 +159,7 @@ impl Drop for Texture2D
 }
 
 pub struct Texture3D {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Texture,
     target: u32
 }
@@ -167,7 +167,7 @@ pub struct Texture3D {
 // TEXTURE 3D
 impl Texture3D
 {
-    pub fn new(gl: &gl::Gl) -> Result<Texture3D, Error>
+    pub fn new(gl: &Gl) -> Result<Texture3D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture3D { gl: gl.clone(), id, target: gl::consts::TEXTURE_CUBE_MAP };
@@ -182,7 +182,7 @@ impl Texture3D
         Ok(texture)
     }
 
-    pub fn new_from_bytes(gl: &gl::Gl, back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
+    pub fn new_from_bytes(gl: &Gl, back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
     {
         let back = image::load_from_memory(back_bytes)?;
         let front = image::load_from_memory(front_bytes)?;
@@ -198,7 +198,7 @@ impl Texture3D
     }
 
     #[cfg(target_arch = "x86_64")]
-    pub fn new_from_files(gl: &gl::Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
+    pub fn new_from_files(gl: &Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
         let back = image::open(format!("{}{}", path, back_name))?;
         let front = image::open(format!("{}{}", path, front_name))?;
@@ -249,23 +249,23 @@ impl Drop for Texture3D
 }
 
 // COMMON FUNCTIONS
-fn generate(gl: &gl::Gl) -> Result<gl::Texture, Error>
+fn generate(gl: &Gl) -> Result<gl::Texture, Error>
 {
     gl.create_texture().ok_or_else(|| Error::FailedToCreateTexture {message: "Failed to create texture".to_string()} )
 }
 
-fn bind_at(gl: &gl::Gl, id: &gl::Texture, target: u32, location: u32)
+fn bind_at(gl: &Gl, id: &gl::Texture, target: u32, location: u32)
 {
     gl.active_texture(gl::consts::TEXTURE0 + location);
     bind(gl, id, target);
 }
 
-fn bind(gl: &gl::Gl, id: &gl::Texture, target: u32)
+fn bind(gl: &Gl, id: &gl::Texture, target: u32)
 {
     gl.bind_texture(target, id)
 }
 
-fn drop(gl: &gl::Gl, id: &gl::Texture)
+fn drop(gl: &Gl, id: &gl::Texture)
 {
     gl.delete_texture(id);
 }

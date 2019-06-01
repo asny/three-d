@@ -1,4 +1,4 @@
-use gl;
+use crate::Gl;
 
 #[derive(Debug)]
 pub enum Error {
@@ -8,13 +8,13 @@ pub enum Error {
 }
 
 pub struct Shader {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Shader,
 }
 
 impl Shader
 {
-    pub fn from_source(gl: &gl::Gl, src: &str, kind: u32) -> Result<Shader, Error>
+    pub fn from_source(gl: &Gl, src: &str, kind: u32) -> Result<Shader, Error>
     {
         let shader_type = if kind == gl::consts::VERTEX_SHADER {"Vertex shader".to_string()} else {"Fragment shader".to_string()};
         let shader = gl.create_shader(kind).ok_or(Error::FailedToCreateShader{ shader_type: shader_type.clone(), message:"Unable to create shader object".to_string() })?;

@@ -1,11 +1,9 @@
-use gl;
+
 use crate::*;
-use crate::surface::*;
 
 #[derive(Debug)]
 pub enum Error {
-    Program(program::Error),
-    Model(surface::Error)
+    Program(program::Error)
 }
 
 impl From<program::Error> for Error {
@@ -14,32 +12,23 @@ impl From<program::Error> for Error {
     }
 }
 
-impl From<surface::Error> for Error {
-    fn from(other: surface::Error) -> Self {
-        Error::Model(other)
-    }
-}
-
 pub struct Skybox {
     program: program::Program,
-    model: TriangleSurface,
+    vertex_buffer: StaticVertexBuffer,
     texture: texture::Texture3D
 }
 
 impl Skybox
 {
-    pub fn new(gl: &gl::Gl, texture: texture::Texture3D) -> Skybox
+    pub fn new(gl: &Gl, texture: texture::Texture3D) -> Skybox
     {
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/skybox.vert"),
                                                     include_str!("shaders/skybox.frag")).unwrap();
 
-        let positions = get_positions();
-        let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
-        let mut model = TriangleSurface::new(gl, &indices).unwrap();
-        model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
+        let vertex_buffer = StaticVertexBuffer::new_with_vec3(gl, &get_positions()).unwrap();
 
-        Skybox { program, model, texture }
+        Skybox { program, vertex_buffer, texture }
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
@@ -54,7 +43,9 @@ impl Skybox
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
         self.program.add_uniform_vec3("cameraPosition", camera.position())?;
 
-        self.model.render()?;
+        self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;
+
+        self.program.draw_arrays(36);
         Ok(())
     }
 

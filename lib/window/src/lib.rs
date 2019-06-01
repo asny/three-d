@@ -10,4 +10,3 @@ pub use crate::glutin_window::*;
 pub mod canvas;
 #[cfg(target_arch = "wasm32")]
 pub use crate::canvas::*;
-

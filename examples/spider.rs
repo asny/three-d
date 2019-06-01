@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, true, vec4(1.0, 0.0, 0.0, 1.0)).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, true, vec4(1.0, 1.0, 1.0, 1.0)).unwrap();
 
     // Models
     let mut environment = scene_objects::environment::Environment::new(&gl);
@@ -92,9 +92,9 @@ fn main() {
         renderer.copy_to_screen().unwrap();
 
         // After effects
-        environment.render_transparent(time as f32, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
+        environment.render_transparent(renderer.full_screen(), time as f32, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
 
-        debug_effect.apply(renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture(), renderer.geometry_pass_normal_texture(), renderer.geometry_pass_depth_texture()).unwrap();
+        debug_effect.apply(renderer.full_screen(), renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture(), renderer.geometry_pass_normal_texture(), renderer.geometry_pass_depth_texture()).unwrap();
     }).unwrap();
 }
 

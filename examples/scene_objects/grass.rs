@@ -5,7 +5,7 @@ use crate::scene_objects::terrain::*;
 
 pub struct Grass {
     program: program::Program,
-    model: surface::TriangleSurface,
+    buffer: StaticVertexBuffer,
     position_buffer: buffer::VertexBuffer
 }
 
@@ -13,7 +13,7 @@ const NO_STRAWS: usize = 128;
 
 impl Grass
 {
-    pub fn new(gl: &gl::Gl, terrain: &Terrain) -> Grass
+    pub fn new(gl: &Gl, terrain: &Terrain) -> Grass
     {
         let positions: Vec<f32> = vec![
             0.0, 0.0, 0.0,
@@ -37,14 +37,13 @@ impl Grass
         ];
         let program = program::Program::from_source(gl, include_str!("../assets/shaders/grass.vert"),
                                                       include_str!("../assets/shaders/grass.frag")).unwrap();
-        let mut model = surface::TriangleSurface::new(gl, &indices).unwrap();
-        model.add_attributes(&program, &att!["position" => (positions, 3)]).unwrap();
+        let buffer = StaticVertexBuffer::new_with_vec3(gl, &positions).unwrap();
 
-        let position_buffer = buffer::VertexBuffer::new(gl).unwrap();
+        let position_buffer = buffer::StaticVertexBuffer::new(gl).unwrap();
 
         program.setup_attribute(&position_buffer, "root_position", 3, 3, 0, 1).unwrap();
 
-        let mut grass = Grass { program, model, position_buffer };
+        let mut grass = Grass { program, buffer, position_buffer };
         grass.create_straws(terrain);
         grass
     }

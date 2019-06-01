@@ -1,7 +1,7 @@
 use crate::*;
 
 pub struct FogEffect {
-    gl: gl::Gl,
+    gl: Gl,
     program: program::Program,
     pub color: Vec3,
     pub density: f32,
@@ -11,7 +11,7 @@ pub struct FogEffect {
 
 impl FogEffect {
 
-    pub fn new(gl: &gl::Gl) -> Result<FogEffect, effects::Error>
+    pub fn new(gl: &Gl) -> Result<FogEffect, effects::Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),
@@ -19,7 +19,7 @@ impl FogEffect {
         Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, no_fog_height: 3.0, animation: 0.1})
     }
 
-    pub fn apply(&self, time: f32, camera: &camera::Camera, position_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &objects::FullScreen, time: f32, camera: &camera::Camera, position_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -35,7 +35,7 @@ impl FogEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        full_screen_quad::render(&self.gl, &self.program);
+        full_screen.render(&self.program);
         Ok(())
     }
 

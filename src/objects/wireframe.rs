@@ -1,5 +1,4 @@
 
-use gl;
 use crate::*;
 use crate::objects::*;
 
@@ -10,7 +9,7 @@ pub struct Wireframe {
 
 impl Wireframe
 {
-    pub fn new(gl: &gl::Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Wireframe
+    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Wireframe
     {
         let edges = ShadedEdges::new(&gl, indices, positions, tube_radius);
         let mut vertices = ShadedVertices::new(&gl, positions);
@@ -19,7 +18,7 @@ impl Wireframe
         Wireframe {edges, vertices}
     }
 
-    pub fn new_from_obj_source(gl: &gl::Gl, source: String, tube_radius: f32, translation: &Vec3) -> Wireframe
+    pub fn new_from_obj_source(gl: &Gl, source: String, tube_radius: f32, translation: &Vec3) -> Wireframe
     {
         let objs = wavefront_obj::obj::parse(source).unwrap();
         let obj = objs.objects.first().unwrap();

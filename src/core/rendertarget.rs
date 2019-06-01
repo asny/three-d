@@ -1,4 +1,4 @@
-use gl;
+use crate::Gl;
 use crate::core::state;
 use crate::core::texture;
 use crate::types::*;
@@ -18,11 +18,12 @@ impl From<texture::Error> for Error {
 pub trait Rendertarget {
     fn bind(&self);
     fn clear(&self);
+    fn bind_for_read(&self);
 }
 
 // SCREEN RENDER TARGET
 pub struct ScreenRendertarget {
-    gl: gl::Gl,
+    gl: Gl,
     pub width: usize,
     pub height: usize,
     clear_color: Vec4
@@ -30,7 +31,7 @@ pub struct ScreenRendertarget {
 
 impl ScreenRendertarget
 {
-    pub fn new(gl: &gl::Gl, width: usize, height: usize, clear_color: Vec4) -> Result<ScreenRendertarget, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize, clear_color: Vec4) -> Result<ScreenRendertarget, Error>
     {
         Ok(ScreenRendertarget { gl: gl.clone(), width, height, clear_color })
     }
@@ -54,8 +55,13 @@ impl Rendertarget for ScreenRendertarget
 {
     fn bind(&self)
     {
-        self.gl.bind_framebuffer(gl::consts::FRAMEBUFFER, None);
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, None);
         self.gl.viewport(0, 0, self.width as i32, self.height as i32);
+    }
+
+    fn bind_for_read(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
     }
 
     fn clear(&self)
@@ -68,7 +74,7 @@ impl Rendertarget for ScreenRendertarget
 
 // COLOR RENDER TARGET
 pub struct ColorRendertarget {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Framebuffer,
     pub width: usize,
     pub height: usize,
@@ -79,7 +85,7 @@ pub struct ColorRendertarget {
 
 impl ColorRendertarget
 {
-    pub fn new(gl: &gl::Gl, width: usize, height: usize, no_targets: usize, clear_color: Vec4) -> Result<ColorRendertarget, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize, no_targets: usize, clear_color: Vec4) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
         bind(gl, &id, width, height);
@@ -120,6 +126,11 @@ impl Rendertarget for ColorRendertarget
         bind(&self.gl, &self.id, self.width, self.height);
     }
 
+    fn bind_for_read(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&self.id));
+    }
+
     fn clear(&self)
     {
         state::depth_write(&self.gl,true);
@@ -136,7 +147,7 @@ impl Drop for ColorRendertarget {
 
 // DEPTH RENDER TARGET
 pub struct DepthRenderTarget {
-    gl: gl::Gl,
+    gl: Gl,
     id: gl::Framebuffer,
     width: usize,
     height: usize,
@@ -145,7 +156,7 @@ pub struct DepthRenderTarget {
 
 impl DepthRenderTarget
 {
-    pub fn new(gl: &gl::Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
     {
         let id = generate(gl)?;
         bind(gl, &id, width, height);
@@ -170,6 +181,11 @@ impl Rendertarget for DepthRenderTarget
         bind(&self.gl, &self.id, self.width, self.height);
     }
 
+    fn bind_for_read(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&self.id));
+    }
+
     fn clear(&self)
     {
         state::depth_write(&self.gl,true);
@@ -185,13 +201,13 @@ impl Drop for DepthRenderTarget {
 
 
 // COMMON FUNCTIONS
-fn generate(gl: &gl::Gl) -> Result<gl::Framebuffer, Error>
+fn generate(gl: &Gl) -> Result<gl::Framebuffer, Error>
 {
     gl.create_framebuffer().ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )
 }
 
-fn bind(gl: &gl::Gl, id: &gl::Framebuffer, width: usize, height: usize)
+fn bind(gl: &Gl, id: &gl::Framebuffer, width: usize, height: usize)
 {
-    gl.bind_framebuffer(gl::consts::FRAMEBUFFER, Some(&id));
+    gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
     gl.viewport(0, 0, width as i32, height as i32);
 }

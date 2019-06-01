@@ -1,4 +1,6 @@
 
+use std::cell::Cell;
+
 pub mod consts {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
@@ -15,21 +17,24 @@ pub mod defines
     pub type Framebuffer = u32;
     pub type Texture = u32;
     pub type VertexArrayObject = u32;
+    pub struct ActiveInfo { pub size: u32, pub _type: u32, pub name: String }
 }
 pub use crate::ogl::defines::*;
 
-#[derive(Clone)]
 pub struct Gl {
-    inner: std::rc::Rc<InnerGl>,
+    inner: InnerGl,
+    current_program: Cell<u32>,
+    current_arraybuffer: Cell<u32>,
+    current_elementbuffer: Cell<u32>,
 }
 
 impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        Gl {
-            inner: std::rc::Rc::new(InnerGl::load_with(loadfn))
-        }
+        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0), current_arraybuffer: Cell::new(0), current_elementbuffer: Cell::new(0)};
+        gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
+        gl
     }
 
     pub fn create_shader(&self, type_: u32) -> Option<Shader>
@@ -91,6 +96,45 @@ impl Gl {
         }
     }
 
+    pub fn get_program_parameter(&self, program: &Program, pname: u32) -> u32
+    {
+        let mut out = 0;
+        unsafe {
+            self.inner.GetProgramiv(*program, pname, &mut out);
+        }
+        out as u32
+    }
+
+    pub fn get_active_attrib(&self, program: &Program, index: u32) -> ActiveInfo
+    {
+        let mut length = 128;
+        let mut size = 0;
+        let mut _type = 0;
+        let name = create_whitespace_cstring_with_len(length as usize);
+        unsafe {
+            self.inner.GetActiveAttrib(*program, index, length, &mut length, &mut size, &mut _type, name.as_ptr() as *mut consts::types::GLchar);
+        }
+
+        let mut s = name.to_string_lossy().into_owned();
+        s.truncate(length as usize);
+        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
+    }
+
+    pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
+    {
+        let mut length = 128;
+        let mut size = 0;
+        let mut _type = 0;
+        let name = create_whitespace_cstring_with_len(length as usize);
+        unsafe {
+            self.inner.GetActiveUniform(*program, index, length, &mut length, &mut size, &mut _type, name.as_ptr() as *mut consts::types::GLchar);
+        }
+
+        let mut s = name.to_string_lossy().into_owned();
+        s.truncate(length as usize);
+        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
+    }
+
     pub fn create_buffer(&self) -> Option<Buffer>
     {
         let mut id: u32 = 0;
@@ -100,17 +144,41 @@ impl Gl {
         Some(id)
     }
 
-    pub fn bind_buffer(&self, target: u32, buffer: Option<&Buffer>)
+    pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
     {
-        unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            let id = *buffer.unwrap();
-            if id != CURRENTLY_USED
-            {
-                self.inner.BindBuffer(target, id);
-                CURRENTLY_USED = id;
+        let id = *buffer;
+
+        let current = match target {
+            consts::ARRAY_BUFFER => &self.current_arraybuffer,
+            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
+            _ => unreachable!()
+        };
+
+        if current.get() != id
+        {
+            if current.get() != 0 {
+                panic!("Wrong buffer is bound: {}, {}", id, current.get())
             }
+            //println!("Buffer {}: {} -> {}", target, current.get(), id);
+            unsafe {
+                self.inner.BindBuffer(target, id);
+            }
+            current.set(id);
         }
+    }
+
+    pub fn unbind_buffer(&self, target: u32)
+    {
+        let current = match target {
+            consts::ARRAY_BUFFER => &self.current_arraybuffer,
+            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
+            _ => unreachable!()
+        };
+
+        unsafe {
+            self.inner.BindBuffer(target, 0);
+        }
+        current.set(0);
     }
 
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)
@@ -149,13 +217,7 @@ impl Gl {
     pub fn bind_vertex_array(&self, array: &VertexArrayObject)
     {
         unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            let id = *array;
-            if id != CURRENTLY_USED
-            {
-                self.inner.BindVertexArray(id);
-                CURRENTLY_USED = id;
-            }
+            self.inner.BindVertexArray(*array);
         }
     }
 
@@ -197,15 +259,25 @@ impl Gl {
 
     pub fn use_program(&self, program: &Program)
     {
-        unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            let id = *program;
-            if id != CURRENTLY_USED
-            {
-                self.inner.UseProgram(id);
-                CURRENTLY_USED = id;
+        if self.current_program.get() != *program
+        {
+            if self.current_program.get() != 0 {
+                panic!("Wrong program is bound.")
             }
+            //println!("Program {} -> {}", self.current_program.get(), program);
+            unsafe {
+                self.inner.UseProgram(*program);
+            }
+            self.current_program.set(*program);
         }
+    }
+
+    pub fn unuse_program(&self)
+    {
+        unsafe {
+            self.inner.UseProgram(0);
+        }
+        self.current_program.set(0);
     }
 
     pub fn delete_program(&self, program: &Program)
@@ -228,6 +300,13 @@ impl Gl {
     {
         unsafe {
             self.inner.EnableVertexAttribArray(location);
+        }
+    }
+
+    pub fn disable_vertex_attrib_array(&self, location: AttributeLocation)
+    {
+        unsafe {
+            self.inner.DisableVertexAttribArray(location);
         }
     }
 
@@ -337,12 +416,7 @@ impl Gl {
     {
         let id = match framebuffer { Some(fb) => *fb, None => 0 };
         unsafe {
-            static mut CURRENTLY_USED: u32 = std::u32::MAX;
-            if id != CURRENTLY_USED
-            {
-                self.inner.BindFramebuffer(target, id);
-                CURRENTLY_USED = id;
-            }
+            self.inner.BindFramebuffer(target, id);
         }
     }
 
@@ -371,6 +445,15 @@ impl Gl {
             consts::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => {Err("FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string())},
             consts::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => {Err("FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string())},
             _ => {Err("Unknown framebuffer error".to_string())}
+        }
+    }
+
+    pub fn blit_framebuffer(&self, src_x0: u32, src_y0: u32, src_x1: u32, src_y1: u32,
+                                    dst_x0: u32, dst_y0: u32, dst_x1: u32, dst_y1: u32, mask: u32, filter: u32)
+    {
+        unsafe {
+            self.inner.BlitFramebuffer(src_x0 as i32, src_y0 as i32, src_x1 as i32, src_y1 as i32,
+                                        dst_x0 as i32, dst_y0 as i32, dst_x1 as i32, dst_y1 as i32, mask, filter);
         }
     }
 
@@ -512,6 +595,17 @@ impl Gl {
     {
         unsafe {
             self.inner.FramebufferTexture2D(target, attachment, textarget, *texture, level as i32);
+        }
+    }
+
+    pub fn draw_arrays(&self, mode: u32, first: u32, count: u32)
+    {
+        unsafe {
+            self.inner.DrawArrays(
+                mode as consts::types::GLenum,
+                first as i32, // starting index in the enabled arrays
+                count as i32 // number of vertices to be rendered
+            );
         }
     }
 
