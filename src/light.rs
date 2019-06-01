@@ -72,7 +72,6 @@ impl DirectionalLight
     {
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
-            use core::rendertarget::Rendertarget;
             rendertarget.bind();
             rendertarget.clear();
             return Ok(())
@@ -155,7 +154,6 @@ impl SpotLight
     {
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
-            use core::Rendertarget;
             rendertarget.bind();
             rendertarget.clear();
             return Ok(())

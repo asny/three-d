@@ -40,37 +40,37 @@ impl From<texture::Error> for Error {
 pub struct DeferredPipeline {
     gl: Gl,
     light_pass_program: program::Program,
-    rendertarget: rendertarget::ScreenRendertarget,
+    rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
-    full_screen: FullScreen
+    full_screen: FullScreen,
+    pub background_color: Vec4
 }
 
 
 impl DeferredPipeline
 {
-    pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, background_color: crate::types::Vec4) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, background_color: Vec4) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_source(&gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
-        let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4, background_color)?;
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl) })
+        let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4)?;
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl), background_color })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
         self.rendertarget.width = screen_width;
         self.rendertarget.height = screen_height;
-        let clear_color = self.geometry_pass_rendertarget.clear_color;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, clear_color)?;
+        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4)?;
         Ok(())
     }
 
     pub fn geometry_pass_begin(&self) -> Result<(), Error>
     {
         self.geometry_pass_rendertarget.bind();
-        self.geometry_pass_rendertarget.clear();
+        self.geometry_pass_rendertarget.clear(&self.background_color);
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
@@ -86,10 +86,10 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass_render_to(&self, camera: &camera::Camera, rendertarget: &Rendertarget) -> Result<(), Error>
+    pub fn light_pass_render_to(&self, camera: &camera::Camera, rendertarget: &ColorRendertarget) -> Result<(), Error>
     {
         rendertarget.bind();
-        rendertarget.clear();
+        rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
 
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -205,7 +205,7 @@ impl DeferredPipeline
         &self.full_screen
     }
 
-    pub fn screen_rendertarget(&self) -> &ScreenRendertarget
+    pub fn screen_rendertarget(&self) -> &ColorRendertarget
     {
         &self.rendertarget
     }
@@ -232,6 +232,6 @@ impl DeferredPipeline
 
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.depth_target
+        self.geometry_pass_rendertarget.depth_target.as_ref().unwrap()
     }
 }

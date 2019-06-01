@@ -11,7 +11,7 @@ fn main() {
 
     // Renderer
     let renderer = DeferredPipeline::new(&gl, width, height, vec4(1.0, 1.0, 1.0, 1.0)).unwrap();
-    let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width, height, 1, crate::types::vec4(0.0, 0.0, 0.0, 0.0)).unwrap();
+    let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width, height, 1).unwrap();
     let copy_effect = effects::CopyEffect::new(&gl).unwrap();
 
     // Models
@@ -93,7 +93,7 @@ fn main() {
         renderer.shine_directional_light(&directional_light).unwrap();
 
         renderer.screen_rendertarget().bind();
-        renderer.screen_rendertarget().clear();
+        renderer.screen_rendertarget().clear_depth();
         copy_effect.apply(renderer.full_screen(), &light_pass_rendertarget.targets[0], renderer.geometry_pass_depth_texture()).unwrap();
 
         // After effects
