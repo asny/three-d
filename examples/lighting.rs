@@ -8,7 +8,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, true, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, false, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -82,8 +82,6 @@ fn main() {
         renderer.shine_directional_light(&directional_light).unwrap();
         renderer.shine_point_light(&point_light).unwrap();
         renderer.shine_spot_light(&spot_light).unwrap();
-
-        renderer.copy_to_screen().unwrap();
     }).unwrap();
 }
 
