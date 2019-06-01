@@ -209,6 +209,10 @@ impl DeferredPipeline
             self.gl.blit_framebuffer(0, 0, light_pass_rendertarget.width as u32, light_pass_rendertarget.height as u32,
                                      0, 0, self.rendertarget.width as u32, self.rendertarget.height as u32,
                                      gl::consts::COLOR_BUFFER_BIT, gl::consts::NEAREST);
+            self.geometry_pass_rendertarget.bind_for_read();
+            self.gl.blit_framebuffer(0, 0, self.geometry_pass_rendertarget.width as u32, self.geometry_pass_rendertarget.height as u32,
+                                     0, 0, self.rendertarget.width as u32, self.rendertarget.height as u32,
+                                     gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
         }
         Ok(())
     }
