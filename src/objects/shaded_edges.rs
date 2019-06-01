@@ -51,8 +51,6 @@ impl ShadedEdges
         let cylinder_index_buffer = buffer::ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
         let cylinder_vertex_buffer = buffer::StaticVertexBuffer::new_with_vec3(gl,&cylinder_positions).unwrap();
 
-        let instance_buffer = buffer::StaticVertexBuffer::new(gl).unwrap();
-
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {
             let i1 = indices[3*f] as usize;
@@ -64,6 +62,8 @@ impl ShadedEdges
         }
         let no_edges = index_pairs.len() as u32;
 
+        let instance_buffer = buffer::StaticVertexBuffer::new(gl).unwrap();
+
         let mut object = ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 };
         object.update_positions(positions);
         object
@@ -71,35 +71,17 @@ impl ShadedEdges
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        let mut data = Vec::new();
+        let mut translation = Vec::new();
+        let mut direction = Vec::new();
         for (i0, i1) in self.index_pairs.iter() {
-            let p0 = vec3(positions[i0 * 3], positions[i0 * 3+1], positions[i0 * 3+2]);
-            let p1 = vec3(positions[i1 * 3], positions[i1 * 3+1], positions[i1 * 3+2]);
-
-            let length = (p1 - p0).magnitude();
-            let dir = (p1 - p0)/length;
-            let local_to_world = rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), dir) * Mat4::from_nonuniform_scale(length, self.tube_radius, self.tube_radius);
-            let normal_matrix = local_to_world.invert().unwrap().transpose();
-
             for i in 0..3 {
-                for j in 0..3 {
-                    data.push(local_to_world[i][j]);
-                }
+                translation.push(positions[i0 * 3 + i]);
+                direction.push(positions[i1 * 3 + i] - positions[i0 * 3 + i]);
             }
-
-            for i in 0..3 {
-                data.push(p0[i]);
-            }
-
-            for i in 0..3 {
-                for j in 0..3 {
-                    data.push(normal_matrix[i][j]);
-                }
-            }
-
         }
         self.instance_buffer.clear();
-        self.instance_buffer.add(&data, 0);
+        self.instance_buffer.add(&translation, 3);
+        self.instance_buffer.add(&direction, 3);
         self.instance_buffer.send_data();
     }
 
@@ -119,15 +101,10 @@ impl ShadedEdges
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
-        self.program.use_attribute_vec3_float(&self.cylinder_vertex_buffer, "position", 0).unwrap();
+        self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();
+        self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "direction", 1, 1).unwrap();
 
-        self.program.setup_attribute(&self.instance_buffer,"local2worldX", 3, 21, 0, 1).unwrap();
-        self.program.setup_attribute(&self.instance_buffer,"local2worldY", 3, 21, 3, 1).unwrap();
-        self.program.setup_attribute(&self.instance_buffer,"local2worldZ", 3, 21, 6, 1).unwrap();
-        self.program.setup_attribute(&self.instance_buffer,"translation", 3, 21, 9, 1).unwrap();
-        self.program.setup_attribute(&self.instance_buffer,"normalMatrixX", 3, 21, 12, 1).unwrap();
-        self.program.setup_attribute(&self.instance_buffer,"normalMatrixY", 3, 21, 15, 1).unwrap();
-        self.program.setup_attribute(&self.instance_buffer,"normalMatrixZ", 3, 21, 18, 1).unwrap();
+        self.program.use_attribute_vec3_float(&self.cylinder_vertex_buffer, "position", 0).unwrap();
 
         self.program.draw_elements_instanced(&self.cylinder_index_buffer,self.no_edges);
     }

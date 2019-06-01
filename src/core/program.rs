@@ -145,17 +145,6 @@ impl Program
         Ok(*loc)
     }
 
-    pub fn setup_attribute(&self, buffer: &buffer::VertexBuffer, name: &str, no_components: usize, stride: usize, offset: usize, divisor: usize) -> Result<(), Error>
-    {
-        // TODO: Remove
-        buffer.bind();
-        let location = self.location(name)?;
-        self.gl.vertex_attrib_pointer(location, no_components as u32, gl::consts::FLOAT, false, stride as u32, offset as u32);
-        self.gl.vertex_attrib_divisor(location, divisor as u32);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
-        Ok(())
-    }
-
     pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
         self.use_attribute_vec2_float_divisor(buffer, attribute_name, index, 0)?;
