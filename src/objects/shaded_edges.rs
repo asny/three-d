@@ -100,6 +100,7 @@ impl ShadedEdges
 
         self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
         self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+        self.program.add_uniform_float("tube_radius", &self.tube_radius).unwrap();
 
         self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();
         self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "direction", 1, 1).unwrap();

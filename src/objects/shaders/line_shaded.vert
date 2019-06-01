@@ -1,6 +1,7 @@
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
+uniform float tube_radius;
 
 in vec3 direction;
 in vec3 translation;
@@ -25,7 +26,7 @@ mat3 rotationMatrix(vec3 source_dir, vec3 target_dir)
 void main()
 {
     mat3 l2w = transpose(rotationMatrix(vec3(1.0, 0.0, 0.0), normalize(direction)));
-    pos = l2w * (position * vec3(length(direction), 0.015, 0.015)) + translation;
+    pos = l2w * (position * vec3(length(direction), tube_radius, tube_radius)) + translation;
     mat3 normalMatrix = transpose(inverse(l2w));
     nor = normalize(normalMatrix * vec3(0.0, position.y, position.z));
     gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
