@@ -5,6 +5,8 @@ mod shader;
 pub mod state;
 pub mod texture;
 pub mod types;
+pub mod camera;
+pub mod camerahandler;
 
 pub type Gl = std::rc::Rc<gl::Gl>;
 
@@ -14,3 +16,5 @@ pub use rendertarget::*;
 pub use state::*;
 pub use texture::*;
 pub use types::*;
+pub use camera::*;
+pub use camerahandler::*;

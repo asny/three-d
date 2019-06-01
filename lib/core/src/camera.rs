@@ -1,4 +1,4 @@
-use crate::*;
+use crate::types::*;
 
 pub trait Camera
 {

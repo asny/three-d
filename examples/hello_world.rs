@@ -1,4 +1,4 @@
-use dust::*;
+use dust::core::*;
 use dust::window::event::*;
 
 fn main() {
@@ -7,10 +7,10 @@ fn main() {
     let (width, height) = window.framebuffer_size();
 
     let gl = window.gl();
-    let rendertarget = rendertarget::ScreenRendertarget::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let rendertarget = ScreenRendertarget::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
     let positions: Vec<f32> = vec![
@@ -24,12 +24,12 @@ fn main() {
         0.0, 0.0, 1.0    // top
     ];
 
-    let buffer = buffer::StaticVertexBuffer::new_with_vec3_vec3(&gl, &positions, &colors).unwrap();
-    let program = program::Program::from_source(&gl,
+    let buffer = StaticVertexBuffer::new_with_vec3_vec3(&gl, &positions, &colors).unwrap();
+    let program = Program::from_source(&gl,
                                                 include_str!("assets/shaders/color.vert"),
                                                 include_str!("assets/shaders/color.frag")).unwrap();
 
-    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
+    let mut camera_handler = CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
     window.render_loop(move |events, _elapsed_time|
