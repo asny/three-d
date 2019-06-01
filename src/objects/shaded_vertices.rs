@@ -3,7 +3,7 @@ use crate::*;
 
 pub struct ShadedVertices {
     program: Program,
-    instance_buffer: StaticVertexBuffer,
+    instance_buffer: DynamicVertexBuffer,
     ball_index_buffer: ElementBuffer,
     ball_vertex_buffer: StaticVertexBuffer,
     no_vertices: u32,
@@ -38,7 +38,9 @@ impl ShadedVertices
         );
         let ball_index_buffer = ElementBuffer::new_with(gl, &ball_indices).unwrap();
         let ball_vertex_buffer = StaticVertexBuffer::new_with_vec3(gl, &ball_positions).unwrap();
-        let instance_buffer = StaticVertexBuffer::new_with_vec3(gl, positions).unwrap();
+        let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
+        instance_buffer.add(positions, 3);
+        instance_buffer.send_data();
 
         ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
@@ -46,8 +48,7 @@ impl ShadedVertices
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.instance_buffer.clear();
-        self.instance_buffer.add(positions, 3);
+        self.instance_buffer.update_data_at(0, positions);
         self.instance_buffer.send_data();
     }
 

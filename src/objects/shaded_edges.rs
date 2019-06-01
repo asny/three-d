@@ -3,7 +3,7 @@ use crate::*;
 
 pub struct ShadedEdges {
     program: core::Program,
-    instance_buffer: core::StaticVertexBuffer,
+    instance_buffer: core::DynamicVertexBuffer,
     cylinder_index_buffer: core::ElementBuffer,
     cylinder_vertex_buffer: core::StaticVertexBuffer,
     index_pairs: std::collections::HashSet<(usize, usize)>,
@@ -62,26 +62,33 @@ impl ShadedEdges
         }
         let no_edges = index_pairs.len() as u32;
 
-        let instance_buffer = buffer::StaticVertexBuffer::new(gl).unwrap();
+        let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
+        let (translation, direction) = Self::fill_translation_and_direction(&index_pairs, positions);
+        instance_buffer.add(&translation, 3);
+        instance_buffer.add(&direction, 3);
+        instance_buffer.send_data();
 
-        let mut object = ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 };
-        object.update_positions(positions);
-        object
+        ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
-    pub fn update_positions(&mut self, positions: &[f32])
+    fn fill_translation_and_direction(index_pairs: &std::collections::HashSet<(usize, usize)>, positions: &[f32]) -> (Vec<f32>, Vec<f32>)
     {
         let mut translation = Vec::new();
         let mut direction = Vec::new();
-        for (i0, i1) in self.index_pairs.iter() {
+        for (i0, i1) in index_pairs.iter() {
             for i in 0..3 {
                 translation.push(positions[i0 * 3 + i]);
                 direction.push(positions[i1 * 3 + i] - positions[i0 * 3 + i]);
             }
         }
-        self.instance_buffer.clear();
-        self.instance_buffer.add(&translation, 3);
-        self.instance_buffer.add(&direction, 3);
+        (translation, direction)
+    }
+
+    pub fn update_positions(&mut self, positions: &[f32])
+    {
+        let (translation, direction) = Self::fill_translation_and_direction(&self.index_pairs, positions);
+        self.instance_buffer.update_data_at(0, &translation);
+        self.instance_buffer.update_data_at(1, &direction);
         self.instance_buffer.send_data();
     }
 
