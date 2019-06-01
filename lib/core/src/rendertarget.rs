@@ -3,12 +3,19 @@ use crate::*;
 #[derive(Debug)]
 pub enum Error {
     Texture(crate::texture::Error),
+    IO(std::io::Error),
     FailedToCreateFramebuffer {message: String}
 }
 
 impl From<crate::texture::Error> for Error {
     fn from(other: crate::texture::Error) -> Self {
         Error::Texture(other)
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(other: std::io::Error) -> Self {
+        Error::IO(other)
     }
 }
 
@@ -146,8 +153,8 @@ impl Drop for ColorRendertarget {
 pub struct DepthRenderTarget {
     gl: Gl,
     id: gl::Framebuffer,
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     pub target: Texture2D
 }
 
@@ -207,4 +214,13 @@ fn bind(gl: &Gl, id: &gl::Framebuffer, width: usize, height: usize)
 {
     gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
     gl.viewport(0, 0, width as i32, height as i32);
+}
+
+#[cfg(target_arch = "x86_64")]
+pub fn save_screenshot(path: &str, rendertarget: &ScreenRendertarget) -> Result<(), Error>
+{
+    let mut pixels = vec![0u8; rendertarget.width * rendertarget.height * 3];
+    rendertarget.pixels(&mut pixels);
+    image::save_buffer(&std::path::Path::new(path), &pixels, rendertarget.width as u32, rendertarget.height as u32, image::RGB(8))?;
+    Ok(())
 }

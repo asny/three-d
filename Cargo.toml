@@ -13,11 +13,6 @@ num-traits = "0.2"
 num-derive = "0.2.4"
 log = "0.4"
 
-[dependencies.image]
-version = "0.21.0"
-default-features = false
-features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
-
 [dev-dependencies]
 rand = "0.6.5"
 noise = {git = "https://github.com/Razaekel/noise-rs", branch = "develop"}

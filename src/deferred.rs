@@ -217,21 +217,6 @@ impl DeferredPipeline
         Ok(())
     }
 
-    #[cfg(target_arch = "x86_64")]
-    pub fn save_screenshot(&self, path: &str) -> Result<(), Error>
-    {
-        let mut pixels = vec![0u8; self.rendertarget.width * self.rendertarget.height * 3];
-        if let Some(ref rendertarget) = self.light_pass_rendertarget
-        {
-            rendertarget.pixels(&mut pixels);
-        }
-        else {
-            self.rendertarget.pixels(&mut pixels);
-        }
-        image::save_buffer(&std::path::Path::new(path), &pixels, self.rendertarget.width as u32, self.rendertarget.height as u32, image::RGB(8))?;
-        Ok(())
-    }
-
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
         self.rendertarget.bind();
