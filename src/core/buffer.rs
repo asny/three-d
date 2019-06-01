@@ -167,7 +167,6 @@ impl DynamicVertexBuffer {
     pub fn send_data(&self)
     {
         self.buffer.bind();
-        //TODO: Unbind data on gpu: https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming
         self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::DYNAMIC_DRAW);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
     }
