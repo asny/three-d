@@ -13,6 +13,7 @@ use crate::objects::FullScreen;
 pub struct DeferredPipeline {
     gl: Gl,
     light_pass_program: program::Program,
+    copy_program: Option<program::Program>,
     rendertarget: rendertarget::ScreenRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     light_pass_rendertarget: Option<rendertarget::ColorRendertarget>,
@@ -30,10 +31,14 @@ impl DeferredPipeline
         let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4, background_color)?;
         let mut light_pass_rendertarget= None;
+        let mut copy_program = None;
         if use_light_pass_rendertarget {
             light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 1, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?);
+            copy_program = Some(program::Program::from_source(&gl,
+                                                    include_str!("shaders/copy.vert"),
+                                                    include_str!("shaders/copy.frag"))?);
         }
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, full_screen: FullScreen::new(gl) })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, full_screen: FullScreen::new(gl) })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -202,7 +207,22 @@ impl DeferredPipeline
 
     pub fn copy_to_screen(&self) -> Result<(), Error>
     {
-        if let Some(ref light_pass_rendertarget) = self.light_pass_rendertarget {
+        self.rendertarget.bind();
+        self.rendertarget.clear();
+
+        state::depth_write(&self.gl,true);
+        state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
+        state::cull(&self.gl,state::CullType::BACK);
+        state::blend(&self.gl, state::BlendType::NONE);
+
+        let program = self.copy_program.as_ref().unwrap();
+        self.light_pass_color_texture()?.bind(0);
+        program.add_uniform_int("colorMap", &0)?;
+        self.geometry_pass_depth_texture().bind(1);
+        program.add_uniform_int("depthMap", &1)?;
+
+        self.full_screen.render(program);
+        /*if let Some(ref light_pass_rendertarget) = self.light_pass_rendertarget {
             light_pass_rendertarget.bind_for_read();
             self.rendertarget.bind();
             self.rendertarget.clear();
@@ -213,7 +233,7 @@ impl DeferredPipeline
             self.gl.blit_framebuffer(0, 0, self.geometry_pass_rendertarget.width as u32, self.geometry_pass_rendertarget.height as u32,
                                      0, 0, self.rendertarget.width as u32, self.rendertarget.height as u32,
                                      gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
-        }
+        }*/
         Ok(())
     }
 
