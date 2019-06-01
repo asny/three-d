@@ -1,10 +1,41 @@
 
 use crate::camera;
-use crate::Gl;
 use crate::light;
 use crate::*;
-use crate::pipelines::Error;
 use crate::objects::FullScreen;
+
+#[derive(Debug)]
+pub enum Error {
+    IO(std::io::Error),
+    Program(program::Error),
+    Rendertarget(rendertarget::Error),
+    Texture(texture::Error),
+    LightPassRendertargetNotAvailable {message: String}
+}
+
+impl From<std::io::Error> for Error {
+    fn from(other: std::io::Error) -> Self {
+        Error::IO(other)
+    }
+}
+
+impl From<program::Error> for Error {
+    fn from(other: program::Error) -> Self {
+        Error::Program(other)
+    }
+}
+
+impl From<rendertarget::Error> for Error {
+    fn from(other: rendertarget::Error) -> Self {
+        Error::Rendertarget(other)
+    }
+}
+
+impl From<texture::Error> for Error {
+    fn from(other: texture::Error) -> Self {
+        Error::Texture(other)
+    }
+}
 
 pub struct DeferredPipeline {
     gl: Gl,
@@ -22,8 +53,8 @@ impl DeferredPipeline
     pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, use_light_pass_rendertarget: bool, background_color: crate::types::Vec4) -> Result<DeferredPipeline, Error>
     {
         let light_pass_program = program::Program::from_source(&gl,
-                                                    include_str!("shaders/light_pass.vert"),
-                                                    include_str!("shaders/light_pass.frag"))?;
+                                                               include_str!("shaders/light_pass.vert"),
+                                                               include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ScreenRendertarget::new(gl, screen_width, screen_height, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 4, background_color)?;
         let mut light_pass_rendertarget= None;
@@ -31,8 +62,8 @@ impl DeferredPipeline
         if use_light_pass_rendertarget {
             light_pass_rendertarget = Some(rendertarget::ColorRendertarget::new(&gl, screen_width, screen_height, 1, crate::types::vec4(0.0, 0.0, 0.0, 0.0))?);
             copy_program = Some(program::Program::from_source(&gl,
-                                                    include_str!("shaders/copy.vert"),
-                                                    include_str!("shaders/copy.frag"))?);
+                                                              include_str!("shaders/copy.vert"),
+                                                              include_str!("shaders/copy.frag"))?);
         }
         Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, copy_program, rendertarget, geometry_pass_rendertarget, light_pass_rendertarget, full_screen: FullScreen::new(gl) })
     }

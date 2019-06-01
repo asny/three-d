@@ -1,6 +1,4 @@
-use crate::Gl;
-use crate::program;
-use crate::buffer::*;
+use crate::*;
 
 pub struct FullScreen
 {

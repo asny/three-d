@@ -1,6 +1,5 @@
 use dust::*;
 use dust::window::event::*;
-use dust::core::rendertarget::Rendertarget;
 
 fn main() {
 

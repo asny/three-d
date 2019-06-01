@@ -72,7 +72,7 @@ impl DirectionalLight
     {
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
-            use crate::rendertarget::Rendertarget;
+            use core::rendertarget::Rendertarget;
             rendertarget.bind();
             rendertarget.clear();
             return Ok(())
@@ -155,7 +155,7 @@ impl SpotLight
     {
         if let Some(ref rendertarget) = self.shadow_rendertarget
         {
-            use crate::rendertarget::Rendertarget;
+            use core::Rendertarget;
             rendertarget.bind();
             rendertarget.clear();
             return Ok(())

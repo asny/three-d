@@ -2,10 +2,10 @@
 use crate::*;
 
 pub struct ShadedEdges {
-    program: program::Program,
-    instance_buffer: buffer::StaticVertexBuffer,
-    cylinder_index_buffer: buffer::ElementBuffer,
-    cylinder_vertex_buffer: buffer::StaticVertexBuffer,
+    program: core::Program,
+    instance_buffer: core::StaticVertexBuffer,
+    cylinder_index_buffer: core::ElementBuffer,
+    cylinder_vertex_buffer: core::StaticVertexBuffer,
     index_pairs: std::collections::HashSet<(usize, usize)>,
     no_edges: u32,
     tube_radius: f32,
@@ -19,7 +19,7 @@ impl ShadedEdges
 {
     pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
     {
-        let program = program::Program::from_source(&gl,
+        let program = core::Program::from_source(&gl,
                                                     include_str!("shaders/line_shaded.vert"),
                                                     include_str!("shaders/shaded.frag")).unwrap();
 
@@ -48,8 +48,8 @@ impl ShadedEdges
                 cylinder_indices.push((i+1) * angle_subdivisions as u32 + j);
             }
         }
-        let cylinder_index_buffer = buffer::ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
-        let cylinder_vertex_buffer = buffer::StaticVertexBuffer::new_with_vec3(gl,&cylinder_positions).unwrap();
+        let cylinder_index_buffer = core::ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
+        let cylinder_vertex_buffer = core::StaticVertexBuffer::new_with_vec3(gl,&cylinder_positions).unwrap();
 
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {
