@@ -36,7 +36,7 @@ impl ColorRendertarget
         Ok(ColorRendertarget { gl: gl.clone(), width, height, id: None, targets: Vec::new(), depth_target: None })
     }
 
-    pub fn new(gl: &Gl, width: usize, height: usize, no_targets: usize) -> Result<ColorRendertarget, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize, no_targets: usize, depth: bool) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
         gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
@@ -50,9 +50,13 @@ impl ColorRendertarget
 
         gl.draw_buffers(&draw_buffers);
 
-        let depth_target = Texture2D::new_as_depth_target(gl, width, height)?;
+        let depth_target = if depth
+        {
+            Some(Texture2D::new_as_depth_target(gl, width, height)?)
+        }
+        else {None};
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(ColorRendertarget { gl: gl.clone(), id: Some(id), width, height, targets, depth_target: Some(depth_target) })
+        Ok(ColorRendertarget { gl: gl.clone(), id: Some(id), width, height, targets, depth_target })
     }
 
     #[cfg(target_arch = "x86_64")]
@@ -65,8 +69,10 @@ impl ColorRendertarget
     #[cfg(target_arch = "x86_64")]
     pub fn depths(&self, dst_data: &mut [f32])
     {
-        self.bind();
-        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
+        if self.depth_target.is_some() {
+            self.bind();
+            self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
+        }
     }
 
     pub fn bind(&self)
@@ -94,8 +100,19 @@ impl ColorRendertarget
 
     pub fn clear_depth(&self)
     {
-        depth_write(&self.gl,true);
-        self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
+        if self.depth_target.is_some() {
+            depth_write(&self.gl, true);
+            self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
+        }
+    }
+
+    pub fn blit_to(&self, target: &ColorRendertarget)
+    {
+        self.bind_for_read();
+        target.bind();
+        self.gl.blit_framebuffer(0, 0, self.width as u32, self.height as u32,
+                                 0, 0, target.width as u32, target.height as u32,
+                                 gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
     }
 }
 
