@@ -31,8 +31,8 @@ impl Window
 {
     pub fn new_default(title: &str) -> Result<Window, Error>
     {
-        let width: usize = 1280;
-        let height: usize = 720;
+        let width: usize = 640;
+        let height: usize = 360;
         let window = WindowBuilder::new()
             .with_title(title)
             .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64));
