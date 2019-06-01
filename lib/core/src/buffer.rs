@@ -66,7 +66,6 @@ impl VertexBuffer
         self.data.clear();
         self.offsets.clear();
         self.stride = 0;
-        //TODO: Unbind data on gpu
     }
 
     pub fn add(&mut self, data: &[f32], no_components: usize)
