@@ -1,16 +1,13 @@
-use crate::Gl;
-use crate::core::state;
-use crate::core::texture;
-use crate::types::*;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
-    Texture(texture::Error),
+    Texture(crate::texture::Error),
     FailedToCreateFramebuffer {message: String}
 }
 
-impl From<texture::Error> for Error {
-    fn from(other: texture::Error) -> Self {
+impl From<crate::texture::Error> for Error {
+    fn from(other: crate::texture::Error) -> Self {
         Error::Texture(other)
     }
 }
@@ -66,7 +63,7 @@ impl Rendertarget for ScreenRendertarget
 
     fn clear(&self)
     {
-        state::depth_write(&self.gl,true);
+        depth_write(&self.gl,true);
         self.gl.clear_color(self.clear_color.x, self.clear_color.y, self.clear_color.z, self.clear_color.w);
         self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
     }
@@ -78,8 +75,8 @@ pub struct ColorRendertarget {
     id: gl::Framebuffer,
     pub width: usize,
     pub height: usize,
-    pub targets: Vec<texture::Texture2D>,
-    pub depth_target: texture::Texture2D,
+    pub targets: Vec<Texture2D>,
+    pub depth_target: Texture2D,
     pub clear_color: Vec4
 }
 
@@ -94,12 +91,12 @@ impl ColorRendertarget
         let mut targets = Vec::new();
         for i in 0..no_targets {
             draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
-            targets.push(texture::Texture2D::new_as_color_target(gl, width, height, i as u32)?)
+            targets.push(Texture2D::new_as_color_target(gl, width, height, i as u32)?)
         }
 
         gl.draw_buffers(&draw_buffers);
 
-        let depth_target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
+        let depth_target = Texture2D::new_as_depth_target(gl, width, height)?;
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(ColorRendertarget { gl: gl.clone(), id, width, height, targets, depth_target, clear_color })
     }
@@ -133,7 +130,7 @@ impl Rendertarget for ColorRendertarget
 
     fn clear(&self)
     {
-        state::depth_write(&self.gl,true);
+        depth_write(&self.gl,true);
         self.gl.clear_color(self.clear_color.x, self.clear_color.y, self.clear_color.z, self.clear_color.w);
         self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
     }
@@ -151,7 +148,7 @@ pub struct DepthRenderTarget {
     id: gl::Framebuffer,
     width: usize,
     height: usize,
-    pub target: texture::Texture2D
+    pub target: Texture2D
 }
 
 impl DepthRenderTarget
@@ -161,7 +158,7 @@ impl DepthRenderTarget
         let id = generate(gl)?;
         bind(gl, &id, width, height);
 
-        let target = texture::Texture2D::new_as_depth_target(gl, width, height)?;
+        let target = Texture2D::new_as_depth_target(gl, width, height)?;
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
     }
@@ -188,7 +185,7 @@ impl Rendertarget for DepthRenderTarget
 
     fn clear(&self)
     {
-        state::depth_write(&self.gl,true);
+        depth_write(&self.gl,true);
         self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
     }
 }

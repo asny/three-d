@@ -1,7 +1,6 @@
 
 use crate::Gl;
-use crate::core::rendertarget;
-use crate::core::rendertarget::Rendertarget;
+use crate::*;
 use crate::pipelines::Error;
 
 pub struct ForwardPipeline {

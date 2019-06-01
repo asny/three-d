@@ -2,11 +2,7 @@
 use crate::camera;
 use crate::Gl;
 use crate::light;
-use crate::core::rendertarget;
-use crate::core::rendertarget::Rendertarget;
-use crate::core::state;
-use crate::core::texture::Texture;
-use crate::core::program;
+use crate::*;
 use crate::pipelines::Error;
 use crate::objects::FullScreen;
 

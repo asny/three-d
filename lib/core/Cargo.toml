@@ -1,26 +1,17 @@
 [package]
-name = "dust"
+name = "core"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-core = { path = "lib/core" }
-wavefront_obj = "5.1.0"
-window = { path = "lib/window" }
-num = "0.2.0"
-num-traits = "0.2"
-num-derive = "0.2.4"
-log = "0.4"
+gl = { path = "../gl" }
+cgmath = "0.16.1"
 
 [dependencies.image]
 version = "0.21.0"
 default-features = false
 features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
 
-[dev-dependencies]
-rand = "0.6.5"
-noise = {git = "https://github.com/Razaekel/noise-rs", branch = "develop"}
-
 [features]
-gl_debug = ["core/gl_debug"]
+gl_debug = ["gl/debug"]

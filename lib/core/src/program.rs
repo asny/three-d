@@ -1,10 +1,6 @@
-use crate::core::shader;
-use crate::core::state;
-use crate::core::buffer;
-use crate::Gl;
 
-use crate::types::*;
 use std::collections::HashMap;
+use crate::*;
 
 #[derive(Debug)]
 pub enum Error {

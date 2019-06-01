@@ -21,7 +21,7 @@ impl VertexBuffer
         Ok(buffer)
     }
 
-    pub(in crate::core) fn bind(&self)
+    pub(crate) fn bind(&self)
     {
         bind(&self.gl, &self.id, gl::consts::ARRAY_BUFFER);
     }
@@ -231,7 +231,7 @@ impl ElementBuffer
         self.count
     }
 
-    pub(in crate::core) fn bind(&self)
+    pub(crate) fn bind(&self)
     {
         bind(&self.gl, &self.id, gl::consts::ELEMENT_ARRAY_BUFFER);
     }

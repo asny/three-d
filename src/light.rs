@@ -1,17 +1,9 @@
-use crate::core::rendertarget::{self, DepthRenderTarget};
 use crate::camera::{self, Camera};
 use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
-    Rendertarget(rendertarget::Error),
     ShadowRendertargetNotAvailable {message: String}
-}
-
-impl From<rendertarget::Error> for Error {
-    fn from(other: rendertarget::Error) -> Self {
-        Error::Rendertarget(other)
-    }
 }
 
 pub struct Light {
@@ -50,7 +42,7 @@ impl DirectionalLight
 
     pub fn enable_shadows(&mut self, gl: &Gl, radius: f32, depth: f32) -> Result<(), Error>
     {
-        self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512)?);
+        self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512).unwrap());
         let up = self.compute_up_direction();
         self.shadow_camera = Some(camera::OrthographicCamera::new(- self.direction, vec3(0.0, 0.0, 0.0), up,
                                                                   2.0 * radius, 2.0 * radius, 2.0 * depth));
@@ -141,7 +133,7 @@ impl SpotLight
 
     pub fn enable_shadows(&mut self, gl: &Gl, depth: f32) -> Result<(), Error>
     {
-        self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512)?);
+        self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512).unwrap());
         let up = self.compute_up_direction();
         self.shadow_camera = Some(camera::PerspectiveCamera::new(self.position,self.position + self.direction, up,
                                                                  degrees(45.0), 2.0 * self.cutoff, 0.1, depth));
