@@ -159,7 +159,7 @@ impl Gl {
             if current.get() != 0 {
                 panic!("Wrong buffer is bound: {}, {}", id, current.get())
             }
-            println!("Buffer {}: {} -> {}", target, current.get(), id);
+            //println!("Buffer {}: {} -> {}", target, current.get(), id);
             unsafe {
                 self.inner.BindBuffer(target, id);
             }
@@ -264,7 +264,7 @@ impl Gl {
             if self.current_program.get() != 0 {
                 panic!("Wrong program is bound.")
             }
-            println!("Program {} -> {}", self.current_program.get(), program);
+            //println!("Program {} -> {}", self.current_program.get(), program);
             unsafe {
                 self.inner.UseProgram(*program);
             }
@@ -300,6 +300,13 @@ impl Gl {
     {
         unsafe {
             self.inner.EnableVertexAttribArray(location);
+        }
+    }
+
+    pub fn disable_vertex_attrib_array(&self, location: AttributeLocation)
+    {
+        unsafe {
+            self.inner.DisableVertexAttribArray(location);
         }
     }
 
