@@ -11,6 +11,7 @@ fn main() {
 
     // Renderer
     let renderer = DeferredPipeline::new(&gl, width, height, true, vec4(1.0, 1.0, 1.0, 1.0)).unwrap();
+    let copy_effect = effects::CopyEffect::new(&gl).unwrap();
 
     // Models
     let mut environment = scene_objects::environment::Environment::new(&gl);
@@ -90,6 +91,7 @@ fn main() {
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
         renderer.copy_to_screen().unwrap();
+        copy_effect.apply(renderer.full_screen(), renderer.light_pass_color_texture().unwrap(), renderer.geometry_pass_depth_texture()).unwrap();
 
         // After effects
         environment.render_transparent(renderer.full_screen(), time as f32, &camera, width, height, renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture());
