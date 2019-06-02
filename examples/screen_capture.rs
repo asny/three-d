@@ -8,7 +8,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, false, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     // Camera
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -32,7 +32,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &att!["position" => (plane_positions, 3), "normal" => (plane_normals, 3)]).unwrap();
+    let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
     let ambient_light = crate::light::AmbientLight::new();
 
@@ -69,7 +69,7 @@ fn main() {
         renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
 
-        renderer.save_screenshot(&format!("image{}.png", i)).unwrap();
+        rendertarget::save_screenshot(&format!("image{}.png", i), renderer.screen_rendertarget());
         i = i+1;
 
     }).unwrap();
