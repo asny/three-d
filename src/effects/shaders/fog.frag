@@ -1,5 +1,6 @@
 
 uniform sampler2D positionMap;
+uniform sampler2D depthMap;
 
 uniform float time;
 uniform float fogDensity;
@@ -127,10 +128,11 @@ float snoise(vec3 v)
 // factor: 1 == full fog, 0 == no fog
 void main()
 {
+    float depth = texture(depthMap, uv).x;
     vec4 pos = texture(positionMap, uv);
 
     // Distance
-    float dist = min(distance(pos.xyz, eyePosition), 100.);
+    float dist = depth < 0.999f ? distance(pos.xyz, eyePosition) : 100.f;
 
     float x = dist * fogDensity;
     float factor = 1. - 1. / exp(x * x);
