@@ -1,5 +1,4 @@
 use dust::core::*;
-use dust::window::event::*;
 use core::ColorRendertarget;
 
 fn main() {
@@ -11,7 +10,7 @@ fn main() {
     let rendertarget = ColorRendertarget::default(&gl, width, height).unwrap();
 
     // Camera
-    let mut camera = PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let camera = PerspectiveCamera::new(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
 
     let positions: Vec<f32> = vec![
@@ -30,15 +29,9 @@ fn main() {
                                                 include_str!("assets/shaders/color.vert"),
                                                 include_str!("assets/shaders/color.frag")).unwrap();
 
-    let mut camera_handler = CameraHandler::new(camerahandler::CameraState::SPHERICAL);
-
     // main loop
-    window.render_loop(move |events, _elapsed_time|
+    window.render_loop(move |_events, _elapsed_time|
     {
-        for event in events {
-            handle_camera_events(&event, &mut camera_handler, &mut camera);
-        }
-
         rendertarget.bind();
         rendertarget.clear(&vec4(0.8, 0.8, 0.8, 1.0));
 
@@ -50,29 +43,4 @@ fn main() {
 
         program.draw_arrays(3);
     }).unwrap();
-}
-
-pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
-{
-    match event {
-        Event::Key {state, kind} => {
-            if kind == "Tab" && *state == State::Pressed
-            {
-                camera_handler.next_state();
-            }
-        },
-        Event::MouseClick {state, button, ..} => {
-            if *button == MouseButton::Left
-            {
-                if *state == State::Pressed { camera_handler.start_rotation(); }
-                else { camera_handler.end_rotation() }
-            }
-        },
-        Event::MouseMotion {delta} => {
-            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
-        },
-        Event::MouseWheel {delta} => {
-            camera_handler.zoom(camera, *delta as f32);
-        }
-    }
 }
