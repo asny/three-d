@@ -4,7 +4,6 @@ uniform sampler2D positionMap;
 uniform float time;
 uniform float fogDensity;
 uniform vec3 fogColor;
-uniform float noFogHeight;
 uniform float animation;
 uniform vec3 eyePosition;
 
@@ -132,11 +131,6 @@ void main()
 
     // Distance
     float dist = min(distance(pos.xyz, eyePosition), 100.);
-    float a = eyePosition.y;
-    float b = pos.y;
-    float t1 = clamp(-b/(a-b), 0., 1.);
-    float t2 = clamp((noFogHeight-b)/(a-b), 0., 1.);
-    dist *= abs(t1 - t2);
 
     float x = dist * fogDensity;
     float factor = 1. - 1. / exp(x * x);
