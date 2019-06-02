@@ -1,5 +1,4 @@
-use dust::core::*;
-use core::ColorRendertarget;
+use core::*;
 
 fn main() {
 
