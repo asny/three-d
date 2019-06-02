@@ -14,8 +14,6 @@ num-derive = "0.2.4"
 log = "0.4"
 
 [dev-dependencies]
-rand = "0.6.5"
-noise = {git = "https://github.com/Razaekel/noise-rs", branch = "develop"}
 tri-mesh = "0.4.0"
 
 [features]
