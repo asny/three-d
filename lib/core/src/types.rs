@@ -29,6 +29,47 @@ pub fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4
     Vector4::new(x, y, z, w)
 }
 
+pub trait Mat2Ext {
+    fn to_slice(&self) -> [f32; 4];
+}
+
+impl Mat2Ext for Mat2 {
+
+    fn to_slice(&self) -> [f32; 4]
+    {
+        [self.x.x, self.x.y, self.y.x, self.y.y]
+    }
+}
+
+pub trait Mat3Ext {
+    fn to_slice(&self) -> [f32; 9];
+}
+
+impl Mat3Ext for Mat3 {
+
+    fn to_slice(&self) -> [f32; 9]
+    {
+        [self.x.x, self.x.y, self.x.z, self.y.x, self.y.y, self.y.z, self.z.x, self.z.y, self.z.z]
+    }
+}
+
+pub trait Mat4Ext {
+    fn to_slice(&self) -> [f32; 16];
+}
+
+impl Mat4Ext for Mat4 {
+
+    fn to_slice(&self) -> [f32; 16]
+    {
+        [self.x.x, self.x.y, self.x.z, self.x.w, self.y.x, self.y.y, self.y.z, self.y.w, self.z.x, self.z.y, self.z.z, self.z.w, self.w.x, self.w.y, self.w.z, self.w.w]
+    }
+}
+
+pub fn to_slice(mat: &Mat4) -> [f32; 16]
+{
+    [mat.x.x, mat.x.y, mat.x.z, mat.x.w, mat.y.x, mat.y.y, mat.y.z, mat.y.w, mat.z.x, mat.z.y, mat.z.z, mat.z.w, mat.w.x, mat.w.y, mat.w.z, mat.w.w]
+}
+
 pub fn degrees(v: f32) -> Degrees { Deg(v) }
 pub fn radians(v: f32) -> Radians { Rad(v) }
 

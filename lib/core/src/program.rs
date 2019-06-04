@@ -123,7 +123,7 @@ impl Program
     pub fn add_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
-        self.gl.uniform_matrix2fv(location, &mut [data.x.x, data.x.y, data.y.x, data.y.y]);
+        self.gl.uniform_matrix2fv(location, &mut data.to_slice());
         self.gl.unuse_program();
         Ok(())
     }
@@ -131,7 +131,7 @@ impl Program
     pub fn add_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
-        self.gl.uniform_matrix3fv(location, &mut [data.x.x, data.x.y, data.x.z, data.y.x, data.y.y, data.y.z, data.z.x, data.z.y, data.z.z]);
+        self.gl.uniform_matrix3fv(location, &mut data.to_slice());
         self.gl.unuse_program();
         Ok(())
     }
@@ -139,7 +139,7 @@ impl Program
     pub fn add_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
-        self.gl.uniform_matrix4fv(location, &mut [data.x.x, data.x.y, data.x.z, data.x.w, data.y.x, data.y.y, data.y.z, data.y.w, data.z.x, data.z.y, data.z.z, data.z.w, data.w.x, data.w.y, data.w.z, data.w.w]);
+        self.gl.uniform_matrix4fv(location, &mut data.to_slice());
         self.gl.unuse_program();
         Ok(())
     }
