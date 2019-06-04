@@ -141,6 +141,14 @@ impl Program
         Ok(*loc)
     }
 
+    pub fn use_uniform_block(&self, buffer: &buffer::UniformBuffer, block_name: &str)
+    {
+        //TODO: use new index
+        let location = self.gl.get_uniform_block_index(&self.id, block_name);
+        self.gl.uniform_block_binding(&self.id, location, 0);
+        buffer.bind(0);
+    }
+
     pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
         self.use_attribute_vec2_float_divisor(buffer, attribute_name, index, 0)?;

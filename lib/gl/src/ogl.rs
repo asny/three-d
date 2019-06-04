@@ -144,6 +144,14 @@ impl Gl {
         Some(id)
     }
 
+    pub fn bind_buffer_base(&self, target: u32, index: u32, buffer: &Buffer)
+    {
+        let id = *buffer;
+        unsafe {
+            self.inner.BindBufferBase(target, index, id);
+        }
+    }
+
     pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
     {
         let id = *buffer;
@@ -179,6 +187,21 @@ impl Gl {
             self.inner.BindBuffer(target, 0);
         }
         current.set(0);
+    }
+
+    pub fn get_uniform_block_index(&self, program: &Program, name: &str) -> u32
+    {
+        let c_str = std::ffi::CString::new(name).unwrap();
+        unsafe {
+            self.inner.GetUniformBlockIndex(*program, c_str.as_ptr())
+        }
+    }
+
+    pub fn uniform_block_binding(&self, program: &Program, location: u32, index: u32)
+    {
+        unsafe {
+            self.inner.UniformBlockBinding(*program, location, index);
+        }
     }
 
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)

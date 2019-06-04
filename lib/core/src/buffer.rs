@@ -243,3 +243,32 @@ impl ElementBuffer
 
     }
 }
+
+pub struct UniformBuffer {
+    gl: Gl,
+    id: gl::Buffer
+}
+
+impl UniformBuffer
+{
+    pub fn new(gl: &Gl) -> Result<UniformBuffer, Error>
+    {
+        let id = gl.create_buffer().unwrap();
+        Ok(UniformBuffer{ gl: gl.clone(), id })
+    }
+
+    pub(crate) fn bind(&self, id: u32)
+    {
+        self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
+    }
+
+    pub fn fill_with(&mut self, data: &[f32])
+    {
+        self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
+        self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
+
+    }
+}
+
+
