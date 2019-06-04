@@ -1,6 +1,4 @@
 
-use std::cell::Cell;
-
 pub mod consts {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
@@ -22,17 +20,14 @@ pub mod defines
 pub use crate::ogl::defines::*;
 
 pub struct Gl {
-    inner: InnerGl,
-    current_program: Cell<u32>,
-    current_arraybuffer: Cell<u32>,
-    current_elementbuffer: Cell<u32>,
+    inner: InnerGl
 }
 
 impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0), current_arraybuffer: Cell::new(0), current_elementbuffer: Cell::new(0)};
+        let gl = Gl { inner: InnerGl::load_with(loadfn) };
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
         gl
     }
@@ -146,47 +141,51 @@ impl Gl {
 
     pub fn bind_buffer_base(&self, target: u32, index: u32, buffer: &Buffer)
     {
-        let id = *buffer;
+        let pname = match target {
+            consts::ARRAY_BUFFER => consts::ARRAY_BUFFER_BINDING,
+            consts::ELEMENT_ARRAY_BUFFER => consts::ELEMENT_ARRAY_BUFFER_BINDING,
+            consts::UNIFORM_BUFFER => consts::UNIFORM_BUFFER_BINDING,
+            _ => unreachable!()
+        };
+
         unsafe {
-            self.inner.BindBufferBase(target, index, id);
+            let mut current = -1;
+            self.inner.GetIntegerv(pname, &mut current);
+            if current != 0
+            {
+                println!("{}", current);
+                panic!();
+            }
+            self.inner.BindBufferBase(target, index, *buffer);
         }
     }
 
     pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
     {
-        let id = *buffer;
-
-        let current = match target {
-            consts::ARRAY_BUFFER => &self.current_arraybuffer,
-            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
+        let pname = match target {
+            consts::ARRAY_BUFFER => consts::ARRAY_BUFFER_BINDING,
+            consts::ELEMENT_ARRAY_BUFFER => consts::ELEMENT_ARRAY_BUFFER_BINDING,
+            consts::UNIFORM_BUFFER => consts::UNIFORM_BUFFER_BINDING,
             _ => unreachable!()
         };
 
-        if current.get() != id
-        {
-            if current.get() != 0 {
-                panic!("Wrong buffer is bound: {}, {}", id, current.get())
+        unsafe {
+            let mut current = -1;
+            self.inner.GetIntegerv(pname, &mut current);
+            if current != 0
+            {
+                println!("{}", current);
+                panic!();
             }
-            //println!("Buffer {}: {} -> {}", target, current.get(), id);
-            unsafe {
-                self.inner.BindBuffer(target, id);
-            }
-            current.set(id);
+            self.inner.BindBuffer(target, *buffer);
         }
     }
 
     pub fn unbind_buffer(&self, target: u32)
     {
-        let current = match target {
-            consts::ARRAY_BUFFER => &self.current_arraybuffer,
-            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
-            _ => unreachable!()
-        };
-
         unsafe {
             self.inner.BindBuffer(target, 0);
         }
-        current.set(0);
     }
 
     pub fn get_uniform_block_index(&self, program: &Program, name: &str) -> u32
@@ -282,16 +281,15 @@ impl Gl {
 
     pub fn use_program(&self, program: &Program)
     {
-        if self.current_program.get() != *program
-        {
-            if self.current_program.get() != 0 {
-                panic!("Wrong program is bound.")
+        unsafe {
+            let mut current = -1;
+            self.inner.GetIntegerv(consts::CURRENT_PROGRAM, &mut current);
+            if current != 0
+            {
+                println!("{}", current);
+                panic!();
             }
-            //println!("Program {} -> {}", self.current_program.get(), program);
-            unsafe {
-                self.inner.UseProgram(*program);
-            }
-            self.current_program.set(*program);
+            self.inner.UseProgram(*program);
         }
     }
 
@@ -300,7 +298,6 @@ impl Gl {
         unsafe {
             self.inner.UseProgram(0);
         }
-        self.current_program.set(0);
     }
 
     pub fn delete_program(&self, program: &Program)

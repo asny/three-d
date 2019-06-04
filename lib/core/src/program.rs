@@ -70,9 +70,11 @@ impl Program
         let mut uniforms = HashMap::new();
         for i in 0..num_uniforms {
             let info = gl.get_active_uniform(&id, i);
-            let location = gl.get_uniform_location(&id, &info.name).unwrap();
-            println!("Uniform location: {}, name: {}, type: {}, size: {}", location, info.name, info._type, info.size);
-            uniforms.insert(info.name, location);
+            let location = gl.get_uniform_location(&id, &info.name);
+            println!("Uniform location: {:?}, name: {}, type: {}, size: {}", location, info.name, info._type, info.size);
+            if let Some(loc) = location {
+                uniforms.insert(info.name, loc);
+            }
         }
 
         Ok(Program { gl: gl.clone(), id, vertex_attributes, uniforms })
@@ -82,6 +84,7 @@ impl Program
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform1i(location, *data);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -89,6 +92,7 @@ impl Program
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform1f(location, *data);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -96,6 +100,7 @@ impl Program
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform2fv(location, &mut [data.x, data.y]);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -103,6 +108,7 @@ impl Program
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform3fv(location, &mut [data.x, data.y, data.z]);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -110,6 +116,7 @@ impl Program
     {
         let location= self.get_uniform_location(name)?;
         self.gl.uniform4fv(location, &mut [data.x, data.y, data.z, data.w]);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -117,6 +124,7 @@ impl Program
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix2fv(location, &mut [data.x.x, data.x.y, data.y.x, data.y.y]);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -124,6 +132,7 @@ impl Program
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix3fv(location, &mut [data.x.x, data.x.y, data.x.z, data.y.x, data.y.y, data.y.z, data.z.x, data.z.y, data.z.z]);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -131,6 +140,7 @@ impl Program
     {
         let location = self.get_uniform_location(name)?;
         self.gl.uniform_matrix4fv(location, &mut [data.x.x, data.x.y, data.x.z, data.x.w, data.y.x, data.y.y, data.y.z, data.y.w, data.z.x, data.z.y, data.z.z, data.z.w, data.w.x, data.w.y, data.w.z, data.w.w]);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -147,6 +157,7 @@ impl Program
         let location = self.gl.get_uniform_block_index(&self.id, block_name);
         self.gl.uniform_block_binding(&self.id, location, 0);
         buffer.bind(0);
+        self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
     }
 
     pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
@@ -164,6 +175,7 @@ impl Program
         self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.unuse_program();
         Ok(())
     }
 
@@ -182,6 +194,7 @@ impl Program
         self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.unuse_program();
         Ok(())
     }
 
