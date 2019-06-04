@@ -23,7 +23,7 @@ impl VertexBuffer
 
     pub(crate) fn bind(&self)
     {
-        bind(&self.gl, &self.id, gl::consts::ARRAY_BUFFER);
+        self.gl.bind_buffer(gl::consts::ARRAY_BUFFER, &self.id);
     }
 
     pub fn stride(&self) -> usize
@@ -232,7 +232,7 @@ impl ElementBuffer
 
     pub(crate) fn bind(&self)
     {
-        bind(&self.gl, &self.id, gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.gl.bind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER, &self.id);
     }
 
     pub fn fill_with(&mut self, data: &[u32])
@@ -242,9 +242,4 @@ impl ElementBuffer
         self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
 
     }
-}
-
-fn bind(gl: &gl::Gl, id: &gl::Buffer, buffer_type: u32)
-{
-    gl.bind_buffer(buffer_type, id);
 }
