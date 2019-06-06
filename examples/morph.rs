@@ -116,7 +116,7 @@ fn main()
     let renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(scene_center + scene_radius * vec3(1.0, 1.0, 1.0).normalize(), scene_center,
+    let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(1.0, 1.0, 1.0).normalize(), scene_center,
                                                     vec3(0.0, 1.0, 0.0),degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects

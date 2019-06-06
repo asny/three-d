@@ -13,7 +13,7 @@ fn main() {
     let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width/2, height/2, 1, false).unwrap();
 
     // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl,vec3(5.0, 5.0, 5.0), vec3(0.0, 1.0, 0.0),
                                                     vec3(0.0, 1.0, 0.0),degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
