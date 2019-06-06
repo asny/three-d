@@ -246,7 +246,9 @@ impl ElementBuffer
 
 pub struct UniformBuffer {
     gl: Gl,
-    id: gl::Buffer
+    id: gl::Buffer,
+    offsets: Vec<usize>,
+    data: Vec<f32>
 }
 
 impl UniformBuffer
@@ -254,7 +256,7 @@ impl UniformBuffer
     pub fn new(gl: &Gl) -> Result<UniformBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        Ok(UniformBuffer{ gl: gl.clone(), id })
+        Ok(UniformBuffer{ gl: gl.clone(), id, offsets: Vec::new(), data: Vec::new() })
     }
 
     pub(crate) fn bind(&self, id: u32)
@@ -262,12 +264,30 @@ impl UniformBuffer
         self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
     }
 
-    pub fn fill_with(&mut self, data: &[f32])
+    pub fn add(&mut self, data: &[f32])
+    {
+        self.offsets.push(self.data.len());
+        self.data.extend_from_slice(data);
+    }
+
+    pub fn send(&self)
     {
         self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
-        self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, data, gl::consts::STATIC_DRAW);
+        self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, &self.data, gl::consts::STATIC_DRAW);
         self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
+    }
 
+    pub fn clear(&mut self)
+    {
+        self.data.clear();
+        self.offsets.clear();
+    }
+
+    pub fn update(&mut self, index: usize, data: &[f32])
+    {
+        let offset = self.offsets[index];
+        self.data.splice(offset..offset+data.len(), data.iter().cloned());
+        //TODO: Send to GPU (glBufferSubData)
     }
 }
 
