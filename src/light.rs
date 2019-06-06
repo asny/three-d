@@ -29,7 +29,7 @@ pub struct DirectionalLight {
     pub base: Light,
     pub direction: Vec3,
     pub shadow_rendertarget: Option<DepthRenderTarget>,
-    shadow_camera: Option<camera::OrthographicCamera>
+    shadow_camera: Option<Camera>
 }
 
 impl DirectionalLight
@@ -44,7 +44,7 @@ impl DirectionalLight
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512).unwrap());
         let up = self.compute_up_direction();
-        self.shadow_camera = Some(camera::OrthographicCamera::new_with_uniform_buffer(gl, - self.direction, vec3(0.0, 0.0, 0.0), up,
+        self.shadow_camera = Some(Camera::new_orthographic_with_uniform_buffer(gl, - self.direction, vec3(0.0, 0.0, 0.0), up,
                                                                   2.0 * radius, 2.0 * radius, 2.0 * depth));
         Ok(())
     }
@@ -79,7 +79,7 @@ impl DirectionalLight
         Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
     }
 
-    pub fn shadow_camera(&self) -> Result<&camera::OrthographicCamera, Error>
+    pub fn shadow_camera(&self) -> Result<&Camera, Error>
     {
         if let Some(ref camera) = self.shadow_camera {
             return Ok(camera)
@@ -116,7 +116,7 @@ pub struct SpotLight {
     pub direction: Vec3,
     pub position: Vec3,
     pub shadow_rendertarget: Option<DepthRenderTarget>,
-    shadow_camera: Option<camera::PerspectiveCamera>,
+    shadow_camera: Option<Camera>,
     pub attenuation: Attenuation,
     pub cutoff: f32
 }
@@ -134,7 +134,7 @@ impl SpotLight
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512).unwrap());
         let up = self.compute_up_direction();
-        self.shadow_camera = Some(camera::PerspectiveCamera::new_with_uniform_buffer(gl, self.position,self.position + self.direction, up,
+        self.shadow_camera = Some(Camera::new_perspective_with_uniform_buffer(gl, self.position,self.position + self.direction, up,
                                                                  degrees(45.0), 2.0 * self.cutoff, 0.1, depth));
         Ok(())
     }
@@ -161,7 +161,7 @@ impl SpotLight
         Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
     }
 
-    pub fn shadow_camera(&self) -> Result<&camera::PerspectiveCamera, Error>
+    pub fn shadow_camera(&self) -> Result<&Camera, Error>
     {
         if let Some(ref camera) = self.shadow_camera {
             return Ok(camera)

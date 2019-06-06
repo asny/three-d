@@ -128,7 +128,6 @@ impl DeferredPipeline
     pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
-            use crate::camera::Camera;
             let bias_matrix = crate::Mat4::new(
                                  0.5, 0.0, 0.0, 0.0,
                                  0.0, 0.5, 0.0, 0.0,
@@ -171,7 +170,6 @@ impl DeferredPipeline
     pub fn shine_spot_light(&self, light: &light::SpotLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
-            use crate::camera::Camera;
             let bias_matrix = crate::Mat4::new(
                                  0.5, 0.0, 0.0, 0.0,
                                  0.0, 0.5, 0.0, 0.0,
