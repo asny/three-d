@@ -262,7 +262,7 @@ impl UniformBuffer
         self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
     }
 
-    pub fn fill_with(&mut self, data: &[f32])
+    pub fn fill_with(&self, data: &[f32])
     {
         self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
         self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, data, gl::consts::STATIC_DRAW);
