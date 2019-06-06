@@ -113,7 +113,6 @@ impl ShadedMesh
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Matrices");
 
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
         self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0).unwrap();

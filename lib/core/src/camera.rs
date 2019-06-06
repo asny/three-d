@@ -114,7 +114,8 @@ impl Camera
 
     fn update_matrix_buffer(&mut self)
     {
-        let data = self.get_view().to_slice();
+        let mut data: Vec<f32> = self.get_view().to_slice().to_vec();
+        data.extend_from_slice(&self.get_projection().to_slice());
         self.matrix_buffer.fill_with(&data);
     }
 }
