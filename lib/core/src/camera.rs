@@ -8,38 +8,28 @@ pub struct Camera {
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
-    matrix_buffer: Option<UniformBuffer>
+    matrix_buffer: UniformBuffer
 }
 
 impl Camera
 {
-    pub fn new_orthographic(position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
+    pub fn new(gl: &Gl, position: Vec3, target: Vec3, up: Vec3) -> Camera
     {
-        let mut camera = Camera {matrix_buffer: None, position, target, up, view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
+        let mut camera = Camera {matrix_buffer: UniformBuffer::new(gl).unwrap(), position, target, up, view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
         camera.set_view(position, target, up);
+        camera
+    }
+
+    pub fn new_orthographic(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
+    {
+        let mut camera = Camera::new(gl, position, target, up);
         camera.set_orthographic_projection(width, height, depth);
         camera
     }
 
-    pub fn new_orthographic_with_uniform_buffer(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
+    pub fn new_perspective(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
     {
-        let mut camera = Camera {matrix_buffer: Some(UniformBuffer::new(gl).unwrap()), position, target, up, view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
-        camera.set_view(position, target, up);
-        camera.set_orthographic_projection(width, height, depth);
-        camera
-    }
-    pub fn new_perspective(position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
-    {
-        let mut camera = Camera {matrix_buffer: None, position, target, up, view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
-        camera.set_view(position, target, up);
-        camera.set_perspective_projection(fovy, aspect, z_near, z_far);
-        camera
-    }
-
-    pub fn new_perspective_with_uniform_buffer(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
-    {
-        let mut camera = Camera {matrix_buffer: Some(UniformBuffer::new(gl).unwrap()), position, target, up, view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
-        camera.set_view(position, target, up);
+        let mut camera = Camera::new(gl, position, target, up);
         camera.set_perspective_projection(fovy, aspect, z_near, z_far);
         camera
     }
@@ -110,9 +100,9 @@ impl Camera
         &self.up
     }
 
-    pub fn matrix_buffer(&self) -> Option<&UniformBuffer>
+    pub fn matrix_buffer(&self) -> &UniformBuffer
     {
-        self.matrix_buffer.as_ref()
+        &self.matrix_buffer
     }
 
     fn update_screen2ray(&mut self)
@@ -122,9 +112,9 @@ impl Camera
         self.screen2ray = (self.projection * v).invert().unwrap();
     }
 
-    fn update_matrix_buffer(&self)
+    fn update_matrix_buffer(&mut self)
     {
         let data = self.get_view().to_slice();
-        self.matrix_buffer.as_ref().unwrap().fill_with(&data);
+        self.matrix_buffer.fill_with(&data);
     }
 }

@@ -44,7 +44,7 @@ impl DirectionalLight
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512).unwrap());
         let up = self.compute_up_direction();
-        self.shadow_camera = Some(Camera::new_orthographic_with_uniform_buffer(gl, - self.direction, vec3(0.0, 0.0, 0.0), up,
+        self.shadow_camera = Some(Camera::new_orthographic(gl, - self.direction, vec3(0.0, 0.0, 0.0), up,
                                                                   2.0 * radius, 2.0 * radius, 2.0 * depth));
         Ok(())
     }
@@ -134,7 +134,7 @@ impl SpotLight
     {
         self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512).unwrap());
         let up = self.compute_up_direction();
-        self.shadow_camera = Some(Camera::new_perspective_with_uniform_buffer(gl, self.position,self.position + self.direction, up,
+        self.shadow_camera = Some(Camera::new_perspective(gl, self.position,self.position + self.direction, up,
                                                                  degrees(45.0), 2.0 * self.cutoff, 0.1, depth));
         Ok(())
     }

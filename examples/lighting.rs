@@ -11,7 +11,7 @@ fn main() {
     let renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     // Camera
-    let mut camera = Camera::new_perspective_with_uniform_buffer(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let monkey = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
