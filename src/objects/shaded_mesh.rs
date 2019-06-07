@@ -102,8 +102,7 @@ impl ShadedMesh
         if let Some(ref tex) = self.texture
         {
             self.program.add_uniform_int("use_texture", &1).unwrap();
-            tex.bind(0);
-            self.program.add_uniform_int("tex", &0).unwrap();
+            self.program.use_texture(tex,"tex").unwrap();
         }
         else {
             self.program.add_uniform_int("use_texture", &0).unwrap();

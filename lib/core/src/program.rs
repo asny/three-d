@@ -151,6 +151,14 @@ impl Program
         Ok(*loc)
     }
 
+    pub fn use_texture(&self, texture: &Texture, texture_name: &str) -> Result<(), Error>
+    {
+        //TODO: use new index
+        texture.bind(0);
+        self.add_uniform_int(texture_name, &0)?;
+        Ok(())
+    }
+
     pub fn use_uniform_block(&self, buffer: &buffer::UniformBuffer, block_name: &str)
     {
         //TODO: use new index
