@@ -114,8 +114,8 @@ impl Camera
 
     fn update_matrix_buffer(&mut self)
     {
-        self.matrix_buffer.update(0, &self.view.to_slice()).unwrap();
-        self.matrix_buffer.update(1, &self.projection.to_slice()).unwrap();
-        self.matrix_buffer.update(2, &(self.projection * self.view).to_slice()).unwrap();
+        self.matrix_buffer.update(0, &(self.projection * self.view).to_slice()).unwrap();
+        self.matrix_buffer.update(1, &self.view.to_slice()).unwrap();
+        self.matrix_buffer.update(2, &self.projection.to_slice()).unwrap();
     }
 }

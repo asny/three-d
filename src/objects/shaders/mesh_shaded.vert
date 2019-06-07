@@ -7,10 +7,8 @@ in vec3 normal;
 out vec3 pos;
 out vec3 nor;
 
-uniform Matrices
+uniform Camera
 {
-    mat4 view;
-    mat4 projection;
     mat4 viewProjection;
 };
 

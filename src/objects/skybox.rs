@@ -39,8 +39,7 @@ impl Skybox
 
         self.texture.bind(0);
         self.program.add_uniform_int("texture0", &0)?;
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view())?;
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection())?;
+        self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
         self.program.add_uniform_vec3("cameraPosition", camera.position())?;
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;

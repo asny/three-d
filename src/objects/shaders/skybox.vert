@@ -1,5 +1,10 @@
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+
+uniform Camera
+{
+    mat4 viewProjection;
+    mat4 view;
+    mat4 projection;
+};
 
 in vec3 position;
 
@@ -8,5 +13,5 @@ out vec3 coords;
 void main()
 {
     coords = position;
-    gl_Position = (projectionMatrix * mat4(mat3(viewMatrix)) * vec4(position, 1.)).xyww;
+    gl_Position = (projection * mat4(mat3(view)) * vec4(position, 1.)).xyww;
 }

@@ -1,6 +1,9 @@
 
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+uniform Camera
+{
+    mat4 viewProjection;
+};
+
 uniform float tube_radius;
 
 in vec3 direction;
@@ -29,5 +32,5 @@ void main()
     pos = l2w * (position * vec3(length(direction), tube_radius, tube_radius)) + translation;
     mat3 normalMatrix = transpose(inverse(l2w));
     nor = normalize(normalMatrix * vec3(0.0, position.y, position.z));
-    gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
+    gl_Position = viewProjection * vec4(pos, 1.0);
 }
