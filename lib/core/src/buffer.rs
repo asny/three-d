@@ -253,21 +253,23 @@ pub struct UniformBuffer {
 
 impl UniformBuffer
 {
-    pub fn new(gl: &Gl) -> Result<UniformBuffer, Error>
+    pub fn new(gl: &Gl, sizes: &[u32]) -> Result<UniformBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        Ok(UniformBuffer{ gl: gl.clone(), id, offsets: Vec::new(), data: Vec::new() })
+
+        let mut offsets = Vec::new();
+        let mut length = 0;
+        for size in sizes
+        {
+            offsets.push(length);
+            length += *size as usize;
+        }
+        Ok(UniformBuffer{ gl: gl.clone(), id, offsets, data: vec![0.0; length as usize] })
     }
 
     pub(crate) fn bind(&self, id: u32)
     {
         self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
-    }
-
-    pub fn add(&mut self, data: &[f32])
-    {
-        self.offsets.push(self.data.len());
-        self.data.extend_from_slice(data);
     }
 
     pub fn send(&self)
