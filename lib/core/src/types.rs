@@ -29,6 +29,42 @@ pub fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4
     Vector4::new(x, y, z, w)
 }
 
+pub trait Vec2Ext {
+    fn to_slice(&self) -> [f32; 2];
+}
+
+impl Vec2Ext for Vec2 {
+
+    fn to_slice(&self) -> [f32; 2]
+    {
+        [self.x, self.y]
+    }
+}
+
+pub trait Vec3Ext {
+    fn to_slice(&self) -> [f32; 3];
+}
+
+impl Vec3Ext for Vec3 {
+
+    fn to_slice(&self) -> [f32; 3]
+    {
+        [self.x, self.y, self.z]
+    }
+}
+
+pub trait Vec4Ext {
+    fn to_slice(&self) -> [f32; 4];
+}
+
+impl Vec4Ext for Vec4 {
+
+    fn to_slice(&self) -> [f32; 4]
+    {
+        [self.x, self.y, self.z, self.w]
+    }
+}
+
 pub trait Mat2Ext {
     fn to_slice(&self) -> [f32; 4];
 }

@@ -1,5 +1,12 @@
 uniform samplerCube texture0;
-uniform vec3 cameraPosition;
+
+uniform Camera
+{
+    mat4 viewProjection;
+    mat4 view;
+    mat4 projection;
+    vec3 position;
+} camera;
 
 in vec3 coords;
 
@@ -9,6 +16,6 @@ layout (location = 2) out vec4 normal;
 
 void main() {
     color = texture(texture0, coords);
-    position = vec4(cameraPosition + normalize(coords) * 100.f, 1.0);
+    position = vec4(camera.position + normalize(coords) * 100.f, 1.0);
     normal = vec4(-coords, 1.0);
 }
