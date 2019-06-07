@@ -15,7 +15,7 @@ impl Camera
 {
     pub fn new(gl: &Gl, position: Vec3, target: Vec3, up: Vec3) -> Camera
     {
-        let mut camera = Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16]).unwrap(), position, target, up, view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
+        let mut camera = Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16, 16]).unwrap(), position, target, up, view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
         camera.set_view(position, target, up);
         camera
     }
@@ -114,7 +114,8 @@ impl Camera
 
     fn update_matrix_buffer(&mut self)
     {
-        self.matrix_buffer.update(0, &self.get_view().to_slice());
-        self.matrix_buffer.update(1, &self.get_projection().to_slice());
+        self.matrix_buffer.update(0, &self.view.to_slice()).unwrap();
+        self.matrix_buffer.update(1, &self.projection.to_slice()).unwrap();
+        self.matrix_buffer.update(2, &(self.projection * self.view).to_slice()).unwrap();
     }
 }

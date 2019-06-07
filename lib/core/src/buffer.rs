@@ -2,6 +2,7 @@ use crate::Gl;
 
 #[derive(Debug)]
 pub enum Error {
+    BufferUpdateFailed {message: String}
 }
 
 pub struct VertexBuffer {
@@ -272,12 +273,22 @@ impl UniformBuffer
         self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
     }
 
-    pub fn update(&mut self, index: usize, data: &[f32])
+    pub fn update(&mut self, index: usize, data: &[f32]) -> Result<(), Error>
     {
+        if index >= self.offsets.len()
+        {
+            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer index {} is outside the range 0-{}", index, self.offsets.len()-1)})
+        }
         let offset = self.offsets[index];
-        self.data.splice(offset..offset+data.len(), data.iter().cloned());
+        let length = if index + 1 == self.offsets.len() {self.data.len()} else {self.offsets[index+1]}  - offset;
+        if data.len() != length
+        {
+            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer data for index {} has length {} but it must be {}.", index, data.len(), length)})
+        }
+        self.data.splice(offset..offset+length, data.iter().cloned());
         self.send();
         //TODO: Send to GPU (glBufferSubData)
+        Ok(())
     }
 
     fn send(&self)
