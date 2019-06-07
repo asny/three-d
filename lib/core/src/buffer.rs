@@ -272,24 +272,19 @@ impl UniformBuffer
         self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
     }
 
-    pub fn send(&self)
-    {
-        self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
-        self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, &self.data, gl::consts::STATIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
-    }
-
-    pub fn clear(&mut self)
-    {
-        self.data.clear();
-        self.offsets.clear();
-    }
-
     pub fn update(&mut self, index: usize, data: &[f32])
     {
         let offset = self.offsets[index];
         self.data.splice(offset..offset+data.len(), data.iter().cloned());
+        self.send();
         //TODO: Send to GPU (glBufferSubData)
+    }
+
+    fn send(&self)
+    {
+        self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
+        self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, &self.data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
     }
 }
 

@@ -116,6 +116,5 @@ impl Camera
     {
         self.matrix_buffer.update(0, &self.get_view().to_slice());
         self.matrix_buffer.update(1, &self.get_projection().to_slice());
-        self.matrix_buffer.send();
     }
 }
