@@ -8,7 +8,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     // Camera
     let mut camera = Camera::new_perspective(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -39,6 +39,7 @@ fn main() {
     let mut directional_light = dust::light::DirectionalLight::new(vec3(1.0, -1.0, -1.0));
     directional_light.base.color = vec3(1.0, 0.0, 0.0);
     directional_light.enable_shadows(&gl, 2.0, 10.0).unwrap();
+    renderer.add_directional_light(0, &directional_light).unwrap();
 
     let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
     point_light.base.color = vec3(0.0, 1.0, 0.0);
@@ -78,10 +79,10 @@ fn main() {
 
         // Light pass
         renderer.light_pass_begin(&camera).unwrap();
-        renderer.shine_ambient_light(&ambient_light).unwrap();
+        /*renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
         renderer.shine_point_light(&point_light).unwrap();
-        renderer.shine_spot_light(&spot_light).unwrap();
+        renderer.shine_spot_light(&spot_light).unwrap();*/
     }).unwrap();
 }
 

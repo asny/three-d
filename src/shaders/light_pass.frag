@@ -19,6 +19,8 @@ uniform mat4 shadowMVP5;
 
 in vec2 uv;
 
+const int MAX_NO_LIGHTS = 3;
+
 struct BaseLight
 {
     vec3 color;
@@ -59,8 +61,12 @@ struct SpotLight
     float cutoff;
 };
 
+layout (std140) uniform Lights
+{
+    DirectionalLight directionalLights[MAX_NO_LIGHTS];
+};
+
 uniform AmbientLight ambientLight;
-uniform DirectionalLight directionalLight;
 uniform PointLight pointLight;
 uniform SpotLight spotLight;
 uniform int lightType;
@@ -133,11 +139,6 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
         attenuation.exp * distance * distance;
 
     return color / max(1.0, att);
-}
-
-vec3 calculate_directional_light(vec3 position)
-{
-    return calculate_shadow(position) * calculate_light(directionalLight.base, directionalLight.direction, position);
 }
 
 vec3 calculate_point_light(vec3 position)
@@ -213,8 +214,21 @@ void main()
     bool is_far_away = depth > 0.99999;
     vec3 position = texture(positionMap, uv).xyz;
 
-    vec3 light = vec3(0.0);
-    if(lightType == 0)
+    vec3 light = vec3(0.0);//ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
+    if(!is_far_away)
+    {
+        for(int i = 0; i < MAX_NO_LIGHTS; i++)
+        {
+            DirectionalLight l = directionalLights[i];
+            if(l.base.intensity > 0.0)
+            {
+                light += calculate_shadow(position) * calculate_light(l.base, l.direction, position);
+            }
+        }
+
+    }
+
+    /*if(lightType == 0)
     {
         light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
     }
@@ -238,7 +252,7 @@ void main()
         {
             light = calculate_spot_light(position);
         }
-    }
+    }*/
 
     color = vec4(surface_color * light, 1.0);
 }

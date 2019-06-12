@@ -4,12 +4,15 @@ use crate::light;
 use crate::*;
 use crate::objects::FullScreen;
 
+const MAX_NO_LIGHTS: usize = 3;
+
 #[derive(Debug)]
 pub enum Error {
     IO(std::io::Error),
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Texture(texture::Error),
+    Buffer(buffer::Error),
     LightPassRendertargetNotAvailable {message: String}
 }
 
@@ -37,12 +40,19 @@ impl From<texture::Error> for Error {
     }
 }
 
+impl From<buffer::Error> for Error {
+    fn from(other: buffer::Error) -> Self {
+        Error::Buffer(other)
+    }
+}
+
 pub struct DeferredPipeline {
     gl: Gl,
     light_pass_program: program::Program,
     rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     full_screen: FullScreen,
+    light_buffer: UniformBuffer,
     pub background_color: Vec4
 }
 
@@ -56,7 +66,10 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?;
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl), background_color })
+
+        let sizes: Vec<u32> = [3u32,1,3,1].iter().cloned().cycle().take(MAX_NO_LIGHTS).collect();
+        let light_buffer = UniformBuffer::new(&gl, &sizes)?;
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, background_color })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -112,6 +125,10 @@ impl DeferredPipeline
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
 
+        self.light_pass_program.use_uniform_block(&self.light_buffer, "Lights");
+
+        self.full_screen.render(&self.light_pass_program);
+
         Ok(())
     }
 
@@ -125,7 +142,23 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
+    pub fn add_directional_light(&mut self, index: usize, light: &light::DirectionalLight) -> Result<(), Error>
+    {
+        let i = index * 4 as usize;
+        self.light_buffer.update(i+0, &light.base.color.to_slice())?;
+        self.light_buffer.update(i+1, &[light.base.intensity])?;
+        self.light_buffer.update(i+2, &light.direction.to_slice())?;
+        Ok(())
+    }
+
+    pub fn disable_directional_light(&mut self, index: usize) -> Result<(), Error>
+    {
+        let i = index * 4 as usize;
+        self.light_buffer.update(i+1, &[0.0])?;
+        Ok(())
+    }
+
+    pub fn shine_directional_light(&mut self, light: &light::DirectionalLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
             let bias_matrix = crate::Mat4::new(
@@ -139,12 +172,9 @@ impl DeferredPipeline
             self.light_pass_program.add_uniform_int("shadowMap", &5)?;
         }
 
-        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
-
         self.light_pass_program.add_uniform_int("lightType", &1)?;
-        self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
-        self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.intensity", &light.base.intensity)?;
+
+        self.light_pass_program.use_uniform_block(&self.light_buffer, "Lights");
 
         self.full_screen.render(&self.light_pass_program);
         Ok(())
