@@ -576,6 +576,13 @@ impl Gl {
         }
     }
 
+    pub fn tex_storage_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32)
+    {
+        unsafe {
+            self.inner.TexStorage3D(target, level as i32, internalformat, width as i32, height as i32, depth as i32);
+        }
+    }
+
     pub fn tex_image_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32)
     {
         unsafe {
@@ -597,6 +604,13 @@ impl Gl {
         }
     }
 
+    pub fn tex_image_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32, format: u32, data_type: u32)
+    {
+        unsafe {
+            self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, 0, format, data_type, std::ptr::null() as *const consts::types::GLvoid);
+        }
+    }
+
     pub fn tex_parameteri(&self, target: u32, pname: u32, param: i32)
     {
         unsafe {
@@ -615,6 +629,13 @@ impl Gl {
     {
         unsafe {
             self.inner.FramebufferTexture2D(target, attachment, textarget, *texture, level as i32);
+        }
+    }
+
+    pub fn framebuffer_texture_layer(&self, target: u32, attachment: u32, texture: &Texture, level: u32, layer: u32)
+    {
+        unsafe {
+            self.inner.FramebufferTextureLayer(target, attachment, *texture, level as i32, layer as i32);
         }
     }
 

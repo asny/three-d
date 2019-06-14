@@ -103,7 +103,7 @@ impl Texture2D
                         width as u32,
                         height as u32);
 
-        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, gl::consts::TEXTURE_2D, &texture.id, 0);
+        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, texture.target, &texture.id, 0);
 
         Ok(texture)
     }
@@ -247,6 +247,63 @@ impl Drop for Texture3D
         drop(&self.gl, &self.id);
     }
 }
+
+pub struct Texture2DArray {
+    gl: Gl,
+    id: gl::Texture,
+    target: u32
+}
+
+// TEXTURE 3D
+impl Texture2DArray
+{
+    pub fn new_as_depth_targets(gl: &Gl, width: usize, height: usize, layers: usize) -> Result<Texture2DArray, Error>
+    {
+        let id = generate(gl)?;
+        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY };
+
+        bind(&texture.gl, &texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_BASE_LEVEL, 0);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAX_LEVEL, 0);
+
+        gl.tex_storage_3d(texture.target,
+                        1,
+                        gl::consts::DEPTH_COMPONENT32F,
+                        width as u32,
+                        height as u32,
+                        layers as u32);
+
+        texture.bind_to_framebuffer(0);
+
+        Ok(texture)
+    }
+
+    pub fn bind_to_framebuffer(&self, layer: usize)
+    {
+        self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, &self.id, 0, layer as u32);
+    }
+}
+
+impl Texture for Texture2DArray
+{
+    fn bind(&self, location: u32)
+    {
+        bind_at(&self.gl, &self.id, self.target, location);
+    }
+}
+
+impl Drop for Texture2DArray
+{
+    fn drop(&mut self)
+    {
+        drop(&self.gl, &self.id);
+    }
+}
+
 
 // COMMON FUNCTIONS
 fn generate(gl: &Gl) -> Result<gl::Texture, Error>
