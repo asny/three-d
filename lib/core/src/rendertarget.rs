@@ -174,6 +174,45 @@ impl Drop for DepthRenderTarget {
     }
 }
 
+pub struct DepthRenderTargetArray {
+    gl: Gl,
+    id: gl::Framebuffer,
+    pub width: usize,
+    pub height: usize,
+    pub target: Texture2DArray
+}
+
+impl DepthRenderTargetArray
+{
+    pub fn new(gl: &Gl, width: usize, height: usize, layers: usize) -> Result<DepthRenderTargetArray, Error>
+    {
+        let id = generate(gl)?;
+        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
+
+        let target = Texture2DArray::new_as_depth_targets(gl, width, height, layers)?;
+        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(DepthRenderTargetArray { gl: gl.clone(), id, width, height, target })
+    }
+
+    pub fn bind(&self, layer: usize)
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&self.id));
+        self.gl.viewport(0, 0, self.width as i32, self.height as i32);
+        self.target.bind_to_framebuffer(layer);
+    }
+
+    pub fn clear(&self)
+    {
+        depth_write(&self.gl,true);
+        self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
+    }
+}
+
+impl Drop for DepthRenderTargetArray {
+    fn drop(&mut self) {
+        self.gl.delete_framebuffer(Some(&self.id));
+    }
+}
 
 // COMMON FUNCTIONS
 fn generate(gl: &Gl) -> Result<gl::Framebuffer, Error>
