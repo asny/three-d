@@ -36,9 +36,7 @@ fn main() {
 
     let ambient_light = crate::light::AmbientLight::new();
 
-    let mut directional_light = dust::light::DirectionalLight::new(&gl,vec3(1.0, -1.0, -1.0));
-    directional_light.base.color = vec3(1.0, 0.0, 0.0);
-    renderer.add_directional_light(0, &directional_light).unwrap();
+    renderer.enable_directional_light(0).unwrap();
 
     let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
     point_light.base.color = vec3(0.0, 1.0, 0.0);
@@ -66,7 +64,7 @@ fn main() {
 
         // Shadow pass
         renderer.shadow_pass_begin(0).unwrap();
-        render_scene(directional_light.shadow_camera());
+        render_scene(renderer.shadow_camera(0).unwrap());
 
         //spot_light.shadow_cast_begin().unwrap();
         //render_scene(spot_light.shadow_camera().unwrap());

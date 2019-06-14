@@ -33,7 +33,12 @@ pub struct DirectionalLight {
 
 impl DirectionalLight
 {
-    pub fn new(gl: &Gl, direction: Vec3) -> DirectionalLight
+    pub fn new(gl: &Gl) -> DirectionalLight
+    {
+        DirectionalLight::new_with_direction(gl, vec3(0.0, -1.0, 0.0))
+    }
+
+    pub fn new_with_direction(gl: &Gl, direction: Vec3) -> DirectionalLight
     {
         let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
 

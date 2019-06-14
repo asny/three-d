@@ -3,6 +3,7 @@ use crate::camera;
 use crate::light;
 use crate::*;
 use crate::objects::FullScreen;
+use crate::light::DirectionalLight;
 
 const MAX_NO_LIGHTS: usize = 3;
 
@@ -52,6 +53,7 @@ pub struct DeferredPipeline {
     rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     full_screen: FullScreen,
+    directional_lights: Vec<DirectionalLight>,
     light_buffer: UniformBuffer,
     shadow_rendertarget: DepthRenderTargetArray,
     pub background_color: Vec4
@@ -72,7 +74,13 @@ impl DeferredPipeline
         let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
         dbg!(&sizes);
         let light_buffer = UniformBuffer::new(&gl, &sizes)?;
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,shadow_rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, background_color })
+        let mut directional_lights = Vec::with_capacity(MAX_NO_LIGHTS);
+        for i in 0..MAX_NO_LIGHTS {
+            directional_lights.push(DirectionalLight::new(&gl));
+        }
+
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,shadow_rendertarget,
+            geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, directional_lights, background_color })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -87,6 +95,11 @@ impl DeferredPipeline
         self.shadow_rendertarget.bind(light_id);
         self.shadow_rendertarget.clear();
         Ok(())
+    }
+
+    pub fn shadow_camera(&self, light_id: usize) -> Result<&Camera, Error>
+    {
+        Ok(self.directional_lights[light_id].shadow_camera())
     }
 
     pub fn geometry_pass_begin(&self) -> Result<(), Error>
@@ -155,9 +168,10 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn add_directional_light(&mut self, index: usize, light: &light::DirectionalLight) -> Result<(), Error>
+    pub fn enable_directional_light(&mut self, light_id: usize) -> Result<(), Error>
     {
-        let i = index * 5 as usize;
+        let light = &self.directional_lights[light_id];
+        let i = light_id * 5 as usize;
         self.light_buffer.update(i+0, &light.base.color.to_slice())?;
         self.light_buffer.update(i+1, &[light.base.intensity])?;
         self.light_buffer.update(i+2, &light.direction.to_slice())?;
@@ -171,9 +185,9 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn disable_directional_light(&mut self, index: usize) -> Result<(), Error>
+    pub fn disable_directional_light(&mut self, light_id: usize) -> Result<(), Error>
     {
-        let i = index * 4 as usize;
+        let i = light_id * 4 as usize;
         self.light_buffer.update(i+1, &[0.0])?;
         Ok(())
     }
