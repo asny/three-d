@@ -1,6 +1,5 @@
 
 use crate::camera;
-use crate::light;
 use crate::*;
 use crate::objects::FullScreen;
 use crate::light::DirectionalLight;
@@ -75,7 +74,7 @@ impl DeferredPipeline
         dbg!(&sizes);
         let light_buffer = UniformBuffer::new(&gl, &sizes)?;
         let mut directional_lights = Vec::with_capacity(MAX_NO_LIGHTS);
-        for i in 0..MAX_NO_LIGHTS {
+        for _ in 0..MAX_NO_LIGHTS {
             directional_lights.push(DirectionalLight::new(&gl));
         }
 
@@ -88,18 +87,6 @@ impl DeferredPipeline
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
         Ok(())
-    }
-
-    pub fn shadow_pass_begin(&self, light_id: usize) -> Result<(), Error>
-    {
-        self.shadow_rendertarget.bind(light_id);
-        self.shadow_rendertarget.clear();
-        Ok(())
-    }
-
-    pub fn shadow_camera(&self, light_id: usize) -> Result<&Camera, Error>
-    {
-        Ok(self.directional_lights[light_id].shadow_camera())
     }
 
     pub fn geometry_pass_begin(&self) -> Result<(), Error>
@@ -158,14 +145,16 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
+    pub fn shadow_pass_begin(&self, light_id: usize) -> Result<(), Error>
     {
-        self.light_pass_program.add_uniform_int("lightType", &0)?;
-        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
-        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
-
-        self.full_screen.render(&self.light_pass_program);
+        self.shadow_rendertarget.bind(light_id);
+        self.shadow_rendertarget.clear();
         Ok(())
+    }
+
+    pub fn shadow_camera(&self, light_id: usize) -> Result<&Camera, Error>
+    {
+        Ok(self.directional_lights[light_id].shadow_camera())
     }
 
     pub fn enable_directional_light(&mut self, light_id: usize) -> Result<(), Error>
@@ -189,6 +178,16 @@ impl DeferredPipeline
     {
         let i = light_id * 4 as usize;
         self.light_buffer.update(i+1, &[0.0])?;
+        Ok(())
+    }
+
+    /*pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
+    {
+        self.light_pass_program.add_uniform_int("lightType", &0)?;
+        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
+        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
+
+        self.full_screen.render(&self.light_pass_program);
         Ok(())
     }
 
@@ -237,7 +236,7 @@ impl DeferredPipeline
 
         self.full_screen.render(&self.light_pass_program);
         Ok(())
-    }
+    }*/
 
     pub fn full_screen(&self) -> &FullScreen
     {
