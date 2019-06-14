@@ -162,16 +162,12 @@ impl DeferredPipeline
         self.light_buffer.update(i+1, &[light.base.intensity])?;
         self.light_buffer.update(i+2, &light.direction.to_slice())?;
 
-        if let Ok(shadow_camera) = light.shadow_camera() {
-
-            let bias_matrix = crate::Mat4::new(
-                                 0.5, 0.0, 0.0, 0.0,
-                                 0.0, 0.5, 0.0, 0.0,
-                                 0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0);
-            self.light_buffer.update(i+4, &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()).to_slice())?;
-
-        }
+        let bias_matrix = crate::Mat4::new(
+                             0.5, 0.0, 0.0, 0.0,
+                             0.0, 0.5, 0.0, 0.0,
+                             0.0, 0.0, 0.5, 0.0,
+                             0.5, 0.5, 0.5, 1.0);
+        self.light_buffer.update(i+4, &(bias_matrix * light.shadow_camera().get_projection() * light.shadow_camera().get_view()).to_slice())?;
         Ok(())
     }
 

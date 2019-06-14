@@ -28,50 +28,43 @@ impl AmbientLight
 pub struct DirectionalLight {
     pub base: Light,
     pub direction: Vec3,
-    shadow_camera: Option<Camera>
+    shadow_camera: Camera
 }
 
 impl DirectionalLight
 {
-    pub fn new(direction: Vec3) -> DirectionalLight
+    pub fn new(gl: &Gl, direction: Vec3) -> DirectionalLight
     {
         let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
-        DirectionalLight {direction: direction.normalize(), base, shadow_camera: None}
+
+        let up = Self::compute_up_direction(direction);
+        let radius = 2.0;
+        let depth = 10.0;
+        let shadow_camera = Camera::new_orthographic(gl, - direction, vec3(0.0, 0.0, 0.0), up,
+                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth);
+        DirectionalLight {direction: direction.normalize(), base, shadow_camera}
     }
 
-    pub fn enable_shadows(&mut self, gl: &Gl, radius: f32, depth: f32) -> Result<(), Error>
+    pub fn set_target(&mut self, target: &Vec3, radius: f32, depth: f32)
     {
-        let up = self.compute_up_direction();
-        self.shadow_camera = Some(Camera::new_orthographic(gl, - self.direction, vec3(0.0, 0.0, 0.0), up,
-                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
-        Ok(())
+        let up = Self::compute_up_direction(self.direction);
+        self.shadow_camera.set_view(*target - self.direction, *target, up);
     }
 
-    pub fn set_target(&mut self, target: &Vec3)
+    fn compute_up_direction(direction: Vec3) -> Vec3
     {
-        let up = self.compute_up_direction();
-        if let Some(ref mut camera) = self.shadow_camera {
-            camera.set_view(*target - self.direction, *target, up);
-        }
-    }
-
-    fn compute_up_direction(&self) -> Vec3
-    {
-        if vec3(1.0, 0.0, 0.0).dot(self.direction).abs() > 0.9
+        if vec3(1.0, 0.0, 0.0).dot(direction).abs() > 0.9
         {
-            (vec3(0.0, 1.0, 0.0).cross(self.direction)).normalize()
+            (vec3(0.0, 1.0, 0.0).cross(direction)).normalize()
         }
         else {
-            (vec3(1.0, 0.0, 0.0).cross(self.direction)).normalize()
+            (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
         }
     }
 
-    pub fn shadow_camera(&self) -> Result<&Camera, Error>
+    pub fn shadow_camera(&self) -> &Camera
     {
-        if let Some(ref camera) = self.shadow_camera {
-            return Ok(camera)
-        }
-        Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
+        &self.shadow_camera
     }
 }
 
