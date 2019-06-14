@@ -66,11 +66,11 @@ fn main() {
         };
 
         // Shadow pass
-        directional_light.shadow_cast_begin().unwrap();
+        renderer.shadow_pass_begin(0).unwrap();
         render_scene(directional_light.shadow_camera().unwrap());
 
-        spot_light.shadow_cast_begin().unwrap();
-        render_scene(spot_light.shadow_camera().unwrap());
+        //spot_light.shadow_cast_begin().unwrap();
+        //render_scene(spot_light.shadow_camera().unwrap());
 
         // Geometry pass
         renderer.geometry_pass_begin().unwrap();
@@ -78,6 +78,7 @@ fn main() {
         plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0)) * Mat4::from_scale(10.0)), &camera);
 
         // Light pass
+        //renderer.shine_directional_light(&directional_light).unwrap();
         renderer.light_pass_begin(&camera).unwrap();
         /*renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();

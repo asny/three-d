@@ -28,7 +28,6 @@ impl AmbientLight
 pub struct DirectionalLight {
     pub base: Light,
     pub direction: Vec3,
-    pub shadow_rendertarget: Option<DepthRenderTarget>,
     shadow_camera: Option<Camera>
 }
 
@@ -37,12 +36,11 @@ impl DirectionalLight
     pub fn new(direction: Vec3) -> DirectionalLight
     {
         let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
-        DirectionalLight {direction: direction.normalize(), base, shadow_rendertarget: None, shadow_camera: None}
+        DirectionalLight {direction: direction.normalize(), base, shadow_camera: None}
     }
 
     pub fn enable_shadows(&mut self, gl: &Gl, radius: f32, depth: f32) -> Result<(), Error>
     {
-        self.shadow_rendertarget = Some(DepthRenderTarget::new(gl, 512, 512).unwrap());
         let up = self.compute_up_direction();
         self.shadow_camera = Some(Camera::new_orthographic(gl, - self.direction, vec3(0.0, 0.0, 0.0), up,
                                                                   2.0 * radius, 2.0 * radius, 2.0 * depth));
@@ -66,17 +64,6 @@ impl DirectionalLight
         else {
             (vec3(1.0, 0.0, 0.0).cross(self.direction)).normalize()
         }
-    }
-
-    pub fn shadow_cast_begin(&self) -> Result<(), Error>
-    {
-        if let Some(ref rendertarget) = self.shadow_rendertarget
-        {
-            rendertarget.bind();
-            rendertarget.clear();
-            return Ok(())
-        }
-        Err(Error::ShadowRendertargetNotAvailable {message: format!("Shadow is not enabled for this light source")})
     }
 
     pub fn shadow_camera(&self) -> Result<&Camera, Error>

@@ -3,13 +3,11 @@ uniform sampler2D colorMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
 uniform sampler2D surfaceParametersMap;
-uniform sampler2D shadowMap;
 uniform samplerCube shadowCubeMap;
 
 layout (location = 0) out vec4 color;
 
 uniform vec3 eyePosition;
-uniform mat4 shadowMVP;
 uniform mat4 shadowMVP0;
 uniform mat4 shadowMVP1;
 uniform mat4 shadowMVP2;
@@ -20,6 +18,7 @@ uniform mat4 shadowMVP5;
 in vec2 uv;
 
 const int MAX_NO_LIGHTS = 3;
+uniform sampler2DArray shadowMaps;
 
 struct BaseLight
 {
@@ -43,6 +42,8 @@ struct DirectionalLight
 {
     BaseLight base;
     vec3 direction;
+    float padding;
+    mat4 shadowMVP;
 };
 
 struct PointLight
@@ -71,15 +72,15 @@ uniform PointLight pointLight;
 uniform SpotLight spotLight;
 uniform int lightType;
 
-float is_visible(vec4 shadow_coord, vec2 offset)
+float is_visible(int lightIndex, vec4 shadow_coord, vec2 offset)
 {
     vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
     float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
-    float shadow_cast_distance = texture(shadowMap, uv).x;
+    float shadow_cast_distance = texture(shadowMaps, vec3(uv, lightIndex)).x;
     return uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
-float calculate_shadow(vec3 position)
+float calculate_shadow(int lightIndex, mat4 shadowMVP, vec3 position)
 {
     vec4 shadow_coord = shadowMVP * vec4(position, 1.);
     float visibility = 0.0;
@@ -91,7 +92,7 @@ float calculate_shadow(vec3 position)
                                  );
     for (int i=0;i<4;i++)
     {
-        visibility += is_visible(shadow_coord, poissonDisk[i] * 0.001f);
+        visibility += is_visible(lightIndex, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
 }
@@ -193,7 +194,7 @@ vec3 calculate_point_light(vec3 position)
     return color;
 }
 
-vec3 calculate_spot_light(vec3 position)
+/*vec3 calculate_spot_light(vec3 position)
 {
     vec3 light_direction = normalize(position - spotLight.position);
     float SpotFactor = dot(light_direction, spotLight.direction);
@@ -205,7 +206,7 @@ vec3 calculate_spot_light(vec3 position)
     else {
         return vec3(0.0);
     }
-}
+}*/
 
 void main()
 {
@@ -222,7 +223,7 @@ void main()
             DirectionalLight l = directionalLights[i];
             if(l.base.intensity > 0.0)
             {
-                light += calculate_shadow(position) * calculate_light(l.base, l.direction, position);
+                light += calculate_shadow(i, l.shadowMVP, position) * calculate_light(l.base, l.direction, position);
             }
         }
 

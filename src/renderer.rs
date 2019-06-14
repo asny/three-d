@@ -53,6 +53,7 @@ pub struct DeferredPipeline {
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     full_screen: FullScreen,
     light_buffer: UniformBuffer,
+    shadow_rendertarget: DepthRenderTargetArray,
     pub background_color: Vec4
 }
 
@@ -65,17 +66,26 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
+        let shadow_rendertarget = DepthRenderTargetArray::new(gl, screen_width, screen_height, MAX_NO_LIGHTS)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?;
 
-        let sizes: Vec<u32> = [3u32,1,3,1].iter().cloned().cycle().take(MAX_NO_LIGHTS).collect();
+        let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
+        dbg!(&sizes);
         let light_buffer = UniformBuffer::new(&gl, &sizes)?;
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, background_color })
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,shadow_rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, background_color })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
+        Ok(())
+    }
+
+    pub fn shadow_pass_begin(&self, light_id: usize) -> Result<(), Error>
+    {
+        self.shadow_rendertarget.bind(light_id);
+        self.shadow_rendertarget.clear();
         Ok(())
     }
 
@@ -123,6 +133,9 @@ impl DeferredPipeline
         self.geometry_pass_depth_texture().bind(4);
         self.light_pass_program.add_uniform_int("depthMap", &4)?;
 
+        self.shadow_rendertarget.target.bind(5);
+        self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
+
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
 
         self.light_pass_program.use_uniform_block(&self.light_buffer, "Lights");
@@ -144,10 +157,21 @@ impl DeferredPipeline
 
     pub fn add_directional_light(&mut self, index: usize, light: &light::DirectionalLight) -> Result<(), Error>
     {
-        let i = index * 4 as usize;
+        let i = index * 5 as usize;
         self.light_buffer.update(i+0, &light.base.color.to_slice())?;
         self.light_buffer.update(i+1, &[light.base.intensity])?;
         self.light_buffer.update(i+2, &light.direction.to_slice())?;
+
+        if let Ok(shadow_camera) = light.shadow_camera() {
+
+            let bias_matrix = crate::Mat4::new(
+                                 0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 0.5, 0.0,
+                                 0.5, 0.5, 0.5, 1.0);
+            self.light_buffer.update(i+4, &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()).to_slice())?;
+
+        }
         Ok(())
     }
 
@@ -155,28 +179,6 @@ impl DeferredPipeline
     {
         let i = index * 4 as usize;
         self.light_buffer.update(i+1, &[0.0])?;
-        Ok(())
-    }
-
-    pub fn shine_directional_light(&mut self, light: &light::DirectionalLight) -> Result<(), Error>
-    {
-        if let Ok(shadow_camera) = light.shadow_camera() {
-            let bias_matrix = crate::Mat4::new(
-                                 0.5, 0.0, 0.0, 0.0,
-                                 0.0, 0.5, 0.0, 0.0,
-                                 0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0);
-            self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
-
-            light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
-            self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        }
-
-        self.light_pass_program.add_uniform_int("lightType", &1)?;
-
-        self.light_pass_program.use_uniform_block(&self.light_buffer, "Lights");
-
-        self.full_screen.render(&self.light_pass_program);
         Ok(())
     }
 
