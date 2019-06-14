@@ -34,16 +34,16 @@ fn main() {
     ];
     let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
-    let ambient_light = crate::light::AmbientLight::new();
+    //let ambient_light = crate::light::AmbientLight::new();
 
     renderer.enable_directional_light(0).unwrap();
 
-    let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
+    /*let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
     point_light.base.color = vec3(0.0, 1.0, 0.0);
 
     let mut spot_light = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
     spot_light.base.color = vec3(0.0, 0.0, 1.0);
-    spot_light.enable_shadows(&gl, 20.0).unwrap();
+    spot_light.enable_shadows(&gl, 20.0).unwrap();*/
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
