@@ -26,9 +26,10 @@ impl AmbientLight
 }
 
 pub struct DirectionalLight {
-    pub base: Light,
+    pub color: Vec3,
+    pub intensity: f32,
     pub direction: Vec3,
-    shadow_camera: Camera
+    pub shadow_camera: Camera
 }
 
 impl DirectionalLight
@@ -40,17 +41,15 @@ impl DirectionalLight
 
     pub fn new_with_direction(gl: &Gl, direction: Vec3) -> DirectionalLight
     {
-        let base = Light {color: vec3(1.0, 1.0, 1.0), intensity: 0.5};
-
         let up = Self::compute_up_direction(direction);
         let radius = 2.0;
         let depth = 10.0;
         let shadow_camera = Camera::new_orthographic(gl, - direction, vec3(0.0, 0.0, 0.0), up,
                                                                   2.0 * radius, 2.0 * radius, 2.0 * depth);
-        DirectionalLight {direction: direction.normalize(), base, shadow_camera}
+        DirectionalLight {color: vec3(1.0, 1.0, 1.0), intensity: 0.5, direction: direction.normalize(), shadow_camera}
     }
 
-    pub fn set_target(&mut self, target: &Vec3, radius: f32, depth: f32)
+    pub fn set_target(&mut self, target: &Vec3)
     {
         let up = Self::compute_up_direction(self.direction);
         self.shadow_camera.set_view(*target - self.direction, *target, up);
@@ -65,11 +64,6 @@ impl DirectionalLight
         else {
             (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
         }
-    }
-
-    pub fn shadow_camera(&self) -> &Camera
-    {
-        &self.shadow_camera
     }
 }
 

@@ -154,15 +154,15 @@ impl DeferredPipeline
 
     pub fn shadow_camera(&self, light_id: usize) -> Result<&Camera, Error>
     {
-        Ok(self.directional_lights[light_id].shadow_camera())
+        Ok(&self.directional_lights[light_id].shadow_camera)
     }
 
     pub fn enable_directional_light(&mut self, light_id: usize) -> Result<(), Error>
     {
         let light = &self.directional_lights[light_id];
         let i = light_id * 5 as usize;
-        self.light_buffer.update(i+0, &light.base.color.to_slice())?;
-        self.light_buffer.update(i+1, &[light.base.intensity])?;
+        self.light_buffer.update(i+0, &light.color.to_slice())?;
+        self.light_buffer.update(i+1, &[light.intensity])?;
         self.light_buffer.update(i+2, &light.direction.to_slice())?;
 
         let bias_matrix = crate::Mat4::new(
@@ -170,7 +170,7 @@ impl DeferredPipeline
                              0.0, 0.5, 0.0, 0.0,
                              0.0, 0.0, 0.5, 0.0,
                              0.5, 0.5, 0.5, 1.0);
-        self.light_buffer.update(i+4, &(bias_matrix * light.shadow_camera().get_projection() * light.shadow_camera().get_view()).to_slice())?;
+        self.light_buffer.update(i+4, &(bias_matrix * light.shadow_camera.get_projection() * light.shadow_camera.get_view()).to_slice())?;
         Ok(())
     }
 
