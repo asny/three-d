@@ -44,15 +44,119 @@ impl From<buffer::Error> for Error {
     }
 }
 
+pub struct DirectionalLight {
+    gl: Gl,
+    light_buffer: UniformBuffer,
+    shadow_rendertarget: DepthRenderTargetArray,
+    shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
+    index: usize
+}
+
+impl DirectionalLight {
+
+    pub(crate) fn new(gl: &Gl, screen_width: usize, screen_height: usize) -> Result<DirectionalLight, Error>
+    {
+        let shadow_rendertarget = DepthRenderTargetArray::new(gl, screen_width, screen_height, MAX_NO_LIGHTS)?;
+        let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
+        dbg!(&sizes);
+        let light_buffer = UniformBuffer::new(gl, &sizes)?;
+        let mut lights = DirectionalLight {index: 0, gl: gl.clone(), shadow_rendertarget, light_buffer, shadow_cameras: [None, None, None]};
+        for light_id in 0..MAX_NO_LIGHTS {
+            lights.set_index(light_id);
+            lights.set_intensity(0.0)?;
+            lights.set_color(&vec3(1.0, 1.0, 1.0))?;
+            lights.set_direction(&vec3(0.0, -1.0, 0.0))?;
+        }
+        Ok(lights)
+    }
+
+    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index * 5, &color.to_slice())?;
+        Ok(())
+    }
+
+    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index * 5 + 1, &[intensity])?;
+        Ok(())
+    }
+
+    pub fn set_direction(&mut self, direction: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index * 5 + 2, &direction.to_slice())?;
+
+        if let Some(ref mut camera) = self.shadow_cameras[self.index]
+        {
+            let up = compute_up_direction(*direction);
+            camera.set_view(- *direction, vec3(0.0, 0.0, 0.0), up);
+
+            let bias_matrix = crate::Mat4::new(
+                                 0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 0.5, 0.0,
+                                 0.5, 0.5, 0.5, 1.0);
+            let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
+            self.light_buffer.update(self.index * 5 + 4, &shadow_matrix.to_slice())?;
+        }
+        Ok(())
+    }
+
+    pub fn enable_shadows(&mut self) -> Result<(), Error>
+    {
+        let d = self.light_buffer.get(self.index * 5 + 2)?;
+        let dir = vec3(d[0], d[1], d[2]);
+        let radius = 2.0;
+        let depth = 10.0;
+        self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0),
+                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
+        self.set_direction(&dir)?;
+        Ok(())
+    }
+
+    pub fn disable_shadows(&mut self) -> Result<(), Error>
+    {
+        self.shadow_cameras[self.index] = None;
+        Ok(())
+    }
+
+    pub(crate) fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
+        where F: Fn(&Camera)
+    {
+        for light_id in 0..MAX_NO_LIGHTS {
+            if let Some(ref camera) = self.shadow_cameras[light_id]
+            {
+                self.shadow_rendertarget.bind(light_id);
+                self.shadow_rendertarget.clear();
+                render_scene(camera);
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn shadow_rendertarget(&self) -> &DepthRenderTargetArray
+    {
+        &self.shadow_rendertarget
+    }
+
+    pub(crate) fn buffer(&self) -> &UniformBuffer
+    {
+        &self.light_buffer
+    }
+
+    pub(crate) fn set_index(&mut self, index: usize)
+    {
+        self.index = index;
+    }
+}
+
 pub struct DeferredPipeline {
     gl: Gl,
     light_pass_program: program::Program,
     rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     full_screen: FullScreen,
-    light_buffer: UniformBuffer,
-    shadow_rendertarget: DepthRenderTargetArray,
-    shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
+    directional_lights: DirectionalLight,
     pub background_color: Vec4,
     pub camera: Camera
 }
@@ -66,27 +170,16 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
-        let shadow_rendertarget = DepthRenderTargetArray::new(gl, screen_width, screen_height, MAX_NO_LIGHTS)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?;
 
-        let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
-        dbg!(&sizes);
-        let light_buffer = UniformBuffer::new(gl, &sizes)?;
 
         let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
 
-        let mut pipeline = DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,shadow_rendertarget,
-            geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, shadow_cameras: [None, None, None],
-            background_color, camera };
-
-        for light_id in 0..MAX_NO_LIGHTS {
-            pipeline.set_directional_light_intensity(light_id, 0.0)?;
-            pipeline.set_directional_light_color(light_id, &vec3(1.0, 1.0, 1.0))?;
-            pipeline.set_directional_light_direction(light_id, &vec3(0.0, -1.0, 0.0))?;
-        }
-
-        Ok(pipeline)
+        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,
+            geometry_pass_rendertarget, full_screen: FullScreen::new(gl),
+            directional_lights: DirectionalLight::new(gl, screen_width, screen_height)?,
+            background_color, camera })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -99,14 +192,7 @@ impl DeferredPipeline
     pub fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
         where F: Fn(&Camera)
     {
-        for light_id in 0..MAX_NO_LIGHTS {
-            if let Some(ref camera) = self.shadow_cameras[light_id]
-            {
-                self.shadow_rendertarget.bind(light_id);
-                self.shadow_rendertarget.clear();
-                render_scene(camera);
-            }
-        }
+        self.directional_lights.shadow_pass(render_scene)?;
         Ok(())
     }
 
@@ -156,77 +242,22 @@ impl DeferredPipeline
         self.geometry_pass_depth_texture().bind(4);
         self.light_pass_program.add_uniform_int("depthMap", &4)?;
 
-        self.shadow_rendertarget.target.bind(5);
+        self.directional_lights.shadow_rendertarget().target.bind(5);
         self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
 
-        self.light_pass_program.use_uniform_block(&self.light_buffer, "Lights");
+        self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "Lights");
 
         self.full_screen.render(&self.light_pass_program);
 
         Ok(())
     }
 
-    pub fn set_directional_light_color(&mut self, light_id: usize, color: &Vec3) -> Result<(), Error>
+    pub fn directional_light(&mut self, index: usize) -> &mut DirectionalLight
     {
-        self.light_buffer.update(light_id * 5, &color.to_slice())?;
-        Ok(())
-    }
-
-    pub fn set_directional_light_intensity(&mut self, light_id: usize, intensity: f32) -> Result<(), Error>
-    {
-        self.light_buffer.update(light_id * 5 + 1, &[intensity])?;
-        Ok(())
-    }
-
-    pub fn set_directional_light_direction(&mut self, light_id: usize, direction: &Vec3) -> Result<(), Error>
-    {
-        self.light_buffer.update(light_id * 5 + 2, &direction.to_slice())?;
-
-        if let Some(ref mut camera) = self.shadow_cameras[light_id]
-        {
-            let up = Self::compute_up_direction(*direction);
-            camera.set_view(- *direction, vec3(0.0, 0.0, 0.0), up);
-
-            let bias_matrix = crate::Mat4::new(
-                                 0.5, 0.0, 0.0, 0.0,
-                                 0.0, 0.5, 0.0, 0.0,
-                                 0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0);
-            let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
-            self.light_buffer.update(light_id * 5 + 4, &shadow_matrix.to_slice())?;
-        }
-        Ok(())
-    }
-
-    fn compute_up_direction(direction: Vec3) -> Vec3
-    {
-        if vec3(1.0, 0.0, 0.0).dot(direction).abs() > 0.9
-        {
-            (vec3(0.0, 1.0, 0.0).cross(direction)).normalize()
-        }
-        else {
-            (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
-        }
-    }
-
-    pub fn enable_directional_light_shadows(&mut self, light_id: usize) -> Result<(), Error>
-    {
-        let d = self.light_buffer.get(light_id * 5 + 2)?;
-        let dir = vec3(d[0], d[1], d[2]);
-        let radius = 2.0;
-        let depth = 10.0;
-        self.shadow_cameras[light_id] = Some(Camera::new_orthographic(&self.gl, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0),
-                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
-        self.set_directional_light_direction(light_id, &dir)?;
-        Ok(())
-    }
-
-    pub fn disable_directional_light_shadows(&mut self, light_id: usize) -> Result<(), Error>
-    {
-        self.shadow_cameras[light_id] = None;
-        Ok(())
+        self.directional_lights.set_index(index);
+        &mut self.directional_lights
     }
 
     /*pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
@@ -319,5 +350,16 @@ impl DeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
         self.geometry_pass_rendertarget.depth_target.as_ref().unwrap()
+    }
+}
+
+fn compute_up_direction(direction: Vec3) -> Vec3
+{
+    if vec3(1.0, 0.0, 0.0).dot(direction).abs() > 0.9
+    {
+        (vec3(0.0, 1.0, 0.0).cross(direction)).normalize()
+    }
+    else {
+        (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
     }
 }

@@ -32,13 +32,15 @@ fn main() {
 
     //let ambient_light = crate::light::AmbientLight::new();
 
-    renderer.set_directional_light_direction(0, &vec3(1.0, -1.0, -1.0)).unwrap();
-    renderer.set_directional_light_intensity(0, 0.5).unwrap();
-    renderer.enable_directional_light_shadows(0).unwrap();
+    let mut light = renderer.directional_light(0);
+    light.set_direction(&vec3(1.0, -1.0, -1.0)).unwrap();
+    light.set_intensity(0.5).unwrap();
+    light.enable_shadows().unwrap();
 
-    renderer.set_directional_light_direction(1, &vec3(-1.0, -1.0, 1.0)).unwrap();
-    renderer.set_directional_light_intensity(1, 0.5).unwrap();
-    renderer.enable_directional_light_shadows(1).unwrap();
+    light = renderer.directional_light(1);
+    light.set_direction(&vec3(-1.0, -1.0, 1.0)).unwrap();
+    light.set_intensity(0.5).unwrap();
+    light.enable_shadows().unwrap();
 
     /*let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
     point_light.base.color = vec3(0.0, 1.0, 0.0);
