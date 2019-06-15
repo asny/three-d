@@ -92,7 +92,22 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn geometry_pass_begin(&self) -> Result<(), Error>
+    pub fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
+        where F: Fn(&Camera)
+    {
+        for light_id in 0..MAX_NO_LIGHTS {
+            if let Some(ref camera) = self.shadow_cameras[light_id]
+            {
+                self.shadow_rendertarget.bind(light_id);
+                self.shadow_rendertarget.clear();
+                render_scene(camera);
+            }
+        }
+        Ok(())
+    }
+
+    pub fn geometry_pass<F>(&self, camera: &Camera, render_scene: F) -> Result<(), Error>
+        where F: Fn(&Camera)
     {
         self.geometry_pass_rendertarget.bind();
         self.geometry_pass_rendertarget.clear(&self.background_color);
@@ -102,10 +117,11 @@ impl DeferredPipeline
         state::cull(&self.gl, state::CullType::NONE);
         state::blend(&self.gl, state::BlendType::NONE);
 
+        render_scene(camera);
         Ok(())
     }
 
-    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn light_pass(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         self.light_pass_render_to(camera, &self.rendertarget)?;
         Ok(())
@@ -145,20 +161,6 @@ impl DeferredPipeline
 
         self.full_screen.render(&self.light_pass_program);
 
-        Ok(())
-    }
-
-    pub fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
-        where F: Fn(&Camera)
-    {
-        for light_id in 0..MAX_NO_LIGHTS {
-            if let Some(ref camera) = self.shadow_cameras[light_id]
-            {
-                self.shadow_rendertarget.bind(light_id);
-                self.shadow_rendertarget.clear();
-                render_scene(camera);
-            }
-        }
         Ok(())
     }
 
