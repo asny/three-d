@@ -275,12 +275,7 @@ impl UniformBuffer
 
     pub fn update(&mut self, index: usize, data: &[f32]) -> Result<(), Error>
     {
-        if index >= self.offsets.len()
-        {
-            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer index {} is outside the range 0-{}", index, self.offsets.len()-1)})
-        }
-        let offset = self.offsets[index];
-        let length = if index + 1 == self.offsets.len() {self.data.len()} else {self.offsets[index+1]}  - offset;
+        let (offset, length) = self.offset_length(index)?;
         if data.len() != length
         {
             return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer data for index {} has length {} but it must be {}.", index, data.len(), length)})
@@ -289,6 +284,24 @@ impl UniformBuffer
         self.send();
         //TODO: Send to GPU (glBufferSubData)
         Ok(())
+    }
+
+    pub fn get(&mut self, index: usize) -> Result<&[f32], Error>
+    {
+        let (offset, length) = self.offset_length(index)?;
+
+        Ok(&self.data[offset..offset+length])
+    }
+
+    fn offset_length(&mut self, index: usize) -> Result<(usize, usize), Error>
+    {
+        if index >= self.offsets.len()
+        {
+            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer index {} is outside the range 0-{}", index, self.offsets.len()-1)})
+        }
+        let offset = self.offsets[index];
+        let length = if index + 1 == self.offsets.len() {self.data.len()} else {self.offsets[index+1]}  - offset;
+        Ok((offset, length))
     }
 
     fn send(&self)
