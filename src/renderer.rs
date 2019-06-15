@@ -1,5 +1,4 @@
 
-use crate::camera;
 use crate::*;
 use crate::objects::FullScreen;
 
@@ -54,7 +53,8 @@ pub struct DeferredPipeline {
     light_buffer: UniformBuffer,
     shadow_rendertarget: DepthRenderTargetArray,
     shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
-    pub background_color: Vec4
+    pub background_color: Vec4,
+    pub camera: Camera
 }
 
 
@@ -62,7 +62,7 @@ impl DeferredPipeline
 {
     pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, background_color: Vec4) -> Result<DeferredPipeline, Error>
     {
-        let light_pass_program = program::Program::from_source(&gl,
+        let light_pass_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
@@ -71,10 +71,14 @@ impl DeferredPipeline
 
         let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
         dbg!(&sizes);
-        let light_buffer = UniformBuffer::new(&gl, &sizes)?;
+        let light_buffer = UniformBuffer::new(gl, &sizes)?;
+
+        let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                    degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
 
         let mut pipeline = DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,shadow_rendertarget,
-            geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, shadow_cameras: [None, None, None], background_color };
+            geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, shadow_cameras: [None, None, None],
+            background_color, camera };
 
         for light_id in 0..MAX_NO_LIGHTS {
             pipeline.set_directional_light_intensity(light_id, 0.0)?;
@@ -106,7 +110,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn geometry_pass<F>(&self, camera: &Camera, render_scene: F) -> Result<(), Error>
+    pub fn geometry_pass<F>(&self, render_scene: F) -> Result<(), Error>
         where F: Fn(&Camera)
     {
         self.geometry_pass_rendertarget.bind();
@@ -117,17 +121,17 @@ impl DeferredPipeline
         state::cull(&self.gl, state::CullType::NONE);
         state::blend(&self.gl, state::BlendType::NONE);
 
-        render_scene(camera);
+        render_scene(&self.camera);
         Ok(())
     }
 
-    pub fn light_pass(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn light_pass(&self) -> Result<(), Error>
     {
-        self.light_pass_render_to(camera, &self.rendertarget)?;
+        self.light_pass_render_to(&self.rendertarget)?;
         Ok(())
     }
 
-    pub fn light_pass_render_to(&self, camera: &camera::Camera, rendertarget: &ColorRendertarget) -> Result<(), Error>
+    pub fn light_pass_render_to(&self, rendertarget: &ColorRendertarget) -> Result<(), Error>
     {
         rendertarget.bind();
         rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
@@ -155,7 +159,7 @@ impl DeferredPipeline
         self.shadow_rendertarget.target.bind(5);
         self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
 
-        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
+        self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
 
         self.light_pass_program.use_uniform_block(&self.light_buffer, "Lights");
 

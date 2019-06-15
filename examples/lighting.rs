@@ -10,10 +10,6 @@ fn main() {
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
-    // Camera
-    let mut camera = Camera::new_perspective(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                    degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
-
     let monkey = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
 
     let plane_positions: Vec<f32> = vec![
@@ -57,7 +53,7 @@ fn main() {
     window.render_loop(move |events, _elapsed_time|
     {
         for event in events {
-            handle_camera_events(event, &mut camera_handler, &mut camera);
+            handle_camera_events(event, &mut camera_handler, &mut renderer.camera);
             //handle_ambient_light_parameters(event, &mut ambient_light);
             //handle_directional_light_parameters(event, &mut directional_light);
             //handle_surface_parameters(event, &mut monkey);
@@ -71,18 +67,15 @@ fn main() {
         // Shadow pass
         renderer.shadow_pass(render_scene).unwrap();
 
-        //spot_light.shadow_cast_begin().unwrap();
-        //render_scene(spot_light.shadow_camera().unwrap());
-
         // Geometry pass
-        renderer.geometry_pass(&camera, |camera: &Camera|
+        renderer.geometry_pass(|camera: &Camera|
             {
                 render_scene(&camera);
                 plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0)) * Mat4::from_scale(10.0)), &camera);
             }).unwrap();
 
         // Light pass
-        renderer.light_pass(&camera).unwrap();
+        renderer.light_pass().unwrap();
         /*renderer.shine_ambient_light(&ambient_light).unwrap();
         renderer.shine_directional_light(&directional_light).unwrap();
         renderer.shine_point_light(&point_light).unwrap();
