@@ -1,7 +1,6 @@
 
 pub mod objects;
 pub mod effects;
-mod light;
 pub mod renderer;
 pub mod camerahandler;
 

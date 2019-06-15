@@ -2,7 +2,6 @@
 use crate::camera;
 use crate::*;
 use crate::objects::FullScreen;
-use crate::light::DirectionalLight;
 
 const MAX_NO_LIGHTS: usize = 3;
 
@@ -52,9 +51,9 @@ pub struct DeferredPipeline {
     rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     full_screen: FullScreen,
-    directional_lights: Vec<DirectionalLight>,
     light_buffer: UniformBuffer,
     shadow_rendertarget: DepthRenderTargetArray,
+    shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
     pub background_color: Vec4
 }
 
@@ -73,13 +72,17 @@ impl DeferredPipeline
         let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
         dbg!(&sizes);
         let light_buffer = UniformBuffer::new(&gl, &sizes)?;
-        let mut directional_lights = Vec::with_capacity(MAX_NO_LIGHTS);
-        for _ in 0..MAX_NO_LIGHTS {
-            directional_lights.push(DirectionalLight::new(&gl));
+
+        let mut pipeline = DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,shadow_rendertarget,
+            geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, shadow_cameras: [None, None, None], background_color };
+
+        for light_id in 0..MAX_NO_LIGHTS {
+            pipeline.set_directional_light_intensity(light_id, 0.0)?;
+            pipeline.set_directional_light_color(light_id, &vec3(1.0, 1.0, 1.0))?;
+            pipeline.set_directional_light_direction(light_id, &vec3(0.0, -1.0, 0.0))?;
         }
 
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,shadow_rendertarget,
-            geometry_pass_rendertarget, full_screen: FullScreen::new(gl), light_buffer, directional_lights, background_color })
+        Ok(pipeline)
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -145,39 +148,78 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn shadow_pass_begin(&self, light_id: usize) -> Result<(), Error>
+    pub fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
+        where F: Fn(&Camera)
     {
-        self.shadow_rendertarget.bind(light_id);
-        self.shadow_rendertarget.clear();
+        for light_id in 0..MAX_NO_LIGHTS {
+            if let Some(ref camera) = self.shadow_cameras[light_id]
+            {
+                self.shadow_rendertarget.bind(light_id);
+                self.shadow_rendertarget.clear();
+                render_scene(camera);
+            }
+        }
         Ok(())
     }
 
-    pub fn shadow_camera(&self, light_id: usize) -> Result<&Camera, Error>
+    pub fn set_directional_light_color(&mut self, light_id: usize, color: &Vec3) -> Result<(), Error>
     {
-        Ok(&self.directional_lights[light_id].shadow_camera)
-    }
-
-    pub fn enable_directional_light(&mut self, light_id: usize) -> Result<(), Error>
-    {
-        let light = &self.directional_lights[light_id];
-        let i = light_id * 5 as usize;
-        self.light_buffer.update(i+0, &light.color.to_slice())?;
-        self.light_buffer.update(i+1, &[light.intensity])?;
-        self.light_buffer.update(i+2, &light.direction.to_slice())?;
-
-        let bias_matrix = crate::Mat4::new(
-                             0.5, 0.0, 0.0, 0.0,
-                             0.0, 0.5, 0.0, 0.0,
-                             0.0, 0.0, 0.5, 0.0,
-                             0.5, 0.5, 0.5, 1.0);
-        self.light_buffer.update(i+4, &(bias_matrix * light.shadow_camera.get_projection() * light.shadow_camera.get_view()).to_slice())?;
+        self.light_buffer.update(light_id * 5, &color.to_slice())?;
         Ok(())
     }
 
-    pub fn disable_directional_light(&mut self, light_id: usize) -> Result<(), Error>
+    pub fn set_directional_light_intensity(&mut self, light_id: usize, intensity: f32) -> Result<(), Error>
     {
-        let i = light_id * 4 as usize;
-        self.light_buffer.update(i+1, &[0.0])?;
+        self.light_buffer.update(light_id * 5 + 1, &[intensity])?;
+        Ok(())
+    }
+
+    pub fn set_directional_light_direction(&mut self, light_id: usize, direction: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(light_id * 5 + 2, &direction.to_slice())?;
+
+        if let Some(ref mut camera) = self.shadow_cameras[light_id]
+        {
+            let up = Self::compute_up_direction(*direction);
+            camera.set_view(- *direction, vec3(0.0, 0.0, 0.0), up);
+
+            let bias_matrix = crate::Mat4::new(
+                                 0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 0.5, 0.0,
+                                 0.5, 0.5, 0.5, 1.0);
+            let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
+            self.light_buffer.update(light_id * 5 + 4, &shadow_matrix.to_slice())?;
+        }
+        Ok(())
+    }
+
+    fn compute_up_direction(direction: Vec3) -> Vec3
+    {
+        if vec3(1.0, 0.0, 0.0).dot(direction).abs() > 0.9
+        {
+            (vec3(0.0, 1.0, 0.0).cross(direction)).normalize()
+        }
+        else {
+            (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
+        }
+    }
+
+    pub fn enable_shadows(&mut self, light_id: usize) -> Result<(), Error>
+    {
+        let d = self.light_buffer.get(light_id * 5 + 2)?;
+        let dir = vec3(d[0], d[1], d[2]);
+        let radius = 2.0;
+        let depth = 10.0;
+        self.shadow_cameras[light_id] = Some(Camera::new_orthographic(&self.gl, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0),
+                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
+        self.set_directional_light_direction(light_id, &dir)?;
+        Ok(())
+    }
+
+    pub fn disable_shadows(&mut self, light_id: usize) -> Result<(), Error>
+    {
+        self.shadow_cameras[light_id] = None;
         Ok(())
     }
 
