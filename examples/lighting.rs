@@ -34,11 +34,11 @@ fn main() {
 
     renderer.set_directional_light_direction(0, &vec3(1.0, -1.0, -1.0)).unwrap();
     renderer.set_directional_light_intensity(0, 0.5).unwrap();
-    renderer.enable_shadows(0).unwrap();
+    renderer.enable_directional_light_shadows(0).unwrap();
 
     renderer.set_directional_light_direction(1, &vec3(-1.0, -1.0, 1.0)).unwrap();
     renderer.set_directional_light_intensity(1, 0.5).unwrap();
-    renderer.enable_shadows(1).unwrap();
+    renderer.enable_directional_light_shadows(1).unwrap();
 
     /*let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
     point_light.base.color = vec3(0.0, 1.0, 0.0);

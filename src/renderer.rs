@@ -211,7 +211,7 @@ impl DeferredPipeline
         }
     }
 
-    pub fn enable_shadows(&mut self, light_id: usize) -> Result<(), Error>
+    pub fn enable_directional_light_shadows(&mut self, light_id: usize) -> Result<(), Error>
     {
         let d = self.light_buffer.get(light_id * 5 + 2)?;
         let dir = vec3(d[0], d[1], d[2]);
@@ -223,7 +223,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn disable_shadows(&mut self, light_id: usize) -> Result<(), Error>
+    pub fn disable_directional_light_shadows(&mut self, light_id: usize) -> Result<(), Error>
     {
         self.shadow_cameras[light_id] = None;
         Ok(())
