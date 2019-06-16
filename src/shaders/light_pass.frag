@@ -51,6 +51,7 @@ struct PointLight
     BaseLight base;
     vec3 position;
     Attenuation attenuation;
+    vec2 padding;
 };
 
 struct SpotLight
@@ -65,6 +66,11 @@ struct SpotLight
 layout (std140) uniform DirectionalLights
 {
     DirectionalLight directionalLights[MAX_NO_LIGHTS];
+};
+
+layout (std140) uniform PointLights
+{
+    PointLight pointLights[MAX_NO_LIGHTS];
 };
 
 uniform AmbientLight ambientLight;
@@ -142,11 +148,11 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
     return color / max(1.0, att);
 }
 
-vec3 calculate_point_light(vec3 position)
+/*vec3 calculate_point_light(vec3 position)
 {
     vec3 color = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position);
 
-    /*mat4 shadowMatrix;
+    mat4 shadowMatrix;
     float x = abs(lightDirection.x);
     float y = abs(lightDirection.y);
     float z = abs(lightDirection.z);
@@ -189,10 +195,10 @@ vec3 calculate_point_light(vec3 position)
     if ( texture(shadowCubeMap, lightDirection).x < (shadow_coord.z - 0.005)/shadow_coord.w)
     {
         shadow = 0.5f;
-    }*/
+    }
 
     return color;
-}
+}*/
 
 /*vec3 calculate_spot_light(vec3 position)
 {
@@ -224,6 +230,12 @@ void main()
             if(l.base.intensity > 0.0)
             {
                 light += calculate_shadow(i, l.shadowMVP, position) * calculate_light(l.base, l.direction, position);
+            }
+
+            PointLight pointLight = pointLights[i];
+            if(pointLight.base.intensity > 0.0)
+            {
+                light += calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position);
             }
         }
 

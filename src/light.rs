@@ -139,6 +139,68 @@ impl DirectionalLight {
     }
 }
 
+pub struct PointLight {
+    light_buffer: UniformBuffer,
+    index: usize
+}
+
+impl PointLight {
+
+    pub(crate) fn new(gl: &Gl) -> Result<PointLight, Error>
+    {
+        let uniform_sizes: Vec<u32> = [3u32, 1, 3, 1, 1, 1, 2].iter().cloned().cycle().take(7*MAX_NO_LIGHTS).collect();
+        let mut lights = PointLight {
+            light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
+            index: 0};
+
+        for light_id in 0..MAX_NO_LIGHTS {
+            let light = lights.light_at(light_id);
+            light.set_intensity(0.0)?;
+            light.set_color(&vec3(1.0, 1.0, 1.0))?;
+            light.set_position(&vec3(0.0, 0.0, 0.0))?;
+            light.set_attenuation(0.5, 0.05, 0.005)?;
+        }
+        Ok(lights)
+    }
+
+    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index * 7, &color.to_slice())?;
+        Ok(())
+    }
+
+    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index * 7 + 1, &[intensity])?;
+        Ok(())
+    }
+
+    pub fn set_position(&mut self, direction: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index * 7 + 2, &direction.to_slice())?;
+        Ok(())
+    }
+
+    pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index * 7 + 3, &[constant])?;
+        self.light_buffer.update(self.index * 7 + 4, &[linear])?;
+        self.light_buffer.update(self.index * 7 + 5, &[exponential])?;
+        Ok(())
+    }
+
+    pub(crate) fn buffer(&self) -> &UniformBuffer
+    {
+        &self.light_buffer
+    }
+
+    pub(crate) fn light_at(&mut self, index: usize) -> &mut Self
+    {
+        self.index = index;
+        self
+    }
+}
+
 fn compute_up_direction(direction: Vec3) -> Vec3
 {
     if vec3(1.0, 0.0, 0.0).dot(direction).abs() > 0.9

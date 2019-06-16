@@ -50,6 +50,7 @@ pub struct DeferredPipeline {
     full_screen: FullScreen,
     ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
+    point_lights: PointLight,
     pub background_color: Vec4,
     pub camera: Camera
 }
@@ -77,6 +78,7 @@ impl DeferredPipeline
             full_screen: FullScreen::new(gl),
             ambient_light: AmbientLight::new(),
             directional_lights: DirectionalLight::new(gl)?,
+            point_lights: PointLight::new(gl)?,
             background_color,
             camera })
     }
@@ -152,6 +154,9 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
         self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "DirectionalLights");
 
+        // Point lights
+        self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
+
         // Render
         self.full_screen.render(&self.light_pass_program);
         Ok(())
@@ -165,6 +170,11 @@ impl DeferredPipeline
     pub fn directional_light(&mut self, index: usize) -> &mut DirectionalLight
     {
         self.directional_lights.light_at(index)
+    }
+
+    pub fn point_light(&mut self, index: usize) -> &mut PointLight
+    {
+        self.point_lights.light_at(index)
     }
 
     /*pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>

@@ -30,8 +30,6 @@ fn main() {
     ];
     let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
-    //let ambient_light = crate::light::AmbientLight::new();
-
     let mut light = renderer.directional_light(0);
     light.set_direction(&vec3(1.0, -1.0, -1.0)).unwrap();
     light.set_intensity(0.5).unwrap();
@@ -42,10 +40,12 @@ fn main() {
     light.set_intensity(0.5).unwrap();
     light.enable_shadows().unwrap();
 
-    /*let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
-    point_light.base.color = vec3(0.0, 1.0, 0.0);
+    let point_light = renderer.point_light(0);
+    point_light.set_position(&vec3(0.0, 5.0, 5.0)).unwrap();
+    point_light.set_intensity(0.5).unwrap();
+    point_light.set_color(&vec3(0.0, 1.0, 0.0)).unwrap();
 
-    let mut spot_light = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
+    /*let mut spot_light = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
     spot_light.base.color = vec3(0.0, 0.0, 1.0);
     spot_light.enable_shadows(&gl, 20.0).unwrap();*/
 
