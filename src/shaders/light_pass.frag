@@ -215,7 +215,7 @@ void main()
     bool is_far_away = depth > 0.99999;
     vec3 position = texture(positionMap, uv).xyz;
 
-    vec3 light = vec3(0.0);//ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
+    vec3 light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
     if(!is_far_away)
     {
         for(int i = 0; i < MAX_NO_LIGHTS; i++)

@@ -3,6 +3,32 @@ use crate::*;
 
 const MAX_NO_LIGHTS: usize = 3;
 
+pub struct AmbientLight
+{
+    pub color: Vec3,
+    pub intensity: f32
+}
+
+impl AmbientLight
+{
+    pub fn new() -> AmbientLight
+    {
+        AmbientLight { color: vec3(1.0, 1.0, 1.0), intensity: 0.5 }
+    }
+
+    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
+    {
+        self.color = *color;
+        Ok(())
+    }
+
+    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
+    {
+        self.intensity = intensity;
+        Ok(())
+    }
+}
+
 pub struct DirectionalLight {
     gl: Gl,
     light_buffer: UniformBuffer,

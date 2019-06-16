@@ -48,6 +48,7 @@ pub struct DeferredPipeline {
     rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     full_screen: FullScreen,
+    ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
     pub background_color: Vec4,
     pub camera: Camera
@@ -68,10 +69,16 @@ impl DeferredPipeline
         let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
 
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,
-            geometry_pass_rendertarget, full_screen: FullScreen::new(gl),
+        Ok(DeferredPipeline {
+            gl: gl.clone(),
+            light_pass_program,
+            rendertarget,
+            geometry_pass_rendertarget,
+            full_screen: FullScreen::new(gl),
+            ambient_light: AmbientLight::new(),
             directional_lights: DirectionalLight::new(gl)?,
-            background_color, camera })
+            background_color,
+            camera })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -134,16 +141,25 @@ impl DeferredPipeline
         self.geometry_pass_depth_texture().bind(4);
         self.light_pass_program.add_uniform_int("depthMap", &4)?;
 
-        self.directional_lights.shadow_maps().bind(5);
-        self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
-
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
 
+        // Ambient light
+        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color)?;
+        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity)?;
+
+        // Directional lights
+        self.directional_lights.shadow_maps().bind(5);
+        self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
         self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "DirectionalLights");
 
+        // Render
         self.full_screen.render(&self.light_pass_program);
-
         Ok(())
+    }
+
+    pub fn ambient_light(&mut self) -> &mut AmbientLight
+    {
+        &mut self.ambient_light
     }
 
     pub fn directional_light(&mut self, index: usize) -> &mut DirectionalLight
