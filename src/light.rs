@@ -13,9 +13,9 @@ pub struct DirectionalLight {
 
 impl DirectionalLight {
 
-    pub(crate) fn new(gl: &Gl, screen_width: usize, screen_height: usize) -> Result<DirectionalLight, Error>
+    pub(crate) fn new(gl: &Gl) -> Result<DirectionalLight, Error>
     {
-        let shadow_rendertarget = DepthRenderTargetArray::new(gl, screen_width, screen_height, MAX_NO_LIGHTS)?;
+        let shadow_rendertarget = DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?;
         let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
         dbg!(&sizes);
         let light_buffer = UniformBuffer::new(gl, &sizes)?;

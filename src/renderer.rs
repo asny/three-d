@@ -70,7 +70,7 @@ impl DeferredPipeline
 
         Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget,
             geometry_pass_rendertarget, full_screen: FullScreen::new(gl),
-            directional_lights: DirectionalLight::new(gl, screen_width, screen_height)?,
+            directional_lights: DirectionalLight::new(gl)?,
             background_color, camera })
     }
 
