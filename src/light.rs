@@ -15,11 +15,14 @@ impl DirectionalLight {
 
     pub(crate) fn new(gl: &Gl) -> Result<DirectionalLight, Error>
     {
-        let shadow_rendertarget = DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?;
-        let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
-        dbg!(&sizes);
-        let light_buffer = UniformBuffer::new(gl, &sizes)?;
-        let mut lights = DirectionalLight {index: 0, gl: gl.clone(), shadow_rendertarget, light_buffer, shadow_cameras: [None, None, None]};
+        let uniform_sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
+        let mut lights = DirectionalLight {
+            gl: gl.clone(),
+            shadow_rendertarget: DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?,
+            light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
+            shadow_cameras: [None, None, None],
+            index: 0};
+
         for light_id in 0..MAX_NO_LIGHTS {
             let light = lights.light_at(light_id);
             light.set_intensity(0.0)?;
