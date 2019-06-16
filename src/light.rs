@@ -93,9 +93,9 @@ impl DirectionalLight {
         Ok(())
     }
 
-    pub(crate) fn shadow_rendertarget(&self) -> &DepthRenderTargetArray
+    pub(crate) fn shadow_maps(&self) -> &Texture2DArray
     {
-        &self.shadow_rendertarget
+        &self.shadow_rendertarget.target
     }
 
     pub(crate) fn buffer(&self) -> &UniformBuffer

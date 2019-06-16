@@ -134,7 +134,7 @@ impl DeferredPipeline
         self.geometry_pass_depth_texture().bind(4);
         self.light_pass_program.add_uniform_int("depthMap", &4)?;
 
-        self.directional_lights.shadow_rendertarget().target.bind(5);
+        self.directional_lights.shadow_maps().bind(5);
         self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
