@@ -21,10 +21,10 @@ impl DirectionalLight {
         let light_buffer = UniformBuffer::new(gl, &sizes)?;
         let mut lights = DirectionalLight {index: 0, gl: gl.clone(), shadow_rendertarget, light_buffer, shadow_cameras: [None, None, None]};
         for light_id in 0..MAX_NO_LIGHTS {
-            lights.set_index(light_id);
-            lights.set_intensity(0.0)?;
-            lights.set_color(&vec3(1.0, 1.0, 1.0))?;
-            lights.set_direction(&vec3(0.0, -1.0, 0.0))?;
+            let light = lights.light_at(light_id);
+            light.set_intensity(0.0)?;
+            light.set_color(&vec3(1.0, 1.0, 1.0))?;
+            light.set_direction(&vec3(0.0, -1.0, 0.0))?;
         }
         Ok(lights)
     }
@@ -103,9 +103,10 @@ impl DirectionalLight {
         &self.light_buffer
     }
 
-    pub(crate) fn set_index(&mut self, index: usize)
+    pub(crate) fn light_at(&mut self, index: usize) -> &mut Self
     {
         self.index = index;
+        self
     }
 }
 

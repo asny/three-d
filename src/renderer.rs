@@ -148,8 +148,7 @@ impl DeferredPipeline
 
     pub fn directional_light(&mut self, index: usize) -> &mut DirectionalLight
     {
-        self.directional_lights.set_index(index);
-        &mut self.directional_lights
+        self.directional_lights.light_at(index)
     }
 
     /*pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
