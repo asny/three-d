@@ -2,8 +2,6 @@
 use crate::*;
 use crate::objects::FullScreen;
 
-const MAX_NO_LIGHTS: usize = 3;
-
 #[derive(Debug)]
 pub enum Error {
     IO(std::io::Error),
@@ -41,112 +39,6 @@ impl From<texture::Error> for Error {
 impl From<buffer::Error> for Error {
     fn from(other: buffer::Error) -> Self {
         Error::Buffer(other)
-    }
-}
-
-pub struct DirectionalLight {
-    gl: Gl,
-    light_buffer: UniformBuffer,
-    shadow_rendertarget: DepthRenderTargetArray,
-    shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
-    index: usize
-}
-
-impl DirectionalLight {
-
-    pub(crate) fn new(gl: &Gl, screen_width: usize, screen_height: usize) -> Result<DirectionalLight, Error>
-    {
-        let shadow_rendertarget = DepthRenderTargetArray::new(gl, screen_width, screen_height, MAX_NO_LIGHTS)?;
-        let sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
-        dbg!(&sizes);
-        let light_buffer = UniformBuffer::new(gl, &sizes)?;
-        let mut lights = DirectionalLight {index: 0, gl: gl.clone(), shadow_rendertarget, light_buffer, shadow_cameras: [None, None, None]};
-        for light_id in 0..MAX_NO_LIGHTS {
-            lights.set_index(light_id);
-            lights.set_intensity(0.0)?;
-            lights.set_color(&vec3(1.0, 1.0, 1.0))?;
-            lights.set_direction(&vec3(0.0, -1.0, 0.0))?;
-        }
-        Ok(lights)
-    }
-
-    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
-    {
-        self.light_buffer.update(self.index * 5, &color.to_slice())?;
-        Ok(())
-    }
-
-    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
-    {
-        self.light_buffer.update(self.index * 5 + 1, &[intensity])?;
-        Ok(())
-    }
-
-    pub fn set_direction(&mut self, direction: &Vec3) -> Result<(), Error>
-    {
-        self.light_buffer.update(self.index * 5 + 2, &direction.to_slice())?;
-
-        if let Some(ref mut camera) = self.shadow_cameras[self.index]
-        {
-            let up = compute_up_direction(*direction);
-            camera.set_view(- *direction, vec3(0.0, 0.0, 0.0), up);
-
-            let bias_matrix = crate::Mat4::new(
-                                 0.5, 0.0, 0.0, 0.0,
-                                 0.0, 0.5, 0.0, 0.0,
-                                 0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0);
-            let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
-            self.light_buffer.update(self.index * 5 + 4, &shadow_matrix.to_slice())?;
-        }
-        Ok(())
-    }
-
-    pub fn enable_shadows(&mut self) -> Result<(), Error>
-    {
-        let d = self.light_buffer.get(self.index * 5 + 2)?;
-        let dir = vec3(d[0], d[1], d[2]);
-        let radius = 2.0;
-        let depth = 10.0;
-        self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0),
-                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
-        self.set_direction(&dir)?;
-        Ok(())
-    }
-
-    pub fn disable_shadows(&mut self) -> Result<(), Error>
-    {
-        self.shadow_cameras[self.index] = None;
-        Ok(())
-    }
-
-    pub(crate) fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
-        where F: Fn(&Camera)
-    {
-        for light_id in 0..MAX_NO_LIGHTS {
-            if let Some(ref camera) = self.shadow_cameras[light_id]
-            {
-                self.shadow_rendertarget.bind(light_id);
-                self.shadow_rendertarget.clear();
-                render_scene(camera);
-            }
-        }
-        Ok(())
-    }
-
-    pub(crate) fn shadow_rendertarget(&self) -> &DepthRenderTargetArray
-    {
-        &self.shadow_rendertarget
-    }
-
-    pub(crate) fn buffer(&self) -> &UniformBuffer
-    {
-        &self.light_buffer
-    }
-
-    pub(crate) fn set_index(&mut self, index: usize)
-    {
-        self.index = index;
     }
 }
 
@@ -350,16 +242,5 @@ impl DeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
         self.geometry_pass_rendertarget.depth_target.as_ref().unwrap()
-    }
-}
-
-fn compute_up_direction(direction: Vec3) -> Vec3
-{
-    if vec3(1.0, 0.0, 0.0).dot(direction).abs() > 0.9
-    {
-        (vec3(0.0, 1.0, 0.0).cross(direction)).normalize()
-    }
-    else {
-        (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
     }
 }
