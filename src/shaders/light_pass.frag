@@ -62,7 +62,7 @@ struct SpotLight
     float cutoff;
 };
 
-layout (std140) uniform Lights
+layout (std140) uniform DirectionalLights
 {
     DirectionalLight directionalLights[MAX_NO_LIGHTS];
 };

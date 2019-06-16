@@ -139,7 +139,7 @@ impl DeferredPipeline
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
 
-        self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "Lights");
+        self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "DirectionalLights");
 
         self.full_screen.render(&self.light_pass_program);
 
