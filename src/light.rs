@@ -60,19 +60,19 @@ impl DirectionalLight {
 
     pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index * 5, &color.to_slice())?;
+        self.light_buffer.update(self.index_at(0), &color.to_slice())?;
         Ok(())
     }
 
     pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index * 5 + 1, &[intensity])?;
+        self.light_buffer.update(self.index_at(1), &[intensity])?;
         Ok(())
     }
 
     pub fn set_direction(&mut self, direction: &Vec3) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index * 5 + 2, &direction.to_slice())?;
+        self.light_buffer.update(self.index_at(2), &direction.to_slice())?;
 
         if let Some(ref mut camera) = self.shadow_cameras[self.index]
         {
@@ -85,14 +85,14 @@ impl DirectionalLight {
                                  0.0, 0.0, 0.5, 0.0,
                                  0.5, 0.5, 0.5, 1.0);
             let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
-            self.light_buffer.update(self.index * 5 + 4, &shadow_matrix.to_slice())?;
+            self.light_buffer.update(self.index_at(4), &shadow_matrix.to_slice())?;
         }
         Ok(())
     }
 
     pub fn enable_shadows(&mut self) -> Result<(), Error>
     {
-        let d = self.light_buffer.get(self.index * 5 + 2)?;
+        let d = self.light_buffer.get(self.index_at(2))?;
         let dir = vec3(d[0], d[1], d[2]);
         let radius = 2.0;
         let depth = 10.0;
@@ -137,6 +137,11 @@ impl DirectionalLight {
         self.index = index;
         self
     }
+
+    fn index_at(&self, index: usize) -> usize
+    {
+        self.index * 5 + index
+    }
 }
 
 pub struct PointLight {
@@ -165,27 +170,27 @@ impl PointLight {
 
     pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index * 7, &color.to_slice())?;
+        self.light_buffer.update(self.index_at(0), &color.to_slice())?;
         Ok(())
     }
 
     pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index * 7 + 1, &[intensity])?;
+        self.light_buffer.update(self.index_at(1), &[intensity])?;
         Ok(())
     }
 
     pub fn set_position(&mut self, direction: &Vec3) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index * 7 + 2, &direction.to_slice())?;
+        self.light_buffer.update(self.index_at(2), &direction.to_slice())?;
         Ok(())
     }
 
     pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index * 7 + 3, &[constant])?;
-        self.light_buffer.update(self.index * 7 + 4, &[linear])?;
-        self.light_buffer.update(self.index * 7 + 5, &[exponential])?;
+        self.light_buffer.update(self.index_at(3), &[constant])?;
+        self.light_buffer.update(self.index_at(4), &[linear])?;
+        self.light_buffer.update(self.index_at(5), &[exponential])?;
         Ok(())
     }
 
@@ -198,6 +203,11 @@ impl PointLight {
     {
         self.index = index;
         self
+    }
+
+    fn index_at(&self, index: usize) -> usize
+    {
+        self.index * 7 + index
     }
 }
 
