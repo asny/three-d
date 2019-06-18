@@ -1,6 +1,7 @@
 
 use std::collections::HashMap;
 use crate::*;
+use std::cell::RefCell;
 
 #[derive(Debug)]
 pub enum Error {
@@ -28,7 +29,8 @@ pub struct Program {
     gl: Gl,
     id: gl::Program,
     vertex_attributes: HashMap<String, u32>,
-    uniforms: HashMap<String, u32>
+    uniforms: HashMap<String, u32>,
+    uniform_blocks: RefCell<HashMap<String, (u32, u32)>>
 }
 
 impl Program
@@ -77,7 +79,7 @@ impl Program
             }
         }
 
-        Ok(Program { gl: gl.clone(), id, vertex_attributes, uniforms })
+        Ok(Program { gl: gl.clone(), id, vertex_attributes, uniforms, uniform_blocks: RefCell::new(HashMap::new()) })
     }
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
@@ -161,10 +163,15 @@ impl Program
 
     pub fn use_uniform_block(&self, buffer: &buffer::UniformBuffer, block_name: &str)
     {
-        //TODO: use new index
-        let location = self.gl.get_uniform_block_index(&self.id, block_name);
-        self.gl.uniform_block_binding(&self.id, location, 0);
-        buffer.bind(0);
+        if !self.uniform_blocks.borrow().contains_key(block_name) {
+            let mut map = self.uniform_blocks.borrow_mut();
+            let location = self.gl.get_uniform_block_index(&self.id, block_name);
+            let index = map.len() as u32;
+            map.insert(block_name.to_owned(), (location, index));
+        };
+        let (location, index) = self.uniform_blocks.borrow().get(block_name).unwrap().clone();
+        self.gl.uniform_block_binding(&self.id, location, index);
+        buffer.bind(index);
         self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
     }
 
