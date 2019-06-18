@@ -128,20 +128,11 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::ONE__ONE);
 
-        self.geometry_pass_color_texture().bind(0);
-        self.light_pass_program.add_uniform_int("colorMap", &0)?;
-
-        self.geometry_pass_position_texture().bind(1);
-        self.light_pass_program.add_uniform_int("positionMap", &1)?;
-
-        self.geometry_pass_normal_texture().bind(2);
-        self.light_pass_program.add_uniform_int("normalMap", &2)?;
-
-        self.geometry_pass_surface_parameters_texture().bind(3);
-        self.light_pass_program.add_uniform_int("surfaceParametersMap", &3)?;
-
-        self.geometry_pass_depth_texture().bind(4);
-        self.light_pass_program.add_uniform_int("depthMap", &4)?;
+        self.light_pass_program.use_texture(self.geometry_pass_color_texture(), "colorMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_position_texture(), "positionMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_normal_texture(), "normalMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_surface_parameters_texture(), "surfaceParametersMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
 
@@ -150,8 +141,7 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity)?;
 
         // Directional lights
-        self.directional_lights.shadow_maps().bind(5);
-        self.light_pass_program.add_uniform_int("shadowMaps", &5)?;
+        self.light_pass_program.use_texture(self.directional_lights.shadow_maps(), "shadowMaps")?;
         self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "DirectionalLights");
 
         // Point lights
