@@ -29,6 +29,7 @@ pub struct Program {
     gl: Gl,
     id: gl::Program,
     vertex_attributes: HashMap<String, u32>,
+    textures: RefCell<HashMap<String, u32>>,
     uniforms: HashMap<String, u32>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>
 }
@@ -79,7 +80,8 @@ impl Program
             }
         }
 
-        Ok(Program { gl: gl.clone(), id, vertex_attributes, uniforms, uniform_blocks: RefCell::new(HashMap::new()) })
+        Ok(Program { gl: gl.clone(), id, vertex_attributes, uniforms, uniform_blocks: RefCell::new(HashMap::new()),
+            textures: RefCell::new(HashMap::new())})
     }
 
     pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
@@ -155,9 +157,14 @@ impl Program
 
     pub fn use_texture(&self, texture: &Texture, texture_name: &str) -> Result<(), Error>
     {
-        //TODO: use new index
-        texture.bind(0);
-        self.add_uniform_int(texture_name, &0)?;
+        if !self.textures.borrow().contains_key(texture_name) {
+            let mut map = self.textures.borrow_mut();
+            let index = map.len() as u32;
+            map.insert(texture_name.to_owned(), index);
+        };
+        let index = self.textures.borrow().get(texture_name).unwrap().clone();
+        texture.bind(index);
+        self.add_uniform_int(texture_name, &(index as i32))?;
         Ok(())
     }
 
