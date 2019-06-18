@@ -108,7 +108,7 @@ impl DirectionalLight {
         Ok(())
     }
 
-    pub(crate) fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
+    pub(crate) fn shadow_pass<F>(&self, render_scene: &F) -> Result<(), Error>
         where F: Fn(&Camera)
     {
         for light_id in 0..MAX_NO_LIGHTS {
@@ -180,17 +180,17 @@ impl PointLight {
         Ok(())
     }
 
-    pub fn set_position(&mut self, position: &Vec3) -> Result<(), Error>
-    {
-        self.light_buffer.update(self.index_at(6), &position.to_slice())?;
-        Ok(())
-    }
-
     pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) -> Result<(), Error>
     {
         self.light_buffer.update(self.index_at(2), &[constant])?;
         self.light_buffer.update(self.index_at(3), &[linear])?;
         self.light_buffer.update(self.index_at(4), &[exponential])?;
+        Ok(())
+    }
+
+    pub fn set_position(&mut self, position: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index_at(6), &position.to_slice())?;
         Ok(())
     }
 
@@ -208,6 +208,153 @@ impl PointLight {
     fn index_at(&self, index: usize) -> usize
     {
         self.index * 8 + index
+    }
+}
+
+pub struct SpotLight {
+    gl: Gl,
+    light_buffer: UniformBuffer,
+    shadow_rendertarget: DepthRenderTargetArray,
+    shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
+    index: usize
+}
+
+impl SpotLight {
+
+    pub(crate) fn new(gl: &Gl) -> Result<SpotLight, Error>
+    {
+        let uniform_sizes: Vec<u32> = [3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16].iter().cloned().cycle().take(11*MAX_NO_LIGHTS).collect();
+        let mut lights = SpotLight {
+            gl: gl.clone(),
+            shadow_rendertarget: DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?,
+            light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
+            shadow_cameras: [None, None, None],
+            index: 0};
+
+        for light_id in 0..MAX_NO_LIGHTS {
+            let light = lights.light_at(light_id);
+            light.set_intensity(0.0)?;
+            light.set_color(&vec3(1.0, 1.0, 1.0))?;
+            light.set_direction(&vec3(0.0, -1.0, 0.0))?;
+            light.set_position(&vec3(0.0, 0.0, 0.0))?;
+            light.set_attenuation(0.5, 0.05, 0.005)?;
+            light.set_cutoff(0.1 * std::f32::consts::PI)?;
+        }
+        Ok(lights)
+    }
+
+    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index_at(0), &color.to_slice())?;
+        Ok(())
+    }
+
+    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index_at(1), &[intensity])?;
+        Ok(())
+    }
+
+    pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index_at(2), &[constant])?;
+        self.light_buffer.update(self.index_at(3), &[linear])?;
+        self.light_buffer.update(self.index_at(4), &[exponential])?;
+        Ok(())
+    }
+
+    pub fn set_position(&mut self, position: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index_at(6), &position.to_slice())?;
+        Ok(())
+    }
+
+    pub fn set_cutoff(&mut self, cutoff: f32) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index_at(7), &[cutoff])?;
+        Ok(())
+    }
+
+    pub fn set_direction(&mut self, direction: &Vec3) -> Result<(), Error>
+    {
+        self.light_buffer.update(self.index_at(8), &direction.to_slice())?;
+        self.update_shadow_camera()?;
+        Ok(())
+    }
+
+    fn update_shadow_camera(&mut self) -> Result<(), Error>
+    {
+        let d = self.light_buffer.get(self.index_at(8))?;
+        let direction = vec3(d[0], d[1], d[2]);
+        let p = self.light_buffer.get(self.index_at(6))?;
+        let position = vec3(p[0], p[1], p[2]);
+        let up = compute_up_direction(direction);
+
+        let depth = 20.0;
+        let cutoff = self.light_buffer.get(self.index_at(7))?[0];
+
+        if let Some(ref mut camera) = self.shadow_cameras[self.index]
+        {
+            camera.set_view(position, position + direction, up);
+            camera.set_perspective_projection(degrees(45.0), 2.0 * cutoff, 0.1, depth);
+
+            let bias_matrix = crate::Mat4::new(
+                                 0.5, 0.0, 0.0, 0.0,
+                                 0.0, 0.5, 0.0, 0.0,
+                                 0.0, 0.0, 0.5, 0.0,
+                                 0.5, 0.5, 0.5, 1.0);
+            let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
+            self.light_buffer.update(self.index_at(10), &shadow_matrix.to_slice())?;
+        }
+        Ok(())
+    }
+
+    pub fn enable_shadows(&mut self) -> Result<(), Error>
+    {
+        self.shadow_cameras[self.index] = Some(Camera::new(&self.gl));
+        self.update_shadow_camera()?;
+        Ok(())
+    }
+
+    pub fn disable_shadows(&mut self) -> Result<(), Error>
+    {
+        self.shadow_cameras[self.index] = None;
+        Ok(())
+    }
+
+    pub(crate) fn shadow_pass<F>(&self, render_scene: &F) -> Result<(), Error>
+        where F: Fn(&Camera)
+    {
+        for light_id in 0..MAX_NO_LIGHTS {
+            if let Some(ref camera) = self.shadow_cameras[light_id]
+            {
+                self.shadow_rendertarget.bind(light_id);
+                self.shadow_rendertarget.clear();
+                render_scene(camera);
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn shadow_maps(&self) -> &Texture2DArray
+    {
+        &self.shadow_rendertarget.target
+    }
+
+    pub(crate) fn buffer(&self) -> &UniformBuffer
+    {
+        &self.light_buffer
+    }
+
+    pub(crate) fn light_at(&mut self, index: usize) -> &mut Self
+    {
+        self.index = index;
+        self
+    }
+
+    fn index_at(&self, index: usize) -> usize
+    {
+        self.index * 11 + index
     }
 }
 

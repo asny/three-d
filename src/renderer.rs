@@ -51,6 +51,7 @@ pub struct DeferredPipeline {
     ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
     point_lights: PointLight,
+    spot_lights: SpotLight,
     pub background_color: Vec4,
     pub camera: Camera
 }
@@ -79,6 +80,7 @@ impl DeferredPipeline
             ambient_light: AmbientLight::new(),
             directional_lights: DirectionalLight::new(gl)?,
             point_lights: PointLight::new(gl)?,
+            spot_lights: SpotLight::new(gl)?,
             background_color,
             camera })
     }
@@ -90,14 +92,15 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn shadow_pass<F>(&self, render_scene: F) -> Result<(), Error>
+    pub fn shadow_pass<F>(&self, render_scene: &F) -> Result<(), Error>
         where F: Fn(&Camera)
     {
         self.directional_lights.shadow_pass(render_scene)?;
+        self.spot_lights.shadow_pass(render_scene)?;
         Ok(())
     }
 
-    pub fn geometry_pass<F>(&self, render_scene: F) -> Result<(), Error>
+    pub fn geometry_pass<F>(&self, render_scene: &F) -> Result<(), Error>
         where F: Fn(&Camera)
     {
         self.geometry_pass_rendertarget.bind();
@@ -141,11 +144,15 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity)?;
 
         // Directional lights
-        self.light_pass_program.use_texture(self.directional_lights.shadow_maps(), "shadowMaps")?;
+        self.light_pass_program.use_texture(self.directional_lights.shadow_maps(), "directionalLightShadowMaps")?;
         self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "DirectionalLights");
 
         // Point lights
         self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
+
+        // Spot lights
+        self.light_pass_program.use_texture(self.spot_lights.shadow_maps(), "spotLightShadowMaps")?;
+        self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");
 
         // Render
         self.full_screen.render(&self.light_pass_program);
@@ -165,6 +172,11 @@ impl DeferredPipeline
     pub fn point_light(&mut self, index: usize) -> &mut PointLight
     {
         self.point_lights.light_at(index)
+    }
+
+    pub fn spot_light(&mut self, index: usize) -> &mut SpotLight
+    {
+        self.spot_lights.light_at(index)
     }
 
     /*pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>

@@ -32,15 +32,15 @@ fn main() {
 
     renderer.ambient_light().intensity = 0.2;
 
-    let mut light = renderer.directional_light(0);
-    light.set_direction(&vec3(1.0, -1.0, -1.0)).unwrap();
-    light.set_intensity(0.3).unwrap();
-    light.enable_shadows().unwrap();
+    let mut directional_light = renderer.directional_light(0);
+    directional_light.set_direction(&vec3(1.0, -1.0, -1.0)).unwrap();
+    directional_light.set_intensity(0.3).unwrap();
+    directional_light.enable_shadows().unwrap();
 
-    light = renderer.directional_light(1);
-    light.set_direction(&vec3(-1.0, -1.0, 1.0)).unwrap();
-    light.set_intensity(0.3).unwrap();
-    light.enable_shadows().unwrap();
+    directional_light = renderer.directional_light(1);
+    directional_light.set_direction(&vec3(-1.0, -1.0, 1.0)).unwrap();
+    directional_light.set_intensity(0.3).unwrap();
+    directional_light.enable_shadows().unwrap();
 
     let mut point_light = renderer.point_light(0);
     point_light.set_position(&vec3(5.0, 5.0, 5.0)).unwrap();
@@ -52,9 +52,11 @@ fn main() {
     point_light.set_intensity(0.5).unwrap();
     point_light.set_color(&vec3(1.0, 0.0, 0.0)).unwrap();
 
-    /*let mut spot_light = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
-    spot_light.base.color = vec3(0.0, 0.0, 1.0);
-    spot_light.enable_shadows(&gl, 20.0).unwrap();*/
+    let spot_light = renderer.spot_light(0);
+    spot_light.set_position(&vec3(5.0, 5.0, 5.0)).unwrap();
+    spot_light.set_direction(&vec3(-1.0, -1.0, -1.0)).unwrap();
+    spot_light.set_color(&vec3(0.0, 0.0, 1.0)).unwrap();
+    spot_light.enable_shadows().unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
@@ -74,10 +76,10 @@ fn main() {
         };
 
         // Shadow pass
-        renderer.shadow_pass(render_scene).unwrap();
+        renderer.shadow_pass(&render_scene).unwrap();
 
         // Geometry pass
-        renderer.geometry_pass(|camera: &Camera|
+        renderer.geometry_pass(&|camera: &Camera|
             {
                 render_scene(&camera);
                 plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0)) * Mat4::from_scale(10.0)), &camera);
@@ -85,10 +87,7 @@ fn main() {
 
         // Light pass
         renderer.light_pass().unwrap();
-        /*renderer.shine_ambient_light(&ambient_light).unwrap();
-        renderer.shine_directional_light(&directional_light).unwrap();
-        renderer.shine_point_light(&point_light).unwrap();
-        renderer.shine_spot_light(&spot_light).unwrap();*/
+
     }).unwrap();
 }
 
