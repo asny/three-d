@@ -31,6 +31,7 @@ struct Attenuation
     float constant;
     float linear;
     float exp;
+    float padding;
 };
 
 struct AmbientLight
@@ -49,9 +50,9 @@ struct DirectionalLight
 struct PointLight
 {
     BaseLight base;
-    vec3 position;
     Attenuation attenuation;
-    vec2 padding;
+    vec3 position;
+    float padding;
 };
 
 struct SpotLight

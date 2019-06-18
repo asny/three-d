@@ -153,7 +153,7 @@ impl PointLight {
 
     pub(crate) fn new(gl: &Gl) -> Result<PointLight, Error>
     {
-        let uniform_sizes: Vec<u32> = [3u32, 1, 3, 1, 1, 1, 2].iter().cloned().cycle().take(7*MAX_NO_LIGHTS).collect();
+        let uniform_sizes: Vec<u32> = [3u32, 1, 1, 1, 1, 1, 3, 1].iter().cloned().cycle().take(8*MAX_NO_LIGHTS).collect();
         let mut lights = PointLight {
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
             index: 0};
@@ -180,17 +180,17 @@ impl PointLight {
         Ok(())
     }
 
-    pub fn set_position(&mut self, direction: &Vec3) -> Result<(), Error>
+    pub fn set_position(&mut self, position: &Vec3) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index_at(2), &direction.to_slice())?;
+        self.light_buffer.update(self.index_at(6), &position.to_slice())?;
         Ok(())
     }
 
     pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) -> Result<(), Error>
     {
-        self.light_buffer.update(self.index_at(3), &[constant])?;
-        self.light_buffer.update(self.index_at(4), &[linear])?;
-        self.light_buffer.update(self.index_at(5), &[exponential])?;
+        self.light_buffer.update(self.index_at(2), &[constant])?;
+        self.light_buffer.update(self.index_at(3), &[linear])?;
+        self.light_buffer.update(self.index_at(4), &[exponential])?;
         Ok(())
     }
 
@@ -207,7 +207,7 @@ impl PointLight {
 
     fn index_at(&self, index: usize) -> usize
     {
-        self.index * 7 + index
+        self.index * 8 + index
     }
 }
 
