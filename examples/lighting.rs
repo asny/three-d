@@ -30,7 +30,7 @@ fn main() {
     ];
     let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
-    renderer.ambient_light().intensity = 0.2;
+    renderer.ambient_light().intensity = 0.1;
 
     let mut directional_light = renderer.directional_light(0);
     directional_light.set_direction(&vec3(1.0, -1.0, -1.0)).unwrap();
@@ -53,9 +53,10 @@ fn main() {
     point_light.set_color(&vec3(1.0, 0.0, 0.0)).unwrap();
 
     let spot_light = renderer.spot_light(0);
+    spot_light.set_intensity(0.5).unwrap();
+    spot_light.set_color(&vec3(0.0, 0.0, 1.0)).unwrap();
     spot_light.set_position(&vec3(5.0, 5.0, 5.0)).unwrap();
     spot_light.set_direction(&vec3(-1.0, -1.0, -1.0)).unwrap();
-    spot_light.set_color(&vec3(0.0, 0.0, 1.0)).unwrap();
     spot_light.enable_shadows().unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
