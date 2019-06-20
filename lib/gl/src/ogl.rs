@@ -607,7 +607,7 @@ impl Gl {
     pub fn tex_image_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32, format: u32, data_type: u32)
     {
         unsafe {
-            self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, 0, format, data_type, std::ptr::null() as *const consts::types::GLvoid);
+            self.inner.TexImage3D(target, level as i32, internalformat as i32, width as i32, height as i32, depth as i32, 0, format, data_type, std::ptr::null() as *const consts::types::GLvoid);
         }
     }
 
