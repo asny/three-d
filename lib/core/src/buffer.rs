@@ -286,14 +286,13 @@ impl UniformBuffer
         Ok(())
     }
 
-    pub fn get(&mut self, index: usize) -> Result<&[f32], Error>
+    pub fn get(&self, index: usize) -> Result<&[f32], Error>
     {
         let (offset, length) = self.offset_length(index)?;
-
         Ok(&self.data[offset..offset+length])
     }
 
-    fn offset_length(&mut self, index: usize) -> Result<(usize, usize), Error>
+    fn offset_length(&self, index: usize) -> Result<(usize, usize), Error>
     {
         if index >= self.offsets.len()
         {

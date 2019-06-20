@@ -9,7 +9,7 @@ pub enum Error {
     Rendertarget(rendertarget::Error),
     Texture(texture::Error),
     Buffer(buffer::Error),
-    LightPassRendertargetNotAvailable {message: String}
+    LightExtendsMaxLimit {message: String}
 }
 
 impl From<std::io::Error> for Error {
@@ -174,9 +174,14 @@ impl DeferredPipeline
         self.point_lights.light_at(index)
     }
 
-    pub fn spot_light(&mut self, index: usize) -> &mut SpotLight
+    pub fn spot_light(&mut self, index: usize) -> Result<&mut SpotLight, Error>
     {
-        self.spot_lights.light_at(index)
+        if index > light::MAX_NO_LIGHTS
+        {
+            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get spot light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
+
+        }
+        Ok(self.spot_lights.light_at(index))
     }
 
     /*pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>

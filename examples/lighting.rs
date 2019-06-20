@@ -52,12 +52,13 @@ fn main() {
     point_light.set_intensity(0.5).unwrap();
     point_light.set_color(&vec3(1.0, 0.0, 0.0)).unwrap();
 
-    let spot_light = renderer.spot_light(0);
-    spot_light.set_intensity(0.5).unwrap();
-    spot_light.set_color(&vec3(0.0, 0.0, 1.0)).unwrap();
-    spot_light.set_position(&vec3(5.0, 5.0, 5.0)).unwrap();
-    spot_light.set_direction(&vec3(-1.0, -1.0, -1.0)).unwrap();
-    spot_light.enable_shadows().unwrap();
+    let spot_light = renderer.spot_light(0).unwrap();
+    spot_light.set_intensity(0.5);
+    spot_light.set_color(&vec3(0.0, 0.0, 1.0));
+    spot_light.set_position(&vec3(5.0, 5.0, 5.0));
+    spot_light.set_direction(&vec3(-1.0, -1.0, -1.0));
+    spot_light.set_cutoff(0.05*std::f32::consts::PI);
+    spot_light.enable_shadows();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
