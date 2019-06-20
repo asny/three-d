@@ -266,12 +266,14 @@ impl SpotLight {
     pub fn set_position(&mut self, position: &Vec3) -> Result<(), Error>
     {
         self.light_buffer.update(self.index_at(6), &position.to_slice())?;
+        self.update_shadow_camera()?;
         Ok(())
     }
 
     pub fn set_cutoff(&mut self, cutoff: f32) -> Result<(), Error>
     {
         self.light_buffer.update(self.index_at(7), &[cutoff])?;
+        self.update_shadow_camera()?;
         Ok(())
     }
 
