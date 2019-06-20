@@ -5,8 +5,8 @@ pub const MAX_NO_LIGHTS: usize = 3;
 
 pub struct AmbientLight
 {
-    pub color: Vec3,
-    pub intensity: f32
+    color: Vec3,
+    intensity: f32
 }
 
 impl AmbientLight
@@ -16,16 +16,24 @@ impl AmbientLight
         AmbientLight { color: vec3(1.0, 1.0, 1.0), intensity: 0.5 }
     }
 
-    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
+    pub fn color(&self) -> Vec3
     {
-        self.color = *color;
-        Ok(())
+        self.color
     }
 
-    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
+    pub fn set_color(&mut self, color: &Vec3)
+    {
+        self.color = *color;
+    }
+
+    pub fn intensity(&self) -> f32
+    {
+        self.intensity
+    }
+
+    pub fn set_intensity(&mut self, intensity: f32)
     {
         self.intensity = intensity;
-        Ok(())
     }
 }
 
@@ -51,28 +59,26 @@ impl DirectionalLight {
 
         for light_id in 0..MAX_NO_LIGHTS {
             let light = lights.light_at(light_id);
-            light.set_intensity(0.0)?;
-            light.set_color(&vec3(1.0, 1.0, 1.0))?;
-            light.set_direction(&vec3(0.0, -1.0, 0.0))?;
+            light.set_intensity(0.0);
+            light.set_color(&vec3(1.0, 1.0, 1.0));
+            light.set_direction(&vec3(0.0, -1.0, 0.0));
         }
         Ok(lights)
     }
 
-    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
+    pub fn set_color(&mut self, color: &Vec3)
     {
-        self.light_buffer.update(self.index_at(0), &color.to_slice())?;
-        Ok(())
+        self.light_buffer.update(self.index_at(0), &color.to_slice()).unwrap();
     }
 
-    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
+    pub fn set_intensity(&mut self, intensity: f32)
     {
-        self.light_buffer.update(self.index_at(1), &[intensity])?;
-        Ok(())
+        self.light_buffer.update(self.index_at(1), &[intensity]).unwrap();
     }
 
-    pub fn set_direction(&mut self, direction: &Vec3) -> Result<(), Error>
+    pub fn set_direction(&mut self, direction: &Vec3)
     {
-        self.light_buffer.update(self.index_at(2), &direction.to_slice())?;
+        self.light_buffer.update(self.index_at(2), &direction.to_slice()).unwrap();
 
         if let Some(ref mut camera) = self.shadow_cameras[self.index]
         {
@@ -85,30 +91,27 @@ impl DirectionalLight {
                                  0.0, 0.0, 0.5, 0.0,
                                  0.5, 0.5, 0.5, 1.0);
             let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
-            self.light_buffer.update(self.index_at(4), &shadow_matrix.to_slice())?;
+            self.light_buffer.update(self.index_at(4), &shadow_matrix.to_slice()).unwrap();
         }
-        Ok(())
     }
 
-    pub fn enable_shadows(&mut self) -> Result<(), Error>
+    pub fn enable_shadows(&mut self)
     {
-        let d = self.light_buffer.get(self.index_at(2))?;
+        let d = self.light_buffer.get(self.index_at(2)).unwrap();
         let dir = vec3(d[0], d[1], d[2]);
         let radius = 2.0;
         let depth = 10.0;
         self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0),
                                                                   2.0 * radius, 2.0 * radius, 2.0 * depth));
-        self.set_direction(&dir)?;
-        Ok(())
+        self.set_direction(&dir);
     }
 
-    pub fn disable_shadows(&mut self) -> Result<(), Error>
+    pub fn disable_shadows(&mut self)
     {
         self.shadow_cameras[self.index] = None;
-        Ok(())
     }
 
-    pub(crate) fn shadow_pass<F>(&self, render_scene: &F) -> Result<(), Error>
+    pub(crate) fn shadow_pass<F>(&self, render_scene: &F)
         where F: Fn(&Camera)
     {
         for light_id in 0..MAX_NO_LIGHTS {
@@ -119,7 +122,6 @@ impl DirectionalLight {
                 render_scene(camera);
             }
         }
-        Ok(())
     }
 
     pub(crate) fn shadow_maps(&self) -> &Texture2DArray
@@ -160,38 +162,34 @@ impl PointLight {
 
         for light_id in 0..MAX_NO_LIGHTS {
             let light = lights.light_at(light_id);
-            light.set_intensity(0.0)?;
-            light.set_color(&vec3(1.0, 1.0, 1.0))?;
-            light.set_position(&vec3(0.0, 0.0, 0.0))?;
-            light.set_attenuation(0.5, 0.05, 0.005)?;
+            light.set_intensity(0.0);
+            light.set_color(&vec3(1.0, 1.0, 1.0));
+            light.set_position(&vec3(0.0, 0.0, 0.0));
+            light.set_attenuation(0.5, 0.05, 0.005);
         }
         Ok(lights)
     }
 
-    pub fn set_color(&mut self, color: &Vec3) -> Result<(), Error>
+    pub fn set_color(&mut self, color: &Vec3)
     {
-        self.light_buffer.update(self.index_at(0), &color.to_slice())?;
-        Ok(())
+        self.light_buffer.update(self.index_at(0), &color.to_slice()).unwrap();
     }
 
-    pub fn set_intensity(&mut self, intensity: f32) -> Result<(), Error>
+    pub fn set_intensity(&mut self, intensity: f32)
     {
-        self.light_buffer.update(self.index_at(1), &[intensity])?;
-        Ok(())
+        self.light_buffer.update(self.index_at(1), &[intensity]).unwrap();
     }
 
-    pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) -> Result<(), Error>
+    pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32)
     {
-        self.light_buffer.update(self.index_at(2), &[constant])?;
-        self.light_buffer.update(self.index_at(3), &[linear])?;
-        self.light_buffer.update(self.index_at(4), &[exponential])?;
-        Ok(())
+        self.light_buffer.update(self.index_at(2), &[constant]).unwrap();
+        self.light_buffer.update(self.index_at(3), &[linear]).unwrap();
+        self.light_buffer.update(self.index_at(4), &[exponential]).unwrap();
     }
 
-    pub fn set_position(&mut self, position: &Vec3) -> Result<(), Error>
+    pub fn set_position(&mut self, position: &Vec3)
     {
-        self.light_buffer.update(self.index_at(6), &position.to_slice())?;
-        Ok(())
+        self.light_buffer.update(self.index_at(6), &position.to_slice()).unwrap();
     }
 
     pub(crate) fn buffer(&self) -> &UniformBuffer
@@ -319,7 +317,7 @@ impl SpotLight {
         self.shadow_cameras[self.index] = None;
     }
 
-    pub(crate) fn shadow_pass<F>(&self, render_scene: &F) -> Result<(), Error>
+    pub(crate) fn shadow_pass<F>(&self, render_scene: &F)
         where F: Fn(&Camera)
     {
         for light_id in 0..MAX_NO_LIGHTS {
@@ -330,7 +328,6 @@ impl SpotLight {
                 render_scene(camera);
             }
         }
-        Ok(())
     }
 
     pub(crate) fn shadow_maps(&self) -> &Texture2DArray

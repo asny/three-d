@@ -30,27 +30,27 @@ fn main() {
     ];
     let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
-    renderer.ambient_light().intensity = 0.1;
+    renderer.ambient_light().set_intensity(0.1);
 
-    let mut directional_light = renderer.directional_light(0);
-    directional_light.set_direction(&vec3(1.0, -1.0, -1.0)).unwrap();
-    directional_light.set_intensity(0.3).unwrap();
-    directional_light.enable_shadows().unwrap();
+    let mut directional_light = renderer.directional_light(0).unwrap();
+    directional_light.set_direction(&vec3(1.0, -1.0, -1.0));
+    directional_light.set_intensity(0.3);
+    directional_light.enable_shadows();
 
-    directional_light = renderer.directional_light(1);
-    directional_light.set_direction(&vec3(-1.0, -1.0, 1.0)).unwrap();
-    directional_light.set_intensity(0.3).unwrap();
-    directional_light.enable_shadows().unwrap();
+    directional_light = renderer.directional_light(1).unwrap();
+    directional_light.set_direction(&vec3(-1.0, -1.0, 1.0));
+    directional_light.set_intensity(0.3);
+    directional_light.enable_shadows();
 
-    let mut point_light = renderer.point_light(0);
-    point_light.set_position(&vec3(5.0, 5.0, 5.0)).unwrap();
-    point_light.set_intensity(0.5).unwrap();
-    point_light.set_color(&vec3(0.0, 1.0, 0.0)).unwrap();
+    let mut point_light = renderer.point_light(0).unwrap();
+    point_light.set_position(&vec3(5.0, 5.0, 5.0));
+    point_light.set_intensity(0.5);
+    point_light.set_color(&vec3(0.0, 1.0, 0.0));
 
-    point_light = renderer.point_light(1);
-    point_light.set_position(&vec3(-5.0, 5.0, -5.0)).unwrap();
-    point_light.set_intensity(0.5).unwrap();
-    point_light.set_color(&vec3(1.0, 0.0, 0.0)).unwrap();
+    point_light = renderer.point_light(1).unwrap();
+    point_light.set_position(&vec3(-5.0, 5.0, -5.0));
+    point_light.set_intensity(0.5);
+    point_light.set_color(&vec3(1.0, 0.0, 0.0));
 
     let spot_light = renderer.spot_light(0).unwrap();
     spot_light.set_intensity(0.5);
@@ -78,13 +78,14 @@ fn main() {
         };
 
         // Shadow pass
-        renderer.shadow_pass(&render_scene).unwrap();
+        renderer.shadow_pass(&render_scene);
 
         // Geometry pass
-        renderer.geometry_pass(&|camera: &Camera|
+        renderer.geometry_pass(&|camera|
             {
-                render_scene(&camera);
-                plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0)) * Mat4::from_scale(10.0)), &camera);
+                render_scene(camera);
+                plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
+                    * Mat4::from_scale(10.0)), camera);
             }).unwrap();
 
         // Light pass

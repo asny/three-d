@@ -92,12 +92,11 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn shadow_pass<F>(&self, render_scene: &F) -> Result<(), Error>
+    pub fn shadow_pass<F>(&self, render_scene: &F)
         where F: Fn(&Camera)
     {
-        self.directional_lights.shadow_pass(render_scene)?;
-        self.spot_lights.shadow_pass(render_scene)?;
-        Ok(())
+        self.directional_lights.shadow_pass(render_scene);
+        self.spot_lights.shadow_pass(render_scene);
     }
 
     pub fn geometry_pass<F>(&self, render_scene: &F) -> Result<(), Error>
@@ -140,8 +139,8 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
 
         // Ambient light
-        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color)?;
-        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity)?;
+        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color())?;
+        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity())?;
 
         // Directional lights
         self.light_pass_program.use_texture(self.directional_lights.shadow_maps(), "directionalLightShadowMaps")?;
@@ -164,14 +163,22 @@ impl DeferredPipeline
         &mut self.ambient_light
     }
 
-    pub fn directional_light(&mut self, index: usize) -> &mut DirectionalLight
+    pub fn directional_light(&mut self, index: usize) -> Result<&mut DirectionalLight, Error>
     {
-        self.directional_lights.light_at(index)
+        if index > light::MAX_NO_LIGHTS
+        {
+            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get directional light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
+        }
+        Ok(self.directional_lights.light_at(index))
     }
 
-    pub fn point_light(&mut self, index: usize) -> &mut PointLight
+    pub fn point_light(&mut self, index: usize) -> Result<&mut PointLight, Error>
     {
-        self.point_lights.light_at(index)
+        if index > light::MAX_NO_LIGHTS
+        {
+            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get point light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
+        }
+        Ok(self.point_lights.light_at(index))
     }
 
     pub fn spot_light(&mut self, index: usize) -> Result<&mut SpotLight, Error>
@@ -179,7 +186,6 @@ impl DeferredPipeline
         if index > light::MAX_NO_LIGHTS
         {
             return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get spot light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
-
         }
         Ok(self.spot_lights.light_at(index))
     }
