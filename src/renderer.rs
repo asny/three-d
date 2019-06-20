@@ -165,7 +165,7 @@ impl DeferredPipeline
 
     pub fn directional_light(&mut self, index: usize) -> Result<&mut DirectionalLight, Error>
     {
-        if index > light::MAX_NO_LIGHTS
+        if index >= light::MAX_NO_LIGHTS
         {
             return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get directional light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
         }
@@ -174,7 +174,7 @@ impl DeferredPipeline
 
     pub fn point_light(&mut self, index: usize) -> Result<&mut PointLight, Error>
     {
-        if index > light::MAX_NO_LIGHTS
+        if index >= light::MAX_NO_LIGHTS
         {
             return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get point light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
         }
@@ -183,7 +183,7 @@ impl DeferredPipeline
 
     pub fn spot_light(&mut self, index: usize) -> Result<&mut SpotLight, Error>
     {
-        if index > light::MAX_NO_LIGHTS
+        if index >= light::MAX_NO_LIGHTS
         {
             return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get spot light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
         }

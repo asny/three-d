@@ -1,7 +1,7 @@
 
 use crate::*;
 
-pub const MAX_NO_LIGHTS: usize = 3;
+pub const MAX_NO_LIGHTS: usize = 4;
 
 pub struct AmbientLight
 {
@@ -11,7 +11,7 @@ pub struct AmbientLight
 
 impl AmbientLight
 {
-    pub fn new() -> AmbientLight
+    pub(crate) fn new() -> AmbientLight
     {
         AmbientLight { color: vec3(1.0, 1.0, 1.0), intensity: 0.5 }
     }
@@ -54,7 +54,7 @@ impl DirectionalLight {
             gl: gl.clone(),
             shadow_rendertarget: DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
-            shadow_cameras: [None, None, None],
+            shadow_cameras: [None, None, None, None],
             index: 0};
 
         for light_id in 0..MAX_NO_LIGHTS {
@@ -226,7 +226,7 @@ impl SpotLight {
             gl: gl.clone(),
             shadow_rendertarget: DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
-            shadow_cameras: [None, None, None],
+            shadow_cameras: [None, None, None, None],
             index: 0};
 
         for light_id in 0..MAX_NO_LIGHTS {

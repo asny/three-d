@@ -17,7 +17,7 @@ uniform mat4 shadowMVP5;
 
 in vec2 uv;
 
-const int MAX_NO_LIGHTS = 3;
+const int MAX_NO_LIGHTS = 4;
 uniform sampler2DArray directionalLightShadowMaps;
 uniform sampler2DArray spotLightShadowMaps;
 
