@@ -24,11 +24,8 @@ impl FogEffect {
         state::depth_test(&self.gl, state::DepthTestType::NONE);
         state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
 
-        position_texture.bind(0);
-        self.program.add_uniform_int("positionMap", &0)?;
-
-        depth_texture.bind(1);
-        self.program.add_uniform_int("depthMap", &1)?;
+        self.program.use_texture(position_texture, "positionMap")?;
+        self.program.use_texture(depth_texture, "depthMap")?;
 
         self.program.add_uniform_vec3("fogColor", &self.color)?;
         self.program.add_uniform_float("fogDensity", &self.density)?;

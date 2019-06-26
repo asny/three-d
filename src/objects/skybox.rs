@@ -37,8 +37,7 @@ impl Skybox
         self.program.depth_write(true);
         self.program.depth_test(state::DepthTestType::LEQUAL);
 
-        self.texture.bind(0);
-        self.program.add_uniform_int("texture0", &0)?;
+        self.program.use_texture(&self.texture, "texture0")?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;

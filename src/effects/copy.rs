@@ -32,10 +32,8 @@ impl CopyEffect {
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::NONE);
 
-        color_texture.bind(0);
-        self.program.add_uniform_int("colorMap", &0)?;
-        depth_texture.bind(1);
-        self.program.add_uniform_int("depthMap", &1)?;
+        self.program.use_texture(color_texture, "colorMap")?;
+        self.program.use_texture(depth_texture, "depthMap")?;
 
         full_screen.render(&self.program);
         Ok(())

@@ -112,8 +112,7 @@ fn main() {
         state::depth_test(&gl, state::DepthTestType::NONE);
         state::cull(&gl,state::CullType::BACK);
 
-        light_pass_rendertarget.targets[0].bind(0);
-        mirror_program.add_uniform_int("colorMap", &0).unwrap();
+        mirror_program.use_texture(&light_pass_rendertarget.targets[0], "colorMap").unwrap();
         renderer.full_screen().render(&mirror_program);
     }).unwrap();
 }
