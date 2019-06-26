@@ -37,31 +37,6 @@ impl VertexBuffer
         self.offsets[index]
     }
 
-    /*pub fn optimize_data_layout(&mut self)
-    {
-        // TODO
-        self.lengths = Vec::new();
-        self.offsets = Vec::new();
-        self.stride = 0;
-        for (data, no_components) in self.data {
-
-        }
-        let mut out_data = vec![0.0; self.stride * self.lengths[0]];
-        let mut offset = 0;
-        for (data, no_components) in self.data
-        {
-            let mut index = offset;
-            for i in 0..no_vertices {
-                for j in 0..no_components {
-                    out_data[index + j] = data[i * no_components + j];
-                }
-                index += stride;
-            }
-            offset += no_components;
-        }
-        out_data
-    }*/
-
     pub fn clear(&mut self)
     {
         self.data.clear();
@@ -127,7 +102,6 @@ impl StaticVertexBuffer {
 
     pub fn send_data(&mut self)
     {
-        //TODO: self.buffer.optimize_data_layout();
         self.buffer.bind();
         self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::STATIC_DRAW);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
