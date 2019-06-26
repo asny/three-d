@@ -76,8 +76,11 @@ fn main() {
     window.render_loop(move |events, _elapsed_time|
     {
         for event in events {
-            handle_camera_events(event, &mut camera_handler, &mut camera);
+            handle_camera_events(event, &mut camera_handler, &mut renderer.camera);
         }
+
+        mirror_renderer.camera.set_view(*renderer.camera.position(), *renderer.camera.target(), *renderer.camera.up());
+        mirror_renderer.camera.mirror_in_xz_plane();
 
         // Draw
         let render_scene = |camera: &Camera| {
