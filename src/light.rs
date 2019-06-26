@@ -294,7 +294,7 @@ impl SpotLight {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 
-        let depth = 20.0;
+        let depth = 200.0;
         let cutoff = self.light_buffer.get(self.index_at(7)).unwrap()[0];
 
         if let Some(ref mut camera) = self.shadow_cameras[self.index]
