@@ -3,7 +3,6 @@ use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
-    Buffer(buffer::Error),
     Program(program::Error)
 }
 
@@ -13,16 +12,8 @@ impl From<program::Error> for Error {
     }
 }
 
-impl From<buffer::Error> for Error {
-    fn from(other: buffer::Error) -> Self {
-        Error::Buffer(other)
-    }
-}
-
 pub struct ShadedMesh {
     program: program::Program,
-    vertex_buffer: buffer::StaticVertexBuffer,
-    index_buffer: buffer::ElementBuffer,
     pub color: Vec3,
     pub texture: Option<texture::Texture2D>,
     pub diffuse_intensity: f32,
@@ -32,64 +23,16 @@ pub struct ShadedMesh {
 
 impl ShadedMesh
 {
-    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<ShadedMesh, Error>
+    pub fn new(gl: &Gl) -> Result<ShadedMesh, Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
-        let vertex_buffer = StaticVertexBuffer::new_with_vec3_vec3(gl, positions, normals)?;
-        let index_buffer = ElementBuffer::new_with(gl, indices)?;
 
-        Ok(ShadedMesh { program, index_buffer, vertex_buffer, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+        Ok(ShadedMesh { program, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
     }
 
-    pub fn new_from_obj_source(gl: &Gl, source: String) -> Result<ShadedMesh, Error>
-    {
-        let objs = wavefront_obj::obj::parse(source).unwrap();
-        let obj = objs.objects.first().unwrap();
-
-        let mut positions = Vec::new();
-        obj.vertices.iter().for_each(|v| {positions.push(v.x as f32); positions.push(v.y as f32); positions.push(v.z as f32);});
-        let mut normals = vec![0.0f32; obj.vertices.len()*3];
-        let mut indices = Vec::new();
-        for shape in obj.geometry.first().unwrap().shapes.iter() {
-            match shape.primitive {
-                wavefront_obj::obj::Primitive::Triangle(i0, i1, i2) => {
-                    indices.push(i0.0 as u32);
-                    indices.push(i1.0 as u32);
-                    indices.push(i2.0 as u32);
-
-                    let mut normal = obj.normals[i0.2.unwrap()];
-                    normals[i0.0*3] = normal.x as f32;
-                    normals[i0.0*3+1] = normal.y as f32;
-                    normals[i0.0*3+2] = normal.z as f32;
-
-                    normal = obj.normals[i1.2.unwrap()];
-                    normals[i1.0*3] = normal.x as f32;
-                    normals[i1.0*3+1] = normal.y as f32;
-                    normals[i1.0*3+2] = normal.z as f32;
-
-                    normal = obj.normals[i2.2.unwrap()];
-                    normals[i2.0*3] = normal.x as f32;
-                    normals[i2.0*3+1] = normal.y as f32;
-                    normals[i2.0*3+2] = normal.z as f32;
-                },
-                _ => {}
-            }
-        }
-        Self::new(&gl, &indices, &positions, &normals)
-    }
-
-    pub fn update_attributes(&mut self, positions: &[f32], normals: &[f32]) -> Result<(), Error>
-    {
-        self.vertex_buffer.clear();
-        self.vertex_buffer.add(positions, 3);
-        self.vertex_buffer.add(normals, 3);
-        self.vertex_buffer.send_data();
-        Ok(())
-    }
-
-    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
+    pub fn render(&self, mesh: &Mesh, transformation: &Mat4, camera: &camera::Camera)
     {
         self.program.cull(state::CullType::NONE);
         self.program.depth_test(state::DepthTestType::LEQUAL);
@@ -114,9 +57,9 @@ impl ShadedMesh
 
         self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
-        self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0).unwrap();
-        self.program.use_attribute_vec3_float(&self.vertex_buffer, "normal", 1).unwrap();
+        self.program.use_attribute_vec3_float(mesh.position_buffer(), "position", 0).unwrap();
+        self.program.use_attribute_vec3_float(mesh.normal_buffer(), "normal", 0).unwrap();
 
-        self.program.draw_elements(&self.index_buffer);
+        self.program.draw_elements(mesh.index_buffer());
     }
 }

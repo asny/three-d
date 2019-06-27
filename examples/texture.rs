@@ -12,8 +12,9 @@ fn main() {
 
     let positions = positions();
     let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
-    let mut textured_box = objects::ShadedMesh::new(&gl, &indices, &positions, &normals()).unwrap();
 
+    let box_mesh = Mesh::new(&gl, &indices, &positions, &normals()).unwrap();
+    let mut textured_box = objects::ShadedMesh::new(&gl).unwrap();
     textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("assets/textures/test_texture.jpg")).unwrap());
 
     let texture3d = texture::Texture3D::new_from_bytes(&gl,
@@ -40,7 +41,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(&|camera| {
             let transformation = Mat4::identity();
-            textured_box.render(&transformation, camera);
+            textured_box.render(&box_mesh, &transformation, camera);
             skybox.render(camera).unwrap();
         }).unwrap();
 

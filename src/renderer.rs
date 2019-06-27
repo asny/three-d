@@ -9,6 +9,7 @@ pub enum Error {
     Rendertarget(rendertarget::Error),
     Texture(texture::Error),
     Buffer(buffer::Error),
+    Light(light::Error),
     LightExtendsMaxLimit {message: String}
 }
 
@@ -39,6 +40,12 @@ impl From<texture::Error> for Error {
 impl From<buffer::Error> for Error {
     fn from(other: buffer::Error) -> Self {
         Error::Buffer(other)
+    }
+}
+
+impl From<light::Error> for Error {
+    fn from(other: light::Error) -> Self {
+        Error::Light(other)
     }
 }
 

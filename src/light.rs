@@ -1,6 +1,24 @@
 
 use crate::*;
 
+#[derive(Debug)]
+pub enum Error {
+    Buffer(buffer::Error),
+    Rendertarget(rendertarget::Error)
+}
+
+impl From<buffer::Error> for Error {
+    fn from(other: buffer::Error) -> Self {
+        Error::Buffer(other)
+    }
+}
+
+impl From<rendertarget::Error> for Error {
+    fn from(other: rendertarget::Error) -> Self {
+        Error::Rendertarget(other)
+    }
+}
+
 pub const MAX_NO_LIGHTS: usize = 4;
 
 pub struct AmbientLight
