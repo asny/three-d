@@ -1,6 +1,7 @@
 
 use window::{event::*, Window};
 use dust::*;
+use dust::objects::MeshShader;
 
 fn main() {
     let mut window = Window::new_default("Hello, world!").unwrap();
@@ -10,7 +11,8 @@ fn main() {
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
-    let monkey = objects::MeshShader::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let monkey = Mesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let mesh_shader = MeshShader::new(&gl).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
@@ -28,7 +30,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let plane = crate::objects::MeshShader::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
+    let plane = Mesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
     renderer.ambient_light().set_intensity(0.1);
 
@@ -74,7 +76,7 @@ fn main() {
 
         // Draw
         let render_scene = |camera: &Camera| {
-            monkey.render(&Mat4::identity(), camera);
+            mesh_shader.render(&monkey, &Mat4::identity(), camera);
         };
 
         // Shadow pass
@@ -84,7 +86,7 @@ fn main() {
         renderer.geometry_pass(&|camera|
             {
                 render_scene(camera);
-                plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
+                mesh_shader.render(&plane, &(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
                     * Mat4::from_scale(10.0)), camera);
             }).unwrap();
 
