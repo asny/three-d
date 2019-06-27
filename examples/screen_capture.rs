@@ -14,7 +14,7 @@ fn main() {
     let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let shaded_mesh = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let shaded_mesh = objects::MeshShader::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
@@ -32,7 +32,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
+    let plane = crate::objects::MeshShader::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
     let ambient_light = crate::light::AmbientLight::new();
 

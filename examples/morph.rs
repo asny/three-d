@@ -123,7 +123,7 @@ fn main()
     wireframe_model.set_parameters(0.8, 0.2, 5.0);
     wireframe_model.set_color(&vec3(0.9, 0.2, 0.2));
 
-    let mut model = ShadedMesh::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
+    let mut model = MeshShader::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
     model.color = vec3(0.8, 0.8, 0.8);
 
     let plane_positions: Vec<f32> = vec![
@@ -142,7 +142,7 @@ fn main()
         0, 2, 1,
         0, 3, 2,
     ];
-    let mut plane = ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
+    let mut plane = MeshShader::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;

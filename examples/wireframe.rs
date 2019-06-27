@@ -18,7 +18,7 @@ fn main() {
     let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.015, &vec3(0.0, 2.0, 0.0));
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let model = objects::ShadedMesh::new_from_obj_source(&gl, obj_file).unwrap();
+    let model = objects::MeshShader::new_from_obj_source(&gl, obj_file).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
@@ -36,7 +36,7 @@ fn main() {
         0, 2, 1,
         0, 3, 2,
     ];
-    let mut plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
+    let mut plane = crate::objects::MeshShader::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;

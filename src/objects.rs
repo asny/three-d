@@ -1,13 +1,13 @@
 pub mod shaded_vertices;
 pub mod shaded_edges;
 pub mod wireframe;
-pub mod shaded_mesh;
+pub mod mesh_shader;
 pub mod skybox;
 pub mod full_screen_quad;
 
-pub use crate::objects::shaded_vertices::ShadedVertices as ShadedVertices;
-pub use crate::objects::shaded_edges::ShadedEdges as ShadedEdges;
-pub use crate::objects::wireframe::Wireframe as Wireframe;
-pub use crate::objects::shaded_mesh::ShadedMesh as ShadedMesh;
-pub use crate::objects::skybox::Skybox as Skybox;
-pub use crate::objects::full_screen_quad::FullScreen as FullScreen;
+pub use crate::objects::shaded_vertices::*;
+pub use crate::objects::shaded_edges::*;
+pub use crate::objects::wireframe::*;
+pub use crate::objects::mesh_shader::*;
+pub use crate::objects::skybox::*;
+pub use crate::objects::full_screen_quad::*;

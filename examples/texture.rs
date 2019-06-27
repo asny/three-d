@@ -14,7 +14,7 @@ fn main() {
     let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
 
     let box_mesh = Mesh::new(&gl, &indices, &positions, &normals()).unwrap();
-    let mut textured_box = objects::ShadedMesh::new(&gl).unwrap();
+    let mut textured_box = objects::MeshShader::new(&gl).unwrap();
     textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("assets/textures/test_texture.jpg")).unwrap());
 
     let texture3d = texture::Texture3D::new_from_bytes(&gl,

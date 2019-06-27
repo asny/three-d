@@ -12,7 +12,7 @@ impl From<program::Error> for Error {
     }
 }
 
-pub struct ShadedMesh {
+pub struct MeshShader {
     program: program::Program,
     pub color: Vec3,
     pub texture: Option<texture::Texture2D>,
@@ -21,15 +21,15 @@ pub struct ShadedMesh {
     pub specular_power: f32
 }
 
-impl ShadedMesh
+impl MeshShader
 {
-    pub fn new(gl: &Gl) -> Result<ShadedMesh, Error>
+    pub fn new(gl: &Gl) -> Result<MeshShader, Error>
     {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
 
-        Ok(ShadedMesh { program, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+        Ok(MeshShader { program, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
     }
 
     pub fn render(&self, mesh: &Mesh, transformation: &Mat4, camera: &camera::Camera)
