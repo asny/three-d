@@ -1,6 +1,5 @@
 
 use crate::*;
-use crate::objects::FullScreen;
 
 #[derive(Debug)]
 pub enum Error {

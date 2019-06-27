@@ -1,17 +1,16 @@
 pub mod mesh;
+pub mod full_screen_quad;
 
 pub use crate::geometries::mesh::*;
-
-use crate::*;
-
+pub use crate::geometries::full_screen_quad::*;
 
 #[derive(Debug)]
 pub enum Error {
-    Buffer(buffer::Error)
+    Buffer(core::buffer::Error)
 }
 
-impl From<buffer::Error> for Error {
-    fn from(other: buffer::Error) -> Self {
+impl From<core::buffer::Error> for Error {
+    fn from(other: core::buffer::Error) -> Self {
         Error::Buffer(other)
     }
 }
