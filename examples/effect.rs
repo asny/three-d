@@ -10,8 +10,9 @@ fn main() {
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.0, 0.0, 0.0, 1.0)).unwrap();
 
-    let mut monkey = objects::MeshShader::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
-    monkey.color = vec3(0.5, 1.0, 0.5);
+    let monkey = Mesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let mut mesh_shader = MeshShader::new(&gl).unwrap();
+    mesh_shader.color = vec3(0.5, 1.0, 0.5);
 
     renderer.directional_light(0).unwrap().set_direction(&vec3(0.0, -1.0, 0.0));
     renderer.directional_light(0).unwrap().set_intensity(1.0);
@@ -44,7 +45,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(&|camera| {
             let transformation = Mat4::identity();
-            monkey.render(&transformation, camera);
+            mesh_shader.render(&monkey, &transformation, camera);
         }).unwrap();
 
         // Light pass

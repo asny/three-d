@@ -13,3 +13,4 @@ pub use crate::camerahandler::CameraHandler;
 pub use crate::renderer::*;
 pub use crate::light::*;
 pub use crate::geometries::*;
+pub use crate::objects::*;
