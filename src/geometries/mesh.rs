@@ -1,10 +1,11 @@
 
-use crate::*;
+use crate::buffer::*;
+use crate::core::Gl;
 
 pub struct Mesh {
-    position_buffer: buffer::StaticVertexBuffer,
-    normal_buffer: buffer::StaticVertexBuffer,
-    index_buffer: buffer::ElementBuffer
+    position_buffer: StaticVertexBuffer,
+    normal_buffer: StaticVertexBuffer,
+    index_buffer: ElementBuffer
 }
 
 impl Mesh

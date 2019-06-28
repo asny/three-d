@@ -35,7 +35,9 @@ impl CopyEffect {
         self.program.use_texture(color_texture, "colorMap")?;
         self.program.use_texture(depth_texture, "depthMap")?;
 
-        full_screen.render(&self.program);
+        self.program.use_attribute_vec3_float(&full_screen.buffer(), "position", 0).unwrap();
+        self.program.use_attribute_vec2_float(&full_screen.buffer(), "uv_coordinate", 1).unwrap();
+        self.program.draw_arrays(3);
         Ok(())
     }
 

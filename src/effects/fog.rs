@@ -33,7 +33,9 @@ impl FogEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        full_screen.render(&self.program);
+        self.program.use_attribute_vec3_float(&full_screen.buffer(), "position", 0).unwrap();
+        self.program.use_attribute_vec2_float(&full_screen.buffer(), "uv_coordinate", 1).unwrap();
+        self.program.draw_arrays(3);
         Ok(())
     }
 

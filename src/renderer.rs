@@ -160,7 +160,9 @@ impl DeferredPipeline
         self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");
 
         // Render
-        self.full_screen.render(&self.light_pass_program);
+        self.light_pass_program.use_attribute_vec3_float(&self.full_screen.buffer(), "position", 0).unwrap();
+        self.light_pass_program.use_attribute_vec2_float(&self.full_screen.buffer(), "uv_coordinate", 1).unwrap();
+        self.light_pass_program.draw_arrays(3);
         Ok(())
     }
 

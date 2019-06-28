@@ -113,7 +113,9 @@ fn main() {
         state::cull(&gl,state::CullType::BACK);
 
         mirror_program.use_texture(&light_pass_rendertarget.targets[0], "colorMap").unwrap();
-        renderer.full_screen().render(&mirror_program);
+        mirror_program.use_attribute_vec3_float(&renderer.full_screen().buffer(), "position", 0).unwrap();
+        mirror_program.use_attribute_vec2_float(&renderer.full_screen().buffer(), "uv_coordinate", 1).unwrap();
+        mirror_program.draw_arrays(3);
     }).unwrap();
 }
 
