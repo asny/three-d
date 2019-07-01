@@ -18,28 +18,13 @@ fn main() {
     let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.015, &vec3(0.0, 2.0, 0.0));
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let model = objects::MeshShader::new_from_obj_source(&gl, obj_file).unwrap();
+    let mut mesh_shader = MeshShader::new(&gl).unwrap();
+    mesh_shader.diffuse_intensity = 0.2;
+    mesh_shader.specular_intensity = 0.4;
+    mesh_shader.specular_power = 20.0;
 
-    let plane_positions: Vec<f32> = vec![
-        -1.0, 0.0, -1.0,
-        1.0, 0.0, -1.0,
-        1.0, 0.0, 1.0,
-        -1.0, 0.0, 1.0
-    ];
-    let plane_normals: Vec<f32> = vec![
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0
-    ];
-    let plane_indices: Vec<u32> = vec![
-        0, 2, 1,
-        0, 3, 2,
-    ];
-    let mut plane = crate::objects::MeshShader::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
-    plane.diffuse_intensity = 0.2;
-    plane.specular_intensity = 0.4;
-    plane.specular_power = 20.0;
+    let model = Mesh::new_from_obj_source(&gl, obj_file).unwrap();
+    let plane = Mesh::plane(&gl).unwrap();
 
     let mut light = renderer.spot_light(0).unwrap();
     light.set_intensity(0.5);
@@ -84,7 +69,7 @@ fn main() {
 
         // Draw
         let render_scene = |camera: &Camera| {
-            model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
+            mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
             wireframe.render(camera);
         };
 
@@ -100,7 +85,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(&|camera| {
             render_scene(camera);
-            plane.render(&Mat4::from_scale(100.0), camera);
+            mesh_shader.render(&plane, &Mat4::from_scale(100.0), camera);
         }).unwrap();
 
         // Light pass

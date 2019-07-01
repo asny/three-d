@@ -12,25 +12,8 @@ fn main() {
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
     let monkey = Mesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let plane = Mesh::plane(&gl).unwrap();
     let mesh_shader = MeshShader::new(&gl).unwrap();
-
-    let plane_positions: Vec<f32> = vec![
-        -1.0, 0.0, -1.0,
-        1.0, 0.0, -1.0,
-        1.0, 0.0, 1.0,
-        -1.0, 0.0, 1.0
-    ];
-    let plane_normals: Vec<f32> = vec![
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0
-    ];
-    let plane_indices: Vec<u32> = vec![
-        0, 2, 1,
-        0, 3, 2,
-    ];
-    let plane = Mesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
     renderer.ambient_light().set_intensity(0.1);
 

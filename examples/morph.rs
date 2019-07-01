@@ -129,24 +129,7 @@ fn main()
     mesh_shader.specular_power = 20.0;
 
     let mut model = dust::Mesh::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
-
-    let plane_positions: Vec<f32> = vec![
-        -1.0, 0.0, -1.0,
-        1.0, 0.0, -1.0,
-        1.0, 0.0, 1.0,
-        -1.0, 0.0, 1.0
-    ];
-    let plane_normals: Vec<f32> = vec![
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0
-    ];
-    let plane_indices: Vec<u32> = vec![
-        0, 2, 1,
-        0, 3, 2,
-    ];
-    let plane = dust::Mesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
+    let plane = dust::Mesh::plane(&gl).unwrap();
 
     renderer.ambient_light().set_intensity(0.4);
 
