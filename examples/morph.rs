@@ -6,7 +6,7 @@ use tri_mesh::prelude::vec4 as vec4;
 use std::collections::HashMap;
 
 /// Loads the mesh and scale/translate it.
-fn on_startup(scene_center: &Vec3, scene_radius: f64) -> Mesh
+fn on_startup(scene_center: &Vec3, scene_radius: f64) -> tri_mesh::mesh::Mesh
 {
     let mut mesh = MeshBuilder::new().with_obj(include_str!("assets/models/suzanne.obj").to_string()).build().unwrap();
     let (min, max) = mesh.extreme_coordinates();
@@ -18,7 +18,7 @@ fn on_startup(scene_center: &Vec3, scene_radius: f64) -> Mesh
 }
 
 /// When the user clicks, we see if the model is hit. If it is, we compute the morph weights from the picking point.
-fn on_click(mesh: &Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option<HashMap<VertexID, Vec3>>
+fn on_click(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option<HashMap<VertexID, Vec3>>
 {
     if let Some((vertex_id, point)) = pick(&mesh,&ray_start_point, &ray_direction) {
         Some(compute_weights(mesh, vertex_id, &point))
@@ -27,7 +27,7 @@ fn on_click(mesh: &Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option
 }
 
 /// Morphs the vertices based on the computed weights.
-fn on_morph(mesh: &mut Mesh, weights: &HashMap<VertexID, Vec3>, factor: f64)
+fn on_morph(mesh: &mut tri_mesh::mesh::Mesh, weights: &HashMap<VertexID, Vec3>, factor: f64)
 {
     for (vertex_id, weight) in weights.iter() {
         mesh.move_vertex_by(*vertex_id,weight * factor);
@@ -35,7 +35,7 @@ fn on_morph(mesh: &mut Mesh, weights: &HashMap<VertexID, Vec3>, factor: f64)
 }
 
 /// Picking used for determining whether a mouse click starts a morph operation. Returns a close vertex and the position of the click on the mesh surface.
-fn pick(mesh: &Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option<(VertexID, Vec3)>
+fn pick(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option<(VertexID, Vec3)>
 {
     if let Some(Intersection::Point {primitive, point}) = mesh.ray_intersection(ray_start_point, ray_direction) {
         let start_vertex_id = match primitive {
@@ -56,7 +56,7 @@ fn pick(mesh: &Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option<(Ve
 }
 
 /// Compute a directional weight for each vertex to be used for the morph operation.
-fn compute_weights(mesh: &Mesh, start_vertex_id: VertexID, start_point: &Vec3) -> HashMap<VertexID, Vec3>
+fn compute_weights(mesh: &tri_mesh::mesh::Mesh, start_vertex_id: VertexID, start_point: &Vec3) -> HashMap<VertexID, Vec3>
 {
     static SQR_MAX_DISTANCE: f64 = 1.0;
 
@@ -96,7 +96,6 @@ fn compute_weights(mesh: &Mesh, start_vertex_id: VertexID, start_point: &Vec3) -
 /// Below: Visualisation of the mesh, event handling and so on
 ///
 use dust::*;
-use dust::objects::*;
 use dust::window::{event::*, Window};
 
 fn main()
@@ -123,8 +122,13 @@ fn main()
     wireframe_model.set_parameters(0.8, 0.2, 5.0);
     wireframe_model.set_color(&vec3(0.9, 0.2, 0.2));
 
-    let mut model = MeshShader::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
-    model.color = vec3(0.8, 0.8, 0.8);
+    let mut mesh_shader = MeshShader::new(&gl).unwrap();
+    mesh_shader.color = vec3(0.8, 0.8, 0.8);
+    mesh_shader.diffuse_intensity = 0.2;
+    mesh_shader.specular_intensity = 0.4;
+    mesh_shader.specular_power = 20.0;
+
+    let mut model = dust::Mesh::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
 
     let plane_positions: Vec<f32> = vec![
         -1.0, 0.0, -1.0,
@@ -142,10 +146,7 @@ fn main()
         0, 2, 1,
         0, 3, 2,
     ];
-    let mut plane = MeshShader::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
-    plane.diffuse_intensity = 0.2;
-    plane.specular_intensity = 0.4;
-    plane.specular_power = 20.0;
+    let plane = dust::Mesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
 
     renderer.ambient_light().set_intensity(0.4);
 
@@ -221,7 +222,8 @@ fn main()
                         let positions: Vec<f32> = mesh.positions_buffer().iter().map(|v| *v as f32).collect();
                         let normals: Vec<f32> = mesh.normals_buffer().iter().map(|v| *v as f32).collect();
                         wireframe_model.update_positions(&positions);
-                        model.update_attributes(&positions, &normals).unwrap();
+                        model.update_positions(&positions).unwrap();
+                        model.update_normals(&normals).unwrap();
                     }
                 }
             }
@@ -230,7 +232,7 @@ fn main()
         // Draw
         let render_scene = |camera: &Camera| {
             let model_matrix = dust::Mat4::identity();
-            model.render(&model_matrix, camera);
+            mesh_shader.render(&model, &model_matrix, camera);
             wireframe_model.render(camera);
         };
 
@@ -240,7 +242,7 @@ fn main()
         // Geometry pass
         renderer.geometry_pass(&|camera| {
             render_scene(camera);
-            plane.render(&dust::Mat4::from_scale(100.0), camera);
+            mesh_shader.render(&plane, &dust::Mat4::from_scale(100.0), camera);
         }).unwrap();
 
         // Light pass
