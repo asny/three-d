@@ -1,6 +1,7 @@
 pub mod mesh;
-pub mod simple;
+pub mod mesh_factory;
 pub mod full_screen_quad;
+pub mod mesh_loader;
 
 pub use crate::geometries::mesh::*;
 pub use crate::geometries::full_screen_quad::*;
