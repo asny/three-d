@@ -129,7 +129,7 @@ fn main()
     mesh_shader.specular_power = 20.0;
 
     let mut model = dust::Mesh::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
-    let plane = dust::Mesh::plane(&gl).unwrap();
+    let plane = dust::Mesh::new_plane(&gl).unwrap();
 
     renderer.ambient_light().set_intensity(0.4);
 

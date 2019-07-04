@@ -5,7 +5,7 @@ use crate::core::Gl;
 
 impl Mesh {
 
-    pub fn plane(gl: &Gl) -> Result<Mesh, Error>
+    pub fn new_plane(gl: &Gl) -> Result<Mesh, Error>
     {
 
         let plane_positions: Vec<f32> = vec![

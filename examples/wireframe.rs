@@ -24,7 +24,7 @@ fn main() {
     mesh_shader.specular_power = 20.0;
 
     let model = Mesh::new_from_obj_source(&gl, obj_file).unwrap();
-    let plane = Mesh::plane(&gl).unwrap();
+    let plane = Mesh::new_plane(&gl).unwrap();
 
     let mut light = renderer.spot_light(0).unwrap();
     light.set_intensity(0.5);
