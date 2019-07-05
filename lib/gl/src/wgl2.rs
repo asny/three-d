@@ -82,7 +82,7 @@ impl Gl {
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
     {
-        let header = "#version 300 es\nprecision highp float;\n";
+        let header = "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2DArray;\n";
         let s: &str = &[header, source].concat();
 
         self.inner.shader_source(shader, s);
