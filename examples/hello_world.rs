@@ -1,8 +1,10 @@
-use core::*;
+
+use dust::window::*;
+use dust::core::*;
 
 fn main() {
 
-    let mut window = window::Window::new_default("Hello, world!").unwrap();
+    let mut window = Window::new_default("Hello, world!").unwrap();
     let (width, height) = window.framebuffer_size();
 
     let gl = window.gl();
