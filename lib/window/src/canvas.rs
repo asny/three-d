@@ -16,7 +16,7 @@ pub enum Error {
 
 pub struct Window
 {
-    gl: gl::Gl,
+    gl: std::rc::Rc<gl::Gl>,
     canvas: web_sys::HtmlCanvasElement,
     window: web_sys::Window
 }
@@ -38,7 +38,7 @@ impl Window
         context.get_extension("OES_texture_float").map_err(|e| Error::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
 
         let gl = gl::Gl::new(context);
-        Ok(Window { gl, canvas, window })
+        Ok(Window { gl: std::rc::Rc::new(gl), canvas, window })
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
@@ -164,7 +164,7 @@ impl Window
         self.size()
     }
 
-    pub fn gl(&self) -> gl::Gl
+    pub fn gl(&self) -> std::rc::Rc<gl::Gl>
     {
         self.gl.clone()
     }
