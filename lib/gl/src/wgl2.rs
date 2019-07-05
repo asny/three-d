@@ -14,6 +14,7 @@ pub mod defines
     pub use web_sys::WebGlFramebuffer as Framebuffer;
     pub use web_sys::WebGlTexture as Texture;
     pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
+    pub use web_sys::WebGlActiveInfo as ActiveInfo;
 }
 pub use crate::wgl2::defines::*;
 
@@ -28,6 +29,21 @@ impl Gl {
         Gl {
             inner: std::rc::Rc::new(webgl_context)
         }
+    }
+
+    pub fn bind_buffer_base(&self, target: u32, index: u32, buffer: &Buffer)
+    {
+        self.inner.bind_buffer_base(target, index, Some(buffer));
+    }
+
+    pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
+    {
+        self.inner.bind_buffer(target, Some(buffer));
+    }
+
+    pub fn unbind_buffer(&self, target: u32)
+    {
+        self.inner.bind_buffer(target, None);
     }
 
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)
@@ -116,6 +132,11 @@ impl Gl {
         self.inner.tex_storage_2d(target, level as i32, internalformat, width as i32, height as i32);
     }
 
+    pub fn tex_storage_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32)
+    {
+        self.inner.tex_storage_3d(target, level as i32, internalformat, width as i32, height as i32, depth as i32);
+    }
+
     pub fn tex_image_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32)
     {
         self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(target,
@@ -169,6 +190,11 @@ impl Gl {
         self.inner.framebuffer_texture_2d(target, attachment, textarget, Some(texture), level as i32);
     }
 
+    pub fn framebuffer_texture_layer(&self, target: u32, attachment: u32, texture: &Texture, level: u32, layer: u32)
+    {
+        self.inner.framebuffer_texture_layer(target, attachment, Some(texture), level as i32, layer as i32);
+    }
+
     pub fn get_attrib_location(&self, program: &Program, name: &str) -> Option<AttributeLocation>
     {
         Some(self.inner.get_attrib_location(program, name) as u32)
@@ -179,9 +205,23 @@ impl Gl {
         self.inner.use_program(Some(program));
     }
 
+    pub fn unuse_program(&self)
+    {
+        self.inner.use_program(None);
+    }
+
     pub fn delete_program(&self, program: &Program)
     {
         self.inner.delete_program(Some(program));
+    }
+
+    pub fn draw_arrays(&self, mode: u32, first: u32, count: u32)
+    {
+        self.inner.draw_arrays(
+            mode,
+            first as i32, // starting index in the enabled arrays
+            count as i32 // number of vertices to be rendered
+        );
     }
 
     pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32)
@@ -192,6 +232,13 @@ impl Gl {
     pub fn draw_elements_instanced(&self, mode: u32, count: u32, data_type: u32, offset: u32, instance_count: u32)
     {
         self.inner.draw_elements_instanced_with_i32(mode, count as i32, data_type, offset as i32, instance_count as i32);
+    }
+
+    pub fn blit_framebuffer(&self, src_x0: u32, src_y0: u32, src_x1: u32, src_y1: u32,
+                                    dst_x0: u32, dst_y0: u32, dst_x1: u32, dst_y1: u32, mask: u32, filter: u32)
+    {
+        self.inner.blit_framebuffer(src_x0 as i32, src_y0 as i32, src_x1 as i32, src_y1 as i32,
+                                    dst_x0 as i32, dst_y0 as i32, dst_x1 as i32, dst_y1 as i32, mask, filter);
     }
 
     pub fn draw_buffers(&self, draw_buffers: &[u32])
@@ -221,50 +268,66 @@ impl Gl {
         }
     }
 
-    pub fn uniform1f(&self, location: UniformLocation, data: f32)
+    pub fn uniform1f(&self, location: &UniformLocation, data: f32)
     {
-        self.inner.uniform1f(Some(&location), data);
+        self.inner.uniform1f(Some(location), data);
     }
 
-    pub fn uniform1i(&self, location: UniformLocation, data: i32)
+    pub fn uniform1i(&self, location: &UniformLocation, data: i32)
     {
-        self.inner.uniform1i(Some(&location), data);
+        self.inner.uniform1i(Some(location), data);
     }
 
-    pub fn uniform2fv(&self, location: UniformLocation, data: &mut [f32])
+    pub fn uniform2fv(&self, location: &UniformLocation, data: &mut [f32])
     {
-        self.inner.uniform2fv_with_f32_array(Some(&location), data);
+        self.inner.uniform2fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform3fv(&self, location: UniformLocation, data: &mut [f32])
+    pub fn uniform3fv(&self, location: &UniformLocation, data: &mut [f32])
     {
-        self.inner.uniform3fv_with_f32_array(Some(&location), data);
+        self.inner.uniform3fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform4fv(&self, location: UniformLocation, data: &mut [f32])
+    pub fn uniform4fv(&self, location: &UniformLocation, data: &mut [f32])
     {
-        self.inner.uniform4fv_with_f32_array(Some(&location), data);
+        self.inner.uniform4fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform_matrix2fv(&self, location: UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &mut [f32])
     {
-        self.inner.uniform_matrix2fv_with_f32_array(Some(&location), false, data);
+        self.inner.uniform_matrix2fv_with_f32_array(Some(location), false, data);
     }
 
-    pub fn uniform_matrix3fv(&self, location: UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &mut [f32])
     {
-        self.inner.uniform_matrix3fv_with_f32_array(Some(&location), false, data);
+        self.inner.uniform_matrix3fv_with_f32_array(Some(location), false, data);
     }
 
-    pub fn uniform_matrix4fv(&self, location: UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &mut [f32])
     {
-        self.inner.uniform_matrix4fv_with_f32_array(Some(&location), false, data);
+        self.inner.uniform_matrix4fv_with_f32_array(Some(location), false, data);
     }
 
     pub fn vertex_attrib_pointer(&self, location: AttributeLocation, size: u32, data_type: u32, normalized: bool, stride: u32, offset: u32)
     {
         self.inner.vertex_attrib_pointer_with_i32(location, size as i32, data_type, normalized,
                                                   byte_size_for_type(data_type, stride) as i32, byte_size_for_type(data_type, offset)  as i32);
+    }
+
+    pub fn get_program_parameter(&self, program: &defines::Program, pname: u32) -> u32
+    {
+        let result = self.inner.get_program_parameter(program, pname);
+        result.as_f64().unwrap() as u32
+    }
+
+    pub fn get_active_attrib(&self, program: &Program, index: u32) -> ActiveInfo
+    {
+        self.inner.get_active_attrib(program, index).unwrap()
+    }
+
+    pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
+    {
+        self.get_active_uniform(program, index)
     }
 }
 

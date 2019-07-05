@@ -30,7 +30,7 @@ pub struct Program {
     id: gl::Program,
     vertex_attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
-    uniforms: HashMap<String, u32>,
+    uniforms: HashMap<String, gl::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>
 }
 
@@ -62,10 +62,10 @@ impl Program
         let mut vertex_attributes = HashMap::new();
         for i in 0..num_attribs {
             let info = gl.get_active_attrib(&id, i);
-            let location = gl.get_attrib_location(&id, &info.name).unwrap();
-            println!("Attribute location: {}, name: {}, type: {}, size: {}", location, info.name, info._type, info.size);
+            let location = gl.get_attrib_location(&id, &info.name()).unwrap();
+            println!("Attribute location: {}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
             gl.enable_vertex_attrib_array(location);
-            vertex_attributes.insert(info.name, location);
+            vertex_attributes.insert(info.name(), location);
         }
 
         // Init uniforms
@@ -73,10 +73,10 @@ impl Program
         let mut uniforms = HashMap::new();
         for i in 0..num_uniforms {
             let info = gl.get_active_uniform(&id, i);
-            let location = gl.get_uniform_location(&id, &info.name);
-            println!("Uniform location: {:?}, name: {}, type: {}, size: {}", location, info.name, info._type, info.size);
+            let location = gl.get_uniform_location(&id, &info.name());
+            println!("Uniform location: {:?}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
             if let Some(loc) = location {
-                uniforms.insert(info.name, loc);
+                uniforms.insert(info.name(), loc);
             }
         }
 
@@ -148,11 +148,11 @@ impl Program
         Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> Result<gl::UniformLocation, Error>
+    fn get_uniform_location(&self, name: &str) -> Result<&gl::UniformLocation, Error>
     {
         self.set_used();
         let loc = self.uniforms.get(name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find uniform {}", name)})?;
-        Ok(*loc)
+        Ok(loc)
     }
 
     pub fn use_texture(&self, texture: &Texture, texture_name: &str) -> Result<(), Error>

@@ -15,7 +15,13 @@ pub mod defines
     pub type Framebuffer = u32;
     pub type Texture = u32;
     pub type VertexArrayObject = u32;
-    pub struct ActiveInfo { pub size: u32, pub _type: u32, pub name: String }
+    pub struct ActiveInfo { size: u32, type_: u32, name: String }
+    impl ActiveInfo {
+        pub fn new(size: u32, type_: u32, name: String) -> ActiveInfo {ActiveInfo {size, type_, name}}
+        pub fn size(&self) -> i32 {self.size as i32}
+        pub fn type_(&self) -> u32 {self.type_}
+        pub fn name(&self) -> String {self.name.clone()}
+    }
 }
 pub use crate::ogl::defines::*;
 
@@ -112,7 +118,7 @@ impl Gl {
 
         let mut s = name.to_string_lossy().into_owned();
         s.truncate(length as usize);
-        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
+        ActiveInfo::new(size as u32, _type as u32, s)
     }
 
     pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
@@ -127,7 +133,7 @@ impl Gl {
 
         let mut s = name.to_string_lossy().into_owned();
         s.truncate(length as usize);
-        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
+        ActiveInfo::new(size as u32, _type as u32, s)
     }
 
     pub fn create_buffer(&self) -> Option<Buffer>
@@ -360,59 +366,59 @@ impl Gl {
         if location == -1 { None } else { Some(location as UniformLocation) }
     }
 
-    pub fn uniform1i(&self, location: UniformLocation, data: i32)
+    pub fn uniform1i(&self, location: &UniformLocation, data: i32)
     {
         unsafe {
-            self.inner.Uniform1i(location as i32, data);
+            self.inner.Uniform1i(*location as i32, data);
         }
     }
 
-    pub fn uniform1f(&self, location: UniformLocation, data: f32)
+    pub fn uniform1f(&self, location: &UniformLocation, data: f32)
     {
         unsafe {
-            self.inner.Uniform1f(location as i32, data);
+            self.inner.Uniform1f(*location as i32, data);
         }
     }
 
-    pub fn uniform2fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform2fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.Uniform2fv(location as i32, 1, data.as_ptr());
+            self.inner.Uniform2fv(*location as i32, 1, data.as_ptr());
         }
     }
 
-    pub fn uniform3fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform3fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.Uniform3fv(location as i32, 1, data.as_ptr());
+            self.inner.Uniform3fv(*location as i32, 1, data.as_ptr());
         }
     }
 
-    pub fn uniform4fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform4fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.Uniform4fv(location as i32, 1, data.as_ptr());
+            self.inner.Uniform4fv(*location as i32, 1, data.as_ptr());
         }
     }
 
-    pub fn uniform_matrix2fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.UniformMatrix2fv(location as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix2fv(*location as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
-    pub fn uniform_matrix3fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.UniformMatrix3fv(location as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix3fv(*location as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
-    pub fn uniform_matrix4fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.UniformMatrix4fv(location as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix4fv(*location as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 

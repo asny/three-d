@@ -18,6 +18,7 @@ features = [
   'WebGlTexture',
   'WebGlUniformLocation',
   'WebGlVertexArrayObject',
+  'WebGlActiveInfo',
   'Performance'
 ]
 
