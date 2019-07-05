@@ -327,7 +327,7 @@ impl Gl {
 
     pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
     {
-        self.get_active_uniform(program, index)
+        self.inner.get_active_uniform(program, index).unwrap()
     }
 }
 
