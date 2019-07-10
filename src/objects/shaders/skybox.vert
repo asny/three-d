@@ -1,10 +1,11 @@
 
-uniform Camera
+layout (std140) uniform Camera
 {
     mat4 viewProjection;
     mat4 view;
     mat4 projection;
     vec3 position;
+    float padding;
 } camera;
 
 in vec3 position;

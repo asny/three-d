@@ -15,7 +15,7 @@ impl Camera
 {
     pub fn new(gl: &Gl) -> Camera
     {
-        let mut camera = Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16, 16, 3]).unwrap(),
+        let mut camera = Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16, 16, 3, 1]).unwrap(),
             position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
         camera.set_view(camera.position, camera.target, camera.up);
