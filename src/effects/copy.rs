@@ -6,8 +6,7 @@ enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
 
 pub struct CopyEffect {
     gl: Gl,
-    program: program::Program,
-    debug_type: Type
+    program: program::Program
 }
 
 impl CopyEffect {
@@ -17,18 +16,13 @@ impl CopyEffect {
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/effect.vert"),
                                                     include_str!("shaders/copy.frag"))?;
-        Ok(CopyEffect {gl: gl.clone(), program, debug_type: Type::NONE})
-    }
-
-    pub fn change_type(&mut self)
-    {
-        self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (Type::NONE as u32 + 1)).unwrap();
+        Ok(CopyEffect {gl: gl.clone(), program})
     }
 
     pub fn apply(&self, full_screen: &FullScreen, color_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
+        state::depth_test(&self.gl, state::DepthTestType::NONE);
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::NONE);
 
