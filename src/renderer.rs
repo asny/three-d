@@ -52,6 +52,8 @@ pub struct DeferredPipeline {
     gl: Gl,
     light_pass_program: program::Program,
     rendertarget: rendertarget::ColorRendertarget,
+    temp_rendertarget: rendertarget::ColorRendertarget,
+    copy: effects::CopyEffect,
     geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     full_screen: FullScreen,
     ambient_light: AmbientLight,
@@ -77,10 +79,15 @@ impl DeferredPipeline
         let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
 
+        let temp_rendertarget = ColorRendertarget::new(&gl, screen_width, screen_height, 1, true).unwrap();
+        let copy = effects::CopyEffect::new(&gl).unwrap();
+
         Ok(DeferredPipeline {
             gl: gl.clone(),
             light_pass_program,
             rendertarget,
+            temp_rendertarget,
+            copy,
             geometry_pass_rendertarget,
             full_screen: FullScreen::new(gl),
             ambient_light: AmbientLight::new(),
@@ -93,6 +100,7 @@ impl DeferredPipeline
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
+        self.temp_rendertarget = ColorRendertarget::new(&gl, screen_width, screen_height, 1, true).unwrap();
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
         Ok(())
@@ -122,7 +130,12 @@ impl DeferredPipeline
 
     pub fn light_pass(&self) -> Result<(), Error>
     {
-        self.light_pass_render_to(&self.rendertarget)?;
+        self.light_pass_render_to(&self.temp_rendertarget)?;
+
+        self.rendertarget.bind();
+        self.copy.apply(self.full_screen(), &self.temp_rendertarget.targets[0], self.temp_rendertarget.depth_target.as_ref().unwrap()).unwrap();
+
+        //render_target.blit_to(renderer.screen_rendertarget());
         Ok(())
     }
 
