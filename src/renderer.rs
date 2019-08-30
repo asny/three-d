@@ -100,7 +100,7 @@ impl DeferredPipeline
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.temp_rendertarget = ColorRendertarget::new(&gl, screen_width, screen_height, 1, true).unwrap();
+        self.temp_rendertarget = ColorRendertarget::new(&self.gl, screen_width, screen_height, 1, true).unwrap();
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
         Ok(())
@@ -130,12 +130,12 @@ impl DeferredPipeline
 
     pub fn light_pass(&self) -> Result<(), Error>
     {
+        // Necessary to render to a temporary rendertarget to avoid:
+        // GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
         self.light_pass_render_to(&self.temp_rendertarget)?;
-
         self.rendertarget.bind();
-        self.copy.apply(self.full_screen(), &self.temp_rendertarget.targets[0], self.temp_rendertarget.depth_target.as_ref().unwrap()).unwrap();
-
-        //render_target.blit_to(renderer.screen_rendertarget());
+        self.copy.apply(self.full_screen(), &self.temp_rendertarget.targets[0],
+                        self.temp_rendertarget.depth_target.as_ref().unwrap()).unwrap();
         Ok(())
     }
 
