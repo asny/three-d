@@ -31,6 +31,13 @@ impl Gl {
         }
     }
 
+    pub fn finish(&self)
+    {
+        unsafe {
+            self.inner.finish();
+        }
+    }
+
     pub fn bind_buffer_base(&self, target: u32, index: u32, buffer: &Buffer)
     {
         self.inner.bind_buffer_base(target, index, Some(buffer));

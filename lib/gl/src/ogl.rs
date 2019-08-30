@@ -38,6 +38,13 @@ impl Gl {
         gl
     }
 
+    pub fn finish(&self)
+    {
+        unsafe {
+            self.inner.Finish();
+        }
+    }
+
     pub fn create_shader(&self, type_: u32) -> Option<Shader>
     {
         let id = unsafe { self.inner.CreateShader(type_) };
