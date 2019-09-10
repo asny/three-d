@@ -64,7 +64,6 @@ impl Program
             let info = gl.get_active_attrib(&id, i);
             let location = gl.get_attrib_location(&id, &info.name()).unwrap();
             println!("Attribute location: {}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
-            gl.enable_vertex_attrib_array(location);
             vertex_attributes.insert(info.name(), location);
         }
 
@@ -194,6 +193,7 @@ impl Program
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
+        self.gl.enable_vertex_attrib_array(loc);
         self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
@@ -213,6 +213,7 @@ impl Program
         let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
+        self.gl.enable_vertex_attrib_array(loc);
         self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
@@ -224,6 +225,9 @@ impl Program
     {
         self.set_used();
         self.gl.draw_arrays(gl::consts::TRIANGLES, 0, count);
+        for location in self.vertex_attributes.values() {
+            self.gl.disable_vertex_attrib_array(*location);
+        }
         self.gl.unuse_program();
     }
 
@@ -238,6 +242,10 @@ impl Program
         element_buffer.bind();
         self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
         self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+
+        for location in self.vertex_attributes.values() {
+            self.gl.disable_vertex_attrib_array(*location);
+        }
         self.gl.unuse_program();
     }
 
@@ -247,6 +255,9 @@ impl Program
         element_buffer.bind();
         self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, count);
         self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        for location in self.vertex_attributes.values() {
+            self.gl.disable_vertex_attrib_array(*location);
+        }
         self.gl.unuse_program();
     }
 
