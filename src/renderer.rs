@@ -50,11 +50,10 @@ impl From<light::Error> for Error {
 
 pub struct DeferredPipeline {
     gl: Gl,
+    buffer_index: usize,
     light_pass_program: program::Program,
     rendertarget: rendertarget::ColorRendertarget,
-    temp_rendertarget: rendertarget::ColorRendertarget,
-    copy: effects::CopyEffect,
-    geometry_pass_rendertarget: rendertarget::ColorRendertarget,
+    geometry_pass_rendertargets: [rendertarget::ColorRendertarget; 2],
     full_screen: FullScreen,
     ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
@@ -73,22 +72,20 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?;
+        let geometry_pass_rendertargets =
+            [rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?,
+            rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?];
 
 
         let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
 
-        let temp_rendertarget = ColorRendertarget::new(&gl, screen_width, screen_height, 1, true).unwrap();
-        let copy = effects::CopyEffect::new(&gl).unwrap();
-
         Ok(DeferredPipeline {
+            buffer_index: 0,
             gl: gl.clone(),
             light_pass_program,
             rendertarget,
-            temp_rendertarget,
-            copy,
-            geometry_pass_rendertarget,
+            geometry_pass_rendertargets,
             full_screen: FullScreen::new(gl),
             ambient_light: AmbientLight::new(),
             directional_lights: DirectionalLight::new(gl)?,
@@ -100,9 +97,9 @@ impl DeferredPipeline
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.temp_rendertarget = ColorRendertarget::new(&self.gl, screen_width, screen_height, 1, true).unwrap();
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
+        self.geometry_pass_rendertargets[0] = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
+        self.geometry_pass_rendertargets[1] = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
         Ok(())
     }
 
@@ -113,11 +110,15 @@ impl DeferredPipeline
         self.spot_lights.shadow_pass(render_scene);
     }
 
-    pub fn geometry_pass<F>(&self, render_scene: &F) -> Result<(), Error>
+    pub fn geometry_pass<F>(&mut self, render_scene: &F) -> Result<(), Error>
         where F: Fn(&Camera)
     {
-        self.geometry_pass_rendertarget.bind();
-        self.geometry_pass_rendertarget.clear(&self.background_color);
+        // Double buffering is necessary to avoid:
+        // Chrome: GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
+        // Firefox: Error: WebGL warning: drawElements: Texture level 0 would be read by TEXTURE_2D unit 0, but written by framebuffer attachment DEPTH_ATTACHMENT, which would be illegal feedback.
+        self.buffer_index = (self.buffer_index + 1) % 2;
+        self.geometry_pass_rendertargets[self.buffer_index].bind();
+        self.geometry_pass_rendertargets[self.buffer_index].clear(&self.background_color);
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
@@ -130,12 +131,7 @@ impl DeferredPipeline
 
     pub fn light_pass(&self) -> Result<(), Error>
     {
-        // Necessary to render to a temporary rendertarget to avoid:
-        // GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
-        self.light_pass_render_to(&self.temp_rendertarget)?;
-        self.rendertarget.bind();
-        self.copy.apply(self.full_screen(), &self.temp_rendertarget.targets[0],
-                        self.temp_rendertarget.depth_target.as_ref().unwrap()).unwrap();
+        self.light_pass_render_to(&self.rendertarget)?;
         Ok(())
     }
 
@@ -280,26 +276,26 @@ impl DeferredPipeline
 
     pub fn geometry_pass_color_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[0]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[0]
     }
 
     pub fn geometry_pass_position_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[1]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[1]
     }
 
     pub fn geometry_pass_normal_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[2]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[2]
     }
 
     pub fn geometry_pass_surface_parameters_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[3]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[3]
     }
 
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
-        self.geometry_pass_rendertarget.depth_target.as_ref().unwrap()
+        self.geometry_pass_rendertargets[self.buffer_index].depth_target.as_ref().unwrap()
     }
 }
