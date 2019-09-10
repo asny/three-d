@@ -25,7 +25,7 @@ impl DebugEffect {
         self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (Type::NONE as u32 + 1)).unwrap();
     }
 
-    pub fn apply(&self, full_screen: &objects::FullScreen, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &FullScreen, color_texture: &Texture, position_texture: &Texture, normal_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
@@ -45,7 +45,9 @@ impl DebugEffect {
 
         self.program.add_uniform_int("type", &(self.debug_type as i32))?;
 
-        full_screen.render(&self.program);
+        self.program.use_attribute_vec3_float(&full_screen.buffer(), "position", 0).unwrap();
+        self.program.use_attribute_vec2_float(&full_screen.buffer(), "uv_coordinate", 1).unwrap();
+        self.program.draw_arrays(3);
         Ok(())
     }
 

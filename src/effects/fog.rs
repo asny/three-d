@@ -18,17 +18,14 @@ impl FogEffect {
         Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1})
     }
 
-    pub fn apply(&self, full_screen: &objects::FullScreen, time: f32, camera: &camera::Camera, position_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &FullScreen, time: f32, camera: &camera::Camera, position_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
         state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
 
-        position_texture.bind(0);
-        self.program.add_uniform_int("positionMap", &0)?;
-
-        depth_texture.bind(1);
-        self.program.add_uniform_int("depthMap", &1)?;
+        self.program.use_texture(position_texture, "positionMap")?;
+        self.program.use_texture(depth_texture, "depthMap")?;
 
         self.program.add_uniform_vec3("fogColor", &self.color)?;
         self.program.add_uniform_float("fogDensity", &self.density)?;
@@ -36,7 +33,9 @@ impl FogEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        full_screen.render(&self.program);
+        self.program.use_attribute_vec3_float(&full_screen.buffer(), "position", 0).unwrap();
+        self.program.use_attribute_vec2_float(&full_screen.buffer(), "uv_coordinate", 1).unwrap();
+        self.program.draw_arrays(3);
         Ok(())
     }
 

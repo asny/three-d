@@ -1,6 +1,7 @@
 
 use window::{event::*, Window};
 use dust::*;
+use dust::objects::MeshShader;
 
 fn main() {
     let mut window = Window::new_default("Hello, world!").unwrap();
@@ -8,44 +9,41 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
-    // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                    degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+    let monkey = Mesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let plane = Mesh::new_plane(&gl).unwrap();
+    let mesh_shader = MeshShader::new(&gl).unwrap();
 
-    let monkey = objects::ShadedMesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    renderer.ambient_light().set_intensity(0.1);
 
-    let plane_positions: Vec<f32> = vec![
-        -1.0, 0.0, -1.0,
-        1.0, 0.0, -1.0,
-        1.0, 0.0, 1.0,
-        -1.0, 0.0, 1.0
-    ];
-    let plane_normals: Vec<f32> = vec![
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0
-    ];
-    let plane_indices: Vec<u32> = vec![
-        0, 2, 1,
-        0, 3, 2,
-    ];
-    let plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
+    let mut directional_light = renderer.directional_light(0).unwrap();
+    directional_light.set_direction(&vec3(1.0, -1.0, -1.0));
+    directional_light.set_intensity(0.3);
+    directional_light.enable_shadows();
 
-    let ambient_light = crate::light::AmbientLight::new();
+    directional_light = renderer.directional_light(1).unwrap();
+    directional_light.set_direction(&vec3(-1.0, -1.0, 1.0));
+    directional_light.set_intensity(0.3);
+    directional_light.enable_shadows();
 
-    let mut directional_light = dust::light::DirectionalLight::new(vec3(1.0, -1.0, -1.0));
-    directional_light.base.color = vec3(1.0, 0.0, 0.0);
-    directional_light.enable_shadows(&gl, 2.0, 10.0).unwrap();
+    let mut point_light = renderer.point_light(0).unwrap();
+    point_light.set_position(&vec3(5.0, 5.0, 5.0));
+    point_light.set_intensity(0.5);
+    point_light.set_color(&vec3(0.0, 1.0, 0.0));
 
-    let mut point_light = dust::light::PointLight::new(vec3(0.0, 5.0, 5.0));
-    point_light.base.color = vec3(0.0, 1.0, 0.0);
+    point_light = renderer.point_light(1).unwrap();
+    point_light.set_position(&vec3(-5.0, 5.0, -5.0));
+    point_light.set_intensity(0.5);
+    point_light.set_color(&vec3(1.0, 0.0, 0.0));
 
-    let mut spot_light = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
-    spot_light.base.color = vec3(0.0, 0.0, 1.0);
-    spot_light.enable_shadows(&gl, 20.0).unwrap();
+    let spot_light = renderer.spot_light(0).unwrap();
+    spot_light.set_intensity(0.5);
+    spot_light.set_color(&vec3(0.0, 0.0, 1.0));
+    spot_light.set_position(&vec3(5.0, 5.0, 5.0));
+    spot_light.set_direction(&vec3(-1.0, -1.0, -1.0));
+    spot_light.set_cutoff(0.05*std::f32::consts::PI);
+    spot_light.enable_shadows();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
@@ -53,7 +51,7 @@ fn main() {
     window.render_loop(move |events, _elapsed_time|
     {
         for event in events {
-            handle_camera_events(event, &mut camera_handler, &mut camera);
+            handle_camera_events(event, &mut camera_handler, &mut renderer.camera);
             //handle_ambient_light_parameters(event, &mut ambient_light);
             //handle_directional_light_parameters(event, &mut directional_light);
             //handle_surface_parameters(event, &mut monkey);
@@ -61,27 +59,23 @@ fn main() {
 
         // Draw
         let render_scene = |camera: &Camera| {
-            monkey.render(&Mat4::identity(), camera);
+            mesh_shader.render(&monkey, &Mat4::identity(), camera);
         };
 
         // Shadow pass
-        directional_light.shadow_cast_begin().unwrap();
-        render_scene(directional_light.shadow_camera().unwrap());
-
-        spot_light.shadow_cast_begin().unwrap();
-        render_scene(spot_light.shadow_camera().unwrap());
+        renderer.shadow_pass(&render_scene);
 
         // Geometry pass
-        renderer.geometry_pass_begin().unwrap();
-        render_scene(&camera);
-        plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0)) * Mat4::from_scale(10.0)), &camera);
+        renderer.geometry_pass(&|camera|
+            {
+                render_scene(camera);
+                mesh_shader.render(&plane, &(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
+                    * Mat4::from_scale(10.0)), camera);
+            }).unwrap();
 
         // Light pass
-        renderer.light_pass_begin(&camera).unwrap();
-        renderer.shine_ambient_light(&ambient_light).unwrap();
-        renderer.shine_directional_light(&directional_light).unwrap();
-        renderer.shine_point_light(&point_light).unwrap();
-        renderer.shine_spot_light(&spot_light).unwrap();
+        renderer.light_pass().unwrap();
+
     }).unwrap();
 }
 

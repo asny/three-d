@@ -1,6 +1,4 @@
 
-use std::cell::Cell;
-
 pub mod consts {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
@@ -17,24 +15,34 @@ pub mod defines
     pub type Framebuffer = u32;
     pub type Texture = u32;
     pub type VertexArrayObject = u32;
-    pub struct ActiveInfo { pub size: u32, pub _type: u32, pub name: String }
+    pub struct ActiveInfo { size: u32, type_: u32, name: String }
+    impl ActiveInfo {
+        pub fn new(size: u32, type_: u32, name: String) -> ActiveInfo {ActiveInfo {size, type_, name}}
+        pub fn size(&self) -> i32 {self.size as i32}
+        pub fn type_(&self) -> u32 {self.type_}
+        pub fn name(&self) -> String {self.name.clone()}
+    }
 }
 pub use crate::ogl::defines::*;
 
 pub struct Gl {
-    inner: InnerGl,
-    current_program: Cell<u32>,
-    current_arraybuffer: Cell<u32>,
-    current_elementbuffer: Cell<u32>,
+    inner: InnerGl
 }
 
 impl Gl {
     pub fn load_with<F>(loadfn: F) -> Gl
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
-        let gl = Gl { inner: InnerGl::load_with(loadfn), current_program: Cell::new(0), current_arraybuffer: Cell::new(0), current_elementbuffer: Cell::new(0)};
+        let gl = Gl { inner: InnerGl::load_with(loadfn) };
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
         gl
+    }
+
+    pub fn finish(&self)
+    {
+        unsafe {
+            self.inner.Finish();
+        }
     }
 
     pub fn create_shader(&self, type_: u32) -> Option<Shader>
@@ -117,7 +125,7 @@ impl Gl {
 
         let mut s = name.to_string_lossy().into_owned();
         s.truncate(length as usize);
-        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
+        ActiveInfo::new(size as u32, _type as u32, s)
     }
 
     pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
@@ -132,7 +140,7 @@ impl Gl {
 
         let mut s = name.to_string_lossy().into_owned();
         s.truncate(length as usize);
-        ActiveInfo { size: size as u32, _type: _type as u32, name: s }
+        ActiveInfo::new(size as u32, _type as u32, s)
     }
 
     pub fn create_buffer(&self) -> Option<Buffer>
@@ -144,41 +152,68 @@ impl Gl {
         Some(id)
     }
 
-    pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
+    pub fn bind_buffer_base(&self, target: u32, index: u32, buffer: &Buffer)
     {
-        let id = *buffer;
-
-        let current = match target {
-            consts::ARRAY_BUFFER => &self.current_arraybuffer,
-            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
+        let pname = match target {
+            consts::ARRAY_BUFFER => consts::ARRAY_BUFFER_BINDING,
+            consts::ELEMENT_ARRAY_BUFFER => consts::ELEMENT_ARRAY_BUFFER_BINDING,
+            consts::UNIFORM_BUFFER => consts::UNIFORM_BUFFER_BINDING,
             _ => unreachable!()
         };
 
-        if current.get() != id
-        {
-            if current.get() != 0 {
-                panic!("Wrong buffer is bound: {}, {}", id, current.get())
+        unsafe {
+            let mut current = -1;
+            self.inner.GetIntegerv(pname, &mut current);
+            if current != 0
+            {
+                println!("{}", current);
+                panic!();
             }
-            //println!("Buffer {}: {} -> {}", target, current.get(), id);
-            unsafe {
-                self.inner.BindBuffer(target, id);
+            self.inner.BindBufferBase(target, index, *buffer);
+        }
+    }
+
+    pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
+    {
+        let pname = match target {
+            consts::ARRAY_BUFFER => consts::ARRAY_BUFFER_BINDING,
+            consts::ELEMENT_ARRAY_BUFFER => consts::ELEMENT_ARRAY_BUFFER_BINDING,
+            consts::UNIFORM_BUFFER => consts::UNIFORM_BUFFER_BINDING,
+            _ => unreachable!()
+        };
+
+        unsafe {
+            let mut current = -1;
+            self.inner.GetIntegerv(pname, &mut current);
+            if current != 0
+            {
+                println!("{}", current);
+                panic!();
             }
-            current.set(id);
+            self.inner.BindBuffer(target, *buffer);
         }
     }
 
     pub fn unbind_buffer(&self, target: u32)
     {
-        let current = match target {
-            consts::ARRAY_BUFFER => &self.current_arraybuffer,
-            consts::ELEMENT_ARRAY_BUFFER => &self.current_elementbuffer,
-            _ => unreachable!()
-        };
-
         unsafe {
             self.inner.BindBuffer(target, 0);
         }
-        current.set(0);
+    }
+
+    pub fn get_uniform_block_index(&self, program: &Program, name: &str) -> u32
+    {
+        let c_str = std::ffi::CString::new(name).unwrap();
+        unsafe {
+            self.inner.GetUniformBlockIndex(*program, c_str.as_ptr())
+        }
+    }
+
+    pub fn uniform_block_binding(&self, program: &Program, location: u32, index: u32)
+    {
+        unsafe {
+            self.inner.UniformBlockBinding(*program, location, index);
+        }
     }
 
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)
@@ -259,16 +294,15 @@ impl Gl {
 
     pub fn use_program(&self, program: &Program)
     {
-        if self.current_program.get() != *program
-        {
-            if self.current_program.get() != 0 {
-                panic!("Wrong program is bound.")
+        unsafe {
+            let mut current = -1;
+            self.inner.GetIntegerv(consts::CURRENT_PROGRAM, &mut current);
+            if current != 0
+            {
+                println!("{}", current);
+                panic!();
             }
-            //println!("Program {} -> {}", self.current_program.get(), program);
-            unsafe {
-                self.inner.UseProgram(*program);
-            }
-            self.current_program.set(*program);
+            self.inner.UseProgram(*program);
         }
     }
 
@@ -277,7 +311,6 @@ impl Gl {
         unsafe {
             self.inner.UseProgram(0);
         }
-        self.current_program.set(0);
     }
 
     pub fn delete_program(&self, program: &Program)
@@ -340,59 +373,59 @@ impl Gl {
         if location == -1 { None } else { Some(location as UniformLocation) }
     }
 
-    pub fn uniform1i(&self, location: UniformLocation, data: i32)
+    pub fn uniform1i(&self, location: &UniformLocation, data: i32)
     {
         unsafe {
-            self.inner.Uniform1i(location as i32, data);
+            self.inner.Uniform1i(*location as i32, data);
         }
     }
 
-    pub fn uniform1f(&self, location: UniformLocation, data: f32)
+    pub fn uniform1f(&self, location: &UniformLocation, data: f32)
     {
         unsafe {
-            self.inner.Uniform1f(location as i32, data);
+            self.inner.Uniform1f(*location as i32, data);
         }
     }
 
-    pub fn uniform2fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform2fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.Uniform2fv(location as i32, 1, data.as_ptr());
+            self.inner.Uniform2fv(*location as i32, 1, data.as_ptr());
         }
     }
 
-    pub fn uniform3fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform3fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.Uniform3fv(location as i32, 1, data.as_ptr());
+            self.inner.Uniform3fv(*location as i32, 1, data.as_ptr());
         }
     }
 
-    pub fn uniform4fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform4fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.Uniform4fv(location as i32, 1, data.as_ptr());
+            self.inner.Uniform4fv(*location as i32, 1, data.as_ptr());
         }
     }
 
-    pub fn uniform_matrix2fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.UniformMatrix2fv(location as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix2fv(*location as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
-    pub fn uniform_matrix3fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.UniformMatrix3fv(location as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix3fv(*location as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
-    pub fn uniform_matrix4fv(&self, location: UniformLocation, data: &[f32])
+    pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &[f32])
     {
         unsafe {
-            self.inner.UniformMatrix4fv(location as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix4fv(*location as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
@@ -556,6 +589,13 @@ impl Gl {
         }
     }
 
+    pub fn tex_storage_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32)
+    {
+        unsafe {
+            self.inner.TexStorage3D(target, level as i32, internalformat, width as i32, height as i32, depth as i32);
+        }
+    }
+
     pub fn tex_image_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32)
     {
         unsafe {
@@ -577,6 +617,13 @@ impl Gl {
         }
     }
 
+    pub fn tex_image_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32, format: u32, data_type: u32)
+    {
+        unsafe {
+            self.inner.TexImage3D(target, level as i32, internalformat as i32, width as i32, height as i32, depth as i32, 0, format, data_type, std::ptr::null() as *const consts::types::GLvoid);
+        }
+    }
+
     pub fn tex_parameteri(&self, target: u32, pname: u32, param: i32)
     {
         unsafe {
@@ -595,6 +642,13 @@ impl Gl {
     {
         unsafe {
             self.inner.FramebufferTexture2D(target, attachment, textarget, *texture, level as i32);
+        }
+    }
+
+    pub fn framebuffer_texture_layer(&self, target: u32, attachment: u32, texture: &Texture, level: u32, layer: u32)
+    {
+        unsafe {
+            self.inner.FramebufferTextureLayer(target, attachment, *texture, level as i32, layer as i32);
         }
     }
 

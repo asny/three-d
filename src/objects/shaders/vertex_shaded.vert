@@ -1,6 +1,13 @@
 
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+layout (std140) uniform Camera
+{
+    mat4 viewProjection;
+    mat4 view;
+    mat4 projection;
+    vec3 position;
+    float padding;
+} camera;
+
 uniform float scale;
 
 in vec3 translation;
@@ -14,5 +21,5 @@ void main()
 {
     pos = scale * position + translation;
     nor = normalize(position);
-    gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);
+    gl_Position = camera.viewProjection * vec4(pos, 1.0);
 }

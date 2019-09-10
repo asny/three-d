@@ -8,59 +8,47 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    let mirror_renderer = DeferredPipeline::new(&gl, width/2, height/2, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mut mirror_renderer = DeferredPipeline::new(&gl, width/2, height/2, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    mirror_renderer.camera.mirror_in_xz_plane();
     let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width/2, height/2, 1, false).unwrap();
-
-    // Camera
-    let mut camera = camera::PerspectiveCamera::new(vec3(5.0, 5.0, 5.0), vec3(0.0, 1.0, 0.0),
-                                                    vec3(0.0, 1.0, 0.0),degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
     let obj_file = include_str!("assets/models/suzanne.obj").to_string();
     let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.015, &vec3(0.0, 2.0, 0.0));
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
-    let model = objects::ShadedMesh::new_from_obj_source(&gl, obj_file).unwrap();
+    let mut mesh_shader = MeshShader::new(&gl).unwrap();
+    mesh_shader.diffuse_intensity = 0.2;
+    mesh_shader.specular_intensity = 0.4;
+    mesh_shader.specular_power = 20.0;
 
-    let plane_positions: Vec<f32> = vec![
-        -1.0, 0.0, -1.0,
-        1.0, 0.0, -1.0,
-        1.0, 0.0, 1.0,
-        -1.0, 0.0, 1.0
-    ];
-    let plane_normals: Vec<f32> = vec![
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0
-    ];
-    let plane_indices: Vec<u32> = vec![
-        0, 2, 1,
-        0, 3, 2,
-    ];
-    let mut plane = crate::objects::ShadedMesh::new(&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
-    plane.diffuse_intensity = 0.2;
-    plane.specular_intensity = 0.4;
-    plane.specular_power = 20.0;
+    let model = Mesh::new_from_obj_source(&gl, obj_file).unwrap();
+    let plane = Mesh::new_plane(&gl).unwrap();
 
-    let ambient_light = crate::light::AmbientLight::new();
+    let mut light = renderer.spot_light(0).unwrap();
+    light.set_intensity(0.5);
+    light.set_position(&vec3(5.0, 5.0, 5.0));
+    light.set_direction(&vec3(-1.0, -1.0, -1.0));
+    light.enable_shadows();
 
-    let mut light1 = dust::light::SpotLight::new(vec3(5.0, 5.0, 5.0), vec3(-1.0, -1.0, -1.0));
-    light1.enable_shadows(&gl, 20.0).unwrap();
-    light1.base.intensity = 0.5;
+    light = renderer.spot_light(1).unwrap();
+    light.set_intensity(0.5);
+    light.set_position(&vec3(-5.0, 5.0, 5.0));
+    light.set_direction(&vec3(1.0, -1.0, -1.0));
+    light.enable_shadows();
 
-    let mut light2 = dust::light::SpotLight::new(vec3(-5.0, 5.0, 5.0), vec3(1.0, -1.0, -1.0));
-    light2.enable_shadows(&gl, 20.0).unwrap();
-    light2.base.intensity = 0.5;
+    light = renderer.spot_light(2).unwrap();
+    light.set_intensity(0.5);
+    light.set_position(&vec3(-5.0, 5.0, -5.0));
+    light.set_direction(&vec3(1.0, -1.0, 1.0));
+    light.enable_shadows();
 
-    let mut light3 = dust::light::SpotLight::new(vec3(-5.0, 5.0, -5.0), vec3(1.0, -1.0, 1.0));
-    light3.enable_shadows(&gl, 20.0).unwrap();
-    light3.base.intensity = 0.5;
-
-    let mut light4 = dust::light::SpotLight::new(vec3(5.0, 5.0, -5.0), vec3(-1.0, -1.0, 1.0));
-    light4.enable_shadows(&gl, 20.0).unwrap();
-    light4.base.intensity = 0.5;
+    light = renderer.spot_light(3).unwrap();
+    light.set_intensity(0.5);
+    light.set_position(&vec3(5.0, 5.0, -5.0));
+    light.set_direction(&vec3(-1.0, -1.0, 1.0));
+    light.enable_shadows();
 
     // Mirror
     let mirror_program = program::Program::from_source(&gl,
@@ -73,57 +61,35 @@ fn main() {
     window.render_loop(move |events, _elapsed_time|
     {
         for event in events {
-            handle_camera_events(event, &mut camera_handler, &mut camera);
+            handle_camera_events(event, &mut camera_handler, &mut renderer.camera);
         }
+
+        mirror_renderer.camera.set_view(*renderer.camera.position(), *renderer.camera.target(), *renderer.camera.up());
+        mirror_renderer.camera.mirror_in_xz_plane();
 
         // Draw
         let render_scene = |camera: &Camera| {
-            model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
+            mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
             wireframe.render(camera);
         };
 
         // Shadow pass
-        light1.shadow_cast_begin().unwrap();
-        render_scene(light1.shadow_camera().unwrap());
-
-        light2.shadow_cast_begin().unwrap();
-        render_scene(light2.shadow_camera().unwrap());
-
-        light3.shadow_cast_begin().unwrap();
-        render_scene(light3.shadow_camera().unwrap());
-
-        light4.shadow_cast_begin().unwrap();
-        render_scene(light4.shadow_camera().unwrap());
-
-        // Mirror pass
-        camera.mirror_in_xz_plane();
+        renderer.shadow_pass(&render_scene);
 
         // Mirror pass (Geometry pass)
-        mirror_renderer.geometry_pass_begin().unwrap();
-        render_scene(&camera);
+        mirror_renderer.geometry_pass(&render_scene).unwrap();
 
         // Mirror pass (Light pass)
-        mirror_renderer.light_pass_render_to(&camera, &light_pass_rendertarget).unwrap();
-        mirror_renderer.shine_ambient_light(&ambient_light).unwrap();
-        mirror_renderer.shine_spot_light(&light1).unwrap();
-        mirror_renderer.shine_spot_light(&light2).unwrap();
-        mirror_renderer.shine_spot_light(&light3).unwrap();
-        mirror_renderer.shine_spot_light(&light4).unwrap();
-
-        camera.mirror_in_xz_plane();
+        mirror_renderer.light_pass_render_to(&light_pass_rendertarget).unwrap();
 
         // Geometry pass
-        renderer.geometry_pass_begin().unwrap();
-        render_scene(&camera);
-        plane.render(&Mat4::from_scale(100.0), &camera);
+        renderer.geometry_pass(&|camera| {
+            render_scene(camera);
+            mesh_shader.render(&plane, &Mat4::from_scale(100.0), camera);
+        }).unwrap();
 
         // Light pass
-        renderer.light_pass_begin(&camera).unwrap();
-        renderer.shine_ambient_light(&ambient_light).unwrap();
-        renderer.shine_spot_light(&light1).unwrap();
-        renderer.shine_spot_light(&light2).unwrap();
-        renderer.shine_spot_light(&light3).unwrap();
-        renderer.shine_spot_light(&light4).unwrap();
+        renderer.light_pass().unwrap();
 
         // Blend with the result of the mirror pass
         state::blend(&gl,state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
@@ -131,9 +97,10 @@ fn main() {
         state::depth_test(&gl, state::DepthTestType::NONE);
         state::cull(&gl,state::CullType::BACK);
 
-        light_pass_rendertarget.targets[0].bind(0);
-        mirror_program.add_uniform_int("colorMap", &0).unwrap();
-        renderer.full_screen().render(&mirror_program);
+        mirror_program.use_texture(&light_pass_rendertarget.targets[0], "colorMap").unwrap();
+        mirror_program.use_attribute_vec3_float(&renderer.full_screen().buffer(), "position", 0).unwrap();
+        mirror_program.use_attribute_vec2_float(&renderer.full_screen().buffer(), "uv_coordinate", 1).unwrap();
+        mirror_program.draw_arrays(3);
     }).unwrap();
 }
 

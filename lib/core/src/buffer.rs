@@ -2,6 +2,7 @@ use crate::Gl;
 
 #[derive(Debug)]
 pub enum Error {
+    BufferUpdateFailed {message: String}
 }
 
 pub struct VertexBuffer {
@@ -35,31 +36,6 @@ impl VertexBuffer
     {
         self.offsets[index]
     }
-
-    /*pub fn optimize_data_layout(&mut self)
-    {
-        // TODO
-        self.lengths = Vec::new();
-        self.offsets = Vec::new();
-        self.stride = 0;
-        for (data, no_components) in self.data {
-
-        }
-        let mut out_data = vec![0.0; self.stride * self.lengths[0]];
-        let mut offset = 0;
-        for (data, no_components) in self.data
-        {
-            let mut index = offset;
-            for i in 0..no_vertices {
-                for j in 0..no_components {
-                    out_data[index + j] = data[i * no_components + j];
-                }
-                index += stride;
-            }
-            offset += no_components;
-        }
-        out_data
-    }*/
 
     pub fn clear(&mut self)
     {
@@ -126,7 +102,6 @@ impl StaticVertexBuffer {
 
     pub fn send_data(&mut self)
     {
-        //TODO: self.buffer.optimize_data_layout();
         self.buffer.bind();
         self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::STATIC_DRAW);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
@@ -243,3 +218,71 @@ impl ElementBuffer
 
     }
 }
+
+pub struct UniformBuffer {
+    gl: Gl,
+    id: gl::Buffer,
+    offsets: Vec<usize>,
+    data: Vec<f32>
+}
+
+impl UniformBuffer
+{
+    pub fn new(gl: &Gl, sizes: &[u32]) -> Result<UniformBuffer, Error>
+    {
+        let id = gl.create_buffer().unwrap();
+
+        let mut offsets = Vec::new();
+        let mut length = 0;
+        for size in sizes
+        {
+            offsets.push(length);
+            length += *size as usize;
+        }
+        Ok(UniformBuffer{ gl: gl.clone(), id, offsets, data: vec![0.0; length as usize] })
+    }
+
+    pub(crate) fn bind(&self, id: u32)
+    {
+        self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
+    }
+
+    pub fn update(&mut self, index: usize, data: &[f32]) -> Result<(), Error>
+    {
+        let (offset, length) = self.offset_length(index)?;
+        if data.len() != length
+        {
+            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer data for index {} has length {} but it must be {}.", index, data.len(), length)})
+        }
+        self.data.splice(offset..offset+length, data.iter().cloned());
+        self.send();
+        //TODO: Send to GPU (glBufferSubData)
+        Ok(())
+    }
+
+    pub fn get(&self, index: usize) -> Result<&[f32], Error>
+    {
+        let (offset, length) = self.offset_length(index)?;
+        Ok(&self.data[offset..offset+length])
+    }
+
+    fn offset_length(&self, index: usize) -> Result<(usize, usize), Error>
+    {
+        if index >= self.offsets.len()
+        {
+            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer index {} is outside the range 0-{}", index, self.offsets.len()-1)})
+        }
+        let offset = self.offsets[index];
+        let length = if index + 1 == self.offsets.len() {self.data.len()} else {self.offsets[index+1]}  - offset;
+        Ok((offset, length))
+    }
+
+    fn send(&self)
+    {
+        self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
+        self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, &self.data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
+    }
+}
+
+

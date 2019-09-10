@@ -1,8 +1,5 @@
 
-use crate::camera;
-use crate::light;
 use crate::*;
-use crate::objects::FullScreen;
 
 #[derive(Debug)]
 pub enum Error {
@@ -10,7 +7,9 @@ pub enum Error {
     Program(program::Error),
     Rendertarget(rendertarget::Error),
     Texture(texture::Error),
-    LightPassRendertargetNotAvailable {message: String}
+    Buffer(buffer::Error),
+    Light(light::Error),
+    LightExtendsMaxLimit {message: String}
 }
 
 impl From<std::io::Error> for Error {
@@ -37,13 +36,31 @@ impl From<texture::Error> for Error {
     }
 }
 
+impl From<buffer::Error> for Error {
+    fn from(other: buffer::Error) -> Self {
+        Error::Buffer(other)
+    }
+}
+
+impl From<light::Error> for Error {
+    fn from(other: light::Error) -> Self {
+        Error::Light(other)
+    }
+}
+
 pub struct DeferredPipeline {
     gl: Gl,
+    buffer_index: usize,
     light_pass_program: program::Program,
     rendertarget: rendertarget::ColorRendertarget,
-    geometry_pass_rendertarget: rendertarget::ColorRendertarget,
+    geometry_pass_rendertargets: [rendertarget::ColorRendertarget; 2],
     full_screen: FullScreen,
-    pub background_color: Vec4
+    ambient_light: AmbientLight,
+    directional_lights: DirectionalLight,
+    point_lights: PointLight,
+    spot_lights: SpotLight,
+    pub background_color: Vec4,
+    pub camera: Camera
 }
 
 
@@ -51,41 +68,74 @@ impl DeferredPipeline
 {
     pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, background_color: Vec4) -> Result<DeferredPipeline, Error>
     {
-        let light_pass_program = program::Program::from_source(&gl,
+        let light_pass_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?;
-        Ok(DeferredPipeline { gl: gl.clone(), light_pass_program, rendertarget, geometry_pass_rendertarget, full_screen: FullScreen::new(gl), background_color })
+        let geometry_pass_rendertargets =
+            [rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?,
+            rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?];
+
+
+        let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                    degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
+
+        Ok(DeferredPipeline {
+            buffer_index: 0,
+            gl: gl.clone(),
+            light_pass_program,
+            rendertarget,
+            geometry_pass_rendertargets,
+            full_screen: FullScreen::new(gl),
+            ambient_light: AmbientLight::new(),
+            directional_lights: DirectionalLight::new(gl)?,
+            point_lights: PointLight::new(gl)?,
+            spot_lights: SpotLight::new(gl)?,
+            background_color,
+            camera })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
-        self.geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
+        self.geometry_pass_rendertargets[0] = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
+        self.geometry_pass_rendertargets[1] = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
         Ok(())
     }
 
-    pub fn geometry_pass_begin(&self) -> Result<(), Error>
+    pub fn shadow_pass<F>(&self, render_scene: &F)
+        where F: Fn(&Camera)
     {
-        self.geometry_pass_rendertarget.bind();
-        self.geometry_pass_rendertarget.clear(&self.background_color);
+        self.directional_lights.shadow_pass(render_scene);
+        self.spot_lights.shadow_pass(render_scene);
+    }
+
+    pub fn geometry_pass<F>(&mut self, render_scene: &F) -> Result<(), Error>
+        where F: Fn(&Camera)
+    {
+        // Double buffering is necessary to avoid:
+        // Chrome: GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
+        // Firefox: Error: WebGL warning: drawElements: Texture level 0 would be read by TEXTURE_2D unit 0, but written by framebuffer attachment DEPTH_ATTACHMENT, which would be illegal feedback.
+        self.buffer_index = (self.buffer_index + 1) % self.geometry_pass_rendertargets.len();
+        self.geometry_pass_rendertargets[self.buffer_index].bind();
+        self.geometry_pass_rendertargets[self.buffer_index].clear(&self.background_color);
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
         state::cull(&self.gl, state::CullType::NONE);
         state::blend(&self.gl, state::BlendType::NONE);
 
+        render_scene(&self.camera);
         Ok(())
     }
 
-    pub fn light_pass_begin(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn light_pass(&self) -> Result<(), Error>
     {
-        self.light_pass_render_to(camera, &self.rendertarget)?;
+        self.light_pass_render_to(&self.rendertarget)?;
         Ok(())
     }
 
-    pub fn light_pass_render_to(&self, camera: &camera::Camera, rendertarget: &ColorRendertarget) -> Result<(), Error>
+    pub fn light_pass_render_to(&self, rendertarget: &ColorRendertarget) -> Result<(), Error>
     {
         rendertarget.bind();
         rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
@@ -95,57 +145,73 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::ONE__ONE);
 
-        self.geometry_pass_color_texture().bind(0);
-        self.light_pass_program.add_uniform_int("colorMap", &0)?;
+        self.light_pass_program.use_texture(self.geometry_pass_color_texture(), "colorMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_position_texture(), "positionMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_normal_texture(), "normalMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_surface_parameters_texture(), "surfaceParametersMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
 
-        self.geometry_pass_position_texture().bind(1);
-        self.light_pass_program.add_uniform_int("positionMap", &1)?;
+        self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
 
-        self.geometry_pass_normal_texture().bind(2);
-        self.light_pass_program.add_uniform_int("normalMap", &2)?;
+        // Ambient light
+        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color())?;
+        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity())?;
 
-        self.geometry_pass_surface_parameters_texture().bind(3);
-        self.light_pass_program.add_uniform_int("surfaceParametersMap", &3)?;
+        // Directional lights
+        self.light_pass_program.use_texture(self.directional_lights.shadow_maps(), "directionalLightShadowMaps")?;
+        self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "DirectionalLights");
 
-        self.geometry_pass_depth_texture().bind(4);
-        self.light_pass_program.add_uniform_int("depthMap", &4)?;
+        // Point lights
+        self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
 
-        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
+        // Spot lights
+        self.light_pass_program.use_texture(self.spot_lights.shadow_maps(), "spotLightShadowMaps")?;
+        self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");
 
+        // Render
+        self.light_pass_program.use_attribute_vec3_float(&self.full_screen.buffer(), "position", 0).unwrap();
+        self.light_pass_program.use_attribute_vec2_float(&self.full_screen.buffer(), "uv_coordinate", 1).unwrap();
+        self.light_pass_program.draw_arrays(3);
         Ok(())
     }
 
-    pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
+    pub fn ambient_light(&mut self) -> &mut AmbientLight
+    {
+        &mut self.ambient_light
+    }
+
+    pub fn directional_light(&mut self, index: usize) -> Result<&mut DirectionalLight, Error>
+    {
+        if index >= light::MAX_NO_LIGHTS
+        {
+            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get directional light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
+        }
+        Ok(self.directional_lights.light_at(index))
+    }
+
+    pub fn point_light(&mut self, index: usize) -> Result<&mut PointLight, Error>
+    {
+        if index >= light::MAX_NO_LIGHTS
+        {
+            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get point light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
+        }
+        Ok(self.point_lights.light_at(index))
+    }
+
+    pub fn spot_light(&mut self, index: usize) -> Result<&mut SpotLight, Error>
+    {
+        if index >= light::MAX_NO_LIGHTS
+        {
+            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get spot light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
+        }
+        Ok(self.spot_lights.light_at(index))
+    }
+
+    /*pub fn shine_ambient_light(&self, light: &light::AmbientLight) -> Result<(), Error>
     {
         self.light_pass_program.add_uniform_int("lightType", &0)?;
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.base.color)?;
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.base.intensity)?;
-
-        self.full_screen.render(&self.light_pass_program);
-        Ok(())
-    }
-
-    pub fn shine_directional_light(&self, light: &light::DirectionalLight) -> Result<(), Error>
-    {
-        if let Ok(shadow_camera) = light.shadow_camera() {
-            use crate::camera::Camera;
-            let bias_matrix = crate::Mat4::new(
-                                 0.5, 0.0, 0.0, 0.0,
-                                 0.0, 0.5, 0.0, 0.0,
-                                 0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0);
-            self.light_pass_program.add_uniform_mat4("shadowMVP", &(bias_matrix * *shadow_camera.get_projection() * *shadow_camera.get_view()))?;
-
-            light.shadow_rendertarget.as_ref().unwrap().target.bind(5);
-            self.light_pass_program.add_uniform_int("shadowMap", &5)?;
-        }
-
-        //self.light_pass_program.add_uniform_int("shadowCubeMap", &6)?;
-
-        self.light_pass_program.add_uniform_int("lightType", &1)?;
-        self.light_pass_program.add_uniform_vec3("directionalLight.direction", &light.direction)?;
-        self.light_pass_program.add_uniform_vec3("directionalLight.base.color", &light.base.color)?;
-        self.light_pass_program.add_uniform_float("directionalLight.base.intensity", &light.base.intensity)?;
 
         self.full_screen.render(&self.light_pass_program);
         Ok(())
@@ -171,7 +237,6 @@ impl DeferredPipeline
     pub fn shine_spot_light(&self, light: &light::SpotLight) -> Result<(), Error>
     {
         if let Ok(shadow_camera) = light.shadow_camera() {
-            use crate::camera::Camera;
             let bias_matrix = crate::Mat4::new(
                                  0.5, 0.0, 0.0, 0.0,
                                  0.0, 0.5, 0.0, 0.0,
@@ -197,7 +262,7 @@ impl DeferredPipeline
 
         self.full_screen.render(&self.light_pass_program);
         Ok(())
-    }
+    }*/
 
     pub fn full_screen(&self) -> &FullScreen
     {
@@ -211,26 +276,26 @@ impl DeferredPipeline
 
     pub fn geometry_pass_color_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[0]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[0]
     }
 
     pub fn geometry_pass_position_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[1]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[1]
     }
 
     pub fn geometry_pass_normal_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[2]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[2]
     }
 
     pub fn geometry_pass_surface_parameters_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertarget.targets[3]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets[3]
     }
 
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
-        self.geometry_pass_rendertarget.depth_target.as_ref().unwrap()
+        self.geometry_pass_rendertargets[self.buffer_index].depth_target.as_ref().unwrap()
     }
 }

@@ -3,13 +3,11 @@ uniform sampler2D colorMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
 uniform sampler2D surfaceParametersMap;
-uniform sampler2D shadowMap;
 uniform samplerCube shadowCubeMap;
 
 layout (location = 0) out vec4 color;
 
 uniform vec3 eyePosition;
-uniform mat4 shadowMVP;
 uniform mat4 shadowMVP0;
 uniform mat4 shadowMVP1;
 uniform mat4 shadowMVP2;
@@ -18,6 +16,10 @@ uniform mat4 shadowMVP4;
 uniform mat4 shadowMVP5;
 
 in vec2 uv;
+
+const int MAX_NO_LIGHTS = 4;
+uniform sampler2DArray directionalLightShadowMaps;
+uniform sampler2DArray spotLightShadowMaps;
 
 struct BaseLight
 {
@@ -30,6 +32,7 @@ struct Attenuation
     float constant;
     float linear;
     float exp;
+    float padding;
 };
 
 struct AmbientLight
@@ -41,39 +44,55 @@ struct DirectionalLight
 {
     BaseLight base;
     vec3 direction;
+    float padding;
+    mat4 shadowMVP;
 };
 
 struct PointLight
 {
     BaseLight base;
-    vec3 position;
     Attenuation attenuation;
+    vec3 position;
+    float padding;
 };
 
 struct SpotLight
 {
     BaseLight base;
-    vec3 position;
-    vec3 direction;
     Attenuation attenuation;
+    vec3 position;
     float cutoff;
+    vec3 direction;
+    float padding;
+    mat4 shadowMVP;
 };
 
 uniform AmbientLight ambientLight;
-uniform DirectionalLight directionalLight;
-uniform PointLight pointLight;
-uniform SpotLight spotLight;
-uniform int lightType;
 
-float is_visible(vec4 shadow_coord, vec2 offset)
+layout (std140) uniform DirectionalLights
+{
+    DirectionalLight directionalLights[MAX_NO_LIGHTS];
+};
+
+layout (std140) uniform PointLights
+{
+    PointLight pointLights[MAX_NO_LIGHTS];
+};
+
+layout (std140) uniform SpotLights
+{
+    SpotLight spotLights[MAX_NO_LIGHTS];
+};
+
+float is_visible(int lightIndex, sampler2DArray shadowMap, vec4 shadow_coord, vec2 offset)
 {
     vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
     float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
-    float shadow_cast_distance = texture(shadowMap, uv).x;
+    float shadow_cast_distance = texture(shadowMap, vec3(uv, lightIndex)).x;
     return uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
-float calculate_shadow(vec3 position)
+float calculate_shadow(int lightIndex, sampler2DArray shadowMap, mat4 shadowMVP, vec3 position)
 {
     vec4 shadow_coord = shadowMVP * vec4(position, 1.);
     float visibility = 0.0;
@@ -85,7 +104,7 @@ float calculate_shadow(vec3 position)
                                  );
     for (int i=0;i<4;i++)
     {
-        visibility += is_visible(shadow_coord, poissonDisk[i] * 0.001f);
+        visibility += is_visible(lightIndex, shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
 }
@@ -135,16 +154,11 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
     return color / max(1.0, att);
 }
 
-vec3 calculate_directional_light(vec3 position)
-{
-    return calculate_shadow(position) * calculate_light(directionalLight.base, directionalLight.direction, position);
-}
-
-vec3 calculate_point_light(vec3 position)
+/*vec3 calculate_point_light(vec3 position)
 {
     vec3 color = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position);
 
-    /*mat4 shadowMatrix;
+    mat4 shadowMatrix;
     float x = abs(lightDirection.x);
     float y = abs(lightDirection.y);
     float z = abs(lightDirection.z);
@@ -187,23 +201,26 @@ vec3 calculate_point_light(vec3 position)
     if ( texture(shadowCubeMap, lightDirection).x < (shadow_coord.z - 0.005)/shadow_coord.w)
     {
         shadow = 0.5f;
-    }*/
+    }
 
     return color;
-}
+}*/
 
-vec3 calculate_spot_light(vec3 position)
+vec3 calculate_spot_light(int i, vec3 position)
 {
-    vec3 light_direction = normalize(position - spotLight.position);
-    float SpotFactor = dot(light_direction, spotLight.direction);
+    SpotLight spotLight = spotLights[i];
+    if(spotLight.base.intensity > 0.0)
+    {
+        vec3 light_direction = normalize(position - spotLight.position);
+        float SpotFactor = dot(light_direction, spotLight.direction);
 
-    if (SpotFactor > spotLight.cutoff) {
-        vec3 color = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position);
-        return calculate_shadow(position) * color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
+        if (SpotFactor > spotLight.cutoff) {
+            return calculate_shadow(i, spotLightShadowMaps, spotLight.shadowMVP, position) *
+                calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position)
+                * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
+        }
     }
-    else {
-        return vec3(0.0);
-    }
+    return vec3(0.0);
 }
 
 void main()
@@ -213,30 +230,26 @@ void main()
     bool is_far_away = depth > 0.99999;
     vec3 position = texture(positionMap, uv).xyz;
 
-    vec3 light = vec3(0.0);
-    if(lightType == 0)
+    vec3 light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
+    if(!is_far_away)
     {
-        light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
-    }
-    else if(lightType == 1)
-    {
-        if(!is_far_away)
+        for(int i = 0; i < MAX_NO_LIGHTS; i++)
         {
-            light = calculate_directional_light(position);
-        }
-    }
-    else if(lightType == 2)
-    {
-        if(!is_far_away)
-        {
-            light = calculate_point_light(position);
-        }
-    }
-    else if(lightType == 3)
-    {
-        if(!is_far_away)
-        {
-            light = calculate_spot_light(position);
+            DirectionalLight directionalLight = directionalLights[i];
+            if(directionalLight.base.intensity > 0.0)
+            {
+                light += calculate_shadow(i, directionalLightShadowMaps, directionalLight.shadowMVP, position)
+                    * calculate_light(directionalLight.base, directionalLight.direction, position);
+            }
+
+            PointLight pointLight = pointLights[i];
+            if(pointLight.base.intensity > 0.0)
+            {
+                light += calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position);
+            }
+
+            light += calculate_spot_light(i, position);
+
         }
     }
 

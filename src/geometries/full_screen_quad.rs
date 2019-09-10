@@ -1,4 +1,6 @@
-use crate::*;
+
+use crate::buffer::*;
+use crate::core::Gl;
 
 pub struct FullScreen
 {
@@ -23,10 +25,8 @@ impl FullScreen {
         FullScreen {buffer}
     }
 
-    pub fn render(&self, program: &program::Program)
+    pub fn buffer(&self) -> &VertexBuffer
     {
-        program.use_attribute_vec3_float(&self.buffer, "position", 0).unwrap();
-        program.use_attribute_vec2_float(&self.buffer, "uv_coordinate", 1).unwrap();
-        program.draw_arrays(3);
+        &self.buffer
     }
 }

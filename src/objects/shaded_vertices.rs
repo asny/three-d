@@ -66,9 +66,7 @@ impl ShadedVertices
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
         self.program.add_uniform_float("scale", &self.scale).unwrap();
-
-        self.program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
-        self.program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+        self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();
 
