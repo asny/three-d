@@ -116,7 +116,7 @@ impl DeferredPipeline
         // Double buffering is necessary to avoid:
         // Chrome: GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
         // Firefox: Error: WebGL warning: drawElements: Texture level 0 would be read by TEXTURE_2D unit 0, but written by framebuffer attachment DEPTH_ATTACHMENT, which would be illegal feedback.
-        self.buffer_index = (self.buffer_index + 1) % 2;
+        self.buffer_index = (self.buffer_index + 1) % self.geometry_pass_rendertargets.len();
         self.geometry_pass_rendertargets[self.buffer_index].bind();
         self.geometry_pass_rendertargets[self.buffer_index].clear(&self.background_color);
 
