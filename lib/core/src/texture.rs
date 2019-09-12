@@ -263,12 +263,10 @@ impl Texture2DArray
         let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY };
 
         bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::LINEAR as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_BASE_LEVEL, 0);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAX_LEVEL, 0);
 
         gl.tex_storage_3d(texture.target,
                         1,
