@@ -18,13 +18,13 @@ impl FogEffect {
         Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1})
     }
 
-    pub fn apply(&self, full_screen: &FullScreen, time: f32, camera: &camera::Camera, position_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &FullScreen, time: f32, camera: &camera::Camera, geometry_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
         state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
 
-        self.program.use_texture(position_texture, "positionMap")?;
+        self.program.use_texture(geometry_texture, "gbuffer")?;
         self.program.use_texture(depth_texture, "depthMap")?;
 
         self.program.add_uniform_vec3("fogColor", &self.color)?;

@@ -1,7 +1,5 @@
 
-uniform sampler2D positionMap;
-uniform sampler2D normalMap;
-uniform sampler2D colorMap;
+uniform sampler2DArray gbuffer;
 uniform sampler2D depthMap;
 
 uniform int type;
@@ -24,15 +22,15 @@ void main()
 {
     if(type == 0) // Position
     {
-        color = vec4(texture(positionMap, uv).xyz, 1.);
+        color = vec4(texture(gbuffer, vec3(uv, 1)).xyz, 1.);
     }
     else if(type == 1) // Normal
     {
-        color = vec4(0.5 * normalize(texture(normalMap, uv).xyz) + 0.5, 1.);
+        color = vec4(0.5 * normalize(texture(gbuffer, vec3(uv, 2)).xyz) + 0.5, 1.);
     }
     else if(type == 2) // Color
     {
-        color = vec4(texture(colorMap, uv).xyz, 1.);
+        color = vec4(texture(gbuffer, vec3(uv, 0)).xyz, 1.);
     }
     else if(type == 3) // Depth
     {

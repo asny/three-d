@@ -52,8 +52,8 @@ fn main() {
         renderer.light_pass().unwrap();
 
         // Effect
-        fog_effect.apply(renderer.full_screen(), time as f32, &renderer.camera, renderer.geometry_pass_position_texture(), renderer.geometry_pass_depth_texture()).unwrap();
-        debug_effect.apply(renderer.full_screen(), renderer.geometry_pass_color_texture(), renderer.geometry_pass_position_texture(), renderer.geometry_pass_normal_texture(), renderer.geometry_pass_depth_texture()).unwrap();
+        fog_effect.apply(renderer.full_screen(), time as f32, &renderer.camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
+        debug_effect.apply(renderer.full_screen(), renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
     }).unwrap();
 }
 

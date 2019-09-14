@@ -1,5 +1,5 @@
 
-uniform sampler2D positionMap;
+uniform sampler2DArray gbuffer;
 uniform sampler2D depthMap;
 
 uniform float time;
@@ -129,7 +129,7 @@ float snoise(vec3 v)
 void main()
 {
     float depth = texture(depthMap, uv).x;
-    vec4 pos = texture(positionMap, uv);
+    vec4 pos = texture(gbuffer, vec3(uv, 1));
 
     // Distance
     float dist = depth < 0.999f ? distance(pos.xyz, eyePosition) : 100.f;
