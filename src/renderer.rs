@@ -53,7 +53,7 @@ pub struct DeferredPipeline {
     buffer_index: usize,
     light_pass_program: program::Program,
     rendertarget: rendertarget::ColorRendertarget,
-    geometry_pass_rendertargets: [rendertarget::ColorRendertarget; 2],
+    geometry_pass_rendertargets: [rendertarget::ColorRendertargetArray; 2],
     full_screen: FullScreen,
     ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
@@ -73,8 +73,8 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
         let geometry_pass_rendertargets =
-            [rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?,
-            rendertarget::ColorRendertarget::new(gl, screen_width, screen_height, 4, true)?];
+            [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 4, true)?,
+            rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 4, true)?];
 
 
         let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -98,8 +98,8 @@ impl DeferredPipeline
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
-        self.geometry_pass_rendertargets[0] = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
-        self.geometry_pass_rendertargets[1] = rendertarget::ColorRendertarget::new(&self.gl, screen_width, screen_height, 4, true)?;
+        self.geometry_pass_rendertargets[0] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 4, true)?;
+        self.geometry_pass_rendertargets[1] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 4, true)?;
         Ok(())
     }
 
@@ -145,10 +145,7 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::ONE__ONE);
 
-        self.light_pass_program.use_texture(self.geometry_pass_color_texture(), "colorMap")?;
-        self.light_pass_program.use_texture(self.geometry_pass_position_texture(), "positionMap")?;
-        self.light_pass_program.use_texture(self.geometry_pass_normal_texture(), "normalMap")?;
-        self.light_pass_program.use_texture(self.geometry_pass_surface_parameters_texture(), "surfaceParametersMap")?;
+        self.light_pass_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
         self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
@@ -274,26 +271,10 @@ impl DeferredPipeline
         &self.rendertarget
     }
 
-    pub fn geometry_pass_color_texture(&self) -> &Texture
+    pub fn geometry_pass_texture(&self) -> &Texture
     {
-        &self.geometry_pass_rendertargets[self.buffer_index].targets[0]
+        &self.geometry_pass_rendertargets[self.buffer_index].targets
     }
-
-    pub fn geometry_pass_position_texture(&self) -> &Texture
-    {
-        &self.geometry_pass_rendertargets[self.buffer_index].targets[1]
-    }
-
-    pub fn geometry_pass_normal_texture(&self) -> &Texture
-    {
-        &self.geometry_pass_rendertargets[self.buffer_index].targets[2]
-    }
-
-    pub fn geometry_pass_surface_parameters_texture(&self) -> &Texture
-    {
-        &self.geometry_pass_rendertargets[self.buffer_index].targets[3]
-    }
-
     pub fn geometry_pass_depth_texture(&self) -> &Texture
     {
         self.geometry_pass_rendertargets[self.buffer_index].depth_target.as_ref().unwrap()

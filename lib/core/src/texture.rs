@@ -258,7 +258,7 @@ pub struct Texture2DArray {
 // TEXTURE 3D
 impl Texture2DArray
 {
-    pub fn new_as_color_targets(gl: &Gl, width: usize, height: usize, layers: u32) -> Result<Texture2DArray, Error>
+    pub fn new_as_color_targets(gl: &Gl, width: usize, height: usize, layers: usize) -> Result<Texture2DArray, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::COLOR_ATTACHMENT0 };

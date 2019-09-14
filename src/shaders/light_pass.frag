@@ -1,8 +1,5 @@
-uniform sampler2D positionMap;
-uniform sampler2D colorMap;
-uniform sampler2D normalMap;
+uniform sampler2DArray gbuffer;
 uniform sampler2D depthMap;
-uniform sampler2D surfaceParametersMap;
 uniform samplerCube shadowCubeMap;
 
 layout (location = 0) out vec4 color;
@@ -111,8 +108,8 @@ float calculate_shadow(int lightIndex, sampler2DArray shadowMap, mat4 shadowMVP,
 
 vec3 calculate_light(BaseLight light, vec3 lightDirection, vec3 position)
 {
-    vec3 normal = normalize(texture(normalMap, uv).xyz);
-    vec4 surface_parameters = texture(surfaceParametersMap, uv);
+    vec3 normal = normalize(texture(gbuffer, vec3(uv, 2)).xyz);
+    vec4 surface_parameters = texture(gbuffer, vec3(uv, 3));
     float surface_diffuse_intensity = surface_parameters.x;
     float surface_specular_intensity = surface_parameters.y;
     float surface_specular_power = surface_parameters.z;
@@ -226,9 +223,9 @@ vec3 calculate_spot_light(int i, vec3 position)
 void main()
 {
     float depth = texture(depthMap, uv).r;
-   	vec3 surface_color = texture(colorMap, uv).rgb;
+   	vec3 surface_color = texture(gbuffer, vec3(uv, 0)).rgb;
     bool is_far_away = depth > 0.99999;
-    vec3 position = texture(positionMap, uv).xyz;
+    vec3 position = texture(gbuffer, vec3(uv, 1)).xyz;
 
     vec3 light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
     if(!is_far_away)

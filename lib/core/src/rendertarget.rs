@@ -122,6 +122,87 @@ impl Drop for ColorRendertarget {
     }
 }
 
+// COLOR RENDER TARGET ARRAY
+pub struct ColorRendertargetArray {
+    gl: Gl,
+    id: Option<gl::Framebuffer>,
+    pub width: usize,
+    pub height: usize,
+    pub targets: Texture2DArray,
+    pub depth_target: Option<Texture2D>
+}
+
+impl ColorRendertargetArray
+{
+    pub fn new(gl: &Gl, width: usize, height: usize, no_targets: usize, depth: bool) -> Result<ColorRendertargetArray, Error>
+    {
+        let id = generate(gl)?;
+        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
+
+        let targets = Texture2DArray::new_as_color_targets(gl, width, height, no_targets)?;
+        let mut draw_buffers = Vec::new();
+        for i in 0..no_targets {
+            targets.bind_to_framebuffer(i, i);
+            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
+        }
+        gl.draw_buffers(&draw_buffers);
+
+        let depth_target = if depth
+        {
+            Some(Texture2D::new_as_depth_target(gl, width, height)?)
+        }
+        else {None};
+        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(ColorRendertargetArray { gl: gl.clone(), id: Some(id), width, height, targets, depth_target })
+    }
+
+    pub fn bind(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
+        self.gl.viewport(0, 0, self.width as i32, self.height as i32);
+    }
+
+    pub fn bind_for_read(&self)
+    {
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, self.id.as_ref());
+    }
+
+    pub fn clear(&self, color: &Vec4)
+    {
+        self.gl.clear_color(color.x, color.y, color.z, color.w);
+        if self.depth_target.is_some() {
+            depth_write(&self.gl,true);
+            self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
+        }
+        else {
+            self.gl.clear(gl::consts::COLOR_BUFFER_BIT);
+        }
+    }
+
+    pub fn clear_depth(&self)
+    {
+        if self.depth_target.is_some() {
+            depth_write(&self.gl, true);
+            self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
+        }
+    }
+
+    pub fn blit_to(&self, target: &ColorRendertarget)
+    {
+        self.bind_for_read();
+        target.bind();
+        self.gl.blit_framebuffer(0, 0, self.width as u32, self.height as u32,
+                                 0, 0, target.width as u32, target.height as u32,
+                                 gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
+    }
+}
+
+impl Drop for ColorRendertargetArray {
+    fn drop(&mut self) {
+        self.gl.delete_framebuffer(self.id.as_ref());
+    }
+}
+
 // DEPTH RENDER TARGET
 pub struct DepthRenderTarget {
     gl: Gl,
