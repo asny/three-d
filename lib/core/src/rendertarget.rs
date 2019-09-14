@@ -198,7 +198,7 @@ impl DepthRenderTargetArray
     {
         self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&self.id));
         self.gl.viewport(0, 0, self.width as i32, self.height as i32);
-        self.target.bind_to_framebuffer(layer);
+        self.target.bind_to_framebuffer(layer, 0);
     }
 
     pub fn clear(&self)

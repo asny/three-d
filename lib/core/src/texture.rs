@@ -251,16 +251,39 @@ impl Drop for Texture3D
 pub struct Texture2DArray {
     gl: Gl,
     id: gl::Texture,
-    target: u32
+    target: u32,
+    attachment: u32
 }
 
 // TEXTURE 3D
 impl Texture2DArray
 {
+    pub fn new_as_color_targets(gl: &Gl, width: usize, height: usize, layers: u32) -> Result<Texture2DArray, Error>
+    {
+        let id = generate(gl)?;
+        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::COLOR_ATTACHMENT0 };
+
+        bind(&texture.gl, &texture.id, texture.target);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
+
+        gl.tex_storage_3d(texture.target,
+                        1,
+                        gl::consts::RGBA16F,
+                        width as u32,
+                        height as u32,
+                        layers as u32);
+
+        texture.bind_to_framebuffer(0, 0);
+        Ok(texture)
+    }
+
     pub fn new_as_depth_targets(gl: &Gl, width: usize, height: usize, layers: usize) -> Result<Texture2DArray, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY };
+        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::DEPTH_ATTACHMENT };
 
         bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
@@ -275,14 +298,13 @@ impl Texture2DArray
                         height as u32,
                         layers as u32);
 
-        texture.bind_to_framebuffer(0);
-
+        texture.bind_to_framebuffer(0, 0);
         Ok(texture)
     }
 
-    pub fn bind_to_framebuffer(&self, layer: usize)
+    pub fn bind_to_framebuffer(&self, layer: usize, channel: usize)
     {
-        self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, &self.id, 0, layer as u32);
+        self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER, self.attachment + channel as u32, &self.id, 0, layer as u32);
     }
 }
 
