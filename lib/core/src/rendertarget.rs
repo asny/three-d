@@ -142,7 +142,6 @@ impl ColorRendertargetArray
         let targets = Texture2DArray::new_as_color_targets(gl, width, height, no_targets)?;
         let mut draw_buffers = Vec::new();
         for i in 0..no_targets {
-            targets.bind_to_framebuffer(i, i);
             draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
         }
         gl.draw_buffers(&draw_buffers);
@@ -152,6 +151,7 @@ impl ColorRendertargetArray
             Some(Texture2D::new_as_depth_target(gl, width, height)?)
         }
         else {None};
+
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(ColorRendertargetArray { gl: gl.clone(), id: Some(id), width, height, targets, depth_target })
     }
