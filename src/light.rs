@@ -113,6 +113,10 @@ impl DirectionalLight {
         }
     }
 
+    pub fn is_shadows_enabled(&self) -> bool {
+        self.shadow_cameras[self.index].is_some()
+    }
+
     pub fn enable_shadows(&mut self)
     {
         let d = self.light_buffer.get(self.index_at(2)).unwrap();
@@ -127,6 +131,7 @@ impl DirectionalLight {
     pub fn disable_shadows(&mut self)
     {
         self.shadow_cameras[self.index] = None;
+        self.light_buffer.update(self.index_at(4), &Mat4::from_value(0.0).to_slice()).unwrap();
     }
 
     pub(crate) fn shadow_pass<F>(&self, render_scene: &F)
@@ -324,6 +329,10 @@ impl SpotLight {
         }
     }
 
+    pub fn is_shadows_enabled(&self) -> bool {
+        self.shadow_cameras[self.index].is_some()
+    }
+
     pub fn enable_shadows(&mut self)
     {
         self.shadow_cameras[self.index] = Some(Camera::new(&self.gl));
@@ -333,6 +342,7 @@ impl SpotLight {
     pub fn disable_shadows(&mut self)
     {
         self.shadow_cameras[self.index] = None;
+        self.light_buffer.update(self.index_at(10), &Mat4::from_value(0.0).to_slice()).unwrap();
     }
 
     pub(crate) fn shadow_pass<F>(&self, render_scene: &F)

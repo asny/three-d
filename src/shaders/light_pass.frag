@@ -91,6 +91,10 @@ float is_visible(int lightIndex, sampler2DArray shadowMap, vec4 shadow_coord, ve
 
 float calculate_shadow(int lightIndex, sampler2DArray shadowMap, mat4 shadowMVP, vec3 position)
 {
+    if(shadowMVP[3][3] < 0.1) // Shadow disabled
+    {
+        return 1.0;
+    }
     vec4 shadow_coord = shadowMVP * vec4(position, 1.);
     float visibility = 0.0;
     vec2 poissonDisk[4] = vec2[](
