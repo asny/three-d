@@ -25,7 +25,7 @@ pub struct ColorRendertarget {
     id: Option<gl::Framebuffer>,
     pub width: usize,
     pub height: usize,
-    pub targets: Vec<Texture2D>,
+    pub target: Option<Texture2D>,
     pub depth_target: Option<Texture2D>
 }
 
@@ -33,22 +33,16 @@ impl ColorRendertarget
 {
     pub fn default(gl: &Gl, width: usize, height: usize) -> Result<ColorRendertarget, Error>
     {
-        Ok(ColorRendertarget { gl: gl.clone(), width, height, id: None, targets: Vec::new(), depth_target: None })
+        Ok(ColorRendertarget { gl: gl.clone(), width, height, id: None, target: None, depth_target: None })
     }
 
-    pub fn new(gl: &Gl, width: usize, height: usize, no_targets: usize, depth: bool) -> Result<ColorRendertarget, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize, depth: bool) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
         gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
 
-        let mut draw_buffers = Vec::new();
-        let mut targets = Vec::new();
-        for i in 0..no_targets {
-            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
-            targets.push(Texture2D::new_as_color_target(gl, width, height, i as u32)?)
-        }
-
-        gl.draw_buffers(&draw_buffers);
+        let target = Some(Texture2D::new_as_color_target(gl, width, height, 0)?);
+        gl.draw_buffers(&[gl::consts::COLOR_ATTACHMENT0]);
 
         let depth_target = if depth
         {
@@ -56,7 +50,7 @@ impl ColorRendertarget
         }
         else {None};
         gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(ColorRendertarget { gl: gl.clone(), id: Some(id), width, height, targets, depth_target })
+        Ok(ColorRendertarget { gl: gl.clone(), id: Some(id), width, height, target, depth_target })
     }
 
     #[cfg(target_arch = "x86_64")]

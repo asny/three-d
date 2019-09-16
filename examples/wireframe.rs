@@ -11,7 +11,7 @@ fn main() {
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
     let mut mirror_renderer = DeferredPipeline::new(&gl, width/2, height/2, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
     mirror_renderer.camera.mirror_in_xz_plane();
-    let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width/2, height/2, 1, false).unwrap();
+    let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width/2, height/2, false).unwrap();
 
     // Objects
     let obj_file = include_str!("assets/models/suzanne.obj").to_string();
@@ -97,7 +97,7 @@ fn main() {
         state::depth_test(&gl, state::DepthTestType::NONE);
         state::cull(&gl,state::CullType::BACK);
 
-        mirror_program.use_texture(&light_pass_rendertarget.targets[0], "colorMap").unwrap();
+        mirror_program.use_texture(light_pass_rendertarget.target.as_ref().unwrap(), "colorMap").unwrap();
         mirror_program.use_attribute_vec3_float(&renderer.full_screen().buffer(), "position", 0).unwrap();
         mirror_program.use_attribute_vec2_float(&renderer.full_screen().buffer(), "uv_coordinate", 1).unwrap();
         mirror_program.draw_arrays(3);
