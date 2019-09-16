@@ -52,6 +52,20 @@ fn main() {
     {
         for event in events {
             handle_camera_events(event, &mut camera_handler, &mut renderer.camera);
+            match event {
+                Event::Key { state, kind } => {
+                    if kind == "R" && *state == State::Pressed
+                    {
+                        let l = renderer.directional_light(0).unwrap();
+                        if l.is_shadows_enabled() {
+                            l.disable_shadows();
+                        } else {
+                            l.enable_shadows();
+                        }
+                    }
+                },
+                _ => {}
+            }
             //handle_ambient_light_parameters(event, &mut ambient_light);
             //handle_directional_light_parameters(event, &mut directional_light);
             //handle_surface_parameters(event, &mut monkey);
