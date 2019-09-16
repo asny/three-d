@@ -1,6 +1,6 @@
 
 uniform sampler2DArray gbuffer;
-uniform sampler2D depthMap;
+uniform sampler2DArray depthMap;
 
 uniform int type;
 
@@ -34,7 +34,7 @@ void main()
     }
     else if(type == 3) // Depth
     {
-        float depth = linear_depth(texture(depthMap, uv).x);
+        float depth = linear_depth(texture(depthMap, vec3(uv, 0)).x);
         color = vec4(depth, depth, depth, 1.);
     }
     else {

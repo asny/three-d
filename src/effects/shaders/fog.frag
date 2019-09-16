@@ -1,6 +1,6 @@
 
 uniform sampler2DArray gbuffer;
-uniform sampler2D depthMap;
+uniform sampler2DArray depthMap;
 
 uniform float time;
 uniform float fogDensity;
@@ -128,7 +128,7 @@ float snoise(vec3 v)
 // factor: 1 == full fog, 0 == no fog
 void main()
 {
-    float depth = texture(depthMap, uv).x;
+    float depth = texture(depthMap, vec3(uv, 0)).x;
     vec4 pos = texture(gbuffer, vec3(uv, 1));
 
     // Distance

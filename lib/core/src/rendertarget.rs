@@ -129,7 +129,7 @@ pub struct ColorRendertargetArray {
     pub width: usize,
     pub height: usize,
     pub targets: Texture2DArray,
-    pub depth_target: Option<Texture2D>
+    pub depth_target: Option<Texture2DArray>
 }
 
 impl ColorRendertargetArray
@@ -148,7 +148,7 @@ impl ColorRendertargetArray
 
         let depth_target = if depth
         {
-            Some(Texture2D::new_as_depth_target(gl, width, height)?)
+            Some(Texture2DArray::new_as_depth_targets(gl, width, height, 1)?)
         }
         else {None};
 
