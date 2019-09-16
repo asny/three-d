@@ -1,5 +1,5 @@
 uniform sampler2DArray gbuffer;
-uniform sampler2D depthMap;
+uniform sampler2DArray depthMap;
 uniform samplerCube shadowCubeMap;
 
 layout (location = 0) out vec4 color;
@@ -222,7 +222,7 @@ vec3 calculate_spot_light(int i, vec3 position)
 
 void main()
 {
-    float depth = texture(depthMap, uv).r;
+    float depth = texture(depthMap, vec3(uv,0)).r;
    	vec3 surface_color = texture(gbuffer, vec3(uv, 0)).rgb;
     bool is_far_away = depth > 0.99999;
     vec3 position = texture(gbuffer, vec3(uv, 1)).xyz;
