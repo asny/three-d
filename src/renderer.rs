@@ -98,8 +98,10 @@ impl DeferredPipeline
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
-        self.geometry_pass_rendertargets[0] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 4, true)?;
-        self.geometry_pass_rendertargets[1] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 4, true)?;
+        for i in 0..self.geometry_pass_rendertargets.len()
+        {
+            self.geometry_pass_rendertargets[i] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 4, true)?;
+        }
         Ok(())
     }
 
