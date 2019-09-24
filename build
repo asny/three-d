@@ -1,0 +1,4 @@
+#!/bin/sh
+
+wasm-pack build --target web -- --example hello_world
+cargo run --release --example hello_world
