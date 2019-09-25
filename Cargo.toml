@@ -13,5 +13,8 @@ num-traits = "0.2"
 num-derive = "0.2.4"
 log = "0.4"
 
+[dev-dependencies]
+tri-mesh = "0.4.0"
+
 [features]
 gl_debug = ["core/gl_debug"]
