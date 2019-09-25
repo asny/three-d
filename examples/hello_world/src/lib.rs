@@ -1,7 +1,7 @@
 
-use wasm_bindgen::prelude::*;
-
 include!("../main.rs");
+
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue>
