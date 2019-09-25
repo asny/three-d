@@ -1,19 +1,31 @@
-<html>
+
+use std::env;
+use std::fs;
+use std::path::Path;
+
+fn main() {
+    let current_dir = env::current_dir().unwrap();
+    fs::create_dir_all(Path::new(&current_dir).join("pkg")).unwrap();
+    fs::write(Path::new(&current_dir).join("pkg").join("index.html"), html()).unwrap();
+}
+
+fn html() -> &'static str{
+    "<html>
   <head>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"/>
   </head>
   <body>
-    <canvas id="canvas" height="720" width="1280" />
+    <canvas id=\"canvas\" height=\"720\" width=\"1280\" />
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
-    <script type="module">
+    <script type=\"module\">
       // Use ES module import syntax to import functionality from the module
       // that we have compiled.
       //
       // Note that the `default` import is an initialization function which
-      // will "boot" the module and make it ready to use. Currently browsers
+      // will \"boot\" the module and make it ready to use. Currently browsers
       // don't support natively imported WebAssembly as an ES module, but
       // eventually the manual initialization won't be required!
-      import init from './pkg/hello_world.js';
+      import init from './web.js';
 
       async function run() {
         // First up we need to actually load the wasm file, so we use the
@@ -29,10 +41,11 @@
         // Also note that the promise, when resolved, yields the wasm module's
         // exports which is the same as importing the `*_bg` module in other
         // modes
-        await init('./pkg/hello_world_bg.wasm');
+        await init('./web_bg.wasm');
       }
 
       run();
     </script>
   </body>
-</html>
+</html>"
+}
