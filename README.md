@@ -17,27 +17,28 @@ An OpenGL/WebGL renderer written in Rust for the fun of it.
 
 ### Run the examples
 
-- Desktop: 
+#### Desktop: 
+Build and run an example, in this case 'hello_world':
 ```console
-# Build and run an example, in this case 'hello_world':
 $ cargo run --example hello_world --release
 ``` 
-- Web: 
+#### Web: 
+Build and generate web output (webassembly, javascript and html files) into the pkg folder:
 ```console
-# Build and generate web output (webassembly, javascript and html files) into the pkg folder:
 $ wasm-pack build examples/hello_world --target web --out-name web --out-dir ../../pkg
-
-# Install a server that properly defines the `application/wasm` mime type for example
+``` 
+Install a server that properly defines the `application/wasm` mime type for example:
+```console
 $ npm install -g http-server
-
-# Start the server and go to http://localhost:8080 in a browser
+``` 
+Start the server and go to http://localhost:8080 in a browser:
+```console
 $ cd pkg/
 $ http-server
 ``` 
 
-- Desktop + Web: 
+#### Desktop and Web: 
+Build and run an example on desktop and also generate web output (webassembly, javascript and html files) into the pkg folder:
 ```console
-# Build and run an example on desktop and also generate web output 
-# (webassembly, javascript and html files) into the pkg folder:
 $ ./examples/hello_world/run 
 ``` 
