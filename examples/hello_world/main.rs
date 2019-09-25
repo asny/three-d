@@ -1,6 +1,6 @@
 
-use window::*;
-use core::*;
+use dust::window::*;
+use dust::core::*;
 
 fn main() {
 
