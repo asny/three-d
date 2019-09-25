@@ -32,7 +32,7 @@ npm install -g http-server
 
 # Start the server and go to http://localhost:8080 in a browser
 cd pkg/
-http-serve
+http-server
 # 
 ``` 
 
