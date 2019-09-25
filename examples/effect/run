@@ -1,0 +1,4 @@
+#!/bin/sh
+
+wasm-pack build examples/effect --target web --out-name web --out-dir ../../pkg
+cargo run --release --example effect

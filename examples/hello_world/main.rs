@@ -27,8 +27,8 @@ fn main() {
 
     let buffer = StaticVertexBuffer::new_with_vec3_vec3(&gl, &positions, &colors).unwrap();
     let program = Program::from_source(&gl,
-                                                include_str!("assets/shaders/color.vert"),
-                                                include_str!("assets/shaders/color.frag")).unwrap();
+                                       include_str!("../assets/shaders/color.vert"),
+                                       include_str!("../assets/shaders/color.frag")).unwrap();
 
     // main loop
     window.render_loop(move |_events, _elapsed_time|

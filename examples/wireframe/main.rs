@@ -14,7 +14,7 @@ fn main() {
     let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width/2, height/2, false).unwrap();
 
     // Objects
-    let obj_file = include_str!("assets/models/suzanne.obj").to_string();
+    let obj_file = include_str!("../assets/models/suzanne.obj").to_string();
     let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.015, &vec3(0.0, 2.0, 0.0));
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
@@ -52,8 +52,8 @@ fn main() {
 
     // Mirror
     let mirror_program = program::Program::from_source(&gl,
-                                                    include_str!("assets/shaders/copy.vert"),
-                                                    include_str!("assets/shaders/mirror.frag")).unwrap();
+                                                    include_str!("../assets/shaders/copy.vert"),
+                                                    include_str!("../assets/shaders/mirror.frag")).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 

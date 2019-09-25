@@ -9,30 +9,36 @@ An OpenGL/WebGL renderer written in Rust for the fun of it.
 - Thin and safe abstraction layer on top of OpenGL/WebGL graphics API. Seeks to ensure always being in the correct state.
 - Enabling out-of-the-box build to both desktop (Rust + OpenGL) and web (Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate)
 - Additional default abstractions for simple setup of new projects:
-    - Pipelines which defines the rendering pipeline (Forward or Deferred)
-    - Objects which can render geometry (e.g. Skybox, ShadedMesh, Wireframe, ..)
-    - Effects which can be applied to a rendered image at some point in the rendering pipeline (e.g. Fog, Debug, ..)
-    - And more..
+    - Deferred renderer which supports multiple light types and shadows
+    - Triangle mesh factory and loader
+    - Shader programs which can render meshes (e.g. MeshShader, Skybox, Wireframe, ..)
+    - Effects which can be applied to the rendered image (e.g. Fog, Debug, ..)
+    - Camera input handler
 
-### Run the 'hello world' example
+### Run the examples
 
 - Desktop: 
 ```console
+# Build and run an example, in this case 'hello_world':
 $ cargo run --example hello_world --release
 ``` 
 - Web: 
 ```console
-# Any server that properly defines the `application/wasm` mime type can be used
+# Build and generate web output (webassembly, javascript and html files) into the pkg folder:
+wasm-pack build examples/hello_world --target web --out-name web --out-dir ../../pkg
+
+# Install a server that properly defines the `application/wasm` mime type for example
 npm install -g http-server
 
-# Install the wasm-bindgen tool
-cargo install -f wasm-bindgen@0.2.40
+# Start the server and go to http://localhost:8080 in a browser
+cd pkg/
+http-server
+# 
+``` 
 
-# Build the 'hello world' example to WebAssembly
-cd examples/web/
-RELEASE=1 ./build
-
-# Run the demo at http://localhost:8080
-cd www/
-http-server --open
+- Desktop + Web: 
+```console
+# Build and run an example on desktop and also generate web output 
+# (webassembly, javascript and html files) into the pkg folder:
+./examples/hello_world/run 
 ``` 

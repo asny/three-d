@@ -11,7 +11,7 @@ fn main() {
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
 
-    let monkey = Mesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap();
     let plane = Mesh::new_plane(&gl).unwrap();
     let mesh_shader = MeshShader::new(&gl).unwrap();
 

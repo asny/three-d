@@ -12,14 +12,14 @@ fn main() {
 
     let box_mesh = Mesh::new_box(&gl).unwrap();
     let mut textured_box = objects::MeshShader::new(&gl).unwrap();
-    textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("assets/textures/test_texture.jpg")).unwrap());
+    textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/test_texture.jpg")).unwrap());
 
     let texture3d = texture::Texture3D::new_from_bytes(&gl,
-                                                       include_bytes!("assets/textures/skybox_evening/back.jpg"),
-                                                       include_bytes!("assets/textures/skybox_evening/front.jpg"),
-                                                       include_bytes!("assets/textures/skybox_evening/top.jpg"),
-                                                       include_bytes!("assets/textures/skybox_evening/left.jpg"),
-                                                       include_bytes!("assets/textures/skybox_evening/right.jpg")).unwrap();
+                                                       include_bytes!("../assets/textures/skybox_evening/back.jpg"),
+                                                       include_bytes!("../assets/textures/skybox_evening/front.jpg"),
+                                                       include_bytes!("../assets/textures/skybox_evening/top.jpg"),
+                                                       include_bytes!("../assets/textures/skybox_evening/left.jpg"),
+                                                       include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap();
     let skybox = objects::Skybox::new(&gl, texture3d);
 
     renderer.ambient_light().set_intensity(0.2);
