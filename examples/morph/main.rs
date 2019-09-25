@@ -8,7 +8,7 @@ use std::collections::HashMap;
 /// Loads the mesh and scale/translate it.
 fn on_startup(scene_center: &Vec3, scene_radius: f64) -> tri_mesh::mesh::Mesh
 {
-    let mut mesh = MeshBuilder::new().with_obj(include_str!("assets/models/suzanne.obj").to_string()).build().unwrap();
+    let mut mesh = MeshBuilder::new().with_obj(include_str!("../assets/models/suzanne.obj").to_string()).build().unwrap();
     let (min, max) = mesh.extreme_coordinates();
     mesh.translate(-0.5 * (max + min)); // Translate such that the mesh center is in origo.
     let size = max - min;

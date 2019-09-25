@@ -10,7 +10,7 @@ fn main() {
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.0, 0.0, 0.0, 1.0)).unwrap();
 
-    let monkey = Mesh::new_from_obj_source(&gl, include_str!("assets/models/suzanne.obj").to_string()).unwrap();
+    let monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap();
     let mut mesh_shader = MeshShader::new(&gl).unwrap();
     mesh_shader.color = vec3(0.5, 1.0, 0.5);
 
