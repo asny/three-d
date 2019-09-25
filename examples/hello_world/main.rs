@@ -1,19 +1,4 @@
 
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen(start)]
-pub fn start() -> Result<(), JsValue>
-{
-    console_log::init_with_level(log::Level::Debug).unwrap();
-
-    use log::info;
-    info!("Logging works!");
-
-    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    main();
-    Ok(())
-}
-
 use window::*;
 use core::*;
 
@@ -42,8 +27,8 @@ fn main() {
 
     let buffer = StaticVertexBuffer::new_with_vec3_vec3(&gl, &positions, &colors).unwrap();
     let program = Program::from_source(&gl,
-                                                include_str!("assets/shaders/color.vert"),
-                                                include_str!("assets/shaders/color.frag")).unwrap();
+                                       include_str!("../assets/shaders/color.vert"),
+                                       include_str!("../assets/shaders/color.frag")).unwrap();
 
     // main loop
     window.render_loop(move |_events, _elapsed_time|
