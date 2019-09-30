@@ -83,7 +83,7 @@ impl ColorRendertarget
     pub fn clear(&self, color: &Vec4)
     {
         self.gl.clear_color(color.x, color.y, color.z, color.w);
-        if self.depth_target.is_some() {
+        if self.depth_target.is_some() || self.id.is_none() {
             depth_write(&self.gl,true);
             self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
         }
