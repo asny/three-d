@@ -273,6 +273,11 @@ impl DeferredPipeline
         &self.rendertarget
     }
 
+    pub fn geometry_pass_rendertarget(&self) -> &ColorRendertargetArray
+    {
+        &self.geometry_pass_rendertargets[self.buffer_index]
+    }
+
     pub fn geometry_pass_texture(&self) -> &Texture
     {
         &self.geometry_pass_rendertargets[self.buffer_index].targets
