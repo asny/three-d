@@ -104,9 +104,17 @@ impl ColorRendertarget
     {
         self.bind_for_read();
         target.bind();
-        self.gl.blit_framebuffer(0, 0, self.width as u32, self.height as u32,
-                                 0, 0, target.width as u32, target.height as u32,
-                                 gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
+        if self.depth_target.is_some() {
+            depth_write(&self.gl, true);
+            self.gl.blit_framebuffer(0, 0, self.width as u32, self.height as u32,
+                                     0, 0, target.width as u32, target.height as u32,
+                                     gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
+        }
+        else {
+            self.gl.blit_framebuffer(0, 0, self.width as u32, self.height as u32,
+                                     0, 0, target.width as u32, target.height as u32,
+                                     gl::consts::COLOR_BUFFER_BIT, gl::consts::NEAREST);
+        }
     }
 }
 
