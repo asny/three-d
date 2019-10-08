@@ -97,11 +97,34 @@ impl DirectionalLight {
     pub fn set_direction(&mut self, direction: &Vec3)
     {
         self.light_buffer.update(self.index_at(2), &direction.to_slice()).unwrap();
+        self.update_shadows(vec3(0.0, 0.0, 0.0));
+    }
 
+    pub fn direction(&self) -> Vec3 {
+        let d = self.light_buffer.get(self.index_at(2)).unwrap();
+        vec3(d[0], d[1], d[2])
+    }
+
+    pub fn is_shadows_enabled(&self) -> bool {
+        self.shadow_cameras[self.index].is_some()
+    }
+
+    pub fn enable_shadows(&mut self)
+    {
+        let radius = 2.0;
+        let depth = 10.0;
+        self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl,
+            -self.direction(), vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0),
+            2.0 * radius, 2.0 * radius, 2.0 * depth));
+        self.update_shadows(vec3(0.0, 0.0, 0.0));
+    }
+
+    pub fn update_shadows(&mut self, target: Vec3) {
+        let direction = self.direction();
         if let Some(ref mut camera) = self.shadow_cameras[self.index]
         {
-            let up = compute_up_direction(*direction);
-            camera.set_view(- *direction, vec3(0.0, 0.0, 0.0), up);
+            let up = compute_up_direction(direction);
+            camera.set_view(- direction, target, up);
 
             let bias_matrix = crate::Mat4::new(
                                  0.5, 0.0, 0.0, 0.0,
@@ -111,21 +134,6 @@ impl DirectionalLight {
             let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
             self.light_buffer.update(self.index_at(4), &shadow_matrix.to_slice()).unwrap();
         }
-    }
-
-    pub fn is_shadows_enabled(&self) -> bool {
-        self.shadow_cameras[self.index].is_some()
-    }
-
-    pub fn enable_shadows(&mut self)
-    {
-        let d = self.light_buffer.get(self.index_at(2)).unwrap();
-        let dir = vec3(d[0], d[1], d[2]);
-        let radius = 2.0;
-        let depth = 10.0;
-        self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0),
-                                                                  2.0 * radius, 2.0 * radius, 2.0 * depth));
-        self.set_direction(&dir);
     }
 
     pub fn disable_shadows(&mut self)
