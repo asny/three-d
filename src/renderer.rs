@@ -77,9 +77,9 @@ impl DeferredPipeline
             rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 4, true)?];
 
 
-        let camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+        let mut camera = Camera::new_perspective(gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                     degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
-
+        camera.enable_matrix_buffer();
         Ok(DeferredPipeline {
             buffer_index: 0,
             gl: gl.clone(),

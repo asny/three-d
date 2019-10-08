@@ -114,6 +114,7 @@ impl DirectionalLight {
         self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl,
             -self.direction(), vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0),
             size, size, 2.0 * depth));
+        self.shadow_cameras[self.index].as_mut().unwrap().enable_matrix_buffer();
         self.update_shadows(vec3(0.0, 0.0, 0.0));
     }
 
@@ -342,6 +343,7 @@ impl SpotLight {
     pub fn enable_shadows(&mut self)
     {
         self.shadow_cameras[self.index] = Some(Camera::new(&self.gl));
+        self.shadow_cameras[self.index].as_mut().unwrap().enable_matrix_buffer();
         self.update_shadow_camera();
     }
 

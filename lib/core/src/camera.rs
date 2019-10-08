@@ -8,14 +8,15 @@ pub struct Camera {
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
-    matrix_buffer: UniformBuffer
+    gl: Gl,
+    matrix_buffer: Option<UniformBuffer>
 }
 
 impl Camera
 {
     pub fn new(gl: &Gl) -> Camera
     {
-        let mut camera = Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16, 16, 3, 1]).unwrap(),
+        let mut camera = Camera {matrix_buffer: None, gl: gl.clone(),
             position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
         camera.set_view(camera.position, camera.target, camera.up);
@@ -109,9 +110,17 @@ impl Camera
         &self.up
     }
 
+    pub fn enable_matrix_buffer(&mut self)
+    {
+        if self.matrix_buffer.is_none() {
+            self.matrix_buffer = Some(UniformBuffer::new(&self.gl, &vec![16, 16, 16, 3, 1]).unwrap());
+            self.update_matrix_buffer();
+        }
+    }
+
     pub fn matrix_buffer(&self) -> &UniformBuffer
     {
-        &self.matrix_buffer
+        self.matrix_buffer.as_ref().unwrap()
     }
 
     fn update_screen2ray(&mut self)
@@ -123,9 +132,11 @@ impl Camera
 
     fn update_matrix_buffer(&mut self)
     {
-        self.matrix_buffer.update(0, &(self.projection * self.view).to_slice()).unwrap();
-        self.matrix_buffer.update(1, &self.view.to_slice()).unwrap();
-        self.matrix_buffer.update(2, &self.projection.to_slice()).unwrap();
-        self.matrix_buffer.update(3, &self.position.to_slice()).unwrap();
+        if let Some(ref mut matrix_buffer) = self.matrix_buffer {
+            matrix_buffer.update(0, &(self.projection * self.view).to_slice()).unwrap();
+            matrix_buffer.update(1, &self.view.to_slice()).unwrap();
+            matrix_buffer.update(2, &self.projection.to_slice()).unwrap();
+            matrix_buffer.update(3, &self.position.to_slice()).unwrap();
+        }
     }
 }
