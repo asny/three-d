@@ -8,38 +8,37 @@ pub struct Camera {
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
-    gl: Gl,
     matrix_buffer: Option<UniformBuffer>
 }
 
 impl Camera
 {
-    pub fn new(gl: &Gl) -> Camera
+    pub fn new() -> Camera
     {
-        let mut camera = Camera {matrix_buffer: None, gl: gl.clone(),
+        let mut camera = Camera {matrix_buffer: None,
             position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
         camera.set_view(camera.position, camera.target, camera.up);
         camera
     }
 
-    pub fn with_orientation(gl: &Gl, position: Vec3, target: Vec3, up: Vec3) -> Camera
+    pub fn with_orientation(position: Vec3, target: Vec3, up: Vec3) -> Camera
     {
-        let mut camera = Camera::new(gl);
+        let mut camera = Camera::new();
         camera.set_view(position, target, up);
         camera
     }
 
-    pub fn new_orthographic(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
+    pub fn new_orthographic(position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
     {
-        let mut camera = Camera::with_orientation(gl, position, target, up);
+        let mut camera = Camera::with_orientation(position, target, up);
         camera.set_orthographic_projection(width, height, depth);
         camera
     }
 
-    pub fn new_perspective(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
+    pub fn new_perspective(position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
     {
-        let mut camera = Camera::with_orientation(gl, position, target, up);
+        let mut camera = Camera::with_orientation(position, target, up);
         camera.set_perspective_projection(fovy, aspect, z_near, z_far);
         camera
     }
@@ -110,10 +109,10 @@ impl Camera
         &self.up
     }
 
-    pub fn enable_matrix_buffer(&mut self)
+    pub fn enable_matrix_buffer(&mut self, gl: &Gl)
     {
         if self.matrix_buffer.is_none() {
-            self.matrix_buffer = Some(UniformBuffer::new(&self.gl, &vec![16, 16, 16, 3, 1]).unwrap());
+            self.matrix_buffer = Some(UniformBuffer::new(gl, &vec![16, 16, 16, 3, 1]).unwrap());
             self.update_matrix_buffer();
         }
     }
