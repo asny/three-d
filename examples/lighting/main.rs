@@ -20,12 +20,12 @@ fn main() {
     let mut directional_light = renderer.directional_light(0).unwrap();
     directional_light.set_direction(&vec3(1.0, -1.0, -1.0));
     directional_light.set_intensity(0.3);
-    directional_light.enable_shadows(4.0, 10.0);
+    directional_light.enable_shadows();
 
     directional_light = renderer.directional_light(1).unwrap();
     directional_light.set_direction(&vec3(-1.0, -1.0, 1.0));
     directional_light.set_intensity(0.3);
-    directional_light.enable_shadows(4.0, 10.0);
+    directional_light.enable_shadows();
 
     let mut point_light = renderer.point_light(0).unwrap();
     point_light.set_position(&vec3(5.0, 5.0, 5.0));
@@ -60,7 +60,7 @@ fn main() {
                         if l.is_shadows_enabled() {
                             l.disable_shadows();
                         } else {
-                            l.enable_shadows(4.0, 10.0);
+                            l.enable_shadows();
                         }
                     }
                 },

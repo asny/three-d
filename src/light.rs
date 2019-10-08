@@ -97,7 +97,7 @@ impl DirectionalLight {
     pub fn set_direction(&mut self, direction: &Vec3)
     {
         self.light_buffer.update(self.index_at(2), &direction.to_slice()).unwrap();
-        self.update_shadows(vec3(0.0, 0.0, 0.0));
+        self.update_shadows(vec3(0.0, 0.0, 0.0), 4.0, 20.0);
     }
 
     pub fn direction(&self) -> Vec3 {
@@ -109,21 +109,20 @@ impl DirectionalLight {
         self.shadow_cameras[self.index].is_some()
     }
 
-    pub fn enable_shadows(&mut self, size: f32, depth: f32)
+    pub fn enable_shadows(&mut self)
     {
-        self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl,
-            -self.direction(), vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0),
-            size, size, 2.0 * depth));
+        self.shadow_cameras[self.index] = Some(Camera::new(&self.gl));
         self.shadow_cameras[self.index].as_mut().unwrap().enable_matrix_buffer();
-        self.update_shadows(vec3(0.0, 0.0, 0.0));
+        self.update_shadows(vec3(0.0, 0.0, 0.0), 4.0, 20.0);
     }
 
-    pub fn update_shadows(&mut self, target: Vec3) {
+    pub fn update_shadows(&mut self, target: Vec3, size: f32, depth: f32) {
         let direction = self.direction();
         if let Some(ref mut camera) = self.shadow_cameras[self.index]
         {
             let up = compute_up_direction(direction);
             camera.set_view(- direction, target, up);
+            camera.set_orthographic_projection(size, size, depth);
 
             let bias_matrix = crate::Mat4::new(
                                  0.5, 0.0, 0.0, 0.0,
