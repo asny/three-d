@@ -109,13 +109,11 @@ impl DirectionalLight {
         self.shadow_cameras[self.index].is_some()
     }
 
-    pub fn enable_shadows(&mut self)
+    pub fn enable_shadows(&mut self, size: f32, depth: f32)
     {
-        let radius = 2.0;
-        let depth = 10.0;
         self.shadow_cameras[self.index] = Some(Camera::new_orthographic(&self.gl,
             -self.direction(), vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0),
-            2.0 * radius, 2.0 * radius, 2.0 * depth));
+            size, size, 2.0 * depth));
         self.update_shadows(vec3(0.0, 0.0, 0.0));
     }
 
