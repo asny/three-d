@@ -121,7 +121,7 @@ impl DirectionalLight {
         if let Some(ref mut camera) = self.shadow_cameras[self.index]
         {
             let up = compute_up_direction(direction);
-            camera.set_view(- direction, target, up);
+            camera.set_view(target - direction, target, up);
             camera.set_orthographic_projection(size, size, depth);
 
             let bias_matrix = crate::Mat4::new(
