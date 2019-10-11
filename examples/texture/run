@@ -1,4 +1,4 @@
 #!/bin/sh
 
-wasm-pack build examples/texture --target web --out-name web --out-dir ../../pkg
+wasm-pack build examples/texture --target web --out-name web --out-dir ../pkg
 cargo run --release --example texture
