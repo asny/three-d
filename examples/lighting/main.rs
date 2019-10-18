@@ -4,7 +4,10 @@ use dust::*;
 use dust::objects::MeshShader;
 
 fn main() {
-    let mut window = Window::new_default("Hello, world!").unwrap();
+    let args: Vec<String> = std::env::args().collect();
+    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
+
+    let mut window = Window::new_default("Lighting!").unwrap();
     let (width, height) = window.framebuffer_size();
     let gl = window.gl();
 
@@ -89,6 +92,12 @@ fn main() {
 
         // Light pass
         renderer.light_pass().unwrap();
+
+        if let Some(ref path) = screenshot_path {
+            #[cfg(target_arch = "x86_64")]
+            save_screenshot(path, renderer.screen_rendertarget()).unwrap();
+            std::process::exit(1);
+        }
 
     }).unwrap();
 }

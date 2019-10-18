@@ -100,6 +100,9 @@ use dust::window::{event::*, Window};
 
 fn main()
 {
+    let args: Vec<String> = std::env::args().collect();
+    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
+
     let scene_radius = 10.0;
     let scene_center = dust::vec3(0.0, 5.0, 0.0);
     let mut mesh = on_startup(&vec3(scene_center.x as f64, scene_center.y as f64, scene_center.z as f64), scene_radius as f64);
@@ -230,5 +233,11 @@ fn main()
 
         // Light pass
         renderer.light_pass().unwrap();
+
+        if let Some(ref path) = screenshot_path {
+            #[cfg(target_arch = "x86_64")]
+            save_screenshot(path, renderer.screen_rendertarget()).unwrap();
+            std::process::exit(1);
+        }
     }).unwrap();
 }

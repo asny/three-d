@@ -3,6 +3,9 @@ use window::{event::*, Window};
 use dust::*;
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
+    
     let mut window = Window::new_default("Wireframe").unwrap();
     let (width, height) = window.framebuffer_size();
     let gl = window.gl();
@@ -101,6 +104,12 @@ fn main() {
         mirror_program.use_attribute_vec3_float(&renderer.full_screen().buffer(), "position", 0).unwrap();
         mirror_program.use_attribute_vec2_float(&renderer.full_screen().buffer(), "uv_coordinate", 1).unwrap();
         mirror_program.draw_arrays(3);
+
+        if let Some(ref path) = screenshot_path {
+            #[cfg(target_arch = "x86_64")]
+            save_screenshot(path, renderer.screen_rendertarget()).unwrap();
+            std::process::exit(1);
+        }
     }).unwrap();
 }
 

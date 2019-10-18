@@ -3,6 +3,9 @@ use window::{event::*, Window};
 use dust::*;
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
+
     let mut window = Window::new_default("Texture").unwrap();
     let (width, height) = window.framebuffer_size();
     let gl = window.gl();
@@ -54,6 +57,12 @@ fn main() {
         // Effect
         fog_effect.apply(renderer.full_screen(), time as f32, &renderer.camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
         debug_effect.apply(renderer.full_screen(), renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
+
+        if let Some(ref path) = screenshot_path {
+            #[cfg(target_arch = "x86_64")]
+            save_screenshot(path, renderer.screen_rendertarget()).unwrap();
+            std::process::exit(1);
+        }
     }).unwrap();
 }
 
