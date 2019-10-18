@@ -31,7 +31,7 @@ impl Window
 {
     pub fn new_default(title: &str) -> Result<Window, Error>
     {
-        let width: usize = 1024;
+        let width: usize = 512;
         let height: usize = 512;
         let window = WindowBuilder::new()
             .with_title(title)

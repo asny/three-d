@@ -3,6 +3,8 @@ use dust::window::*;
 use dust::core::*;
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new_default("Hello, world!").unwrap();
     let (width, height) = window.framebuffer_size();
@@ -43,5 +45,11 @@ fn main() {
         program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
         program.draw_arrays(3);
+
+        if let Some(ref path) = screenshot_path {
+            #[cfg(target_arch = "x86_64")]
+            save_screenshot(path, &rendertarget).unwrap();
+            std::process::exit(1);
+        }
     }).unwrap();
 }
