@@ -23,7 +23,7 @@ pub struct Window
 
 impl Window
 {
-    pub fn new_default(title: &str) -> Result<Window, Error>
+    pub fn new_default(_title: &str) -> Result<Window, Error>
     {
         let window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
         let document = window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
@@ -37,6 +37,8 @@ impl Window
         context.get_extension("EXT_color_buffer_float").map_err(|e| Error::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
         context.get_extension("OES_texture_float").map_err(|e| Error::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
 
+        canvas.set_width(canvas.offset_width() as u32);
+        canvas.set_height(canvas.offset_height() as u32);
         let gl = gl::Gl::new(context);
         Ok(Window { gl: std::rc::Rc::new(gl), canvas, window })
     }
