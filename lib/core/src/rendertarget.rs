@@ -340,6 +340,16 @@ pub fn save_screenshot(path: &str, rendertarget: &ColorRendertarget) -> Result<(
 {
     let mut pixels = vec![0u8; rendertarget.width * rendertarget.height * 3];
     rendertarget.pixels(&mut pixels);
-    image::save_buffer(&std::path::Path::new(path), &pixels, rendertarget.width as u32, rendertarget.height as u32, image::RGB(8))?;
+    let mut pixels_out = vec![0u8; rendertarget.width * rendertarget.height * 3];
+    for row in 0..rendertarget.height {
+        for col in 0..rendertarget.width {
+            for i in 0..3 {
+                pixels_out[3 * rendertarget.width * (rendertarget.height - row - 1) + 3 * col + i] =
+                    pixels[3 * rendertarget.width * row + 3 * col + i];
+            }
+        }
+    }
+
+    image::save_buffer(&std::path::Path::new(path), &pixels_out, rendertarget.width as u32, rendertarget.height as u32, image::RGB(8))?;
     Ok(())
 }
