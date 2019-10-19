@@ -21,7 +21,7 @@ fn main() {
     renderer.directional_light(0).unwrap().set_intensity(1.0);
 
     let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
-    fog_effect.color = vec3(0.9, 0.8, 0.8);
+    fog_effect.color = vec3(0.8, 0.8, 0.8);
     let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
