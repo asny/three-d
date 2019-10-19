@@ -1,7 +1,7 @@
 use crate::*;
 use num_derive::FromPrimitive;
 
-#[derive(Copy, Clone, FromPrimitive)]
+#[derive(Copy, Clone, PartialEq, Eq, FromPrimitive)]
 enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
 
 pub struct DebugEffect {
@@ -27,21 +27,23 @@ impl DebugEffect {
 
     pub fn apply(&self, full_screen: &FullScreen, geometry_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
-        state::depth_write(&self.gl,false);
-        state::depth_test(&self.gl, state::DepthTestType::NONE);
-        state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
+        if self.debug_type != Type::NONE {
+            state::depth_write(&self.gl,false);
+            state::depth_test(&self.gl, state::DepthTestType::NONE);
+            state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
 
-        geometry_texture.bind(0);
-        self.program.add_uniform_int("gbuffer", &0)?;
+            geometry_texture.bind(0);
+            self.program.add_uniform_int("gbuffer", &0)?;
 
-        depth_texture.bind(1);
-        self.program.add_uniform_int("depthMap", &1)?;
+            depth_texture.bind(1);
+            self.program.add_uniform_int("depthMap", &1)?;
 
-        self.program.add_uniform_int("type", &(self.debug_type as i32))?;
+            self.program.add_uniform_int("type", &(self.debug_type as i32))?;
 
-        self.program.use_attribute_vec3_float(&full_screen.buffer(), "position", 0).unwrap();
-        self.program.use_attribute_vec2_float(&full_screen.buffer(), "uv_coordinate", 1).unwrap();
-        self.program.draw_arrays(3);
+            self.program.use_attribute_vec3_float(&full_screen.buffer(), "position", 0).unwrap();
+            self.program.use_attribute_vec2_float(&full_screen.buffer(), "uv_coordinate", 1).unwrap();
+            self.program.draw_arrays(3);
+        }
         Ok(())
     }
 
