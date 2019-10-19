@@ -31,17 +31,15 @@ impl Window
 {
     pub fn new_default(title: &str) -> Result<Window, Error>
     {
-        let width: usize = 512;
-        let height: usize = 512;
+        Window::new(title, 512, 512)
+    }
+
+    pub fn new(title: &str, width: u32, height: u32) -> Result<Window, Error>
+    {
         let window = WindowBuilder::new()
             .with_title(title)
             .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64));
 
-        Window::new(window)
-    }
-
-    pub fn new(window: WindowBuilder) -> Result<Window, Error>
-    {
         let events_loop = EventsLoop::new();
 
         let context = ContextBuilder::new().with_vsync(true);

@@ -23,7 +23,12 @@ pub struct Window
 
 impl Window
 {
-    pub fn new_default(_title: &str) -> Result<Window, Error>
+    pub fn new_default(title: &str) -> Result<Window, Error>
+    {
+        Window::new(title, 512, 512)
+    }
+
+    pub fn new(_title: &str, _width: u32, _height: u32) -> Result<Window, Error>
     {
         let window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
         let document = window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
