@@ -46,13 +46,6 @@ impl Window
         canvas.set_height(canvas.offset_height() as u32);
         let gl = gl::Gl::new(context);
 
-        let closure = Closure::wrap(Box::new(|event: web_sys::TouchEvent| {
-            event.prevent_default();
-        }) as Box<dyn FnMut(_)>);
-        document.body().unwrap().add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref()).unwrap();
-        document.body().unwrap().add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref()).unwrap();
-        document.body().unwrap().add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref()).unwrap();
-
         Ok(Window { gl: std::rc::Rc::new(gl), canvas, window })
     }
 
@@ -131,7 +124,10 @@ impl Window
     fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-            (*events).borrow_mut().push(Event::MouseMotion {delta: (event.movement_x() as f64, event.movement_y() as f64)});
+            if !event.default_prevented() {
+                (*events).borrow_mut().push(Event::MouseMotion {delta: (event.movement_x() as f64, event.movement_y() as f64)});
+                event.prevent_default();
+            }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse move event listener. Error code: {:?}", e)})?;
         closure.forget();
@@ -141,7 +137,10 @@ impl Window
     fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
-            (*events).borrow_mut().push(Event::MouseWheel {delta: 0.02499999912 * event.delta_y() as f64});
+            if !event.default_prevented() {
+                (*events).borrow_mut().push(Event::MouseWheel {delta: 0.02499999912 * event.delta_y() as f64});
+                event.prevent_default();
+            }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add wheel event listener. Error code: {:?}", e)})?;
         closure.forget();
@@ -192,27 +191,30 @@ impl Window
     fn add_touchmove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
-            if event.touches().length() == 1 {
-                let touch = event.touches().item(0).unwrap();
-                if let Some((x,y)) = *last_position.borrow() {
-                    (*events).borrow_mut().push(Event::MouseMotion {delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64)});
+            if !event.default_prevented() {
+                if event.touches().length() == 1 {
+                    let touch = event.touches().item(0).unwrap();
+                    if let Some((x,y)) = *last_position.borrow() {
+                        (*events).borrow_mut().push(Event::MouseMotion {delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64)});
+                    }
+                    *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
+                    *last_zoom.borrow_mut() = None;
                 }
-                *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
-                *last_zoom.borrow_mut() = None;
-            }
-            else if event.touches().length() == 2 {
-                let touch0 = event.touches().item(0).unwrap();
-                let touch1 = event.touches().item(1).unwrap();
-                let zoom = f64::sqrt(f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2) + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2));
-                if let Some(old_zoom) = *last_zoom.borrow() {
-                    (*events).borrow_mut().push(Event::MouseWheel {delta: zoom - old_zoom});
+                else if event.touches().length() == 2 {
+                    let touch0 = event.touches().item(0).unwrap();
+                    let touch1 = event.touches().item(1).unwrap();
+                    let zoom = f64::sqrt(f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2) + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2));
+                    if let Some(old_zoom) = *last_zoom.borrow() {
+                        (*events).borrow_mut().push(Event::MouseWheel {delta: zoom - old_zoom});
+                    }
+                    *last_zoom.borrow_mut() = Some(zoom);
+                    *last_position.borrow_mut() = None;
                 }
-                *last_zoom.borrow_mut() = Some(zoom);
-                *last_position.borrow_mut() = None;
-            }
-            else {
-                *last_zoom.borrow_mut() = None;
-                *last_position.borrow_mut() = None;
+                else {
+                    *last_zoom.borrow_mut() = None;
+                    *last_position.borrow_mut() = None;
+                }
+                event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())
