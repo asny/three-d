@@ -45,6 +45,14 @@ impl Window
         canvas.set_width(canvas.offset_width() as u32);
         canvas.set_height(canvas.offset_height() as u32);
         let gl = gl::Gl::new(context);
+
+        let closure = Closure::wrap(Box::new(|event: web_sys::TouchEvent| {
+            event.prevent_default();
+        }) as Box<dyn FnMut(_)>);
+        document.body().unwrap().add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref());
+        document.body().unwrap().add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref());
+        document.body().unwrap().add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref());
+
         Ok(Window { gl: std::rc::Rc::new(gl), canvas, window })
     }
 
