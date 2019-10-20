@@ -205,7 +205,7 @@ impl Window
                     let touch1 = event.touches().item(1).unwrap();
                     let zoom = f64::sqrt(f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2) + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2));
                     if let Some(old_zoom) = *last_zoom.borrow() {
-                        (*events).borrow_mut().push(Event::MouseWheel {delta: zoom - old_zoom});
+                        (*events).borrow_mut().push(Event::MouseWheel {delta: old_zoom - zoom});
                     }
                     *last_zoom.borrow_mut() = Some(zoom);
                     *last_position.borrow_mut() = None;
