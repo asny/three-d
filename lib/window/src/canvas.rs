@@ -57,10 +57,14 @@ impl Window
         let events = Rc::new(RefCell::new(Vec::new()));
         let performance = self.window.performance().ok_or(Error::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
         let mut last_time = performance.now();
+        let last_position = Rc::new(RefCell::new(None));
 
         self.add_mousedown_event_listener(events.clone())?;
+        self.add_touchstart_event_listener(events.clone(), last_position.clone())?;
         self.add_mouseup_event_listener(events.clone())?;
+        self.add_touchend_event_listener(events.clone(), last_position.clone())?;
         self.add_mousemove_event_listener(events.clone())?;
+        self.add_touchmove_event_listener(events.clone(), last_position.clone())?;
         self.add_mousewheel_event_listener(events.clone())?;
         self.add_key_down_event_listener(events.clone())?;
         self.add_key_up_event_listener(events.clone())?;
@@ -88,7 +92,7 @@ impl Window
                 2 => Some(MouseButton::Right),
                 _ => None
             };
-            return if let Some(b) = button {
+            if let Some(b) = button {
                 (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b, position: (event.offset_x() as f64, event.offset_y() as f64)});
             };
         }) as Box<dyn FnMut(_)>);
@@ -106,7 +110,7 @@ impl Window
                 2 => Some(MouseButton::Right),
                 _ => None
             };
-            return if let Some(b) = button {
+            if let Some(b) = button {
                 (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: b, position: (event.offset_x() as f64, event.offset_y() as f64)});
             };
         }) as Box<dyn FnMut(_)>);
@@ -131,6 +135,47 @@ impl Window
             (*events).borrow_mut().push(Event::MouseWheel {delta: 0.02499999912 * event.delta_y() as f64});
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add wheel event listener. Error code: {:?}", e)})?;
+        closure.forget();
+        Ok(())
+    }
+
+    fn add_touchstart_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>) -> Result<(), Error>
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
+            let touch = event.touches().item(0).unwrap();
+            *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
+            (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64)});
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref())
+            .map_err(|e| Error::EventListenerError {message: format!("Unable to add touch start event listener. Error code: {:?}", e)})?;
+        closure.forget();
+        Ok(())
+    }
+
+    fn add_touchend_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>) -> Result<(), Error>
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
+            let touch = event.touches().item(0).unwrap();
+            *last_position.borrow_mut() = None;
+            (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64)});
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref())
+            .map_err(|e| Error::EventListenerError {message: format!("Unable to add touch end event listener. Error code: {:?}", e)})?;
+        closure.forget();
+        Ok(())
+    }
+
+    fn add_touchmove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>) -> Result<(), Error>
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
+            let touch = event.touches().item(0).unwrap();
+            if let Some((x,y)) = *last_position.borrow() {
+                (*events).borrow_mut().push(Event::MouseMotion {delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64)});
+            }
+            *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())
+            .map_err(|e| Error::EventListenerError {message: format!("Unable to add touch move event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }

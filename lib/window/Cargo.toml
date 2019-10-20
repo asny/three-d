@@ -25,6 +25,9 @@ features = [
   'EventTarget',
   'WheelEvent',
   'KeyboardEvent',
+  'TouchEvent',
+  'TouchList',
+  'Touch'
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
