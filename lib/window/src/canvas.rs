@@ -49,9 +49,9 @@ impl Window
         let closure = Closure::wrap(Box::new(|event: web_sys::TouchEvent| {
             event.prevent_default();
         }) as Box<dyn FnMut(_)>);
-        document.body().unwrap().add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref());
-        document.body().unwrap().add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref());
-        document.body().unwrap().add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref());
+        document.body().unwrap().add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref()).unwrap();
+        document.body().unwrap().add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref()).unwrap();
+        document.body().unwrap().add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref()).unwrap();
 
         Ok(Window { gl: std::rc::Rc::new(gl), canvas, window })
     }
@@ -69,9 +69,9 @@ impl Window
         let last_zoom = Rc::new(RefCell::new(None));
 
         self.add_mousedown_event_listener(events.clone())?;
-        self.add_touchstart_event_listener(events.clone(), last_position.clone())?;
+        self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mouseup_event_listener(events.clone())?;
-        self.add_touchend_event_listener(events.clone(), last_position.clone())?;
+        self.add_touchend_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mousemove_event_listener(events.clone())?;
         self.add_touchmove_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mousewheel_event_listener(events.clone())?;
