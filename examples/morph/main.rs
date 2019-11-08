@@ -121,7 +121,7 @@ fn main()
                                                     vec3(0.0, 1.0, 0.0));
 
     // Objects
-    let mut wireframe_model = Wireframe::new(&gl, &mesh.indices_buffer(), &positions, 0.02);
+    let mut wireframe_model = Wireframe::new(&gl, &mesh.indices_buffer(), &positions, 0.01);
     wireframe_model.set_parameters(0.8, 0.2, 5.0);
     wireframe_model.set_color(&vec3(0.9, 0.2, 0.2));
 
@@ -138,28 +138,28 @@ fn main()
 
     let mut dir = vec3(-1.0, -1.0, -1.0).normalize();
     let mut light = renderer.spot_light(0).unwrap();
-    light.set_intensity(0.75);
+    light.set_intensity(1.0);
     light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
     light.set_direction(&dir);
     light.enable_shadows();
 
     dir = vec3(1.0, -1.0, -1.0).normalize();
     light = renderer.spot_light(1).unwrap();
-    light.set_intensity(0.75);
+    light.set_intensity(1.0);
     light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
     light.set_direction(&dir);
     light.enable_shadows();
 
     dir = vec3(1.0, -1.0, 1.0).normalize();
     light = renderer.spot_light(2).unwrap();
-    light.set_intensity(0.75);
+    light.set_intensity(1.0);
     light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
     light.set_direction(&dir);
     light.enable_shadows();
 
     dir = vec3(-1.0, -1.0, 1.0).normalize();
     light = renderer.spot_light(3).unwrap();
-    light.set_intensity(0.75);
+    light.set_intensity(1.0);
     light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
     light.set_direction(&dir);
     light.enable_shadows();
@@ -215,20 +215,16 @@ fn main()
             }
         }
 
-        // Draw
-        let render_scene = |camera: &Camera| {
-            let model_matrix = dust::Mat4::identity();
-            mesh_shader.render(&model, &model_matrix, camera);
-            wireframe_model.render(camera);
-        };
-
         // Shadow pass
-        renderer.shadow_pass(&render_scene);
+        renderer.shadow_pass(&|camera: &Camera| {
+            mesh_shader.render(&model, &dust::Mat4::identity(), camera);
+        });
 
         // Geometry pass
         renderer.geometry_pass(&|camera| {
-            render_scene(camera);
+            mesh_shader.render(&model, &dust::Mat4::identity(), camera);
             mesh_shader.render(&plane, &dust::Mat4::from_scale(100.0), camera);
+            wireframe_model.render(camera);
         }).unwrap();
 
         // Light pass

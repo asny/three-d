@@ -18,7 +18,7 @@ fn main() {
 
     // Objects
     let obj_file = include_str!("../assets/models/suzanne.obj").to_string();
-    let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.015, &vec3(0.0, 2.0, 0.0));
+    let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.01, &vec3(0.0, 2.0, 0.0));
     wireframe.set_parameters(0.8, 0.2, 5.0);
 
     let mut mesh_shader = MeshShader::new(&gl).unwrap();
@@ -30,26 +30,26 @@ fn main() {
     let plane = Mesh::new_plane(&gl).unwrap();
 
     let mut light = renderer.spot_light(0).unwrap();
-    light.set_intensity(0.5);
-    light.set_position(&vec3(5.0, 5.0, 5.0));
+    light.set_intensity(0.3);
+    light.set_position(&vec3(5.0, 7.0, 5.0));
     light.set_direction(&vec3(-1.0, -1.0, -1.0));
     light.enable_shadows();
 
     light = renderer.spot_light(1).unwrap();
-    light.set_intensity(0.5);
-    light.set_position(&vec3(-5.0, 5.0, 5.0));
+    light.set_intensity(0.3);
+    light.set_position(&vec3(-5.0, 7.0, 5.0));
     light.set_direction(&vec3(1.0, -1.0, -1.0));
     light.enable_shadows();
 
     light = renderer.spot_light(2).unwrap();
-    light.set_intensity(0.5);
-    light.set_position(&vec3(-5.0, 5.0, -5.0));
+    light.set_intensity(0.3);
+    light.set_position(&vec3(-5.0, 7.0, -5.0));
     light.set_direction(&vec3(1.0, -1.0, 1.0));
     light.enable_shadows();
 
     light = renderer.spot_light(3).unwrap();
-    light.set_intensity(0.5);
-    light.set_position(&vec3(5.0, 5.0, -5.0));
+    light.set_intensity(0.3);
+    light.set_position(&vec3(5.0, 7.0, -5.0));
     light.set_direction(&vec3(-1.0, -1.0, 1.0));
     light.enable_shadows();
 
@@ -59,6 +59,12 @@ fn main() {
                                                     include_str!("../assets/shaders/mirror.frag")).unwrap();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
+
+    // Shadow pass
+    renderer.shadow_pass(&|camera: &Camera| {
+        mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
+        wireframe.render(camera);
+    });
 
     // main loop
     window.render_loop(move |events, _elapsed_time|
@@ -70,24 +76,19 @@ fn main() {
         mirror_renderer.camera.set_view(*renderer.camera.position(), *renderer.camera.target(), *renderer.camera.up());
         mirror_renderer.camera.mirror_in_xz_plane();
 
-        // Draw
-        let render_scene = |camera: &Camera| {
+        // Mirror pass (Geometry pass)
+        mirror_renderer.geometry_pass(&|camera: &Camera| {
             mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
             wireframe.render(camera);
-        };
-
-        // Shadow pass
-        renderer.shadow_pass(&render_scene);
-
-        // Mirror pass (Geometry pass)
-        mirror_renderer.geometry_pass(&render_scene).unwrap();
+        }).unwrap();
 
         // Mirror pass (Light pass)
         mirror_renderer.light_pass_render_to(&light_pass_rendertarget).unwrap();
 
         // Geometry pass
         renderer.geometry_pass(&|camera| {
-            render_scene(camera);
+            mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
+            wireframe.render(camera);
             mesh_shader.render(&plane, &Mat4::from_scale(100.0), camera);
         }).unwrap();
 
