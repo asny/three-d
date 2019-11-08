@@ -91,8 +91,8 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(&|camera| {
             mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
-            wireframe.render(camera);
             mesh_shader.render(&plane, &Mat4::from_scale(100.0), camera);
+            wireframe.render(camera);
         }).unwrap();
 
         // Light pass
