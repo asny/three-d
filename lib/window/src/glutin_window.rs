@@ -31,7 +31,7 @@ impl Window
 {
     pub fn new_default(title: &str) -> Result<Window, Error>
     {
-        Window::new(title, 512, 512)
+        Window::new(title, 1024, 512)
     }
 
     pub fn new(title: &str, width: u32, height: u32) -> Result<Window, Error>
