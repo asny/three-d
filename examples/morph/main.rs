@@ -121,9 +121,11 @@ fn main()
                                                     vec3(0.0, 1.0, 0.0));
 
     // Objects
-    let mut wireframe_model = Wireframe::new(&gl, &mesh.indices_buffer(), &positions, 0.01);
-    wireframe_model.set_parameters(0.8, 0.2, 5.0);
-    wireframe_model.set_color(&vec3(0.9, 0.2, 0.2));
+    let mut wireframe_model = ShadedEdges::new(&gl, &mesh.indices_buffer(), &positions, 0.01);
+    wireframe_model.diffuse_intensity = 0.8;
+    wireframe_model.specular_intensity = 0.2;
+    wireframe_model.specular_power = 5.0;
+    wireframe_model.color = vec3(0.9, 0.2, 0.2);
 
     let mut mesh_shader = MeshShader::new(&gl).unwrap();
     mesh_shader.color = vec3(0.8, 0.8, 0.8);

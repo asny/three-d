@@ -18,8 +18,11 @@ fn main() {
 
     // Objects
     let obj_file = include_str!("../assets/models/suzanne.obj").to_string();
-    let mut wireframe = objects::Wireframe::new_from_obj_source(&gl, obj_file.clone(), 0.01, &vec3(0.0, 2.0, 0.0));
-    wireframe.set_parameters(0.8, 0.2, 5.0);
+    let mut wireframe = objects::ShadedEdges::new_from_obj_source(&gl, obj_file.clone(), 0.01, &vec3(0.0, 2.0, 0.0));
+    wireframe.diffuse_intensity = 0.8;
+    wireframe.specular_intensity = 0.2;
+    wireframe.specular_power = 5.0;
+    wireframe.color = vec3(0.9, 0.2, 0.2);
 
     let mut mesh_shader = MeshShader::new(&gl).unwrap();
     mesh_shader.diffuse_intensity = 0.2;
