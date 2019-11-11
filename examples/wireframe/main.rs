@@ -11,14 +11,15 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
+    let scene_center = vec3(0.0, 2.0, 0.0);
+    let scene_radius = 6.0;
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    let mut mirror_renderer = DeferredPipeline::new(&gl, width/2, height/2, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    mirror_renderer.camera.mirror_in_xz_plane();
-    let light_pass_rendertarget = rendertarget::ColorRendertarget::new(&gl, width/2, height/2, false).unwrap();
+    renderer.camera.set_view(scene_center + scene_radius * vec3(0.6, 0.6, 1.0).normalize(), scene_center,
+                                                    vec3(0.0, 1.0, 0.0));
 
     // Objects
     let obj_file = include_str!("../assets/models/suzanne.obj").to_string();
-    let mut wireframe = objects::ShadedEdges::new_from_obj_source(&gl, obj_file.clone(), 0.01, &vec3(0.0, 2.0, 0.0));
+    let mut wireframe = objects::ShadedEdges::new_from_obj_source(&gl, obj_file.clone(), 0.01, &scene_center);
     wireframe.diffuse_intensity = 0.8;
     wireframe.specular_intensity = 0.2;
     wireframe.specular_power = 5.0;
@@ -56,11 +57,6 @@ fn main() {
     light.set_direction(&vec3(-1.0, -1.0, 1.0));
     light.enable_shadows();
 
-    // Mirror
-    let mirror_program = program::Program::from_source(&gl,
-                                                    include_str!("../assets/shaders/copy.vert"),
-                                                    include_str!("../assets/shaders/mirror.frag")).unwrap();
-
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // Shadow pass
@@ -76,18 +72,6 @@ fn main() {
             handle_camera_events(event, &mut camera_handler, &mut renderer.camera);
         }
 
-        mirror_renderer.camera.set_view(*renderer.camera.position(), *renderer.camera.target(), *renderer.camera.up());
-        mirror_renderer.camera.mirror_in_xz_plane();
-
-        // Mirror pass (Geometry pass)
-        mirror_renderer.geometry_pass(&|camera: &Camera| {
-            mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
-            wireframe.render(camera);
-        }).unwrap();
-
-        // Mirror pass (Light pass)
-        mirror_renderer.light_pass_render_to(&light_pass_rendertarget).unwrap();
-
         // Geometry pass
         renderer.geometry_pass(&|camera| {
             mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
@@ -97,17 +81,6 @@ fn main() {
 
         // Light pass
         renderer.light_pass().unwrap();
-
-        // Blend with the result of the mirror pass
-        state::blend(&gl,state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
-        state::depth_write(&gl,false);
-        state::depth_test(&gl, state::DepthTestType::NONE);
-        state::cull(&gl,state::CullType::BACK);
-
-        mirror_program.use_texture(light_pass_rendertarget.target.as_ref().unwrap(), "colorMap").unwrap();
-        mirror_program.use_attribute_vec3_float(&renderer.full_screen().buffer(), "position", 0).unwrap();
-        mirror_program.use_attribute_vec2_float(&renderer.full_screen().buffer(), "uv_coordinate", 1).unwrap();
-        mirror_program.draw_arrays(3);
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
