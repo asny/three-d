@@ -65,9 +65,8 @@ impl CameraHandler
                     let x = -xrel;
                     let y = yrel;
                     let direction = (*camera.target() - *camera.position()).normalize();
-                    let mut up_direction = vec3(0., 1., 0.);
+                    let up_direction = vec3(0., 1., 0.);
                     let right_direction = direction.cross(up_direction);
-                    up_direction = right_direction.cross(direction);
                     let mut camera_position = *camera.position();
                     let target = *camera.target();
                     let zoom = (camera_position - target).magnitude();
