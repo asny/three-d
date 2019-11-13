@@ -25,12 +25,15 @@ impl DebugEffect {
         self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (Type::NONE as u32 + 1)).unwrap();
     }
 
-    pub fn apply(&self, full_screen: &FullScreen, geometry_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, full_screen: &FullScreen, camera: &Camera, geometry_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
     {
         if self.debug_type != Type::NONE {
             state::depth_write(&self.gl,false);
             state::depth_test(&self.gl, state::DepthTestType::NONE);
             state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
+
+            self.program.add_uniform_mat4("viewInverse", &camera.get_view().invert().unwrap())?;
+            self.program.add_uniform_mat4("projectionInverse", &camera.get_projection().invert().unwrap())?;
 
             geometry_texture.bind(0);
             self.program.add_uniform_int("gbuffer", &0)?;

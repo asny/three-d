@@ -4,6 +4,9 @@ uniform sampler2DArray depthMap;
 
 uniform int type;
 
+uniform mat4 projectionInverse;
+uniform mat4 viewInverse;
+
 in vec2 uv;
 
 layout (location = 0) out vec4 color;
@@ -18,15 +21,29 @@ float linear_depth(float z)
     return (2.0 * n) / (f + n - z * (f - n));
 }
 
+vec3 WorldPosFromDepth(float depth, vec2 uv) {
+    float z = depth * 2.0 - 1.0;
+
+    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, z, 1.0);
+    vec4 viewSpacePosition = projectionInverse * clipSpacePosition;
+
+    // Perspective division
+    viewSpacePosition /= viewSpacePosition.w;
+
+    return (viewInverse * viewSpacePosition).xyz;
+}
+
 void main()
 {
     if(type == 0) // Position
     {
-        color = vec4(texture(gbuffer, vec3(uv, 1)).xyz, 1.);
+        float depth = texture(depthMap, vec3(uv, 0)).x;
+        vec3 pos = WorldPosFromDepth(depth, uv);
+        color = vec4(pos, 1.);
     }
     else if(type == 1) // Normal
     {
-        color = vec4(0.5 * normalize(texture(gbuffer, vec3(uv, 2)).xyz) + 0.5, 1.);
+        color = vec4(texture(gbuffer, vec3(uv, 1)).xyz, 1.);
     }
     else if(type == 2) // Color
     {
