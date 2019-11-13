@@ -9,10 +9,10 @@ uniform float specular_power;
 in vec3 nor;
 in vec3 pos;
 
-layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 position;
-layout (location = 2) out vec4 normal;
-layout (location = 3) out vec4 surface_parameters;
+layout (location = 0) out vec3 out_color;
+layout (location = 1) out vec3 position;
+layout (location = 2) out vec3 normal;
+layout (location = 3) out vec3 surface_parameters;
 
 vec3 blendNormal(vec3 normal){
 	vec3 blending = abs(normal);
@@ -32,8 +32,8 @@ vec3 triplanarMapping (sampler2D t, vec3 normal, vec3 position) {
 
 void main()
 {
-    out_color = vec4(use_texture ? triplanarMapping(tex, nor, pos) : color , 1.0);
-    position = vec4(pos, 1.0);
-    normal = vec4(nor, 1.0);
-    surface_parameters = vec4(diffuse_intensity, specular_intensity, specular_power, 0.0);
+    out_color = use_texture ? triplanarMapping(tex, nor, pos) : color;
+    position = pos;
+    normal = nor;
+    surface_parameters = vec3(diffuse_intensity, specular_intensity, specular_power);
 }

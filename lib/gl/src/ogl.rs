@@ -53,7 +53,7 @@ impl Gl {
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
     {
-        let header = "#version 330 core\nprecision highp float;\n";
+        let header = "#version 330 core\n";
         let s: &str = &[header, source].concat();
 
         use std::ffi::{CStr, CString};
