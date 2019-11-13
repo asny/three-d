@@ -18,7 +18,8 @@ out vec3 nor;
 
 void main()
 {
-    pos = (modelMatrix * vec4(position, 1.)).xyz;
+    vec4 worldPosition = modelMatrix * vec4(position, 1.);
     nor = mat3(normalMatrix) * normal;
-    gl_Position = camera.viewProjection * modelMatrix * vec4(position, 1.0);
+    pos = worldPosition.xyz;
+    gl_Position = camera.viewProjection * worldPosition;
 }

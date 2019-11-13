@@ -73,8 +73,8 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
         let geometry_pass_rendertargets =
-            [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 4, true)?,
-            rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 4, true)?];
+            [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 3, true)?,
+            rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 3, true)?];
 
 
         let mut camera = Camera::new_perspective(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -100,7 +100,7 @@ impl DeferredPipeline
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         for i in 0..self.geometry_pass_rendertargets.len()
         {
-            self.geometry_pass_rendertargets[i] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 4, true)?;
+            self.geometry_pass_rendertargets[i] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 3, true)?;
         }
         Ok(())
     }
@@ -151,6 +151,8 @@ impl DeferredPipeline
         self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
+        self.light_pass_program.add_uniform_mat4("viewInverse", &self.camera.get_view().invert().unwrap())?;
+        self.light_pass_program.add_uniform_mat4("projectionInverse", &self.camera.get_projection().invert().unwrap())?;
 
         // Ambient light
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color())?;

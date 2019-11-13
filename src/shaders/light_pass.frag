@@ -4,6 +4,9 @@ uniform samplerCube shadowCubeMap;
 
 layout (location = 0) out vec4 color;
 
+uniform mat4 projectionInverse;
+uniform mat4 viewInverse;
+
 uniform vec3 eyePosition;
 uniform mat4 shadowMVP0;
 uniform mat4 shadowMVP1;
@@ -112,11 +115,11 @@ float calculate_shadow(int lightIndex, sampler2DArray shadowMap, mat4 shadowMVP,
 
 vec3 calculate_light(BaseLight light, vec3 lightDirection, vec3 position)
 {
-    vec3 normal = normalize(texture(gbuffer, vec3(uv, 2)).xyz);
-    vec4 surface_parameters = texture(gbuffer, vec3(uv, 3));
+    vec3 normal = normalize(texture(gbuffer, vec3(uv, 1)).xyz*2.0 - 1.0);
+    vec4 surface_parameters = texture(gbuffer, vec3(uv, 2));
     float surface_diffuse_intensity = surface_parameters.x;
     float surface_specular_intensity = surface_parameters.y;
-    float surface_specular_power = surface_parameters.z;
+    float surface_specular_power = surface_parameters.z * 255.0;
 
     float DiffuseFactor = dot(normal, -lightDirection);
 
@@ -224,12 +227,24 @@ vec3 calculate_spot_light(int i, vec3 position)
     return vec3(0.0);
 }
 
+vec3 WorldPosFromDepth(float depth, vec2 uv) {
+    float z = depth * 2.0 - 1.0;
+
+    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, z, 1.0);
+    vec4 viewSpacePosition = projectionInverse * clipSpacePosition;
+
+    // Perspective division
+    viewSpacePosition /= viewSpacePosition.w;
+
+    return (viewInverse * viewSpacePosition).xyz;
+}
+
 void main()
 {
     float depth = texture(depthMap, vec3(uv,0)).r;
+    vec3 position = WorldPosFromDepth(depth, uv);
    	vec3 surface_color = texture(gbuffer, vec3(uv, 0)).rgb;
     bool is_far_away = depth > 0.99999;
-    vec3 position = texture(gbuffer, vec3(uv, 1)).xyz;
 
     vec3 light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
     if(!is_far_away)

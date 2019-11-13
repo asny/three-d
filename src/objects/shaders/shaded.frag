@@ -10,9 +10,8 @@ in vec3 nor;
 in vec3 pos;
 
 layout (location = 0) out vec3 out_color;
-layout (location = 1) out vec3 position;
-layout (location = 2) out vec3 normal;
-layout (location = 3) out vec3 surface_parameters;
+layout (location = 1) out vec3 normal;
+layout (location = 2) out vec3 surface_parameters;
 
 vec3 blendNormal(vec3 normal){
 	vec3 blending = abs(normal);
@@ -33,7 +32,6 @@ vec3 triplanarMapping (sampler2D t, vec3 normal, vec3 position) {
 void main()
 {
     out_color = use_texture ? triplanarMapping(tex, nor, pos) : color;
-    position = pos;
-    normal = nor;
-    surface_parameters = vec3(diffuse_intensity, specular_intensity, specular_power);
+    normal = 0.5 * (nor + 1.0);
+    surface_parameters = vec3(diffuse_intensity, specular_intensity, specular_power/255.0);
 }

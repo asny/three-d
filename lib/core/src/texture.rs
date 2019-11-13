@@ -271,7 +271,7 @@ impl Texture2DArray
 
         gl.tex_storage_3d(texture.target,
                         1,
-                        gl::consts::RGB16F,
+                        gl::consts::RGB8,
                         width as u32,
                         height as u32,
                         layers as u32);
