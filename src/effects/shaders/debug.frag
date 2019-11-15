@@ -54,6 +54,21 @@ void main()
         float depth = linear_depth(texture(depthMap, vec3(uv, 0)).x);
         color = vec4(depth, depth, depth, 1.);
     }
+    else if(type == 4) // Diffuse
+    {
+        float val = texture(gbuffer, vec3(uv, 2)).x;
+        color = vec4(val, val, val, 1.);
+    }
+    else if(type == 5) // Specular
+    {
+        float val = texture(gbuffer, vec3(uv, 2)).y;
+        color = vec4(val, val, val, 1.);
+    }
+    else if(type == 6) // Specular power
+    {
+        float val = texture(gbuffer, vec3(uv, 2)).z;
+        color = vec4(val, val, val, 1.);
+    }
     else {
         color = vec4(0., 0., 0., 0.);
     }

@@ -2,7 +2,7 @@ use crate::*;
 use num_derive::FromPrimitive;
 
 #[derive(Copy, Clone, PartialEq, Eq, FromPrimitive)]
-enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
+enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, DIFFUSE = 4, SPECULAR = 5, POWER = 6, NONE = 7}
 
 pub struct DebugEffect {
     gl: Gl,
