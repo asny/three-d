@@ -32,6 +32,6 @@ vec3 triplanarMapping (sampler2D t, vec3 normal, vec3 position) {
 void main()
 {
     out_color = use_texture ? triplanarMapping(tex, nor, pos) : color;
-    normal = 0.5 * (nor + 1.0);
+    normal = 0.5 * (normalize(nor) + 1.0);
     surface_parameters = vec3(diffuse_intensity, specular_intensity, specular_power/255.0);
 }
