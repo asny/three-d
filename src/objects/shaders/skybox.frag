@@ -17,6 +17,6 @@ layout (location = 2) out vec3 surface_parameters;
 
 void main() {
     color = texture(texture0, coords).rgb;
-    normal = 0.5 * normalize(-coords) + 1.0;
+    normal = 0.5 * normalize(-coords) + 0.5;
     surface_parameters = vec3(0.0, 0.0, 0.0);
 }
