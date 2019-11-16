@@ -4,8 +4,7 @@ uniform sampler2DArray depthMap;
 
 uniform int type;
 
-uniform mat4 projectionInverse;
-uniform mat4 viewInverse;
+uniform mat4 viewProjectionInverse;
 
 in vec2 uv;
 
@@ -25,12 +24,9 @@ vec3 WorldPosFromDepth(float depth, vec2 uv) {
     float z = depth * 2.0 - 1.0;
 
     vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, z, 1.0);
-    vec4 viewSpacePosition = projectionInverse * clipSpacePosition;
+    vec4 position = viewProjectionInverse * clipSpacePosition;
 
-    // Perspective division
-    viewSpacePosition /= viewSpacePosition.w;
-
-    return (viewInverse * viewSpacePosition).xyz;
+    return position.xyz / position.w;// (viewInverse * viewSpacePosition).xyz;
 }
 
 void main()

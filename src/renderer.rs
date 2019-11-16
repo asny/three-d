@@ -151,8 +151,7 @@ impl DeferredPipeline
         self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
 
         self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
-        self.light_pass_program.add_uniform_mat4("viewInverse", &self.camera.get_view().invert().unwrap())?;
-        self.light_pass_program.add_uniform_mat4("projectionInverse", &self.camera.get_projection().invert().unwrap())?;
+        self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(self.camera.get_projection() * self.camera.get_view()).invert().unwrap())?;
 
         // Ambient light
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color())?;

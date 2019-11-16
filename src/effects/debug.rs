@@ -32,8 +32,7 @@ impl DebugEffect {
             state::depth_test(&self.gl, state::DepthTestType::NONE);
             state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
 
-            self.program.add_uniform_mat4("viewInverse", &camera.get_view().invert().unwrap())?;
-            self.program.add_uniform_mat4("projectionInverse", &camera.get_projection().invert().unwrap())?;
+            self.program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 
             geometry_texture.bind(0);
             self.program.add_uniform_int("gbuffer", &0)?;
