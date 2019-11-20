@@ -16,7 +16,7 @@ fn main() {
 
     let monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap();
     let plane = Mesh::new_plane(&gl).unwrap();
-    let mesh_shader = MeshShader::new(&gl).unwrap();
+    let mut mesh_shader = MeshShader::new(&gl).unwrap();
 
     renderer.ambient_light().set_intensity(0.1);
 
@@ -71,7 +71,7 @@ fn main() {
             }
             //handle_ambient_light_parameters(event, &mut ambient_light);
             //handle_directional_light_parameters(event, &mut directional_light);
-            //handle_surface_parameters(event, &mut monkey);
+            handle_surface_parameters(event, &mut mesh_shader);
         }
 
         // Draw
@@ -177,46 +177,37 @@ fn handle_directional_light_parameters(event: &Event, light: &mut light::Directi
         },
         _ => {}
     }
-}
+}*/
 
-fn handle_surface_parameters(event: &Event, surface: &mut crate::objects::ShadedMesh)
+fn handle_surface_parameters(event: &Event, surface: &mut crate::objects::MeshShader)
 {
     match event {
-        Event::WindowEvent{ event, .. } => match event {
-            WindowEvent::KeyboardInput {input, ..} => {
-                if let Some(keycode) = input.virtual_keycode
-                {
-                    match keycode {
-                        VirtualKeyCode::S => {
-                            surface.diffuse_intensity = (surface.diffuse_intensity + 0.1).min(1.0);
-                            println!("Diffuse intensity: {}", surface.diffuse_intensity);
-                        },
-                        VirtualKeyCode::A => {
-                            surface.diffuse_intensity = (surface.diffuse_intensity - 0.1).max(0.0);
-                            println!("Diffuse intensity: {}", surface.diffuse_intensity);
-                        },
-                        VirtualKeyCode::F => {
-                            surface.specular_intensity = (surface.specular_intensity + 0.1).min(1.0);
-                            println!("Specular intensity: {}", surface.specular_intensity);
-                        },
-                        VirtualKeyCode::D => {
-                            surface.specular_intensity = (surface.specular_intensity - 0.1).max(0.0);
-                            println!("Specular intensity: {}", surface.specular_intensity);
-                        },
-                        VirtualKeyCode::H => {
-                            surface.specular_power = surface.specular_power + 1.0;
-                            println!("Specular power: {}", surface.specular_power);
-                        },
-                        VirtualKeyCode::G => {
-                            surface.specular_power = (surface.specular_power - 1.0).max(0.0);
-                            println!("Specular power: {}", surface.specular_power);
-                        },
-                        _ => {}
-                    }
-                }
-            },
-            _ => {}
+        Event::Key { state, kind } => {
+            if kind == "S" && *state == State::Pressed {
+                surface.diffuse_intensity = (surface.diffuse_intensity + 0.1).min(1.0);
+                println!("Diffuse intensity: {}", surface.diffuse_intensity);
+            }
+            if kind == "A" && *state == State::Pressed {
+                surface.diffuse_intensity = (surface.diffuse_intensity - 0.1).max(0.0);
+                println!("Diffuse intensity: {}", surface.diffuse_intensity);
+            }
+            if kind == "F" && *state == State::Pressed {
+                surface.specular_intensity = (surface.specular_intensity + 0.1).min(1.0);
+                println!("Specular intensity: {}", surface.specular_intensity);
+            }
+            if kind == "D" && *state == State::Pressed {
+                surface.specular_intensity = (surface.specular_intensity - 0.1).max(0.0);
+                println!("Specular intensity: {}", surface.specular_intensity);
+            }
+            if kind == "H" && *state == State::Pressed {
+                surface.specular_power = (surface.specular_power + 2.0).min(30.0);
+                println!("Specular power: {}", surface.specular_power);
+            }
+            if kind == "G" && *state == State::Pressed {
+                surface.specular_power = (surface.specular_power - 2.0).max(2.0);
+                println!("Specular power: {}", surface.specular_power);
+            }
         },
         _ => {}
     }
-}*/
+}

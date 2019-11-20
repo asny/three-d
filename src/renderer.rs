@@ -73,8 +73,8 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
         let geometry_pass_rendertargets =
-            [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 3, true)?,
-            rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 3, true)?];
+            [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?,
+            rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?];
 
 
         let mut camera = Camera::new_perspective(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -100,7 +100,7 @@ impl DeferredPipeline
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         for i in 0..self.geometry_pass_rendertargets.len()
         {
-            self.geometry_pass_rendertargets[i] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 3, true)?;
+            self.geometry_pass_rendertargets[i] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 2, true)?;
         }
         Ok(())
     }

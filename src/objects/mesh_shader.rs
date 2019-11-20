@@ -29,7 +29,7 @@ impl MeshShader
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
 
-        Ok(MeshShader { program, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+        Ok(MeshShader { program, color: vec3(1.0, 1.0, 1.0), texture: None, diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
     }
 
     pub fn render(&self, mesh: &Mesh, transformation: &Mat4, camera: &camera::Camera)

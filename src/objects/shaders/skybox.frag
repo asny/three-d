@@ -11,12 +11,10 @@ layout (std140) uniform Camera
 
 in vec3 coords;
 
-layout (location = 0) out vec3 color;
-layout (location = 1) out vec3 normal;
-layout (location = 2) out vec3 surface_parameters;
+layout (location = 0) out vec4 color;
+layout (location = 1) out vec4 normal;
 
 void main() {
-    color = texture(texture0, coords).rgb;
-    normal = 0.5 * normalize(-coords) + 0.5;
-    surface_parameters = vec3(0.0, 0.0, 0.0);
+    color = vec4(texture(texture0, coords).rgb, 0.0);
+    normal = vec4(0.5 * normalize(-coords) + 0.5, 0.0);
 }
