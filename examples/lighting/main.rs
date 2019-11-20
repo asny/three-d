@@ -13,10 +13,14 @@ fn main() {
 
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    renderer.camera.set_view(vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
 
     let monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap();
     let plane = Mesh::new_plane(&gl).unwrap();
     let mut mesh_shader = MeshShader::new(&gl).unwrap();
+    mesh_shader.diffuse_intensity = 0.3;
+    mesh_shader.specular_intensity = 0.8;
+    mesh_shader.specular_power = 20.0;
 
     renderer.ambient_light().set_intensity(0.1);
 
