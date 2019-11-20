@@ -241,8 +241,8 @@ void main()
         vec3 normal = normalize(n.xyz*2.0 - 1.0);
         float diffuse_intensity = c.w;
         int t = int(floor(n.w*255.0));
-        float specular_intensity = (t & 15) / 15.0;
-        float specular_power = 2.0 * ((t & 240) >> 4);
+        float specular_intensity = float(t & 15) / 15.0;
+        float specular_power = 2.0 * float((t & 240) >> 4);
         for(int i = 0; i < MAX_NO_LIGHTS; i++)
         {
             DirectionalLight directionalLight = directionalLights[i];
