@@ -55,7 +55,7 @@ fn main() {
         renderer.light_pass().unwrap();
 
         // Effect
-        fog_effect.apply(renderer.full_screen(), time as f32, &renderer.camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
+        fog_effect.apply(renderer.full_screen(), time as f32, &renderer.camera, renderer.geometry_pass_depth_texture()).unwrap();
         debug_effect.apply(renderer.full_screen(), &renderer.camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {

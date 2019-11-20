@@ -1,6 +1,7 @@
 
-uniform sampler2DArray gbuffer;
 uniform sampler2DArray depthMap;
+
+uniform mat4 viewProjectionInverse;
 
 uniform float time;
 uniform float fogDensity;
@@ -125,20 +126,26 @@ float snoise(vec3 v)
     return 42.0 * dot(m4, pdotx);
 }
 
+vec3 WorldPosFromDepth(float depth, vec2 uv) {
+    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 position = viewProjectionInverse * clipSpacePosition;
+    return position.xyz / position.w;
+}
+
 // factor: 1 == full fog, 0 == no fog
 void main()
 {
     float depth = texture(depthMap, vec3(uv, 0)).x;
-    vec4 pos = texture(gbuffer, vec3(uv, 1));
+    vec3 pos = WorldPosFromDepth(depth, uv);
 
     // Distance
-    float dist = depth < 0.999f ? distance(pos.xyz, eyePosition) : 100.f;
+    float dist = depth < 0.999f ? distance(pos, eyePosition) : 100.f;
 
     float x = dist * fogDensity;
     float factor = 1. - 1. / exp(x * x);
 
     // Noise
-    float n = snoise(0.05 * pos.xyz);
+    float n = snoise(pos);
     factor *=  (1. + animation * n * cos(time));
     factor = clamp(factor, 0., 1.);
 
