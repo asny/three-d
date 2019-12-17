@@ -59,8 +59,7 @@ pub struct DeferredPipeline {
     directional_lights: DirectionalLight,
     point_lights: PointLight,
     spot_lights: SpotLight,
-    pub background_color: Vec4,
-    pub camera: Camera
+    pub background_color: Vec4
 }
 
 
@@ -76,10 +75,6 @@ impl DeferredPipeline
             [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?,
             rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?];
 
-
-        let mut camera = Camera::new_perspective(vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                    degrees(45.0), screen_width as f32 / screen_height as f32, 0.1, 1000.0);
-        camera.enable_matrix_buffer(gl);
         Ok(DeferredPipeline {
             buffer_index: 0,
             gl: gl.clone(),
@@ -91,8 +86,7 @@ impl DeferredPipeline
             directional_lights: DirectionalLight::new(gl)?,
             point_lights: PointLight::new(gl)?,
             spot_lights: SpotLight::new(gl)?,
-            background_color,
-            camera })
+            background_color })
     }
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
@@ -113,7 +107,7 @@ impl DeferredPipeline
     }
 
     pub fn geometry_pass<F>(&mut self, render_scene: &F) -> Result<(), Error>
-        where F: Fn(&Camera)
+        where F: Fn()
     {
         // Double buffering is necessary to avoid:
         // Chrome: GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
@@ -127,17 +121,17 @@ impl DeferredPipeline
         state::cull(&self.gl, state::CullType::NONE);
         state::blend(&self.gl, state::BlendType::NONE);
 
-        render_scene(&self.camera);
+        render_scene();
         Ok(())
     }
 
-    pub fn light_pass(&self) -> Result<(), Error>
+    pub fn light_pass(&self, camera: &Camera) -> Result<(), Error>
     {
-        self.light_pass_render_to(&self.rendertarget)?;
+        self.light_pass_render_to(&self.rendertarget, camera)?;
         Ok(())
     }
 
-    pub fn light_pass_render_to(&self, rendertarget: &ColorRendertarget) -> Result<(), Error>
+    pub fn light_pass_render_to(&self, rendertarget: &ColorRendertarget, camera: &Camera) -> Result<(), Error>
     {
         rendertarget.bind();
         rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
@@ -150,8 +144,8 @@ impl DeferredPipeline
         self.light_pass_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
         self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
 
-        self.light_pass_program.add_uniform_vec3("eyePosition", &self.camera.position())?;
-        self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(self.camera.get_projection() * self.camera.get_view()).invert().unwrap())?;
+        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
+        self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 
         // Ambient light
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color())?;

@@ -14,8 +14,9 @@ fn main() {
     let scene_center = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    renderer.camera.set_view(scene_center + scene_radius * vec3(0.6, 0.6, 1.0).normalize(), scene_center,
-                                                    vec3(0.0, 1.0, 0.0));
+    let mut camera = Camera::new_perspective(scene_center + scene_radius * vec3(0.6, 0.6, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
+                                                degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+    camera.enable_matrix_buffer(&gl);
 
     // Objects
     let obj_file = include_str!("../assets/models/suzanne.obj").to_string();
@@ -69,18 +70,18 @@ fn main() {
     window.render_loop(move |events, _elapsed_time|
     {
         for event in events {
-            handle_camera_events(event, &mut camera_handler, &mut renderer.camera);
+            handle_camera_events(event, &mut camera_handler, &mut camera);
         }
 
         // Geometry pass
-        renderer.geometry_pass(&|camera| {
-            mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
-            mesh_shader.render(&plane, &Mat4::from_scale(100.0), camera);
-            wireframe.render(camera);
+        renderer.geometry_pass(&|| {
+            mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), &camera);
+            mesh_shader.render(&plane, &Mat4::from_scale(100.0), &camera);
+            wireframe.render(&camera);
         }).unwrap();
 
         // Light pass
-        renderer.light_pass().unwrap();
+        renderer.light_pass(&camera).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

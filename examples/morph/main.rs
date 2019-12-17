@@ -116,9 +116,9 @@ fn main()
 
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-
-    renderer.camera.set_view(scene_center + scene_radius * vec3(1.0, 1.0, 1.0).normalize(), scene_center,
-                                                    vec3(0.0, 1.0, 0.0));
+    let mut camera = Camera::new_perspective(scene_center + scene_radius * vec3(1.0, 1.0, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
+                                                degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+    camera.enable_matrix_buffer(&gl);
 
     // Objects
     let mut wireframe_model = ShadedEdges::new(&gl, &mesh.indices_buffer(), &positions, 0.01);
@@ -186,8 +186,8 @@ fn main()
                         if *state == State::Pressed
                         {
                             let (x, y) = (position.0 / window_size.0 as f64, position.1 / window_size.1 as f64);
-                            let p = renderer.camera.position();
-                            let dir = renderer.camera.view_direction_at((x, y));
+                            let p = camera.position();
+                            let dir = camera.view_direction_at((x, y));
                             weights = on_click(&mesh,&vec3(p.x as f64, p.y as f64, p.z as f64), &vec3(dir.x as f64, dir.y as f64, dir.z as f64));
                             if weights.is_none() {
                                 camera_handler.start_rotation();
@@ -200,10 +200,10 @@ fn main()
                     }
                 },
                 Event::MouseWheel {delta} => {
-                    camera_handler.zoom(&mut renderer.camera, *delta as f32);
+                    camera_handler.zoom(&mut camera, *delta as f32);
                 },
                 Event::MouseMotion {delta} => {
-                    camera_handler.rotate(&mut renderer.camera, delta.0 as f32, delta.1 as f32);
+                    camera_handler.rotate(&mut camera, delta.0 as f32, delta.1 as f32);
                     if let Some(ref w) = weights
                     {
                         on_morph(&mut mesh, w, 0.001 * delta.1);
@@ -223,14 +223,14 @@ fn main()
         });
 
         // Geometry pass
-        renderer.geometry_pass(&|camera| {
-            mesh_shader.render(&model, &dust::Mat4::identity(), camera);
-            mesh_shader.render(&plane, &dust::Mat4::from_scale(100.0), camera);
-            wireframe_model.render(camera);
+        renderer.geometry_pass(&|| {
+            mesh_shader.render(&model, &dust::Mat4::identity(), &camera);
+            mesh_shader.render(&plane, &dust::Mat4::from_scale(100.0), &camera);
+            wireframe_model.render(&camera);
         }).unwrap();
 
         // Light pass
-        renderer.light_pass().unwrap();
+        renderer.light_pass(&camera).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
