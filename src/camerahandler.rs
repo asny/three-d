@@ -1,6 +1,7 @@
 use crate::camera;
 use crate::*;
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum CameraState
 {
     FIRST, SPHERICAL
