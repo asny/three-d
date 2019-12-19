@@ -8,14 +8,15 @@ pub struct Camera {
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
-    matrix_buffer: Option<UniformBuffer>
+    matrix_buffer: Option<UniformBuffer>,
+    frustrum: [Vec4; 6]
 }
 
 impl Camera
 {
     pub fn new() -> Camera
     {
-        let mut camera = Camera {matrix_buffer: None,
+        let mut camera = Camera {matrix_buffer: None, frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
             position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
         camera.set_view(camera.position, camera.target, camera.up);
@@ -49,6 +50,7 @@ impl Camera
         self.projection = perspective(fovy, aspect, z_near, z_far);
         self.update_screen2ray();
         self.update_matrix_buffer();
+        self.update_frustrum();
     }
 
     pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32)
@@ -56,6 +58,7 @@ impl Camera
         self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, -0.5 * depth, 0.5 * depth);
         self.update_screen2ray();
         self.update_matrix_buffer();
+        self.update_frustrum();
     }
 
     pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3)
@@ -67,6 +70,7 @@ impl Camera
         self.view = Mat4::look_at(Point::from_vec(self.position), Point::from_vec(self.target), self.up);
         self.update_screen2ray();
         self.update_matrix_buffer();
+        self.update_frustrum();
     }
 
     pub fn mirror_in_xz_plane(&mut self)
@@ -76,6 +80,7 @@ impl Camera
         self.view[1][2] = -self.view[1][2];
         self.update_screen2ray();
         self.update_matrix_buffer();
+        self.update_frustrum();
     }
 
     pub fn view_direction_at(&self, screen_coordinates: (f64, f64)) -> Vec3
@@ -137,5 +142,38 @@ impl Camera
             matrix_buffer.update(2, &self.projection.to_slice()).unwrap();
             matrix_buffer.update(3, &self.position.to_slice()).unwrap();
         }
+    }
+
+    fn update_frustrum(&mut self)
+    {
+        let m = self.projection * self.view;
+        self.frustrum = [vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x),
+         vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x),
+         vec4(m.x.w + m.x.y, m.y.w + m.y.y,m.z.w + m.z.y, m.w.w + m.w.y),
+         vec4(m.x.w - m.x.y, m.y.w - m.y.y,m.z.w - m.z.y, m.w.w - m.w.y),
+         vec4(m.x.w + m.x.z,m.y.w + m.y.z,m.z.w + m.z.z, m.w.w + m.w.z),
+         vec4(m.x.w - m.x.z,m.y.w - m.y.z,m.z.w - m.z.z, m.w.w - m.w.z)];
+    }
+
+    // false if fully outside, true if inside or intersects
+    pub fn in_frustrum(&self, min: &Vec3, max: &Vec3) -> bool
+    {
+        // check box outside/inside of frustum
+        for i in 0..6
+        {
+            let mut out = 0;
+            if self.frustrum[i].dot(vec4(min.x, min.y, min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(max.x, min.y, min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(min.x, max.y, min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(max.x, max.y, min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(min.x, min.y, max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(max.x, min.y, max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(min.x, max.y, max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(max.x, max.y, max.z, 1.0)) < 0.0 {out += 1};
+            if out == 8 {return false;}
+        }
+        // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
+
+        return true;
     }
 }
