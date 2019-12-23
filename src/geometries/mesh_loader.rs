@@ -15,7 +15,7 @@ impl Mesh {
             positions.push(v.y as f32);
             positions.push(v.z as f32);
         });
-        let mut normals = vec![0.0f32; obj.vertices.len() * 3];
+        let mut normals = vec![0.0f32; positions.len() * 3];
         let mut indices = Vec::new();
         let has_normals = !obj.normals.is_empty();
         for shape in obj.geometry.first().unwrap().shapes.iter() {
@@ -70,10 +70,10 @@ impl Mesh {
             }
 
             for i in 0..normals.len()/3 {
-                let normal = vec3(normals[i], normals[i+1], normals[i+2]).normalize();
-                normals[i] = normal.x;
-                normals[i+1] = normal.y;
-                normals[i+2] = normal.z;
+                let normal = vec3(normals[3*i], normals[3*i+1], normals[3*i+2]).normalize();
+                normals[3*i] = normal.x;
+                normals[3*i+1] = normal.y;
+                normals[3*i+2] = normal.z;
             }
         }
 
