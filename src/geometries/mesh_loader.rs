@@ -57,7 +57,7 @@ impl Mesh {
                 let index2 = indices[face*3 + 2] as usize;
                 let p2 = vec3(positions[index2*3], positions[index2*3+1], positions[index2*3+2]);
 
-                let normal = (p1 - p0).cross(p2 - p0).normalize();
+                let normal = (p1 - p0).cross(p2 - p0);
                 normals[index0*3] += normal.x;
                 normals[index0*3+1] += normal.y;
                 normals[index0*3+2] += normal.z;
