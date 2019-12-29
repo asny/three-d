@@ -41,12 +41,14 @@ fn main() {
     directional_light.set_color(&vec3(1.0, 0.0, 0.0));
     directional_light.set_intensity(0.5);
     directional_light.enable_shadows();
+    directional_light.update_shadows(vec3(0.0, 0.0, 0.0), 300.0, 300.0);
 
     directional_light = renderer.directional_light(1).unwrap();
     directional_light.set_direction(&vec3(-1.0, -1.0, 1.0));
     directional_light.set_color(&vec3(0.0, 1.0, 0.0));
     directional_light.set_intensity(0.5);
     directional_light.enable_shadows();
+    directional_light.update_shadows(vec3(0.0, 0.0, 0.0), 300.0, 300.0);
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
     let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
@@ -72,6 +74,15 @@ fn main() {
             for object in objects.iter() {
                 object.render(&Mat4::identity(), camera);
             }
+
+            for x in -10..10 {
+                for y in -10..10 {
+                    if x != 0 || y != 0 {
+                        imposter.render(&(Mat4::from_translation(vec3(10.0 * x as f32, 7.0, 10.0 * y as f32))
+                            * Mat4::from_scale(10.0)), &camera);
+                    }
+                }
+            }
         };
 
         // Shadow pass
@@ -82,15 +93,6 @@ fn main() {
             {
                 render_scene(&camera);
                 mesh_shader.render(&plane, &(Mat4::from_scale(100.0)), &camera);
-
-                for x in -10..10 {
-                    for y in -10..10 {
-                        if x != 0 || y != 0 {
-                            imposter.render(&(Mat4::from_translation(vec3(10.0 * x as f32, 7.0, 10.0 * y as f32))
-                                * Mat4::from_scale(10.0)), &camera);
-                        }
-                    }
-                }
             }).unwrap();
 
         // Light pass
