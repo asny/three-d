@@ -95,7 +95,7 @@ fn main() {
 
         // Light pass
         renderer.light_pass(&camera).unwrap();
-        debug_effect.apply(renderer.full_screen(), &camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
+        debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

@@ -54,7 +54,7 @@ pub struct DeferredPipeline {
     light_pass_program: program::Program,
     rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertargets: [rendertarget::ColorRendertargetArray; 2],
-    full_screen: FullScreen,
+    full_screen: StaticVertexBuffer,
     ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
     point_lights: PointLight,
@@ -75,13 +75,25 @@ impl DeferredPipeline
             [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?,
             rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?];
 
+        let positions = vec![
+            -3.0, -1.0, 0.0,
+            3.0, -1.0, 0.0,
+            0.0, 2.0, 0.0
+        ];
+        let uvs = vec![
+            -1.0, 0.0,
+            2.0, 0.0,
+            0.5, 1.5
+        ];
+        let full_screen = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
+
         Ok(DeferredPipeline {
             buffer_index: 0,
             gl: gl.clone(),
             light_pass_program,
+            full_screen,
             rendertarget,
             geometry_pass_rendertargets,
-            full_screen: FullScreen::new(gl),
             ambient_light: AmbientLight::new(),
             directional_lights: DirectionalLight::new(gl)?,
             point_lights: PointLight::new(gl)?,
@@ -163,8 +175,8 @@ impl DeferredPipeline
         self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");
 
         // Render
-        self.light_pass_program.use_attribute_vec3_float(&self.full_screen.buffer(), "position", 0).unwrap();
-        self.light_pass_program.use_attribute_vec2_float(&self.full_screen.buffer(), "uv_coordinate", 1).unwrap();
+        self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+        self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
         self.light_pass_program.draw_arrays(3);
         Ok(())
     }
@@ -257,11 +269,6 @@ impl DeferredPipeline
         self.full_screen.render(&self.light_pass_program);
         Ok(())
     }*/
-
-    pub fn full_screen(&self) -> &FullScreen
-    {
-        &self.full_screen
-    }
 
     pub fn screen_rendertarget(&self) -> &ColorRendertarget
     {

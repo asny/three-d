@@ -1,8 +1,5 @@
 pub mod mesh_factory;
-pub mod full_screen_quad;
 pub mod mesh_loader;
-
-pub use crate::geometries::full_screen_quad::*;
 
 #[derive(Debug)]
 pub enum Error {
