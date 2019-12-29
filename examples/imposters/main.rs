@@ -20,7 +20,7 @@ fn main() {
     for object in loaded_objects.iter() {
         println!("{}", object.name());
     }
-    let objects: Vec<_> = loaded_objects.into_iter().filter(|object| object.name().starts_with("tree.001")).collect();
+    let objects: Vec<_> = loaded_objects.into_iter().filter(|object| object.name().starts_with("tree.001") || object.name().starts_with("leaves.001")).collect();
 
     let imposter = Imposter::new(&gl, &|camera: &Camera| {
             for object in objects.iter() {

@@ -11,8 +11,8 @@ pub struct Imposter {
 impl Imposter {
     pub fn new(gl: &Gl, render: &dyn Fn(&Camera)) -> Self
     {
-        let mut camera = camera::Camera::new_orthographic(vec3(0.0, 7.0, -5.0),
-                          vec3(0.0, 7.0, 0.0), vec3(0.0, 1.0, 0.0), 20.0, 20.0, 20.0);
+        let mut camera = camera::Camera::new_orthographic(vec3(0.0, 8.0, -5.0),
+                          vec3(0.0, 8.0, 0.0), vec3(0.0, 1.0, 0.0), 20.0, 20.0, 20.0);
         camera.enable_matrix_buffer(gl);
         let rendertarget = ColorRendertargetArray::new(gl, 1024, 1024, 2, false).unwrap();
         rendertarget.bind();
