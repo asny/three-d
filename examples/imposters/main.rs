@@ -23,6 +23,12 @@ fn main() {
     }
     let objects: Vec<_> = loaded_objects.into_iter().filter(|object| object.name().starts_with("tree.001")).collect();
 
+    let imposter = Imposter::new(&gl, &|camera: &Camera| {
+            for object in objects.iter() {
+                object.render(&Mat4::identity(), camera);
+            }
+        });
+
     let plane = Mesh::new_plane(&gl).unwrap();
     let mut mesh_shader = MeshShader::new(&gl).unwrap();
     mesh_shader.diffuse_intensity = 0.5;
@@ -66,6 +72,7 @@ fn main() {
             {
                 render_scene(&camera);
                 mesh_shader.render(&plane, &(Mat4::from_scale(10.0)), &camera);
+                imposter.render(&Mat4::identity(), &camera);
             }).unwrap();
 
         // Light pass

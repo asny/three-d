@@ -9,8 +9,14 @@ pub struct Imposter {
 }
 
 impl Imposter {
-    pub fn new(gl: &Gl) -> Self {
+    pub fn new(gl: &Gl, render: &dyn Fn(&Camera)) -> Self
+    {
+        let mut camera = camera::Camera::new_orthographic(vec3(0.0, 5.0, -5.0),
+                          vec3(0.0, 5.0, 0.0), vec3(0.0, 1.0, 0.0), 20.0, 20.0, 20.0);
+        camera.enable_matrix_buffer(gl);
         let rendertarget = ColorRendertarget::new(gl, 1024, 1024, false).unwrap();
+        rendertarget.bind();
+        render(&camera);
 
         let positions = vec![
             -3.0, -1.0, 0.0,
