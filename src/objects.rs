@@ -2,6 +2,8 @@ pub mod shaded_vertices;
 pub mod shaded_edges;
 pub mod wireframe;
 pub mod mesh;
+pub mod mesh_factory;
+pub mod mesh_loader;
 pub mod skybox;
 pub mod imposter;
 
