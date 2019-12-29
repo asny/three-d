@@ -49,12 +49,22 @@ fn main() {
     directional_light.enable_shadows();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
+    let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
 
     // main loop
     window.render_loop(move |events, _elapsed_time|
     {
         for event in events {
             handle_camera_events(event, &mut camera_handler, &mut camera);
+            match event {
+                Event::Key { state, kind } => {
+                    if kind == "R" && *state == State::Pressed
+                    {
+                        debug_effect.change_type();
+                    }
+                },
+                _ => {}
+            }
         }
 
         // Draw
@@ -72,11 +82,13 @@ fn main() {
             {
                 render_scene(&camera);
                 mesh_shader.render(&plane, &(Mat4::from_scale(10.0)), &camera);
-                imposter.render(&Mat4::identity(), &camera);
+                imposter.render(&(Mat4::from_translation(vec3(0.0, 7.0, 0.0))
+                    * Mat4::from_scale(10.0)), &camera);
             }).unwrap();
 
         // Light pass
         renderer.light_pass(&camera).unwrap();
+        debug_effect.apply(renderer.full_screen(), &camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
