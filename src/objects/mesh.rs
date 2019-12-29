@@ -19,12 +19,18 @@ impl From<buffer::Error> for Error {
     }
 }
 
+pub struct AxisAllignedBoundingBox {
+    min: Vec3,
+    max: Vec3
+}
+
 pub struct Mesh {
     name: String,
     position_buffer: StaticVertexBuffer,
     normal_buffer: StaticVertexBuffer,
     index_buffer: ElementBuffer,
     program: program::Program,
+    aabb: AxisAllignedBoundingBox,
     pub color: Vec3,
     pub texture: Option<texture::Texture2D>,
     pub diffuse_intensity: f32,
@@ -44,7 +50,7 @@ impl Mesh
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
 
-        Ok(Mesh { name, index_buffer, position_buffer, normal_buffer, program, color: vec3(1.0, 1.0, 1.0), texture: None,
+        Ok(Mesh { name, index_buffer, position_buffer, normal_buffer, program, aabb: compute_aabb(positions), color: vec3(1.0, 1.0, 1.0), texture: None,
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
     }
 
@@ -100,11 +106,40 @@ impl Mesh
         self.program.draw_elements(&self.index_buffer);
     }
 
+    pub fn axis_aligned_bounding_box(&self) -> &AxisAllignedBoundingBox
+    {
+        &self.aabb
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }
 }
 
+fn compute_aabb(positions: &[f32]) -> AxisAllignedBoundingBox {
+
+    let mut aabb = AxisAllignedBoundingBox {min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
+        max: vec3(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY, std::f32::NEG_INFINITY)};
+
+    for i in 0..positions.len() {
+        match i%3 {
+            0 => {
+                aabb.min.x = f32::min(positions[i], aabb.min.x);
+                aabb.max.x = f32::max(positions[i], aabb.max.x);
+            },
+            1 => {
+                aabb.min.y = f32::min(positions[i], aabb.min.y);
+                aabb.max.y = f32::max(positions[i], aabb.max.y);
+            },
+            2 => {
+                aabb.min.z = f32::min(positions[i], aabb.min.z);
+                aabb.max.z = f32::max(positions[i], aabb.max.z);
+            },
+            _ => {unreachable!()}
+        };
+    }
+    aabb
+}
 
 fn compute_normals(indices: &[u32], positions: &[f32]) -> Vec<f32> {
     let mut normals = vec![0.0f32; positions.len() * 3];
