@@ -78,7 +78,7 @@ impl Texture2D
 
         gl.tex_storage_2d(texture.target,
                         1,
-                        gl::consts::RGB8,
+                        gl::consts::RGBA8,
                         width as u32,
                         height as u32);
         gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel, gl::consts::TEXTURE_2D, &texture.id, 0);
