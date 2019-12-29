@@ -1,18 +1,14 @@
-use crate::geometries::mesh::Mesh;
-use crate::objects::MeshShader;
-use crate::object::*;
+use crate::objects::mesh::Mesh;
 use crate::buffer::*;
 use crate::core::Gl;
 
 impl Mesh {
-    pub fn new_from_obj_source(gl: &Gl, source: String) -> Result<Vec<Object>, Error>
+    pub fn new_from_obj_source(gl: &Gl, source: String) -> Result<Vec<Mesh>, Error>
     {
         let objs = wavefront_obj::obj::parse(source).unwrap();
 
         let mut objects = Vec::new();
         for obj in objs.objects.iter() { // Objects consisting of several meshes with different materials
-            let mut object = Object::new(obj.name.to_owned());
-
             let mut positions = Vec::new();
             obj.vertices.iter().for_each(|v| {
                 positions.push(v.x as f32);
@@ -51,18 +47,14 @@ impl Mesh {
                         _ => {}
                     }
                 }
-
-
-                let mesh = if !has_normals {
-                    Self::new_with_computed_normals(&gl, &indices, &positions)?
-                } else {
-                    Self::new(&gl, &indices, &positions, &normals)?
-                };
-                object.add(mesh, MeshShader::new(gl).unwrap());
-
             }
+            let mesh = if !has_normals {
+                Self::new_with_computed_normals(obj.name.to_owned(), &gl, &indices, &positions).unwrap()
+            } else {
+                Self::new(obj.name.to_owned(), &gl, &indices, &positions, &normals).unwrap()
+            };
 
-            objects.push(object);
+            objects.push(mesh);
         }
 
         Ok(objects)

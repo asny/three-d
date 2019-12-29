@@ -1,7 +1,6 @@
 
 use window::{event::*, Window};
 use dust::*;
-use dust::objects::MeshShader;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -29,10 +28,9 @@ fn main() {
             }
         });
 
-    let plane = Mesh::new_plane(&gl).unwrap();
-    let mut mesh_shader = MeshShader::new(&gl).unwrap();
-    mesh_shader.diffuse_intensity = 0.5;
-    mesh_shader.specular_intensity = 0.8;
+    let mut plane = Mesh::new_plane(&gl).unwrap();
+    plane.diffuse_intensity = 0.5;
+    plane.specular_intensity = 0.8;
 
     renderer.ambient_light().set_intensity(0.1);
 
@@ -92,7 +90,7 @@ fn main() {
         renderer.geometry_pass(&||
             {
                 render_scene(&camera);
-                mesh_shader.render(&plane, &(Mat4::from_scale(100.0)), &camera);
+                plane.render(&(Mat4::from_scale(100.0)), &camera);
             }).unwrap();
 
         // Light pass

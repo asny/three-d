@@ -1,5 +1,5 @@
 
-use crate::geometries::mesh::Mesh;
+use crate::objects::mesh::Mesh;
 use crate::buffer::*;
 use crate::core::Gl;
 
@@ -24,7 +24,7 @@ impl Mesh {
             0, 2, 1,
             0, 3, 2,
         ];
-        let mesh = Mesh::new(&gl, &plane_indices, &plane_positions, &plane_normals)?;
+        let mesh = Mesh::new("plane".to_owned(),&gl, &plane_indices, &plane_positions, &plane_normals).unwrap();
         Ok(mesh)
     }
 
@@ -118,7 +118,7 @@ impl Mesh {
         ];
         let indices: Vec<u32> = (0..positions.len() as u32/3).collect();
 
-        let mesh = Mesh::new(&gl, &indices, &positions, &normals)?;
+        let mesh = Mesh::new("box".to_owned(), &gl, &indices, &positions, &normals).unwrap();
         Ok(mesh)
     }
 }
