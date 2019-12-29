@@ -1,7 +1,7 @@
 use crate::*;
 use num_derive::FromPrimitive;
 
-#[derive(Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
 enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, DIFFUSE = 4, SPECULAR = 5, POWER = 6, NONE = 7}
 
 pub struct DebugEffect {
@@ -23,6 +23,7 @@ impl DebugEffect {
     pub fn change_type(&mut self)
     {
         self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (Type::NONE as u32 + 1)).unwrap();
+        println!("{:?}", self.debug_type);
     }
 
     pub fn apply(&self, full_screen: &FullScreen, camera: &Camera, geometry_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
