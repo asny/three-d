@@ -41,7 +41,7 @@ impl Imposter {
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera) {
 
-        state::depth_write(&self.gl, false);
+        state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::NONE);
