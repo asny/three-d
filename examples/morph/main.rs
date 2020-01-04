@@ -127,14 +127,17 @@ fn main()
     wireframe_model.specular_power = 5.0;
     wireframe_model.color = vec3(0.9, 0.2, 0.2);
 
-    let mut mesh_shader = MeshShader::new(&gl).unwrap();
-    mesh_shader.color = vec3(0.8, 0.8, 0.8);
-    mesh_shader.diffuse_intensity = 0.2;
-    mesh_shader.specular_intensity = 0.4;
-    mesh_shader.specular_power = 20.0;
+    let mut model = dust::Mesh::new("model".to_owned(), &gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
+    model.color = vec3(0.8, 0.8, 0.8);
+    model.diffuse_intensity = 0.2;
+    model.specular_intensity = 0.4;
+    model.specular_power = 20.0;
 
-    let mut model = dust::Mesh::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
-    let plane = dust::Mesh::new_plane(&gl).unwrap();
+    let mut plane = dust::Mesh::new_plane(&gl).unwrap();
+    plane.color = vec3(0.8, 0.8, 0.8);
+    plane.diffuse_intensity = 0.2;
+    plane.specular_intensity = 0.4;
+    plane.specular_power = 20.0;
 
     renderer.ambient_light().set_intensity(0.4);
 
@@ -219,13 +222,13 @@ fn main()
 
         // Shadow pass
         renderer.shadow_pass(&|camera: &Camera| {
-            mesh_shader.render(&model, &dust::Mat4::identity(), camera);
+            model.render(&dust::Mat4::identity(), camera);
         });
 
         // Geometry pass
         renderer.geometry_pass(&|| {
-            mesh_shader.render(&model, &dust::Mat4::identity(), &camera);
-            mesh_shader.render(&plane, &dust::Mat4::from_scale(100.0), &camera);
+            model.render(&dust::Mat4::identity(), &camera);
+            plane.render(&dust::Mat4::from_scale(100.0), &camera);
             wireframe_model.render(&camera);
         }).unwrap();
 
