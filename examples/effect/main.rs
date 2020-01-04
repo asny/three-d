@@ -16,9 +16,8 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
     camera.enable_matrix_buffer(&gl);
 
-    let monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap();
-    let mut mesh_shader = MeshShader::new(&gl).unwrap();
-    mesh_shader.color = vec3(0.5, 1.0, 0.5);
+    let mut monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap().pop().unwrap();
+    monkey.color = vec3(0.5, 1.0, 0.5);
 
     renderer.directional_light(0).unwrap().set_direction(&vec3(0.0, -1.0, 0.0));
     renderer.directional_light(0).unwrap().set_intensity(1.0);
@@ -51,15 +50,15 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(&|| {
             let transformation = Mat4::identity();
-            mesh_shader.render(&monkey, &transformation, &camera);
+            monkey.render(&transformation, &camera);
         }).unwrap();
 
         // Light pass
         renderer.light_pass(&camera).unwrap();
 
         // Effect
-        fog_effect.apply(renderer.full_screen(), time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
-        debug_effect.apply(renderer.full_screen(), &camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
+        fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
+        debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
