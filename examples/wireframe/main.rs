@@ -26,13 +26,15 @@ fn main() {
     wireframe.specular_power = 5.0;
     wireframe.color = vec3(0.9, 0.2, 0.2);
 
-    let mut mesh_shader = MeshShader::new(&gl).unwrap();
-    mesh_shader.diffuse_intensity = 0.2;
-    mesh_shader.specular_intensity = 0.4;
-    mesh_shader.specular_power = 20.0;
+    let mut model = Mesh::new_from_obj_source(&gl, obj_file).unwrap().pop().unwrap();
+    model.diffuse_intensity = 0.2;
+    model.specular_intensity = 0.4;
+    model.specular_power = 20.0;
 
-    let model = Mesh::new_from_obj_source(&gl, obj_file).unwrap();
-    let plane = Mesh::new_plane(&gl).unwrap();
+    let mut plane = Mesh::new_plane(&gl).unwrap();
+    plane.diffuse_intensity = 0.2;
+    plane.specular_intensity = 0.4;
+    plane.specular_power = 20.0;
 
     let mut light = renderer.spot_light(0).unwrap();
     light.set_intensity(0.3);
@@ -62,7 +64,7 @@ fn main() {
 
     // Shadow pass
     renderer.shadow_pass(&|camera: &Camera| {
-        mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
+        model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
         wireframe.render(camera);
     });
 
@@ -75,8 +77,8 @@ fn main() {
 
         // Geometry pass
         renderer.geometry_pass(&|| {
-            mesh_shader.render(&model, &Mat4::from_translation(vec3(0.0, 2.0, 0.0)), &camera);
-            mesh_shader.render(&plane, &Mat4::from_scale(100.0), &camera);
+            model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), &camera);
+            plane.render(&Mat4::from_scale(100.0), &camera);
             wireframe.render(&camera);
         }).unwrap();
 
