@@ -1,7 +1,6 @@
 
 use window::{event::*, Window};
 use dust::*;
-use dust::objects::MeshShader;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -17,12 +16,15 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
     camera.enable_matrix_buffer(&gl);
 
-    let monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap();
-    let plane = Mesh::new_plane(&gl).unwrap();
-    let mut mesh_shader = MeshShader::new(&gl).unwrap();
-    mesh_shader.diffuse_intensity = 0.3;
-    mesh_shader.specular_intensity = 0.8;
-    mesh_shader.specular_power = 20.0;
+    let mut monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap().pop().unwrap();
+    monkey.diffuse_intensity = 0.3;
+    monkey.specular_intensity = 0.8;
+    monkey.specular_power = 20.0;
+
+    let mut plane = Mesh::new_plane(&gl).unwrap();
+    plane.diffuse_intensity = 0.3;
+    plane.specular_intensity = 0.8;
+    plane.specular_power = 20.0;
 
     renderer.ambient_light().set_intensity(0.1);
 
@@ -77,12 +79,13 @@ fn main() {
             }
             //handle_ambient_light_parameters(event, &mut ambient_light);
             //handle_directional_light_parameters(event, &mut directional_light);
-            handle_surface_parameters(event, &mut mesh_shader);
+            handle_surface_parameters(event, &mut plane);
+            handle_surface_parameters(event, &mut monkey);
         }
 
         // Draw
         let render_scene = |camera: &Camera| {
-            mesh_shader.render(&monkey, &Mat4::identity(), camera);
+            monkey.render(&Mat4::identity(), camera);
         };
 
         // Shadow pass
@@ -92,7 +95,7 @@ fn main() {
         renderer.geometry_pass(&||
             {
                 render_scene(&camera);
-                mesh_shader.render(&plane, &(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
+                plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
                     * Mat4::from_scale(10.0)), &camera);
             }).unwrap();
 
@@ -185,7 +188,7 @@ fn handle_directional_light_parameters(event: &Event, light: &mut light::Directi
     }
 }*/
 
-fn handle_surface_parameters(event: &Event, surface: &mut crate::objects::MeshShader)
+fn handle_surface_parameters(event: &Event, surface: &mut Mesh)
 {
     match event {
         Event::Key { state, kind } => {
