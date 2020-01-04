@@ -20,8 +20,8 @@ impl From<buffer::Error> for Error {
 }
 
 pub struct AxisAllignedBoundingBox {
-    min: Vec3,
-    max: Vec3
+    pub min: Vec3,
+    pub max: Vec3
 }
 
 pub struct Mesh {

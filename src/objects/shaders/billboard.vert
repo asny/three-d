@@ -9,10 +9,12 @@ layout (std140) uniform Camera
     float padding;
 } camera;
 
+const int no_views = 4;
 in vec3 position;
 in vec2 uv_coordinate;
 
 out vec2 uv;
+out float layer;
 
 mat3 rotation(vec3 source_dir, vec3 target_dir)
 {
@@ -27,5 +29,12 @@ void main()
 {
     uv = uv_coordinate;
     vec3 dir = normalize(vec3(camera.position.x - modelMatrix[0][3], 0.0, camera.position.z - modelMatrix[2][3]));
-    gl_Position = camera.viewProjection * modelMatrix * vec4(rotation(vec3(0.0, 0.0, 1.0), dir) * position, 1.);
+    float c = dot(dir, vec3(0.0, 0.0, 1.0));
+    float s = cross(dir, vec3(0.0, 0.0, 1.0)).y;
+    mat3 rot = mat3(c, 0.0, s,
+                0.0,  1.0, 0.0,
+                -s,  0.0,  c);
+    float angle = s > 0.0 ? acos(c) : 2.0 * 3.1415926 - acos(c);
+    layer = no_views * angle / (2.0 * 3.1415926);
+    gl_Position = camera.viewProjection * modelMatrix * vec4(rot * position, 1.);
 }

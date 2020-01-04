@@ -22,11 +22,12 @@ fn main() {
     }
     let objects: Vec<_> = loaded_objects.into_iter().filter(|object| object.name().starts_with("tree.001") || object.name().starts_with("leaves.001")).collect();
 
+    let aabb = objects.first().unwrap().axis_aligned_bounding_box();
     let imposter = Imposter::new(&gl, &|camera: &Camera| {
             for object in objects.iter() {
                 object.render(&Mat4::identity(), camera);
             }
-        });
+        }, (aabb.min, aabb.max));
 
     let mut plane = Mesh::new_plane(&gl).unwrap();
     plane.diffuse_intensity = 0.5;
@@ -73,11 +74,11 @@ fn main() {
                 object.render(&Mat4::identity(), camera);
             }
 
-            for x in -10..10 {
-                for y in -10..10 {
+            let t = 10;
+            for x in -t..t {
+                for y in -t..t {
                     if x != 0 || y != 0 {
-                        imposter.render(&(Mat4::from_translation(vec3(10.0 * x as f32, 7.0, 10.0 * y as f32))
-                            * Mat4::from_scale(10.0)), &camera);
+                        imposter.render(&Mat4::from_translation(vec3(10.0 * x as f32, 0.0, 10.0 * y as f32)), &camera);
                     }
                 }
             }
