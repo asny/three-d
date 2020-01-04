@@ -16,9 +16,8 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
     camera.enable_matrix_buffer(&gl);
 
-    let box_mesh = Mesh::new_box(&gl).unwrap();
-    let mut textured_box = objects::MeshShader::new(&gl).unwrap();
-    textured_box.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/test_texture.jpg")).unwrap());
+    let mut box_mesh = Mesh::new_box(&gl).unwrap();
+    box_mesh.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/test_texture.jpg")).unwrap());
 
     let texture3d = texture::Texture3D::new_from_bytes(&gl,
                                                        include_bytes!("../assets/textures/skybox_evening/back.jpg"),
@@ -44,7 +43,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(&|| {
             let transformation = Mat4::identity();
-            textured_box.render(&box_mesh, &transformation, &camera);
+            box_mesh.render(&transformation, &camera);
             skybox.render(&camera).unwrap();
         }).unwrap();
 
