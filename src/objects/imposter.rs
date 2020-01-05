@@ -1,6 +1,7 @@
 use core::*;
 use std::f32::consts::PI;
 
+const NO_VIEW_ANGLES: usize  = 4;
 
 pub struct Imposter {
     gl: Gl,
@@ -12,7 +13,6 @@ pub struct Imposter {
 impl Imposter {
     pub fn new(gl: &Gl, render: &dyn Fn(&Camera), aabb: (Vec3, Vec3)) -> Self
     {
-        let no_views = 4;
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
@@ -20,17 +20,17 @@ impl Imposter {
         let mut camera = camera::Camera::new_orthographic(center + vec3(0.0, 0.0, -1.0),
                           center, vec3(0.0, 1.0, 0.0), width, height, width+1.0);
         camera.enable_matrix_buffer(gl);
-        let rendertarget = ColorRendertargetArray::new(gl, 1024, 1024, no_views*2, false).unwrap();
+        let rendertarget = ColorRendertargetArray::new(gl, 1024, 1024, NO_VIEW_ANGLES*2, false).unwrap();
         rendertarget.bind();
         rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
 
-        for i in 0..no_views {
-            let angle = i as f32 * 2.0 * PI / no_views as f32;
+        for i in 0..NO_VIEW_ANGLES {
+            let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + vec3(f32::sin(angle), 0.0, f32::cos(angle)),
                             center, vec3(0.0, 1.0, 0.0));
 
             rendertarget.targets.bind_to_framebuffer(i, 0);
-            rendertarget.targets.bind_to_framebuffer(no_views + i, 1);
+            rendertarget.targets.bind_to_framebuffer(NO_VIEW_ANGLES + i, 1);
             render(&camera);
         }
 
@@ -72,6 +72,7 @@ impl Imposter {
         state::blend(&self.gl, state::BlendType::NONE);
 
         self.program.add_uniform_mat4("modelMatrix", transformation).unwrap();
+        self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32)).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         self.program.use_texture(&self.rendertarget.targets, "tex").unwrap();

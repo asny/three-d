@@ -1,6 +1,6 @@
 uniform sampler2DArray tex;
 
-const int no_views = 4;
+uniform int no_views;
 in vec2 uv;
 in float t;
 
