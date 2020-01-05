@@ -20,7 +20,7 @@ impl Imposter {
         let mut camera = camera::Camera::new_orthographic(center + vec3(0.0, 0.0, -1.0),
                           center, vec3(0.0, 1.0, 0.0), width, height, width+1.0);
         camera.enable_matrix_buffer(gl);
-        let rendertarget = ColorRendertargetArray::new(gl, 1024, 1024, NO_VIEW_ANGLES*2, false).unwrap();
+        let rendertarget = ColorRendertargetArray::new(gl, 1024, 1024, NO_VIEW_ANGLES*2, 2, false).unwrap();
         rendertarget.bind();
         rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
 

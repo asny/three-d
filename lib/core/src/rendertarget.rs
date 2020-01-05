@@ -148,14 +148,15 @@ pub struct ColorRendertargetArray {
 
 impl ColorRendertargetArray
 {
-    pub fn new(gl: &Gl, width: usize, height: usize, no_targets: usize, depth: bool) -> Result<ColorRendertargetArray, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize, no_targets: usize, no_channels: usize, depth: bool) -> Result<ColorRendertargetArray, Error>
     {
         let id = generate(gl)?;
         gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
 
         let targets = Texture2DArray::new_as_color_targets(gl, width, height, no_targets)?;
+
         let mut draw_buffers = Vec::new();
-        for i in 0..no_targets {
+        for i in 0..no_channels {
             draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
         }
         gl.draw_buffers(&draw_buffers);

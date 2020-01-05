@@ -276,9 +276,7 @@ impl Texture2DArray
                         height as u32,
                         layers as u32);
 
-        for i in 0..layers {
-            texture.bind_to_framebuffer(i, i);
-        }
+        texture.bind_to_framebuffer(0, 0); // Bind layer 0 to channel 0 to make the framebuffer valid
         Ok(texture)
     }
 

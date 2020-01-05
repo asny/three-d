@@ -72,8 +72,8 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.frag"))?;
         let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
         let geometry_pass_rendertargets =
-            [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?,
-            rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, true)?];
+            [rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, 2, true)?,
+            rendertarget::ColorRendertargetArray::new(gl, screen_width, screen_height, 2, 2,true)?];
 
         let positions = vec![
             -3.0, -1.0, 0.0,
@@ -106,7 +106,7 @@ impl DeferredPipeline
         self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         for i in 0..self.geometry_pass_rendertargets.len()
         {
-            self.geometry_pass_rendertargets[i] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 2, true)?;
+            self.geometry_pass_rendertargets[i] = rendertarget::ColorRendertargetArray::new(&self.gl, screen_width, screen_height, 2, 2, true)?;
         }
         Ok(())
     }
@@ -126,6 +126,8 @@ impl DeferredPipeline
         // Firefox: Error: WebGL warning: drawElements: Texture level 0 would be read by TEXTURE_2D unit 0, but written by framebuffer attachment DEPTH_ATTACHMENT, which would be illegal feedback.
         self.buffer_index = (self.buffer_index + 1) % self.geometry_pass_rendertargets.len();
         self.geometry_pass_rendertargets[self.buffer_index].bind();
+        self.geometry_pass_rendertargets[self.buffer_index].targets.bind_to_framebuffer(0, 0);
+        self.geometry_pass_rendertargets[self.buffer_index].targets.bind_to_framebuffer(1, 1);
         self.geometry_pass_rendertargets[self.buffer_index].clear(&self.background_color);
 
         state::depth_write(&self.gl, true);
