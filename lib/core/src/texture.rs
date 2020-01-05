@@ -65,7 +65,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn new_as_color_target(gl: &Gl, width: usize, height: usize, channel: u32) -> Result<Texture2D, Error>
+    pub fn new_as_color_target(gl: &Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
@@ -81,7 +81,7 @@ impl Texture2D
                         gl::consts::RGBA8,
                         width as u32,
                         height as u32);
-        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel, gl::consts::TEXTURE_2D, &texture.id, 0);
+        texture.bind_to_framebuffer(0);
 
         Ok(texture)
     }
@@ -139,6 +139,11 @@ impl Texture2D
                                            format,
                                            gl::consts::FLOAT,
                                            &mut d);
+    }
+
+    pub fn bind_to_framebuffer(&self, channel: usize)
+    {
+        self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel as u32, gl::consts::TEXTURE_2D, &self.id, 0);
     }
 }
 

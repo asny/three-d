@@ -41,7 +41,7 @@ impl ColorRendertarget
         let id = generate(gl)?;
         gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
 
-        let target = Some(Texture2D::new_as_color_target(gl, width, height, 0)?);
+        let target = Some(Texture2D::new_as_color_target(gl, width, height)?);
         gl.draw_buffers(&[gl::consts::COLOR_ATTACHMENT0]);
 
         let depth_target = if depth
