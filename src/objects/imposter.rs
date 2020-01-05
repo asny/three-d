@@ -1,7 +1,7 @@
 use core::*;
 use std::f32::consts::PI;
 
-const NO_VIEW_ANGLES: usize  = 4;
+const NO_VIEW_ANGLES: usize  = 8;
 
 pub struct Imposter {
     gl: Gl,
