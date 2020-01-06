@@ -28,16 +28,18 @@ pub trait Texture {
 pub struct Texture2D {
     gl: Gl,
     id: gl::Texture,
-    target: u32
+    target: u32,
+    pub width: usize,
+    pub height: usize
 }
 
 // TEXTURE 2D
 impl Texture2D
 {
-    pub fn new(gl: &Gl) -> Result<Texture2D, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D, width, height };
 
         bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
@@ -51,8 +53,8 @@ impl Texture2D
     pub fn new_from_bytes(gl: &Gl, bytes: &[u8]) -> Result<Texture2D, Error>
     {
         let img = image::load_from_memory(bytes)?;
-        let mut texture = Texture2D::new(gl)?;
-        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &mut img.raw_pixels());
+        let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize)?;
+        texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
         Ok(texture)
     }
 
@@ -60,15 +62,15 @@ impl Texture2D
     pub fn new_from_file(gl: &Gl, path: &str) -> Result<Texture2D, Error>
     {
         let img = image::open(path)?;
-        let mut texture = Texture2D::new(gl)?;
-        texture.fill_with_u8(img.dimensions().0 as usize, img.dimensions().1 as usize, &mut img.raw_pixels());
+        let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize)?;
+        texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
         Ok(texture)
     }
 
     pub fn new_as_color_target(gl: &Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D, width, height };
 
         bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
@@ -81,7 +83,6 @@ impl Texture2D
                         gl::consts::RGBA8,
                         width as u32,
                         height as u32);
-        texture.bind_to_framebuffer(0);
 
         Ok(texture)
     }
@@ -89,7 +90,7 @@ impl Texture2D
     pub fn new_as_depth_target(gl: &Gl, width: usize, height: usize) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D };
+        let texture = Texture2D { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D, width, height };
 
         bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
@@ -102,8 +103,6 @@ impl Texture2D
                         gl::consts::DEPTH_COMPONENT32F,
                         width as u32,
                         height as u32);
-
-        gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::DEPTH_ATTACHMENT, texture.target, &texture.id, 0);
 
         Ok(texture)
     }
@@ -143,7 +142,14 @@ impl Texture2D
 
     pub fn bind_to_framebuffer(&self, channel: usize)
     {
-        self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER, gl::consts::COLOR_ATTACHMENT0 + channel as u32, gl::consts::TEXTURE_2D, &self.id, 0);
+        self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER,
+                       gl::consts::COLOR_ATTACHMENT0 + channel as u32, self.target, &self.id, 0);
+    }
+
+    pub fn bind_to_depth_target(&self)
+    {
+        self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER,
+                       gl::consts::DEPTH_ATTACHMENT, self.target, &self.id, 0);
     }
 }
 

@@ -52,7 +52,6 @@ pub struct DeferredPipeline {
     gl: Gl,
     buffer_index: usize,
     light_pass_program: program::Program,
-    rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_rendertarget: rendertarget::ColorRendertargetArray,
     geometry_pass_textures: [Texture2DArray; 2],
     geometry_pass_depth_textures: [Texture2DArray; 2],
@@ -72,7 +71,6 @@ impl DeferredPipeline
         let light_pass_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
-        let rendertarget = rendertarget::ColorRendertarget::default(gl, screen_width, screen_height)?;
         let geometry_pass_rendertarget = rendertarget::ColorRendertargetArray::new(gl, 2)?;
         let geometry_pass_textures =
             [Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?,
@@ -98,7 +96,6 @@ impl DeferredPipeline
             gl: gl.clone(),
             light_pass_program,
             full_screen,
-            rendertarget,
             geometry_pass_rendertarget,
             geometry_pass_textures,
             geometry_pass_depth_textures,
@@ -111,7 +108,6 @@ impl DeferredPipeline
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        self.rendertarget = rendertarget::ColorRendertarget::default(&self.gl, screen_width, screen_height)?;
         for i in 0..self.geometry_pass_textures.len()
         {
             self.geometry_pass_textures[i] = Texture2DArray::new_as_color_targets(&self.gl, screen_width, screen_height, 2)?;
@@ -150,15 +146,14 @@ impl DeferredPipeline
 
     pub fn light_pass(&self, camera: &Camera) -> Result<(), Error>
     {
-        self.light_pass_render_to(&self.rendertarget, camera)?;
+        ScreenRendertarget::write(&self.gl, self.geometry_pass_textures[0].width, self.geometry_pass_textures[0].height);
+        ScreenRendertarget::clear_color_and_depth(&self.gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        self.light_pass_render_to_rendertarget(camera)?;
         Ok(())
     }
 
-    pub fn light_pass_render_to(&self, rendertarget: &ColorRendertarget, camera: &Camera) -> Result<(), Error>
+    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera) -> Result<(), Error>
     {
-        rendertarget.bind();
-        rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
-
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
         state::cull(&self.gl,state::CullType::BACK);
@@ -280,11 +275,6 @@ impl DeferredPipeline
         self.full_screen.render(&self.light_pass_program);
         Ok(())
     }*/
-
-    pub fn screen_rendertarget(&self) -> &ColorRendertarget
-    {
-        &self.rendertarget
-    }
 
     pub fn geometry_pass_texture(&self) -> &Texture2DArray
     {
