@@ -28,7 +28,7 @@ impl Imposter {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + vec3(f32::sin(angle), 0.0, f32::cos(angle)),
                             center, vec3(0.0, 1.0, 0.0));
-            rendertarget.bind(&texture, &|channel| { i + channel * NO_VIEW_ANGLES }).unwrap();
+            rendertarget.write_to_color(&texture, &|channel| { i + channel * NO_VIEW_ANGLES }).unwrap();
             rendertarget.clear_color(&vec4(0.0, 0.0, 0.0, 0.0));
             render(&camera);
         }

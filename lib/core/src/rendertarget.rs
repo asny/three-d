@@ -159,7 +159,7 @@ impl ColorRendertargetArray
         Ok(ColorRendertargetArray { gl: gl.clone(), id: Some(id), no_channels })
     }
 
-    pub fn bind(&self, texture: &Texture2DArray, channel_to_texture_layer_map: &dyn Fn(usize) -> usize) -> Result<(), Error>
+    pub fn write_to_color(&self, texture: &Texture2DArray, channel_to_texture_layer_map: &dyn Fn(usize) -> usize) -> Result<(), Error>
     {
         self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
         self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
@@ -171,7 +171,7 @@ impl ColorRendertargetArray
         Ok(())
     }
 
-    pub fn bind_color_and_depth(&self, color_texture: &Texture2DArray, depth_texture: &Texture2DArray,
+    pub fn write_to_color_and_depth(&self, color_texture: &Texture2DArray, depth_texture: &Texture2DArray,
                                 color_channel_to_texture_layer_map: &dyn Fn(usize) -> usize, depth_layer: usize) -> Result<(), Error>
     {
         self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
@@ -185,7 +185,7 @@ impl ColorRendertargetArray
         Ok(())
     }
 
-    pub fn bind_for_read(&self)
+    pub fn read(&self)
     {
         self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, self.id.as_ref());
     }
@@ -211,7 +211,7 @@ impl ColorRendertargetArray
 
     pub fn blit_to(&self, target: &ColorRendertarget)
     {
-        self.bind_for_read();
+        self.read();
         target.bind();
         if target.depth_target.is_some() {
             depth_write(&self.gl, true);
@@ -228,7 +228,7 @@ impl ColorRendertargetArray
 
     pub fn blit_depth_to(&self, target: &ColorRendertarget)
     {
-        self.bind_for_read();
+        self.read();
         target.bind();
         depth_write(&self.gl, true);
         self.gl.blit_framebuffer(0, 0, target.width as u32, target.height as u32,
