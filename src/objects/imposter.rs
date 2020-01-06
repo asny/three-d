@@ -7,7 +7,7 @@ pub struct Imposter {
     gl: Gl,
     program: program::Program,
     vertex_buffer: StaticVertexBuffer,
-    rendertarget: ColorRendertargetArray
+    texture: Texture2DArray
 }
 
 impl Imposter {
@@ -20,17 +20,16 @@ impl Imposter {
         let mut camera = camera::Camera::new_orthographic(center + vec3(0.0, 0.0, -1.0),
                           center, vec3(0.0, 1.0, 0.0), width, height, width+1.0);
         camera.enable_matrix_buffer(gl);
-        let rendertarget = ColorRendertargetArray::new(gl, 1024, 1024, NO_VIEW_ANGLES*2, 2, false).unwrap();
-        rendertarget.bind();
-        rendertarget.clear(&vec4(0.0, 0.0, 0.0, 0.0));
+
+        let texture = Texture2DArray::new_as_color_targets(gl, 1024, 1024, NO_VIEW_ANGLES*2).unwrap();
+        let rendertarget = ColorRendertargetArray::new(gl, 2).unwrap();
 
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + vec3(f32::sin(angle), 0.0, f32::cos(angle)),
                             center, vec3(0.0, 1.0, 0.0));
-
-            rendertarget.targets.bind_to_framebuffer(i, 0);
-            rendertarget.targets.bind_to_framebuffer(NO_VIEW_ANGLES + i, 1);
+            rendertarget.bind(&texture, &|channel| { i + channel * NO_VIEW_ANGLES }).unwrap();
+            rendertarget.clear_color(&vec4(0.0, 0.0, 0.0, 0.0));
             render(&camera);
         }
 
@@ -61,7 +60,7 @@ impl Imposter {
 
         let vertex_buffer = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
 
-        Imposter {gl: gl.clone(), rendertarget, program, vertex_buffer }
+        Imposter {gl: gl.clone(), texture, program, vertex_buffer }
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera) {
@@ -75,7 +74,7 @@ impl Imposter {
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32)).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
-        self.program.use_texture(&self.rendertarget.targets, "tex").unwrap();
+        self.program.use_texture(&self.texture, "tex").unwrap();
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0).unwrap();
         self.program.use_attribute_vec2_float(&self.vertex_buffer, "uv_coordinate", 1).unwrap();

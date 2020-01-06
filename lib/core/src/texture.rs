@@ -257,16 +257,20 @@ pub struct Texture2DArray {
     gl: Gl,
     id: gl::Texture,
     target: u32,
-    attachment: u32
+    attachment: u32,
+    pub width: usize,
+    pub height: usize,
+    pub depth: usize,
 }
 
 // TEXTURE 3D
 impl Texture2DArray
 {
-    pub fn new_as_color_targets(gl: &Gl, width: usize, height: usize, layers: usize) -> Result<Texture2DArray, Error>
+    pub fn new_as_color_targets(gl: &Gl, width: usize, height: usize, depth: usize) -> Result<Texture2DArray, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::COLOR_ATTACHMENT0 };
+        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::COLOR_ATTACHMENT0,
+            width, height, depth};
 
         bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
@@ -279,16 +283,16 @@ impl Texture2DArray
                         gl::consts::RGBA8,
                         width as u32,
                         height as u32,
-                        layers as u32);
+                        depth as u32);
 
-        texture.bind_to_framebuffer(0, 0); // Bind layer 0 to channel 0 to make the framebuffer valid
         Ok(texture)
     }
 
-    pub fn new_as_depth_targets(gl: &Gl, width: usize, height: usize, layers: usize) -> Result<Texture2DArray, Error>
+    pub fn new_as_depth_targets(gl: &Gl, width: usize, height: usize, depth: usize) -> Result<Texture2DArray, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::DEPTH_ATTACHMENT };
+        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::DEPTH_ATTACHMENT,
+            width, height, depth };
 
         bind(&texture.gl, &texture.id, texture.target);
         gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
@@ -301,7 +305,7 @@ impl Texture2DArray
                         gl::consts::DEPTH_COMPONENT32F,
                         width as u32,
                         height as u32,
-                        layers as u32);
+                        depth as u32);
 
         texture.bind_to_framebuffer(0, 0);
         Ok(texture)
