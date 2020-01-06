@@ -228,7 +228,7 @@ impl ColorRendertargetArray
         for channel in 0..self.no_channels {
             color_texture.bind_to_framebuffer(color_channel_to_texture_layer_map(channel), channel);
         }
-        depth_texture.bind_to_framebuffer(depth_layer, 0);
+        depth_texture.bind_to_depth_target(depth_layer);
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(())
     }
@@ -294,10 +294,7 @@ impl Drop for ColorRendertargetArray {
 // DEPTH RENDER TARGET
 pub struct DepthRenderTarget {
     gl: Gl,
-    id: gl::Framebuffer,
-    pub width: usize,
-    pub height: usize,
-    pub target: Texture2D
+    id: gl::Framebuffer
 }
 
 impl DepthRenderTarget
@@ -305,27 +302,27 @@ impl DepthRenderTarget
     pub fn new(gl: &Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
     {
         let id = generate(gl)?;
-        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
-
-        let target = Texture2D::new_as_depth_target(gl, width, height)?;
-        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(DepthRenderTarget { gl: gl.clone(), id, width, height, target })
+        Ok(DepthRenderTarget { gl: gl.clone(), id })
     }
 
     #[cfg(target_arch = "x86_64")]
-    pub fn depths(&self, dst_data: &mut [f32])
+    pub fn depths(&self, width: usize, height: usize, dst_data: &mut [f32])
     {
-        self.bind();
-        self.gl.read_depths(0, 0, self.width as u32, self.height as u32, gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
+        self.read();
+        self.gl.read_depths(0, 0, width as u32, height as u32,
+                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
     }
 
-    pub fn bind(&self)
+    pub fn write(&self, texture: &Texture2D) -> Result<(), Error>
     {
         self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&self.id));
-        self.gl.viewport(0, 0, self.width as i32, self.height as i32);
+        texture.bind_to_depth_target();
+        self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
     }
 
-    pub fn bind_for_read(&self)
+    pub fn read(&self)
     {
         self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&self.id));
     }
@@ -345,29 +342,24 @@ impl Drop for DepthRenderTarget {
 
 pub struct DepthRenderTargetArray {
     gl: Gl,
-    id: gl::Framebuffer,
-    pub width: usize,
-    pub height: usize,
-    pub target: Texture2DArray
+    id: gl::Framebuffer
 }
 
 impl DepthRenderTargetArray
 {
-    pub fn new(gl: &Gl, width: usize, height: usize, layers: usize) -> Result<DepthRenderTargetArray, Error>
+    pub fn new(gl: &Gl) -> Result<DepthRenderTargetArray, Error>
     {
         let id = generate(gl)?;
-        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
-
-        let target = Texture2DArray::new_as_depth_targets(gl, width, height, layers)?;
-        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(DepthRenderTargetArray { gl: gl.clone(), id, width, height, target })
+        Ok(DepthRenderTargetArray { gl: gl.clone(), id })
     }
 
-    pub fn bind(&self, layer: usize)
+    pub fn write(&self, texture: &Texture2DArray, layer: usize) -> Result<(), Error>
     {
         self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&self.id));
-        self.gl.viewport(0, 0, self.width as i32, self.height as i32);
-        self.target.bind_to_framebuffer(layer, 0);
+        self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
+        texture.bind_to_depth_target(layer);
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
     }
 
     pub fn clear(&self)

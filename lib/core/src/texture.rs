@@ -313,13 +313,19 @@ impl Texture2DArray
                         height as u32,
                         depth as u32);
 
-        texture.bind_to_framebuffer(0, 0);
         Ok(texture)
     }
 
     pub fn bind_to_framebuffer(&self, layer: usize, channel: usize)
     {
-        self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER, self.attachment + channel as u32, &self.id, 0, layer as u32);
+        self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER,
+                      self.attachment + channel as u32, &self.id, 0, layer as u32);
+    }
+
+    pub fn bind_to_depth_target(&self, layer: usize)
+    {
+        self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER,
+                       gl::consts::DEPTH_ATTACHMENT, &self.id, 0, layer as u32);
     }
 }
 

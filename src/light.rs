@@ -58,6 +58,7 @@ impl AmbientLight
 pub struct DirectionalLight {
     gl: Gl,
     light_buffer: UniformBuffer,
+    shadow_texture: Texture2DArray,
     shadow_rendertarget: DepthRenderTargetArray,
     shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
     index: usize
@@ -68,9 +69,12 @@ impl DirectionalLight {
     pub(crate) fn new(gl: &Gl) -> Result<DirectionalLight, Error>
     {
         let uniform_sizes: Vec<u32> = [3u32, 1, 3, 1, 16].iter().cloned().cycle().take(5*MAX_NO_LIGHTS).collect();
+
+        let shadow_texture = Texture2DArray::new_as_depth_targets(gl, 1024, 1024, MAX_NO_LIGHTS).unwrap();
         let mut lights = DirectionalLight {
             gl: gl.clone(),
-            shadow_rendertarget: DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?,
+            shadow_texture,
+            shadow_rendertarget: DepthRenderTargetArray::new(gl)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
             shadow_cameras: [None, None, None, None],
             index: 0};
@@ -146,7 +150,7 @@ impl DirectionalLight {
         for light_id in 0..MAX_NO_LIGHTS {
             if let Some(ref camera) = self.shadow_cameras[light_id]
             {
-                self.shadow_rendertarget.bind(light_id);
+                self.shadow_rendertarget.write(&self.shadow_texture, light_id).unwrap();
                 self.shadow_rendertarget.clear();
                 render_scene(camera);
             }
@@ -155,7 +159,7 @@ impl DirectionalLight {
 
     pub(crate) fn shadow_maps(&self) -> &Texture2DArray
     {
-        &self.shadow_rendertarget.target
+        &self.shadow_texture
     }
 
     pub(crate) fn buffer(&self) -> &UniformBuffer
@@ -241,6 +245,7 @@ impl PointLight {
 pub struct SpotLight {
     gl: Gl,
     light_buffer: UniformBuffer,
+    shadow_texture: Texture2DArray,
     shadow_rendertarget: DepthRenderTargetArray,
     shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
     index: usize
@@ -251,9 +256,11 @@ impl SpotLight {
     pub(crate) fn new(gl: &Gl) -> Result<SpotLight, Error>
     {
         let uniform_sizes: Vec<u32> = [3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16].iter().cloned().cycle().take(11*MAX_NO_LIGHTS).collect();
+        let shadow_texture = Texture2DArray::new_as_depth_targets(gl, 1024, 1024, MAX_NO_LIGHTS).unwrap();
         let mut lights = SpotLight {
             gl: gl.clone(),
-            shadow_rendertarget: DepthRenderTargetArray::new(gl, 1024, 1024, MAX_NO_LIGHTS)?,
+            shadow_texture,
+            shadow_rendertarget: DepthRenderTargetArray::new(gl)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
             shadow_cameras: [None, None, None, None],
             index: 0};
@@ -358,7 +365,7 @@ impl SpotLight {
         for light_id in 0..MAX_NO_LIGHTS {
             if let Some(ref camera) = self.shadow_cameras[light_id]
             {
-                self.shadow_rendertarget.bind(light_id);
+                self.shadow_rendertarget.write(&self.shadow_texture, light_id).unwrap();
                 self.shadow_rendertarget.clear();
                 render_scene(camera);
             }
@@ -367,7 +374,7 @@ impl SpotLight {
 
     pub(crate) fn shadow_maps(&self) -> &Texture2DArray
     {
-        &self.shadow_rendertarget.target
+        &self.shadow_texture
     }
 
     pub(crate) fn buffer(&self) -> &UniformBuffer
