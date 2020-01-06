@@ -10,7 +10,6 @@ fn main() {
     let (width, height) = window.framebuffer_size();
 
     let gl = window.gl();
-    let rendertarget = ColorRendertarget::default(&gl, width, height).unwrap();
 
     // Camera
     let camera = Camera::new_perspective(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
@@ -35,8 +34,8 @@ fn main() {
     // main loop
     window.render_loop(move |_events, _elapsed_time|
     {
-        rendertarget.bind();
-        rendertarget.clear(&vec4(0.8, 0.8, 0.8, 1.0));
+        ScreenRendertarget::write(&gl, width, height);
+        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.8, 0.8, 0.8, 1.0));
 
         program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
         program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
@@ -48,7 +47,7 @@ fn main() {
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
-            save_screenshot(path, &rendertarget).unwrap();
+            save_screenshot(path, &gl, width, height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();

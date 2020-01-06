@@ -62,7 +62,7 @@ fn main() {
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
-            save_screenshot(path, renderer.screen_rendertarget()).unwrap();
+            save_screenshot(path, &gl, width, height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();
