@@ -242,6 +242,15 @@ impl ColorRendertargetArray
         Ok(())
     }
 
+    pub fn write_to_depth(&self, depth_texture: &Texture2DArray, layer: usize) -> Result<(), Error>
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
+        self.gl.viewport(0, 0, depth_texture.width as i32, depth_texture.height as i32);
+        depth_texture.bind_to_depth_target(layer);
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
+    }
+
     pub fn read(&self)
     {
         self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, self.id.as_ref());
@@ -297,41 +306,6 @@ impl ColorRendertargetArray
 impl Drop for ColorRendertargetArray {
     fn drop(&mut self) {
         self.gl.delete_framebuffer(self.id.as_ref());
-    }
-}
-
-pub struct DepthRenderTargetArray {
-    gl: Gl,
-    id: gl::Framebuffer
-}
-
-impl DepthRenderTargetArray
-{
-    pub fn new(gl: &Gl) -> Result<DepthRenderTargetArray, Error>
-    {
-        let id = generate(gl)?;
-        Ok(DepthRenderTargetArray { gl: gl.clone(), id })
-    }
-
-    pub fn write(&self, texture: &Texture2DArray, layer: usize) -> Result<(), Error>
-    {
-        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&self.id));
-        self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
-        texture.bind_to_depth_target(layer);
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(())
-    }
-
-    pub fn clear(&self)
-    {
-        depth_write(&self.gl,true);
-        self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
-    }
-}
-
-impl Drop for DepthRenderTargetArray {
-    fn drop(&mut self) {
-        self.gl.delete_framebuffer(Some(&self.id));
     }
 }
 

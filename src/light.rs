@@ -59,7 +59,7 @@ pub struct DirectionalLight {
     gl: Gl,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2DArray,
-    shadow_rendertarget: DepthRenderTargetArray,
+    shadow_rendertarget: ColorRendertargetArray,
     shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
     index: usize
 }
@@ -74,7 +74,7 @@ impl DirectionalLight {
         let mut lights = DirectionalLight {
             gl: gl.clone(),
             shadow_texture,
-            shadow_rendertarget: DepthRenderTargetArray::new(gl)?,
+            shadow_rendertarget: ColorRendertargetArray::new(gl, 0)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
             shadow_cameras: [None, None, None, None],
             index: 0};
@@ -150,8 +150,8 @@ impl DirectionalLight {
         for light_id in 0..MAX_NO_LIGHTS {
             if let Some(ref camera) = self.shadow_cameras[light_id]
             {
-                self.shadow_rendertarget.write(&self.shadow_texture, light_id).unwrap();
-                self.shadow_rendertarget.clear();
+                self.shadow_rendertarget.write_to_depth(&self.shadow_texture, light_id).unwrap();
+                self.shadow_rendertarget.clear_depth();
                 render_scene(camera);
             }
         }
@@ -246,7 +246,7 @@ pub struct SpotLight {
     gl: Gl,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2DArray,
-    shadow_rendertarget: DepthRenderTargetArray,
+    shadow_rendertarget: ColorRendertargetArray,
     shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
     index: usize
 }
@@ -260,7 +260,7 @@ impl SpotLight {
         let mut lights = SpotLight {
             gl: gl.clone(),
             shadow_texture,
-            shadow_rendertarget: DepthRenderTargetArray::new(gl)?,
+            shadow_rendertarget: ColorRendertargetArray::new(gl, 0)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
             shadow_cameras: [None, None, None, None],
             index: 0};
@@ -365,8 +365,8 @@ impl SpotLight {
         for light_id in 0..MAX_NO_LIGHTS {
             if let Some(ref camera) = self.shadow_cameras[light_id]
             {
-                self.shadow_rendertarget.write(&self.shadow_texture, light_id).unwrap();
-                self.shadow_rendertarget.clear();
+                self.shadow_rendertarget.write_to_depth(&self.shadow_texture, light_id).unwrap();
+                self.shadow_rendertarget.clear_depth();
                 render_scene(camera);
             }
         }
