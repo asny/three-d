@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 [dependencies]
 dust = { path = "../../" }
 log = "0.4"
-wasm-bindgen = "0.2.40"
-console_error_panic_hook = "0.1.5"
+wasm-bindgen = "0.2"
+console_error_panic_hook = "0.1"
 console_log = "0.1"
 tri-mesh = "0.4.0"
