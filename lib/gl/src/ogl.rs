@@ -287,7 +287,7 @@ impl Gl {
                 );
             }
 
-            return Err(error.to_string_lossy().into_owned());;
+            return Err(error.to_string_lossy().into_owned());
         }
         Ok(())
     }

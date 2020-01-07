@@ -7,10 +7,10 @@ edition = "2018"
 [dependencies]
 core = { path = "lib/core" }
 window = { path = "lib/window" }
-wavefront_obj = "5.1.0"
-num = "0.2.0"
+wavefront_obj = "7.0"
+num = "0.2"
 num-traits = "0.2"
-num-derive = "0.2.4"
+num-derive = "0.3"
 log = "0.4"
 
 [dev-dependencies]

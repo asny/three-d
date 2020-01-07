@@ -5,10 +5,10 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [target.'cfg(target_arch = "x86_64")'.build-dependencies]
-gl_generator = "0.9.0"
+gl_generator = "0.14"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
-version = "0.3.19"
+version = "0.3"
 features = [
   'WebGlBuffer',
   'WebGlFramebuffer',
@@ -23,10 +23,10 @@ features = [
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
-version = "0.2.42"
+version = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.js-sys]
-version = "0.3.19"
+version = "0.3"
 
 [features]
 debug = []

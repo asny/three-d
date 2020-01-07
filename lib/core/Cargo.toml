@@ -6,10 +6,10 @@ edition = "2018"
 
 [dependencies]
 gl = { path = "../gl" }
-cgmath = "0.16.1"
+cgmath = "0.17"
 
 [dependencies.image]
-version = "0.21.0"
+version = "0.22"
 default-features = false
 features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
 
