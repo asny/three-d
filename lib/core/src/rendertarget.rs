@@ -83,7 +83,8 @@ impl ColorRendertarget
 {
     pub fn new(gl: &Gl, no_color_channels: usize) -> Result<ColorRendertarget, Error>
     {
-        let id = generate(gl)?;
+        let id = gl.create_framebuffer()
+            .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
         gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
 
         let mut draw_buffers = Vec::new();
@@ -235,10 +236,6 @@ impl Drop for ColorRendertarget {
 }
 
 // COMMON FUNCTIONS
-fn generate(gl: &Gl) -> Result<gl::Framebuffer, Error>
-{
-    gl.create_framebuffer().ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )
-}
 
 #[cfg(target_arch = "x86_64")]
 pub fn save_screenshot(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
