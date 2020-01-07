@@ -124,6 +124,15 @@ impl ColorRendertarget
         Ok(())
     }
 
+    pub fn write_to_depth(&self, depth_texture: &Texture2D) -> Result<(), Error>
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
+        depth_texture.bind_to_depth_target();
+        self.gl.viewport(0, 0, depth_texture.width as i32, depth_texture.height as i32);
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
+    }
+
     pub fn read(&self)
     {
         self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, self.id.as_ref());
@@ -288,55 +297,6 @@ impl ColorRendertargetArray
 impl Drop for ColorRendertargetArray {
     fn drop(&mut self) {
         self.gl.delete_framebuffer(self.id.as_ref());
-    }
-}
-
-// DEPTH RENDER TARGET
-pub struct DepthRenderTarget {
-    gl: Gl,
-    id: gl::Framebuffer
-}
-
-impl DepthRenderTarget
-{
-    pub fn new(gl: &Gl, width: usize, height: usize) -> Result<DepthRenderTarget, Error>
-    {
-        let id = generate(gl)?;
-        Ok(DepthRenderTarget { gl: gl.clone(), id })
-    }
-
-    #[cfg(target_arch = "x86_64")]
-    pub fn depths(&self, width: usize, height: usize, dst_data: &mut [f32])
-    {
-        self.read();
-        self.gl.read_depths(0, 0, width as u32, height as u32,
-                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
-    }
-
-    pub fn write(&self, texture: &Texture2D) -> Result<(), Error>
-    {
-        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&self.id));
-        texture.bind_to_depth_target();
-        self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(())
-    }
-
-    pub fn read(&self)
-    {
-        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&self.id));
-    }
-
-    pub fn clear(&self)
-    {
-        depth_write(&self.gl,true);
-        self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
-    }
-}
-
-impl Drop for DepthRenderTarget {
-    fn drop(&mut self) {
-        self.gl.delete_framebuffer(Some(&self.id));
     }
 }
 
