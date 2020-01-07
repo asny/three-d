@@ -95,22 +95,6 @@ impl ColorRendertarget
         Ok(ColorRendertarget { gl: gl.clone(), id: Some(id), no_color_channels })
     }
 
-    #[cfg(target_arch = "x86_64")]
-    pub fn pixels(&self, width: usize, height: usize, dst_data: &mut [u8])
-    {
-        self.read();
-        self.gl.read_pixels(0, 0, width as u32, height as u32, gl::consts::RGB,
-                            gl::consts::UNSIGNED_BYTE, dst_data);
-    }
-
-    #[cfg(target_arch = "x86_64")]
-    pub fn depths(&self, width: usize, height: usize, dst_data: &mut [f32])
-    {
-        self.read();
-        self.gl.read_depths(0, 0, width as u32, height as u32,
-                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
-    }
-
     pub fn write_to_color(&self, texture: &Texture2D) -> Result<(), Error>
     {
         self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
@@ -196,6 +180,22 @@ impl ColorRendertarget
     {
         depth_write(&self.gl, true);
         self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    pub fn pixels(&self, width: usize, height: usize, dst_data: &mut [u8])
+    {
+        self.read();
+        self.gl.read_pixels(0, 0, width as u32, height as u32, gl::consts::RGB,
+                            gl::consts::UNSIGNED_BYTE, dst_data);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    pub fn depths(&self, width: usize, height: usize, dst_data: &mut [f32])
+    {
+        self.read();
+        self.gl.read_depths(0, 0, width as u32, height as u32,
+                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
     }
 
     /*pub fn blit_to(&self, target: &ColorRendertarget)
