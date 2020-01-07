@@ -52,7 +52,7 @@ pub struct DeferredPipeline {
     gl: Gl,
     buffer_index: usize,
     light_pass_program: program::Program,
-    geometry_pass_rendertarget: rendertarget::ColorRendertargetArray,
+    geometry_pass_rendertarget: rendertarget::ColorRendertarget,
     geometry_pass_textures: [Texture2DArray; 2],
     geometry_pass_depth_textures: [Texture2DArray; 2],
     full_screen: StaticVertexBuffer,
@@ -71,7 +71,7 @@ impl DeferredPipeline
         let light_pass_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertargetArray::new(gl, 2)?;
+        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(gl, 2)?;
         let geometry_pass_textures =
             [Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?,
             Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?];
@@ -130,7 +130,7 @@ impl DeferredPipeline
         // Chrome: GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
         // Firefox: Error: WebGL warning: drawElements: Texture level 0 would be read by TEXTURE_2D unit 0, but written by framebuffer attachment DEPTH_ATTACHMENT, which would be illegal feedback.
         self.buffer_index = (self.buffer_index + 1) % self.geometry_pass_textures.len();
-        self.geometry_pass_rendertarget.write_to_color_and_depth(&self.geometry_pass_textures[self.buffer_index],
+        self.geometry_pass_rendertarget.write_to_color_and_depth_array(&self.geometry_pass_textures[self.buffer_index],
                                              &self.geometry_pass_depth_textures[self.buffer_index],
                                              &|channel| {channel}, 0)?;
         self.geometry_pass_rendertarget.clear_color_and_depth(&self.background_color);

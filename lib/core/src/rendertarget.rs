@@ -76,17 +76,23 @@ impl ScreenRendertarget
 pub struct ColorRendertarget {
     gl: Gl,
     id: Option<gl::Framebuffer>,
+    no_color_channels: usize
 }
 
 impl ColorRendertarget
 {
-    pub fn new(gl: &Gl) -> Result<ColorRendertarget, Error>
+    pub fn new(gl: &Gl, no_color_channels: usize) -> Result<ColorRendertarget, Error>
     {
         let id = generate(gl)?;
         gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
-        gl.draw_buffers(&[gl::consts::COLOR_ATTACHMENT0]);
 
-        Ok(ColorRendertarget { gl: gl.clone(), id: Some(id)})
+        let mut draw_buffers = Vec::new();
+        for i in 0..no_color_channels {
+            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
+        }
+        gl.draw_buffers(&draw_buffers);
+
+        Ok(ColorRendertarget { gl: gl.clone(), id: Some(id), no_color_channels })
     }
 
     #[cfg(target_arch = "x86_64")]
@@ -129,6 +135,41 @@ impl ColorRendertarget
         self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
         depth_texture.bind_to_depth_target();
         self.gl.viewport(0, 0, depth_texture.width as i32, depth_texture.height as i32);
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
+    }
+
+    pub fn write_to_color_array(&self, texture: &Texture2DArray, channel_to_texture_layer_map: &dyn Fn(usize) -> usize) -> Result<(), Error>
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
+        self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
+
+        for channel in 0..self.no_color_channels {
+            texture.bind_to_framebuffer(channel_to_texture_layer_map(channel), channel);
+        }
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
+    }
+
+    pub fn write_to_color_and_depth_array(&self, color_texture: &Texture2DArray, depth_texture: &Texture2DArray,
+                                color_channel_to_texture_layer_map: &dyn Fn(usize) -> usize, depth_layer: usize) -> Result<(), Error>
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
+        self.gl.viewport(0, 0, color_texture.width as i32, color_texture.height as i32);
+
+        for channel in 0..self.no_color_channels {
+            color_texture.bind_to_framebuffer(color_channel_to_texture_layer_map(channel), channel);
+        }
+        depth_texture.bind_to_depth_target(depth_layer);
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
+    }
+
+    pub fn write_to_depth_array(&self, depth_texture: &Texture2DArray, layer: usize) -> Result<(), Error>
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
+        self.gl.viewport(0, 0, depth_texture.width as i32, depth_texture.height as i32);
+        depth_texture.bind_to_depth_target(layer);
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         Ok(())
     }
@@ -188,122 +229,6 @@ impl ColorRendertarget
 }
 
 impl Drop for ColorRendertarget {
-    fn drop(&mut self) {
-        self.gl.delete_framebuffer(self.id.as_ref());
-    }
-}
-
-// COLOR RENDER TARGET ARRAY
-pub struct ColorRendertargetArray {
-    gl: Gl,
-    id: Option<gl::Framebuffer>,
-    pub no_channels: usize
-}
-
-impl ColorRendertargetArray
-{
-    pub fn new(gl: &Gl, no_channels: usize) -> Result<ColorRendertargetArray, Error>
-    {
-        let id = generate(gl)?;
-        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
-
-        let mut draw_buffers = Vec::new();
-        for i in 0..no_channels {
-            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
-        }
-        gl.draw_buffers(&draw_buffers);
-
-        Ok(ColorRendertargetArray { gl: gl.clone(), id: Some(id), no_channels })
-    }
-
-    pub fn write_to_color(&self, texture: &Texture2DArray, channel_to_texture_layer_map: &dyn Fn(usize) -> usize) -> Result<(), Error>
-    {
-        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
-        self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
-
-        for channel in 0..self.no_channels {
-            texture.bind_to_framebuffer(channel_to_texture_layer_map(channel), channel);
-        }
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(())
-    }
-
-    pub fn write_to_color_and_depth(&self, color_texture: &Texture2DArray, depth_texture: &Texture2DArray,
-                                color_channel_to_texture_layer_map: &dyn Fn(usize) -> usize, depth_layer: usize) -> Result<(), Error>
-    {
-        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
-        self.gl.viewport(0, 0, color_texture.width as i32, color_texture.height as i32);
-
-        for channel in 0..self.no_channels {
-            color_texture.bind_to_framebuffer(color_channel_to_texture_layer_map(channel), channel);
-        }
-        depth_texture.bind_to_depth_target(depth_layer);
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(())
-    }
-
-    pub fn write_to_depth(&self, depth_texture: &Texture2DArray, layer: usize) -> Result<(), Error>
-    {
-        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
-        self.gl.viewport(0, 0, depth_texture.width as i32, depth_texture.height as i32);
-        depth_texture.bind_to_depth_target(layer);
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        Ok(())
-    }
-
-    pub fn read(&self)
-    {
-        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, self.id.as_ref());
-    }
-
-    pub fn clear_color(&self, color: &Vec4)
-    {
-        self.gl.clear_color(color.x, color.y, color.z, color.w);
-        self.gl.clear(gl::consts::COLOR_BUFFER_BIT);
-    }
-
-    pub fn clear_color_and_depth(&self, color: &Vec4)
-    {
-        self.gl.clear_color(color.x, color.y, color.z, color.w);
-        depth_write(&self.gl,true);
-        self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
-    }
-
-    pub fn clear_depth(&self)
-    {
-        depth_write(&self.gl, true);
-        self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
-    }
-
-    /*pub fn blit_to(&self, target: &ColorRendertarget)
-    {
-        self.read();
-        target.bind();
-        if target.depth_target.is_some() {
-            depth_write(&self.gl, true);
-            self.gl.blit_framebuffer(0, 0, target.width as u32, target.height as u32,
-                                     0, 0, target.width as u32, target.height as u32,
-                                     gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
-        }
-        else {
-            self.gl.blit_framebuffer(0, 0, target.width as u32, target.height as u32,
-                                     0, 0, target.width as u32, target.height as u32,
-                                     gl::consts::COLOR_BUFFER_BIT, gl::consts::NEAREST);
-        }
-    }
-
-    pub fn blit_depth_to(&self, target: &ColorRendertarget)
-    {
-        self.read();
-        target.bind();
-        depth_write(&self.gl, true);
-        self.gl.blit_framebuffer(0, 0, target.width as u32, target.height as u32,
-                                 0, 0, target.width as u32, target.height as u32,
-                                 gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
-    }*/
-}
-
-impl Drop for ColorRendertargetArray {
     fn drop(&mut self) {
         self.gl.delete_framebuffer(self.id.as_ref());
     }
