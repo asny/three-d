@@ -52,7 +52,7 @@ pub struct DeferredPipeline {
     gl: Gl,
     buffer_index: usize,
     light_pass_program: program::Program,
-    geometry_pass_rendertarget: rendertarget::ColorRendertarget,
+    geometry_pass_rendertarget: rendertarget::RenderTarget,
     geometry_pass_textures: [Texture2DArray; 2],
     geometry_pass_depth_textures: [Texture2DArray; 2],
     full_screen: StaticVertexBuffer,
@@ -71,7 +71,7 @@ impl DeferredPipeline
         let light_pass_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
-        let geometry_pass_rendertarget = rendertarget::ColorRendertarget::new(gl, 2)?;
+        let geometry_pass_rendertarget = rendertarget::RenderTarget::new(gl, 2)?;
         let geometry_pass_textures =
             [Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?,
             Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?];

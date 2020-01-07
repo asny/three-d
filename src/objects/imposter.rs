@@ -22,7 +22,7 @@ impl Imposter {
         camera.enable_matrix_buffer(gl);
 
         let texture = Texture2DArray::new_as_color_targets(gl, 1024, 1024, NO_VIEW_ANGLES*2).unwrap();
-        let rendertarget = ColorRendertarget::new(gl, 2).unwrap();
+        let rendertarget = RenderTarget::new(gl, 2).unwrap();
 
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;

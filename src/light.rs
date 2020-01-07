@@ -59,7 +59,7 @@ pub struct DirectionalLight {
     gl: Gl,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2DArray,
-    shadow_rendertarget: ColorRendertarget,
+    shadow_rendertarget: RenderTarget,
     shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
     index: usize
 }
@@ -74,7 +74,7 @@ impl DirectionalLight {
         let mut lights = DirectionalLight {
             gl: gl.clone(),
             shadow_texture,
-            shadow_rendertarget: ColorRendertarget::new(gl, 0)?,
+            shadow_rendertarget: RenderTarget::new(gl, 0)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
             shadow_cameras: [None, None, None, None],
             index: 0};
@@ -246,7 +246,7 @@ pub struct SpotLight {
     gl: Gl,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2DArray,
-    shadow_rendertarget: ColorRendertarget,
+    shadow_rendertarget: RenderTarget,
     shadow_cameras: [Option<Camera>; MAX_NO_LIGHTS],
     index: usize
 }
@@ -260,7 +260,7 @@ impl SpotLight {
         let mut lights = SpotLight {
             gl: gl.clone(),
             shadow_texture,
-            shadow_rendertarget: ColorRendertarget::new(gl, 0)?,
+            shadow_rendertarget: RenderTarget::new(gl, 0)?,
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
             shadow_cameras: [None, None, None, None],
             index: 0};

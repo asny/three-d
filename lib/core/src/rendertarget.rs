@@ -72,16 +72,15 @@ impl ScreenRendertarget
     }
 }
 
-// COLOR RENDER TARGET
-pub struct ColorRendertarget {
+pub struct RenderTarget {
     gl: Gl,
     id: Option<gl::Framebuffer>,
     no_color_channels: usize
 }
 
-impl ColorRendertarget
+impl RenderTarget
 {
-    pub fn new(gl: &Gl, no_color_channels: usize) -> Result<ColorRendertarget, Error>
+    pub fn new(gl: &Gl, no_color_channels: usize) -> Result<RenderTarget, Error>
     {
         let id = gl.create_framebuffer()
             .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
@@ -93,7 +92,7 @@ impl ColorRendertarget
         }
         gl.draw_buffers(&draw_buffers);
 
-        Ok(ColorRendertarget { gl: gl.clone(), id: Some(id), no_color_channels })
+        Ok(RenderTarget { gl: gl.clone(), id: Some(id), no_color_channels })
     }
 
     pub fn write_to_color(&self, texture: &Texture2D) -> Result<(), Error>
@@ -229,7 +228,7 @@ impl ColorRendertarget
     }*/
 }
 
-impl Drop for ColorRendertarget {
+impl Drop for RenderTarget {
     fn drop(&mut self) {
         self.gl.delete_framebuffer(self.id.as_ref());
     }
