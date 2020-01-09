@@ -14,8 +14,11 @@ void main()
     vec4 color1 = texture(tex, vec3(uv, int(ceil(layer)) % no_views));
     vec4 color = mix(color0, color1, fract(layer));
     vec4 normal0 = texture(tex, vec3(uv, float(no_views) + floor(layer)));
+    normal0.xyz = 2.0 * normal0.xyz - 1.0;
     vec4 normal1 = texture(tex, vec3(uv, float(no_views + int(ceil(layer)) % no_views)));
+    normal1.xyz = 2.0 * normal1.xyz - 1.0;
     vec4 normal = mix(normal0, normal1, fract(layer));
+    normal.xyz = normalize(normal.xyz) * 0.5 + 0.5;
     if(color0.a < 0.01 && normal0.a < 0.01 || color1.a < 0.01 && normal1.a < 0.01) { // No diffuse or specular intensity. Test depth instead? Dithering?
         discard;
     }
