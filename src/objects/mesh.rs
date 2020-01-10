@@ -24,6 +24,15 @@ pub struct AxisAllignedBoundingBox {
     pub max: Vec3
 }
 
+impl AxisAllignedBoundingBox {
+    pub fn add(&self, other: &AxisAllignedBoundingBox) -> AxisAllignedBoundingBox {
+        return AxisAllignedBoundingBox {
+            min: vec3(f32::min(self.min.x, other.min.x), f32::min(self.min.y, other.min.y), f32::min(self.min.z, other.min.z)),
+            max: vec3(f32::max(self.max.x, other.max.x), f32::max(self.max.y, other.max.y), f32::max(self.max.z, other.max.z))
+        }
+    }
+}
+
 pub struct Mesh {
     name: String,
     position_buffer: StaticVertexBuffer,
