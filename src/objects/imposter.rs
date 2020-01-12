@@ -63,14 +63,14 @@ impl Imposter {
         Imposter {gl: gl.clone(), texture, program, vertex_buffer }
     }
 
-    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera) {
+    pub fn render(&self, position: &Vec3, camera: &camera::Camera) {
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::NONE);
 
-        self.program.add_uniform_mat4("modelMatrix", transformation).unwrap();
+        self.program.add_uniform_vec3("center", position).unwrap();
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32)).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
