@@ -78,7 +78,7 @@ fn main() {
             for x in -t..t {
                 for y in -t..t {
                     if x != 0 || y != 0 {
-                        imposter.render(&Mat4::from_translation(vec3(10.0 * x as f32, 0.0, 10.0 * y as f32)), &camera);
+                        imposter.render(&vec3(10.0 * x as f32, 0.0, 10.0 * y as f32), &camera);
                     }
                 }
             }
