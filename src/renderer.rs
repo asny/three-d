@@ -130,9 +130,9 @@ impl DeferredPipeline
         // Chrome: GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
         // Firefox: Error: WebGL warning: drawElements: Texture level 0 would be read by TEXTURE_2D unit 0, but written by framebuffer attachment DEPTH_ATTACHMENT, which would be illegal feedback.
         self.buffer_index = (self.buffer_index + 1) % self.geometry_pass_textures.len();
-        self.geometry_pass_rendertarget.write_to_color_and_depth_array(&self.geometry_pass_textures[self.buffer_index],
-                                             &self.geometry_pass_depth_textures[self.buffer_index],
-                                             &|channel| {channel}, 0)?;
+        self.geometry_pass_rendertarget.write_to_color_array_and_depth_array(&self.geometry_pass_textures[self.buffer_index],
+                                                                             &self.geometry_pass_depth_textures[self.buffer_index],
+                                                                             &|channel| {channel}, 0)?;
         self.geometry_pass_rendertarget.clear_color_and_depth(&self.background_color);
 
         state::depth_write(&self.gl, true);
