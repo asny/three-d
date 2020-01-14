@@ -7,6 +7,8 @@ pub struct Imposter {
     gl: Gl,
     program: program::Program,
     vertex_buffer: StaticVertexBuffer,
+    instance_buffer: DynamicVertexBuffer,
+    instance_count: u32,
     texture: Texture2DArray
 }
 
@@ -60,18 +62,27 @@ impl Imposter {
                                                     include_str!("shaders/sprite.frag")).unwrap();
 
         let vertex_buffer = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
+        let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
+        instance_buffer.add(&[], 3);
+        instance_buffer.send_data();
 
-        Imposter {gl: gl.clone(), texture, program, vertex_buffer }
+        Imposter {gl: gl.clone(), texture, program, vertex_buffer, instance_buffer, instance_count:0 }
     }
 
-    pub fn render(&self, position: &Vec3, camera: &camera::Camera) {
+    pub fn update_positions(&mut self, positions: &[f32])
+    {
+        self.instance_buffer.update_data_at(0, positions);
+        self.instance_buffer.send_data();
+        self.instance_count = positions.len() as u32/3;
+    }
+
+    pub fn render(&self, camera: &camera::Camera) {
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
         state::cull(&self.gl,state::CullType::BACK);
         state::blend(&self.gl, state::BlendType::NONE);
 
-        self.program.add_uniform_vec3("center", position).unwrap();
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32)).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
@@ -79,6 +90,8 @@ impl Imposter {
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0).unwrap();
         self.program.use_attribute_vec2_float(&self.vertex_buffer, "uv_coordinate", 1).unwrap();
-        self.program.draw_arrays(6);
+
+        self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "center", 0, 1).unwrap();
+        self.program.draw_arrays_instanced(6, self.instance_count);
     }
 }

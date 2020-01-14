@@ -24,10 +24,22 @@ fn main() {
     let leaves_mesh = loaded_objects.pop().unwrap();
     let tree_mesh = loaded_objects.pop().unwrap();
     let aabb = tree_mesh.axis_aligned_bounding_box().add(leaves_mesh.axis_aligned_bounding_box());
-    let imposter = Imposter::new(&gl, &|camera: &Camera| {
+    let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
             tree_mesh.render(&Mat4::identity(), camera);
             leaves_mesh.render(&Mat4::identity(), camera);
         }, (aabb.min, aabb.max));
+    let t = 10;
+    let mut positions = Vec::new();
+    for x in -t..t {
+        for y in -t..t {
+            if x != 0 || y != 0 {
+                positions.push(10.0 * x as f32);
+                positions.push(0.0);
+                positions.push(10.0 * y as f32);
+            }
+        }
+    }
+    imposter.update_positions(&positions);
 
     let mut plane = Mesh::new_plane(&gl).unwrap();
     plane.diffuse_intensity = 0.5;
@@ -72,15 +84,7 @@ fn main() {
         let render_scene = |camera: &Camera| {
             tree_mesh.render(&Mat4::identity(), camera);
             leaves_mesh.render(&Mat4::identity(), camera);
-
-            let t = 10;
-            for x in -t..t {
-                for y in -t..t {
-                    if x != 0 || y != 0 {
-                        imposter.render(&vec3(10.0 * x as f32, 0.0, 10.0 * y as f32), &camera);
-                    }
-                }
-            }
+            imposter.render(&camera);
         };
 
         // Shadow pass

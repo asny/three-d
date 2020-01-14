@@ -1,4 +1,3 @@
-uniform vec3 center;
 
 layout (std140) uniform Camera
 {
@@ -8,6 +7,8 @@ layout (std140) uniform Camera
     vec3 position;
     float padding;
 } camera;
+
+in vec3 center;
 
 in vec3 position;
 in vec2 uv_coordinate;
