@@ -16,17 +16,17 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
     camera.enable_matrix_buffer(&gl);
 
-    let loaded_objects: Vec<_> = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/tree1.obj").to_string()).unwrap();
+    let mut loaded_objects: Vec<_> = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/tree1.obj").to_string()).unwrap();
     for object in loaded_objects.iter() {
         println!("{}", object.name());
     }
-    let objects: Vec<_> = loaded_objects.into_iter().filter(|object| object.name().starts_with("tree.001") || object.name().starts_with("leaves.001")).collect();
-
-    let aabb = objects.first().unwrap().axis_aligned_bounding_box();
+    loaded_objects.pop();
+    let leaves_mesh = loaded_objects.pop().unwrap();
+    let tree_mesh = loaded_objects.pop().unwrap();
+    let aabb = tree_mesh.axis_aligned_bounding_box().add(leaves_mesh.axis_aligned_bounding_box());
     let imposter = Imposter::new(&gl, &|camera: &Camera| {
-            for object in objects.iter() {
-                object.render(&Mat4::identity(), camera);
-            }
+            tree_mesh.render(&Mat4::identity(), camera);
+            leaves_mesh.render(&Mat4::identity(), camera);
         }, (aabb.min, aabb.max));
 
     let mut plane = Mesh::new_plane(&gl).unwrap();
@@ -70,9 +70,8 @@ fn main() {
 
         // Draw
         let render_scene = |camera: &Camera| {
-            for object in objects.iter() {
-                object.render(&Mat4::identity(), camera);
-            }
+            tree_mesh.render(&Mat4::identity(), camera);
+            leaves_mesh.render(&Mat4::identity(), camera);
 
             let t = 10;
             for x in -t..t {
