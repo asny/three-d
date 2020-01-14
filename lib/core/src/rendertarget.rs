@@ -135,6 +135,19 @@ impl RenderTarget
         Ok(())
     }
 
+    pub fn write_to_color_array_and_depth(&self, texture: &Texture2DArray, depth_texture: &Texture2D, channel_to_texture_layer_map: &dyn Fn(usize) -> usize) -> Result<(), Error>
+    {
+        self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, self.id.as_ref());
+        self.gl.viewport(0, 0, texture.width as i32, texture.height as i32);
+
+        for channel in 0..self.no_color_channels {
+            texture.bind_to_framebuffer(channel_to_texture_layer_map(channel), channel);
+        }
+        depth_texture.bind_to_depth_target();
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        Ok(())
+    }
+
     pub fn write_to_color_and_depth_array(&self, color_texture: &Texture2DArray, depth_texture: &Texture2DArray,
                                 color_channel_to_texture_layer_map: &dyn Fn(usize) -> usize, depth_layer: usize) -> Result<(), Error>
     {
