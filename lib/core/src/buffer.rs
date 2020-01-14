@@ -148,8 +148,9 @@ impl DynamicVertexBuffer {
     pub fn update_data_at(&mut self, index: usize, data: &[f32])
     {
         let offset = self.buffer.offset_from(index);
+        self.buffer.data.resize(data.len() + offset, 0.0);
         for i in 0..data.len() {
-            self.buffer.data[i + offset] = data[i]
+            self.buffer.data[i + offset] = data[i];
         }
     }
 
