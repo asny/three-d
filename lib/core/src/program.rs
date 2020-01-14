@@ -231,6 +231,17 @@ impl Program
         self.gl.unuse_program();
     }
 
+    pub fn draw_arrays_instanced(&self, count: u32, instance_count: u32)
+    {
+        self.set_used();
+        self.gl.draw_arrays_instanced(gl::consts::TRIANGLES, 0, count, instance_count);
+        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        for location in self.vertex_attributes.values() {
+            self.gl.disable_vertex_attrib_array(*location);
+        }
+        self.gl.unuse_program();
+    }
+
     pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
     {
         self.draw_subset_of_elements(element_buffer, 0,element_buffer.count() as u32);

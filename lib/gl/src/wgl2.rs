@@ -229,6 +229,16 @@ impl Gl {
         );
     }
 
+    pub fn draw_arrays_instanced(&self, mode: u32, first: u32, count: u32, instance_count: u32)
+    {
+        self.inner.draw_arrays_instanced(
+            mode,
+            first as i32, // starting index in the enabled arrays
+            count as i32, // number of vertices to be rendered
+            instance_count as i32
+        );
+    }
+
     pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32)
     {
         self.inner.draw_elements_with_i32(mode, count as i32, data_type, offset as i32);
