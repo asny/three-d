@@ -30,8 +30,9 @@ vec3 triplanarMapping (sampler2D t, vec3 normal, vec3 position) {
 
 void main()
 {
-    out_color = vec4(use_texture ? triplanarMapping(tex, nor, pos) : color, diffuse_intensity);
+	vec3 n = normalize(gl_FrontFacing ? nor : -nor);
+    out_color = vec4(use_texture ? triplanarMapping(tex, n, pos) : color, diffuse_intensity);
 	int intensity = int(floor(specular_intensity * 15.0));
 	int power = int(floor(specular_power*0.5));
-    normal = vec4(0.5 * normalize(nor) + 0.5, float(power << 4 | intensity)/255.0);
+    normal = vec4(0.5 * n + 0.5, float(power << 4 | intensity)/255.0);
 }
