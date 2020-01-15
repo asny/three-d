@@ -1,13 +1,10 @@
 
-use tri_mesh::prelude::*;
-use tri_mesh::prelude::Vec3 as Vec3;
-use tri_mesh::prelude::vec3 as vec3;
-use tri_mesh::prelude::vec4 as vec4;
 use std::collections::HashMap;
 
 /// Loads the mesh and scale/translate it.
-fn on_startup(scene_center: &Vec3, scene_radius: f64) -> tri_mesh::mesh::Mesh
+fn on_startup(scene_center: &tri_mesh::prelude::Vec3, scene_radius: f64) -> tri_mesh::mesh::Mesh
 {
+    use tri_mesh::prelude::*;
     let mut mesh = MeshBuilder::new().with_obj(include_str!("../assets/models/suzanne.obj").to_string()).build().unwrap();
     let (min, max) = mesh.extreme_coordinates();
     mesh.translate(-0.5 * (max + min)); // Translate such that the mesh center is in origo.
@@ -18,7 +15,7 @@ fn on_startup(scene_center: &Vec3, scene_radius: f64) -> tri_mesh::mesh::Mesh
 }
 
 /// When the user clicks, we see if the model is hit. If it is, we compute the morph weights from the picking point.
-fn on_click(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option<HashMap<VertexID, Vec3>>
+fn on_click(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &tri_mesh::prelude::Vec3, ray_direction: &tri_mesh::prelude::Vec3) -> Option<HashMap<tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3>>
 {
     if let Some((vertex_id, point)) = pick(&mesh,&ray_start_point, &ray_direction) {
         Some(compute_weights(mesh, vertex_id, &point))
@@ -27,7 +24,7 @@ fn on_click(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &Vec3, ray_direction: 
 }
 
 /// Morphs the vertices based on the computed weights.
-fn on_morph(mesh: &mut tri_mesh::mesh::Mesh, weights: &HashMap<VertexID, Vec3>, factor: f64)
+fn on_morph(mesh: &mut tri_mesh::mesh::Mesh, weights: &HashMap<tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3>, factor: f64)
 {
     for (vertex_id, weight) in weights.iter() {
         mesh.move_vertex_by(*vertex_id,weight * factor);
@@ -35,8 +32,9 @@ fn on_morph(mesh: &mut tri_mesh::mesh::Mesh, weights: &HashMap<VertexID, Vec3>, 
 }
 
 /// Picking used for determining whether a mouse click starts a morph operation. Returns a close vertex and the position of the click on the mesh surface.
-fn pick(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &Vec3, ray_direction: &Vec3) -> Option<(VertexID, Vec3)>
+fn pick(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &tri_mesh::prelude::Vec3, ray_direction: &tri_mesh::prelude::Vec3) -> Option<(tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3)>
 {
+    use tri_mesh::prelude::*;
     if let Some(Intersection::Point {primitive, point}) = mesh.ray_intersection(ray_start_point, ray_direction) {
         let start_vertex_id = match primitive {
             Primitive::Face(face_id) => {
@@ -56,8 +54,9 @@ fn pick(mesh: &tri_mesh::mesh::Mesh, ray_start_point: &Vec3, ray_direction: &Vec
 }
 
 /// Compute a directional weight for each vertex to be used for the morph operation.
-fn compute_weights(mesh: &tri_mesh::mesh::Mesh, start_vertex_id: VertexID, start_point: &Vec3) -> HashMap<VertexID, Vec3>
+fn compute_weights(mesh: &tri_mesh::mesh::Mesh, start_vertex_id: tri_mesh::prelude::VertexID, start_point: &tri_mesh::prelude::Vec3) -> HashMap<tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3>
 {
+    use tri_mesh::prelude::*;
     static SQR_MAX_DISTANCE: f64 = 1.0;
 
     // Use the smoothstep function to get a smooth morphing
@@ -95,17 +94,18 @@ fn compute_weights(mesh: &tri_mesh::mesh::Mesh, start_vertex_id: VertexID, start
 /// Above: Everything related to tri-mesh
 /// Below: Visualisation of the mesh, event handling and so on
 ///
-use dust::*;
-use dust::window::{event::*, Window};
 
 fn main()
 {
+    use dust::*;
+    use dust::window::{event::*, Window};
+
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let scene_radius = 10.0;
-    let scene_center = dust::vec3(0.0, 5.0, 0.0);
-    let mut mesh = on_startup(&vec3(scene_center.x as f64, scene_center.y as f64, scene_center.z as f64), scene_radius as f64);
+    let scene_center = vec3(0.0, 5.0, 0.0);
+    let mut mesh = on_startup(&tri_mesh::prelude::vec3(scene_center.x as f64, scene_center.y as f64, scene_center.z as f64), scene_radius as f64);
     let positions: Vec<f32> = mesh.positions_buffer().iter().map(|v| *v as f32).collect();
     let normals: Vec<f32> = mesh.normals_buffer().iter().map(|v| *v as f32).collect();
 
@@ -127,13 +127,13 @@ fn main()
     wireframe_model.specular_power = 5.0;
     wireframe_model.color = vec3(0.9, 0.2, 0.2);
 
-    let mut model = dust::Mesh::new("model".to_owned(), &gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
+    let mut model = Mesh::new("model".to_owned(), &gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
     model.color = vec3(0.8, 0.8, 0.8);
     model.diffuse_intensity = 0.2;
     model.specular_intensity = 0.4;
     model.specular_power = 20.0;
 
-    let mut plane = dust::Mesh::new_plane(&gl).unwrap();
+    let mut plane = Mesh::new_plane(&gl).unwrap();
     plane.color = vec3(0.8, 0.8, 0.8);
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
@@ -171,7 +171,7 @@ fn main()
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
-    let mut weights: Option<HashMap<VertexID, Vec3>> = None;
+    let mut weights: Option<HashMap<tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3>> = None;
     // main loop
     window.render_loop(move |events, _elapsed_time|
     {
@@ -191,7 +191,7 @@ fn main()
                             let (x, y) = (position.0 / window_size.0 as f64, position.1 / window_size.1 as f64);
                             let p = camera.position();
                             let dir = camera.view_direction_at((x, y));
-                            weights = on_click(&mesh,&vec3(p.x as f64, p.y as f64, p.z as f64), &vec3(dir.x as f64, dir.y as f64, dir.z as f64));
+                            weights = on_click(&mesh,&tri_mesh::prelude::vec3(p.x as f64, p.y as f64, p.z as f64), &tri_mesh::prelude::vec3(dir.x as f64, dir.y as f64, dir.z as f64));
                             if weights.is_none() {
                                 camera_handler.start_rotation();
                             }
@@ -222,13 +222,13 @@ fn main()
 
         // Shadow pass
         renderer.shadow_pass(&|camera: &Camera| {
-            model.render(&dust::Mat4::identity(), camera);
+            model.render(&Mat4::identity(), camera);
         });
 
         // Geometry pass
         renderer.geometry_pass(&|| {
-            model.render(&dust::Mat4::identity(), &camera);
-            plane.render(&dust::Mat4::from_scale(100.0), &camera);
+            model.render(&Mat4::identity(), &camera);
+            plane.render(&Mat4::from_scale(100.0), &camera);
             wireframe_model.render(&camera);
         }).unwrap();
 
