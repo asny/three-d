@@ -24,14 +24,15 @@ impl Imposter {
         camera.enable_matrix_buffer(gl);
 
         let texture = Texture2DArray::new_as_color_targets(gl, 1024, 1024, NO_VIEW_ANGLES*2).unwrap();
-        let depth_texture = Texture2D::new_as_depth_target(gl, 1024, 1024).unwrap();
+        let depth_texture = Texture2DArray::new_as_depth_targets(gl, 1024, 1024, NO_VIEW_ANGLES).unwrap();
         let rendertarget = RenderTarget::new(gl, 2).unwrap();
 
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
                             center, vec3(0.0, 1.0, 0.0));
-            rendertarget.write_to_color_array_and_depth(&texture, &depth_texture, &|channel| { i + channel * NO_VIEW_ANGLES }).unwrap();
+            rendertarget.write_to_color_array_and_depth_array(&texture, &depth_texture,
+                                                              &|channel| { i + channel * NO_VIEW_ANGLES }, i).unwrap();
             rendertarget.clear_color_and_depth(&vec4(0.0, 0.0, 0.0, 0.0));
             render(&camera);
         }
