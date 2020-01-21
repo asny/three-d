@@ -3,9 +3,9 @@ use crate::*;
 
 pub struct ShadedEdges {
     program: core::Program,
-    instance_buffer: core::DynamicVertexBuffer,
+    instance_buffer: VertexBuffer,
     cylinder_index_buffer: core::ElementBuffer,
-    cylinder_vertex_buffer: core::StaticVertexBuffer,
+    cylinder_vertex_buffer: VertexBuffer,
     index_pairs: std::collections::HashSet<(usize, usize)>,
     no_edges: u32,
     tube_radius: f32,
@@ -48,8 +48,8 @@ impl ShadedEdges
                 cylinder_indices.push((i+1) * angle_subdivisions as u32 + j);
             }
         }
-        let cylinder_index_buffer = core::ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
-        let cylinder_vertex_buffer = core::StaticVertexBuffer::new_with_vec3(gl,&cylinder_positions).unwrap();
+        let cylinder_index_buffer = ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
+        let cylinder_vertex_buffer = VertexBuffer::new_with_one_static_attribute(gl,&cylinder_positions).unwrap();
 
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {
@@ -62,11 +62,11 @@ impl ShadedEdges
         }
         let no_edges = index_pairs.len() as u32;
 
-        let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
+        let mut instance_buffer = VertexBuffer::new(gl).unwrap();
         let (translation, direction) = Self::fill_translation_and_direction(&index_pairs, positions);
         instance_buffer.add(&translation);
         instance_buffer.add(&direction);
-        instance_buffer.send_data();
+        instance_buffer.send_dynamic_data();
 
         ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
@@ -114,7 +114,7 @@ impl ShadedEdges
         let (translation, direction) = Self::fill_translation_and_direction(&self.index_pairs, positions);
         self.instance_buffer.update_data_at(0, &translation);
         self.instance_buffer.update_data_at(1, &direction);
-        self.instance_buffer.send_data();
+        self.instance_buffer.send_dynamic_data();
     }
 
     pub fn render(&self, camera: &camera::Camera)

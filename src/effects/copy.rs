@@ -7,7 +7,7 @@ enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
 pub struct CopyEffect {
     gl: Gl,
     program: program::Program,
-    buffer: StaticVertexBuffer
+    buffer: VertexBuffer
 }
 
 impl CopyEffect {
@@ -28,7 +28,7 @@ impl CopyEffect {
             2.0, 0.0,
             0.5, 1.5
         ];
-        let buffer = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
+        let buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
 
         Ok(CopyEffect {gl: gl.clone(), program, buffer})
     }

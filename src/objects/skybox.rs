@@ -14,7 +14,7 @@ impl From<program::Error> for Error {
 
 pub struct Skybox {
     program: program::Program,
-    vertex_buffer: StaticVertexBuffer,
+    vertex_buffer: VertexBuffer,
     texture: texture::Texture3D
 }
 
@@ -26,7 +26,7 @@ impl Skybox
                                                     include_str!("shaders/skybox.vert"),
                                                     include_str!("shaders/skybox.frag")).unwrap();
 
-        let vertex_buffer = StaticVertexBuffer::new_with_vec3(gl, &get_positions()).unwrap();
+        let vertex_buffer = VertexBuffer::new_with_one_static_attribute(gl, &get_positions()).unwrap();
 
         Skybox { program, vertex_buffer, texture }
     }

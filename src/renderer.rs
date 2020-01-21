@@ -55,7 +55,7 @@ pub struct DeferredPipeline {
     geometry_pass_rendertarget: rendertarget::RenderTarget,
     geometry_pass_textures: [Texture2DArray; 2],
     geometry_pass_depth_textures: [Texture2DArray; 2],
-    full_screen: StaticVertexBuffer,
+    full_screen: VertexBuffer,
     ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
     point_lights: PointLight,
@@ -89,7 +89,7 @@ impl DeferredPipeline
             2.0, 0.0,
             0.5, 1.5
         ];
-        let full_screen = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
+        let full_screen = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
 
         Ok(DeferredPipeline {
             buffer_index: 0,

@@ -35,8 +35,8 @@ impl AxisAllignedBoundingBox {
 
 pub struct Mesh {
     name: String,
-    position_buffer: StaticVertexBuffer,
-    normal_buffer: StaticVertexBuffer,
+    position_buffer: VertexBuffer,
+    normal_buffer: VertexBuffer,
     index_buffer: ElementBuffer,
     program: program::Program,
     aabb: AxisAllignedBoundingBox,
@@ -51,8 +51,8 @@ impl Mesh
 {
     pub fn new(name: String, gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, Error>
     {
-        let position_buffer = StaticVertexBuffer::new_with_vec3(gl, positions)?;
-        let normal_buffer = StaticVertexBuffer::new_with_vec3(gl, normals)?;
+        let position_buffer = VertexBuffer::new_with_one_static_attribute(gl, positions)?;
+        let normal_buffer = VertexBuffer::new_with_one_static_attribute(gl, normals)?;
         let index_buffer = ElementBuffer::new_with(gl, indices)?;
 
         let program = program::Program::from_source(&gl,
@@ -72,7 +72,7 @@ impl Mesh
     {
         self.position_buffer.clear();
         self.position_buffer.add(positions);
-        self.position_buffer.send_data();
+        self.position_buffer.send_static_data();
         Ok(())
     }
 
@@ -80,7 +80,7 @@ impl Mesh
     {
         self.normal_buffer.clear();
         self.normal_buffer.add(normals);
-        self.normal_buffer.send_data();
+        self.normal_buffer.send_static_data();
         Ok(())
     }
 

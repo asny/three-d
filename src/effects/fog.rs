@@ -6,7 +6,7 @@ pub struct FogEffect {
     pub color: Vec3,
     pub density: f32,
     pub animation: f32,
-    buffer: StaticVertexBuffer
+    buffer: VertexBuffer
 }
 
 impl FogEffect {
@@ -27,7 +27,7 @@ impl FogEffect {
             2.0, 0.0,
             0.5, 1.5
         ];
-        let buffer = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
+        let buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
         Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, buffer})
     }
 

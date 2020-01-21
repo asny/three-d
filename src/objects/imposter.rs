@@ -6,8 +6,8 @@ const NO_VIEW_ANGLES: usize  = 8;
 pub struct Imposter {
     gl: Gl,
     program: program::Program,
-    vertex_buffer: StaticVertexBuffer,
-    instance_buffer: DynamicVertexBuffer,
+    vertex_buffer: VertexBuffer,
+    instance_buffer: VertexBuffer,
     instance_count: u32,
     texture: Texture2DArray
 }
@@ -62,8 +62,8 @@ impl Imposter {
                                                     include_str!("shaders/billboard.vert"),
                                                     include_str!("shaders/sprite.frag")).unwrap();
 
-        let vertex_buffer = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
-        let instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
+        let vertex_buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
+        let instance_buffer = VertexBuffer::new(gl).unwrap();
 
         Imposter {gl: gl.clone(), texture, program, vertex_buffer, instance_buffer, instance_count:0 }
     }
@@ -73,7 +73,7 @@ impl Imposter {
         self.instance_buffer.clear();
         self.instance_buffer.add(positions);
         self.instance_buffer.add(angles_in_radians);
-        self.instance_buffer.send_data();
+        self.instance_buffer.send_dynamic_data();
         self.instance_count = positions.len() as u32/3;
     }
 

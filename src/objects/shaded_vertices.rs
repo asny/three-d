@@ -3,9 +3,9 @@ use crate::*;
 
 pub struct ShadedVertices {
     program: Program,
-    instance_buffer: DynamicVertexBuffer,
+    instance_buffer: VertexBuffer,
     ball_index_buffer: ElementBuffer,
-    ball_vertex_buffer: StaticVertexBuffer,
+    ball_vertex_buffer: VertexBuffer,
     no_vertices: u32,
     pub color: Vec3,
     pub diffuse_intensity: f32,
@@ -37,10 +37,12 @@ impl ShadedVertices
            6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
         );
         let ball_index_buffer = ElementBuffer::new_with(gl, &ball_indices).unwrap();
-        let ball_vertex_buffer = StaticVertexBuffer::new_with_vec3(gl, &ball_positions).unwrap();
-        let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
+        let mut ball_vertex_buffer = VertexBuffer::new_with_one_static_attribute(gl, &ball_positions).unwrap();
+        ball_vertex_buffer.add((&ball_positions));
+        ball_vertex_buffer.send_static_data();
+        let mut instance_buffer = VertexBuffer::new(gl).unwrap();
         instance_buffer.add(positions);
-        instance_buffer.send_data();
+        instance_buffer.send_dynamic_data();
 
         ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
@@ -49,7 +51,7 @@ impl ShadedVertices
     pub fn update_positions(&mut self, positions: &[f32])
     {
         self.instance_buffer.update_data_at(0, positions);
-        self.instance_buffer.send_data();
+        self.instance_buffer.send_dynamic_data();
     }
 
     pub fn render(&self, camera: &camera::Camera)

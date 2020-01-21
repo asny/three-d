@@ -26,7 +26,7 @@ fn main() {
         0.0, 0.0, 1.0    // top
     ];
 
-    let buffer = StaticVertexBuffer::new_with_vec3_vec3(&gl, &positions, &colors).unwrap();
+    let buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &colors).unwrap();
     let program = Program::from_source(&gl,
                                        include_str!("../assets/shaders/color.vert"),
                                        include_str!("../assets/shaders/color.frag")).unwrap();

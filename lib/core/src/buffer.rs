@@ -15,10 +15,27 @@ pub struct VertexBuffer {
 
 impl VertexBuffer
 {
-    pub(crate) fn new(gl: &Gl) -> Result<VertexBuffer, Error>
+    pub fn new(gl: &Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let buffer = VertexBuffer {gl: gl.clone(), id, stride: 0, offsets: Vec::new(), data: Vec::new() };
+        Ok(buffer)
+    }
+
+    pub fn new_with_one_static_attribute(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
+    {
+        let mut buffer = VertexBuffer::new(gl)?;
+        buffer.add(data);
+        buffer.send_static_data();
+        Ok(buffer)
+    }
+
+    pub fn new_with_two_static_attributes(gl: &Gl, data0: &[f32], data1: &[f32]) -> Result<VertexBuffer, Error>
+    {
+        let mut buffer = VertexBuffer::new(gl)?;
+        buffer.add(data0);
+        buffer.add(data1);
+        buffer.send_static_data();
         Ok(buffer)
     }
 
@@ -49,133 +66,27 @@ impl VertexBuffer
         self.offsets.push(self.data.len());
         self.data.extend_from_slice(data);
     }
-}
-
-
-pub struct StaticVertexBuffer {
-    buffer: VertexBuffer
-}
-
-impl StaticVertexBuffer {
-
-    pub fn new(gl: &Gl) -> Result<StaticVertexBuffer, Error>
-    {
-        let buffer = VertexBuffer::new(gl)?;
-        Ok(StaticVertexBuffer { buffer })
-    }
-
-    pub fn new_with_vec3(gl: &Gl, attribute: &[f32]) -> Result<StaticVertexBuffer, Error>
-    {
-        let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute);
-        buffer.send_data();
-        Ok(buffer)
-    }
-
-    pub fn new_with_vec3_vec3(gl: &Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
-    {
-        let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute0);
-        buffer.buffer.add(attribute1);
-        buffer.send_data();
-        Ok(buffer)
-    }
-
-    pub fn new_with_vec3_vec2(gl: &Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
-    {
-        let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute0);
-        buffer.buffer.add(attribute1);
-        buffer.send_data();
-        Ok(buffer)
-    }
-
-    pub fn new_with_vec3_vec3_vec2(gl: &Gl, attribute0: &[f32], attribute1: &[f32], attribute2: &[f32]) -> Result<StaticVertexBuffer, Error>
-    {
-        let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute0);
-        buffer.buffer.add(attribute1);
-        buffer.buffer.add(attribute2);
-        buffer.send_data();
-        Ok(buffer)
-    }
-
-    pub fn send_data(&mut self)
-    {
-        self.buffer.bind();
-        self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::STATIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
-    }
-
-    pub fn add(&mut self, data: &[f32])
-    {
-        self.buffer.add(data);
-    }
-
-    pub fn clear(&mut self)
-    {
-        self.buffer.clear();
-    }
-}
-
-impl std::ops::Deref for StaticVertexBuffer {
-    type Target = VertexBuffer;
-
-    fn deref(&self) -> &VertexBuffer {
-        &self.buffer
-    }
-}
-
-pub struct DynamicVertexBuffer {
-    buffer: VertexBuffer
-}
-
-impl DynamicVertexBuffer {
-
-    pub fn new(gl: &Gl) -> Result<DynamicVertexBuffer, Error>
-    {
-        let buffer = VertexBuffer::new(gl)?;
-        Ok(DynamicVertexBuffer { buffer })
-    }
-
-    pub fn send_data(&self)
-    {
-        self.buffer.bind();
-        self.buffer.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.buffer.data, gl::consts::DYNAMIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
-    }
 
     pub fn update_data_at(&mut self, index: usize, data: &[f32])
     {
-        let offset = self.buffer.offset_from(index);
-        self.buffer.data.resize(data.len() + offset, 0.0);
+        let offset = self.offset_from(index);
         for i in 0..data.len() {
-            self.buffer.data[i + offset] = data[i];
+            self.data[i + offset] = data[i];
         }
     }
 
-    pub fn add(&mut self, data: &[f32])
+    pub fn send_static_data(&mut self)
     {
-        self.buffer.add(data);
+        self.bind();
+        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
     }
 
-    pub fn clear(&mut self)
+    pub fn send_dynamic_data(&mut self)
     {
-        self.buffer.clear();
-    }
-
-    /*pub fn update_and_send_data_at(&mut self, index: usize, data: &[f32])
-    {
-        self.update_data_at(index, data);
-        TODO: self.buffer.gl.buffer_sub_data_f32()
-    }*/
-}
-
-impl std::ops::Deref for DynamicVertexBuffer {
-    type Target = VertexBuffer;
-
-    fn deref(&self) -> &VertexBuffer {
-        &self.buffer
+        self.bind();
+        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.data, gl::consts::DYNAMIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
     }
 }
 
