@@ -9,6 +9,7 @@ layout (std140) uniform Camera
 } camera;
 
 in vec3 center;
+in float theta;
 
 in vec3 position;
 in vec2 uv_coordinate;
@@ -25,7 +26,7 @@ void main()
     mat3 rot = mat3(c, 0.0, s,
                 0.0,  1.0, 0.0,
                 -s,  0.0,  c);
-    float angle = s > 0.0 ? acos(c) : 2.0 * 3.1415926 - acos(c);
+    float angle =mod((s > 0.0 ? acos(c) : 2.0 * 3.1415926 - acos(c)) + theta, 3.1415926);
     t = angle / (2.0 * 3.1415926);
     gl_Position = camera.viewProjection * vec4(rot * position.xyz + center, 1.);
 }

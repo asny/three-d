@@ -68,10 +68,11 @@ impl Imposter {
         Imposter {gl: gl.clone(), texture, program, vertex_buffer, instance_buffer, instance_count:0 }
     }
 
-    pub fn update_positions(&mut self, positions: &[f32])
+    pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
     {
         self.instance_buffer.clear();
         self.instance_buffer.add(positions);
+        self.instance_buffer.add(angles_in_radians);
         self.instance_buffer.send_data();
         self.instance_count = positions.len() as u32/3;
     }
@@ -92,6 +93,7 @@ impl Imposter {
         self.program.use_attribute_vec2_float(&self.vertex_buffer, "uv_coordinate", 1).unwrap();
 
         self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "center", 0, 1).unwrap();
+        self.program.use_attribute_float_divisor(&self.instance_buffer, "theta", 1, 1).unwrap();
         self.program.draw_arrays_instanced(6, self.instance_count);
     }
 }

@@ -30,16 +30,18 @@ fn main() {
         }, (aabb.min, aabb.max));
     let t = 10;
     let mut positions = Vec::new();
+    let mut angles = Vec::new();
     for x in -t..t {
         for y in -t..t {
             if x != 0 || y != 0 {
                 positions.push(10.0 * x as f32);
                 positions.push(0.0);
                 positions.push(10.0 * y as f32);
+                angles.push((y as f32 / t as f32) * std::f32::consts::PI + std::f32::consts::PI);
             }
         }
     }
-    imposter.update_positions(&positions);
+    imposter.update_positions(&positions, &angles);
 
     let mut plane = Mesh::new_plane(&gl).unwrap();
     plane.diffuse_intensity = 0.5;
@@ -88,7 +90,7 @@ fn main() {
         };
 
         // Shadow pass
-        renderer.shadow_pass(&render_scene);
+        renderer.shadow_pass(&|_|{});
 
         // Geometry pass
         renderer.geometry_pass(&||
