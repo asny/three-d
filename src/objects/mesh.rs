@@ -71,7 +71,7 @@ impl Mesh
     pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
     {
         self.position_buffer.clear();
-        self.position_buffer.add(positions, 3);
+        self.position_buffer.add(positions);
         self.position_buffer.send_data();
         Ok(())
     }
@@ -79,7 +79,7 @@ impl Mesh
     pub fn update_normals(&mut self, normals: &[f32]) -> Result<(), Error>
     {
         self.normal_buffer.clear();
-        self.normal_buffer.add(normals, 3);
+        self.normal_buffer.add(normals);
         self.normal_buffer.send_data();
         Ok(())
     }

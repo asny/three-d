@@ -64,8 +64,8 @@ impl ShadedEdges
 
         let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
         let (translation, direction) = Self::fill_translation_and_direction(&index_pairs, positions);
-        instance_buffer.add(&translation, 3);
-        instance_buffer.add(&direction, 3);
+        instance_buffer.add(&translation);
+        instance_buffer.add(&direction);
         instance_buffer.send_data();
 
         ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }

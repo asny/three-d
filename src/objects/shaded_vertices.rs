@@ -39,7 +39,7 @@ impl ShadedVertices
         let ball_index_buffer = ElementBuffer::new_with(gl, &ball_indices).unwrap();
         let ball_vertex_buffer = StaticVertexBuffer::new_with_vec3(gl, &ball_positions).unwrap();
         let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
-        instance_buffer.add(positions, 3);
+        instance_buffer.add(positions);
         instance_buffer.send_data();
 
         ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),

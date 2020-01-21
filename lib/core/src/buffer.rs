@@ -44,7 +44,7 @@ impl VertexBuffer
         self.stride = 0;
     }
 
-    pub fn add(&mut self, data: &[f32], no_components: usize)
+    pub fn add(&mut self, data: &[f32])
     {
         self.offsets.push(self.data.len());
         self.data.extend_from_slice(data);
@@ -67,7 +67,7 @@ impl StaticVertexBuffer {
     pub fn new_with_vec3(gl: &Gl, attribute: &[f32]) -> Result<StaticVertexBuffer, Error>
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute, 3);
+        buffer.buffer.add(attribute);
         buffer.send_data();
         Ok(buffer)
     }
@@ -75,8 +75,8 @@ impl StaticVertexBuffer {
     pub fn new_with_vec3_vec3(gl: &Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute0, 3);
-        buffer.buffer.add(attribute1, 3);
+        buffer.buffer.add(attribute0);
+        buffer.buffer.add(attribute1);
         buffer.send_data();
         Ok(buffer)
     }
@@ -84,8 +84,8 @@ impl StaticVertexBuffer {
     pub fn new_with_vec3_vec2(gl: &Gl, attribute0: &[f32], attribute1: &[f32]) -> Result<StaticVertexBuffer, Error>
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute0, 3);
-        buffer.buffer.add(attribute1, 2);
+        buffer.buffer.add(attribute0);
+        buffer.buffer.add(attribute1);
         buffer.send_data();
         Ok(buffer)
     }
@@ -93,9 +93,9 @@ impl StaticVertexBuffer {
     pub fn new_with_vec3_vec3_vec2(gl: &Gl, attribute0: &[f32], attribute1: &[f32], attribute2: &[f32]) -> Result<StaticVertexBuffer, Error>
     {
         let mut buffer = StaticVertexBuffer::new(gl)?;
-        buffer.buffer.add(attribute0, 3);
-        buffer.buffer.add(attribute1, 3);
-        buffer.buffer.add(attribute2, 2);
+        buffer.buffer.add(attribute0);
+        buffer.buffer.add(attribute1);
+        buffer.buffer.add(attribute2);
         buffer.send_data();
         Ok(buffer)
     }
@@ -107,9 +107,9 @@ impl StaticVertexBuffer {
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
     }
 
-    pub fn add(&mut self, data: &[f32], no_components: usize)
+    pub fn add(&mut self, data: &[f32])
     {
-        self.buffer.add(data, no_components);
+        self.buffer.add(data);
     }
 
     pub fn clear(&mut self)
@@ -154,9 +154,9 @@ impl DynamicVertexBuffer {
         }
     }
 
-    pub fn add(&mut self, data: &[f32], no_components: usize)
+    pub fn add(&mut self, data: &[f32])
     {
-        self.buffer.add(data, no_components);
+        self.buffer.add(data);
     }
 
     pub fn clear(&mut self)

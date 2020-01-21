@@ -63,16 +63,15 @@ impl Imposter {
                                                     include_str!("shaders/sprite.frag")).unwrap();
 
         let vertex_buffer = StaticVertexBuffer::new_with_vec3_vec2(&gl, &positions, &uvs).unwrap();
-        let mut instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
-        instance_buffer.add(&[], 3);
-        instance_buffer.send_data();
+        let instance_buffer = DynamicVertexBuffer::new(gl).unwrap();
 
         Imposter {gl: gl.clone(), texture, program, vertex_buffer, instance_buffer, instance_count:0 }
     }
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.instance_buffer.update_data_at(0, positions);
+        self.instance_buffer.clear();
+        self.instance_buffer.add(positions);
         self.instance_buffer.send_data();
         self.instance_count = positions.len() as u32/3;
     }
