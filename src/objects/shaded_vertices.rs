@@ -50,7 +50,7 @@ impl ShadedVertices
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.instance_buffer.update_data_at(0, positions);
+        self.instance_buffer.add(positions);
         self.instance_buffer.send_dynamic_data();
     }
 

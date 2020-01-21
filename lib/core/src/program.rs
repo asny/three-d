@@ -190,11 +190,10 @@ impl Program
     pub fn use_attribute_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
         buffer.bind();
-        let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
         self.gl.enable_vertex_attrib_array(loc);
-        self.gl.vertex_attrib_pointer(loc, 1, gl::consts::FLOAT, false, stride as u32, offset as u32);
+        self.gl.vertex_attrib_pointer(loc, 1, gl::consts::FLOAT, false, 0, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
         self.gl.unuse_program();
@@ -210,11 +209,10 @@ impl Program
     pub fn use_attribute_vec2_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
         buffer.bind();
-        let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
         self.gl.enable_vertex_attrib_array(loc);
-        self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, stride as u32, offset as u32);
+        self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, 0, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
         self.gl.unuse_program();
@@ -230,11 +228,10 @@ impl Program
     pub fn use_attribute_vec3_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
     {
         buffer.bind();
-        let stride = buffer.stride();
         let offset = buffer.offset_from(index);
         let loc = self.location(&attribute_name)?;
         self.gl.enable_vertex_attrib_array(loc);
-        self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, stride as u32, offset as u32);
+        self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, 0, offset as u32);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
         self.gl.unuse_program();

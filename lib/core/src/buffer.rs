@@ -8,7 +8,6 @@ pub enum Error {
 pub struct VertexBuffer {
     gl: Gl,
     id: gl::Buffer,
-    stride: usize,
     offsets: Vec<usize>,
     data: Vec<f32>
 }
@@ -18,7 +17,7 @@ impl VertexBuffer
     pub fn new(gl: &Gl) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer {gl: gl.clone(), id, stride: 0, offsets: Vec::new(), data: Vec::new() };
+        let buffer = VertexBuffer {gl: gl.clone(), id, offsets: Vec::new(), data: Vec::new() };
         Ok(buffer)
     }
 
@@ -44,35 +43,19 @@ impl VertexBuffer
         self.gl.bind_buffer(gl::consts::ARRAY_BUFFER, &self.id);
     }
 
-    pub fn stride(&self) -> usize
-    {
-        self.stride
-    }
-
     pub fn offset_from(&self, index: usize) -> usize
     {
         self.offsets[index]
     }
 
-    pub fn clear(&mut self)
-    {
-        self.data.clear();
-        self.offsets.clear();
-        self.stride = 0;
-    }
-
     pub fn add(&mut self, data: &[f32])
     {
+        if self.data.is_empty()
+        {
+            self.offsets.clear();
+        }
         self.offsets.push(self.data.len());
         self.data.extend_from_slice(data);
-    }
-
-    pub fn update_data_at(&mut self, index: usize, data: &[f32])
-    {
-        let offset = self.offset_from(index);
-        for i in 0..data.len() {
-            self.data[i + offset] = data[i];
-        }
     }
 
     pub fn send_static_data(&mut self)
@@ -80,6 +63,7 @@ impl VertexBuffer
         self.bind();
         self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.data, gl::consts::STATIC_DRAW);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.data.clear();
     }
 
     pub fn send_dynamic_data(&mut self)
@@ -87,6 +71,7 @@ impl VertexBuffer
         self.bind();
         self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.data, gl::consts::DYNAMIC_DRAW);
         self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.data.clear();
     }
 }
 

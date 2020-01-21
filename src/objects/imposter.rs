@@ -70,7 +70,6 @@ impl Imposter {
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
     {
-        self.instance_buffer.clear();
         self.instance_buffer.add(positions);
         self.instance_buffer.add(angles_in_radians);
         self.instance_buffer.send_dynamic_data();

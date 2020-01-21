@@ -112,8 +112,8 @@ impl ShadedEdges
     pub fn update_positions(&mut self, positions: &[f32])
     {
         let (translation, direction) = Self::fill_translation_and_direction(&self.index_pairs, positions);
-        self.instance_buffer.update_data_at(0, &translation);
-        self.instance_buffer.update_data_at(1, &direction);
+        self.instance_buffer.add(&translation);
+        self.instance_buffer.add(&direction);
         self.instance_buffer.send_dynamic_data();
     }
 
