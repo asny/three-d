@@ -181,6 +181,26 @@ impl Program
         self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
     }
 
+    pub fn use_attribute_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
+    {
+        self.use_attribute_float_divisor(buffer, attribute_name, index, 0)?;
+        Ok(())
+    }
+
+    pub fn use_attribute_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize, divisor: usize) -> Result<(), Error>
+    {
+        buffer.bind();
+        let stride = buffer.stride();
+        let offset = buffer.offset_from(index);
+        let loc = self.location(&attribute_name)?;
+        self.gl.enable_vertex_attrib_array(loc);
+        self.gl.vertex_attrib_pointer(loc, 1, gl::consts::FLOAT, false, stride as u32, offset as u32);
+        self.gl.vertex_attrib_divisor(loc, divisor as u32);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.unuse_program();
+        Ok(())
+    }
+
     pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, index: usize) -> Result<(), Error>
     {
         self.use_attribute_vec2_float_divisor(buffer, attribute_name, index, 0)?;
