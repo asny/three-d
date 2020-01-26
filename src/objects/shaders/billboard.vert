@@ -16,6 +16,7 @@ in vec2 uv_coordinate;
 
 out vec2 uv;
 out float t;
+out vec2 cs;
 
 void main()
 {
@@ -28,5 +29,6 @@ void main()
                 -s,  0.0,  c);
     float angle = mod((s > 0.0 ? acos(c) : 2.0 * 3.1415926 - acos(c)) + theta, 2.0 * 3.1415926);
     t = angle / (2.0 * 3.1415926);
+    cs = vec2(cos(theta), sin(theta));
     gl_Position = camera.viewProjection * vec4(rot * position.xyz + center, 1.);
 }
