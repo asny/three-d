@@ -21,7 +21,7 @@ void main()
         discard;
     }
     out_color = mix(color0, color1, fract(layer));
-    out_normal = normalize(mix(normal0, normal1, fract(layer)));
+    out_normal = mix(normal0, normal1, fract(layer));
     out_normal.xyz = 0.5 + 0.5 * normalize(vec3(cs.x * out_normal.x + cs.y * out_normal.z, out_normal.y, -cs.y * out_normal.x + cs.x * out_normal.z));
     // Maybe update depth as well?
 }
