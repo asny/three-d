@@ -49,17 +49,22 @@ void main()
     }
     else if(type == 4) // Diffuse
     {
-        float val = texture(gbuffer, vec3(uv, 2)).x;
+        float val = texture(gbuffer, vec3(uv, 0)).w;
         color = vec4(val, val, val, 1.);
     }
     else if(type == 5) // Specular
     {
-        float val = texture(gbuffer, vec3(uv, 2)).y;
+        float nw = texture(gbuffer, vec3(uv, 1)).w;
+        int t = int(floor(nw*255.0));
+        float val = float(t & 15) / 15.0;
         color = vec4(val, val, val, 1.);
     }
     else if(type == 6) // Specular power
     {
-        float val = texture(gbuffer, vec3(uv, 2)).z;
+        float nw = texture(gbuffer, vec3(uv, 1)).w;
+        int t = int(floor(nw*255.0));
+        float val = 2.0 * float((t & 240) >> 4);
+        val /= 32.0;
         color = vec4(val, val, val, 1.);
     }
     else {
