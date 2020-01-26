@@ -6,7 +6,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new_default("Lighting!").unwrap();
+    let mut window = Window::new_default("Imposters!").unwrap();
     let (width, height) = window.framebuffer_size();
     let gl = window.gl();
 
@@ -37,7 +37,7 @@ fn main() {
                 positions.push(10.0 * x as f32);
                 positions.push(0.0);
                 positions.push(10.0 * y as f32);
-                angles.push((y as f32 / t as f32) * std::f32::consts::PI + std::f32::consts::PI);
+                angles.push((1.0 + y as f32 / t as f32) * std::f32::consts::PI);
             }
         }
     }
