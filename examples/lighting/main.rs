@@ -29,38 +29,35 @@ fn main() {
     renderer.ambient_light().set_intensity(0.1);
 
     let mut directional_light = renderer.directional_light(0).unwrap();
-    directional_light.set_direction(&vec3(1.0, -1.0, -1.0));
     directional_light.set_intensity(0.3);
     directional_light.enable_shadows();
 
     directional_light = renderer.directional_light(1).unwrap();
-    directional_light.set_direction(&vec3(-1.0, -1.0, 1.0));
     directional_light.set_intensity(0.3);
     directional_light.enable_shadows();
 
     let mut point_light = renderer.point_light(0).unwrap();
-    point_light.set_position(&vec3(5.0, 5.0, 5.0));
     point_light.set_intensity(0.5);
     point_light.set_color(&vec3(0.0, 1.0, 0.0));
 
     point_light = renderer.point_light(1).unwrap();
-    point_light.set_position(&vec3(-5.0, 5.0, -5.0));
     point_light.set_intensity(0.5);
     point_light.set_color(&vec3(1.0, 0.0, 0.0));
 
     let spot_light = renderer.spot_light(0).unwrap();
-    spot_light.set_intensity(0.5);
+    spot_light.set_intensity(0.8);
     spot_light.set_color(&vec3(0.0, 0.0, 1.0));
-    spot_light.set_position(&vec3(5.0, 5.0, 5.0));
-    spot_light.set_direction(&vec3(-1.0, -1.0, -1.0));
-    spot_light.set_cutoff(0.05*std::f32::consts::PI);
+    spot_light.set_cutoff(0.1*std::f32::consts::PI);
+    spot_light.set_attenuation(0.1, 0.001, 0.0001);
     spot_light.enable_shadows();
 
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    window.render_loop(move |events, _elapsed_time|
+    let mut time = 0.0;
+    window.render_loop(move |events, elapsed_time|
     {
+        time += (0.001 * elapsed_time) % 1000.0;
         for event in events {
             handle_camera_events(event, &mut camera_handler, &mut camera);
             match event {
@@ -82,6 +79,14 @@ fn main() {
             handle_surface_parameters(event, &mut plane);
             handle_surface_parameters(event, &mut monkey);
         }
+        let c = time.cos() as f32;
+        let s = time.sin() as f32;
+        renderer.spot_light(0).unwrap().set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
+        renderer.spot_light(0).unwrap().set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
+        renderer.point_light(0).unwrap().set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
+        renderer.point_light(1).unwrap().set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
+        renderer.directional_light(0).unwrap().set_direction(&vec3(-1.0-c, -1.0, 1.0+s));
+        renderer.directional_light(1).unwrap().set_direction(&vec3(1.0+c, -1.0, -1.0-s));
 
         // Draw
         let render_scene = |camera: &Camera| {

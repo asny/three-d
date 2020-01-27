@@ -314,7 +314,7 @@ impl SpotLight {
 
     pub fn set_direction(&mut self, direction: &Vec3)
     {
-        self.light_buffer.update(self.index_at(8), &direction.to_slice()).unwrap();
+        self.light_buffer.update(self.index_at(8), &direction.normalize().to_slice()).unwrap();
         self.update_shadow_camera();
     }
 
