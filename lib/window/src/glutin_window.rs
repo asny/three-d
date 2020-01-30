@@ -54,7 +54,7 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
-        where F: FnMut(&Vec<event::Event>, f64)
+        where F: FnMut(&Vec<event::Event>, f64, (usize, usize))
     {
         let mut events = Vec::new();
         let mut last_time = std::time::Instant::now();
@@ -82,7 +82,7 @@ impl Window
                 accumulated_time = 0.0;
             }
 
-            callback(&events, elapsed_time);
+            callback(&events, elapsed_time, self.framebuffer_size());
             events.clear();
             error = self.gl_window.swap_buffers();
         }
