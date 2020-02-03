@@ -100,13 +100,6 @@ impl DeferredPipeline
             background_color })
     }
 
-    pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
-    {
-        self.geometry_pass_texture = Texture2DArray::new_as_color_targets(&self.gl, screen_width, screen_height, 2)?;
-        self.geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(&self.gl, screen_width, screen_height, 1)?;
-        Ok(())
-    }
-
     pub fn shadow_pass<F>(&self, render_scene: &F)
         where F: Fn(&Camera)
     {
