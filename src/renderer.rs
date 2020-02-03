@@ -50,11 +50,10 @@ impl From<light::Error> for Error {
 
 pub struct DeferredPipeline {
     gl: Gl,
-    buffer_index: usize,
     light_pass_program: program::Program,
     geometry_pass_rendertarget: rendertarget::RenderTarget,
-    geometry_pass_textures: [Texture2DArray; 2],
-    geometry_pass_depth_textures: [Texture2DArray; 2],
+    geometry_pass_texture: Texture2DArray,
+    geometry_pass_depth_texture: Texture2DArray,
     full_screen: VertexBuffer,
     ambient_light: AmbientLight,
     directional_lights: DirectionalLight,
@@ -72,12 +71,8 @@ impl DeferredPipeline
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
         let geometry_pass_rendertarget = rendertarget::RenderTarget::new(gl, 2)?;
-        let geometry_pass_textures =
-            [Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?,
-            Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?];
-        let geometry_pass_depth_textures =
-            [Texture2DArray::new_as_depth_targets(gl, screen_width, screen_height, 1)?,
-            Texture2DArray::new_as_depth_targets(gl, screen_width, screen_height, 1)?];
+        let geometry_pass_texture = Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?;
+        let geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(gl, screen_width, screen_height, 1)?;
 
         let positions = vec![
             -3.0, -1.0, 0.0,
@@ -92,13 +87,12 @@ impl DeferredPipeline
         let full_screen = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
 
         Ok(DeferredPipeline {
-            buffer_index: 0,
             gl: gl.clone(),
             light_pass_program,
             full_screen,
             geometry_pass_rendertarget,
-            geometry_pass_textures,
-            geometry_pass_depth_textures,
+            geometry_pass_texture,
+            geometry_pass_depth_texture,
             ambient_light: AmbientLight::new(),
             directional_lights: DirectionalLight::new(gl)?,
             point_lights: PointLight::new(gl)?,
@@ -108,11 +102,8 @@ impl DeferredPipeline
 
     pub fn resize(&mut self, screen_width: usize, screen_height: usize) -> Result<(), Error>
     {
-        for i in 0..self.geometry_pass_textures.len()
-        {
-            self.geometry_pass_textures[i] = Texture2DArray::new_as_color_targets(&self.gl, screen_width, screen_height, 2)?;
-            self.geometry_pass_depth_textures[i] = Texture2DArray::new_as_depth_targets(&self.gl, screen_width, screen_height, 1)?;
-        }
+        self.geometry_pass_texture = Texture2DArray::new_as_color_targets(&self.gl, screen_width, screen_height, 2)?;
+        self.geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(&self.gl, screen_width, screen_height, 1)?;
         Ok(())
     }
 
@@ -123,15 +114,14 @@ impl DeferredPipeline
         self.spot_lights.shadow_pass(render_scene);
     }
 
-    pub fn geometry_pass<F>(&mut self, render_scene: &F) -> Result<(), Error>
+    pub fn geometry_pass<F>(&mut self, render_scene: &F, width: usize, height: usize) -> Result<(), Error>
         where F: Fn()
     {
-        // Double buffering is necessary to avoid:
-        // Chrome: GL ERROR :GL_INVALID_OPERATION : glDrawElements: Source and destination textures of the draw are the same.
-        // Firefox: Error: WebGL warning: drawElements: Texture level 0 would be read by TEXTURE_2D unit 0, but written by framebuffer attachment DEPTH_ATTACHMENT, which would be illegal feedback.
-        self.buffer_index = (self.buffer_index + 1) % self.geometry_pass_textures.len();
-        self.geometry_pass_rendertarget.write_to_color_array_and_depth_array(&self.geometry_pass_textures[self.buffer_index],
-                                                                             &self.geometry_pass_depth_textures[self.buffer_index],
+        self.geometry_pass_texture = Texture2DArray::new_as_color_targets(&self.gl, width, height, 2)?;
+        self.geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(&self.gl, width, height, 1)?;
+
+        self.geometry_pass_rendertarget.write_to_color_array_and_depth_array(&self.geometry_pass_texture,
+                                                                             &self.geometry_pass_depth_texture,
                                                                              &|channel| {channel}, 0)?;
         self.geometry_pass_rendertarget.clear_color_and_depth(&self.background_color);
 
@@ -146,7 +136,7 @@ impl DeferredPipeline
 
     pub fn light_pass(&self, camera: &Camera) -> Result<(), Error>
     {
-        ScreenRendertarget::write(&self.gl, self.geometry_pass_textures[0].width, self.geometry_pass_textures[0].height);
+        ScreenRendertarget::write(&self.gl, self.geometry_pass_texture.width, self.geometry_pass_texture.height);
         ScreenRendertarget::clear_color_and_depth(&self.gl, &vec4(0.0, 0.0, 0.0, 0.0));
         self.light_pass_render_to_rendertarget(camera)?;
         Ok(())
@@ -221,10 +211,10 @@ impl DeferredPipeline
 
     pub fn geometry_pass_texture(&self) -> &Texture2DArray
     {
-        &self.geometry_pass_textures[self.buffer_index]
+        &self.geometry_pass_texture
     }
     pub fn geometry_pass_depth_texture(&self) -> &Texture2DArray
     {
-        &self.geometry_pass_depth_textures[self.buffer_index]
+        &self.geometry_pass_depth_texture
     }
 }
