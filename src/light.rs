@@ -84,6 +84,7 @@ impl DirectionalLight {
             light.set_intensity(0.0);
             light.set_color(&vec3(1.0, 1.0, 1.0));
             light.set_direction(&vec3(0.0, -1.0, 0.0));
+            light.disable_shadows();
         }
         Ok(lights)
     }
@@ -115,27 +116,32 @@ impl DirectionalLight {
 
     pub fn enable_shadows(&mut self)
     {
-        self.shadow_cameras[self.index] = Some(Camera::new());
-        self.shadow_cameras[self.index].as_mut().unwrap().enable_matrix_buffer(&self.gl);
         self.update_shadows(vec3(0.0, 0.0, 0.0), 4.0, 20.0);
     }
 
     pub fn update_shadows(&mut self, target: Vec3, size: f32, depth: f32) {
         let direction = self.direction();
+        let up = compute_up_direction(direction);
+
         if let Some(ref mut camera) = self.shadow_cameras[self.index]
         {
-            let up = compute_up_direction(direction);
             camera.set_view(target - direction, target, up);
             camera.set_orthographic_projection(size, size, depth);
-
-            let bias_matrix = crate::Mat4::new(
-                                 0.5, 0.0, 0.0, 0.0,
-                                 0.0, 0.5, 0.0, 0.0,
-                                 0.0, 0.0, 0.5, 0.0,
-                                 0.5, 0.5, 0.5, 1.0);
-            let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
-            self.light_buffer.update(self.index_at(4), &shadow_matrix.to_slice()).unwrap();
         }
+        else {
+            let mut camera = Camera::new_orthographic(target - direction, target, up, size, size, depth);
+            camera.enable_matrix_buffer(&self.gl);
+            self.shadow_cameras[self.index] = Some(camera);
+        }
+
+        let bias_matrix = crate::Mat4::new(
+                             0.5, 0.0, 0.0, 0.0,
+                             0.0, 0.5, 0.0, 0.0,
+                             0.0, 0.0, 0.5, 0.0,
+                             0.5, 0.5, 0.5, 1.0);
+        let camera = self.shadow_cameras[self.index].as_ref().unwrap();
+        let shadow_matrix = bias_matrix * camera.get_projection() * camera.get_view();
+        self.light_buffer.update(self.index_at(4), &shadow_matrix.to_slice()).unwrap();
     }
 
     pub fn disable_shadows(&mut self)
@@ -269,10 +275,11 @@ impl SpotLight {
             let light = lights.light_at(light_id);
             light.set_intensity(0.0);
             light.set_color(&vec3(1.0, 1.0, 1.0));
+            light.set_cutoff(0.1 * std::f32::consts::PI);
             light.set_direction(&vec3(0.0, -1.0, 0.0));
             light.set_position(&vec3(0.0, 0.0, 0.0));
             light.set_attenuation(0.5, 0.05, 0.005);
-            light.set_cutoff(0.1 * std::f32::consts::PI);
+            light.disable_shadows();
         }
         Ok(lights)
     }
@@ -337,9 +344,15 @@ impl SpotLight {
         {
             camera.set_view(position, position + direction, up);
             camera.set_perspective_projection(degrees(45.0), 2.0 * cutoff, 0.1, depth);
-            let shadow_matrix = shadow_matrix(camera);
-            self.light_buffer.update(self.index_at(10), &shadow_matrix.to_slice()).unwrap();
         }
+        else {
+            let mut camera = Camera::new_perspective(position, position + direction, up, degrees(45.0), 2.0 * cutoff, 0.1, depth);
+            camera.enable_matrix_buffer(&self.gl);
+            self.shadow_cameras[self.index] = Some(camera);
+        }
+
+        let shadow_matrix = shadow_matrix(self.shadow_cameras[self.index].as_ref().unwrap());
+        self.light_buffer.update(self.index_at(10), &shadow_matrix.to_slice()).unwrap();
     }
 
     pub fn is_shadows_enabled(&self) -> bool {
@@ -348,8 +361,6 @@ impl SpotLight {
 
     pub fn enable_shadows(&mut self)
     {
-        self.shadow_cameras[self.index] = Some(Camera::new());
-        self.shadow_cameras[self.index].as_mut().unwrap().enable_matrix_buffer(&self.gl);
         self.update_shadow_camera();
     }
 

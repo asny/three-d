@@ -5,6 +5,9 @@ pub struct Camera {
     position: Vec3,
     target: Vec3,
     up: Vec3,
+    fov: Degrees,
+    z_near: f32,
+    z_far: f32,
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
@@ -14,32 +17,25 @@ pub struct Camera {
 
 impl Camera
 {
-    pub fn new() -> Camera
+    fn new() -> Camera
     {
-        let mut camera = Camera {matrix_buffer: None, frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
+        Camera {matrix_buffer: None, frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
             position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
-            view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()};
-        camera.set_view(camera.position, camera.target, camera.up);
-        camera
-    }
-
-    pub fn with_orientation(position: Vec3, target: Vec3, up: Vec3) -> Camera
-    {
-        let mut camera = Camera::new();
-        camera.set_view(position, target, up);
-        camera
+            view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()}
     }
 
     pub fn new_orthographic(position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
     {
-        let mut camera = Camera::with_orientation(position, target, up);
+        let mut camera = Camera::new();
+        camera.set_view(position, target, up);
         camera.set_orthographic_projection(width, height, depth);
         camera
     }
 
     pub fn new_perspective(position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
     {
-        let mut camera = Camera::with_orientation(position, target, up);
+        let mut camera = Camera::new();
+        camera.set_view(position, target, up);
         camera.set_perspective_projection(fovy, aspect, z_near, z_far);
         camera
     }
@@ -47,6 +43,9 @@ impl Camera
     pub fn set_perspective_projection(&mut self, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32)
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
+        self.fov = fovy;
+        self.z_near = z_near;
+        self.z_far = z_far;
         self.projection = perspective(fovy, aspect, z_near, z_far);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -55,10 +54,22 @@ impl Camera
 
     pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32)
     {
+        self.fov = degrees(0.0);
+        self.z_near = -0.5 * depth;
+        self.z_far = 0.5 * depth;
         self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, -0.5 * depth, 0.5 * depth);
         self.update_screen2ray();
         self.update_matrix_buffer();
         self.update_frustrum();
+    }
+
+    pub fn set_size(&mut self, width: f32, height: f32) {
+        if self.fov == degrees(0.0) {
+            self.set_orthographic_projection(width, height, self.z_far);
+        }
+        else {
+            self.set_perspective_projection(self.fov, width as f32 / height as f32, self.z_near, self.z_far);
+        }
     }
 
     pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3)
