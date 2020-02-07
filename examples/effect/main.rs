@@ -6,7 +6,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new_default("Texture").unwrap();
+    let mut window = Window::new_default("Effect").unwrap();
     let (width, height) = window.framebuffer_size();
     let gl = window.gl();
 
@@ -32,7 +32,7 @@ fn main() {
     let mut time = 0.0;
     window.render_loop(move |frame_input|
     {
-        camera.set_perspective_projection(degrees(45.0), frame_input.screen_width as f32 / frame_input.screen_height as f32, 0.1, 1000.0);
+        camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
         for event in frame_input.events {
             handle_camera_events(&event, &mut camera_handler, &mut camera);

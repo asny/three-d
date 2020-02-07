@@ -33,9 +33,11 @@ fn main() {
     let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
 
     // main loop
-    window.render_loop(move |events, _elapsed_time|
+    window.render_loop(move |frame_input|
     {
-        for event in events {
+        camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
+
+        for event in frame_input.events.iter() {
             handle_camera_events(event, &mut camera_handler, &mut camera);
         }
 

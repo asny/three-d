@@ -173,9 +173,11 @@ fn main()
 
     let mut weights: Option<HashMap<tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3>> = None;
     // main loop
-    window.render_loop(move |events, _elapsed_time|
+    window.render_loop(move |frame_input|
     {
-        for event in events {
+        camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
+
+        for event in frame_input.events.iter() {
             match event {
                 Event::Key {state, kind} => {
                     if kind == "Tab" && *state == State::Pressed

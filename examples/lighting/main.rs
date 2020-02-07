@@ -57,7 +57,7 @@ fn main() {
     let mut time = 0.0;
     window.render_loop(move |frame_input|
     {
-        camera.set_perspective_projection(degrees(45.0), frame_input.screen_width as f32 / frame_input.screen_height as f32, 0.1, 1000.0);
+        camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
         time += (0.001 * frame_input.elapsed_time) % 1000.0;
         for event in frame_input.events {

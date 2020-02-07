@@ -34,7 +34,7 @@ fn main() {
     // main loop
     window.render_loop(move |frame_input|
     {
-        camera.set_perspective_projection(degrees(45.0), frame_input.screen_width as f32 / frame_input.screen_height as f32, 0.1, 10.0);
+        camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
         ScreenRendertarget::write(&gl, screen_width, screen_height);
         ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.8, 0.8, 0.8, 1.0));
 
