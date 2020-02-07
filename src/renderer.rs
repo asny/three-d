@@ -107,11 +107,11 @@ impl DeferredPipeline
         self.spot_lights.shadow_pass(render_scene);
     }
 
-    pub fn geometry_pass<F>(&mut self, render_scene: &F, width: usize, height: usize) -> Result<(), Error>
+    pub fn geometry_pass<F>(&mut self, render_scene: &F) -> Result<(), Error>
         where F: Fn()
     {
-        self.geometry_pass_texture = Texture2DArray::new_as_color_targets(&self.gl, width, height, 2)?;
-        self.geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(&self.gl, width, height, 1)?;
+        self.geometry_pass_texture = Texture2DArray::new_as_color_targets(&self.gl, self.geometry_pass_texture.width, self.geometry_pass_texture.height, 2)?;
+        self.geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(&self.gl, self.geometry_pass_depth_texture.width, self.geometry_pass_depth_texture.height, 1)?;
 
         self.geometry_pass_rendertarget.write_to_color_array_and_depth_array(&self.geometry_pass_texture,
                                                                              &self.geometry_pass_depth_texture,
