@@ -50,7 +50,7 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
-        where F: FnMut(&Vec<Event>, f64, (usize, usize))
+        where F: FnMut(crate::FrameInput)
     {
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
@@ -75,9 +75,10 @@ impl Window
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
-            let size = (window().inner_width().unwrap().as_f64().unwrap() as usize,
+            let (screen_width, screen_height) = (window().inner_width().unwrap().as_f64().unwrap() as usize,
                         window().inner_height().unwrap().as_f64().unwrap() as usize);
-            callback(&(*events).borrow(), elapsed_time, size);
+            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, screen_width, screen_height};
+            callback(frame_input);
             &(*events).borrow_mut().clear();
 
             request_animation_frame(f.borrow().as_ref().unwrap());

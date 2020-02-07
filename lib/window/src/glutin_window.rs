@@ -54,14 +54,14 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
-        where F: FnMut(&Vec<event::Event>, f64, (usize, usize))
+        where F: FnMut(crate::FrameInput)
     {
-        let mut events = Vec::new();
         let mut last_time = std::time::Instant::now();
         let mut count = 0;
         let mut accumulated_time = 0.0;
         let mut error = Ok(());
         while error.is_ok() {
+            let mut events = Vec::new();
             self.events_loop.poll_events(|event| {
                 Self::handle_window_close_events(&event);
                 if let Some(e) = Self::map_event(&event)
@@ -82,8 +82,9 @@ impl Window
                 accumulated_time = 0.0;
             }
 
-            callback(&events, elapsed_time, self.framebuffer_size());
-            events.clear();
+            let (screen_width, screen_height) = self.framebuffer_size();
+            let frame_input = crate::FrameInput {events, elapsed_time, screen_width, screen_height};
+            callback(frame_input);
             error = self.gl_window.swap_buffers();
         }
         error?;

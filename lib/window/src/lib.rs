@@ -10,3 +10,10 @@ pub use crate::glutin_window::*;
 pub mod canvas;
 #[cfg(target_arch = "wasm32")]
 pub use crate::canvas::*;
+
+pub struct FrameInput {
+    pub events: Vec<event::Event>,
+    pub elapsed_time: f64,
+    pub screen_width: usize,
+    pub screen_height: usize
+}
