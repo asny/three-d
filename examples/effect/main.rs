@@ -30,12 +30,14 @@ fn main() {
 
     // main loop
     let mut time = 0.0;
-    window.render_loop(move |events, elapsed_time|
+    window.render_loop(move |frame_input|
     {
-        for event in events {
-            handle_camera_events(event, &mut camera_handler, &mut camera);
+        camera.set_perspective_projection(degrees(45.0), frame_input.screen_width as f32 / frame_input.screen_height as f32, 0.1, 1000.0);
+
+        for event in frame_input.events {
+            handle_camera_events(&event, &mut camera_handler, &mut camera);
             match event {
-                Event::Key { state, kind } => {
+                Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
                         debug_effect.change_type();
@@ -44,7 +46,7 @@ fn main() {
                 _ => {}
             }
         }
-        time += elapsed_time;
+        time += frame_input.elapsed_time;
 
         // draw
         // Geometry pass

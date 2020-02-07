@@ -55,13 +55,15 @@ fn main() {
 
     // main loop
     let mut time = 0.0;
-    window.render_loop(move |events, elapsed_time|
+    window.render_loop(move |frame_input|
     {
-        time += (0.001 * elapsed_time) % 1000.0;
-        for event in events {
-            handle_camera_events(event, &mut camera_handler, &mut camera);
+        camera.set_perspective_projection(degrees(45.0), frame_input.screen_width as f32 / frame_input.screen_height as f32, 0.1, 1000.0);
+
+        time += (0.001 * frame_input.elapsed_time) % 1000.0;
+        for event in frame_input.events {
+            handle_camera_events(&event, &mut camera_handler, &mut camera);
             match event {
-                Event::Key { state, kind } => {
+                Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
                         let l = renderer.directional_light(0).unwrap();
@@ -76,8 +78,8 @@ fn main() {
             }
             //handle_ambient_light_parameters(event, &mut ambient_light);
             //handle_directional_light_parameters(event, &mut directional_light);
-            handle_surface_parameters(event, &mut plane);
-            handle_surface_parameters(event, &mut monkey);
+            handle_surface_parameters(&event, &mut plane);
+            handle_surface_parameters(&event, &mut monkey);
         }
         let c = time.cos() as f32;
         let s = time.sin() as f32;

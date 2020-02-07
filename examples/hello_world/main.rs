@@ -7,13 +7,13 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new_default("Hello, world!").unwrap();
-    let (width, height) = window.framebuffer_size();
+    let (screen_width, screen_height) = window.framebuffer_size();
 
     let gl = window.gl();
 
     // Camera
-    let camera = Camera::new_perspective(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), width as f32 / height as f32, 0.1, 10.0);
+    let mut camera = Camera::new_perspective(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                degrees(45.0), screen_width as f32/screen_height as f32, 0.1, 10.0);
 
     let positions: Vec<f32> = vec![
         0.5, -0.5, 0.0, // bottom right
@@ -32,9 +32,10 @@ fn main() {
                                        include_str!("../assets/shaders/color.frag")).unwrap();
 
     // main loop
-    window.render_loop(move |_events, _elapsed_time|
+    window.render_loop(move |frame_input|
     {
-        ScreenRendertarget::write(&gl, width, height);
+        camera.set_perspective_projection(degrees(45.0), frame_input.screen_width as f32 / frame_input.screen_height as f32, 0.1, 10.0);
+        ScreenRendertarget::write(&gl, screen_width, screen_height);
         ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.8, 0.8, 0.8, 1.0));
 
         program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
@@ -47,7 +48,7 @@ fn main() {
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
-            save_screenshot(path, &gl, width, height).unwrap();
+            save_screenshot(path, &gl, screen_width, screen_height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();
