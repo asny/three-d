@@ -60,8 +60,6 @@ fn main() {
     light.set_direction(&vec3(-1.0, -1.0, 1.0));
     light.enable_shadows();
 
-    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
-
     // Shadow pass
     renderer.shadow_pass(&|camera: &Camera| {
         model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
@@ -69,12 +67,26 @@ fn main() {
     });
 
     // main loop
+    let mut rotating = false;
     window.render_loop(move |frame_input|
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
         for event in frame_input.events.iter() {
-            handle_camera_events(event, &mut camera_handler, &mut camera);
+            match event {
+                Event::MouseClick {state, button, ..} => {
+                    rotating = *button == MouseButton::Left && *state == State::Pressed;
+                },
+                Event::MouseMotion {delta} => {
+                    if rotating {
+                        camera.rotate(delta.0 as f32, delta.1 as f32);
+                    }
+                },
+                Event::MouseWheel {delta} => {
+                    camera.zoom(*delta as f32);
+                },
+                _ => {}
+            }
         }
 
         // Geometry pass
@@ -93,29 +105,4 @@ fn main() {
             std::process::exit(1);
         }
     }).unwrap();
-}
-
-pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
-{
-    match event {
-        Event::Key {state, kind} => {
-            if kind == "Tab" && *state == State::Pressed
-            {
-                camera_handler.next_state();
-            }
-        },
-        Event::MouseClick {state, button, ..} => {
-            if *button == MouseButton::Left
-            {
-                if *state == State::Pressed { camera_handler.start_rotation(); }
-                else { camera_handler.end_rotation() }
-            }
-        },
-        Event::MouseMotion {delta} => {
-            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
-        },
-        Event::MouseWheel {delta} => {
-            camera_handler.zoom(camera, *delta as f32);
-        }
-    }
 }
