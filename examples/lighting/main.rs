@@ -51,18 +51,27 @@ fn main() {
     spot_light.set_attenuation(0.1, 0.001, 0.0001);
     spot_light.enable_shadows();
 
-    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
-
     // main loop
     let mut time = 0.0;
+    let mut rotating = false;
     window.render_loop(move |frame_input|
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
         time += (0.001 * frame_input.elapsed_time) % 1000.0;
-        for event in frame_input.events {
-            handle_camera_events(&event, &mut camera_handler, &mut camera);
+        for event in frame_input.events.iter() {
             match event {
+                Event::MouseClick {state, button, ..} => {
+                    rotating = *button == MouseButton::Left && *state == State::Pressed;
+                },
+                Event::MouseMotion {delta} => {
+                    if rotating {
+                        camera.rotate(delta.0 as f32, delta.1 as f32);
+                    }
+                },
+                Event::MouseWheel {delta} => {
+                    camera.zoom(*delta as f32);
+                },
                 Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
@@ -73,8 +82,7 @@ fn main() {
                             l.enable_shadows();
                         }
                     }
-                },
-                _ => {}
+                }
             }
             //handle_ambient_light_parameters(event, &mut ambient_light);
             //handle_directional_light_parameters(event, &mut directional_light);
@@ -116,31 +124,6 @@ fn main() {
         }
 
     }).unwrap();
-}
-
-pub fn handle_camera_events(event: &Event, camera_handler: &mut dust::camerahandler::CameraHandler, camera: &mut Camera)
-{
-    match event {
-        Event::Key {state, kind} => {
-            if kind == "Tab" && *state == State::Pressed
-            {
-                camera_handler.next_state();
-            }
-        },
-        Event::MouseClick {state, button, ..} => {
-            if *button == MouseButton::Left
-            {
-                if *state == State::Pressed { camera_handler.start_rotation(); }
-                else { camera_handler.end_rotation() }
-            }
-        },
-        Event::MouseMotion {delta} => {
-            camera_handler.rotate(camera, delta.0 as f32, delta.1 as f32);
-        },
-        Event::MouseWheel {delta} => {
-            camera_handler.zoom(camera, *delta as f32);
-        }
-    }
 }
 
 /*fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLight)

@@ -187,4 +187,36 @@ impl Camera
 
         return true;
     }
+
+    pub fn translate(&mut self, change: &Vec3)
+    {
+        self.set_view(*self.position() + change, *self.target() + change, *self.up());
+    }
+
+    pub fn rotate(&mut self, xrel: f32, yrel: f32)
+    {
+        let x = -xrel;
+        let y = yrel;
+        let direction = (*self.target() - *self.position()).normalize();
+        let up_direction = vec3(0., 1., 0.);
+        let right_direction = direction.cross(up_direction);
+        let mut camera_position = *self.position();
+        let target = *self.target();
+        let zoom = (camera_position - target).magnitude();
+        camera_position = camera_position + (right_direction * x + up_direction * y) * 0.1;
+        camera_position = target + (camera_position - target).normalize() * zoom;
+        self.set_view(camera_position, target, up_direction);
+    }
+
+    pub fn zoom(&mut self, wheel: f32)
+    {
+        let mut position = *self.position();
+        let target = *self.target();
+        let up = *self.up();
+        let mut zoom = (position - target).magnitude();
+        zoom += wheel;
+        zoom = zoom.max(1.0);
+        position = target + (*self.position() - *self.target()).normalize() * zoom;
+        self.set_view(position, target, up);
+    }
 }
