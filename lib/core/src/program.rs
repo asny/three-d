@@ -154,7 +154,7 @@ impl Program
         Ok(loc)
     }
 
-    pub fn use_texture(&self, texture: &Texture, texture_name: &str) -> Result<(), Error>
+    pub fn use_texture(&self, texture: &dyn Texture, texture_name: &str) -> Result<(), Error>
     {
         if !self.textures.borrow().contains_key(texture_name) {
             let mut map = self.textures.borrow_mut();

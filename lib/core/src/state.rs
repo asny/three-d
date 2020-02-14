@@ -2,31 +2,31 @@ use gl;
 
 #[derive(PartialEq)]
 pub enum BlendType {
-    NONE,
-    SRC_ALPHA__ONE_MINUS_SRC_ALPHA,
-    DST_ALPHA__ONE_MINUS_DST_ALPHA,
-    ONE__ONE
+    None,
+    SrcAlphaOneMinusSrcAlpha,
+    DstAlphaOneMinusDstAlpha,
+    OneOne
 }
 
 pub fn blend(gl: &gl::Gl, blend_type: BlendType)
 {
     unsafe {
-        static mut CURRENT: BlendType = BlendType::NONE;
+        static mut CURRENT: BlendType = BlendType::None;
         if blend_type != CURRENT
         {
             match blend_type {
-                BlendType::NONE => {
+                BlendType::None => {
                     gl.disable(gl::consts::BLEND);
                 },
-                BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA => {
+                BlendType::SrcAlphaOneMinusSrcAlpha => {
                     gl.enable(gl::consts::BLEND);
                     gl.blend_func(gl::consts::SRC_ALPHA, gl::consts::ONE_MINUS_SRC_ALPHA);
                 },
-                BlendType::DST_ALPHA__ONE_MINUS_DST_ALPHA => {
+                BlendType::DstAlphaOneMinusDstAlpha => {
                     gl.enable(gl::consts::BLEND);
                     gl.blend_func(gl::consts::DST_ALPHA, gl::consts::ONE_MINUS_DST_ALPHA);
                 },
-                BlendType::ONE__ONE => {
+                BlendType::OneOne => {
                     gl.enable(gl::consts::BLEND);
                     gl.blend_func(gl::consts::ONE, gl::consts::ONE);
                 }

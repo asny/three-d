@@ -40,12 +40,12 @@ impl DebugEffect {
         println!("{:?}", self.debug_type);
     }
 
-    pub fn apply(&self, camera: &Camera, geometry_texture: &Texture, depth_texture: &Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, camera: &Camera, geometry_texture: &dyn Texture, depth_texture: &dyn Texture) -> Result<(), effects::Error>
     {
         if self.debug_type != Type::NONE {
             state::depth_write(&self.gl,false);
             state::depth_test(&self.gl, state::DepthTestType::NONE);
-            state::blend(&self.gl, state::BlendType::SRC_ALPHA__ONE_MINUS_SRC_ALPHA);
+            state::blend(&self.gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
 
             self.program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 

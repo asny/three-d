@@ -121,7 +121,7 @@ impl DeferredPipeline
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
         state::cull(&self.gl, state::CullType::NONE);
-        state::blend(&self.gl, state::BlendType::NONE);
+        state::blend(&self.gl, state::BlendType::None);
 
         render_scene();
         Ok(())
@@ -140,7 +140,7 @@ impl DeferredPipeline
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::NONE);
         state::cull(&self.gl,state::CullType::BACK);
-        state::blend(&self.gl, state::BlendType::ONE__ONE);
+        state::blend(&self.gl, state::BlendType::OneOne);
 
         self.light_pass_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
         self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;

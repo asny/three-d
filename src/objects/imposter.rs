@@ -81,7 +81,7 @@ impl Imposter {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
         state::cull(&self.gl,state::CullType::BACK);
-        state::blend(&self.gl, state::BlendType::NONE);
+        state::blend(&self.gl, state::BlendType::None);
 
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32)).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");

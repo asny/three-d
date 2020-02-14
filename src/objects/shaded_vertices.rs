@@ -38,7 +38,7 @@ impl ShadedVertices
         );
         let ball_index_buffer = ElementBuffer::new_with(gl, &ball_indices).unwrap();
         let mut ball_vertex_buffer = VertexBuffer::new_with_one_static_attribute(gl, &ball_positions).unwrap();
-        ball_vertex_buffer.add((&ball_positions));
+        ball_vertex_buffer.add(&ball_positions);
         ball_vertex_buffer.send_static_data();
         let mut instance_buffer = VertexBuffer::new(gl).unwrap();
         instance_buffer.add(positions);
