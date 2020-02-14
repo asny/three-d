@@ -169,22 +169,15 @@ fn main()
     light.set_direction(&dir);
     light.enable_shadows();
 
-    let mut camera_handler = camerahandler::CameraHandler::new(camerahandler::CameraState::SPHERICAL);
-
     let mut weights: Option<HashMap<tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3>> = None;
     // main loop
+    let mut rotating = false;
     window.render_loop(move |frame_input|
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
         for event in frame_input.events.iter() {
             match event {
-                Event::Key {state, kind} => {
-                    if kind == "Tab" && *state == State::Pressed
-                    {
-                        camera_handler.next_state();
-                    }
-                },
                 Event::MouseClick {state, button, position} => {
                     if *button == MouseButton::Left
                     {
@@ -195,20 +188,22 @@ fn main()
                             let dir = camera.view_direction_at((x, y));
                             weights = on_click(&mesh,&tri_mesh::prelude::vec3(p.x as f64, p.y as f64, p.z as f64), &tri_mesh::prelude::vec3(dir.x as f64, dir.y as f64, dir.z as f64));
                             if weights.is_none() {
-                                camera_handler.start_rotation();
+                                rotating = true;
                             }
                         }
                         else {
                             weights = None;
-                            camera_handler.end_rotation()
+                            rotating = false;
                         }
                     }
                 },
                 Event::MouseWheel {delta} => {
-                    camera_handler.zoom(&mut camera, *delta as f32);
+                    camera.zoom(*delta as f32);
                 },
                 Event::MouseMotion {delta} => {
-                    camera_handler.rotate(&mut camera, delta.0 as f32, delta.1 as f32);
+                    if rotating {
+                        camera.rotate(delta.0 as f32, delta.1 as f32);
+                    }
                     if let Some(ref w) = weights
                     {
                         on_morph(&mut mesh, w, 0.001 * delta.1);
@@ -218,7 +213,8 @@ fn main()
                         model.update_positions(&positions).unwrap();
                         model.update_normals(&normals).unwrap();
                     }
-                }
+                },
+                _ => {}
             }
         }
 
