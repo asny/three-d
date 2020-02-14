@@ -50,7 +50,7 @@ impl VertexBuffer
 
     pub fn add(&mut self, data: &[f32])
     {
-        if self.data.is_empty()
+        if self.data.is_empty() && !self.offsets.is_empty() && *self.offsets.last().unwrap() != 0
         {
             self.offsets.clear();
         }
