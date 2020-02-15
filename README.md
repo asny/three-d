@@ -4,7 +4,7 @@
 
 An OpenGL/WebGL renderer written in Rust for the fun of it.
 
-### Main features:
+### Main features
 
 - Thin and safe abstraction layer on top of OpenGL/WebGL graphics API. Seeks to ensure always being in the correct state.
 - Enabling out-of-the-box build to both desktop (Rust + OpenGL) and web (Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate)
@@ -15,7 +15,9 @@ An OpenGL/WebGL renderer written in Rust for the fun of it.
     - Effects which can be applied to the rendered image (e.g. Fog, Debug, ..)
     - Camera input handler
 
-### Run the examples
+### Examples
+
+https://asny.github.io/home/dust/
 
 #### Desktop: 
 Build and run an example, in this case 'hello_world':
