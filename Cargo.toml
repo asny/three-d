@@ -5,20 +5,21 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [features]
-default = ["desktop"]
+default = ["desktop", "obj-loader"]
 core-only = []
 desktop = ["glutin"]
 web = ["web-sys", "wasm-bindgen"]
-gl_debug = ["gl/debug"]
+obj-loader = ["wavefront_obj"]
+gl-debug = ["gl/debug"]
 
 [dependencies]
 gl = { path = "lib/gl" }
 cgmath = "0.17"
-wavefront_obj = "7.0"
 num = "0.2"
 num-traits = "0.2"
 num-derive = "0.3"
 log = "0.4"
+wavefront_obj = { version = "7.0", optional = true }
 glutin = { version = "0.19.0", optional = true }
 wasm-bindgen = { version = "0.2.42", optional = true }
 
