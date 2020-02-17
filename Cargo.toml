@@ -5,10 +5,11 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [features]
-default = ["desktop", "obj-loader"]
+default = ["glutin-window", "obj-loader"]
 core-only = []
-desktop = ["glutin"]
-web = ["web-sys", "wasm-bindgen"]
+glutin-window = ["glutin"]
+web = ["web-sys"] # Build for web target, otherwise build for desktop
+canvas = ["wasm-bindgen"]
 obj-loader = ["wavefront_obj"]
 gl-debug = ["gl/debug"]
 

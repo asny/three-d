@@ -1,19 +1,16 @@
 
 
-#[cfg(feature="desktop")]
+#[cfg(any(feature="glutin-window", feature="canvas"))]
 pub mod frame_input;
-#[cfg(feature="desktop")]
+#[cfg(any(feature="glutin-window", feature="canvas"))]
 pub use frame_input::*;
-#[cfg(feature="desktop")]
+
+#[cfg(feature="glutin-window")]
 pub mod glutin_window;
-#[cfg(feature="desktop")]
+#[cfg(feature="glutin-window")]
 pub use crate::glutin_window::*;
 
-#[cfg(feature="web")]
-pub mod frame_input;
-#[cfg(feature="web")]
-pub use frame_input::*;
-#[cfg(feature="web")]
+#[cfg(feature="canvas")]
 pub mod canvas;
-#[cfg(feature="web")]
+#[cfg(feature="canvas")]
 pub use crate::canvas::*;

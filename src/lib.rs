@@ -20,12 +20,7 @@ pub use crate::objects::*;
 #[cfg(not(feature = "core-only"))]
 pub use crate::effects::*;
 
-#[cfg(feature = "desktop")]
+#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub mod window;
-#[cfg(feature = "desktop")]
-pub use window::*;
-
-#[cfg(feature = "web")]
-pub mod window;
-#[cfg(feature = "web")]
+#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub use window::*;
