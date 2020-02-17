@@ -8,7 +8,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-dust = { path = "../../", features=["core-only"] }
+dust = { path = "../../", default-features = false, features=["web"] }
 log = "0.4"
 wasm-bindgen = "0.2"
 console_error_panic_hook = "0.1"

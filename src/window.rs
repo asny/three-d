@@ -1,14 +1,14 @@
 
 pub mod event;
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(feature="desktop")]
 pub mod glutin_window;
-#[cfg(target_arch = "x86_64")]
+#[cfg(feature="desktop")]
 pub use crate::glutin_window::*;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature="web")]
 pub mod canvas;
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature="web")]
 pub use crate::canvas::*;
 
 pub struct FrameInput {
