@@ -4,8 +4,12 @@ version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
+[features]
+gl_debug = ["gl/debug"]
+
 [dependencies]
-core = { path = "lib/core" }
+gl = { path = "lib/gl" }
+cgmath = "0.17"
 window = { path = "lib/window" }
 wavefront_obj = "7.0"
 num = "0.2"
@@ -13,8 +17,10 @@ num-traits = "0.2"
 num-derive = "0.3"
 log = "0.4"
 
+[dependencies.image]
+version = "0.22"
+default-features = false
+features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
+
 [dev-dependencies]
 tri-mesh = "0.4.0"
-
-[features]
-gl_debug = ["core/gl_debug"]
