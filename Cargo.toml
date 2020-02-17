@@ -5,7 +5,7 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [features]
-default = ["glutin-window", "obj-loader"]
+default = ["glutin-window", "obj-loader", "image"]
 core-only = []
 glutin-window = ["glutin"]
 web = ["web-sys"] # Build for web target, otherwise build for desktop
@@ -32,6 +32,7 @@ features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', '
 
 [dependencies.image]
 version = "0.22"
+optional = true
 default-features = false
 features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
 

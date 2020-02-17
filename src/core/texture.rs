@@ -1,14 +1,14 @@
 use crate::core::Gl;
-use image;
-use image::GenericImageView;
 
 #[derive(Debug)]
 pub enum Error {
+    #[cfg(feature = "image")]
     Image(image::ImageError),
     IO(std::io::Error),
     FailedToCreateTexture {message: String}
 }
 
+#[cfg(feature = "image")]
 impl From<image::ImageError> for Error {
     fn from(other: image::ImageError) -> Self {
         Error::Image(other)
@@ -50,17 +50,20 @@ impl Texture2D
         Ok(texture)
     }
 
+    #[cfg(feature = "image")]
     pub fn new_from_bytes(gl: &Gl, bytes: &[u8]) -> Result<Texture2D, Error>
     {
+        use image::GenericImageView;
         let img = image::load_from_memory(bytes)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize)?;
         texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
         Ok(texture)
     }
 
-    #[cfg(not(feature = "web"))]
+    #[cfg(all(not(feature = "web"), feature = "image"))]
     pub fn new_from_file(gl: &Gl, path: &str) -> Result<Texture2D, Error>
     {
+        use image::GenericImageView;
         let img = image::open(path)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize)?;
         texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
@@ -193,8 +196,10 @@ impl Texture3D
         Ok(texture)
     }
 
+    #[cfg(feature = "image")]
     pub fn new_from_bytes(gl: &Gl, back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
     {
+        use image::GenericImageView;
         let back = image::load_from_memory(back_bytes)?;
         let front = image::load_from_memory(front_bytes)?;
         let top = image::load_from_memory(top_bytes)?;
@@ -208,9 +213,10 @@ impl Texture3D
         Ok(texture)
     }
 
-    #[cfg(not(feature = "web"))]
+    #[cfg(all(not(feature = "web"), feature = "image"))]
     pub fn new_from_files(gl: &Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
+        use image::GenericImageView;
         let back = image::open(format!("{}{}", path, back_name))?;
         let front = image::open(format!("{}{}", path, front_name))?;
         let top = image::open(format!("{}{}", path, top_name))?;

@@ -259,7 +259,7 @@ impl Drop for RenderTarget {
 
 // COMMON FUNCTIONS
 
-#[cfg(not(feature = "web"))]
+#[cfg(all(not(feature = "web"), feature = "image"))]
 pub fn save_screenshot(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
 {
     let mut pixels = vec![0u8; width * height * 3];
