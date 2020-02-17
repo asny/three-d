@@ -58,7 +58,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    #[cfg(target_arch = "x86_64")]
+    #[cfg(not(feature = "web"))]
     pub fn new_from_file(gl: &Gl, path: &str) -> Result<Texture2D, Error>
     {
         let img = image::open(path)?;
@@ -208,7 +208,7 @@ impl Texture3D
         Ok(texture)
     }
 
-    #[cfg(target_arch = "x86_64")]
+    #[cfg(not(feature = "web"))]
     pub fn new_from_files(gl: &Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
         let back = image::open(format!("{}{}", path, back_name))?;
