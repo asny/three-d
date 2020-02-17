@@ -98,7 +98,6 @@ fn compute_weights(mesh: &tri_mesh::mesh::Mesh, start_vertex_id: tri_mesh::prelu
 fn main()
 {
     use dust::*;
-    use dust::window::{event::*, Window};
 
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};

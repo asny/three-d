@@ -4,7 +4,7 @@ use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::event::*;
+use crate::frame_input::*;
 
 #[derive(Debug)]
 pub enum Error {

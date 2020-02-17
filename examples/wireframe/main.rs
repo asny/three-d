@@ -1,5 +1,4 @@
 
-use window::{event::*, Window};
 use dust::*;
 
 fn main() {

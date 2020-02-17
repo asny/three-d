@@ -1,4 +1,11 @@
 
+pub struct FrameInput {
+    pub events: Vec<Event>,
+    pub elapsed_time: f64,
+    pub screen_width: usize,
+    pub screen_height: usize
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum State
 {

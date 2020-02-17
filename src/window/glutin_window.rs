@@ -1,6 +1,6 @@
 
 use glutin::*;
-use crate::event;
+use crate::window::frame_input;
 
 #[derive(Debug)]
 pub enum Error {
@@ -54,7 +54,7 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
-        where F: FnMut(crate::FrameInput)
+        where F: FnMut(frame_input::FrameInput)
     {
         let mut last_time = std::time::Instant::now();
         let mut count = 0;
@@ -83,7 +83,7 @@ impl Window
             }
 
             let (screen_width, screen_height) = self.framebuffer_size();
-            let frame_input = crate::FrameInput {events, elapsed_time, screen_width, screen_height};
+            let frame_input = frame_input::FrameInput {events, elapsed_time, screen_width, screen_height};
             callback(frame_input);
             error = self.gl_window.swap_buffers();
         }
@@ -108,38 +108,38 @@ impl Window
         self.gl.clone()
     }
 
-    pub fn map_event(event: &Event) -> Option<event::Event>
+    pub fn map_event(event: &Event) -> Option<frame_input::Event>
     {
         static mut CURSOR_POS: Option<(f64, f64)> = None;
         match event {
             Event::WindowEvent{ event, .. } => match event {
                 WindowEvent::KeyboardInput {input, ..} => {
                     if let Some(keycode) = input.virtual_keycode {
-                        let state = if input.state == ElementState::Pressed {event::State::Pressed} else {event::State::Released};
-                        return Some(event::Event::Key {state, kind: format!("{:?}", keycode)});
+                        let state = if input.state == ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
+                        return Some(frame_input::Event::Key {state, kind: format!("{:?}", keycode)});
                     }
                 },
                 WindowEvent::MouseWheel {delta, ..} => {
                     match delta {
                         MouseScrollDelta::LineDelta(_, y) => {
-                            return Some(event::Event::MouseWheel { delta: *y as f64 });
+                            return Some(frame_input::Event::MouseWheel { delta: *y as f64 });
                         },
                         MouseScrollDelta::PixelDelta(logical_position) => {
-                            return Some(event::Event::MouseWheel { delta: logical_position.y });
+                            return Some(frame_input::Event::MouseWheel { delta: logical_position.y });
                         }
                     }
                 },
                 WindowEvent::MouseInput {state, button, ..} => {
                     if let Some(position) = unsafe {CURSOR_POS}
                     {
-                        let state = if *state == ElementState::Pressed {event::State::Pressed} else {event::State::Released};
+                        let state = if *state == ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
                         let button = match button {
-                            MouseButton::Left => Some(event::MouseButton::Left),
-                            MouseButton::Middle => Some(event::MouseButton::Middle),
-                            MouseButton::Right => Some(event::MouseButton::Right),
+                            MouseButton::Left => Some(frame_input::MouseButton::Left),
+                            MouseButton::Middle => Some(frame_input::MouseButton::Middle),
+                            MouseButton::Right => Some(frame_input::MouseButton::Right),
                             _ => None
                         };
-                        return button.map(|b| event::Event::MouseClick { state, button: b, position });
+                        return button.map(|b| frame_input::Event::MouseClick { state, button: b, position });
                     }
                 },
                 WindowEvent::CursorMoved {position, ..} => {
@@ -151,7 +151,7 @@ impl Window
             },
             Event::DeviceEvent{ event, .. } => match event {
                 DeviceEvent::MouseMotion {delta} => {
-                    return Some(event::Event::MouseMotion {delta: *delta});
+                    return Some(frame_input::Event::MouseMotion {delta: *delta});
                 },
                 _ => {}
             }

@@ -1,5 +1,4 @@
 
-use dust::window::*;
 use dust::*;
 
 fn main() {
