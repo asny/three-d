@@ -1,6 +1,6 @@
 use crate::objects::mesh::Mesh;
 use crate::buffer::*;
-use crate::core::Gl;
+use crate::Gl;
 
 impl Mesh {
     pub fn new_from_obj_source(gl: &Gl, source: String) -> Result<Vec<Mesh>, Error>

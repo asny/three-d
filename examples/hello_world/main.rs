@@ -1,6 +1,6 @@
 
 use dust::window::*;
-use dust::core::*;
+use dust::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

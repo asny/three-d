@@ -1,7 +1,7 @@
 
 use crate::objects::mesh::Mesh;
 use crate::buffer::*;
-use crate::core::Gl;
+use crate::Gl;
 
 impl Mesh {
 
