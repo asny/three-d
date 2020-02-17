@@ -10,7 +10,7 @@ pub mod objects;
 #[cfg(not(feature = "core-only"))]
 pub mod effects;
 
-pub use window;
+pub mod window;
 
 pub use crate::core::*;
 
@@ -22,3 +22,5 @@ pub use crate::light::*;
 pub use crate::objects::*;
 #[cfg(not(feature = "core-only"))]
 pub use crate::effects::*;
+
+pub use window::*;

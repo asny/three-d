@@ -12,7 +12,6 @@ gl_debug = ["gl/debug"]
 [dependencies]
 gl = { path = "lib/gl" }
 cgmath = "0.17"
-window = { path = "lib/window" }
 wavefront_obj = "7.0"
 num = "0.2"
 num-traits = "0.2"
@@ -23,6 +22,31 @@ log = "0.4"
 version = "0.22"
 default-features = false
 features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
+
+[target.'cfg(target_arch = "x86_64")'.dependencies.glutin]
+version = "0.19.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+version = "0.3.19"
+features = [
+  'Document',
+  'Element',
+  'Node',
+  'HtmlElement',
+  'HtmlCanvasElement',
+  'Window',
+  'Event',
+  'MouseEvent',
+  'EventTarget',
+  'WheelEvent',
+  'KeyboardEvent',
+  'TouchEvent',
+  'TouchList',
+  'Touch'
+]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
+version = "0.2.42"
 
 [dev-dependencies]
 tri-mesh = "0.4.0"
