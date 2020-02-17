@@ -4,11 +4,21 @@ version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
-[target.'cfg(target_arch = "x86_64")'.build-dependencies]
-gl_generator = "0.14"
+[features]
+debug = []
+desktop = ["gl_generator"]
+web = ["js-sys", "web-sys", "wasm-bindgen"]
 
-[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+[target.'cfg(target_arch = "x86_64")'.build-dependencies]
+gl_generator = {version = "0.14", optional = true}
+
+[dependencies]
+wasm-bindgen = {version = "0.2", optional = true}
+js-sys = {version = "0.3", optional = true}
+
+[dependencies.web-sys]
 version = "0.3"
+optional = true
 features = [
   'WebGlBuffer',
   'WebGlFramebuffer',
@@ -21,12 +31,3 @@ features = [
   'WebGlActiveInfo',
   'Performance'
 ]
-
-[target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
-version = "0.2"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies.js-sys]
-version = "0.3"
-
-[features]
-debug = []
