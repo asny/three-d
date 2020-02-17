@@ -5,6 +5,8 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [features]
+default = []
+core-only = []
 gl_debug = ["gl/debug"]
 
 [dependencies]
