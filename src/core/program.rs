@@ -62,7 +62,7 @@ impl Program
         for i in 0..num_attribs {
             let info = gl.get_active_attrib(&id, i);
             let location = gl.get_attrib_location(&id, &info.name()).unwrap();
-            println!("Attribute location: {}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
+            //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
             vertex_attributes.insert(info.name(), location);
         }
 
@@ -72,7 +72,7 @@ impl Program
         for i in 0..num_uniforms {
             let info = gl.get_active_uniform(&id, i);
             let location = gl.get_uniform_location(&id, &info.name());
-            println!("Uniform location: {:?}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
+            //println!("Uniform location: {:?}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
             if let Some(loc) = location {
                 uniforms.insert(info.name(), loc);
             }
