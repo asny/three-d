@@ -7,10 +7,8 @@ edition = "2018"
 [features]
 default = ["glutin-window", "obj-loader", "image"]
 core-only = []
-desktop = ["gl/desktop"] # Build for desktop
-glutin-window = ["glutin", "desktop"]
-web = ["web-sys", "gl/web"] # Build for web
-canvas = ["wasm-bindgen", "web"]
+glutin-window = ["glutin"]
+canvas = ["wasm-bindgen", "web-sys"]
 obj-loader = ["wavefront_obj"]
 gl-debug = ["gl/debug"]
 
@@ -25,7 +23,7 @@ wavefront_obj = { version = "7.0", optional = true }
 glutin = { version = "0.19.0", optional = true }
 wasm-bindgen = { version = "0.2.42", optional = true }
 
-[dependencies.web-sys]
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3.19"
 optional = true
 features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent',

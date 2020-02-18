@@ -1,10 +1,10 @@
 
 fn main() {
-    #[cfg(feature = "desktop")]
+    #[cfg(not(target_arch = "wasm32"))]
     setup_opengl();
 }
 
-#[cfg(feature = "desktop")]
+#[cfg(not(target_arch = "wasm32"))]
 fn setup_opengl()
 {
     use std::env;

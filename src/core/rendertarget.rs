@@ -36,7 +36,7 @@ impl ScreenRendertarget
         gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
     }
 
-    #[cfg(not(feature = "web"))]
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn pixels(gl: &Gl, width: usize, height: usize, dst_data: &mut [u8])
     {
         Self::read(gl);
@@ -44,7 +44,7 @@ impl ScreenRendertarget
                             gl::consts::UNSIGNED_BYTE, dst_data);
     }
 
-    #[cfg(not(feature = "web"))]
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn depths(gl: &Gl, width: usize, height: usize, dst_data: &mut [f32])
     {
         Self::read(gl);
@@ -205,7 +205,7 @@ impl RenderTarget
         self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
     }
 
-    #[cfg(not(feature = "web"))]
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn pixels(&self, width: usize, height: usize, dst_data: &mut [u8])
     {
         self.read();
@@ -213,7 +213,7 @@ impl RenderTarget
                             gl::consts::UNSIGNED_BYTE, dst_data);
     }
 
-    #[cfg(not(feature = "web"))]
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn depths(&self, width: usize, height: usize, dst_data: &mut [f32])
     {
         self.read();
@@ -259,7 +259,7 @@ impl Drop for RenderTarget {
 
 // COMMON FUNCTIONS
 
-#[cfg(all(not(feature = "web"), feature = "image"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "image"))]
 pub fn save_screenshot(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
 {
     let mut pixels = vec![0u8; width * height * 3];

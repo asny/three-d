@@ -1,14 +1,14 @@
 
 // GL
-#[cfg(feature = "desktop")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod ogl;
 
-#[cfg(feature = "desktop")]
+#[cfg(not(target_arch = "wasm32"))]
 pub use crate::ogl::*;
 
 // WEBGL
-#[cfg(feature = "web")]
+#[cfg(target_arch = "wasm32")]
 pub mod wgl2;
 
-#[cfg(feature = "web")]
+#[cfg(target_arch = "wasm32")]
 pub use crate::wgl2::*;

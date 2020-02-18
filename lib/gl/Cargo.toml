@@ -6,19 +6,16 @@ edition = "2018"
 
 [features]
 debug = []
-desktop = ["gl_generator"]
-web = ["js-sys", "web-sys", "wasm-bindgen"]
 
-[target.'cfg(target_arch = "x86_64")'.build-dependencies]
-gl_generator = {version = "0.14", optional = true}
+[target.'cfg(not(target_arch = "wasm32"))'.build-dependencies]
+gl_generator = {version = "0.14"}
 
-[dependencies]
-wasm-bindgen = {version = "0.2", optional = true}
-js-sys = {version = "0.3", optional = true}
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
 
-[dependencies.web-sys]
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3"
-optional = true
 features = [
   'WebGlBuffer',
   'WebGlFramebuffer',
