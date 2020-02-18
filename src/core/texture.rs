@@ -2,13 +2,13 @@ use crate::core::Gl;
 
 #[derive(Debug)]
 pub enum Error {
-    #[cfg(feature = "image")]
+    #[cfg(feature = "image-io")]
     Image(image::ImageError),
     IO(std::io::Error),
     FailedToCreateTexture {message: String}
 }
 
-#[cfg(feature = "image")]
+#[cfg(feature = "image-io")]
 impl From<image::ImageError> for Error {
     fn from(other: image::ImageError) -> Self {
         Error::Image(other)
@@ -50,7 +50,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    #[cfg(feature = "image")]
+    #[cfg(feature = "image-io")]
     pub fn new_from_bytes(gl: &Gl, bytes: &[u8]) -> Result<Texture2D, Error>
     {
         use image::GenericImageView;
@@ -60,7 +60,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
     pub fn new_from_file(gl: &Gl, path: &str) -> Result<Texture2D, Error>
     {
         use image::GenericImageView;
@@ -196,7 +196,7 @@ impl Texture3D
         Ok(texture)
     }
 
-    #[cfg(feature = "image")]
+    #[cfg(feature = "image-io")]
     pub fn new_from_bytes(gl: &Gl, back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
     {
         use image::GenericImageView;
@@ -213,7 +213,7 @@ impl Texture3D
         Ok(texture)
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
     pub fn new_from_files(gl: &Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
         use image::GenericImageView;

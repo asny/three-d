@@ -2,7 +2,7 @@ use crate::objects::mesh::Mesh;
 
 impl Mesh {
 
-    #[cfg(feature = "obj-loader")]
+    #[cfg(feature = "obj-io")]
     pub fn new_from_obj_source(gl: &crate::Gl, source: String) -> Result<Vec<Mesh>, crate::buffer::Error>
     {
         let objs = wavefront_obj::obj::parse(source).unwrap();

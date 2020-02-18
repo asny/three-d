@@ -259,7 +259,7 @@ impl Drop for RenderTarget {
 
 // COMMON FUNCTIONS
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "image"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
 pub fn save_screenshot(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
 {
     let mut pixels = vec![0u8; width * height * 3];

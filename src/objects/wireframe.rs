@@ -18,7 +18,7 @@ impl Wireframe
         Wireframe {edges, vertices}
     }
 
-    #[cfg(feature = "obj-loader")]
+    #[cfg(feature = "obj-io")]
     pub fn new_from_obj_source(gl: &Gl, source: String, tube_radius: f32, translation: &Vec3) -> Wireframe
     {
         let objs = wavefront_obj::obj::parse(source).unwrap();

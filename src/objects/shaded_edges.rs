@@ -71,7 +71,7 @@ impl ShadedEdges
         ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
-    #[cfg(feature = "obj-loader")]
+    #[cfg(feature = "obj-io")]
     pub fn new_from_obj_source(gl: &Gl, source: String, tube_radius: f32, translation: &Vec3) -> ShadedEdges
     {
         let objs = wavefront_obj::obj::parse(source).unwrap();

@@ -5,11 +5,12 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [features]
-default = ["glutin-window", "obj-loader", "image"]
-core-only = []
+default = ["glutin-window", "obj-io", "image-io"]
 glutin-window = ["glutin"]
 canvas = ["wasm-bindgen", "web-sys"]
-obj-loader = ["wavefront_obj"]
+image-io = ["image"]
+obj-io = ["wavefront_obj"]
+no-renderer = []
 gl-debug = ["gl/debug"]
 
 [dependencies]
