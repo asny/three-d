@@ -24,7 +24,7 @@ pub struct Window
 {
     gl_window: GlWindow,
     events_loop: EventsLoop,
-    gl: std::rc::Rc<gl::Gl>
+    gl: crate::Gl
 }
 
 impl Window
@@ -103,7 +103,7 @@ impl Window
         (t.0 as usize, t.1 as usize)
     }
 
-    pub fn gl(&self) -> std::rc::Rc<gl::Gl>
+    pub fn gl(&self) -> crate::Gl
     {
         self.gl.clone()
     }

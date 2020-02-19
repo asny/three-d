@@ -16,7 +16,7 @@ pub enum Error {
 
 pub struct Window
 {
-    gl: std::rc::Rc<gl::Gl>,
+    gl: crate::Gl,
     canvas: web_sys::HtmlCanvasElement,
     window: web_sys::Window
 }
@@ -44,9 +44,8 @@ impl Window
 
         canvas.set_width(canvas.offset_width() as u32);
         canvas.set_height(canvas.offset_height() as u32);
-        let gl = gl::Gl::new(context);
 
-        Ok(Window { gl: std::rc::Rc::new(gl), canvas, window })
+        Ok(Window { gl: Rc::new(gl::Gl::new(context)), canvas, window })
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
@@ -262,7 +261,7 @@ impl Window
         self.size()
     }
 
-    pub fn gl(&self) -> std::rc::Rc<gl::Gl>
+    pub fn gl(&self) -> crate::Gl
     {
         self.gl.clone()
     }
