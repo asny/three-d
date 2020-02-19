@@ -19,9 +19,8 @@ impl Imposter {
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
         let center = 0.5 * min + 0.5 * max;
-        let mut camera = camera::Camera::new_orthographic(center + vec3(0.0, 0.0, -1.0),
+        let mut camera = camera::Camera::new_orthographic(gl, center + vec3(0.0, 0.0, -1.0),
                           center, vec3(0.0, 1.0, 0.0), width, height, 4.0*(width+height));
-        camera.enable_matrix_buffer(gl);
 
         let texture = Texture2DArray::new_as_color_targets(gl, 1024, 1024, NO_VIEW_ANGLES*2).unwrap();
         let depth_texture = Texture2DArray::new_as_depth_targets(gl, 1024, 1024, NO_VIEW_ANGLES).unwrap();

@@ -11,30 +11,30 @@ pub struct Camera {
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
-    matrix_buffer: Option<UniformBuffer>,
+    matrix_buffer: UniformBuffer,
     frustrum: [Vec4; 6]
 }
 
 impl Camera
 {
-    fn new() -> Camera
+    fn new(gl: &Gl) -> Camera
     {
-        Camera {matrix_buffer: None, frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
+        Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16, 16, 3, 1]).unwrap(), frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
             position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()}
     }
 
-    pub fn new_orthographic(position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
+    pub fn new_orthographic(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
     {
-        let mut camera = Camera::new();
+        let mut camera = Camera::new(gl);
         camera.set_view(position, target, up);
         camera.set_orthographic_projection(width, height, depth);
         camera
     }
 
-    pub fn new_perspective(position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
+    pub fn new_perspective(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
     {
-        let mut camera = Camera::new();
+        let mut camera = Camera::new(gl);
         camera.set_view(position, target, up);
         camera.set_perspective_projection(fovy, aspect, z_near, z_far);
         camera
@@ -125,17 +125,9 @@ impl Camera
         &self.up
     }
 
-    pub fn enable_matrix_buffer(&mut self, gl: &Gl)
-    {
-        if self.matrix_buffer.is_none() {
-            self.matrix_buffer = Some(UniformBuffer::new(gl, &vec![16, 16, 16, 3, 1]).unwrap());
-            self.update_matrix_buffer();
-        }
-    }
-
     pub fn matrix_buffer(&self) -> &UniformBuffer
     {
-        self.matrix_buffer.as_ref().unwrap()
+        &self.matrix_buffer
     }
 
     fn update_screen2ray(&mut self)
@@ -147,12 +139,10 @@ impl Camera
 
     fn update_matrix_buffer(&mut self)
     {
-        if let Some(ref mut matrix_buffer) = self.matrix_buffer {
-            matrix_buffer.update(0, &(self.projection * self.view).to_slice()).unwrap();
-            matrix_buffer.update(1, &self.view.to_slice()).unwrap();
-            matrix_buffer.update(2, &self.projection.to_slice()).unwrap();
-            matrix_buffer.update(3, &self.position.to_slice()).unwrap();
-        }
+        self.matrix_buffer.update(0, &(self.projection * self.view).to_slice()).unwrap();
+        self.matrix_buffer.update(1, &self.view.to_slice()).unwrap();
+        self.matrix_buffer.update(2, &self.projection.to_slice()).unwrap();
+        self.matrix_buffer.update(3, &self.position.to_slice()).unwrap();
     }
 
     fn update_frustrum(&mut self)

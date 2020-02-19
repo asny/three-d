@@ -11,7 +11,7 @@ fn main() {
     let gl = window.gl();
 
     // Camera
-    let mut camera = Camera::new_perspective(vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), screen_width as f32/screen_height as f32, 0.1, 10.0);
 
     let positions: Vec<f32> = vec![

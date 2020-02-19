@@ -129,8 +129,7 @@ impl DirectionalLight {
             camera.set_orthographic_projection(size, size, depth);
         }
         else {
-            let mut camera = Camera::new_orthographic(target - direction, target, up, size, size, depth);
-            camera.enable_matrix_buffer(&self.gl);
+            let camera = Camera::new_orthographic(&self.gl, target - direction, target, up, size, size, depth);
             self.shadow_cameras[self.index] = Some(camera);
         }
 
@@ -346,8 +345,7 @@ impl SpotLight {
             camera.set_perspective_projection(degrees(45.0), 2.0 * cutoff, 0.1, depth);
         }
         else {
-            let mut camera = Camera::new_perspective(position, position + direction, up, degrees(45.0), 2.0 * cutoff, 0.1, depth);
-            camera.enable_matrix_buffer(&self.gl);
+            let camera = Camera::new_perspective(&self.gl, position, position + direction, up, degrees(45.0), 2.0 * cutoff, 0.1, depth);
             self.shadow_cameras[self.index] = Some(camera);
         }
 

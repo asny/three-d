@@ -13,9 +13,8 @@ fn main() {
     let scene_center = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    let mut camera = Camera::new_perspective(scene_center + scene_radius * vec3(0.6, 0.6, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.6, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
-    camera.enable_matrix_buffer(&gl);
 
     // Objects
     let obj_file = include_str!("../assets/models/suzanne.obj").to_string();

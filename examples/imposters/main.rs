@@ -11,9 +11,8 @@ fn main() {
 
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    let mut camera = Camera::new_perspective(vec3(10.0, 25.0, 40.0), vec3(0.0, 7.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(10.0, 25.0, 40.0), vec3(0.0, 7.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
-    camera.enable_matrix_buffer(&gl);
 
     let mut loaded_objects: Vec<_> = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/tree1.obj").to_string()).unwrap();
     for object in loaded_objects.iter() {
