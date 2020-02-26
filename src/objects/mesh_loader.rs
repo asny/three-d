@@ -1,6 +1,23 @@
 use crate::objects::mesh::Mesh;
 
+#[cfg(feature = "3d-io")]
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub(crate) struct IOMesh {
+    pub magic_number: u8,
+    pub version: u8,
+    pub indices: Vec<u32>,
+    pub positions: Vec<f32>,
+    pub normals: Vec<f32>
+}
+
 impl Mesh {
+
+    #[cfg(feature = "3d-io")]
+    pub fn new_from_3d(gl: &crate::Gl, bytes: &[u8]) -> Result<Mesh, bincode::Error>
+    {
+        let decoded: crate::mesh_loader::IOMesh = bincode::deserialize(bytes)?;
+        Ok(Self::new("3d".to_string(), &gl, &decoded.indices, &decoded.positions, &decoded.normals).unwrap())
+    }
 
     #[cfg(feature = "obj-io")]
     pub fn new_from_obj_source(gl: &crate::Gl, source: String) -> Result<Vec<Mesh>, crate::buffer::Error>

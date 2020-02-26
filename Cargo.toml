@@ -5,11 +5,12 @@ authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 
 [features]
-default = ["glutin-window", "canvas", "obj-io", "image-io"]
+default = ["glutin-window", "canvas", "obj-io", "3d-io", "image-io"]
 glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
 canvas = ["wasm-bindgen", "web-sys"] # Default window for web (only available when building for the wasm32 architecture)
 image-io = ["image"] # Additional image functionality, for example loading an image to a texture
 obj-io = ["wavefront_obj"] # Additional obj file loading functionality
+3d-io = ["serde", "bincode"]
 no-renderer = [] # Does not include the deferred renderer, but only core OpenGL/WebGL functionality.
 gl-debug = ["gl/debug"] # Prints OpenGL debug information (only available when NOT building for the wasm32 architecture)
 
@@ -21,6 +22,8 @@ num-traits = "0.2"
 num-derive = "0.3"
 log = "0.4"
 wavefront_obj = { version = "7.0", optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
+bincode = { version = "1.2", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.glutin]
 version = "0.19.0"
