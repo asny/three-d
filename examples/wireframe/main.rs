@@ -60,8 +60,9 @@ fn main() {
 
     // Shadow pass
     renderer.shadow_pass(&|camera: &Camera| {
-        model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), camera);
-        wireframe.render(camera);
+        let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+        model.render(&transformation, camera);
+        wireframe.render(&transformation, camera);
     });
 
     // main loop
@@ -89,9 +90,10 @@ fn main() {
 
         // Geometry pass
         renderer.geometry_pass(&|| {
-            model.render(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)), &camera);
+            let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            model.render(&transformation, &camera);
             plane.render(&Mat4::from_scale(100.0), &camera);
-            wireframe.render(&camera);
+            wireframe.render(&transformation, &camera);
         }).unwrap();
 
         // Light pass

@@ -225,7 +225,7 @@ fn main()
         renderer.geometry_pass(&|| {
             model.render(&Mat4::identity(), &camera);
             plane.render(&Mat4::from_scale(100.0), &camera);
-            wireframe_model.render(&camera);
+            wireframe_model.render(&Mat4::identity(), &camera);
         }).unwrap();
 
         // Light pass

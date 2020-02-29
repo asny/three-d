@@ -24,9 +24,9 @@ impl Wireframe
         self.edges.update_positions(positions);
     }
 
-    pub fn render(&self, camera: &camera::Camera)
+    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
-        self.edges.render(camera);
+        self.edges.render(transformation, camera);
         self.vertices.render(camera);
     }
 
