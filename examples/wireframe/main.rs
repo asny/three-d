@@ -29,7 +29,9 @@ fn main() {
     model.specular_intensity = 0.4;
     model.specular_power = 20.0;
 
-    let mut plane = Mesh::new_plane(&gl).unwrap();
+    let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
+    plane_mesh.scale(100.0);
+    let mut plane = Mesh::new(&gl, &plane_mesh.indices_buffer(), &plane_mesh.positions_buffer_f32(), &plane_mesh.normals_buffer_f32()).unwrap();
     plane.diffuse_intensity = 0.2;
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;
@@ -92,7 +94,7 @@ fn main() {
         renderer.geometry_pass(&|| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.render(&transformation, &camera);
-            plane.render(&Mat4::from_scale(100.0), &camera);
+            plane.render(&Mat4::identity(), &camera);
             wireframe.render(&transformation, &camera);
         }).unwrap();
 

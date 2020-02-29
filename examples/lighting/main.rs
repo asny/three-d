@@ -19,7 +19,10 @@ fn main() {
     monkey.specular_intensity = 0.8;
     monkey.specular_power = 20.0;
 
-    let mut plane = Mesh::new_plane(&gl).unwrap();
+    let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
+    plane_mesh.scale(10.0);
+    plane_mesh.translate(tri_mesh::prelude::vec3(0.0, -1.0, 0.0));
+    let mut plane = Mesh::new(&gl, &plane_mesh.indices_buffer(), &plane_mesh.positions_buffer_f32(), &plane_mesh.normals_buffer_f32()).unwrap();
     plane.diffuse_intensity = 0.3;
     plane.specular_intensity = 0.8;
     plane.specular_power = 20.0;
@@ -108,8 +111,7 @@ fn main() {
         renderer.geometry_pass(&||
             {
                 render_scene(&camera);
-                plane.render(&(Mat4::from_translation(vec3(0.0, -1.0, 0.0))
-                    * Mat4::from_scale(10.0)), &camera);
+                plane.render(&Mat4::identity(), &camera);
             }).unwrap();
 
         // Light pass
