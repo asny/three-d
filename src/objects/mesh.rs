@@ -34,7 +34,6 @@ impl AxisAllignedBoundingBox {
 }
 
 pub struct Mesh {
-    name: String,
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: ElementBuffer,
@@ -49,7 +48,7 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn new(name: String, gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, Error>
+    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_one_static_attribute(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_one_static_attribute(gl, normals)?;
@@ -59,13 +58,13 @@ impl Mesh
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
 
-        Ok(Mesh { name, index_buffer, position_buffer, normal_buffer, program, aabb: compute_aabb(positions), color: vec3(1.0, 1.0, 1.0), texture: None,
+        Ok(Mesh { index_buffer, position_buffer, normal_buffer, program, aabb: compute_aabb(positions), color: vec3(1.0, 1.0, 1.0), texture: None,
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
     }
 
-    pub fn new_with_computed_normals(name: String, gl: &Gl, indices: &[u32], positions: &[f32]) -> Result<Self, Error>
+    pub fn new_with_computed_normals(gl: &Gl, indices: &[u32], positions: &[f32]) -> Result<Self, Error>
     {
-        Self::new(name, gl, indices, positions, &compute_normals(indices, positions))
+        Self::new(gl, indices, positions, &compute_normals(indices, positions))
     }
 
     pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
@@ -116,10 +115,6 @@ impl Mesh
     pub fn axis_aligned_bounding_box(&self) -> &AxisAllignedBoundingBox
     {
         &self.aabb
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
     }
 }
 

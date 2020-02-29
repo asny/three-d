@@ -14,7 +14,7 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut monkey = Mesh::new_from_obj_source(&gl, include_str!("../assets/models/suzanne.obj").to_string()).unwrap().pop().unwrap();
+    let mut monkey = CPUMesh::new(include_bytes!("../assets/models/suzanne.3d")).unwrap().to_mesh(&gl).unwrap();
     monkey.diffuse_intensity = 0.3;
     monkey.specular_intensity = 0.8;
     monkey.specular_power = 20.0;

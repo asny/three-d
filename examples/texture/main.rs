@@ -14,7 +14,8 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut box_mesh = Mesh::new_box(&gl).unwrap();
+    let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
+    let mut box_mesh = Mesh::new(&gl, &box_mesh.indices_buffer(), &box_mesh.positions_buffer_f32(), &box_mesh.normals_buffer_f32()).unwrap();
     box_mesh.texture = Some(texture::Texture2D::new_from_bytes(&gl, include_bytes!("../assets/textures/test_texture.jpg")).unwrap());
 
     let texture3d = texture::Texture3D::new_from_bytes(&gl,

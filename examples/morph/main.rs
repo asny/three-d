@@ -5,7 +5,7 @@ use std::collections::HashMap;
 fn on_startup(scene_center: &tri_mesh::prelude::Vec3, scene_radius: f64) -> tri_mesh::mesh::Mesh
 {
     use tri_mesh::prelude::*;
-    let mut mesh = MeshBuilder::new().with_obj(include_str!("../assets/models/suzanne.obj").to_string()).build().unwrap();
+    let mut mesh = MeshBuilder::new().with_3d(include_bytes!("../assets/models/suzanne.3d")).unwrap().build().unwrap();
     let (min, max) = mesh.extreme_coordinates();
     mesh.translate(-0.5 * (max + min)); // Translate such that the mesh center is in origo.
     let size = max - min;
@@ -70,7 +70,7 @@ fn compute_weights(mesh: &tri_mesh::mesh::Mesh, start_vertex_id: tri_mesh::prelu
     let mut to_be_tested = vec![start_vertex_id];
     while let Some(vertex_id) = to_be_tested.pop()
     {
-        let sqr_distance = start_point.distance2(*mesh.vertex_position(vertex_id));
+        let sqr_distance = start_point.distance2(mesh.vertex_position(vertex_id));
         if sqr_distance < SQR_MAX_DISTANCE
         {
             // The weight is computed as the smoothstep function to the square euclidean distance
@@ -125,7 +125,7 @@ fn main()
     wireframe_model.specular_power = 5.0;
     wireframe_model.color = vec3(0.9, 0.2, 0.2);
 
-    let mut model = Mesh::new("model".to_owned(), &gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
+    let mut model = Mesh::new(&gl, &mesh.indices_buffer(), &positions, &normals).unwrap();
     model.color = vec3(0.8, 0.8, 0.8);
     model.diffuse_intensity = 0.2;
     model.specular_intensity = 0.4;

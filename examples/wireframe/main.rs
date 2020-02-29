@@ -17,14 +17,14 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
-    let obj_file = include_str!("../assets/models/suzanne.obj").to_string();
-    let mut wireframe = objects::ShadedEdges::new_from_obj_source(&gl, obj_file.clone(), 0.01, &scene_center);
+    let cpu_mesh = CPUMesh::new(include_bytes!("../assets/models/suzanne.3d")).unwrap();
+    let mut wireframe = objects::ShadedEdges::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.01);
     wireframe.diffuse_intensity = 0.8;
     wireframe.specular_intensity = 0.2;
     wireframe.specular_power = 5.0;
     wireframe.color = vec3(0.9, 0.2, 0.2);
 
-    let mut model = Mesh::new_from_obj_source(&gl, obj_file).unwrap().pop().unwrap();
+    let mut model = Mesh::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals).unwrap();
     model.diffuse_intensity = 0.2;
     model.specular_intensity = 0.4;
     model.specular_power = 20.0;
