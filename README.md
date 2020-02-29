@@ -17,7 +17,7 @@ An OpenGL/WebGL renderer written in Rust for the fun of it.
 
 ### Examples
 
-https://asny.github.io/home/dust/
+https://asny.github.io/dust/
 
 #### Desktop: 
 Build and run an example, in this case 'hello_world':
