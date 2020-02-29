@@ -46,5 +46,4 @@ default-features = false
 features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]
 
 [dev-dependencies]
-tri-mesh = { git = "https://github.com/asny/tri-mesh" }
-#tri-mesh = "0.4.0"
+tri-mesh = "0.5.0"
