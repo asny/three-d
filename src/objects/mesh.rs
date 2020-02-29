@@ -83,10 +83,6 @@ impl Mesh
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
-        self.program.cull(state::CullType::NONE);
-        self.program.depth_test(state::DepthTestType::LEQUAL);
-        self.program.depth_write(true);
-
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
         self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();

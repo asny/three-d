@@ -34,7 +34,8 @@ impl FogEffect {
     pub fn apply(&self, time: f32, camera: &camera::Camera, depth_texture: &dyn Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
-        state::depth_test(&self.gl, state::DepthTestType::NONE);
+        state::depth_test(&self.gl, state::DepthTestType::None);
+        state::cull(&self.gl,state::CullType::Back);
         state::blend(&self.gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
 
         self.program.use_texture(depth_texture, "depthMap")?;

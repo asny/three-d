@@ -4,7 +4,6 @@ use std::f32::consts::PI;
 const NO_VIEW_ANGLES: usize  = 8;
 
 pub struct Imposter {
-    gl: Gl,
     program: program::Program,
     vertex_buffer: VertexBuffer,
     instance_buffer: VertexBuffer,
@@ -64,7 +63,7 @@ impl Imposter {
         let vertex_buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
         let instance_buffer = VertexBuffer::new(gl).unwrap();
 
-        Imposter {gl: gl.clone(), texture, program, vertex_buffer, instance_buffer, instance_count:0 }
+        Imposter {texture, program, vertex_buffer, instance_buffer, instance_count:0 }
     }
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
@@ -76,12 +75,6 @@ impl Imposter {
     }
 
     pub fn render(&self, camera: &camera::Camera) {
-
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
-        state::cull(&self.gl,state::CullType::BACK);
-        state::blend(&self.gl, state::BlendType::None);
-
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32)).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 

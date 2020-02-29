@@ -44,8 +44,9 @@ impl DebugEffect {
     {
         if self.debug_type != Type::NONE {
             state::depth_write(&self.gl,false);
-            state::depth_test(&self.gl, state::DepthTestType::NONE);
-            state::blend(&self.gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
+            state::depth_test(&self.gl, state::DepthTestType::None);
+            state::cull(&self.gl,state::CullType::Back);
+            state::blend(&self.gl, state::BlendType::None);
 
             self.program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 

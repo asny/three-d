@@ -56,10 +56,6 @@ impl ShadedVertices
 
     pub fn render(&self, camera: &camera::Camera)
     {
-        self.program.cull(CullType::BACK);
-        self.program.depth_test(DepthTestType::LEQUAL);
-        self.program.depth_write(true);
-
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
         self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();

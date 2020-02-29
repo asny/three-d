@@ -33,10 +33,6 @@ impl Skybox
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.program.cull(state::CullType::FRONT);
-        self.program.depth_write(true);
-        self.program.depth_test(state::DepthTestType::LEQUAL);
-
         self.program.use_texture(&self.texture, "texture0")?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 

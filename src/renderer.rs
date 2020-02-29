@@ -119,8 +119,8 @@ impl DeferredPipeline
         self.geometry_pass_rendertarget.clear_color_and_depth(&self.background_color);
 
         state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LEQUAL);
-        state::cull(&self.gl, state::CullType::NONE);
+        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
+        state::cull(&self.gl, state::CullType::None);
         state::blend(&self.gl, state::BlendType::None);
 
         render_scene();
@@ -138,8 +138,8 @@ impl DeferredPipeline
     pub fn light_pass_render_to_rendertarget(&self, camera: &Camera) -> Result<(), Error>
     {
         state::depth_write(&self.gl,false);
-        state::depth_test(&self.gl, state::DepthTestType::NONE);
-        state::cull(&self.gl,state::CullType::BACK);
+        state::depth_test(&self.gl, state::DepthTestType::None);
+        state::cull(&self.gl,state::CullType::Back);
         state::blend(&self.gl, state::BlendType::OneOne);
 
         self.light_pass_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;

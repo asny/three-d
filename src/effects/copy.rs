@@ -36,8 +36,8 @@ impl CopyEffect {
     pub fn apply(&self, color_texture: &dyn Texture, depth_texture: &dyn Texture) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::NONE);
-        state::cull(&self.gl,state::CullType::BACK);
+        state::depth_test(&self.gl, state::DepthTestType::None);
+        state::cull(&self.gl,state::CullType::Back);
         state::blend(&self.gl, state::BlendType::None);
 
         self.program.use_texture(color_texture, "colorMap")?;
