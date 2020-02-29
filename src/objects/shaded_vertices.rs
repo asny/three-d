@@ -54,7 +54,7 @@ impl ShadedVertices
         self.instance_buffer.send_dynamic_data();
     }
 
-    pub fn render(&self, camera: &camera::Camera)
+    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
@@ -64,6 +64,7 @@ impl ShadedVertices
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
         self.program.add_uniform_float("scale", &self.scale).unwrap();
+        self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();

@@ -8,6 +8,7 @@ layout (std140) uniform Camera
     float padding;
 } camera;
 
+uniform mat4 modelMatrix;
 uniform float scale;
 
 in vec3 translation;
@@ -21,5 +22,5 @@ void main()
 {
     pos = scale * position + translation;
     nor = normalize(position);
-    gl_Position = camera.viewProjection * vec4(pos, 1.0);
+    gl_Position = camera.viewProjection * modelMatrix * vec4(pos, 1.0);
 }

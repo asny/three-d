@@ -27,7 +27,7 @@ impl Wireframe
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
         self.edges.render(transformation, camera);
-        self.vertices.render(camera);
+        self.vertices.render(transformation, camera);
     }
 
     pub fn set_color(&mut self, color: &Vec3)
