@@ -75,6 +75,14 @@ impl VertexBuffer
     }
 }
 
+impl Drop for VertexBuffer
+{
+    fn drop(&mut self)
+    {
+        self.gl.delete_buffer(&self.id);
+    }
+}
+
 pub struct ElementBuffer {
     gl: Gl,
     id: gl::Buffer,
@@ -113,6 +121,14 @@ impl ElementBuffer
         self.gl.buffer_data_u32(gl::consts::ELEMENT_ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
         self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
 
+    }
+}
+
+impl Drop for ElementBuffer
+{
+    fn drop(&mut self)
+    {
+        self.gl.delete_buffer(&self.id);
     }
 }
 
@@ -179,6 +195,14 @@ impl UniformBuffer
         self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
         self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, &self.data, gl::consts::STATIC_DRAW);
         self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
+    }
+}
+
+impl Drop for UniformBuffer
+{
+    fn drop(&mut self)
+    {
+        self.gl.delete_buffer(&self.id);
     }
 }
 

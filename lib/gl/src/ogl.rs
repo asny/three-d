@@ -152,6 +152,13 @@ impl Gl {
         Some(id)
     }
 
+    pub fn delete_buffer(&self, buffer: &Buffer)
+    {
+        unsafe {
+            self.inner.DeleteBuffers(1, [*buffer].as_ptr());
+        }
+    }
+
     pub fn bind_buffer_base(&self, target: u32, index: u32, buffer: &Buffer)
     {
         let pname = match target {
