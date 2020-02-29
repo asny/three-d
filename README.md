@@ -2,22 +2,25 @@
 
 ### What is Dust?
 
-An OpenGL/WebGL renderer written in Rust for the fun of it.
-
-### Main features
-
-- Thin and safe abstraction layer on top of OpenGL/WebGL graphics API. Seeks to ensure always being in the correct state.
-- Enabling out-of-the-box build to both desktop (Rust + OpenGL) and web (Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate)
-- Additional default abstractions for simple setup of new projects:
-    - Deferred renderer which supports multiple light types and shadows
-    - Triangle mesh factory and loader
-    - Shader programs which can render meshes (e.g. MeshShader, Skybox, Wireframe, ..)
-    - Effects which can be applied to the rendered image (e.g. Fog, Debug, ..)
-    - Camera input handler
+An OpenGL/WebGL2 renderer written in Rust for the fun of it. 
+Dust enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
+(Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate).
+This means you can develop a 3D application on desktop and easily deploy it on web!
 
 ### Examples
 
 https://asny.github.io/dust/
+
+### Main features
+
+- Thin and low-level graphics abstraction layer which maps one-to-one with the OpenGL/WebGL2 graphics APIs.
+- Modular abstractions of common graphics concepts such as buffer, texture, camera, program, rendertarget etc. 
+It is always possible to combine with direct call to the OpenGL/WebGL2 graphics abstraction layer.
+- Deferred renderer which supports rendering several types of 3D objects (triangle mesh, skybox, imposter etc.), 
+multiple light types including shadows, and effects applied after rendering the scene (for example fog). 
+Again, it is always possible to combine with lower-level functionality and it can be avoided altogether by enabling the "no-renderer" feature.
+- Default windows for easy setup (currently [glutin](https://crates.io/crates/glutin) for cross-platform desktop and canvas for web). 
+Can be avoided by disabling the "glutin-window" feature and "canvas" feature respectively.
 
 #### Desktop: 
 Build and run an example, in this case 'hello_world':
