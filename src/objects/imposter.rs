@@ -12,7 +12,7 @@ pub struct Imposter {
 }
 
 impl Imposter {
-    pub fn new(gl: &Gl, render: &dyn Fn(&Camera), aabb: (Vec3, Vec3)) -> Self
+    pub fn new(gl: &Gl, render: &dyn Fn(&Camera), aabb: (Vec3, Vec3), max_texture_size: usize) -> Self
     {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -21,8 +21,10 @@ impl Imposter {
         let mut camera = camera::Camera::new_orthographic(gl, center + vec3(0.0, 0.0, -1.0),
                           center, vec3(0.0, 1.0, 0.0), width, height, 4.0*(width+height));
 
-        let texture = Texture2DArray::new_as_color_targets(gl, 1024, 1024, NO_VIEW_ANGLES*2).unwrap();
-        let depth_texture = Texture2DArray::new_as_depth_targets(gl, 1024, 1024, NO_VIEW_ANGLES).unwrap();
+        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
+        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
+        let texture = Texture2DArray::new_as_color_targets(gl, texture_width, texture_height, NO_VIEW_ANGLES*2).unwrap();
+        let depth_texture = Texture2DArray::new_as_depth_targets(gl, texture_width, texture_height, NO_VIEW_ANGLES).unwrap();
         let rendertarget = RenderTarget::new(gl, 2).unwrap();
 
         for i in 0..NO_VIEW_ANGLES {

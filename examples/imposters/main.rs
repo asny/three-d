@@ -24,7 +24,7 @@ fn main() {
     let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
             tree_mesh.render(&Mat4::identity(), camera);
             leaves_mesh.render(&Mat4::identity(), camera);
-        }, (aabb.min, aabb.max));
+        }, (aabb.min, aabb.max), 256);
     let t = 10;
     let mut positions = Vec::new();
     let mut angles = Vec::new();
