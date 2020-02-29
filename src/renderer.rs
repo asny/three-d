@@ -103,6 +103,11 @@ impl DeferredPipeline
     pub fn shadow_pass<F>(&self, render_scene: &F)
         where F: Fn(&Camera)
     {
+        state::depth_write(&self.gl, true);
+        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
+        state::cull(&self.gl, state::CullType::None);
+        state::blend(&self.gl, state::BlendType::None);
+
         self.directional_lights.shadow_pass(render_scene);
         self.spot_lights.shadow_pass(render_scene);
     }
