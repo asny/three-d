@@ -31,7 +31,6 @@ fn main() {
 
     let mut directional_light = DirectionalLight::new(&gl).unwrap();
     directional_light.set_intensity(0.3);
-    directional_light.enable_shadows();
 
     /*directional_light = renderer.directional_light(1).unwrap();
     directional_light.set_intensity(0.3);
@@ -76,11 +75,7 @@ fn main() {
                 Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
-                        if directional_light.is_shadows_enabled() {
-                            directional_light.disable_shadows();
-                        } else {
-                            directional_light.enable_shadows();
-                        }
+
                     }
                 }
             }
@@ -102,7 +97,7 @@ fn main() {
         let render_scene = |camera: &Camera| {
             monkey.render(&Mat4::identity(), camera);
         };
-        directional_light.generate_shadow_map(&render_scene);
+        directional_light.generate_shadow_map(vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
         /*renderer.directional_light(1).unwrap().generate_shadow_map(&render_scene);
         renderer.spot_light(0).unwrap().generate_shadow_map(&render_scene);*/
 

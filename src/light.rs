@@ -79,7 +79,7 @@ impl DirectionalLight {
         light.set_intensity(0.0);
         light.set_color(&vec3(1.0, 1.0, 1.0));
         light.set_direction(&vec3(0.0, -1.0, 0.0));
-        light.disable_shadows();
+        light.clear_shadow_map();
         Ok(light)
     }
 
@@ -96,7 +96,6 @@ impl DirectionalLight {
     pub fn set_direction(&mut self, direction: &Vec3)
     {
         self.light_buffer.update(2, &direction.to_slice()).unwrap();
-        self.update_shadows(vec3(0.0, 0.0, 0.0), 4.0, 20.0);
     }
 
     pub fn direction(&self) -> Vec3 {
@@ -104,54 +103,40 @@ impl DirectionalLight {
         vec3(d[0], d[1], d[2])
     }
 
-    pub fn is_shadows_enabled(&self) -> bool {
-        self.shadow_camera.is_some()
-    }
-
-    pub fn enable_shadows(&mut self)
-    {
-        self.update_shadows(vec3(0.0, 0.0, 0.0), 4.0, 20.0);
-    }
-
-    pub fn update_shadows(&mut self, target: Vec3, size: f32, depth: f32) {
-        let direction = self.direction();
-        let up = compute_up_direction(direction);
-
-        if let Some(ref mut camera) = self.shadow_camera
-        {
-            camera.set_view(target - direction, target, up);
-            camera.set_orthographic_projection(size, size, depth);
-        }
-        else {
-            self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction, target, up, size, size, depth));
-        }
-
-        self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, 1024, 1024).unwrap());
-
-        self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
-    }
-
-    pub fn disable_shadows(&mut self)
+    pub fn clear_shadow_map(&mut self)
     {
         self.shadow_camera = None;
         self.shadow_texture = None;
         self.light_buffer.update(4, &Mat4::from_value(0.0).to_slice()).unwrap();
     }
 
-    pub fn generate_shadow_map<F>(&self, render_scene: &F)
+    pub fn generate_shadow_map<F>(&mut self, target: Vec3,
+                                  frustrum_width: f32, frustrum_height: f32, frustrum_depth: f32,
+                                  texture_width: usize, texture_height: usize, render_scene: &F)
         where F: Fn(&Camera)
     {
-        if let Some(ref camera) = self.shadow_camera
-        {
-            if let Some(ref texture) = self.shadow_texture {
-                state::depth_write(&self.gl, true);
-                state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
+        let direction = self.direction();
+        let up = compute_up_direction(direction);
 
-                self.shadow_rendertarget.write_to_depth(texture).unwrap();
-                self.shadow_rendertarget.clear_depth();
-                render_scene(camera);
-            }
+        if let Some(ref mut camera) = self.shadow_camera
+        {
+            camera.set_view(target - direction, target, up);
+            camera.set_orthographic_projection(frustrum_width, frustrum_height, frustrum_depth);
         }
+        else {
+            self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction, target, up,
+                                                               frustrum_width, frustrum_height, frustrum_depth));
+        }
+        self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
+
+        self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_width, texture_height).unwrap());
+
+        state::depth_write(&self.gl, true);
+        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
+
+        self.shadow_rendertarget.write_to_depth(self.shadow_texture.as_ref().unwrap()).unwrap();
+        self.shadow_rendertarget.clear_depth();
+        render_scene(self.shadow_camera.as_ref().unwrap());
     }
 
     pub(crate) fn shadow_map(&self) -> Option<&Texture2D>
