@@ -42,14 +42,6 @@ struct AmbientLight
     BaseLight base;
 };
 
-struct DirectionalLight
-{
-    BaseLight base;
-    vec3 direction;
-    float padding;
-    mat4 shadowMVP;
-};
-
 struct PointLight
 {
     BaseLight base;
@@ -71,10 +63,13 @@ struct SpotLight
 
 uniform AmbientLight ambientLight;
 
-layout (std140) uniform DirectionalLights
+layout (std140) uniform DirectionalLight
 {
-    DirectionalLight directionalLights[MAX_NO_LIGHTS];
-};
+    BaseLight base;
+    vec3 direction;
+    float padding;
+    mat4 shadowMVP;
+} directionalLight;
 
 layout (std140) uniform PointLights
 {
@@ -206,9 +201,8 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
     return color;
 }*/
 
-vec3 calculate_directional_light(int i, vec3 position, vec3 normal, float diffuse_intensity, float specular_intensity, float specular_power)
+vec3 calculate_directional_light(vec3 position, vec3 normal, float diffuse_intensity, float specular_intensity, float specular_power)
 {
-    DirectionalLight directionalLight = directionalLights[i];
     if(directionalLight.base.intensity > 0.0)
     {
         return calculate_shadow(directionalLightShadowMap, directionalLight.shadowMVP, position)
@@ -267,9 +261,11 @@ void main()
         int t = int(floor(n.w*255.0));
         float specular_intensity = float(t & 15) / 15.0;
         float specular_power = 2.0 * float((t & 240) >> 4);
-        for(int i = 0; i < MAX_NO_LIGHTS; i++)
+
+        light = calculate_directional_light(position, normal, diffuse_intensity, specular_intensity, specular_power);
+
+        /*for(int i = 0; i < MAX_NO_LIGHTS; i++)
         {
-            light += calculate_directional_light(i, position, normal, diffuse_intensity, specular_intensity, specular_power);
 
             PointLight pointLight = pointLights[i];
             if(pointLight.base.intensity > 0.0)
@@ -279,7 +275,7 @@ void main()
 
             light += calculate_spot_light(i, position, normal, diffuse_intensity, specular_intensity, specular_power);
 
-        }
+        }*/
     }
 
     color = vec4(surface_color * light, 1.0);

@@ -110,7 +110,7 @@ impl DirectionalLight {
         self.light_buffer.update(4, &Mat4::from_value(0.0).to_slice()).unwrap();
     }
 
-    pub fn generate_shadow_map<F>(&mut self, target: Vec3,
+    pub fn generate_shadow_map<F>(&mut self, target: &Vec3,
                                   frustrum_width: f32, frustrum_height: f32, frustrum_depth: f32,
                                   texture_width: usize, texture_height: usize, render_scene: &F)
         where F: Fn(&Camera)
@@ -120,11 +120,11 @@ impl DirectionalLight {
 
         if let Some(ref mut camera) = self.shadow_camera
         {
-            camera.set_view(target - direction, target, up);
+            camera.set_view(target - direction, *target, up);
             camera.set_orthographic_projection(frustrum_width, frustrum_height, frustrum_depth);
         }
         else {
-            self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction, target, up,
+            self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction, *target, up,
                                                                frustrum_width, frustrum_height, frustrum_depth));
         }
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();

@@ -126,7 +126,7 @@ impl DeferredPipeline
         Ok(())
     }*/
 
-    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, light: &DirectionalLight) -> Result<(), Error>
+    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, directional_lights: &[&DirectionalLight]) -> Result<(), Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
@@ -143,12 +143,6 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color())?;
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity())?;
 
-        // Directional lights
-        if let Some(texture) = light.shadow_map() {
-            self.light_pass_program.use_texture(texture, "directionalLightShadowMap")?;
-        }
-        self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLights");
-
         // Point lights
         self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
 
@@ -160,10 +154,17 @@ impl DeferredPipeline
         }
         self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");
 
-        // Render
-        self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-        self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
-        self.light_pass_program.draw_arrays(3);
+        for light in directional_lights {
+            if let Some(texture) = light.shadow_map() {
+                self.light_pass_program.use_texture(texture, "directionalLightShadowMap")?;
+            }
+            self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLight");
+
+            self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+            self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.light_pass_program.draw_arrays(3);
+        }
+
         Ok(())
     }
 
