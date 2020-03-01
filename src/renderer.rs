@@ -156,7 +156,7 @@ impl DeferredPipeline
 
         for light in directional_lights {
             if let Some(texture) = light.shadow_map() {
-                self.light_pass_program.use_texture(texture, "directionalLightShadowMap")?;
+                self.light_pass_program.use_texture(texture, "shadowMap")?;
             }
             self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLight");
 
