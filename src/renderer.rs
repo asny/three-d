@@ -56,7 +56,6 @@ pub struct DeferredPipeline {
     geometry_pass_depth_texture: Texture2DArray,
     full_screen: VertexBuffer,
     ambient_light: AmbientLight,
-    directional_lights: DirectionalLight,
     point_lights: PointLight,
     spot_lights: SpotLight,
     pub background_color: Vec4
@@ -94,22 +93,9 @@ impl DeferredPipeline
             geometry_pass_texture,
             geometry_pass_depth_texture,
             ambient_light: AmbientLight::new(),
-            directional_lights: DirectionalLight::new(gl)?,
             point_lights: PointLight::new(gl)?,
             spot_lights: SpotLight::new(gl)?,
             background_color })
-    }
-
-    pub fn shadow_pass<F>(&self, render_scene: &F)
-        where F: Fn(&Camera)
-    {
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
-        state::cull(&self.gl, state::CullType::None);
-        state::blend(&self.gl, state::BlendType::None);
-
-        self.directional_lights.shadow_pass(render_scene);
-        self.spot_lights.shadow_pass(render_scene);
     }
 
     pub fn geometry_pass<F>(&mut self, render_scene: &F) -> Result<(), Error>
@@ -132,15 +118,15 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass(&self, camera: &Camera) -> Result<(), Error>
+    /*pub fn light_pass(&self, camera: &Camera) -> Result<(), Error>
     {
         ScreenRendertarget::write(&self.gl, self.geometry_pass_texture.width, self.geometry_pass_texture.height);
         ScreenRendertarget::clear_color_and_depth(&self.gl, &vec4(0.0, 0.0, 0.0, 0.0));
         self.light_pass_render_to_rendertarget(camera)?;
         Ok(())
-    }
+    }*/
 
-    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera) -> Result<(), Error>
+    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, light: &DirectionalLight) -> Result<(), Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
@@ -158,14 +144,20 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity())?;
 
         // Directional lights
-        self.light_pass_program.use_texture(self.directional_lights.shadow_maps(), "directionalLightShadowMaps")?;
-        self.light_pass_program.use_uniform_block(self.directional_lights.buffer(), "DirectionalLights");
+        if let Some(texture) = light.shadow_map() {
+            self.light_pass_program.use_texture(texture, "directionalLightShadowMap")?;
+        }
+        self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLights");
 
         // Point lights
         self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
 
         // Spot lights
-        self.light_pass_program.use_texture(self.spot_lights.shadow_maps(), "spotLightShadowMaps")?;
+        for i in 0..MAX_NO_LIGHTS {
+            if let Some(texture) = self.spot_lights.shadow_map(i) {
+                //self.light_pass_program.use_texture(texture, &format!("spotLightShadowMap{}", i))?;
+            }
+        }
         self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");
 
         // Render
@@ -178,15 +170,6 @@ impl DeferredPipeline
     pub fn ambient_light(&mut self) -> &mut AmbientLight
     {
         &mut self.ambient_light
-    }
-
-    pub fn directional_light(&mut self, index: usize) -> Result<&mut DirectionalLight, Error>
-    {
-        if index >= light::MAX_NO_LIGHTS
-        {
-            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get directional light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
-        }
-        Ok(self.directional_lights.light_at(index))
     }
 
     pub fn point_light(&mut self, index: usize) -> Result<&mut PointLight, Error>

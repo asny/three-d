@@ -17,8 +17,11 @@ uniform mat4 shadowMVP5;
 in vec2 uv;
 
 const int MAX_NO_LIGHTS = 4;
-uniform sampler2DArray directionalLightShadowMaps;
-uniform sampler2DArray spotLightShadowMaps;
+uniform sampler2D directionalLightShadowMap;
+uniform sampler2D spotLightShadowMap0;
+uniform sampler2D spotLightShadowMap1;
+uniform sampler2D spotLightShadowMap2;
+uniform sampler2D spotLightShadowMap3;
 
 struct BaseLight
 {
@@ -83,15 +86,15 @@ layout (std140) uniform SpotLights
     SpotLight spotLights[MAX_NO_LIGHTS];
 };
 
-float is_visible(int lightIndex, sampler2DArray shadowMap, vec4 shadow_coord, vec2 offset)
+float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
 {
     vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
     float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
-    float shadow_cast_distance = texture(shadowMap, vec3(uv, lightIndex)).x;
+    float shadow_cast_distance = texture(shadowMap, uv).x;
     return uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
-float calculate_shadow(int lightIndex, sampler2DArray shadowMap, mat4 shadowMVP, vec3 position)
+float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
 {
     if(shadowMVP[3][3] < 0.1) // Shadow disabled
     {
@@ -107,7 +110,7 @@ float calculate_shadow(int lightIndex, sampler2DArray shadowMap, mat4 shadowMVP,
                                  );
     for (int i=0;i<4;i++)
     {
-        visibility += is_visible(lightIndex, shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
+        visibility += is_visible(shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
 }
@@ -203,6 +206,17 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
     return color;
 }*/
 
+vec3 calculate_directional_light(int i, vec3 position, vec3 normal, float diffuse_intensity, float specular_intensity, float specular_power)
+{
+    DirectionalLight directionalLight = directionalLights[i];
+    if(directionalLight.base.intensity > 0.0)
+    {
+        return calculate_shadow(directionalLightShadowMap, directionalLight.shadowMVP, position)
+            * calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
+    }
+    return vec3(0.0);
+}
+
 vec3 calculate_spot_light(int i, vec3 position, vec3 normal, float diffuse_intensity, float specular_intensity, float specular_power)
 {
     SpotLight spotLight = spotLights[i];
@@ -212,7 +226,17 @@ vec3 calculate_spot_light(int i, vec3 position, vec3 normal, float diffuse_inten
         float SpotFactor = dot(light_direction, spotLight.direction);
 
         if (SpotFactor > spotLight.cutoff) {
-            return calculate_shadow(i, spotLightShadowMaps, spotLight.shadowMVP, position) *
+            float shadow = 1.0;
+            /*if (i == 0)
+                shadow = calculate_shadow(spotLightShadowMap0, spotLight.shadowMVP, position);
+            if (i == 1)
+                shadow = calculate_shadow(spotLightShadowMap1, spotLight.shadowMVP, position);
+            if (i == 2)
+                shadow = calculate_shadow(spotLightShadowMap2, spotLight.shadowMVP, position);
+            else
+                shadow = calculate_shadow(spotLightShadowMap3, spotLight.shadowMVP, position);*/
+
+            return shadow *
                 calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power)
                 * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
         }
@@ -245,12 +269,7 @@ void main()
         float specular_power = 2.0 * float((t & 240) >> 4);
         for(int i = 0; i < MAX_NO_LIGHTS; i++)
         {
-            DirectionalLight directionalLight = directionalLights[i];
-            if(directionalLight.base.intensity > 0.0)
-            {
-                light += calculate_shadow(i, directionalLightShadowMaps, directionalLight.shadowMVP, position)
-                    * calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
-            }
+            light += calculate_directional_light(i, position, normal, diffuse_intensity, specular_intensity, specular_power);
 
             PointLight pointLight = pointLights[i];
             if(pointLight.base.intensity > 0.0)

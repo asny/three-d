@@ -29,11 +29,11 @@ fn main() {
 
     renderer.ambient_light().set_intensity(0.1);
 
-    let mut directional_light = renderer.directional_light(0).unwrap();
+    let mut directional_light = DirectionalLight::new(&gl).unwrap();
     directional_light.set_intensity(0.3);
     directional_light.enable_shadows();
 
-    directional_light = renderer.directional_light(1).unwrap();
+    /*directional_light = renderer.directional_light(1).unwrap();
     directional_light.set_intensity(0.3);
     directional_light.enable_shadows();
 
@@ -50,7 +50,7 @@ fn main() {
     spot_light.set_color(&vec3(0.0, 0.0, 1.0));
     spot_light.set_cutoff(0.1*std::f32::consts::PI);
     spot_light.set_attenuation(0.1, 0.001, 0.0001);
-    spot_light.enable_shadows();
+    spot_light.enable_shadows();*/
 
     // main loop
     let mut time = 0.0;
@@ -76,11 +76,10 @@ fn main() {
                 Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
-                        let l = renderer.directional_light(0).unwrap();
-                        if l.is_shadows_enabled() {
-                            l.disable_shadows();
+                        if directional_light.is_shadows_enabled() {
+                            directional_light.disable_shadows();
                         } else {
-                            l.enable_shadows();
+                            directional_light.enable_shadows();
                         }
                     }
                 }
@@ -92,20 +91,20 @@ fn main() {
         }
         let c = time.cos() as f32;
         let s = time.sin() as f32;
+        directional_light.set_direction(&vec3(-1.0-c, -1.0, 1.0+s));
+        /*renderer.directional_light(1).unwrap().set_direction(&vec3(1.0+c, -1.0, -1.0-s));
         renderer.spot_light(0).unwrap().set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
         renderer.spot_light(0).unwrap().set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
         renderer.point_light(0).unwrap().set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
-        renderer.point_light(1).unwrap().set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
-        renderer.directional_light(0).unwrap().set_direction(&vec3(-1.0-c, -1.0, 1.0+s));
-        renderer.directional_light(1).unwrap().set_direction(&vec3(1.0+c, -1.0, -1.0-s));
+        renderer.point_light(1).unwrap().set_position(&vec3(5.0 * c, 5.0, 5.0 * s));*/
 
         // Draw
         let render_scene = |camera: &Camera| {
             monkey.render(&Mat4::identity(), camera);
         };
-
-        // Shadow pass
-        renderer.shadow_pass(&render_scene);
+        directional_light.generate_shadow_map(&render_scene);
+        /*renderer.directional_light(1).unwrap().generate_shadow_map(&render_scene);
+        renderer.spot_light(0).unwrap().generate_shadow_map(&render_scene);*/
 
         // Geometry pass
         renderer.geometry_pass(&||
@@ -115,7 +114,10 @@ fn main() {
             }).unwrap();
 
         // Light pass
-        renderer.light_pass(&camera).unwrap();
+
+        ScreenRendertarget::write(&gl, width, height);
+        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        renderer.light_pass_render_to_rendertarget(&camera, &directional_light).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
