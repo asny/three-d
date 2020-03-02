@@ -112,15 +112,7 @@ impl DeferredPipeline
         Ok(())
     }
 
-    /*pub fn light_pass(&self, camera: &Camera) -> Result<(), Error>
-    {
-        ScreenRendertarget::write(&self.gl, self.geometry_pass_texture.width, self.geometry_pass_texture.height);
-        ScreenRendertarget::clear_color_and_depth(&self.gl, &vec4(0.0, 0.0, 0.0, 0.0));
-        self.light_pass_render_to_rendertarget(camera)?;
-        Ok(())
-    }*/
-
-    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, ambient_light: &AmbientLight, directional_lights: &[&DirectionalLight], spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
+    pub fn light_pass(&self, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight], spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
@@ -134,13 +126,15 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 
         // Ambient light
-        self.light_pass_program.add_uniform_int("light_type", &0)?;
-        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &ambient_light.color())?;
-        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &ambient_light.intensity())?;
+        if let Some(light) = ambient_light {
+            self.light_pass_program.add_uniform_int("light_type", &0)?;
+            self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
+            self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
 
-        self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-        self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
-        self.light_pass_program.draw_arrays(3);
+            self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+            self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.light_pass_program.draw_arrays(3);
+        }
 
         // Directional light
         for light in directional_lights {

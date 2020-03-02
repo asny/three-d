@@ -27,9 +27,6 @@ fn main() {
     plane.specular_intensity = 0.8;
     plane.specular_power = 20.0;
 
-    let mut ambient_light = AmbientLight::new();
-    ambient_light.set_intensity(0.1);
-
     let mut directional_light0 = DirectionalLight::new(&gl).unwrap();
     directional_light0.set_intensity(0.3);
     directional_light0.set_color(&vec3(1.0, 0.0, 0.0));
@@ -112,7 +109,8 @@ fn main() {
         // Light pass
         ScreenRendertarget::write(&gl, width, height);
         ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
-        renderer.light_pass_render_to_rendertarget(&camera, &ambient_light, &[&directional_light0, &directional_light1], &[&spot_light], &[&point_light0, &point_light1]).unwrap();
+        renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
+                                                   &[&spot_light], &[&point_light0, &point_light1]).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
