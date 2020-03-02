@@ -117,15 +117,8 @@ impl DirectionalLight {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 
-        if let Some(ref mut camera) = self.shadow_camera
-        {
-            camera.set_view(target - direction, *target, up);
-            camera.set_orthographic_projection(frustrum_width, frustrum_height, frustrum_depth);
-        }
-        else {
-            self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction, *target, up,
-                                                               frustrum_width, frustrum_height, frustrum_depth));
-        }
+        self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction.normalize()*0.5*frustrum_depth, *target, up,
+                                                           frustrum_width, frustrum_height, frustrum_depth));
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
 
         self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_width, texture_height).unwrap());
@@ -282,15 +275,8 @@ impl SpotLight {
         let up = compute_up_direction(direction);
         let cutoff = self.light_buffer.get(7).unwrap()[0];
 
-        if let Some(ref mut camera) = self.shadow_camera
-        {
-            camera.set_view(position, position + direction, up);
-            camera.set_perspective_projection(degrees(45.0), 2.0 * cutoff, 0.1, frustrum_depth);
-        }
-        else {
-            self.shadow_camera = Some(Camera::new_perspective(&self.gl, position, position + direction, up, degrees(45.0), 2.0 * cutoff, 0.1, frustrum_depth));
-        }
-
+        self.shadow_camera = Some(Camera::new_perspective(&self.gl, position, position + direction, up,
+                                                          degrees(45.0), 2.0 * cutoff, 0.1, frustrum_depth));
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
         self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_width, texture_height).unwrap());
 
