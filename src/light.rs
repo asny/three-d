@@ -144,14 +144,15 @@ pub struct PointLight {
 
 impl PointLight {
 
-    pub fn new(gl: &Gl) -> Result<PointLight, Error>
+    pub fn new(gl: &Gl, intensity: f32, color: &Vec3, position: &Vec3,
+               attenuation_constant: f32, attenuation_linear: f32, attenuation_exponential: f32) -> Result<PointLight, Error>
     {
         let mut light = PointLight { light_buffer: UniformBuffer::new(gl, &[3u32, 1, 1, 1, 1, 1, 3, 1])? };
 
-        light.set_intensity(0.0);
-        light.set_color(&vec3(1.0, 1.0, 1.0));
-        light.set_position(&vec3(0.0, 0.0, 0.0));
-        light.set_attenuation(0.5, 0.05, 0.005);
+        light.set_intensity(intensity);
+        light.set_color(color);
+        light.set_position(position);
+        light.set_attenuation(attenuation_constant, attenuation_linear, attenuation_exponential);
         Ok(light)
     }
 
@@ -193,7 +194,8 @@ pub struct SpotLight {
 
 impl SpotLight {
 
-    pub fn new(gl: &Gl) -> Result<SpotLight, Error>
+    pub fn new(gl: &Gl, intensity: f32, color: &Vec3, position: &Vec3, direction: &Vec3, cutoff: f32,
+               attenuation_constant: f32, attenuation_linear: f32, attenuation_exponential: f32) -> Result<SpotLight, Error>
     {
         let uniform_sizes = [3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16];
         let mut light = SpotLight {
@@ -203,12 +205,12 @@ impl SpotLight {
             shadow_texture: None,
             shadow_camera: None
         };
-        light.set_intensity(0.0);
-        light.set_color(&vec3(1.0, 1.0, 1.0));
-        light.set_cutoff(0.1 * std::f32::consts::PI);
-        light.set_direction(&vec3(0.0, -1.0, 0.0));
-        light.set_position(&vec3(0.0, 0.0, 0.0));
-        light.set_attenuation(0.5, 0.05, 0.005);
+        light.set_intensity(intensity);
+        light.set_color(color);
+        light.set_cutoff(cutoff);
+        light.set_direction(direction);
+        light.set_position(position);
+        light.set_attenuation(attenuation_constant, attenuation_linear, attenuation_exponential);
         Ok(light)
     }
 

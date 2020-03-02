@@ -29,20 +29,9 @@ fn main() {
 
     let mut directional_light0 = DirectionalLight::new(&gl, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
     let mut directional_light1 = DirectionalLight::new(&gl, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
-
-    let mut point_light0 = PointLight::new(&gl).unwrap();
-    point_light0.set_intensity(0.5);
-    point_light0.set_color(&vec3(0.0, 1.0, 0.0));
-
-    let mut point_light1 = PointLight::new(&gl).unwrap();
-    point_light1.set_intensity(0.5);
-    point_light1.set_color(&vec3(1.0, 0.0, 0.0));
-
-    let mut spot_light = SpotLight::new(&gl).unwrap();
-    spot_light.set_intensity(0.8);
-    spot_light.set_color(&vec3(0.0, 0.0, 1.0));
-    spot_light.set_cutoff(25.0);
-    spot_light.set_attenuation(0.1, 0.001, 0.0001);
+    let mut point_light0 = PointLight::new(&gl, 0.5, &vec3(0.0, 1.0, 0.0), &vec3(0.0, 0.0, 0.0), 0.5, 0.05, 0.005).unwrap();
+    let mut point_light1 = PointLight::new(&gl, 0.5, &vec3(1.0, 0.0, 0.0), &vec3(0.0, 0.0, 0.0), 0.5, 0.05, 0.005).unwrap();
+    let mut spot_light = SpotLight::new(&gl, 0.8, &vec3(0.0, 0.0, 1.0), &vec3(0.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
 
     // main loop
     let mut time = 0.0;
