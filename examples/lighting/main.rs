@@ -77,8 +77,6 @@ fn main() {
                     }
                 }
             }
-            //handle_ambient_light_parameters(event, &mut ambient_light);
-            //handle_directional_light_parameters(event, &mut directional_light);
             handle_surface_parameters(&event, &mut plane);
             handle_surface_parameters(&event, &mut monkey);
         }
@@ -120,58 +118,6 @@ fn main() {
 
     }).unwrap();
 }
-
-/*fn handle_ambient_light_parameters(event: &Event, light: &mut light::AmbientLight)
-{
-    match event {
-        Event::WindowEvent{ event, .. } => match event {
-            WindowEvent::KeyboardInput {input, ..} => {
-                if let Some(keycode) = input.virtual_keycode
-                {
-                    match keycode {
-                        VirtualKeyCode::X => {
-                            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
-                            println!("Ambient light intensity: {}", light.base.intensity);
-                        },
-                        VirtualKeyCode::Z => {
-                            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
-                            println!("Ambient light intensity: {}", light.base.intensity);
-                        },
-                        _ => {}
-                    }
-                }
-            },
-            _ => {}
-        },
-        _ => {}
-    }
-}
-
-fn handle_directional_light_parameters(event: &Event, light: &mut light::DirectionalLight)
-{
-    match event {
-        Event::WindowEvent{ event, .. } => match event {
-            WindowEvent::KeyboardInput {input, ..} => {
-                if let Some(keycode) = input.virtual_keycode
-                {
-                    match keycode {
-                        VirtualKeyCode::V => {
-                            light.base.intensity = (light.base.intensity + 0.1).min(1.0);
-                            println!("Directional light intensity: {}", light.base.intensity);
-                        },
-                        VirtualKeyCode::C => {
-                            light.base.intensity = (light.base.intensity - 0.1).max(0.0);
-                            println!("Directional light intensity: {}", light.base.intensity);
-                        },
-                        _ => {}
-                    }
-                }
-            },
-            _ => {}
-        },
-        _ => {}
-    }
-}*/
 
 fn handle_surface_parameters(event: &Event, surface: &mut Mesh)
 {
