@@ -143,6 +143,7 @@ impl DeferredPipeline
                 self.light_pass_program.add_uniform_int("light_type", &2)?;
             }
             else {
+                self.light_pass_program.use_texture(&Texture2D::new(&self.gl, 0, 0).unwrap(), "shadowMap")?;
                 self.light_pass_program.add_uniform_int("light_type", &1)?;
             }
             self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLight");
@@ -159,6 +160,7 @@ impl DeferredPipeline
                 self.light_pass_program.add_uniform_int("light_type", &4)?;
             }
             else {
+                self.light_pass_program.use_texture(&Texture2D::new(&self.gl, 0, 0).unwrap(), "shadowMap")?;
                 self.light_pass_program.add_uniform_int("light_type", &3)?;
             }
             self.light_pass_program.use_uniform_block(light.buffer(), "SpotLight");
