@@ -55,7 +55,6 @@ pub struct DeferredPipeline {
     geometry_pass_texture: Texture2DArray,
     geometry_pass_depth_texture: Texture2DArray,
     full_screen: VertexBuffer,
-    ambient_light: AmbientLight,
     point_lights: PointLight,
     spot_lights: SpotLight,
     pub background_color: Vec4
@@ -92,7 +91,6 @@ impl DeferredPipeline
             geometry_pass_rendertarget,
             geometry_pass_texture,
             geometry_pass_depth_texture,
-            ambient_light: AmbientLight::new(),
             point_lights: PointLight::new(gl)?,
             spot_lights: SpotLight::new(gl)?,
             background_color })
@@ -126,7 +124,7 @@ impl DeferredPipeline
         Ok(())
     }*/
 
-    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, directional_lights: &[&DirectionalLight]) -> Result<(), Error>
+    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, ambient_light: &AmbientLight, directional_lights: &[&DirectionalLight]) -> Result<(), Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
@@ -140,23 +138,22 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 
         // Ambient light
-        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &self.ambient_light.color())?;
-        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &self.ambient_light.intensity())?;
+        self.light_pass_program.add_uniform_int("light_type", &0)?;
+        self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &ambient_light.color())?;
+        self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &ambient_light.intensity())?;
 
-        // Point lights
-        self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
+        self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+        self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+        self.light_pass_program.draw_arrays(3);
 
-        // Spot lights
-        for i in 0..MAX_NO_LIGHTS {
-            if let Some(texture) = self.spot_lights.shadow_map(i) {
-                //self.light_pass_program.use_texture(texture, &format!("spotLightShadowMap{}", i))?;
-            }
-        }
-        self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");
-
+        // Directional light
         for light in directional_lights {
             if let Some(texture) = light.shadow_map() {
                 self.light_pass_program.use_texture(texture, "shadowMap")?;
+                self.light_pass_program.add_uniform_int("light_type", &2)?;
+            }
+            else {
+                self.light_pass_program.add_uniform_int("light_type", &1)?;
             }
             self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLight");
 
@@ -165,12 +162,18 @@ impl DeferredPipeline
             self.light_pass_program.draw_arrays(3);
         }
 
-        Ok(())
-    }
+        // Point lights
+        /*self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
 
-    pub fn ambient_light(&mut self) -> &mut AmbientLight
-    {
-        &mut self.ambient_light
+        // Spot lights
+        for i in 0..MAX_NO_LIGHTS {
+            if let Some(texture) = self.spot_lights.shadow_map(i) {
+                //self.light_pass_program.use_texture(texture, &format!("spotLightShadowMap{}", i))?;
+            }
+        }
+        self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");*/
+
+        Ok(())
     }
 
     pub fn point_light(&mut self, index: usize) -> Result<&mut PointLight, Error>

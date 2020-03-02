@@ -5,6 +5,7 @@ uniform samplerCube shadowCubeMap;
 layout (location = 0) out vec4 color;
 
 uniform mat4 viewProjectionInverse;
+uniform int light_type;
 
 uniform vec3 eyePosition;
 uniform mat4 shadowMVP0;
@@ -197,16 +198,6 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
     return color;
 }*/
 
-vec3 calculate_directional_light(vec3 position, vec3 normal, float diffuse_intensity, float specular_intensity, float specular_power)
-{
-    if(directionalLight.base.intensity > 0.0)
-    {
-        return calculate_shadow(directionalLight.shadowMVP, position)
-            * calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
-    }
-    return vec3(0.0);
-}
-
 vec3 calculate_spot_light(int i, vec3 position, vec3 normal, float diffuse_intensity, float specular_intensity, float specular_power)
 {
     SpotLight spotLight = spotLights[i];
@@ -233,14 +224,16 @@ vec3 WorldPosFromDepth(float depth, vec2 uv) {
 void main()
 {
     float depth = texture(depthMap, vec3(uv,0)).r;
-    vec3 position = WorldPosFromDepth(depth, uv);
    	vec4 c = texture(gbuffer, vec3(uv, 0));
     vec3 surface_color = c.rgb;
     bool is_far_away = depth > 0.99999;
 
-    vec3 light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
-    if(!is_far_away)
+    if(light_type == 0) { // Ambient light
+        color = vec4(surface_color * ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity), 1.0);
+    }
+    else if(!is_far_away)
     {
+        vec3 position = WorldPosFromDepth(depth, uv);
         vec4 n = texture(gbuffer, vec3(uv, 1));
         vec3 normal = normalize(n.xyz*2.0 - 1.0);
         float diffuse_intensity = c.w;
@@ -248,7 +241,14 @@ void main()
         float specular_intensity = float(t & 15) / 15.0;
         float specular_power = 2.0 * float((t & 240) >> 4);
 
-        light = calculate_directional_light(position, normal, diffuse_intensity, specular_intensity, specular_power);
+        if(light_type == 1 || light_type == 2) // Directional light
+        {
+            vec3 light = calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
+            if(light_type == 2)
+                light *= calculate_shadow(directionalLight.shadowMVP, position);
+            color = vec4(surface_color * light, 1.0);
+        }
+
 
         /*for(int i = 0; i < MAX_NO_LIGHTS; i++)
         {
@@ -261,8 +261,10 @@ void main()
 
             light += calculate_spot_light(i, position, normal, diffuse_intensity, specular_intensity, specular_power);
 
-        }*/
+        }
+        color = vec4(surface_color * light, 1.0);*/
     }
-
-    color = vec4(surface_color * light, 1.0);
+    else {
+        color = vec4(0.0, 0.0, 0.0, 0.0);
+    }
 }

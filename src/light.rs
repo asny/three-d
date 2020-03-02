@@ -29,7 +29,7 @@ pub struct AmbientLight
 
 impl AmbientLight
 {
-    pub(crate) fn new() -> AmbientLight
+    pub fn new() -> AmbientLight
     {
         AmbientLight { color: vec3(1.0, 1.0, 1.0), intensity: 0.5 }
     }
