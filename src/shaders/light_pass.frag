@@ -39,25 +39,6 @@ struct AmbientLight
     BaseLight base;
 };
 
-struct PointLight
-{
-    BaseLight base;
-    Attenuation attenuation;
-    vec3 position;
-    float padding;
-};
-
-struct SpotLight
-{
-    BaseLight base;
-    Attenuation attenuation;
-    vec3 position;
-    float cutoff;
-    vec3 direction;
-    float padding;
-    mat4 shadowMVP;
-};
-
 uniform AmbientLight ambientLight;
 
 layout (std140) uniform DirectionalLight
@@ -68,15 +49,24 @@ layout (std140) uniform DirectionalLight
     mat4 shadowMVP;
 } directionalLight;
 
-layout (std140) uniform PointLights
+layout (std140) uniform PointLight
 {
-    PointLight pointLights[MAX_NO_LIGHTS];
-};
+    BaseLight base;
+    Attenuation attenuation;
+    vec3 position;
+    float padding;
+} pointLight;
 
-layout (std140) uniform SpotLights
+layout (std140) uniform SpotLight
 {
-    SpotLight spotLights[MAX_NO_LIGHTS];
-};
+    BaseLight base;
+    Attenuation attenuation;
+    vec3 position;
+    float cutoff;
+    vec3 direction;
+    float padding;
+    mat4 shadowMVP;
+} spotLight;
 
 float is_visible(vec4 shadow_coord, vec2 offset)
 {
@@ -198,23 +188,6 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
     return color;
 }*/
 
-vec3 calculate_spot_light(int i, vec3 position, vec3 normal, float diffuse_intensity, float specular_intensity, float specular_power)
-{
-    SpotLight spotLight = spotLights[i];
-    if(spotLight.base.intensity > 0.0)
-    {
-        vec3 light_direction = normalize(position - spotLight.position);
-        float SpotFactor = dot(light_direction, spotLight.direction);
-
-        if (SpotFactor > spotLight.cutoff) {
-            return calculate_shadow(spotLight.shadowMVP, position) *
-                calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power)
-                * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
-        }
-    }
-    return vec3(0.0);
-}
-
 vec3 WorldPosFromDepth(float depth, vec2 uv) {
     vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
     vec4 position = viewProjectionInverse * clipSpacePosition;
@@ -241,28 +214,29 @@ void main()
         float specular_intensity = float(t & 15) / 15.0;
         float specular_power = 2.0 * float((t & 240) >> 4);
 
+        vec3 light = vec3(0.0);
         if(light_type == 1 || light_type == 2) // Directional light
         {
-            vec3 light = calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
+            light = calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
             if(light_type == 2)
                 light *= calculate_shadow(directionalLight.shadowMVP, position);
-            color = vec4(surface_color * light, 1.0);
         }
-
-
-        /*for(int i = 0; i < MAX_NO_LIGHTS; i++)
+        else if(light_type == 3 || light_type == 4) // Spot light
         {
+            vec3 light_direction = normalize(position - spotLight.position);
+            float SpotFactor = dot(light_direction, spotLight.direction);
 
-            PointLight pointLight = pointLights[i];
-            if(pointLight.base.intensity > 0.0)
-            {
-                light += calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power);
+            if (SpotFactor > spotLight.cutoff) {
+                light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power)
+                    * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
+                if(light_type == 4)
+                    light *= calculate_shadow(spotLight.shadowMVP, position);
             }
-
-            light += calculate_spot_light(i, position, normal, diffuse_intensity, specular_intensity, specular_power);
-
         }
-        color = vec4(surface_color * light, 1.0);*/
+        else if(light_type == 5) {
+            light = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power);
+        }
+        color = vec4(surface_color * light, 0.0);
     }
     else {
         color = vec4(0.0, 0.0, 0.0, 0.0);

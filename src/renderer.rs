@@ -55,8 +55,6 @@ pub struct DeferredPipeline {
     geometry_pass_texture: Texture2DArray,
     geometry_pass_depth_texture: Texture2DArray,
     full_screen: VertexBuffer,
-    point_lights: PointLight,
-    spot_lights: SpotLight,
     pub background_color: Vec4
 }
 
@@ -91,8 +89,6 @@ impl DeferredPipeline
             geometry_pass_rendertarget,
             geometry_pass_texture,
             geometry_pass_depth_texture,
-            point_lights: PointLight::new(gl)?,
-            spot_lights: SpotLight::new(gl)?,
             background_color })
     }
 
@@ -124,7 +120,7 @@ impl DeferredPipeline
         Ok(())
     }*/
 
-    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, ambient_light: &AmbientLight, directional_lights: &[&DirectionalLight]) -> Result<(), Error>
+    pub fn light_pass_render_to_rendertarget(&self, camera: &Camera, ambient_light: &AmbientLight, directional_lights: &[&DirectionalLight], spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
@@ -162,36 +158,33 @@ impl DeferredPipeline
             self.light_pass_program.draw_arrays(3);
         }
 
-        // Point lights
-        /*self.light_pass_program.use_uniform_block(self.point_lights.buffer(), "PointLights");
-
         // Spot lights
-        for i in 0..MAX_NO_LIGHTS {
-            if let Some(texture) = self.spot_lights.shadow_map(i) {
-                //self.light_pass_program.use_texture(texture, &format!("spotLightShadowMap{}", i))?;
+        for light in spot_lights {
+            if let Some(texture) = light.shadow_map() {
+                self.light_pass_program.use_texture(texture, "shadowMap")?;
+                self.light_pass_program.add_uniform_int("light_type", &4)?;
             }
+            else {
+                self.light_pass_program.add_uniform_int("light_type", &3)?;
+            }
+            self.light_pass_program.use_uniform_block(light.buffer(), "SpotLight");
+
+            self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+            self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.light_pass_program.draw_arrays(3);
         }
-        self.light_pass_program.use_uniform_block(self.spot_lights.buffer(), "SpotLights");*/
+
+        // Point lights
+        for light in point_lights {
+            self.light_pass_program.add_uniform_int("light_type", &5)?;
+            self.light_pass_program.use_uniform_block(light.buffer(), "PointLight");
+
+            self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+            self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.light_pass_program.draw_arrays(3);
+        }
 
         Ok(())
-    }
-
-    pub fn point_light(&mut self, index: usize) -> Result<&mut PointLight, Error>
-    {
-        if index >= light::MAX_NO_LIGHTS
-        {
-            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get point light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
-        }
-        Ok(self.point_lights.light_at(index))
-    }
-
-    pub fn spot_light(&mut self, index: usize) -> Result<&mut SpotLight, Error>
-    {
-        if index >= light::MAX_NO_LIGHTS
-        {
-            return Err(Error::LightExtendsMaxLimit {message: format!("Tried to get spot light number {}, but the limit is {}.", index, light::MAX_NO_LIGHTS)})
-        }
-        Ok(self.spot_lights.light_at(index))
     }
 
     pub fn geometry_pass_texture(&self) -> &Texture2DArray
