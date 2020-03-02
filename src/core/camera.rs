@@ -55,9 +55,9 @@ impl Camera
     pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32)
     {
         self.fov = degrees(0.0);
-        self.z_near = -0.5 * depth;
-        self.z_far = 0.5 * depth;
-        self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, -0.5 * depth, 0.5 * depth);
+        self.z_near = 0.0;
+        self.z_far = depth;
+        self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, 0.0, depth);
         self.update_screen2ray();
         self.update_matrix_buffer();
         self.update_frustrum();
