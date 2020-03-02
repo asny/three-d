@@ -17,8 +17,7 @@ fn main() {
     let mut monkey = CPUMesh::new(include_bytes!("../assets/models/suzanne.3d")).unwrap().to_mesh(&gl).unwrap();
     monkey.color = vec3(0.5, 1.0, 0.5);
 
-    renderer.directional_light(0).unwrap().set_direction(&vec3(0.0, -1.0, 0.0));
-    renderer.directional_light(0).unwrap().set_intensity(1.0);
+    let ambient_light = AmbientLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0)).unwrap();
 
     let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
     fog_effect.color = vec3(0.8, 0.8, 0.8);
@@ -62,7 +61,9 @@ fn main() {
         }).unwrap();
 
         // Light pass
-        renderer.light_pass(&camera).unwrap();
+        ScreenRendertarget::write(&gl, width, height);
+        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        renderer.light_pass(&camera, Some(&ambient_light), &[], &[], &[]).unwrap();
 
         // Effect
         fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();

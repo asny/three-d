@@ -29,9 +29,9 @@ pub struct AmbientLight
 
 impl AmbientLight
 {
-    pub fn new() -> AmbientLight
+    pub fn new(_: &Gl, intensity: f32, color: &Vec3) -> Result<AmbientLight, Error>
     {
-        AmbientLight { color: vec3(1.0, 1.0, 1.0), intensity: 0.5 }
+        Ok(AmbientLight { color: *color, intensity })
     }
 
     pub fn color(&self) -> Vec3
@@ -65,21 +65,18 @@ pub struct DirectionalLight {
 
 impl DirectionalLight {
 
-    pub fn new(gl: &Gl) -> Result<DirectionalLight, Error>
+    pub fn new(gl: &Gl, intensity: f32, color: &Vec3, direction: &Vec3) -> Result<DirectionalLight, Error>
     {
-        let uniform_sizes = [3u32, 1, 3, 1, 16];
-
         let mut light = DirectionalLight {
             gl: gl.clone(),
-            light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
+            light_buffer: UniformBuffer::new(gl, &[3u32, 1, 3, 1, 16])?,
             shadow_rendertarget: RenderTarget::new(gl, 0)?,
             shadow_texture: None,
             shadow_camera: None};
 
-        light.set_intensity(0.0);
-        light.set_color(&vec3(1.0, 1.0, 1.0));
-        light.set_direction(&vec3(0.0, -1.0, 0.0));
-        light.clear_shadow_map();
+        light.set_intensity(intensity);
+        light.set_color(color);
+        light.set_direction(direction);
         Ok(light)
     }
 
@@ -120,7 +117,6 @@ impl DirectionalLight {
         self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction.normalize()*0.5*frustrum_depth, *target, up,
                                                            frustrum_width, frustrum_height, frustrum_depth));
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
-
         self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_width, texture_height).unwrap());
 
         state::depth_write(&self.gl, true);

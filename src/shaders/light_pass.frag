@@ -219,8 +219,9 @@ void main()
         if(light_type == 1 || light_type == 2) // Directional light
         {
             light = calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
-            if(light_type == 2)
+            if(light_type == 2) {
                 light *= calculate_shadow(directionalLight.shadowMVP, position);
+            }
         }
         else if(light_type == 3 || light_type == 4) // Spot light
         {
@@ -231,8 +232,9 @@ void main()
             if (angle < cutoff) {
                 light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power)
                     * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
-                if(light_type == 4)
+                if(light_type == 4) {
                     light *= calculate_shadow(spotLight.shadowMVP, position);
+                }
             }
         }
         else if(light_type == 5) {

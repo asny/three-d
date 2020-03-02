@@ -26,8 +26,8 @@ fn main() {
                                                        include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap();
     let skybox = objects::Skybox::new(&gl, texture3d);
 
-    renderer.ambient_light().set_intensity(0.2);
-    renderer.directional_light(0).unwrap().set_intensity(1.0);
+    let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
+    let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
 
     // main loop
     let mut rotating = false;
@@ -60,7 +60,9 @@ fn main() {
             skybox.render(&camera).unwrap();
         }).unwrap();
 
-        renderer.light_pass(&camera).unwrap();
+        ScreenRendertarget::write(&gl, width, height);
+        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

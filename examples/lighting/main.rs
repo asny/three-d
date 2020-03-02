@@ -27,13 +27,8 @@ fn main() {
     plane.specular_intensity = 0.8;
     plane.specular_power = 20.0;
 
-    let mut directional_light0 = DirectionalLight::new(&gl).unwrap();
-    directional_light0.set_intensity(0.3);
-    directional_light0.set_color(&vec3(1.0, 0.0, 0.0));
-
-    let mut directional_light1 = DirectionalLight::new(&gl).unwrap();
-    directional_light1.set_intensity(0.3);
-    directional_light1.set_color(&vec3(0.0, 1.0, 0.0));
+    let mut directional_light0 = DirectionalLight::new(&gl, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
+    let mut directional_light1 = DirectionalLight::new(&gl, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
 
     let mut point_light0 = PointLight::new(&gl).unwrap();
     point_light0.set_intensity(0.5);
