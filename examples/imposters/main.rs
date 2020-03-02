@@ -47,21 +47,16 @@ fn main() {
     plane.diffuse_intensity = 0.5;
     plane.specular_intensity = 0.0;
 
-    renderer.ambient_light().set_intensity(0.1);
+    let mut directional_light0 = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(1.0, -1.0, -1.0)).unwrap();
+    let mut directional_light1 = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, 1.0)).unwrap();
 
-    let mut directional_light = renderer.directional_light(0).unwrap();
-    directional_light.set_direction(&vec3(1.0, -1.0, -1.0));
-    directional_light.set_color(&vec3(1.0, 1.0, 1.0));
-    directional_light.set_intensity(0.5);
-    directional_light.enable_shadows();
-    directional_light.update_shadows(vec3(0.0, 0.0, 0.0), 300.0, 300.0);
-
-    directional_light = renderer.directional_light(1).unwrap();
-    directional_light.set_direction(&vec3(-1.0, -1.0, 1.0));
-    directional_light.set_color(&vec3(1.0, 1.0, 1.0));
-    directional_light.set_intensity(0.5);
-    directional_light.enable_shadows();
-    directional_light.update_shadows(vec3(0.0, 0.0, 0.0), 300.0, 300.0);
+    let render_scene = |camera: &Camera| {
+        tree_mesh.render(&Mat4::identity(), camera);
+        leaves_mesh.render(&Mat4::identity(), camera);
+        imposter.render(camera);
+    };
+    directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &render_scene);
+    directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &render_scene);
 
     let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
 
@@ -93,25 +88,20 @@ fn main() {
             }
         }
 
-        // Draw
-        let render_scene = |camera: &Camera| {
-            tree_mesh.render(&Mat4::identity(), camera);
-            leaves_mesh.render(&Mat4::identity(), camera);
-            imposter.render(&camera);
-        };
-
-        // Shadow pass
-        renderer.shadow_pass(&|_|{});
-
         // Geometry pass
         renderer.geometry_pass(&||
             {
-                render_scene(&camera);
+                tree_mesh.render(&Mat4::identity(), &camera);
+                leaves_mesh.render(&Mat4::identity(), &camera);
+                imposter.render(&camera);
                 plane.render(&Mat4::identity(), &camera);
             }).unwrap();
 
         // Light pass
-        renderer.light_pass(&camera).unwrap();
+        ScreenRendertarget::write(&gl, width, height);
+        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1], &[], &[]).unwrap();
+
         debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
