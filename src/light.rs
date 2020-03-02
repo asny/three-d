@@ -266,8 +266,7 @@ impl SpotLight {
         self.shadow_texture = None;
     }
 
-    pub fn generate_shadow_map<F>(&mut self, frustrum_depth: f32,
-                                  texture_width: usize, texture_height: usize, render_scene: &F)
+    pub fn generate_shadow_map<F>(&mut self, frustrum_depth: f32, texture_size: usize, render_scene: &F)
         where F: Fn(&Camera)
     {
         let position = self.position();
@@ -276,9 +275,9 @@ impl SpotLight {
         let cutoff = self.light_buffer.get(7).unwrap()[0];
 
         self.shadow_camera = Some(Camera::new_perspective(&self.gl, position, position + direction, up,
-                                                          degrees(45.0), 2.0 * cutoff, 0.1, frustrum_depth));
+                                                          degrees(cutoff), 1.0, 0.1, frustrum_depth));
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
-        self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_width, texture_height).unwrap());
+        self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_size, texture_size).unwrap());
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);

@@ -225,11 +225,12 @@ void main()
         else if(light_type == 3 || light_type == 4) // Spot light
         {
             vec3 light_direction = normalize(position - spotLight.position);
-            float SpotFactor = dot(light_direction, spotLight.direction);
+            float angle = acos(dot(light_direction, normalize(spotLight.direction)));
+            float cutoff = 3.14 * spotLight.cutoff / 180.0;
 
-            if (SpotFactor > spotLight.cutoff) {
+            if (angle < cutoff) {
                 light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power)
-                    * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - spotLight.cutoff));
+                    * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
                 if(light_type == 4)
                     light *= calculate_shadow(spotLight.shadowMVP, position);
             }

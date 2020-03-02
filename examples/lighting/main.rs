@@ -46,7 +46,7 @@ fn main() {
     let mut spot_light = SpotLight::new(&gl).unwrap();
     spot_light.set_intensity(0.8);
     spot_light.set_color(&vec3(0.0, 0.0, 1.0));
-    spot_light.set_cutoff(0.1*std::f32::consts::PI);
+    spot_light.set_cutoff(25.0);
     spot_light.set_attenuation(0.1, 0.001, 0.0001);
 
     // main loop
@@ -95,7 +95,7 @@ fn main() {
         };
         directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
         directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
-        spot_light.generate_shadow_map(20.0, 1024, 1024, &render_scene);
+        spot_light.generate_shadow_map(20.0, 1024, &render_scene);
 
         // Geometry pass
         renderer.geometry_pass(&||
