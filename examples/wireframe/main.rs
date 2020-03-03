@@ -34,36 +34,24 @@ fn main() {
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;
 
-    let mut light = renderer.spot_light(0).unwrap();
-    light.set_intensity(0.3);
-    light.set_position(&vec3(5.0, 7.0, 5.0));
-    light.set_direction(&vec3(-1.0, -1.0, -1.0));
-    light.enable_shadows();
+    let mut spot_light0 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &vec3(5.0, 7.0, 5.0),
+                                   &vec3(-1.0, -1.0, -1.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
+    let mut spot_light1 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &vec3(-5.0, 7.0, 5.0),
+                                   &vec3(1.0, -1.0, -1.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
+    let mut spot_light2 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &vec3(-5.0, 7.0, -5.0),
+                                   &vec3(1.0, -1.0, 1.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
+    let mut spot_light3 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &vec3(5.0, 7.0, -5.0),
+                                   &vec3(-1.0, -1.0, 1.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
 
-    light = renderer.spot_light(1).unwrap();
-    light.set_intensity(0.3);
-    light.set_position(&vec3(-5.0, 7.0, 5.0));
-    light.set_direction(&vec3(1.0, -1.0, -1.0));
-    light.enable_shadows();
-
-    light = renderer.spot_light(2).unwrap();
-    light.set_intensity(0.3);
-    light.set_position(&vec3(-5.0, 7.0, -5.0));
-    light.set_direction(&vec3(1.0, -1.0, 1.0));
-    light.enable_shadows();
-
-    light = renderer.spot_light(3).unwrap();
-    light.set_intensity(0.3);
-    light.set_position(&vec3(5.0, 7.0, -5.0));
-    light.set_direction(&vec3(-1.0, -1.0, 1.0));
-    light.enable_shadows();
-
-    // Shadow pass
-    renderer.shadow_pass(&|camera: &Camera| {
+    let render_scene = |camera: &Camera| {
         let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
         model.render(&transformation, camera);
         wireframe.render(&transformation, camera);
-    });
+    };
+    spot_light0.generate_shadow_map(50.0, 512, &render_scene);
+    spot_light1.generate_shadow_map(50.0, 512, &render_scene);
+    spot_light2.generate_shadow_map(50.0, 512, &render_scene);
+    spot_light3.generate_shadow_map(50.0, 512, &render_scene);
 
     // main loop
     let mut rotating = false;
@@ -92,12 +80,14 @@ fn main() {
         renderer.geometry_pass(&|| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.render(&transformation, &camera);
-            plane.render(&Mat4::identity(), &camera);
             wireframe.render(&transformation, &camera);
+            plane.render(&Mat4::identity(), &camera);
         }).unwrap();
 
         // Light pass
-        renderer.light_pass(&camera).unwrap();
+        ScreenRendertarget::write(&gl, width, height);
+        ScreenRendertarget::clear_color(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
