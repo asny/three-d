@@ -511,6 +511,13 @@ impl Gl {
         }
     }
 
+    pub fn clear_depth(&self, depth: f32)
+    {
+        unsafe {
+            self.inner.ClearDepth(depth as f64);
+        }
+    }
+
     pub fn clear(&self, mask: u32)
     {
         unsafe {

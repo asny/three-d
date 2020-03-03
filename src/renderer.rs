@@ -101,7 +101,7 @@ impl DeferredPipeline
         self.geometry_pass_rendertarget.write_to_color_array_and_depth_array(&self.geometry_pass_texture,
                                                                              &self.geometry_pass_depth_texture,
                                                                              &|channel| {channel}, 0)?;
-        self.geometry_pass_rendertarget.clear_color_and_depth(&self.background_color);
+        self.geometry_pass_rendertarget.clear_color_and_depth(&self.background_color, 1.0);
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);

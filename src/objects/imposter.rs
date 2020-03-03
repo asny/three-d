@@ -33,7 +33,7 @@ impl Imposter {
                             center, vec3(0.0, 1.0, 0.0));
             rendertarget.write_to_color_array_and_depth_array(&texture, &depth_texture,
                                                               &|channel| { i + channel * NO_VIEW_ANGLES }, i).unwrap();
-            rendertarget.clear_color_and_depth(&vec4(0.0, 0.0, 0.0, 0.0));
+            rendertarget.clear_color_and_depth(&vec4(0.0, 0.0, 0.0, 0.0), 1.0);
             render(&camera);
         }
 

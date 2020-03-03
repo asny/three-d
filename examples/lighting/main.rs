@@ -90,7 +90,7 @@ fn main() {
 
         // Light pass
         ScreenRendertarget::write(&gl, width, height);
-        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        ScreenRendertarget::clear_color(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
         renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
                                                    &[&spot_light], &[&point_light0, &point_light1]).unwrap();
 

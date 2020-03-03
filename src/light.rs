@@ -123,7 +123,7 @@ impl DirectionalLight {
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
         self.shadow_rendertarget.write_to_depth(self.shadow_texture.as_ref().unwrap()).unwrap();
-        self.shadow_rendertarget.clear_depth();
+        self.shadow_rendertarget.clear_depth(1.0);
         render_scene(self.shadow_camera.as_ref().unwrap());
     }
 
@@ -281,7 +281,7 @@ impl SpotLight {
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
         self.shadow_rendertarget.write_to_depth(self.shadow_texture.as_ref().unwrap()).unwrap();
-        self.shadow_rendertarget.clear_depth();
+        self.shadow_rendertarget.clear_depth(1.0);
         render_scene(self.shadow_camera.as_ref().unwrap());
     }
 

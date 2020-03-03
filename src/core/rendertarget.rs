@@ -58,16 +58,18 @@ impl ScreenRendertarget
         gl.clear(gl::consts::COLOR_BUFFER_BIT);
     }
 
-    pub fn clear_color_and_depth(gl: &Gl, color: &Vec4)
+    pub fn clear_color_and_depth(gl: &Gl, color: &Vec4, depth: f32)
     {
         gl.clear_color(color.x, color.y, color.z, color.w);
+        gl.clear_depth(depth);
         depth_write(gl,true);
         gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
     }
 
-    pub fn clear_depth(gl: &Gl)
+    pub fn clear_depth(gl: &Gl, depth: f32)
     {
         depth_write(gl, true);
+        gl.clear_depth(depth);
         gl.clear(gl::consts::DEPTH_BUFFER_BIT);
     }
 }
@@ -192,15 +194,17 @@ impl RenderTarget
         self.gl.clear(gl::consts::COLOR_BUFFER_BIT);
     }
 
-    pub fn clear_color_and_depth(&self, color: &Vec4)
+    pub fn clear_color_and_depth(&self, color: &Vec4, depth: f32)
     {
         self.gl.clear_color(color.x, color.y, color.z, color.w);
         depth_write(&self.gl,true);
+        self.gl.clear_depth(depth);
         self.gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
     }
 
-    pub fn clear_depth(&self)
+    pub fn clear_depth(&self, depth: f32)
     {
+        self.gl.clear_depth(depth);
         depth_write(&self.gl, true);
         self.gl.clear(gl::consts::DEPTH_BUFFER_BIT);
     }
