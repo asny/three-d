@@ -62,7 +62,7 @@ fn main() {
 
         // Light pass
         ScreenRendertarget::write(&gl, width, height);
-        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
+        ScreenRendertarget::clear_color(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
         renderer.light_pass(&camera, Some(&ambient_light), &[], &[], &[]).unwrap();
 
         // Effect

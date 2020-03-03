@@ -35,7 +35,7 @@ fn main() {
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
         ScreenRendertarget::write(&gl, screen_width, screen_height);
-        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.8, 0.8, 0.8, 1.0));
+        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.8, 0.8, 0.8, 1.0), 1.0);
 
         program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
         program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
