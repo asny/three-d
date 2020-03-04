@@ -58,7 +58,6 @@ impl AmbientLight
 pub struct DirectionalLight {
     gl: Gl,
     light_buffer: UniformBuffer,
-    shadow_rendertarget: RenderTarget,
     shadow_texture: Option<Texture2D>,
     shadow_camera: Option<Camera>
 }
@@ -70,7 +69,6 @@ impl DirectionalLight {
         let mut light = DirectionalLight {
             gl: gl.clone(),
             light_buffer: UniformBuffer::new(gl, &[3u32, 1, 3, 1, 16])?,
-            shadow_rendertarget: RenderTarget::new(gl, 0)?,
             shadow_texture: None,
             shadow_camera: None};
 
@@ -106,10 +104,9 @@ impl DirectionalLight {
         self.shadow_texture = None;
     }
 
-    pub fn generate_shadow_map<F>(&mut self, target: &Vec3,
+    pub fn generate_shadow_map(&mut self, target: &Vec3,
                                   frustrum_width: f32, frustrum_height: f32, frustrum_depth: f32,
-                                  texture_width: usize, texture_height: usize, render_scene: &F)
-        where F: Fn(&Camera)
+                                  texture_width: usize, texture_height: usize, render_scene: &dyn Fn(&Camera))
     {
         let direction = self.direction();
         let up = compute_up_direction(direction);
@@ -117,14 +114,15 @@ impl DirectionalLight {
         self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction.normalize()*0.5*frustrum_depth, *target, up,
                                                            frustrum_width, frustrum_height, frustrum_depth));
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
-        self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_width, texture_height).unwrap());
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        self.shadow_rendertarget.write_to_depth(self.shadow_texture.as_ref().unwrap()).unwrap();
-        self.shadow_rendertarget.clear_depth(1.0);
-        render_scene(self.shadow_camera.as_ref().unwrap());
+        let rendertarget = rendertarget::RenderTarget::new(&self.gl,
+            texture_width, texture_height, 0, 1).unwrap();
+        rendertarget.write_to_depth(Some(1.0),
+            &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
+        self.shadow_texture = rendertarget.depth_texture;
     }
 
     pub(crate) fn shadow_map(&self) -> Option<&Texture2D>
@@ -187,7 +185,6 @@ impl PointLight {
 pub struct SpotLight {
     gl: Gl,
     light_buffer: UniformBuffer,
-    shadow_rendertarget: RenderTarget,
     shadow_texture: Option<Texture2D>,
     shadow_camera: Option<Camera>
 }
@@ -201,7 +198,6 @@ impl SpotLight {
         let mut light = SpotLight {
             gl: gl.clone(),
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
-            shadow_rendertarget: RenderTarget::new(gl, 0)?,
             shadow_texture: None,
             shadow_camera: None
         };
@@ -275,14 +271,15 @@ impl SpotLight {
         self.shadow_camera = Some(Camera::new_perspective(&self.gl, position, position + direction, up,
                                                           degrees(cutoff), 1.0, 0.1, frustrum_depth));
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
-        self.shadow_texture = Some(Texture2D::new_as_depth_target(&self.gl, texture_size, texture_size).unwrap());
 
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        self.shadow_rendertarget.write_to_depth(self.shadow_texture.as_ref().unwrap()).unwrap();
-        self.shadow_rendertarget.clear_depth(1.0);
-        render_scene(self.shadow_camera.as_ref().unwrap());
+        let rendertarget = rendertarget::RenderTarget::new(&self.gl,
+            texture_size, texture_size, 0, 1).unwrap();
+        rendertarget.write_to_depth(Some(1.0),
+            &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
+        self.shadow_texture = rendertarget.depth_texture;
     }
 
     pub(crate) fn shadow_map(&self) -> Option<&Texture2D>

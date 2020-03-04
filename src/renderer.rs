@@ -51,7 +51,6 @@ impl From<light::Error> for Error {
 pub struct DeferredPipeline {
     gl: Gl,
     light_pass_program: program::Program,
-    geometry_pass_rendertarget: rendertarget::RenderTarget,
     geometry_pass_texture: Texture2DArray,
     geometry_pass_depth_texture: Texture2DArray,
     full_screen: VertexBuffer,
@@ -66,7 +65,6 @@ impl DeferredPipeline
         let light_pass_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
-        let geometry_pass_rendertarget = rendertarget::RenderTarget::new(gl, 2)?;
         let geometry_pass_texture = Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?;
         let geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(gl, screen_width, screen_height, 1)?;
 
@@ -86,29 +84,26 @@ impl DeferredPipeline
             gl: gl.clone(),
             light_pass_program,
             full_screen,
-            geometry_pass_rendertarget,
             geometry_pass_texture,
             geometry_pass_depth_texture,
             background_color })
     }
 
-    pub fn geometry_pass<F>(&mut self, render_scene: &F) -> Result<(), Error>
-        where F: Fn()
+    pub fn geometry_pass(&mut self, render_scene: &dyn Fn()) -> Result<(), Error>
     {
-        self.geometry_pass_texture = Texture2DArray::new_as_color_targets(&self.gl, self.geometry_pass_texture.width, self.geometry_pass_texture.height, 2)?;
-        self.geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(&self.gl, self.geometry_pass_depth_texture.width, self.geometry_pass_depth_texture.height, 1)?;
-
-        self.geometry_pass_rendertarget.write_to_color_array_and_depth_array(&self.geometry_pass_texture,
-                                                                             &self.geometry_pass_depth_texture,
-                                                                             &|channel| {channel}, 0)?;
-        self.geometry_pass_rendertarget.clear_color_and_depth(&self.background_color, 1.0);
-
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
         state::cull(&self.gl, state::CullType::None);
         state::blend(&self.gl, state::BlendType::None);
 
-        render_scene();
+        let geometry_pass_rendertarget = rendertarget::RenderTarget::new(&self.gl,
+            self.geometry_pass_texture.width, self.geometry_pass_texture.height, 2, 1)?;
+        geometry_pass_rendertarget.write_to_color_array_and_depth_array(
+            Some(&self.background_color), Some(1.0),
+            2,&|channel| {channel},
+            0, render_scene)?;
+        self.geometry_pass_texture = geometry_pass_rendertarget.color_texture_array.unwrap();
+        self.geometry_pass_depth_texture = geometry_pass_rendertarget.depth_texture_array.unwrap();
         Ok(())
     }
 

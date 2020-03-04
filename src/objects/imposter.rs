@@ -23,18 +23,16 @@ impl Imposter {
 
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
-        let texture = Texture2DArray::new_as_color_targets(gl, texture_width, texture_height, NO_VIEW_ANGLES*2).unwrap();
-        let depth_texture = Texture2DArray::new_as_depth_targets(gl, texture_width, texture_height, NO_VIEW_ANGLES).unwrap();
-        let rendertarget = RenderTarget::new(gl, 2).unwrap();
+        let rendertarget = RenderTarget::new(gl, texture_width, texture_height,
+                                             NO_VIEW_ANGLES*2, NO_VIEW_ANGLES).unwrap();
 
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
                             center, vec3(0.0, 1.0, 0.0));
-            rendertarget.write_to_color_array_and_depth_array(&texture, &depth_texture,
-                                                              &|channel| { i + channel * NO_VIEW_ANGLES }, i).unwrap();
-            rendertarget.clear_color_and_depth(&vec4(0.0, 0.0, 0.0, 0.0), 1.0);
-            render(&camera);
+            rendertarget.write_to_color_array_and_depth_array(Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
+                                                              2, &|channel| { i + channel * NO_VIEW_ANGLES },
+                                                              i, &|| render(&camera)).unwrap();
         }
 
         let xmin = center.x - 0.5 * width;
@@ -65,7 +63,7 @@ impl Imposter {
         let vertex_buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
         let instance_buffer = VertexBuffer::new(gl).unwrap();
 
-        Imposter {texture, program, vertex_buffer, instance_buffer, instance_count:0 }
+        Imposter {texture: rendertarget.color_texture_array.unwrap(), program, vertex_buffer, instance_buffer, instance_count:0 }
     }
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
