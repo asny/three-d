@@ -56,18 +56,22 @@ impl RenderTarget
         RenderTarget { gl: gl.clone(), color_texture: None, depth_texture: None, color_texture_array: None, depth_texture_array: None }
     }
 
-    pub fn write_to_color(&self, clear_color: Option<&Vec4>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_color(&self, x: i32, y: i32, width: usize, height: usize,
+                          clear_color: Option<&Vec4>, render: &dyn Fn()) -> Result<(), Error>
     {
-        self.write_to_color_and_depth(clear_color, None, render)
+        self.write_to_color_and_depth(x, y, width, height, clear_color, None, render)
     }
 
-    pub fn write_to_depth(&self, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_depth(&self, x: i32, y: i32, width: usize, height: usize,
+                          clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
     {
-        self.write_to_color_and_depth(None, clear_depth, render)
+        self.write_to_color_and_depth(x, y, width, height, None, clear_depth, render)
     }
 
-    pub fn write_to_color_and_depth(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_color_and_depth(&self, x: i32, y: i32, width: usize, height: usize,
+                                    clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
     {
+        self.gl.viewport(x, y, width, height);
         if self.color_texture.is_some() || self.depth_texture.is_some() {
             let id = RenderTarget::new_framebuffer(&self.gl, if self.color_texture.is_some() {1} else {0})?;
 
@@ -94,21 +98,25 @@ impl RenderTarget
         Ok(())
     }
 
-    pub fn write_to_color_array(&self, clear_color: Option<&Vec4>, color_channel_count: usize,
+    pub fn write_to_color_array(&self, x: i32, y: i32, width: usize, height: usize,
+                                clear_color: Option<&Vec4>, color_channel_count: usize,
         color_channel_to_texture_layer: &dyn Fn(usize) -> usize, render: &dyn Fn()) -> Result<(), Error>
     {
-        self.write_to_color_array_and_depth_array(clear_color, None, color_channel_count, color_channel_to_texture_layer, 0, render)
+        self.write_to_color_array_and_depth_array(x, y, width, height, clear_color, None, color_channel_count, color_channel_to_texture_layer, 0, render)
     }
 
-    pub fn write_to_depth_array(&self, clear_depth: Option<f32>, depth_layer: usize, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_depth_array(&self, x: i32, y: i32, width: usize, height: usize,
+                                clear_depth: Option<f32>, depth_layer: usize, render: &dyn Fn()) -> Result<(), Error>
     {
-        self.write_to_color_array_and_depth_array(None, clear_depth, 0, &|i| {i}, depth_layer, render)
+        self.write_to_color_array_and_depth_array(x, y, width, height,None, clear_depth, 0, &|i| {i}, depth_layer, render)
     }
 
-    pub fn write_to_color_array_and_depth_array(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, color_channel_count: usize,
+    pub fn write_to_color_array_and_depth_array(&self, x: i32, y: i32, width: usize, height: usize,
+                                                clear_color: Option<&Vec4>, clear_depth: Option<f32>, color_channel_count: usize,
                                                 color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
                                                 depth_layer: usize, render: &dyn Fn()) -> Result<(), Error>
     {
+        self.gl.viewport(x, y, width, height);
         let id = RenderTarget::new_framebuffer(&self.gl, color_channel_count)?;
 
         if let Some(ref color_texture) = self.color_texture_array {

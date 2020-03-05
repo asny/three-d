@@ -120,7 +120,7 @@ impl DirectionalLight {
 
         let rendertarget = rendertarget::RenderTarget::new(&self.gl,
             texture_width, texture_height, 0, 1).unwrap();
-        rendertarget.write_to_depth(Some(1.0),
+        rendertarget.write_to_depth(0, 0, texture_width, texture_height, Some(1.0),
             &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
         self.shadow_texture = rendertarget.depth_texture;
     }
@@ -277,7 +277,7 @@ impl SpotLight {
 
         let rendertarget = rendertarget::RenderTarget::new(&self.gl,
             texture_size, texture_size, 0, 1).unwrap();
-        rendertarget.write_to_depth(Some(1.0),
+        rendertarget.write_to_depth(0, 0, texture_size, texture_size, Some(1.0),
             &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
         self.shadow_texture = rendertarget.depth_texture;
     }

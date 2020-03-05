@@ -98,7 +98,8 @@ impl DeferredPipeline
 
         let geometry_pass_rendertarget = rendertarget::RenderTarget::new(&self.gl,
             self.geometry_pass_texture.width, self.geometry_pass_texture.height, 2, 1)?;
-        geometry_pass_rendertarget.write_to_color_array_and_depth_array(
+        geometry_pass_rendertarget.write_to_color_array_and_depth_array(0, 0,
+            self.geometry_pass_texture.width, self.geometry_pass_texture.height,
             Some(&self.background_color), Some(1.0),
             2,&|channel| {channel},
             0, render_scene)?;
