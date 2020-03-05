@@ -11,7 +11,7 @@ fn main() {
 
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(10.0, 25.0, 40.0), vec3(0.0, 7.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let mut leaves_mesh = CPUMesh::new(include_bytes!("../assets/models/leaves1.3d")).unwrap().to_mesh(&gl).unwrap();
@@ -47,16 +47,15 @@ fn main() {
     plane.diffuse_intensity = 0.5;
     plane.specular_intensity = 0.0;
 
-    let mut directional_light0 = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(1.0, -1.0, -1.0)).unwrap();
-    let mut directional_light1 = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, 1.0)).unwrap();
+    let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
+    let mut directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
     let render_scene = |camera: &Camera| {
         tree_mesh.render(&Mat4::identity(), camera);
         leaves_mesh.render(&Mat4::identity(), camera);
         imposter.render(camera);
     };
-    directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &render_scene);
-    directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &render_scene);
+    directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &render_scene);
 
     let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
 
@@ -99,7 +98,7 @@ fn main() {
 
         // Light pass
         RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
-            renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1], &[], &[]).unwrap();
+            renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
         }).unwrap();
 
         debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
