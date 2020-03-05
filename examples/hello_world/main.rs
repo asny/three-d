@@ -35,7 +35,7 @@ fn main() {
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
-        RenderTarget::screen(&gl).write(0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
             program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
             program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
 

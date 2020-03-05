@@ -220,7 +220,7 @@ fn main()
         }).unwrap();
 
         // Light pass
-        RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, &|| {
             renderer.light_pass(&camera, Some(&ambient_light), &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
         }).unwrap();
 

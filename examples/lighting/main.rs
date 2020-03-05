@@ -89,7 +89,7 @@ fn main() {
             }).unwrap();
 
         // Light pass
-        RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, &|| {
             renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
                                                        &[&spot_light], &[&point_light0, &point_light1]).unwrap();
         }).unwrap();
