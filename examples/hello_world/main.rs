@@ -34,16 +34,16 @@ fn main() {
     window.render_loop(move |frame_input|
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
-        ScreenRendertarget::write(&gl, screen_width, screen_height);
-        ScreenRendertarget::clear_color_and_depth(&gl, &vec4(0.8, 0.8, 0.8, 1.0), 1.0);
 
-        program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
-        program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
+        RenderTarget::screen(&gl).write(0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
+            program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
+            program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
 
-        program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
-        program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
+            program.add_uniform_mat4("viewMatrix", camera.get_view()).unwrap();
+            program.add_uniform_mat4("projectionMatrix", camera.get_projection()).unwrap();
 
-        program.draw_arrays(3);
+            program.draw_arrays(3);
+        }).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

@@ -79,15 +79,16 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(&|| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            state::cull(&gl, state::CullType::Back);
             model.render(&transformation, &camera);
             wireframe.render(&transformation, &camera);
             plane.render(&Mat4::identity(), &camera);
         }).unwrap();
 
         // Light pass
-        ScreenRendertarget::write(&gl, width, height);
-        ScreenRendertarget::clear_color(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
-        renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
+        RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
+            renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
+        }).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

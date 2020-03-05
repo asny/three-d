@@ -60,9 +60,9 @@ fn main() {
             skybox.render(&camera).unwrap();
         }).unwrap();
 
-        ScreenRendertarget::write(&gl, width, height);
-        ScreenRendertarget::clear_color(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
-        renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
+        RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
+            renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
+        }).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

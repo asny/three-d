@@ -98,9 +98,9 @@ fn main() {
             }).unwrap();
 
         // Light pass
-        ScreenRendertarget::write(&gl, width, height);
-        ScreenRendertarget::clear_color(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
-        renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1], &[], &[]).unwrap();
+        RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
+            renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1], &[], &[]).unwrap();
+        }).unwrap();
 
         debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 

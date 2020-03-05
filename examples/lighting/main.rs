@@ -89,8 +89,7 @@ fn main() {
             }).unwrap();
 
         // Light pass
-        gl.viewport(0, 0, width, height);
-        RenderTarget::screen(&gl).write_to_color_and_depth(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, &|| {
+        RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
             renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
                                                        &[&spot_light], &[&point_light0, &point_light1]).unwrap();
         }).unwrap();

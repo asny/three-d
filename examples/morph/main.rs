@@ -139,35 +139,20 @@ fn main()
     plane.specular_intensity = 0.4;
     plane.specular_power = 20.0;
 
-    renderer.ambient_light().set_intensity(0.4);
+    let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
 
     let mut dir = vec3(-1.0, -1.0, -1.0).normalize();
-    let mut light = renderer.spot_light(0).unwrap();
-    light.set_intensity(1.0);
-    light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
-    light.set_direction(&dir);
-    light.enable_shadows();
-
+    let mut spot_light0 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &(scene_center - 2.0f32 * scene_radius * dir),
+                                   &dir, 25.0, 0.1, 0.001, 0.0001).unwrap();
     dir = vec3(1.0, -1.0, -1.0).normalize();
-    light = renderer.spot_light(1).unwrap();
-    light.set_intensity(1.0);
-    light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
-    light.set_direction(&dir);
-    light.enable_shadows();
-
+    let mut spot_light1 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &(scene_center - 2.0f32 * scene_radius * dir),
+                                   &dir, 25.0, 0.1, 0.001, 0.0001).unwrap();
     dir = vec3(1.0, -1.0, 1.0).normalize();
-    light = renderer.spot_light(2).unwrap();
-    light.set_intensity(1.0);
-    light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
-    light.set_direction(&dir);
-    light.enable_shadows();
-
+    let mut spot_light2 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &(scene_center - 2.0f32 * scene_radius * dir),
+                                   &dir, 25.0, 0.1, 0.001, 0.0001).unwrap();
     dir = vec3(-1.0, -1.0, 1.0).normalize();
-    light = renderer.spot_light(3).unwrap();
-    light.set_intensity(1.0);
-    light.set_position(&(scene_center - 2.0f32 * scene_radius * dir));
-    light.set_direction(&dir);
-    light.enable_shadows();
+    let mut spot_light3 = SpotLight::new(&gl, 0.6, &vec3(1.0, 1.0, 1.0), &(scene_center - 2.0f32 * scene_radius * dir),
+                                   &dir, 25.0, 0.1, 0.001, 0.0001).unwrap();
 
     let mut weights: Option<HashMap<tri_mesh::prelude::VertexID, tri_mesh::prelude::Vec3>> = None;
     // main loop
@@ -217,21 +202,27 @@ fn main()
                 _ => {}
             }
         }
-
-        // Shadow pass
-        renderer.shadow_pass(&|camera: &Camera| {
+        let render_scene = |camera: &Camera| {
+            state::cull(&gl, state::CullType::Back);
             model.render(&Mat4::identity(), camera);
-        });
+        };
+        spot_light0.generate_shadow_map(50.0, 512, &render_scene);
+        spot_light1.generate_shadow_map(50.0, 512, &render_scene);
+        spot_light2.generate_shadow_map(50.0, 512, &render_scene);
+        spot_light3.generate_shadow_map(50.0, 512, &render_scene);
 
         // Geometry pass
         renderer.geometry_pass(&|| {
+            state::cull(&gl, state::CullType::Back);
             model.render(&Mat4::identity(), &camera);
             plane.render(&Mat4::identity(), &camera);
             wireframe_model.render(&Mat4::identity(), &camera);
         }).unwrap();
 
         // Light pass
-        renderer.light_pass(&camera).unwrap();
+        RenderTarget::screen(&gl).write_to_color(0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), &|| {
+            renderer.light_pass(&camera, Some(&ambient_light), &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
+        }).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
