@@ -178,11 +178,6 @@ impl RenderTarget
         Ok(())
     }
 
-    /*pub fn read(&self)
-    {
-        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, self.id.as_ref());
-    }*/
-
     fn clear(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
         if let Some(color) = clear_color {
             if let Some(depth) = clear_depth {
@@ -202,15 +197,27 @@ impl RenderTarget
         }
     }
 
-    /*#[cfg(not(target_arch = "wasm32"))]
-    pub fn pixels(&self, width: usize, height: usize, dst_data: &mut [u8])
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_from_color(&self, width: usize, height: usize) -> Result<Vec<u8>, Error>
     {
-        self.read();
+        let color_texture = self.color_texture.as_ref().unwrap();
+
+        let id = RenderTarget::new_framebuffer(&self.gl, 1)?;
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
+        self.gl.viewport(0, 0, color_texture.width as i32, color_texture.height as i32);
+        color_texture.bind_to_framebuffer(0);
+
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+
+        let mut pixels = vec![0u8; width * height * 3];
         self.gl.read_pixels(0, 0, width as u32, height as u32, gl::consts::RGB,
-                            gl::consts::UNSIGNED_BYTE, dst_data);
+                            gl::consts::UNSIGNED_BYTE, &mut pixels);
+
+        self.gl.delete_framebuffer(Some(&id));
+        Ok(pixels)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    /*#[cfg(not(target_arch = "wasm32"))]
     pub fn depths(&self, width: usize, height: usize, dst_data: &mut [f32])
     {
         self.read();
