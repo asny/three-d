@@ -19,61 +19,6 @@ impl From<std::io::Error> for Error {
     }
 }
 
-// SCREEN RENDER TARGET
-pub struct ScreenRendertarget {
-}
-
-impl ScreenRendertarget
-{
-    pub fn write(gl: &Gl, width: usize, height: usize)
-    {
-        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, None);
-        gl.viewport(0, 0, width as i32, height as i32);
-    }
-
-    pub fn read(gl: &Gl)
-    {
-        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn pixels(gl: &Gl, width: usize, height: usize, dst_data: &mut [u8])
-    {
-        Self::read(gl);
-        gl.read_pixels(0, 0, width as u32, height as u32, gl::consts::RGB,
-                            gl::consts::UNSIGNED_BYTE, dst_data);
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn depths(gl: &Gl, width: usize, height: usize, dst_data: &mut [f32])
-    {
-        Self::read(gl);
-        gl.read_depths(0, 0, width as u32, height as u32,
-                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
-    }
-
-    pub fn clear_color(gl: &Gl, color: &Vec4)
-    {
-        gl.clear_color(color.x, color.y, color.z, color.w);
-        gl.clear(gl::consts::COLOR_BUFFER_BIT);
-    }
-
-    pub fn clear_color_and_depth(gl: &Gl, color: &Vec4, depth: f32)
-    {
-        gl.clear_color(color.x, color.y, color.z, color.w);
-        gl.clear_depth(depth);
-        depth_write(gl,true);
-        gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
-    }
-
-    pub fn clear_depth(gl: &Gl, depth: f32)
-    {
-        depth_write(gl, true);
-        gl.clear_depth(depth);
-        gl.clear(gl::consts::DEPTH_BUFFER_BIT);
-    }
-}
-
 pub struct RenderTarget {
     gl: Gl,
     pub color_texture: Option<Texture2D>,
@@ -107,6 +52,10 @@ impl RenderTarget
         Ok(RenderTarget { gl: gl.clone(), color_texture, depth_texture, color_texture_array, depth_texture_array })
     }
 
+    pub fn screen(gl: &Gl) -> RenderTarget {
+        RenderTarget { gl: gl.clone(), color_texture: None, depth_texture: None, color_texture_array: None, depth_texture_array: None }
+    }
+
     pub fn write_to_color(&self, clear_color: Option<&Vec4>, render: &dyn Fn()) -> Result<(), Error>
     {
         self.write_to_color_and_depth(clear_color, None, render)
@@ -119,24 +68,29 @@ impl RenderTarget
 
     pub fn write_to_color_and_depth(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
     {
-        let id = RenderTarget::new_framebuffer(&self.gl, if self.color_texture.is_some() {1} else {0})?;
+        if self.color_texture.is_some() || self.depth_texture.is_some() {
+            let id = RenderTarget::new_framebuffer(&self.gl, if self.color_texture.is_some() {1} else {0})?;
 
-        if let Some(ref color_texture) = self.color_texture {
-            self.gl.viewport(0, 0, color_texture.width as i32, color_texture.height as i32);
-            color_texture.bind_to_framebuffer(0);
+            if let Some(ref color_texture) = self.color_texture {
+                color_texture.bind_to_framebuffer(0);
+            }
+
+            if let Some(ref depth_texture) = self.depth_texture {
+                depth_texture.bind_to_depth_target();
+            }
+
+            self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+            self.clear(clear_color, clear_depth);
+
+            render();
+
+            self.gl.delete_framebuffer(Some(&id));
         }
-
-        if let Some(ref depth_texture) = self.depth_texture {
-            self.gl.viewport(0, 0, depth_texture.width as i32, depth_texture.height as i32);
-            depth_texture.bind_to_depth_target();
-        }
-
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        self.clear(clear_color, clear_depth);
-
-        render();
-
-        self.gl.delete_framebuffer(Some(&id));
+        else {
+            self.gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, None);
+            self.clear(clear_color, clear_depth);
+            render();
+        };
         Ok(())
     }
 
@@ -158,14 +112,12 @@ impl RenderTarget
         let id = RenderTarget::new_framebuffer(&self.gl, color_channel_count)?;
 
         if let Some(ref color_texture) = self.color_texture_array {
-            self.gl.viewport(0, 0, color_texture.width as i32, color_texture.height as i32);
             for channel in 0..color_channel_count {
                 color_texture.bind_to_framebuffer(color_channel_to_texture_layer(channel), channel);
             }
         }
 
         if let Some(ref depth_texture) = self.depth_texture_array {
-            self.gl.viewport(0, 0, depth_texture.width as i32, depth_texture.height as i32);
             depth_texture.bind_to_depth_target(depth_layer);
         }
 
@@ -198,22 +150,48 @@ impl RenderTarget
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_from_color(&self, width: usize, height: usize) -> Result<Vec<u8>, Error>
+    pub fn read_from_color(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
     {
-        let color_texture = self.color_texture.as_ref().unwrap();
-
-        let id = RenderTarget::new_framebuffer(&self.gl, 1)?;
-        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
-        self.gl.viewport(0, 0, color_texture.width as i32, color_texture.height as i32);
-        color_texture.bind_to_framebuffer(0);
-
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-
+        self.gl.viewport(x, y, width, height);
         let mut pixels = vec![0u8; width * height * 3];
-        self.gl.read_pixels(0, 0, width as u32, height as u32, gl::consts::RGB,
-                            gl::consts::UNSIGNED_BYTE, &mut pixels);
+        if let Some(ref color_texture) = self.color_texture {
+            let id = RenderTarget::new_framebuffer(&self.gl, 1)?;
+            color_texture.bind_to_framebuffer(0);
+            self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
 
-        self.gl.delete_framebuffer(Some(&id));
+            self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
+            self.gl.read_pixels(x as u32, y as u32, width as u32, height as u32, gl::consts::RGB,
+                                gl::consts::UNSIGNED_BYTE, &mut pixels);
+            self.gl.delete_framebuffer(Some(&id));
+        }
+        else {
+            self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
+            self.gl.read_pixels(x as u32, y as u32, width as u32, height as u32, gl::consts::RGB,
+                                gl::consts::UNSIGNED_BYTE, &mut pixels);
+        }
+        Ok(pixels)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_from_depth(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
+    {
+        self.gl.viewport(x, y, width, height);
+        let mut pixels = vec![0f32; width * height];
+        if let Some(ref depth_texture) = self.depth_texture {
+            let id = RenderTarget::new_framebuffer(&self.gl, 0)?;
+            depth_texture.bind_to_depth_target();
+            self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+
+            self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
+            self.gl.read_depths(x as u32, y as u32, width as u32, height as u32,
+                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
+            self.gl.delete_framebuffer(Some(&id));
+        }
+        else {
+            self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
+            self.gl.read_depths(x as u32, y as u32, width as u32, height as u32,
+                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
+        }
         Ok(pixels)
     }
 
@@ -266,8 +244,7 @@ impl RenderTarget
 #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
 pub fn save_screenshot(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
 {
-    let mut pixels = vec![0u8; width * height * 3];
-    ScreenRendertarget::pixels(gl, width, height, &mut pixels);
+    let pixels = RenderTarget::screen(gl).read_from_color(0, 0,width, height)?;
     let mut pixels_out = vec![0u8; width * height * 3];
     for row in 0..height {
         for col in 0..width {

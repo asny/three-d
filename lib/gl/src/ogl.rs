@@ -497,10 +497,10 @@ impl Gl {
         }
     }
 
-    pub fn viewport(&self, x: i32, y: i32, width: i32, height: i32)
+    pub fn viewport(&self, x: i32, y: i32, width: usize, height: usize)
     {
         unsafe {
-            self.inner.Viewport(x, y, width, height);
+            self.inner.Viewport(x, y, width as i32, height as i32);
         }
     }
 

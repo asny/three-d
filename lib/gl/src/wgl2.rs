@@ -207,6 +207,11 @@ impl Gl {
         self.inner.framebuffer_texture_layer(target, attachment, Some(texture), level as i32, layer as i32);
     }
 
+    pub fn viewport(&self, x: i32, y: i32, width: usize, height: usize)
+    {
+        self.inner.viewport(x, y, width as i32, height as i32);
+    }
+
     pub fn get_attrib_location(&self, program: &Program, name: &str) -> Option<AttributeLocation>
     {
         Some(self.inner.get_attrib_location(program, name) as u32)

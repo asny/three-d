@@ -89,10 +89,11 @@ fn main() {
             }).unwrap();
 
         // Light pass
-        ScreenRendertarget::write(&gl, width, height);
-        ScreenRendertarget::clear_color(&gl, &vec4(0.0, 0.0, 0.0, 0.0));
-        renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
-                                                   &[&spot_light], &[&point_light0, &point_light1]).unwrap();
+        gl.viewport(0, 0, width, height);
+        RenderTarget::screen(&gl).write_to_color_and_depth(Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, &|| {
+            renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
+                                                       &[&spot_light], &[&point_light0, &point_light1]).unwrap();
+        }).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
