@@ -212,15 +212,7 @@ impl RenderTarget
         }
     }
 
-    /*#[cfg(not(target_arch = "wasm32"))]
-    pub fn depths(&self, width: usize, height: usize, dst_data: &mut [f32])
-    {
-        self.read();
-        self.gl.read_depths(0, 0, width as u32, height as u32,
-                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, dst_data);
-    }
-
-    pub fn blit_color_and_depth_to(&self, target: &RenderTarget, target_color_texture: &Texture2D, target_depth_texture: &Texture2D)
+    /*pub fn blit_color_and_depth_to(&self, target: &RenderTarget, target_color_texture: &Texture2D, target_depth_texture: &Texture2D)
     {
         self.read();
         target.write_to_color_and_depth(target_color_texture, target_depth_texture).unwrap();
@@ -249,14 +241,6 @@ impl RenderTarget
                                  gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
     }*/
 }
-
-/*impl Drop for RenderTarget {
-    fn drop(&mut self) {
-        self.gl.delete_framebuffer(self.id.as_ref());
-    }
-}*/
-
-// COMMON FUNCTIONS
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
 pub fn save_screenshot(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
