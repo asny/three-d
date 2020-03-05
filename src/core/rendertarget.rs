@@ -29,20 +29,6 @@ pub struct RenderTarget {
 
 impl RenderTarget
 {
-    fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<gl::Framebuffer, Error>
-    {
-        let id = gl.create_framebuffer()
-            .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
-        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
-
-        let mut draw_buffers = Vec::new();
-        for i in 0..no_color_channels {
-            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
-        }
-        gl.draw_buffers(&draw_buffers);
-        Ok(id)
-    }
-
     pub fn new(gl: &Gl, width: usize, height: usize, color_layers: usize, depth_layers: usize) -> Result<RenderTarget, Error>
     {
         let color_texture = if color_layers == 1 && depth_layers <= 1 { Some(Texture2D::new_as_color_target(gl, width, height)?) } else {None};
@@ -137,25 +123,6 @@ impl RenderTarget
         Ok(())
     }
 
-    fn clear(gl: &Gl, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
-        if let Some(color) = clear_color {
-            if let Some(depth) = clear_depth {
-                gl.clear_color(color.x, color.y, color.z, color.w);
-                depth_write(gl,true);
-                gl.clear_depth(depth);
-                gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
-            }
-            else {
-                gl.clear_color(color.x, color.y, color.z, color.w);
-                gl.clear(gl::consts::COLOR_BUFFER_BIT);
-            }
-        } else if let Some(depth) = clear_depth {
-            gl.clear_depth(depth);
-            depth_write(gl, true);
-            gl.clear(gl::consts::DEPTH_BUFFER_BIT);
-        }
-    }
-
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
     {
@@ -185,26 +152,64 @@ impl RenderTarget
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_from_depth(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
+    pub fn read_depth(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
     {
+        let depth_texture = self.depth_texture.as_ref().unwrap();
         self.gl.viewport(x, y, width, height);
         let mut pixels = vec![0f32; width * height];
-        if let Some(ref depth_texture) = self.depth_texture {
-            let id = RenderTarget::new_framebuffer(&self.gl, 0)?;
-            depth_texture.bind_to_depth_target();
-            self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        let id = RenderTarget::new_framebuffer(&self.gl, 0)?;
+        depth_texture.bind_to_depth_target();
+        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
 
-            self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
-            self.gl.read_depths(x as u32, y as u32, width as u32, height as u32,
-                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
-            self.gl.delete_framebuffer(Some(&id));
-        }
-        else {
-            self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
-            self.gl.read_depths(x as u32, y as u32, width as u32, height as u32,
-                            gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
-        }
+        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
+        self.gl.read_depths(x as u32, y as u32, width as u32, height as u32,
+                        gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
+        self.gl.delete_framebuffer(Some(&id));
         Ok(pixels)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_depth_from_screen(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
+    {
+        gl.viewport(x, y, width, height);
+        let mut pixels = vec![0f32; width * height];
+        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
+        gl.read_depths(x as u32, y as u32, width as u32, height as u32,
+                        gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
+        Ok(pixels)
+    }
+
+    fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<gl::Framebuffer, Error>
+    {
+        let id = gl.create_framebuffer()
+            .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
+        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
+
+        let mut draw_buffers = Vec::new();
+        for i in 0..no_color_channels {
+            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
+        }
+        gl.draw_buffers(&draw_buffers);
+        Ok(id)
+    }
+
+    fn clear(gl: &Gl, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
+        if let Some(color) = clear_color {
+            if let Some(depth) = clear_depth {
+                gl.clear_color(color.x, color.y, color.z, color.w);
+                depth_write(gl,true);
+                gl.clear_depth(depth);
+                gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
+            }
+            else {
+                gl.clear_color(color.x, color.y, color.z, color.w);
+                gl.clear(gl::consts::COLOR_BUFFER_BIT);
+            }
+        } else if let Some(depth) = clear_depth {
+            gl.clear_depth(depth);
+            depth_write(gl, true);
+            gl.clear(gl::consts::DEPTH_BUFFER_BIT);
+        }
     }
 
     /*#[cfg(not(target_arch = "wasm32"))]
