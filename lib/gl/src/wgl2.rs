@@ -48,9 +48,7 @@ impl Gl {
 
     pub fn delete_buffer(&self, buffer: &Buffer)
     {
-        unsafe {
-            self.inner.delete_buffer(Some(buffer));
-        }
+        self.inner.delete_buffer(Some(buffer));
     }
 
     pub fn unbind_buffer(&self, target: u32)
