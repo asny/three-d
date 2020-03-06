@@ -1,6 +1,7 @@
 uniform sampler2DArray gbuffer;
 uniform sampler2DArray depthMap;
 uniform samplerCube shadowCubeMap;
+uniform sampler2D shadowMap;
 
 layout (location = 0) out vec4 color;
 
@@ -16,9 +17,6 @@ uniform mat4 shadowMVP4;
 uniform mat4 shadowMVP5;
 
 in vec2 uv;
-
-const int MAX_NO_LIGHTS = 4;
-uniform sampler2D shadowMap;
 
 struct BaseLight
 {

@@ -19,8 +19,6 @@ impl From<rendertarget::Error> for Error {
     }
 }
 
-pub const MAX_NO_LIGHTS: usize = 4;
-
 pub struct AmbientLight
 {
     color: Vec3,
