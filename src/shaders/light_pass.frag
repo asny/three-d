@@ -201,9 +201,9 @@ void main()
     vec3 surface_color = c.rgb;
     bool is_far_away = depth > 0.99999;
 
-    color = vec4(0.0, 0.0, 0.0, 0.0);
+    vec3 light = vec3(0.0);
     if(light_type == 0) { // Ambient light
-        color = vec4(surface_color * ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity), 0.0);
+        light = ambientLight.base.color * (is_far_away? 1.0 : ambientLight.base.intensity);
     }
     else if(!is_far_away)
     {
@@ -215,7 +215,6 @@ void main()
         float specular_intensity = float(t & 15) / 15.0;
         float specular_power = 2.0 * float((t & 240) >> 4);
 
-        vec3 light = vec3(0.0);
         if(light_type == 1 || light_type == 2) // Directional light
         {
             light = calculate_light(directionalLight.base, directionalLight.direction, position, normal, diffuse_intensity, specular_intensity, specular_power);
@@ -240,6 +239,6 @@ void main()
         else if(light_type == 5) {
             light = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power);
         }
-        color.rgb = surface_color * light;
     }
+    color = vec4(surface_color * light, 0.0);
 }
