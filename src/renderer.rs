@@ -113,7 +113,7 @@ impl DeferredPipeline
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
         state::cull(&self.gl,state::CullType::Back);
-        state::blend(&self.gl, state::BlendType::OneOne);
+        state::blend(&self.gl, state::BlendType::None);
 
         self.light_pass_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
         self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
@@ -123,6 +123,7 @@ impl DeferredPipeline
 
         // Ambient light
         if let Some(light) = ambient_light {
+            self.light_pass_program.use_texture(&Texture2D::new(&self.gl, 0, 0).unwrap(), "shadowMap")?;
             self.light_pass_program.add_uniform_int("light_type", &0)?;
             self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
             self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
@@ -130,6 +131,7 @@ impl DeferredPipeline
             self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
             self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
             self.light_pass_program.draw_arrays(3);
+            state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         // Directional light
@@ -147,6 +149,7 @@ impl DeferredPipeline
             self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
             self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
             self.light_pass_program.draw_arrays(3);
+            state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         // Spot lights
@@ -164,6 +167,7 @@ impl DeferredPipeline
             self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
             self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
             self.light_pass_program.draw_arrays(3);
+            state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         // Point lights
@@ -174,6 +178,7 @@ impl DeferredPipeline
             self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
             self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
             self.light_pass_program.draw_arrays(3);
+            state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         Ok(())
