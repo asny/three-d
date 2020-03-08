@@ -17,12 +17,12 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
-    let cpu_mesh = CPUMesh::new(include_bytes!("../assets/models/suzanne.3d")).unwrap();
+    let cpu_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/suzanne.3d")).unwrap();
     let mut wireframe = objects::Wireframe::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.01);
     wireframe.set_parameters(0.8, 0.2, 5.0);
     wireframe.set_color(&vec3(0.9, 0.2, 0.2));
 
-    let mut model = Mesh::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals).unwrap();
+    let mut model = cpu_mesh.to_mesh(&gl).unwrap();
     model.diffuse_intensity = 0.2;
     model.specular_intensity = 0.4;
     model.specular_power = 20.0;

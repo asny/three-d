@@ -14,8 +14,8 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(10.0, 25.0, 40.0), vec3(0.0, 7.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut leaves_mesh = CPUMesh::new(include_bytes!("../assets/models/leaves1.3d")).unwrap().to_mesh(&gl).unwrap();
-    let mut tree_mesh = CPUMesh::new(include_bytes!("../assets/models/tree1.3d")).unwrap().to_mesh(&gl).unwrap();
+    let mut leaves_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/leaves1.3d")).unwrap().to_mesh(&gl).unwrap();
+    let mut tree_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/tree1.3d")).unwrap().to_mesh(&gl).unwrap();
     tree_mesh.color = vec3(0.5, 0.2, 0.2);
     tree_mesh.specular_intensity = 0.0;
     leaves_mesh.color = vec3(0.7, 0.9, 0.5);

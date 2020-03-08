@@ -14,7 +14,7 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut monkey = CPUMesh::new(include_bytes!("../assets/models/suzanne.3d")).unwrap().to_mesh(&gl).unwrap();
+    let mut monkey = CPUMesh::from_bytes(include_bytes!("../assets/models/suzanne.3d")).unwrap().to_mesh(&gl).unwrap();
     monkey.color = vec3(0.5, 1.0, 0.5);
 
     renderer.directional_light(0).unwrap().set_direction(&vec3(0.0, -1.0, 0.0));
