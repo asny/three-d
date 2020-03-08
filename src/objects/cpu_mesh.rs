@@ -32,9 +32,28 @@ impl CPUMesh {
         Ok(decoded)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn from_file(path: &str) -> Result<CPUMesh, objects::Error>
+    {
+        let mut file = std::fs::File::open(path)?;
+        let mut bytes = Vec::new();
+        use std::io::prelude::*;
+        file.read_to_end(&mut bytes)?;
+        Ok(Self::from_bytes(&bytes)?)
+    }
+
     pub fn to_bytes(&self) -> Result<Vec<u8>, objects::Error>
     {
         Ok(bincode::serialize(self)?)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn to_file(&self, path: &str) -> Result<(), objects::Error>
+    {
+        let mut file = std::fs::File::create(path)?;
+        use std::io::prelude::*;
+        file.write_all(&self.to_bytes()?)?;
+        Ok(())
     }
 
     pub fn to_mesh(&self, gl: &crate::Gl) -> Result<Mesh, objects::Error>
