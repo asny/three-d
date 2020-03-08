@@ -1,24 +1,5 @@
 use crate::core::*;
 
-#[derive(Debug)]
-pub enum Error {
-    Texture(texture::Error),
-    IO(std::io::Error),
-    FailedToCreateFramebuffer {message: String}
-}
-
-impl From<crate::texture::Error> for Error {
-    fn from(other: crate::texture::Error) -> Self {
-        Error::Texture(other)
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(other: std::io::Error) -> Self {
-        Error::IO(other)
-    }
-}
-
 // SCREEN RENDER TARGET
 pub struct ScreenRendertarget {
 }

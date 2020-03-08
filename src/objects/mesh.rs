@@ -1,24 +1,6 @@
 
 use crate::*;
 
-#[derive(Debug)]
-pub enum Error {
-    Program(program::Error),
-    Buffer(buffer::Error)
-}
-
-impl From<program::Error> for Error {
-    fn from(other: program::Error) -> Self {
-        Error::Program(other)
-    }
-}
-
-impl From<buffer::Error> for Error {
-    fn from(other: buffer::Error) -> Self {
-        Error::Buffer(other)
-    }
-}
-
 pub struct AxisAllignedBoundingBox {
     pub min: Vec3,
     pub max: Vec3

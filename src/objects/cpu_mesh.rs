@@ -13,12 +13,12 @@ pub struct CPUMesh {
 
 #[cfg(feature = "3d-io")]
 impl CPUMesh {
-    pub fn new(indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, mesh::Error>
+    pub fn new(indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, objects::Error>
     {
         Ok(CPUMesh {magic_number: 61, version: 1, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned()})
     }
 
-    pub fn new_with_computed_normals(indices: &[u32], positions: &[f32]) -> Result<Self, mesh::Error>
+    pub fn new_with_computed_normals(indices: &[u32], positions: &[f32]) -> Result<Self, objects::Error>
     {
         Self::new(indices, positions, &compute_normals(indices, positions))
     }
@@ -32,14 +32,14 @@ impl CPUMesh {
         Ok(decoded)
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>, bincode::Error>
+    pub fn to_bytes(&self) -> Result<Vec<u8>, objects::Error>
     {
-        bincode::serialize(self)
+        Ok(bincode::serialize(self)?)
     }
 
-    pub fn to_mesh(&self, gl: &crate::Gl) -> Result<Mesh, mesh::Error>
+    pub fn to_mesh(&self, gl: &crate::Gl) -> Result<Mesh, objects::Error>
     {
-        crate::Mesh::new( &gl, &self.indices, &self.positions, &self.normals)
+        Ok(crate::Mesh::new( &gl, &self.indices, &self.positions, &self.normals)?)
     }
 }
 

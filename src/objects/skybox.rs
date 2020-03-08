@@ -1,16 +1,6 @@
 
 use crate::*;
-
-#[derive(Debug)]
-pub enum Error {
-    Program(program::Error)
-}
-
-impl From<program::Error> for Error {
-    fn from(other: program::Error) -> Self {
-        Error::Program(other)
-    }
-}
+use crate::core::Error;
 
 pub struct Skybox {
     program: program::Program,

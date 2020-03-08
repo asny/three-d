@@ -2,28 +2,6 @@ use std::collections::HashMap;
 use std::cell::RefCell;
 use crate::core::*;
 
-#[derive(Debug)]
-pub enum Error {
-    Shader(shader::Error),
-    FailedToLinkProgram {message: String},
-    FailedToCreateCString(std::ffi::NulError),
-    FailedToFindPositions {message: String},
-    FailedToFindAttribute {message: String},
-    FailedToFindUniform {message: String}
-}
-
-impl From<shader::Error> for Error {
-    fn from(other: shader::Error) -> Self {
-        Error::Shader(other)
-    }
-}
-
-impl From<std::ffi::NulError> for Error {
-    fn from(other: std::ffi::NulError) -> Self {
-        Error::FailedToCreateCString(other)
-    }
-}
-
 pub struct Program {
     gl: Gl,
     id: gl::Program,

@@ -1,11 +1,5 @@
 use crate::core::Gl;
-
-#[derive(Debug)]
-pub enum Error {
-    UnknownShaderType {message: String},
-    FailedToCreateShader {shader_type: String, message: String},
-    FailedToCompileShader {shader_type: String, message: String}
-}
+use crate::core::Error;
 
 pub struct Shader {
     gl: Gl,

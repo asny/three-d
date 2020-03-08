@@ -1,25 +1,5 @@
 use crate::core::Gl;
-
-#[derive(Debug)]
-pub enum Error {
-    #[cfg(feature = "image-io")]
-    Image(image::ImageError),
-    IO(std::io::Error),
-    FailedToCreateTexture {message: String}
-}
-
-#[cfg(feature = "image-io")]
-impl From<image::ImageError> for Error {
-    fn from(other: image::ImageError) -> Self {
-        Error::Image(other)
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(other: std::io::Error) -> Self {
-        Error::IO(other)
-    }
-}
+use crate::core::Error;
 
 pub trait Texture {
     fn bind(&self, location: u32);
