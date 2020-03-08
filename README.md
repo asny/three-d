@@ -11,6 +11,13 @@ This means you can develop a 3D application on desktop and easily deploy it on w
 
 https://asny.github.io/dust/
 
+### Status (8 March 2020)
+
+I am working towards a more mature API to be able to publish this project as a crate. 
+Therefore, expect a lot of changes to the API in the next month or so and a much more stable API after publication.
+Also, this project will change name (suggestions are more than welcome!) since Dust is already taken on crates.io 
+and apparently Dust is a pretty popular name for software tools. The GitHub repository will be the same, just with another name.
+
 ### Main features
 
 - Thin and low-level graphics abstraction layer which maps one-to-one with the OpenGL/WebGL2 graphics APIs.
@@ -21,6 +28,8 @@ multiple light types including shadows, and effects applied after rendering the 
 Again, it is always possible to combine with lower-level functionality and it can be avoided altogether by enabling the "no-renderer" feature.
 - Default windows for easy setup (currently [glutin](https://crates.io/crates/glutin) for cross-platform desktop and canvas for web). 
 Can be avoided by disabling the "glutin-window" feature and "canvas" feature respectively.
+
+### Build
 
 #### Desktop: 
 Build and run an example, in this case 'hello_world':
@@ -47,3 +56,32 @@ Build and run an example on desktop and also generate web output (webassembly, j
 ```console
 $ ./examples/hello_world/run 
 ``` 
+
+### Input/output
+
+Dust supports a custom format with the extension ".3d". 
+The advantages of the .3d format is that it is smaller in size than other open formats like obj and stl 
+and easier to read/write when you are using Rust or specifically the [serde](https://github.com/serde-rs/serde) and [bincode](https://github.com/servo/bincode) crates. 
+To create a .3d file, the easiest option is to create a [CPUMesh](https://github.com/asny/Dust/blob/master/src/objects/cpu_mesh.rs):
+
+```rust
+use dust::*;
+
+fn main() {
+    // Create the cpu mesh (a single triangle)
+    let indices = [0, 1, 2];
+    let positions = [-3.0, -1.0, 0.0,  3.0, -1.0, 0.0,  0.0, 2.0, 0.0];
+    let normals = [0.0, 0.0, 1.0,  0.0, 0.0, 1.0,  0.0, 0.0, 1.0];
+    let cpu_mesh = CPUMesh::new(&indices, &positions, &normals).unwrap();
+    
+    // Save to a ".3d" file
+    cpu_mesh.to_file("foo.3d").unwrap();
+
+    // Load the ".3d" file into a cpu mesh and transform it into a mesh on the gpu that can be rendered
+    let mesh = CPUMesh::from_file("foo.3d").unwrap().to_mesh(&gl).unwrap();
+}
+```
+
+If you want to load, create, combine or deform meshes and then save to ".3d" format, the [tri-mesh](https://github.com/asny/tri-mesh) crate is an option.
+
+If you want to make your own reader/writer of the .3d format yourself, then take a look at the [CPUMesh](https://github.com/asny/Dust/blob/master/src/objects/cpu_mesh.rs) implementation.

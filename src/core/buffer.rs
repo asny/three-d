@@ -1,9 +1,5 @@
 use crate::core::Gl;
-
-#[derive(Debug)]
-pub enum Error {
-    BufferUpdateFailed {message: String}
-}
+use crate::core::Error;
 
 pub struct VertexBuffer {
     gl: Gl,
