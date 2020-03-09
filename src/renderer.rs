@@ -86,9 +86,11 @@ impl DeferredPipeline
         self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
         self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 
+        let mut dummy = Texture2D::new(&self.gl, 1, 1).unwrap();
+        dummy.fill_with_f32(1, 1,&[1.0]);
         // Ambient light
         if let Some(light) = ambient_light {
-            self.light_pass_program.use_texture(&Texture2D::new(&self.gl, 0, 0).unwrap(), "shadowMap")?;
+            self.light_pass_program.use_texture(&dummy, "shadowMap")?;
             self.light_pass_program.add_uniform_int("light_type", &0)?;
             self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
             self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
@@ -106,7 +108,7 @@ impl DeferredPipeline
                 self.light_pass_program.add_uniform_int("light_type", &2)?;
             }
             else {
-                self.light_pass_program.use_texture(&Texture2D::new(&self.gl, 0, 0).unwrap(), "shadowMap")?;
+                self.light_pass_program.use_texture(&dummy, "shadowMap")?;
                 self.light_pass_program.add_uniform_int("light_type", &1)?;
             }
             self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLight");
@@ -124,7 +126,7 @@ impl DeferredPipeline
                 self.light_pass_program.add_uniform_int("light_type", &4)?;
             }
             else {
-                self.light_pass_program.use_texture(&Texture2D::new(&self.gl, 0, 0).unwrap(), "shadowMap")?;
+                self.light_pass_program.use_texture(&dummy, "shadowMap")?;
                 self.light_pass_program.add_uniform_int("light_type", &3)?;
             }
             self.light_pass_program.use_uniform_block(light.buffer(), "SpotLight");
@@ -139,6 +141,7 @@ impl DeferredPipeline
         for light in point_lights {
             self.light_pass_program.add_uniform_int("light_type", &5)?;
             self.light_pass_program.use_uniform_block(light.buffer(), "PointLight");
+            self.light_pass_program.use_texture(&dummy, "shadowMap")?;
 
             self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
             self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
