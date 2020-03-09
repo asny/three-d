@@ -83,6 +83,7 @@ impl DirectionalLight {
     {
         self.shadow_camera = None;
         self.shadow_texture = None;
+        self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
     pub fn generate_shadow_map(&mut self, target: &Vec3,
@@ -104,6 +105,7 @@ impl DirectionalLight {
         rendertarget.write_to_depth(0, 0, texture_width, texture_height, Some(1.0),
             &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
         self.shadow_texture = rendertarget.depth_texture;
+        self.light_buffer.update(3, &[1.0]).unwrap();
     }
 
     pub(crate) fn shadow_map(&self) -> Option<&Texture2D>

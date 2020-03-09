@@ -15,6 +15,8 @@ impl From<core::Error> for Error {
 
 pub struct DeferredPipeline {
     gl: Gl,
+    uniform_light_program: program::Program,
+    directional_light_program: program::Program,
     light_pass_program: program::Program,
     geometry_pass_texture: Texture2DArray,
     geometry_pass_depth_texture: Texture2DArray,
@@ -30,6 +32,15 @@ impl DeferredPipeline
         let light_pass_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                include_str!("shaders/light_pass.frag"))?;
+        let uniform_light_program = program::Program::from_source(gl,
+                                                               include_str!("shaders/light_pass.vert"),
+                                                               include_str!("shaders/uniform_light.frag"))?;
+        let directional_light_program = program::Program::from_source(gl,
+                                                               include_str!("shaders/light_pass.vert"),
+                                                               &format!("{}\n{}\n{}",
+                                                                       &include_str!("shaders/light_shared.frag"),
+                                                                       &include_str!("shaders/shadow_shared.frag"),
+                                                                       &include_str!("shaders/directional_light.frag")))?;
         let geometry_pass_texture = Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?;
         let geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(gl, screen_width, screen_height, 1)?;
 
@@ -48,6 +59,8 @@ impl DeferredPipeline
         Ok(DeferredPipeline {
             gl: gl.clone(),
             light_pass_program,
+            uniform_light_program,
+            directional_light_program,
             full_screen,
             geometry_pass_texture,
             geometry_pass_depth_texture,
@@ -80,44 +93,52 @@ impl DeferredPipeline
         state::cull(&self.gl,state::CullType::Back);
         state::blend(&self.gl, state::BlendType::None);
 
-        self.light_pass_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-        self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
-
-        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
-        self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-
         let mut dummy = Texture2D::new(&self.gl, 1, 1).unwrap();
         dummy.fill_with_f32(1, 1,&[1.0]);
+
         // Ambient light
         if let Some(light) = ambient_light {
-            self.light_pass_program.use_texture(&dummy, "shadowMap")?;
-            self.light_pass_program.add_uniform_int("light_type", &0)?;
-            self.light_pass_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
-            self.light_pass_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
 
-            self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-            self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
-            self.light_pass_program.draw_arrays(3);
+            self.uniform_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.uniform_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+
+            self.uniform_light_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
+            self.uniform_light_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
+
+            self.uniform_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+            self.uniform_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.uniform_light_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         // Directional light
         for light in directional_lights {
+            self.directional_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.directional_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+
+            self.directional_light_program.add_uniform_vec3("eyePosition", &camera.position())?;
+            self.directional_light_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+
             if let Some(texture) = light.shadow_map() {
-                self.light_pass_program.use_texture(texture, "shadowMap")?;
-                self.light_pass_program.add_uniform_int("light_type", &2)?;
+                self.directional_light_program.use_texture(texture, "shadowMap")?;
             }
             else {
-                self.light_pass_program.use_texture(&dummy, "shadowMap")?;
-                self.light_pass_program.add_uniform_int("light_type", &1)?;
+                self.directional_light_program.use_texture(&dummy, "shadowMap")?;
             }
-            self.light_pass_program.use_uniform_block(light.buffer(), "DirectionalLight");
+            self.directional_light_program.use_uniform_block(light.buffer(), "DirectionalLight");
 
-            self.light_pass_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-            self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
-            self.light_pass_program.draw_arrays(3);
+            self.directional_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+            self.directional_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.directional_light_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
         }
+
+
+        /*self.light_pass_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
+        self.light_pass_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+
+        self.light_pass_program.add_uniform_vec3("eyePosition", &camera.position())?;
+        self.light_pass_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
 
         // Spot lights
         for light in spot_lights {
@@ -147,7 +168,7 @@ impl DeferredPipeline
             self.light_pass_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
             self.light_pass_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
-        }
+        }*/
 
         Ok(())
     }
