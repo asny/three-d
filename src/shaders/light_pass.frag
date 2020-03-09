@@ -238,5 +238,5 @@ void main()
             light = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position, normal, diffuse_intensity, specular_intensity, specular_power);
         }
     }
-    color = vec4(surface_color * light, 0.0);
+    color = vec4(surface_color * light, 1.0);
 }
