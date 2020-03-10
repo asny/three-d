@@ -34,13 +34,13 @@ void main()
     float angle = acos(dot(light_direction, normalize(spotLight.direction)));
     float cutoff = 3.14 * spotLight.cutoff / 180.0;
 
-    if (angle > cutoff) {
-        discard;
-    }
-    vec3 light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal,
-        diffuse_intensity, specular_intensity, specular_power) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
-    if(spotLight.shadowEnabled > 0.5) {
-        light *= calculate_shadow(spotLight.shadowMVP, position);
+    vec3 light = vec3(0.0);
+    if (angle < cutoff) {
+        light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal,
+            diffuse_intensity, specular_intensity, specular_power) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+        if(spotLight.shadowEnabled > 0.5) {
+            light *= calculate_shadow(spotLight.shadowMVP, position);
+        }
     }
     color = vec4(surface_color * light, 1.0);
 }
