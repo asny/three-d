@@ -11,7 +11,7 @@ fn main() {
 
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(5.0, -3.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
