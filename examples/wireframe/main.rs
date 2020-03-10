@@ -12,7 +12,7 @@ fn main() {
     // Renderer
     let scene_center = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
-    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.6, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -77,7 +77,7 @@ fn main() {
         }
 
         // Geometry pass
-        renderer.geometry_pass(&|| {
+        renderer.geometry_pass(width, height, &|| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             state::cull(&gl, state::CullType::Back);
             model.render(&transformation, &camera);
@@ -86,7 +86,7 @@ fn main() {
         }).unwrap();
 
         // Light pass
-        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.2, 0.2, 0.2, 1.0)), None, &|| {
             renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
         }).unwrap();
 

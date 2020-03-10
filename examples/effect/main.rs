@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.0, 0.0, 0.0, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -56,7 +56,7 @@ fn main() {
 
         // draw
         // Geometry pass
-        renderer.geometry_pass(&|| {
+        renderer.geometry_pass(width, height, &|| {
             let transformation = Mat4::identity();
             monkey.render(&transformation, &camera);
         }).unwrap();
