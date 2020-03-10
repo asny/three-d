@@ -19,16 +19,15 @@ pub struct DeferredPipeline {
     directional_light_program: program::Program,
     point_light_program: program::Program,
     spot_light_program: program::Program,
-    geometry_pass_texture: Texture2DArray,
-    geometry_pass_depth_texture: Texture2DArray,
-    full_screen: VertexBuffer,
-    pub background_color: Vec4
+    geometry_pass_texture: Option<Texture2DArray>,
+    geometry_pass_depth_texture: Option<Texture2DArray>,
+    full_screen: VertexBuffer
 }
 
 
 impl DeferredPipeline
 {
-    pub fn new(gl: &Gl, screen_width: usize, screen_height: usize, background_color: Vec4) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &Gl) -> Result<DeferredPipeline, Error>
     {
         let uniform_light_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
@@ -50,8 +49,6 @@ impl DeferredPipeline
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/shadow_shared.frag"),
                                                                        &include_str!("shaders/spot_light.frag")))?;
-        let geometry_pass_texture = Texture2DArray::new_as_color_targets(gl, screen_width, screen_height, 2)?;
-        let geometry_pass_depth_texture = Texture2DArray::new_as_depth_targets(gl, screen_width, screen_height, 1)?;
 
         let positions = vec![
             -3.0, -1.0, 0.0,
@@ -72,27 +69,24 @@ impl DeferredPipeline
             point_light_program,
             spot_light_program,
             full_screen,
-            geometry_pass_texture,
-            geometry_pass_depth_texture,
-            background_color })
+            geometry_pass_texture: None,
+            geometry_pass_depth_texture: None})
     }
 
-    pub fn geometry_pass(&mut self, render_scene: &dyn Fn()) -> Result<(), Error>
+    pub fn geometry_pass(&mut self, width: usize, height: usize, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render_scene: &dyn Fn()) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
         state::cull(&self.gl, state::CullType::None);
         state::blend(&self.gl, state::BlendType::None);
 
-        let geometry_pass_rendertarget = rendertarget::RenderTarget::new(&self.gl,
-            self.geometry_pass_texture.width, self.geometry_pass_texture.height, 2, 1)?;
-        geometry_pass_rendertarget.write_array(0, 0,
-            self.geometry_pass_texture.width, self.geometry_pass_texture.height,
-            Some(&self.background_color), Some(1.0),
+        let geometry_pass_rendertarget = rendertarget::RenderTarget::new(&self.gl, width, height, 2, 1)?;
+        geometry_pass_rendertarget.write_array(0, 0, width, height,
+            clear_color, clear_depth,
             2,&|channel| {channel},
             0, render_scene)?;
-        self.geometry_pass_texture = geometry_pass_rendertarget.color_texture_array.unwrap();
-        self.geometry_pass_depth_texture = geometry_pass_rendertarget.depth_texture_array.unwrap();
+        self.geometry_pass_texture = Some(geometry_pass_rendertarget.color_texture_array.unwrap());
+        self.geometry_pass_depth_texture = Some(geometry_pass_rendertarget.depth_texture_array.unwrap());
         Ok(())
     }
 
@@ -187,10 +181,10 @@ impl DeferredPipeline
 
     pub fn geometry_pass_texture(&self) -> &Texture2DArray
     {
-        &self.geometry_pass_texture
+        &self.geometry_pass_texture.as_ref().unwrap()
     }
     pub fn geometry_pass_depth_texture(&self) -> &Texture2DArray
     {
-        &self.geometry_pass_depth_texture
+        &self.geometry_pass_depth_texture.as_ref().unwrap()
     }
 }

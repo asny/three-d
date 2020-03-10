@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -88,7 +88,7 @@ fn main() {
         }
 
         // Geometry pass
-        renderer.geometry_pass(&||
+        renderer.geometry_pass(width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &||
             {
                 tree_mesh.render(&Mat4::identity(), &camera);
                 leaves_mesh.render(&Mat4::identity(), &camera);
