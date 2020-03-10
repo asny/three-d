@@ -13,7 +13,7 @@ fn main() {
     let scene_center = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut renderer = DeferredPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.6, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
@@ -86,7 +86,7 @@ fn main() {
         }).unwrap();
 
         // Light pass
-        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.2, 0.2, 0.2, 1.0)), None, &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), None, &|| {
             renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
         }).unwrap();
 
