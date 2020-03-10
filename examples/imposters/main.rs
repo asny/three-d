@@ -88,7 +88,7 @@ fn main() {
         }
 
         // Geometry pass
-        renderer.geometry_pass(width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &||
+        renderer.geometry_pass(width, height, &||
             {
                 tree_mesh.render(&Mat4::identity(), &camera);
                 leaves_mesh.render(&Mat4::identity(), &camera);
@@ -97,7 +97,7 @@ fn main() {
             }).unwrap();
 
         // Light pass
-        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), None, &|| {
             renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
         }).unwrap();
 

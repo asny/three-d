@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.8, 0.8, 0.8, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -82,14 +82,14 @@ fn main() {
         spot_light.generate_shadow_map(20.0, 1024, &render_scene);
 
         // Geometry pass
-        renderer.geometry_pass(&||
+        renderer.geometry_pass(width, height, &||
             {
                 render_scene(&camera);
                 plane.render(&Mat4::identity(), &camera);
             }).unwrap();
 
         // Light pass
-        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), None, &|| {
             renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
                                                        &[&spot_light], &[&point_light0, &point_light1]).unwrap();
         }).unwrap();

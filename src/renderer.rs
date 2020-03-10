@@ -73,7 +73,7 @@ impl DeferredPipeline
             geometry_pass_depth_texture: None})
     }
 
-    pub fn geometry_pass(&mut self, width: usize, height: usize, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render_scene: &dyn Fn()) -> Result<(), Error>
+    pub fn geometry_pass(&mut self, width: usize, height: usize, render_scene: &dyn Fn()) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
@@ -82,7 +82,7 @@ impl DeferredPipeline
 
         let geometry_pass_rendertarget = rendertarget::RenderTarget::new(&self.gl, width, height, 2, 1)?;
         geometry_pass_rendertarget.write_array(0, 0, width, height,
-            clear_color, clear_depth,
+            Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
             2,&|channel| {channel},
             0, render_scene)?;
         self.geometry_pass_texture = Some(geometry_pass_rendertarget.color_texture_array.unwrap());

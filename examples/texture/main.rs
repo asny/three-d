@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = DeferredPipeline::new(&gl, width, height, vec4(0.0, 0.0, 0.0, 1.0)).unwrap();
+    let mut renderer = DeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(5.0, 5.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -54,13 +54,13 @@ fn main() {
 
         // draw
         // Geometry pass
-        renderer.geometry_pass(&|| {
+        renderer.geometry_pass(width, height, &|| {
             let transformation = Mat4::identity();
             box_mesh.render(&transformation, &camera);
-            skybox.render(&camera).unwrap();
         }).unwrap();
 
-        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
+        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.0, 0.0, 1.0)), None, &|| {
+            skybox.render(&camera).unwrap();
             renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
         }).unwrap();
 
