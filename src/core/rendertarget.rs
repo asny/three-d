@@ -166,11 +166,13 @@ impl RenderTarget
             .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
         gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
 
-        let mut draw_buffers = Vec::new();
-        for i in 0..no_color_channels {
-            draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
+        if no_color_channels > 0 {
+            let mut draw_buffers = Vec::new();
+            for i in 0..no_color_channels {
+                draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
+            }
+            gl.draw_buffers(&draw_buffers);
         }
-        gl.draw_buffers(&draw_buffers);
         Ok(id)
     }
 
