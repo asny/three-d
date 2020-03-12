@@ -26,6 +26,11 @@ impl Imposter {
         let rendertarget = RenderTarget::new(gl, texture_width, texture_height,
                                              NO_VIEW_ANGLES*2, NO_VIEW_ANGLES).unwrap();
 
+        state::depth_write(&gl, true);
+        state::depth_test(&gl, state::DepthTestType::LessOrEqual);
+        state::cull(&gl, state::CullType::None);
+        state::blend(&gl, state::BlendType::None);
+
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
