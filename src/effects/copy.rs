@@ -33,7 +33,7 @@ impl CopyEffect {
         Ok(CopyEffect {gl: gl.clone(), program, buffer})
     }
 
-    pub fn apply(&self, color_texture: &dyn Texture, depth_texture: &dyn Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, color_texture: &Texture2DArray, depth_texture: &Texture2DArray) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::None);

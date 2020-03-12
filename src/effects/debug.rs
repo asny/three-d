@@ -40,7 +40,7 @@ impl DebugEffect {
         println!("{:?}", self.debug_type);
     }
 
-    pub fn apply(&self, camera: &Camera, geometry_texture: &dyn Texture, depth_texture: &dyn Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, camera: &Camera, geometry_texture: &Texture2DArray, depth_texture: &Texture2DArray) -> Result<(), effects::Error>
     {
         if self.debug_type != Type::NONE {
             state::depth_write(&self.gl,false);

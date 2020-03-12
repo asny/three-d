@@ -31,7 +31,7 @@ impl FogEffect {
         Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, buffer})
     }
 
-    pub fn apply(&self, time: f32, camera: &camera::Camera, depth_texture: &dyn Texture) -> Result<(), effects::Error>
+    pub fn apply(&self, time: f32, camera: &camera::Camera, depth_texture: &Texture2DArray) -> Result<(), effects::Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
