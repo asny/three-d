@@ -128,8 +128,7 @@ impl DeferredPipeline
                 self.directional_light_program.use_texture(texture, "shadowMap")?;
             }
             else {
-                let mut dummy = Texture2D::new(&self.gl, 1, 1).unwrap();
-                dummy.fill_with_f32(1, 1,&[1.0]);
+                let dummy = Texture2D::new_as_color_target(&self.gl, 1, 1).unwrap();
                 self.directional_light_program.use_texture(&dummy, "shadowMap")?;
             }
             self.directional_light_program.use_uniform_block(light.buffer(), "DirectionalLight");
@@ -152,8 +151,7 @@ impl DeferredPipeline
                 self.spot_light_program.use_texture(texture, "shadowMap")?;
             }
             else {
-                let mut dummy = Texture2D::new(&self.gl, 1, 1).unwrap();
-                dummy.fill_with_f32(1, 1,&[1.0]);
+                let dummy = Texture2D::new_as_color_target(&self.gl, 1, 1).unwrap();
                 self.spot_light_program.use_texture(&dummy, "shadowMap")?;
             }
             self.spot_light_program.use_uniform_block(light.buffer(), "SpotLight");
