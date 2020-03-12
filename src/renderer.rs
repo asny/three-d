@@ -15,7 +15,7 @@ impl From<core::Error> for Error {
 
 pub struct DeferredPipeline {
     gl: Gl,
-    uniform_light_program: program::Program,
+    ambient_light_program: program::Program,
     directional_light_program: program::Program,
     point_light_program: program::Program,
     spot_light_program: program::Program,
@@ -29,9 +29,9 @@ impl DeferredPipeline
 {
     pub fn new(gl: &Gl) -> Result<DeferredPipeline, Error>
     {
-        let uniform_light_program = program::Program::from_source(gl,
+        let ambient_light_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
-                                                               include_str!("shaders/uniform_light.frag"))?;
+                                                               include_str!("shaders/ambient_light.frag"))?;
         let directional_light_program = program::Program::from_source(gl,
                                                                include_str!("shaders/light_pass.vert"),
                                                                &format!("{}\n{}\n{}",
@@ -64,7 +64,7 @@ impl DeferredPipeline
 
         Ok(DeferredPipeline {
             gl: gl.clone(),
-            uniform_light_program,
+            ambient_light_program,
             directional_light_program,
             point_light_program,
             spot_light_program,
@@ -100,15 +100,15 @@ impl DeferredPipeline
         // Ambient light
         if let Some(light) = ambient_light {
 
-            self.uniform_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.uniform_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.ambient_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.ambient_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
 
-            self.uniform_light_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
-            self.uniform_light_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
+            self.ambient_light_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
+            self.ambient_light_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
 
-            self.uniform_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-            self.uniform_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
-            self.uniform_light_program.draw_arrays(3);
+            self.ambient_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
+            self.ambient_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.ambient_light_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
         }
 
