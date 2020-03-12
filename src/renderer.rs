@@ -62,15 +62,19 @@ impl DeferredPipeline
         ];
         let full_screen = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
 
-        Ok(DeferredPipeline {
+        let renderer = DeferredPipeline {
             gl: gl.clone(),
             ambient_light_program,
             directional_light_program,
             point_light_program,
             spot_light_program,
             full_screen,
-            geometry_pass_texture: None,
-            geometry_pass_depth_texture: None})
+            geometry_pass_texture: Some(Texture2DArray::new_as_color_targets(gl, 1, 1, 2)?),
+            geometry_pass_depth_texture: Some(Texture2DArray::new_as_depth_targets(gl, 1, 1, 1)?)};
+
+        renderer.ambient_light_program.use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
+        renderer.ambient_light_program.use_texture(renderer.geometry_pass_depth_texture(), "depthMap")?;
+        Ok(renderer)
     }
 
     pub fn geometry_pass(&mut self, width: usize, height: usize, render_scene: &dyn Fn()) -> Result<(), Error>
