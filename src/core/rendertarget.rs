@@ -48,11 +48,11 @@ impl RenderTarget
         let id = RenderTarget::new_framebuffer(&self.gl, if self.color_texture.is_some() {1} else {0})?;
 
         if let Some(ref color_texture) = self.color_texture {
-            color_texture.bind_to_framebuffer(0);
+            color_texture.bind_as_color_target(0);
         }
 
         if let Some(ref depth_texture) = self.depth_texture {
-            depth_texture.bind_to_depth_target();
+            depth_texture.bind_as_depth_target();
         }
 
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
@@ -87,12 +87,12 @@ impl RenderTarget
 
         if let Some(ref color_texture) = self.color_texture_array {
             for channel in 0..color_channel_count {
-                color_texture.bind_to_framebuffer(color_channel_to_texture_layer(channel), channel);
+                color_texture.bind_as_color_target(color_channel_to_texture_layer(channel), channel);
             }
         }
 
         if let Some(ref depth_texture) = self.depth_texture_array {
-            depth_texture.bind_to_depth_target(depth_layer);
+            depth_texture.bind_as_depth_target(depth_layer);
         }
 
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
@@ -111,7 +111,7 @@ impl RenderTarget
         self.gl.viewport(x, y, width, height);
         let mut pixels = vec![0u8; width * height * 3];
         let id = RenderTarget::new_framebuffer(&self.gl, 1)?;
-        color_texture.bind_to_framebuffer(0);
+        color_texture.bind_as_color_target(0);
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
 
         self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
@@ -139,7 +139,7 @@ impl RenderTarget
         self.gl.viewport(x, y, width, height);
         let mut pixels = vec![0f32; width * height];
         let id = RenderTarget::new_framebuffer(&self.gl, 0)?;
-        depth_texture.bind_to_depth_target();
+        depth_texture.bind_as_depth_target();
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
 
         self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));

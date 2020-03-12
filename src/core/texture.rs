@@ -123,13 +123,13 @@ impl Texture2D
                                            &mut d);
     }
 
-    pub fn bind_to_framebuffer(&self, channel: usize)
+    pub fn bind_as_color_target(&self, channel: usize)
     {
         self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER,
                        gl::consts::COLOR_ATTACHMENT0 + channel as u32, self.target, &self.id, 0);
     }
 
-    pub fn bind_to_depth_target(&self)
+    pub fn bind_as_depth_target(&self)
     {
         self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER,
                        gl::consts::DEPTH_ATTACHMENT, self.target, &self.id, 0);
@@ -302,13 +302,13 @@ impl Texture2DArray
         Ok(texture)
     }
 
-    pub fn bind_to_framebuffer(&self, layer: usize, channel: usize)
+    pub fn bind_as_color_target(&self, layer: usize, channel: usize)
     {
         self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER,
                       self.attachment + channel as u32, &self.id, 0, layer as u32);
     }
 
-    pub fn bind_to_depth_target(&self, layer: usize)
+    pub fn bind_as_depth_target(&self, layer: usize)
     {
         self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER,
                        gl::consts::DEPTH_ATTACHMENT, &self.id, 0, layer as u32);
