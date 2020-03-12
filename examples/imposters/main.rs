@@ -22,9 +22,15 @@ fn main() {
     leaves_mesh.specular_intensity = 0.0;
     let aabb = tree_mesh.axis_aligned_bounding_box().add(leaves_mesh.axis_aligned_bounding_box());
     let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
+            state::depth_write(&gl, true);
+            state::depth_test(&gl, state::DepthTestType::LessOrEqual);
+            state::cull(&gl, state::CullType::Back);
+            state::blend(&gl, state::BlendType::None);
+
             tree_mesh.render(&Mat4::identity(), camera);
             leaves_mesh.render(&Mat4::identity(), camera);
         }, (aabb.min, aabb.max), 256);
+
     let t = 10;
     let mut positions = Vec::new();
     let mut angles = Vec::new();
