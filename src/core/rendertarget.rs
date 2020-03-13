@@ -12,8 +12,12 @@ impl RenderTarget
 {
     pub fn new(gl: &Gl, width: usize, height: usize, color_layers: usize, depth_layers: usize) -> Result<RenderTarget, Error>
     {
-        let color_texture = if color_layers == 1 && depth_layers <= 1 { Some(Texture2D::new_as_color_target(gl, width, height)?) } else {None};
-        let depth_texture = if color_layers <= 1 && depth_layers == 1 { Some(Texture2D::new_as_depth_target(gl, width, height)?) } else {None};
+        let color_texture = if color_layers == 1 && depth_layers <= 1 {
+            Some(Texture2D::new_empty(gl, width, height, Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8)?)
+        } else {None};
+        let depth_texture = if color_layers <= 1 && depth_layers == 1 {
+            Some(Texture2D::new_empty(gl, width, height, Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?)
+        } else {None};
         let color_texture_array = if depth_layers > 1 && color_layers == 1 || color_layers > 1 { Some(Texture2DArray::new_as_color_targets(gl, width, height, color_layers)?)} else {None};
         let depth_texture_array = if color_layers > 1 && depth_layers == 1 || depth_layers > 1 { Some(Texture2DArray::new_as_depth_targets(gl, width, height, depth_layers)?)} else {None};
         Ok(RenderTarget { gl: gl.clone(), color_texture, depth_texture, color_texture_array, depth_texture_array })
