@@ -78,6 +78,7 @@ impl Texture2D
         texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
         Ok(texture)
     }
+
     pub fn set_interpolation(&self, min_filter: Interpolation, mag_filter: Interpolation)
     {
         bind(&self.gl, &self.id, gl::consts::TEXTURE_2D);
@@ -125,13 +126,13 @@ impl Texture2D
                                            &mut d);
     }
 
-    pub fn bind_as_color_target(&self, channel: usize)
+    pub(crate) fn bind_as_color_target(&self, channel: usize)
     {
         self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER,
                        gl::consts::COLOR_ATTACHMENT0 + channel as u32, gl::consts::TEXTURE_2D, &self.id, 0);
     }
 
-    pub fn bind_as_depth_target(&self)
+    pub(crate) fn bind_as_depth_target(&self)
     {
         self.gl.framebuffer_texture_2d(gl::consts::FRAMEBUFFER,
                        gl::consts::DEPTH_ATTACHMENT, gl::consts::TEXTURE_2D, &self.id, 0);
@@ -156,30 +157,26 @@ impl Drop for Texture2D
 
 pub struct Texture3D {
     gl: Gl,
-    id: gl::Texture,
-    target: u32
+    id: gl::Texture
 }
 
 // TEXTURE 3D
 impl Texture3D
 {
-    pub fn new(gl: &Gl) -> Result<Texture3D, Error>
+    pub fn new(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping) -> Result<Texture3D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture3D { gl: gl.clone(), id, target: gl::consts::TEXTURE_CUBE_MAP };
-
-        bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::LINEAR as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::LINEAR as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_R, gl::consts::CLAMP_TO_EDGE as i32);
-
+        let texture = Texture3D { gl: gl.clone(), id };
+        texture.set_interpolation(min_filter, mag_filter);
+        texture.set_wrapping(wrap_s, wrap_t, wrap_r);
         Ok(texture)
     }
 
     #[cfg(feature = "image-io")]
-    pub fn new_from_bytes(gl: &Gl, back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
+    pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping,
+                      back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
     {
         use image::GenericImageView;
         let back = image::load_from_memory(back_bytes)?;
@@ -188,7 +185,7 @@ impl Texture3D
         let left = image::load_from_memory(left_bytes)?;
         let right = image::load_from_memory(right_bytes)?;
 
-        let mut texture = Texture3D::new(gl)?;
+        let mut texture = Texture3D::new(gl, min_filter, mag_filter, wrap_s, wrap_t, wrap_r)?;
         texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
                              [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
                               &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
@@ -196,7 +193,8 @@ impl Texture3D
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn new_from_files(gl: &Gl, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
+    pub fn new_from_files(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
         use image::GenericImageView;
         let back = image::open(format!("{}{}", path, back_name))?;
@@ -205,26 +203,39 @@ impl Texture3D
         let left = image::open(format!("{}{}", path, left_name))?;
         let right = image::open(format!("{}{}", path, right_name))?;
 
-        let mut texture = Texture3D::new(gl)?;
+        let mut texture = Texture3D::new(gl, min_filter, mag_filter, wrap_s, wrap_t, wrap_r)?;
         texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
                              [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
                               &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
         Ok(texture)
     }
 
+    pub fn set_interpolation(&self, min_filter: Interpolation, mag_filter: Interpolation)
+    {
+        bind(&self.gl, &self.id, gl::consts::TEXTURE_CUBE_MAP);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_CUBE_MAP, gl::consts::TEXTURE_MIN_FILTER, min_filter as i32);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_CUBE_MAP, gl::consts::TEXTURE_MAG_FILTER, mag_filter as i32);
+    }
+
+    pub fn set_wrapping(&self, wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping)
+    {
+        bind(&self.gl, &self.id, gl::consts::TEXTURE_CUBE_MAP);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_CUBE_MAP, gl::consts::TEXTURE_WRAP_S, wrap_s as i32);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_CUBE_MAP, gl::consts::TEXTURE_WRAP_T, wrap_t as i32);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_CUBE_MAP, gl::consts::TEXTURE_WRAP_R, wrap_r as i32);
+    }
+
     pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&mut [u8]; 6])
     {
-        bind(&self.gl, &self.id, self.target);
+        bind(&self.gl, &self.id, gl::consts::TEXTURE_CUBE_MAP);
         for i in 0..6 {
-            let format = gl::consts::RGB;
-            let internal_format = gl::consts::RGB8;
             self.gl.tex_image_2d_with_u8_data(gl::consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
                                               0,
-                                              internal_format,
+                                              gl::consts::RGB8,
                                               width as u32,
                                               height as u32,
                                               0,
-                                              format,
+                                              gl::consts::RGB,
                                               gl::consts::UNSIGNED_BYTE,
                                               data[i]);
         }
@@ -235,7 +246,7 @@ impl Texture for Texture3D
 {
     fn bind(&self, location: u32)
     {
-        bind_at(&self.gl, &self.id, self.target, location);
+        bind_at(&self.gl, &self.id, gl::consts::TEXTURE_CUBE_MAP, location);
     }
 }
 
@@ -304,13 +315,13 @@ impl Texture2DArray
         Ok(texture)
     }
 
-    pub fn bind_as_color_target(&self, layer: usize, channel: usize)
+    pub(crate) fn bind_as_color_target(&self, layer: usize, channel: usize)
     {
         self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER,
                       self.attachment + channel as u32, &self.id, 0, layer as u32);
     }
 
-    pub fn bind_as_depth_target(&self, layer: usize)
+    pub(crate) fn bind_as_depth_target(&self, layer: usize)
     {
         self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER,
                        gl::consts::DEPTH_ATTACHMENT, &self.id, 0, layer as u32);
