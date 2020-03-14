@@ -36,6 +36,7 @@ fn main() {
     // main loop
     let mut time = 0.0;
     let mut rotating = false;
+    let mut shadows_enabled = true;
     window.render_loop(move |frame_input|
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
@@ -57,7 +58,12 @@ fn main() {
                 Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
-
+                        shadows_enabled = !shadows_enabled;
+                        if !shadows_enabled {
+                            spot_light.clear_shadow_map();
+                            directional_light0.clear_shadow_map();
+                            directional_light1.clear_shadow_map();
+                        }
                     }
                 }
             }
@@ -77,9 +83,11 @@ fn main() {
         let render_scene = |camera: &Camera| {
             monkey.render(&Mat4::identity(), camera);
         };
-        directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
-        directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
-        spot_light.generate_shadow_map(20.0, 1024, &render_scene);
+        if shadows_enabled {
+            directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
+            directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
+            spot_light.generate_shadow_map(20.0, 1024, &render_scene);
+        }
 
         // Geometry pass
         renderer.geometry_pass(width, height, &||
