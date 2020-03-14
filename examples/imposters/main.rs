@@ -99,7 +99,7 @@ fn main() {
             }).unwrap();
 
         // Light pass
-        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), None, &|| {
+        Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), None, &|| {
             renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
         }).unwrap();
 
@@ -107,7 +107,7 @@ fn main() {
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
-            save_screenshot(path, &gl, width, height).unwrap();
+            Screen::save_color(path, &gl, width, height).unwrap();
             std::process::exit(1);
         }
 

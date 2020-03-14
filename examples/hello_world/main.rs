@@ -35,7 +35,7 @@ fn main() {
     {
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
-        RenderTarget::write_to_screen(&gl, 0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
+        Screen::write(&gl, 0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
             program.use_attribute_vec3_float(&buffer, "position", 0).unwrap();
             program.use_attribute_vec3_float(&buffer, "color", 1).unwrap();
 
@@ -47,7 +47,7 @@ fn main() {
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
-            save_screenshot(path, &gl, screen_width, screen_height).unwrap();
+            Screen::save_color(path, &gl, screen_width, screen_height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();

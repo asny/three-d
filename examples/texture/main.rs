@@ -59,14 +59,14 @@ fn main() {
             box_mesh.render(&transformation, &camera);
         }).unwrap();
 
-        RenderTarget::write_to_screen(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.0, 0.0, 1.0)), None, &|| {
+        Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.0, 0.0, 1.0)), None, &|| {
             skybox.render(&camera).unwrap();
             renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
         }).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
-            save_screenshot(path, &gl, width, height).unwrap();
+            Screen::save_color(path, &gl, width, height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();

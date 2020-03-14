@@ -1,10 +1,9 @@
 use crate::core::*;
 
-pub struct RenderTarget {}
+pub struct Screen {}
 
-impl RenderTarget
-{
-    pub fn write_to_screen(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+impl Screen {
+    pub fn write(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
                           clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
     {
         gl.viewport(x, y, width, height);
@@ -14,6 +13,51 @@ impl RenderTarget
         Ok(())
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_color(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
+    {
+        gl.viewport(x, y, width, height);
+        let mut pixels = vec![0u8; width * height * 3];
+        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
+        gl.read_pixels(x as u32, y as u32, width as u32, height as u32, gl::consts::RGB,
+                            gl::consts::UNSIGNED_BYTE, &mut pixels);
+        Ok(pixels)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn read_depth(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
+    {
+        gl.viewport(x, y, width, height);
+        let mut pixels = vec![0f32; width * height];
+        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
+        gl.read_depths(x as u32, y as u32, width as u32, height as u32,
+                        gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
+        Ok(pixels)
+    }
+
+    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
+    pub fn save_color(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
+    {
+        let pixels = Self::read_color(gl, 0, 0,width, height)?;
+        let mut pixels_out = vec![0u8; width * height * 3];
+        for row in 0..height {
+            for col in 0..width {
+                for i in 0..3 {
+                    pixels_out[3 * width * (height - row - 1) + 3 * col + i] =
+                        pixels[3 * width * row + 3 * col + i];
+                }
+            }
+        }
+
+        image::save_buffer(&std::path::Path::new(path), &pixels_out, width as u32, height as u32, image::RGB(8))?;
+        Ok(())
+    }
+}
+
+pub struct RenderTarget {}
+
+impl RenderTarget
+{
     pub fn write_to_color(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
                           clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: &dyn Fn()) -> Result<(), Error>
     {
@@ -113,17 +157,6 @@ impl RenderTarget
         Ok(pixels)
     }*/
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_color_from_screen(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
-    {
-        gl.viewport(x, y, width, height);
-        let mut pixels = vec![0u8; width * height * 3];
-        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
-        gl.read_pixels(x as u32, y as u32, width as u32, height as u32, gl::consts::RGB,
-                            gl::consts::UNSIGNED_BYTE, &mut pixels);
-        Ok(pixels)
-    }
-
     /*#[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
     {
@@ -140,17 +173,6 @@ impl RenderTarget
         self.gl.delete_framebuffer(Some(&id));
         Ok(pixels)
     }*/
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth_from_screen(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
-    {
-        gl.viewport(x, y, width, height);
-        let mut pixels = vec![0f32; width * height];
-        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
-        gl.read_depths(x as u32, y as u32, width as u32, height as u32,
-                        gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
-        Ok(pixels)
-    }
 
     fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<gl::Framebuffer, Error>
     {
@@ -215,22 +237,4 @@ impl RenderTarget
                                  0, 0, target_texture.width as u32, target_texture.height as u32,
                                  gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
     }*/
-}
-
-#[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-pub fn save_screenshot(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
-{
-    let pixels = RenderTarget::read_color_from_screen(gl, 0, 0,width, height)?;
-    let mut pixels_out = vec![0u8; width * height * 3];
-    for row in 0..height {
-        for col in 0..width {
-            for i in 0..3 {
-                pixels_out[3 * width * (height - row - 1) + 3 * col + i] =
-                    pixels[3 * width * row + 3 * col + i];
-            }
-        }
-    }
-
-    image::save_buffer(&std::path::Path::new(path), &pixels_out, width as u32, height as u32, image::RGB(8))?;
-    Ok(())
 }
