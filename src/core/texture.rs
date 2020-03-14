@@ -17,7 +17,12 @@ pub enum Wrapping {
 }
 
 pub enum Format {
+    R8 = gl::consts::R8 as isize,
+    RGB8 = gl::consts::RGB8 as isize,
+    RGBA4 = gl::consts::RGBA4 as isize,
     RGBA8 = gl::consts::RGBA8 as isize,
+    Depth16 = gl::consts::DEPTH_COMPONENT16 as isize,
+    Depth24 = gl::consts::DEPTH_COMPONENT24 as isize,
     Depth32F = gl::consts::DEPTH_COMPONENT32F as isize
 }
 
