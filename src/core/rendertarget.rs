@@ -1,12 +1,6 @@
 use crate::core::*;
 
-pub struct RenderTarget {
-    gl: Gl,
-    pub color_texture: Option<Texture2D>,
-    pub depth_texture: Option<Texture2D>,
-    pub color_texture_array: Option<Texture2DArray>,
-    pub depth_texture_array: Option<Texture2DArray>
-}
+pub struct RenderTarget {}
 
 impl RenderTarget
 {
@@ -102,7 +96,7 @@ impl RenderTarget
         Ok(())
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    /*#[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
     {
         let color_texture = self.color_texture.as_ref().unwrap();
@@ -117,7 +111,7 @@ impl RenderTarget
                             gl::consts::UNSIGNED_BYTE, &mut pixels);
         self.gl.delete_framebuffer(Some(&id));
         Ok(pixels)
-    }
+    }*/
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_color_from_screen(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
@@ -130,7 +124,7 @@ impl RenderTarget
         Ok(pixels)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    /*#[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
     {
         let depth_texture = self.depth_texture.as_ref().unwrap();
@@ -145,7 +139,7 @@ impl RenderTarget
                         gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
         self.gl.delete_framebuffer(Some(&id));
         Ok(pixels)
-    }
+    }*/
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth_from_screen(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
