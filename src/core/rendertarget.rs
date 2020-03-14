@@ -36,9 +36,9 @@ impl Screen {
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn save_color(path: &str, gl: &Gl, width: usize, height: usize) -> Result<(), Error>
+    pub fn save_color(path: &str, gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<(), Error>
     {
-        let pixels = Self::read_color(gl, 0, 0,width, height)?;
+        let pixels = Self::read_color(gl, x, y, width, height)?;
         let mut pixels_out = vec![0u8; width * height * 3];
         for row in 0..height {
             for col in 0..width {

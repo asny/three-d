@@ -92,7 +92,7 @@ fn main() {
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
-            Screen::save_color(path, &gl, width, height).unwrap();
+            Screen::save_color(path, &gl, 0, 0, width, height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();
