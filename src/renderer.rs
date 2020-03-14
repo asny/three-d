@@ -84,13 +84,13 @@ impl DeferredPipeline
         state::cull(&self.gl, state::CullType::None);
         state::blend(&self.gl, state::BlendType::None);
 
-        let geometry_pass_rendertarget = rendertarget::RenderTarget::new(&self.gl, width, height, 2, 1)?;
-        geometry_pass_rendertarget.write_array(0, 0, width, height,
+        self.geometry_pass_texture = Some(Texture2DArray::new_as_color_targets(&self.gl, width, height, 2)?);
+        self.geometry_pass_depth_texture = Some(Texture2DArray::new_as_depth_targets(&self.gl, width, height, 1)?);
+        RenderTarget::write_array(&self.gl,0, 0, width, height,
             Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
-            2,&|channel| {channel},
+            self.geometry_pass_texture.as_ref(), self.geometry_pass_depth_texture.as_ref(),
+            2, &|channel| {channel},
             0, render_scene)?;
-        self.geometry_pass_texture = Some(geometry_pass_rendertarget.color_texture_array.unwrap());
-        self.geometry_pass_depth_texture = Some(geometry_pass_rendertarget.depth_texture_array.unwrap());
         Ok(())
     }
 
