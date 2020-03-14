@@ -63,23 +63,25 @@ impl Texture2D
     }
 
     #[cfg(feature = "image-io")]
-    pub fn new_from_bytes(gl: &Gl, bytes: &[u8]) -> Result<Texture2D, Error>
+    pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+           wrap_s: Wrapping, wrap_t: Wrapping, bytes: &[u8]) -> Result<Texture2D, Error>
     {
         use image::GenericImageView;
         let img = image::load_from_memory(bytes)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
-            Interpolation::Linear, Interpolation::Linear, Wrapping::ClampToEdge, Wrapping::ClampToEdge)?;
+            min_filter, mag_filter, wrap_s, wrap_t)?;
         texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
         Ok(texture)
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn new_from_file(gl: &Gl, path: &str) -> Result<Texture2D, Error>
+    pub fn new_from_file(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+           wrap_s: Wrapping, wrap_t: Wrapping, path: &str) -> Result<Texture2D, Error>
     {
         use image::GenericImageView;
         let img = image::open(path)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
-        Interpolation::Linear, Interpolation::Linear, Wrapping::ClampToEdge, Wrapping::ClampToEdge)?;
+        min_filter, mag_filter, wrap_s, wrap_t)?;
         texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
         Ok(texture)
     }
