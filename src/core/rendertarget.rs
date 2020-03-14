@@ -33,38 +33,40 @@ impl RenderTarget
         Ok(())
     }
 
-    pub fn write_to_color(&self, x: i32, y: i32, width: usize, height: usize,
-                          clear_color: Option<&Vec4>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_color(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+                          clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: &dyn Fn()) -> Result<(), Error>
     {
-        self.write(x, y, width, height, clear_color, None, render)
+        Self::write(gl, x, y, width, height, clear_color, None, color_texture, None, render)
     }
 
-    pub fn write_to_depth(&self, x: i32, y: i32, width: usize, height: usize,
-                          clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_depth(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+                          clear_depth: Option<f32>, depth_texture: Option<&Texture2D>, render: &dyn Fn()) -> Result<(), Error>
     {
-        self.write(x, y, width, height, None, clear_depth, render)
+        Self::write(gl, x, y, width, height, None, clear_depth, None, depth_texture, render)
     }
 
-    pub fn write(&self, x: i32, y: i32, width: usize, height: usize,
-                                    clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+                 clear_color: Option<&Vec4>, clear_depth: Option<f32>,
+                 color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
+                 render: &dyn Fn()) -> Result<(), Error>
     {
-        self.gl.viewport(x, y, width, height);
-        let id = RenderTarget::new_framebuffer(&self.gl, if self.color_texture.is_some() {1} else {0})?;
+        gl.viewport(x, y, width, height);
+        let id = RenderTarget::new_framebuffer(gl, if color_texture.is_some() {1} else {0})?;
 
-        if let Some(ref color_texture) = self.color_texture {
+        if let Some(color_texture) = color_texture {
             color_texture.bind_as_color_target(0);
         }
 
-        if let Some(ref depth_texture) = self.depth_texture {
+        if let Some(depth_texture) = depth_texture {
             depth_texture.bind_as_depth_target();
         }
 
-        self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        RenderTarget::clear(&self.gl, clear_color, clear_depth);
+        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        RenderTarget::clear(gl, clear_color, clear_depth);
 
         render();
 
-        self.gl.delete_framebuffer(Some(&id));
+        gl.delete_framebuffer(Some(&id));
         Ok(())
     }
 

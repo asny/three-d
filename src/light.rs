@@ -100,11 +100,11 @@ impl DirectionalLight {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        let rendertarget = rendertarget::RenderTarget::new(&self.gl,
-            texture_width, texture_height, 0, 1).unwrap();
-        rendertarget.write_to_depth(0, 0, texture_width, texture_height, Some(1.0),
+        self.shadow_texture = Some(Texture2D::new_empty(&self.gl, texture_width, texture_height, Interpolation::Nearest, Interpolation::Nearest,
+                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap());
+        RenderTarget::write_to_depth(&self.gl, 0, 0, texture_width, texture_height, Some(1.0),
+            self.shadow_texture.as_ref(),
             &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
-        self.shadow_texture = rendertarget.depth_texture;
         self.light_buffer.update(3, &[1.0]).unwrap();
     }
 
@@ -259,11 +259,10 @@ impl SpotLight {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        let rendertarget = rendertarget::RenderTarget::new(&self.gl,
-            texture_size, texture_size, 0, 1).unwrap();
-        rendertarget.write_to_depth(0, 0, texture_size, texture_size, Some(1.0),
-            &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
-        self.shadow_texture = rendertarget.depth_texture;
+        self.shadow_texture = Some(Texture2D::new_empty(&self.gl, texture_size, texture_size, Interpolation::Nearest, Interpolation::Nearest,
+                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap());
+        RenderTarget::write_to_depth(&self.gl, 0, 0, texture_size, texture_size, Some(1.0),
+            self.shadow_texture.as_ref(), &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
         self.light_buffer.update(9, &[1.0]).unwrap();
     }
 
