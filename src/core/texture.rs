@@ -261,8 +261,6 @@ impl Drop for Texture3D
 pub struct Texture2DArray {
     gl: Gl,
     id: gl::Texture,
-    target: u32,
-    attachment: u32,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
@@ -271,21 +269,24 @@ pub struct Texture2DArray {
 // TEXTURE 3D
 impl Texture2DArray
 {
-    pub fn new_as_color_targets(gl: &Gl, width: usize, height: usize, depth: usize) -> Result<Texture2DArray, Error>
+    pub fn new(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation,
+           wrap_s: Wrapping, wrap_t: Wrapping) -> Result<Self, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::COLOR_ATTACHMENT0,
-            width, height, depth};
+        let texture = Self { gl: gl.clone(), id, width, height, depth };
+        texture.set_interpolation(min_filter, mag_filter);
+        texture.set_wrapping(wrap_s, wrap_t);
+        Ok(texture)
+    }
 
-        bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
+    pub fn new_empty(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation,
+           wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
+    {
+        let texture = Self::new(gl, width, height, depth, min_filter, mag_filter, wrap_s, wrap_t)?;
 
-        gl.tex_storage_3d(texture.target,
+        gl.tex_storage_3d(gl::consts::TEXTURE_2D_ARRAY,
                         1,
-                        gl::consts::RGBA8,
+                        format as u32,
                         width as u32,
                         height as u32,
                         depth as u32);
@@ -293,32 +294,24 @@ impl Texture2DArray
         Ok(texture)
     }
 
-    pub fn new_as_depth_targets(gl: &Gl, width: usize, height: usize, depth: usize) -> Result<Texture2DArray, Error>
+    pub fn set_interpolation(&self, min_filter: Interpolation, mag_filter: Interpolation)
     {
-        let id = generate(gl)?;
-        let texture = Texture2DArray { gl: gl.clone(), id, target: gl::consts::TEXTURE_2D_ARRAY, attachment: gl::consts::DEPTH_ATTACHMENT,
-            width, height, depth };
+        bind(&self.gl, &self.id, gl::consts::TEXTURE_2D_ARRAY);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_2D_ARRAY, gl::consts::TEXTURE_MIN_FILTER, min_filter as i32);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_2D_ARRAY, gl::consts::TEXTURE_MAG_FILTER, mag_filter as i32);
+    }
 
-        bind(&texture.gl, &texture.id, texture.target);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MIN_FILTER, gl::consts::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_MAG_FILTER, gl::consts::NEAREST as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_S, gl::consts::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(texture.target, gl::consts::TEXTURE_WRAP_T, gl::consts::CLAMP_TO_EDGE as i32);
-
-        gl.tex_storage_3d(texture.target,
-                        1,
-                        gl::consts::DEPTH_COMPONENT32F,
-                        width as u32,
-                        height as u32,
-                        depth as u32);
-
-        Ok(texture)
+    pub fn set_wrapping(&self, wrap_s: Wrapping, wrap_t: Wrapping)
+    {
+        bind(&self.gl, &self.id, gl::consts::TEXTURE_2D_ARRAY);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_2D_ARRAY, gl::consts::TEXTURE_WRAP_S, wrap_s as i32);
+        self.gl.tex_parameteri(gl::consts::TEXTURE_2D_ARRAY, gl::consts::TEXTURE_WRAP_T, wrap_t as i32);
     }
 
     pub(crate) fn bind_as_color_target(&self, layer: usize, channel: usize)
     {
         self.gl.framebuffer_texture_layer(gl::consts::DRAW_FRAMEBUFFER,
-                      self.attachment + channel as u32, &self.id, 0, layer as u32);
+                      gl::consts::COLOR_ATTACHMENT0 + channel as u32, &self.id, 0, layer as u32);
     }
 
     pub(crate) fn bind_as_depth_target(&self, layer: usize)
@@ -332,7 +325,7 @@ impl Texture for Texture2DArray
 {
     fn bind(&self, location: u32)
     {
-        bind_at(&self.gl, &self.id, self.target, location);
+        bind_at(&self.gl, &self.id, gl::consts::TEXTURE_2D_ARRAY, location);
     }
 }
 

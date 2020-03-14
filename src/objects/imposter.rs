@@ -23,8 +23,12 @@ impl Imposter {
 
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
-        let texture = Texture2DArray::new_as_color_targets(gl, texture_width, texture_height, NO_VIEW_ANGLES*2).unwrap();
-        let depth_texture = Texture2DArray::new_as_depth_targets(gl, texture_width, texture_height, NO_VIEW_ANGLES).unwrap();
+        let texture = Texture2DArray::new_empty(gl, texture_width, texture_height, NO_VIEW_ANGLES*2,
+                Interpolation::Linear, Interpolation::Linear, Wrapping::ClampToEdge,
+                  Wrapping::ClampToEdge, Format::RGBA8).unwrap();
+        let depth_texture = Texture2DArray::new_empty(gl, texture_width, texture_height, NO_VIEW_ANGLES,
+                Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge,
+                  Wrapping::ClampToEdge, Format::Depth32F).unwrap();
 
         state::depth_write(&gl, true);
         state::depth_test(&gl, state::DepthTestType::LessOrEqual);
