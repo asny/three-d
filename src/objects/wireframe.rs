@@ -13,7 +13,7 @@ impl Wireframe
     {
         let edges = ShadedEdges::new(&gl, indices, positions, tube_radius);
         let mut vertices = ShadedVertices::new(&gl, positions);
-        vertices.scale = 2.0 * tube_radius;
+        vertices.scale = 1.5 * tube_radius;
 
         Wireframe {edges, vertices}
     }
