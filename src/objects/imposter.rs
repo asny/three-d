@@ -83,8 +83,8 @@ impl Imposter {
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
     {
-        self.center_buffer.update_with_dynamic_f32(positions);
-        self.rotation_buffer.update_with_dynamic_f32(angles_in_radians);
+        self.center_buffer.fill_with_dynamic_f32(positions);
+        self.rotation_buffer.fill_with_dynamic_f32(angles_in_radians);
         self.instance_count = positions.len() as u32/3;
     }
 

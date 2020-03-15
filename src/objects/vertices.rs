@@ -36,7 +36,7 @@ impl Vertices
            7,3,10, 7,10,6, 7,6,11, 11,6,0, 0,6,1,
            6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
         );
-        let ball_index_buffer = ElementBuffer::new_with(gl, &ball_indices).unwrap();
+        let ball_index_buffer = ElementBuffer::new_with_u32(gl, &ball_indices).unwrap();
         let ball_vertex_buffer = VertexBuffer::new_with_static_f32(gl, &ball_positions).unwrap();
         let instance_buffer = VertexBuffer::new_with_dynamic_f32(gl, positions).unwrap();
 
@@ -46,7 +46,7 @@ impl Vertices
 
     pub fn update_positions(&mut self, positions: &[f32])
     {
-        self.instance_buffer.update_with_dynamic_f32(positions);
+        self.instance_buffer.fill_with_dynamic_f32(positions);
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)

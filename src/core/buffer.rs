@@ -12,11 +12,11 @@ impl VertexBuffer
     {
         let id = gl.create_buffer().unwrap();
         let mut buffer = VertexBuffer { gl: gl.clone(), id };
-        buffer.update_with_static_f32(data);
+        buffer.fill_with_static_f32(data);
         Ok(buffer)
     }
 
-    pub fn update_with_static_f32(&mut self, data: &[f32])
+    pub fn fill_with_static_f32(&mut self, data: &[f32])
     {
         self.bind();
         self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
@@ -27,11 +27,11 @@ impl VertexBuffer
     {
         let id = gl.create_buffer().unwrap();
         let mut buffer = VertexBuffer { gl: gl.clone(), id };
-        buffer.update_with_dynamic_f32(data);
+        buffer.fill_with_dynamic_f32(data);
         Ok(buffer)
     }
 
-    pub fn update_with_dynamic_f32(&mut self, data: &[f32])
+    pub fn fill_with_dynamic_f32(&mut self, data: &[f32])
     {
         self.bind();
         self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::DYNAMIC_DRAW);
@@ -60,19 +60,21 @@ pub struct ElementBuffer {
 
 impl ElementBuffer
 {
-    fn new(gl: &Gl) -> Result<ElementBuffer, Error>
+    pub fn new_with_u32(gl: &Gl, data: &[u32]) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };
+        let mut buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };
+        buffer.fill_with_u32(data);
+        buffer.count = data.len();
         Ok(buffer)
     }
 
-    pub fn new_with(gl: &Gl, data: &[u32]) -> Result<ElementBuffer, Error>
+    pub fn fill_with_u32(&mut self, data: &[u32])
     {
-        let mut buffer = ElementBuffer::new(gl)?;
-        buffer.fill_with(data);
-        buffer.count = data.len();
-        Ok(buffer)
+        self.bind();
+        self.gl.buffer_data_u32(gl::consts::ELEMENT_ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+
     }
 
     pub fn count(&self) -> usize {
@@ -82,14 +84,6 @@ impl ElementBuffer
     pub(crate) fn bind(&self)
     {
         self.gl.bind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER, &self.id);
-    }
-
-    pub fn fill_with(&mut self, data: &[u32])
-    {
-        self.bind();
-        self.gl.buffer_data_u32(gl::consts::ELEMENT_ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
-
     }
 }
 

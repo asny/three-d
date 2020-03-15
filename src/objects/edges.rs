@@ -49,7 +49,7 @@ impl Edges
                 cylinder_indices.push((i+1) * angle_subdivisions as u32 + j);
             }
         }
-        let cylinder_index_buffer = ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
+        let cylinder_index_buffer = ElementBuffer::new_with_u32(gl, &cylinder_indices).unwrap();
         let cylinder_vertex_buffer = VertexBuffer::new_with_static_f32(gl,&cylinder_positions).unwrap();
 
         let mut index_pairs = std::collections::HashSet::new();
@@ -87,8 +87,8 @@ impl Edges
     pub fn update_positions(&mut self, positions: &[f32])
     {
         let (translation, direction) = Self::fill_translation_and_direction(&self.index_pairs, positions);
-        self.translation_buffer.update_with_dynamic_f32(&translation);
-        self.direction_buffer.update_with_dynamic_f32(&direction);
+        self.translation_buffer.fill_with_dynamic_f32(&translation);
+        self.direction_buffer.fill_with_dynamic_f32(&direction);
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)

@@ -34,7 +34,7 @@ impl Mesh
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
-        let index_buffer = ElementBuffer::new_with(gl, indices)?;
+        let index_buffer = ElementBuffer::new_with_u32(gl, indices)?;
 
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
@@ -46,13 +46,13 @@ impl Mesh
 
     pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
     {
-        self.position_buffer.update_with_static_f32(positions);
+        self.position_buffer.fill_with_static_f32(positions);
         Ok(())
     }
 
     pub fn update_normals(&mut self, normals: &[f32]) -> Result<(), Error>
     {
-        self.normal_buffer.update_with_static_f32(normals);
+        self.normal_buffer.fill_with_static_f32(normals);
         Ok(())
     }
 
