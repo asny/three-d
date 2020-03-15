@@ -1,7 +1,7 @@
 
 use crate::*;
 
-pub struct ShadedVertices {
+pub struct Vertices {
     program: Program,
     instance_buffer: VertexBuffer,
     ball_index_buffer: ElementBuffer,
@@ -14,9 +14,9 @@ pub struct ShadedVertices {
     pub ball_radius: f32
 }
 
-impl ShadedVertices
+impl Vertices
 {
-    pub fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> ShadedVertices
+    pub fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> Vertices
     {
         let program = Program::from_source(&gl,
                                                     include_str!("shaders/vertex_shaded.vert"),
@@ -44,7 +44,7 @@ impl ShadedVertices
         instance_buffer.add(positions);
         instance_buffer.send_dynamic_data();
 
-        ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),
+        Vertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, ball_radius }
     }
 

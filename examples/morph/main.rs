@@ -119,7 +119,7 @@ fn main()
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
-    let mut wireframe_model = ShadedEdges::new(&gl, &mesh.indices_buffer(), &positions, 0.01);
+    let mut wireframe_model = Edges::new(&gl, &mesh.indices_buffer(), &positions, 0.01);
     wireframe_model.diffuse_intensity = 0.8;
     wireframe_model.specular_intensity = 0.2;
     wireframe_model.specular_power = 5.0;

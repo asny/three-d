@@ -19,13 +19,13 @@ fn main() {
     // Objects
     let cpu_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/suzanne.3d")).unwrap();
 
-    let mut edges = ShadedEdges::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.007);
+    let mut edges = Edges::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.007);
     edges.diffuse_intensity = 0.8;
     edges.specular_intensity = 0.2;
     edges.specular_power = 5.0;
     edges.color = vec3(0.7, 0.2, 0.2);
 
-    let mut vertices = ShadedVertices::new(&gl, &cpu_mesh.positions, 0.015);
+    let mut vertices = Vertices::new(&gl, &cpu_mesh.positions, 0.015);
     vertices.diffuse_intensity = 0.8;
     vertices.specular_intensity = 0.2;
     vertices.specular_power = 5.0;

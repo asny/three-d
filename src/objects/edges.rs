@@ -1,7 +1,7 @@
 
 use crate::*;
 
-pub struct ShadedEdges {
+pub struct Edges {
     program: core::Program,
     instance_buffer: VertexBuffer,
     cylinder_index_buffer: core::ElementBuffer,
@@ -15,9 +15,9 @@ pub struct ShadedEdges {
     pub specular_power: f32
 }
 
-impl ShadedEdges
+impl Edges
 {
-    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> ShadedEdges
+    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Edges
     {
         let program = core::Program::from_source(&gl,
                                                     include_str!("shaders/line_shaded.vert"),
@@ -68,7 +68,7 @@ impl ShadedEdges
         instance_buffer.add(&direction);
         instance_buffer.send_dynamic_data();
 
-        ShadedEdges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
+        Edges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
     fn fill_translation_and_direction(index_pairs: &std::collections::HashSet<(usize, usize)>, positions: &[f32]) -> (Vec<f32>, Vec<f32>)
