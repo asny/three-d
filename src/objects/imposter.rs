@@ -5,8 +5,10 @@ const NO_VIEW_ANGLES: usize  = 8;
 
 pub struct Imposter {
     program: program::Program,
-    vertex_buffer: VertexBuffer,
-    instance_buffer: VertexBuffer,
+    center_buffer: VertexBuffer,
+    rotation_buffer: VertexBuffer,
+    positions_buffer: VertexBuffer,
+    uvs_buffer: VertexBuffer,
     instance_count: u32,
     texture: Texture2DArray
 }
@@ -66,22 +68,23 @@ impl Imposter {
             0.0, 1.0,
             0.0, 0.0
         ];
+        let positions_buffer = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
+        let uvs_buffer = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
 
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/billboard.vert"),
                                                     include_str!("shaders/sprite.frag")).unwrap();
 
-        let vertex_buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
-        let instance_buffer = VertexBuffer::new(gl).unwrap();
+        let center_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[]).unwrap();
+        let rotation_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[]).unwrap();
 
-        Imposter {texture, program, vertex_buffer, instance_buffer, instance_count:0 }
+        Imposter {texture, program, center_buffer, rotation_buffer, positions_buffer, uvs_buffer, instance_count:0 }
     }
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
     {
-        self.instance_buffer.add(positions);
-        self.instance_buffer.add(angles_in_radians);
-        self.instance_buffer.send_dynamic_data();
+        self.center_buffer.update_with_dynamic_f32(positions);
+        self.rotation_buffer.update_with_dynamic_f32(angles_in_radians);
         self.instance_count = positions.len() as u32/3;
     }
 
@@ -91,11 +94,11 @@ impl Imposter {
 
         self.program.use_texture(&self.texture, "tex").unwrap();
 
-        self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0).unwrap();
-        self.program.use_attribute_vec2_float(&self.vertex_buffer, "uv_coordinate", 1).unwrap();
+        self.program.use_attribute_vec3_float(&self.positions_buffer, "position").unwrap();
+        self.program.use_attribute_vec2_float(&self.uvs_buffer, "uv_coordinate").unwrap();
 
-        self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "center", 0, 1).unwrap();
-        self.program.use_attribute_float_divisor(&self.instance_buffer, "theta", 1, 1).unwrap();
+        self.program.use_attribute_vec3_float_divisor(&self.center_buffer, "center", 1).unwrap();
+        self.program.use_attribute_float_divisor(&self.rotation_buffer, "theta", 1).unwrap();
         self.program.draw_arrays_instanced(6, self.instance_count);
     }
 }

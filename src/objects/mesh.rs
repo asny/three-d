@@ -32,8 +32,8 @@ impl Mesh
 {
     pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, Error>
     {
-        let position_buffer = VertexBuffer::new_with_one_static_attribute(gl, positions)?;
-        let normal_buffer = VertexBuffer::new_with_one_static_attribute(gl, normals)?;
+        let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
+        let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
         let index_buffer = ElementBuffer::new_with(gl, indices)?;
 
         let program = program::Program::from_source(&gl,
@@ -46,15 +46,13 @@ impl Mesh
 
     pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
     {
-        self.position_buffer.add(positions);
-        self.position_buffer.send_static_data();
+        self.position_buffer.update_with_static_f32(positions);
         Ok(())
     }
 
     pub fn update_normals(&mut self, normals: &[f32]) -> Result<(), Error>
     {
-        self.normal_buffer.add(normals);
-        self.normal_buffer.send_static_data();
+        self.normal_buffer.update_with_static_f32(normals);
         Ok(())
     }
 
@@ -79,8 +77,8 @@ impl Mesh
 
         self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
-        self.program.use_attribute_vec3_float(&self.position_buffer, "position", 0).unwrap();
-        self.program.use_attribute_vec3_float(&self.normal_buffer, "normal", 0).unwrap();
+        self.program.use_attribute_vec3_float(&self.position_buffer, "position").unwrap();
+        self.program.use_attribute_vec3_float(&self.normal_buffer, "normal").unwrap();
 
         self.program.draw_elements(&self.index_buffer);
     }

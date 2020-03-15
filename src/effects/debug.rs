@@ -8,7 +8,8 @@ pub struct DebugEffect {
     gl: Gl,
     program: program::Program,
     debug_type: Type,
-    buffer: VertexBuffer
+    full_screen_positions: VertexBuffer,
+    full_screen_uvs: VertexBuffer
 }
 
 impl DebugEffect {
@@ -29,9 +30,10 @@ impl DebugEffect {
             2.0, 0.0,
             0.5, 1.5
         ];
-        let buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
+        let full_screen_positions = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
+        let full_screen_uvs = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
 
-        Ok(DebugEffect {gl: gl.clone(), program, debug_type: Type::NONE, buffer})
+        Ok(DebugEffect {gl: gl.clone(), program, debug_type: Type::NONE, full_screen_positions, full_screen_uvs})
     }
 
     pub fn change_type(&mut self)
@@ -58,8 +60,8 @@ impl DebugEffect {
 
             self.program.add_uniform_int("type", &(self.debug_type as i32))?;
 
-            self.program.use_attribute_vec3_float(&self.buffer, "position", 0).unwrap();
-            self.program.use_attribute_vec2_float(&self.buffer, "uv_coordinate", 1).unwrap();
+            self.program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
+            self.program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
             self.program.draw_arrays(3);
         }
         Ok(())

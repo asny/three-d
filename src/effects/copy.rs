@@ -7,7 +7,8 @@ enum Type {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, NONE = 4}
 pub struct CopyEffect {
     gl: Gl,
     program: program::Program,
-    buffer: VertexBuffer
+    full_screen_positions: VertexBuffer,
+    full_screen_uvs: VertexBuffer
 }
 
 impl CopyEffect {
@@ -28,9 +29,10 @@ impl CopyEffect {
             2.0, 0.0,
             0.5, 1.5
         ];
-        let buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
+        let full_screen_positions = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
+        let full_screen_uvs = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
 
-        Ok(CopyEffect {gl: gl.clone(), program, buffer})
+        Ok(CopyEffect {gl: gl.clone(), program, full_screen_positions, full_screen_uvs})
     }
 
     pub fn apply(&self, color_texture: &Texture2DArray, depth_texture: &Texture2DArray) -> Result<(), effects::Error>
@@ -43,8 +45,8 @@ impl CopyEffect {
         self.program.use_texture(color_texture, "colorMap")?;
         self.program.use_texture(depth_texture, "depthMap")?;
 
-        self.program.use_attribute_vec3_float(&self.buffer, "position", 0).unwrap();
-        self.program.use_attribute_vec2_float(&self.buffer, "uv_coordinate", 1).unwrap();
+        self.program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
+        self.program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
         self.program.draw_arrays(3);
         Ok(())
     }

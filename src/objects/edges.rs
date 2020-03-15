@@ -3,7 +3,8 @@ use crate::*;
 
 pub struct Edges {
     program: core::Program,
-    instance_buffer: VertexBuffer,
+    translation_buffer: VertexBuffer,
+    direction_buffer: VertexBuffer,
     cylinder_index_buffer: core::ElementBuffer,
     cylinder_vertex_buffer: VertexBuffer,
     index_pairs: std::collections::HashSet<(usize, usize)>,
@@ -49,7 +50,7 @@ impl Edges
             }
         }
         let cylinder_index_buffer = ElementBuffer::new_with(gl, &cylinder_indices).unwrap();
-        let cylinder_vertex_buffer = VertexBuffer::new_with_one_static_attribute(gl,&cylinder_positions).unwrap();
+        let cylinder_vertex_buffer = VertexBuffer::new_with_static_f32(gl,&cylinder_positions).unwrap();
 
         let mut index_pairs = std::collections::HashSet::new();
         for f in 0..indices.len()/3 {
@@ -62,13 +63,12 @@ impl Edges
         }
         let no_edges = index_pairs.len() as u32;
 
-        let mut instance_buffer = VertexBuffer::new(gl).unwrap();
         let (translation, direction) = Self::fill_translation_and_direction(&index_pairs, positions);
-        instance_buffer.add(&translation);
-        instance_buffer.add(&direction);
-        instance_buffer.send_dynamic_data();
+        let translation_buffer = VertexBuffer::new_with_dynamic_f32(gl, &translation).unwrap();
+        let direction_buffer = VertexBuffer::new_with_dynamic_f32(gl, &direction).unwrap();
 
-        Edges { program, instance_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius, color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
+        Edges { program, translation_buffer, direction_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius,
+            color: vec3(1.0, 0.0, 0.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 }
     }
 
     fn fill_translation_and_direction(index_pairs: &std::collections::HashSet<(usize, usize)>, positions: &[f32]) -> (Vec<f32>, Vec<f32>)
@@ -87,9 +87,8 @@ impl Edges
     pub fn update_positions(&mut self, positions: &[f32])
     {
         let (translation, direction) = Self::fill_translation_and_direction(&self.index_pairs, positions);
-        self.instance_buffer.add(&translation);
-        self.instance_buffer.add(&direction);
-        self.instance_buffer.send_dynamic_data();
+        self.translation_buffer.update_with_dynamic_f32(&translation);
+        self.direction_buffer.update_with_dynamic_f32(&direction);
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
@@ -105,10 +104,10 @@ impl Edges
         self.program.add_uniform_float("tube_radius", &self.tube_radius).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
 
-        self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 0, 1).unwrap();
-        self.program.use_attribute_vec3_float_divisor(&self.instance_buffer, "direction", 1, 1).unwrap();
+        self.program.use_attribute_vec3_float_divisor(&self.translation_buffer, "translation", 1).unwrap();
+        self.program.use_attribute_vec3_float_divisor(&self.direction_buffer, "direction", 1).unwrap();
 
-        self.program.use_attribute_vec3_float(&self.cylinder_vertex_buffer, "position", 0).unwrap();
+        self.program.use_attribute_vec3_float(&self.cylinder_vertex_buffer, "position").unwrap();
 
         self.program.draw_elements_instanced(&self.cylinder_index_buffer,self.no_edges);
     }

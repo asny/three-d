@@ -6,7 +6,8 @@ pub struct FogEffect {
     pub color: Vec3,
     pub density: f32,
     pub animation: f32,
-    buffer: VertexBuffer
+    full_screen_positions: VertexBuffer,
+    full_screen_uvs: VertexBuffer
 }
 
 impl FogEffect {
@@ -27,8 +28,10 @@ impl FogEffect {
             2.0, 0.0,
             0.5, 1.5
         ];
-        let buffer = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
-        Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, buffer})
+        let full_screen_positions = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
+        let full_screen_uvs = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
+        Ok(FogEffect {gl: gl.clone(), program, color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1,
+            full_screen_positions, full_screen_uvs})
     }
 
     pub fn apply(&self, time: f32, camera: &camera::Camera, depth_texture: &Texture2DArray) -> Result<(), effects::Error>
@@ -48,8 +51,8 @@ impl FogEffect {
         self.program.add_uniform_float("time", &(0.001 * time))?;
         self.program.add_uniform_vec3("eyePosition", camera.position())?;
 
-        self.program.use_attribute_vec3_float(&self.buffer, "position", 0).unwrap();
-        self.program.use_attribute_vec2_float(&self.buffer, "uv_coordinate", 1).unwrap();
+        self.program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
+        self.program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
         self.program.draw_arrays(3);
         Ok(())
     }

@@ -21,7 +21,8 @@ pub struct DeferredPipeline {
     spot_light_program: program::Program,
     geometry_pass_texture: Option<Texture2DArray>,
     geometry_pass_depth_texture: Option<Texture2DArray>,
-    full_screen: VertexBuffer
+    full_screen_positions: VertexBuffer,
+    full_screen_uvs: VertexBuffer
 }
 
 
@@ -60,7 +61,8 @@ impl DeferredPipeline
             2.0, 0.0,
             0.5, 1.5
         ];
-        let full_screen = VertexBuffer::new_with_two_static_attributes(&gl, &positions, &uvs).unwrap();
+        let full_screen_positions = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
+        let full_screen_uvs = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
 
         let renderer = DeferredPipeline {
             gl: gl.clone(),
@@ -68,7 +70,8 @@ impl DeferredPipeline
             directional_light_program,
             point_light_program,
             spot_light_program,
-            full_screen,
+            full_screen_positions,
+            full_screen_uvs,
             geometry_pass_texture: Some(Texture2DArray::new_empty(gl, 1, 1, 2,
                   Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?),
@@ -118,8 +121,8 @@ impl DeferredPipeline
             self.ambient_light_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
             self.ambient_light_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
 
-            self.ambient_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-            self.ambient_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.ambient_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
+            self.ambient_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
             self.ambient_light_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
         }
@@ -141,8 +144,8 @@ impl DeferredPipeline
             }
             self.directional_light_program.use_uniform_block(light.buffer(), "DirectionalLight");
 
-            self.directional_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-            self.directional_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.directional_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
+            self.directional_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
             self.directional_light_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
         }
@@ -164,8 +167,8 @@ impl DeferredPipeline
             }
             self.spot_light_program.use_uniform_block(light.buffer(), "SpotLight");
 
-            self.spot_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-            self.spot_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.spot_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
+            self.spot_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
             self.spot_light_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
         }
@@ -180,8 +183,8 @@ impl DeferredPipeline
 
             self.point_light_program.use_uniform_block(light.buffer(), "PointLight");
 
-            self.point_light_program.use_attribute_vec3_float(&self.full_screen, "position", 0).unwrap();
-            self.point_light_program.use_attribute_vec2_float(&self.full_screen, "uv_coordinate", 1).unwrap();
+            self.point_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
+            self.point_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
             self.point_light_program.draw_arrays(3);
             state::blend(&self.gl, state::BlendType::OneOne);
         }

@@ -3,71 +3,44 @@ use crate::core::Error;
 
 pub struct VertexBuffer {
     gl: Gl,
-    id: gl::Buffer,
-    offsets: Vec<usize>,
-    data: Vec<f32>
+    id: gl::Buffer
 }
 
 impl VertexBuffer
 {
-    pub fn new(gl: &Gl) -> Result<VertexBuffer, Error>
+    pub fn new_with_static_f32(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let buffer = VertexBuffer {gl: gl.clone(), id, offsets: Vec::new(), data: Vec::new() };
+        let mut buffer = VertexBuffer { gl: gl.clone(), id };
+        buffer.update_with_static_f32(data);
         Ok(buffer)
     }
 
-    pub fn new_with_one_static_attribute(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
+    pub fn update_with_static_f32(&mut self, data: &[f32])
     {
-        let mut buffer = VertexBuffer::new(gl)?;
-        buffer.add(data);
-        buffer.send_static_data();
+        self.bind();
+        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+    }
+
+    pub fn new_with_dynamic_f32(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
+    {
+        let id = gl.create_buffer().unwrap();
+        let mut buffer = VertexBuffer { gl: gl.clone(), id };
+        buffer.update_with_dynamic_f32(data);
         Ok(buffer)
     }
 
-    pub fn new_with_two_static_attributes(gl: &Gl, data0: &[f32], data1: &[f32]) -> Result<VertexBuffer, Error>
+    pub fn update_with_dynamic_f32(&mut self, data: &[f32])
     {
-        let mut buffer = VertexBuffer::new(gl)?;
-        buffer.add(data0);
-        buffer.add(data1);
-        buffer.send_static_data();
-        Ok(buffer)
+        self.bind();
+        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::DYNAMIC_DRAW);
+        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
     }
 
     pub(crate) fn bind(&self)
     {
         self.gl.bind_buffer(gl::consts::ARRAY_BUFFER, &self.id);
-    }
-
-    pub fn offset_from(&self, index: usize) -> usize
-    {
-        self.offsets[index]
-    }
-
-    pub fn add(&mut self, data: &[f32])
-    {
-        if self.data.is_empty() && !self.offsets.is_empty() && *self.offsets.last().unwrap() != 0
-        {
-            self.offsets.clear();
-        }
-        self.offsets.push(self.data.len());
-        self.data.extend_from_slice(data);
-    }
-
-    pub fn send_static_data(&mut self)
-    {
-        self.bind();
-        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.data, gl::consts::STATIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
-        self.data.clear();
-    }
-
-    pub fn send_dynamic_data(&mut self)
-    {
-        self.bind();
-        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, &self.data, gl::consts::DYNAMIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
-        self.data.clear();
     }
 }
 
@@ -87,7 +60,7 @@ pub struct ElementBuffer {
 
 impl ElementBuffer
 {
-    pub fn new(gl: &Gl) -> Result<ElementBuffer, Error>
+    fn new(gl: &Gl) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };

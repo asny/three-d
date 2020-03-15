@@ -17,7 +17,7 @@ impl Skybox
                                                     include_str!("shaders/skybox.vert"),
                                                     include_str!("shaders/skybox.frag")).unwrap();
 
-        let vertex_buffer = VertexBuffer::new_with_one_static_attribute(gl, &get_positions()).unwrap();
+        let vertex_buffer = VertexBuffer::new_with_static_f32(gl, &get_positions()).unwrap();
 
         Skybox { gl: gl.clone(), program, vertex_buffer, texture }
     }
@@ -32,7 +32,7 @@ impl Skybox
         self.program.use_texture(&self.texture, "texture0")?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
-        self.program.use_attribute_vec3_float(&self.vertex_buffer, "position", 0)?;
+        self.program.use_attribute_vec3_float(&self.vertex_buffer, "position")?;
 
         self.program.draw_arrays(36);
         Ok(())
