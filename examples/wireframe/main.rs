@@ -18,9 +18,18 @@ fn main() {
 
     // Objects
     let cpu_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/suzanne.3d")).unwrap();
-    let mut wireframe = objects::Wireframe::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.01);
-    wireframe.set_parameters(0.8, 0.2, 5.0);
-    wireframe.set_color(&vec3(0.9, 0.2, 0.2));
+
+    let mut edges = ShadedEdges::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.007);
+    edges.diffuse_intensity = 0.8;
+    edges.specular_intensity = 0.2;
+    edges.specular_power = 5.0;
+    edges.color = vec3(0.7, 0.2, 0.2);
+
+    let mut vertices = ShadedVertices::new(&gl, &cpu_mesh.positions, 0.015);
+    vertices.diffuse_intensity = 0.8;
+    vertices.specular_intensity = 0.2;
+    vertices.specular_power = 5.0;
+    vertices.color = vec3(0.9, 0.2, 0.2);
 
     let mut model = cpu_mesh.to_mesh(&gl).unwrap();
     model.diffuse_intensity = 0.2;
@@ -46,7 +55,8 @@ fn main() {
     let render_scene = |camera: &Camera| {
         let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
         model.render(&transformation, camera);
-        wireframe.render(&transformation, camera);
+        edges.render(&transformation, camera);
+        vertices.render(&transformation, camera);
     };
     spot_light0.generate_shadow_map(50.0, 512, &render_scene);
     spot_light1.generate_shadow_map(50.0, 512, &render_scene);
@@ -81,7 +91,8 @@ fn main() {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             state::cull(&gl, state::CullType::Back);
             model.render(&transformation, &camera);
-            wireframe.render(&transformation, &camera);
+            edges.render(&transformation, &camera);
+            vertices.render(&transformation, &camera);
             plane.render(&Mat4::identity(), &camera);
         }).unwrap();
 

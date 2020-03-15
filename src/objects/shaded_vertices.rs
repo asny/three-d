@@ -11,12 +11,12 @@ pub struct ShadedVertices {
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32,
-    pub scale: f32
+    pub ball_radius: f32
 }
 
 impl ShadedVertices
 {
-    pub fn new(gl: &Gl, positions: &[f32]) -> ShadedVertices
+    pub fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> ShadedVertices
     {
         let program = Program::from_source(&gl,
                                                     include_str!("shaders/vertex_shaded.vert"),
@@ -45,7 +45,7 @@ impl ShadedVertices
         instance_buffer.send_dynamic_data();
 
         ShadedVertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),
-            diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, scale: 1.0 }
+            diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, ball_radius }
     }
 
     pub fn update_positions(&mut self, positions: &[f32])
@@ -63,7 +63,7 @@ impl ShadedVertices
         self.program.add_uniform_int("use_texture", &0).unwrap();
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
-        self.program.add_uniform_float("scale", &self.scale).unwrap();
+        self.program.add_uniform_float("scale", &self.ball_radius).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
