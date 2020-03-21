@@ -72,8 +72,8 @@ impl Imposter {
         let uvs_buffer = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
 
         let program = program::Program::from_source(gl,
-                                                    include_str!("shaders/billboard.vert"),
-                                                    include_str!("shaders/sprite.frag")).unwrap();
+                                                    include_str!("shaders/imposter.vert"),
+                                                    include_str!("shaders/imposter.frag")).unwrap();
 
         let center_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[]).unwrap();
         let rotation_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[]).unwrap();
