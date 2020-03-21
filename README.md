@@ -1,22 +1,15 @@
-# Dust
+# three-d
 
-### What is Dust?
+### What is three-d?
 
 An OpenGL/WebGL2 renderer written in Rust for the fun of it. 
-Dust enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
+three-d enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
 (Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate).
 This means you can develop a 3D application on desktop and easily deploy it on web!
 
 ### Examples
 
-https://asny.github.io/dust/
-
-### Status (8 March 2020)
-
-I am working towards a more mature API to be able to publish this project as a crate. 
-Therefore, expect a lot of changes to the API in the next month or so and a much more stable API after publication.
-Also, this project will change name (suggestions are more than welcome!) since Dust is already taken on crates.io 
-and apparently Dust is a pretty popular name for software tools. The GitHub repository will be the same, just with another name.
+https://asny.github.io/three-d/
 
 ### Main features
 
@@ -57,15 +50,15 @@ Build and run an example on desktop and also generate web output (webassembly, j
 $ ./examples/hello_world/run 
 ``` 
 
-### Input/output
+### The 3d format
 
-Dust supports a custom format with the extension ".3d". 
+three-d supports a custom format with the extension ".3d". 
 The advantages of the .3d format is that it is smaller in size than other open formats like obj and stl 
 and easier to read/write when you are using Rust or specifically the [serde](https://github.com/serde-rs/serde) and [bincode](https://github.com/servo/bincode) crates. 
 To create a .3d file, the easiest option is to create a [CPUMesh](https://github.com/asny/Dust/blob/master/src/objects/cpu_mesh.rs):
 
 ```rust
-use dust::*;
+use three_d::*;
 
 fn main() {
     // Create the cpu mesh (a single triangle)
@@ -84,4 +77,4 @@ fn main() {
 
 If you want to load, create, combine or deform meshes and then save to ".3d" format, the [tri-mesh](https://github.com/asny/tri-mesh) crate is an option.
 
-If you want to make your own reader/writer of the .3d format yourself, then take a look at the [CPUMesh](https://github.com/asny/Dust/blob/master/src/objects/cpu_mesh.rs) implementation.
+If you want to make your own reader/writer of the .3d format yourself, then take a look at the [CPUMesh](https://github.com/asny/three-d/blob/master/src/objects/cpu_mesh.rs) implementation.
