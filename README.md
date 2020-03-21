@@ -1,9 +1,8 @@
-# three-d
+# `three-d`
 
-### What is three-d?
+### What is it?
 
-An OpenGL/WebGL2 renderer written in Rust for the fun of it. 
-three-d enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
+A renderer written in Rust which enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
 (Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate).
 This means you can develop a 3D application on desktop and easily deploy it on web!
 
@@ -52,7 +51,7 @@ $ ./examples/hello_world/run
 
 ### The 3d format
 
-three-d supports a custom format with the extension ".3d". 
+`three-d` supports a custom format with the extension ".3d". 
 The advantages of the .3d format is that it is smaller in size than other open formats like obj and stl 
 and easier to read/write when you are using Rust or specifically the [serde](https://github.com/serde-rs/serde) and [bincode](https://github.com/servo/bincode) crates. 
 To create a .3d file, the easiest option is to create a [CPUMesh](https://github.com/asny/Dust/blob/master/src/objects/cpu_mesh.rs):
