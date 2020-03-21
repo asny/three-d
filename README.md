@@ -54,7 +54,7 @@ $ ./examples/hello_world/run
 `three-d` supports a custom format with the extension ".3d". 
 The advantages of the .3d format is that it is smaller in size than other open formats like obj and stl 
 and easier to read/write when you are using Rust or specifically the [serde](https://github.com/serde-rs/serde) and [bincode](https://github.com/servo/bincode) crates. 
-To create a .3d file, the easiest option is to create a [CPUMesh](https://github.com/asny/Dust/blob/master/src/objects/cpu_mesh.rs):
+To create a .3d file, the easiest option is to create a [CPUMesh](https://github.com/asny/three-d/blob/master/src/objects/cpu_mesh.rs):
 
 ```rust
 use three_d::*;
