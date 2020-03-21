@@ -1,8 +1,14 @@
 [package]
 name = "dust"
-version = "0.1.0"
+version = "0.1.0" # REMEMBER TO UPDATE VERSION IN README!!
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
+description = "A renderer which compiles to both desktop (OpenGL) and web (WebAssembly + WebGL)."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/asny/dust"
+categories = ["graphics", "rendering", "visualization", "wasm", "web-programming"]
+keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 
 [features]
 default = ["glutin-window", "canvas", "3d-io", "image-io"]
