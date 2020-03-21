@@ -8,7 +8,6 @@ This means you can develop a 3D application on desktop and easily deploy it on w
 
 ### Examples
 
-<iframe src="https://asny.github.io/three-d/" width="100%"></iframe>
 https://asny.github.io/three-d/
 
 ### Main features
