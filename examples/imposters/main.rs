@@ -1,5 +1,5 @@
 
-use dust::*;
+use three_d::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -14,12 +14,15 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
+    // Tree
     let mut leaves_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/leaves1.3d")).unwrap().to_mesh(&gl).unwrap();
     let mut tree_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/tree1.3d")).unwrap().to_mesh(&gl).unwrap();
     tree_mesh.color = vec3(0.5, 0.2, 0.2);
     tree_mesh.specular_intensity = 0.0;
     leaves_mesh.color = vec3(0.7, 0.9, 0.5);
     leaves_mesh.specular_intensity = 0.0;
+
+    // Imposters
     let aabb = tree_mesh.axis_aligned_bounding_box().add(leaves_mesh.axis_aligned_bounding_box());
     let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
             state::cull(&gl, state::CullType::Back);
@@ -42,6 +45,7 @@ fn main() {
     }
     imposter.update_positions(&positions, &angles);
 
+    // Plane
     let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
     plane_mesh.scale(100.0);
     let mut plane = Mesh::new(&gl, &plane_mesh.indices_buffer(), &plane_mesh.positions_buffer_f32(), &plane_mesh.normals_buffer_f32()).unwrap();
@@ -49,15 +53,15 @@ fn main() {
     plane.diffuse_intensity = 0.5;
     plane.specular_intensity = 0.0;
 
+    // Lights
     let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
     let mut directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
-
-    let render_scene = |camera: &Camera| {
+    directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &|camera: &Camera| {
+        state::cull(&gl, state::CullType::Back);
         tree_mesh.render(&Mat4::identity(), camera);
         leaves_mesh.render(&Mat4::identity(), camera);
         imposter.render(camera);
-    };
-    directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &render_scene);
+    });
 
     let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
 
@@ -92,6 +96,7 @@ fn main() {
         // Geometry pass
         renderer.geometry_pass(width, height, &||
             {
+                state::cull(&gl, state::CullType::Back);
                 tree_mesh.render(&Mat4::identity(), &camera);
                 leaves_mesh.render(&Mat4::identity(), &camera);
                 imposter.render(&camera);

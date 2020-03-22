@@ -1,12 +1,13 @@
 [package]
-name = "dust"
+name = "three-d"
 version = "0.1.0" # REMEMBER TO UPDATE VERSION IN README!!
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 description = "A renderer which compiles to both desktop (OpenGL) and web (WebAssembly + WebGL)."
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/asny/dust"
+repository = "https://github.com/asny/three-d"
+homepage = "https://asny.github.io/three-d/"
 categories = ["graphics", "rendering", "visualization", "wasm", "web-programming"]
 keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 
