@@ -10,6 +10,7 @@ repository = "https://github.com/asny/three-d"
 homepage = "https://asny.github.io/three-d/"
 categories = ["graphics", "rendering", "visualization", "wasm", "web-programming"]
 keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
+exclude = ["/examples", ".gitignore"]
 
 [features]
 default = ["glutin-window", "canvas", "3d-io", "image-io"]
