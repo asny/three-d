@@ -4,31 +4,27 @@ use web_sys::WebGl2RenderingContext as InnerGl;
 #[allow(non_camel_case_types)]
 pub type consts = InnerGl;
 
-pub mod defines
-{
-    pub type AttributeLocation = u32;
-    pub use web_sys::WebGlUniformLocation as UniformLocation;
-    pub use web_sys::WebGlShader as Shader;
-    pub use web_sys::WebGlProgram as Program;
-    pub use web_sys::WebGlBuffer as Buffer;
-    pub use web_sys::WebGlFramebuffer as Framebuffer;
-    pub use web_sys::WebGlTexture as Texture;
-    pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
-    pub use web_sys::WebGlActiveInfo as ActiveInfo;
-}
-pub use crate::wgl2::defines::*;
+pub type AttributeLocation = u32;
+pub use web_sys::WebGlUniformLocation as UniformLocation;
+pub use web_sys::WebGlShader as Shader;
+pub use web_sys::WebGlProgram as Program;
+pub use web_sys::WebGlBuffer as Buffer;
+pub use web_sys::WebGlFramebuffer as Framebuffer;
+pub use web_sys::WebGlTexture as Texture;
+pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
+pub use web_sys::WebGlActiveInfo as ActiveInfo;
 
 #[derive(Clone)]
-pub struct Gl {
-    inner: std::rc::Rc<InnerGl>,
+pub struct Glstruct {
+    inner: InnerGl,
 }
 
-impl Gl {
+pub type Gl = std::rc::Rc<Glstruct>;
+
+impl Glstruct {
     pub fn new(webgl_context: InnerGl) -> Gl
     {
-        Gl {
-            inner: std::rc::Rc::new(webgl_context)
-        }
+        std::rc::Rc::new(Glstruct { inner: webgl_context })
     }
 
     pub fn finish(&self)
@@ -339,7 +335,7 @@ impl Gl {
                                                   byte_size_for_type(data_type, stride) as i32, byte_size_for_type(data_type, offset)  as i32);
     }
 
-    pub fn get_program_parameter(&self, program: &defines::Program, pname: u32) -> u32
+    pub fn get_program_parameter(&self, program: &Program, pname: u32) -> u32
     {
         let result = self.inner.get_program_parameter(program, pname);
         result.as_f64().unwrap() as u32
@@ -356,7 +352,7 @@ impl Gl {
     }
 }
 
-impl std::ops::Deref for Gl {
+impl std::ops::Deref for Glstruct {
     type Target = InnerGl;
 
     fn deref(&self) -> &InnerGl {

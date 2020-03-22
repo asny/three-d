@@ -5,25 +5,21 @@ pub mod consts {
 
 use consts::Gl as InnerGl;
 
-pub mod defines
-{
-    pub type AttributeLocation = u32;
-    pub type UniformLocation = u32;
-    pub type Shader = u32;
-    pub type Program = u32;
-    pub type Buffer = u32;
-    pub type Framebuffer = u32;
-    pub type Texture = u32;
-    pub type VertexArrayObject = u32;
-    pub struct ActiveInfo { size: u32, type_: u32, name: String }
-    impl ActiveInfo {
-        pub fn new(size: u32, type_: u32, name: String) -> ActiveInfo {ActiveInfo {size, type_, name}}
-        pub fn size(&self) -> i32 {self.size as i32}
-        pub fn type_(&self) -> u32 {self.type_}
-        pub fn name(&self) -> String {self.name.clone()}
-    }
+pub type AttributeLocation = u32;
+pub type UniformLocation = u32;
+pub type Shader = u32;
+pub type Program = u32;
+pub type Buffer = u32;
+pub type Framebuffer = u32;
+pub type Texture = u32;
+pub type VertexArrayObject = u32;
+pub struct ActiveInfo { size: u32, type_: u32, name: String }
+impl ActiveInfo {
+    pub fn new(size: u32, type_: u32, name: String) -> ActiveInfo {ActiveInfo {size, type_, name}}
+    pub fn size(&self) -> i32 {self.size as i32}
+    pub fn type_(&self) -> u32 {self.type_}
+    pub fn name(&self) -> String {self.name.clone()}
 }
-pub use crate::gl::ogl::defines::*;
 
 pub struct Glstruct {
     inner: InnerGl

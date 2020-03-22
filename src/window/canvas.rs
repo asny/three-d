@@ -45,7 +45,7 @@ impl Window
         canvas.set_width(canvas.offset_width() as u32);
         canvas.set_height(canvas.offset_height() as u32);
 
-        Ok(Window { gl: Rc::new(gl::Gl::new(context)), canvas, window })
+        Ok(Window { gl: crate::gl::Glstruct::new(context), canvas, window })
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
