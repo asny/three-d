@@ -13,14 +13,13 @@ keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 [features]
 default = ["glutin-window", "canvas", "3d-io", "image-io"]
 glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
-canvas = ["wasm-bindgen", "web-sys"] # Default window for web (only available when building for the wasm32 architecture)
+canvas = [] # Default window for web (only available when building for the wasm32 architecture)
 image-io = ["image"] # Additional image functionality, for example loading an image to a texture
 3d-io = ["serde", "bincode"]
 no-renderer = [] # Does not include the deferred renderer, but only core OpenGL/WebGL functionality.
-gl-debug = ["gl/debug"] # Prints OpenGL debug information (only available when NOT building for the wasm32 architecture)
+debug = [] # Prints OpenGL debug information (only available when NOT building for the wasm32 architecture)
 
 [dependencies]
-gl = { path = "lib/gl" }
 cgmath = "0.17"
 num = "0.2"
 num-traits = "0.2"
@@ -30,19 +29,32 @@ wavefront_obj = { version = "7.0", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
 
+[target.'cfg(not(target_arch = "wasm32"))'.build-dependencies]
+gl_generator = {version = "0.14"}
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.glutin]
 version = "0.19.0"
 optional = true
 
+[target.'cfg(target_arch = "wasm32")'.dependencies.js-sys]
+version = "0.3"
+
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
 version = "0.2"
-optional = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3"
-optional = true
 features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent',
-  'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch']
+  'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer',
+  'WebGlFramebuffer',
+  'WebGl2RenderingContext',
+  'WebGlProgram',
+  'WebGlShader',
+  'WebGlTexture',
+  'WebGlUniformLocation',
+  'WebGlVertexArrayObject',
+  'WebGlActiveInfo',
+  'Performance']
 
 [dependencies.image]
 version = "0.22"

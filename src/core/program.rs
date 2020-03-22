@@ -4,10 +4,10 @@ use crate::core::*;
 
 pub struct Program {
     gl: Gl,
-    id: gl::Program,
+    id: crate::gl::Program,
     vertex_attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
-    uniforms: HashMap<String, gl::UniformLocation>,
+    uniforms: HashMap<String, crate::gl::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>
 }
 
@@ -15,8 +15,8 @@ impl Program
 {
     pub fn from_source(gl: &Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
     {
-        let vert_shader = shader::Shader::from_source(gl, vertex_shader_source, gl::consts::VERTEX_SHADER)?;
-        let frag_shader = shader::Shader::from_source(gl, fragment_shader_source, gl::consts::FRAGMENT_SHADER)?;
+        let vert_shader = shader::Shader::from_source(gl, vertex_shader_source, consts::VERTEX_SHADER)?;
+        let frag_shader = shader::Shader::from_source(gl, fragment_shader_source, consts::FRAGMENT_SHADER)?;
         return Program::from_shaders( gl, &[vert_shader, frag_shader] );
     }
 
@@ -35,7 +35,7 @@ impl Program
         }
 
         // Init vertex attributes
-        let num_attribs = gl.get_program_parameter(&id, gl::consts::ACTIVE_ATTRIBUTES);
+        let num_attribs = gl.get_program_parameter(&id, consts::ACTIVE_ATTRIBUTES);
         let mut vertex_attributes = HashMap::new();
         for i in 0..num_attribs {
             let info = gl.get_active_attrib(&id, i);
@@ -45,7 +45,7 @@ impl Program
         }
 
         // Init uniforms
-        let num_uniforms = gl.get_program_parameter(&id, gl::consts::ACTIVE_UNIFORMS);
+        let num_uniforms = gl.get_program_parameter(&id, consts::ACTIVE_UNIFORMS);
         let mut uniforms = HashMap::new();
         for i in 0..num_uniforms {
             let info = gl.get_active_uniform(&id, i);
@@ -124,7 +124,7 @@ impl Program
         Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> Result<&gl::UniformLocation, Error>
+    fn get_uniform_location(&self, name: &str) -> Result<&crate::gl::UniformLocation, Error>
     {
         self.set_used();
         let loc = self.uniforms.get(name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find uniform {}", name)})?;
@@ -155,7 +155,7 @@ impl Program
         let (location, index) = self.uniform_blocks.borrow().get(block_name).unwrap().clone();
         self.gl.uniform_block_binding(&self.id, location, index);
         buffer.bind(index);
-        self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
+        self.gl.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 
     pub fn use_attribute_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str) -> Result<(), Error>
@@ -169,9 +169,9 @@ impl Program
         buffer.bind();
         let loc = self.location(&attribute_name)?;
         self.gl.enable_vertex_attrib_array(loc);
-        self.gl.vertex_attrib_pointer(loc, 1, gl::consts::FLOAT, false, 0, 0);
+        self.gl.vertex_attrib_pointer(loc, 1, consts::FLOAT, false, 0, 0);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.unbind_buffer(consts::ARRAY_BUFFER);
         self.gl.unuse_program();
         Ok(())
     }
@@ -187,9 +187,9 @@ impl Program
         buffer.bind();
         let loc = self.location(&attribute_name)?;
         self.gl.enable_vertex_attrib_array(loc);
-        self.gl.vertex_attrib_pointer(loc, 2, gl::consts::FLOAT, false, 0, 0);
+        self.gl.vertex_attrib_pointer(loc, 2, consts::FLOAT, false, 0, 0);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.unbind_buffer(consts::ARRAY_BUFFER);
         self.gl.unuse_program();
         Ok(())
     }
@@ -205,9 +205,9 @@ impl Program
         buffer.bind();
         let loc = self.location(&attribute_name)?;
         self.gl.enable_vertex_attrib_array(loc);
-        self.gl.vertex_attrib_pointer(loc, 3, gl::consts::FLOAT, false, 0, 0);
+        self.gl.vertex_attrib_pointer(loc, 3, consts::FLOAT, false, 0, 0);
         self.gl.vertex_attrib_divisor(loc, divisor as u32);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.unbind_buffer(consts::ARRAY_BUFFER);
         self.gl.unuse_program();
         Ok(())
     }
@@ -215,7 +215,7 @@ impl Program
     pub fn draw_arrays(&self, count: u32)
     {
         self.set_used();
-        self.gl.draw_arrays(gl::consts::TRIANGLES, 0, count);
+        self.gl.draw_arrays(consts::TRIANGLES, 0, count);
         for location in self.vertex_attributes.values() {
             self.gl.disable_vertex_attrib_array(*location);
         }
@@ -225,8 +225,8 @@ impl Program
     pub fn draw_arrays_instanced(&self, count: u32, instance_count: u32)
     {
         self.set_used();
-        self.gl.draw_arrays_instanced(gl::consts::TRIANGLES, 0, count, instance_count);
-        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.gl.draw_arrays_instanced(consts::TRIANGLES, 0, count, instance_count);
+        self.gl.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         for location in self.vertex_attributes.values() {
             self.gl.disable_vertex_attrib_array(*location);
         }
@@ -242,8 +242,8 @@ impl Program
     {
         self.set_used();
         element_buffer.bind();
-        self.gl.draw_elements(gl::consts::TRIANGLES, count, gl::consts::UNSIGNED_INT, first);
-        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.gl.draw_elements(consts::TRIANGLES, count, consts::UNSIGNED_INT, first);
+        self.gl.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
         for location in self.vertex_attributes.values() {
             self.gl.disable_vertex_attrib_array(*location);
@@ -255,8 +255,8 @@ impl Program
     {
         self.set_used();
         element_buffer.bind();
-        self.gl.draw_elements_instanced(gl::consts::TRIANGLES, element_buffer.count() as u32, gl::consts::UNSIGNED_INT, 0, count);
-        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.gl.draw_elements_instanced(consts::TRIANGLES, element_buffer.count() as u32, consts::UNSIGNED_INT, 0, count);
+        self.gl.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         for location in self.vertex_attributes.values() {
             self.gl.disable_vertex_attrib_array(*location);
         }

@@ -7,6 +7,9 @@ pub mod texture;
 pub mod types;
 pub mod camera;
 
+pub use crate::gl::Gl;
+pub use crate::gl::consts;
+
 pub use buffer::*;
 pub use program::*;
 pub use rendertarget::*;
@@ -14,8 +17,6 @@ pub use state::*;
 pub use texture::*;
 pub use types::*;
 pub use camera::*;
-
-pub type Gl = std::rc::Rc<gl::Gl>;
 
 #[derive(Debug)]
 pub enum Error {

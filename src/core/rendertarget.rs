@@ -7,7 +7,7 @@ impl Screen {
                           clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
     {
         gl.viewport(x, y, width, height);
-        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, None);
+        gl.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
         RenderTarget::clear(gl, clear_color, clear_depth);
         render();
         Ok(())
@@ -18,9 +18,9 @@ impl Screen {
     {
         gl.viewport(x, y, width, height);
         let mut pixels = vec![0u8; width * height * 3];
-        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
-        gl.read_pixels(x as u32, y as u32, width as u32, height as u32, gl::consts::RGB,
-                            gl::consts::UNSIGNED_BYTE, &mut pixels);
+        gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
+        gl.read_pixels(x as u32, y as u32, width as u32, height as u32, consts::RGB,
+                            consts::UNSIGNED_BYTE, &mut pixels);
         Ok(pixels)
     }
 
@@ -29,9 +29,9 @@ impl Screen {
     {
         gl.viewport(x, y, width, height);
         let mut pixels = vec![0f32; width * height];
-        gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, None);
+        gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         gl.read_depths(x as u32, y as u32, width as u32, height as u32,
-                        gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
+                        consts::DEPTH_COMPONENT, consts::FLOAT, &mut pixels);
         Ok(pixels)
     }
 
@@ -150,9 +150,9 @@ impl RenderTarget
         color_texture.bind_as_color_target(0);
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
 
-        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
-        self.gl.read_pixels(x as u32, y as u32, width as u32, height as u32, gl::consts::RGB,
-                            gl::consts::UNSIGNED_BYTE, &mut pixels);
+        self.gl.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&id));
+        self.gl.read_pixels(x as u32, y as u32, width as u32, height as u32, consts::RGB,
+                            consts::UNSIGNED_BYTE, &mut pixels);
         self.gl.delete_framebuffer(Some(&id));
         Ok(pixels)
     }*/
@@ -167,23 +167,23 @@ impl RenderTarget
         depth_texture.bind_as_depth_target();
         self.gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
 
-        self.gl.bind_framebuffer(gl::consts::READ_FRAMEBUFFER, Some(&id));
+        self.gl.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&id));
         self.gl.read_depths(x as u32, y as u32, width as u32, height as u32,
-                        gl::consts::DEPTH_COMPONENT, gl::consts::FLOAT, &mut pixels);
+                        consts::DEPTH_COMPONENT, consts::FLOAT, &mut pixels);
         self.gl.delete_framebuffer(Some(&id));
         Ok(pixels)
     }*/
 
-    fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<gl::Framebuffer, Error>
+    fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<crate::gl::Framebuffer, Error>
     {
         let id = gl.create_framebuffer()
             .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
-        gl.bind_framebuffer(gl::consts::DRAW_FRAMEBUFFER, Some(&id));
+        gl.bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&id));
 
         if no_color_channels > 0 {
             let mut draw_buffers = Vec::new();
             for i in 0..no_color_channels {
-                draw_buffers.push(gl::consts::COLOR_ATTACHMENT0 + i as u32);
+                draw_buffers.push(consts::COLOR_ATTACHMENT0 + i as u32);
             }
             gl.draw_buffers(&draw_buffers);
         }
@@ -196,16 +196,16 @@ impl RenderTarget
                 gl.clear_color(color.x, color.y, color.z, color.w);
                 depth_write(gl,true);
                 gl.clear_depth(depth);
-                gl.clear(gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT);
+                gl.clear(consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT);
             }
             else {
                 gl.clear_color(color.x, color.y, color.z, color.w);
-                gl.clear(gl::consts::COLOR_BUFFER_BIT);
+                gl.clear(consts::COLOR_BUFFER_BIT);
             }
         } else if let Some(depth) = clear_depth {
             gl.clear_depth(depth);
             depth_write(gl, true);
-            gl.clear(gl::consts::DEPTH_BUFFER_BIT);
+            gl.clear(consts::DEPTH_BUFFER_BIT);
         }
     }
 
@@ -216,7 +216,7 @@ impl RenderTarget
         depth_write(&self.gl, true);
         self.gl.blit_framebuffer(0, 0, target_color_texture.width as u32, target_color_texture.height as u32,
                                  0, 0, target_color_texture.width as u32, target_color_texture.height as u32,
-                                 gl::consts::COLOR_BUFFER_BIT | gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
+                                 consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT, consts::NEAREST);
     }
 
     pub fn blit_color_to(&self, target: &RenderTarget, target_texture: &Texture2D)
@@ -225,7 +225,7 @@ impl RenderTarget
         target.write_to_color(target_texture).unwrap();
         self.gl.blit_framebuffer(0, 0, target_texture.width as u32, target_texture.height as u32,
                                  0, 0, target_texture.width as u32, target_texture.height as u32,
-                                 gl::consts::COLOR_BUFFER_BIT, gl::consts::NEAREST);
+                                 consts::COLOR_BUFFER_BIT, consts::NEAREST);
     }
 
     pub fn blit_depth_to(&self, target: &RenderTarget, target_texture: &Texture2D)
@@ -235,6 +235,6 @@ impl RenderTarget
         depth_write(&self.gl, true);
         self.gl.blit_framebuffer(0, 0, target_texture.width as u32, target_texture.height as u32,
                                  0, 0, target_texture.width as u32, target_texture.height as u32,
-                                 gl::consts::DEPTH_BUFFER_BIT, gl::consts::NEAREST);
+                                 consts::DEPTH_BUFFER_BIT, consts::NEAREST);
     }*/
 }

@@ -1,6 +1,7 @@
 
 use glutin::*;
 use crate::window::frame_input;
+use crate::gl;
 
 #[derive(Debug)]
 pub enum Error {
@@ -49,8 +50,8 @@ impl Window
         unsafe {
             gl_window.make_current()?;
         }
-        let gl = gl::Gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
-        Ok(Window {gl_window, events_loop, gl: std::rc::Rc::new(gl)})
+        let gl = gl::Glstruct::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
+        Ok(Window {gl_window, events_loop, gl})
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>

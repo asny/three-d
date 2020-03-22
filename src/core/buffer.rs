@@ -1,9 +1,10 @@
-use crate::core::Gl;
 use crate::core::Error;
+use crate::gl::Gl;
+use crate::gl::consts;
 
 pub struct VertexBuffer {
     gl: Gl,
-    id: gl::Buffer
+    id: crate::gl::Buffer
 }
 
 impl VertexBuffer
@@ -19,8 +20,8 @@ impl VertexBuffer
     pub fn fill_with_static_f32(&mut self, data: &[f32])
     {
         self.bind();
-        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.buffer_data_f32(consts::ARRAY_BUFFER, data, consts::STATIC_DRAW);
+        self.gl.unbind_buffer(consts::ARRAY_BUFFER);
     }
 
     pub fn new_with_dynamic_f32(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
@@ -34,13 +35,13 @@ impl VertexBuffer
     pub fn fill_with_dynamic_f32(&mut self, data: &[f32])
     {
         self.bind();
-        self.gl.buffer_data_f32(gl::consts::ARRAY_BUFFER, data, gl::consts::DYNAMIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ARRAY_BUFFER);
+        self.gl.buffer_data_f32(consts::ARRAY_BUFFER, data, consts::DYNAMIC_DRAW);
+        self.gl.unbind_buffer(consts::ARRAY_BUFFER);
     }
 
     pub(crate) fn bind(&self)
     {
-        self.gl.bind_buffer(gl::consts::ARRAY_BUFFER, &self.id);
+        self.gl.bind_buffer(consts::ARRAY_BUFFER, &self.id);
     }
 }
 
@@ -54,7 +55,7 @@ impl Drop for VertexBuffer
 
 pub struct ElementBuffer {
     gl: Gl,
-    id: gl::Buffer,
+    id: crate::gl::Buffer,
     count: usize
 }
 
@@ -72,8 +73,8 @@ impl ElementBuffer
     pub fn fill_with_u32(&mut self, data: &[u32])
     {
         self.bind();
-        self.gl.buffer_data_u32(gl::consts::ELEMENT_ARRAY_BUFFER, data, gl::consts::STATIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER);
+        self.gl.buffer_data_u32(consts::ELEMENT_ARRAY_BUFFER, data, consts::STATIC_DRAW);
+        self.gl.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
     }
 
@@ -83,7 +84,7 @@ impl ElementBuffer
 
     pub(crate) fn bind(&self)
     {
-        self.gl.bind_buffer(gl::consts::ELEMENT_ARRAY_BUFFER, &self.id);
+        self.gl.bind_buffer(consts::ELEMENT_ARRAY_BUFFER, &self.id);
     }
 }
 
@@ -97,7 +98,7 @@ impl Drop for ElementBuffer
 
 pub struct UniformBuffer {
     gl: Gl,
-    id: gl::Buffer,
+    id: crate::gl::Buffer,
     offsets: Vec<usize>,
     data: Vec<f32>
 }
@@ -120,7 +121,7 @@ impl UniformBuffer
 
     pub(crate) fn bind(&self, id: u32)
     {
-        self.gl.bind_buffer_base(gl::consts::UNIFORM_BUFFER, id, &self.id);
+        self.gl.bind_buffer_base(consts::UNIFORM_BUFFER, id, &self.id);
     }
 
     pub fn update(&mut self, index: usize, data: &[f32]) -> Result<(), Error>
@@ -155,9 +156,9 @@ impl UniformBuffer
 
     fn send(&self)
     {
-        self.gl.bind_buffer(gl::consts::UNIFORM_BUFFER, &self.id);
-        self.gl.buffer_data_f32(gl::consts::UNIFORM_BUFFER, &self.data, gl::consts::STATIC_DRAW);
-        self.gl.unbind_buffer(gl::consts::UNIFORM_BUFFER);
+        self.gl.bind_buffer(consts::UNIFORM_BUFFER, &self.id);
+        self.gl.buffer_data_f32(consts::UNIFORM_BUFFER, &self.data, consts::STATIC_DRAW);
+        self.gl.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 }
 

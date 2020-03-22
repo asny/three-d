@@ -1,4 +1,5 @@
-use crate::core::Gl;
+use crate::gl::consts;
+use crate::gl::Gl;
 
 #[derive(PartialEq)]
 pub enum BlendType {
@@ -16,19 +17,19 @@ pub fn blend(gl: &Gl, blend_type: BlendType)
         {
             match blend_type {
                 BlendType::None => {
-                    gl.disable(gl::consts::BLEND);
+                    gl.disable(consts::BLEND);
                 },
                 BlendType::SrcAlphaOneMinusSrcAlpha => {
-                    gl.enable(gl::consts::BLEND);
-                    gl.blend_func(gl::consts::SRC_ALPHA, gl::consts::ONE_MINUS_SRC_ALPHA);
+                    gl.enable(consts::BLEND);
+                    gl.blend_func(consts::SRC_ALPHA, consts::ONE_MINUS_SRC_ALPHA);
                 },
                 BlendType::DstAlphaOneMinusDstAlpha => {
-                    gl.enable(gl::consts::BLEND);
-                    gl.blend_func(gl::consts::DST_ALPHA, gl::consts::ONE_MINUS_DST_ALPHA);
+                    gl.enable(consts::BLEND);
+                    gl.blend_func(consts::DST_ALPHA, consts::ONE_MINUS_DST_ALPHA);
                 },
                 BlendType::OneOne => {
-                    gl.enable(gl::consts::BLEND);
-                    gl.blend_func(gl::consts::ONE, gl::consts::ONE);
+                    gl.enable(consts::BLEND);
+                    gl.blend_func(consts::ONE, consts::ONE);
                 }
             }
             CURRENT = blend_type;
@@ -52,19 +53,19 @@ pub fn cull(gl: &Gl, cull_type: CullType)
         {
             match cull_type {
                 CullType::None => {
-                    gl.disable(gl::consts::CULL_FACE);
+                    gl.disable(consts::CULL_FACE);
                 },
                 CullType::Back => {
-                    gl.enable(gl::consts::CULL_FACE);
-                    gl.cull_face(gl::consts::BACK);
+                    gl.enable(consts::CULL_FACE);
+                    gl.cull_face(consts::BACK);
                 },
                 CullType::Front => {
-                    gl.enable(gl::consts::CULL_FACE);
-                    gl.cull_face(gl::consts::FRONT);
+                    gl.enable(consts::CULL_FACE);
+                    gl.cull_face(consts::FRONT);
                 },
                 CullType::FrontAndBack => {
-                    gl.enable(gl::consts::CULL_FACE);
-                    gl.cull_face(gl::consts::FRONT_AND_BACK);
+                    gl.enable(consts::CULL_FACE);
+                    gl.cull_face(consts::FRONT_AND_BACK);
                 }
             }
             CURRENT = cull_type;
@@ -92,36 +93,36 @@ pub fn depth_test(gl: &Gl, depth_test_type: DepthTestType)
         if depth_test_type != CURRENT
         {
             if depth_test_type == DepthTestType::None {
-                gl.disable(gl::consts::DEPTH_TEST);
+                gl.disable(consts::DEPTH_TEST);
             }
             else {
-                gl.enable(gl::consts::DEPTH_TEST);
+                gl.enable(consts::DEPTH_TEST);
             }
 
             match depth_test_type {
                 DepthTestType::Never => {
-                    gl.depth_func(gl::consts::NEVER);
+                    gl.depth_func(consts::NEVER);
                 },
                 DepthTestType::Less => {
-                    gl.depth_func(gl::consts::LESS);
+                    gl.depth_func(consts::LESS);
                 },
                 DepthTestType::Equal => {
-                    gl.depth_func(gl::consts::EQUAL);
+                    gl.depth_func(consts::EQUAL);
                 },
                 DepthTestType::LessOrEqual => {
-                    gl.depth_func(gl::consts::LEQUAL);
+                    gl.depth_func(consts::LEQUAL);
                 },
                 DepthTestType::Greater => {
-                    gl.depth_func(gl::consts::GREATER);
+                    gl.depth_func(consts::GREATER);
                 },
                 DepthTestType::NotEqual => {
-                    gl.depth_func(gl::consts::NOTEQUAL);
+                    gl.depth_func(consts::NOTEQUAL);
                 },
                 DepthTestType::GreaterOrEqual => {
-                    gl.depth_func(gl::consts::GEQUAL);
+                    gl.depth_func(consts::GEQUAL);
                 },
                 DepthTestType::Always => {
-                    gl.depth_func(gl::consts::ALWAYS);
+                    gl.depth_func(consts::ALWAYS);
                 },
                 DepthTestType::None => {}
             }
