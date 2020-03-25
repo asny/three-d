@@ -86,7 +86,7 @@ impl RenderTarget
             depth_texture.bind_as_depth_target();
         }
 
-        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        //gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         RenderTarget::clear(gl, clear_color, clear_depth);
 
         render();
@@ -131,7 +131,7 @@ impl RenderTarget
             depth_texture.bind_as_depth_target(depth_layer);
         }
 
-        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        //gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
         RenderTarget::clear(gl, clear_color, clear_depth);
 
         render();
