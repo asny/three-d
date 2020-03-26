@@ -86,20 +86,13 @@ impl Glstruct {
         );
     }
 
-    pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
+    pub fn compile_shader(&self, source: &str, shader: &Shader)
     {
         let header = "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2DArray;\n";
         let s: &str = &[header, source].concat();
 
         self.inner.shader_source(shader, s);
         self.inner.compile_shader(shader);
-
-        if self.inner.get_shader_parameter(shader, consts::COMPILE_STATUS).as_bool().unwrap_or(false)
-        {
-            Ok(())
-        } else {
-            Err(self.inner.get_shader_info_log(shader).unwrap_or_else(|| "Unknown error creating shader".into()))
-        }
     }
 
     pub fn create_program(&self) -> Program
@@ -107,15 +100,10 @@ impl Glstruct {
         self.inner.create_program().unwrap()
     }
 
-    pub fn link_program(&self, program: &Program) -> Result<(), String>
+    pub fn link_program(&self, program: &Program) -> bool
     {
         self.inner.link_program(program);
-        if self.inner.get_program_parameter(program, consts::LINK_STATUS).as_bool().unwrap_or(false)
-        {
-            Ok(())
-        } else {
-            Err(self.inner.get_program_info_log(program).unwrap_or_else(|| "Unknown error creating program object".into()))
-        }
+        self.inner.get_program_parameter(program, consts::LINK_STATUS).as_bool().unwrap_or(false)
     }
 
     pub fn bind_vertex_array(&self, array: &VertexArrayObject)

@@ -15,23 +15,29 @@ impl Program
 {
     pub fn from_source(gl: &Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
     {
-        let vert_shader = shader::Shader::from_source(gl, vertex_shader_source, consts::VERTEX_SHADER)?;
-        let frag_shader = shader::Shader::from_source(gl, fragment_shader_source, consts::FRAGMENT_SHADER)?;
-        return Program::from_shaders( gl, &[vert_shader, frag_shader] );
-    }
+        let vert_shader = gl.create_shader(consts::VERTEX_SHADER)
+            .ok_or(Error::FailedToCreateShader{ shader_type: "Vertex shader".to_string(), message:"Unable to create shader object".to_string() })?;
+        let frag_shader = gl.create_shader(consts::FRAGMENT_SHADER)
+            .ok_or(Error::FailedToCreateShader{ shader_type: "Fragment shader".to_string(), message:"Unable to create shader object".to_string() })?;
+        gl.compile_shader(vertex_shader_source, &vert_shader);
+        gl.compile_shader(fragment_shader_source, &frag_shader);
 
-    pub fn from_shaders(gl: &Gl, shaders: &[shader::Shader]) -> Result<Program, Error>
-    {
         let id = gl.create_program();
+        gl.attach_shader(&id, &vert_shader);
+        gl.attach_shader(&id, &frag_shader);
+        let success = gl.link_program(&id);
 
-        for shader in shaders {
-            shader.attach_shader(&id);
-        }
+        gl.detach_shader(&id, &vert_shader);
+        gl.detach_shader(&id, &frag_shader);
+        gl.delete_shader(Some(&vert_shader));
+        gl.delete_shader(Some(&frag_shader));
 
-        gl.link_program(&id).map_err(|message| Error::FailedToLinkProgram {message})?;
-
-        for shader in shaders {
-            shader.detach_shader(&id);
+        if !success {
+            let mut message = "Failed to compile shader program:\n".to_string();
+            if let Some(log) = gl.get_program_info_log(&id) {message = format!("{}\nLink error: {}", message, log);}
+            if let Some(log) = gl.get_shader_info_log(&vert_shader) {message = format!("{}\nVertex shader error: {}", message, log);}
+            if let Some(log) = gl.get_shader_info_log(&frag_shader) {message = format!("{}\nFragment shader error: {}", message, log);}
+            return Err(Error::FailedToLinkProgram {message});
         }
 
         // Init vertex attributes

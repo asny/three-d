@@ -49,7 +49,7 @@ impl Glstruct {
         Some(id)
     }
 
-    pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
+    pub fn compile_shader(&self, source: &str, shader: &Shader)
     {
         let header = "#version 330 core\n";
         let s: &str = &[header, source].concat();
@@ -61,24 +61,25 @@ impl Glstruct {
             self.inner.ShaderSource(*shader, 1, &c_str.as_ptr(), std::ptr::null());
             self.inner.CompileShader(*shader);
         }
+    }
 
-        let mut success: consts::types::GLint = 1;
+    pub fn get_shader_info_log(&self, shader: &Shader) -> Option<String> {
+
+        let mut len: consts::types::GLint = 0;
         unsafe {
-            self.inner.GetShaderiv(*shader, consts::COMPILE_STATUS, &mut success);
+            self.inner.GetShaderiv(*shader, consts::INFO_LOG_LENGTH, &mut len);
         }
 
-        if success == 0 {
-            let mut len: consts::types::GLint = 0;
-            unsafe {
-                self.inner.GetShaderiv(*shader, consts::INFO_LOG_LENGTH, &mut len);
-            }
+        if len == 0 {
+            None
+        }
+        else {
             let error = create_whitespace_cstring_with_len(len as usize);
             unsafe {
                 self.inner.GetShaderInfoLog(*shader, len, std::ptr::null_mut(), error.as_ptr() as *mut consts::types::GLchar);
             }
-            return Err(format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned()));
+            Some(error.to_string_lossy().into_owned())
         }
-        Ok(())
     }
 
     pub fn delete_shader(&self, shader: Option<&Shader>)
@@ -266,7 +267,7 @@ impl Glstruct {
         unsafe { self.inner.CreateProgram() }
     }
 
-    pub fn link_program(&self, program: &Program) -> Result<(), String>
+    pub fn link_program(&self, program: &Program) -> bool
     {
         unsafe { self.inner.LinkProgram(*program); }
 
@@ -274,15 +275,21 @@ impl Glstruct {
         unsafe {
             self.inner.GetProgramiv(*program, consts::LINK_STATUS, &mut success);
         }
+        success == 1
+    }
 
-        if success == 0 {
-            let mut len: consts::types::GLint = 0;
-            unsafe {
-                self.inner.GetProgramiv(*program, consts::INFO_LOG_LENGTH, &mut len);
-            }
+    pub fn get_program_info_log(&self, program: &Program) -> Option<String>
+    {
+        let mut len: consts::types::GLint = 0;
+        unsafe {
+            self.inner.GetProgramiv(*program, consts::INFO_LOG_LENGTH, &mut len);
+        }
 
+        if len == 0 {
+            None
+        }
+        else {
             let error = create_whitespace_cstring_with_len(len as usize);
-
             unsafe {
                 self.inner.GetProgramInfoLog(
                     *program,
@@ -291,10 +298,8 @@ impl Glstruct {
                     error.as_ptr() as *mut consts::types::GLchar
                 );
             }
-
-            return Err(error.to_string_lossy().into_owned());
+            Some(error.to_string_lossy().into_owned())
         }
-        Ok(())
     }
 
     pub fn use_program(&self, program: &Program)

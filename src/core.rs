@@ -1,7 +1,6 @@
 pub mod buffer;
 pub mod program;
 pub mod rendertarget;
-pub(crate) mod shader;
 pub mod state;
 pub mod texture;
 pub mod types;
@@ -22,10 +21,7 @@ pub use camera::*;
 pub enum Error {
     UnknownShaderType {message: String},
     FailedToCreateShader {shader_type: String, message: String},
-    FailedToCompileShader {shader_type: String, message: String},
     FailedToLinkProgram {message: String},
-    FailedToCreateCString(std::ffi::NulError),
-    FailedToFindPositions {message: String},
     FailedToFindAttribute {message: String},
     FailedToFindUniform {message: String},
     IO(std::io::Error),
@@ -46,11 +42,5 @@ impl From<image::ImageError> for Error {
 impl From<std::io::Error> for Error {
     fn from(other: std::io::Error) -> Self {
         Error::IO(other)
-    }
-}
-
-impl From<std::ffi::NulError> for Error {
-    fn from(other: std::ffi::NulError) -> Self {
-        Error::FailedToCreateCString(other)
     }
 }
