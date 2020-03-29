@@ -35,7 +35,7 @@ pub struct Texture2D {
     id: crate::gl::Texture,
     pub width: usize,
     pub height: usize,
-    mip_maps: bool
+    number_of_mip_maps: u32
 }
 
 // TEXTURE 2D
@@ -45,9 +45,20 @@ impl Texture2D
            wrap_s: Wrapping, wrap_t: Wrapping) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture2D { gl: gl.clone(), id, width, height, mip_maps: mip_map_filter.is_some() };
+        let number_of_mip_maps = if mip_map_filter.is_some() {
+            let w = (width as f64).log2();
+            let h = (height as f64).log2();
+            if w.fract() == 0.0 && h.fract() == 0.0
+            {
+                let m = w.max(h) as u32;
+                m+2
+            }
+            else {1}
+        } else {1};
+
+        let texture = Texture2D { gl: gl.clone(), id, width, height, number_of_mip_maps };
         gl.bind_texture(consts::TEXTURE_2D, &id);
-        set_parameters(gl, consts::TEXTURE_2D, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t);
+        set_parameters(gl, consts::TEXTURE_2D, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t);
         Ok(texture)
     }
 
@@ -56,14 +67,19 @@ impl Texture2D
     {
         let texture = Texture2D::new(gl, width, height, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
         gl.tex_storage_2d(consts::TEXTURE_2D,
-                        1,
+                        texture.number_of_mip_maps,
                         format as u32,
                         width as u32,
                         height as u32);
-        if texture.mip_maps {
-            gl.generate_mipmap(consts::TEXTURE_2D);
-        }
+        texture.generate_mipmap();
         Ok(texture)
+    }
+
+    pub(crate) fn generate_mipmap(&self) {
+        if self.number_of_mip_maps > 1 {
+            self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
+            self.gl.generate_mipmap(consts::TEXTURE_2D);
+        }
     }
 
     #[cfg(feature = "image-io")]
@@ -103,9 +119,7 @@ impl Texture2D
                                           consts::RGB,
                                           consts::UNSIGNED_BYTE,
                                           &mut d);
-        if self.mip_maps {
-            self.gl.generate_mipmap(consts::TEXTURE_2D);
-        }
+        self.generate_mipmap();
     }
 
     pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &[f32])
@@ -124,9 +138,7 @@ impl Texture2D
                                            format,
                                            consts::FLOAT,
                                            &mut d);
-        if self.mip_maps {
-            self.gl.generate_mipmap(consts::TEXTURE_2D);
-        }
+        self.generate_mipmap();
     }
 
     pub(crate) fn bind_as_color_target(&self, channel: usize)
