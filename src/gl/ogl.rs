@@ -599,6 +599,12 @@ impl Glstruct {
         }
     }
 
+    pub fn generate_mipmap(&self, target: u32) {
+        unsafe {
+            self.inner.GenerateMipmap(target);
+        }
+    }
+
     pub fn tex_storage_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32)
     {
         unsafe {
