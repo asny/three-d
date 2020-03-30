@@ -144,7 +144,7 @@ impl Glstruct {
                                                                                               None).unwrap();
     }
 
-    pub fn tex_sub_image_2d_with_u8_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
+    pub fn tex_sub_image_2d_with_u8_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[u8])
     {
         self.inner.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_u8_array(target,
                                                                                               level as i32,
@@ -171,7 +171,7 @@ impl Glstruct {
                                                                                               Some(pixels)).unwrap();
     }
 
-    pub fn tex_sub_image_2d_with_f32_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [f32])
+    pub fn tex_sub_image_2d_with_f32_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[f32])
     {
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()

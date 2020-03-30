@@ -182,19 +182,26 @@ pub struct TextureCubeMap {
     id: crate::gl::Texture,
     pub width: usize,
     pub height: usize,
+    format: Format,
     number_of_mip_maps: u32
 }
 
 impl TextureCubeMap
 {
     pub fn new(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping) -> Result<TextureCubeMap, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, format: Format) -> Result<TextureCubeMap, Error>
     {
         let id = generate(gl)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
         set_parameters(gl, &id,consts::TEXTURE_CUBE_MAP, min_filter, mag_filter,
                        if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, Some(wrap_r));
-        let texture = TextureCubeMap { gl: gl.clone(), id, width, height, number_of_mip_maps };
+        gl.bind_texture(consts::TEXTURE_CUBE_MAP, &id);
+        gl.tex_storage_2d(consts::TEXTURE_CUBE_MAP,
+                    number_of_mip_maps,
+                    format as u32,
+                    width as u32,
+                    height as u32);
+        let texture = TextureCubeMap { gl: gl.clone(), id, width, height, format, number_of_mip_maps };
         Ok(texture)
     }
 
@@ -209,12 +216,9 @@ impl TextureCubeMap
         let top = image::load_from_memory(top_bytes)?;
         let left = image::load_from_memory(left_bytes)?;
         let right = image::load_from_memory(right_bytes)?;
-
-        let mut texture = TextureCubeMap::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
-                                              min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
-        texture.fill_with_u8([&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
-                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()])?;
-        Ok(texture)
+        let (width, height) = back.dimensions();
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
+                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()])
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
@@ -227,28 +231,50 @@ impl TextureCubeMap
         let top = image::open(format!("{}{}", path, top_name))?;
         let left = image::open(format!("{}{}", path, left_name))?;
         let right = image::open(format!("{}{}", path, right_name))?;
+        let (width, height) = back.dimensions();
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
+                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()])
+    }
 
-        let mut texture = TextureCubeMap::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
-                                              min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
-        texture.fill_with_u8([&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
-                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()])?;
+    pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, width: u32, height: u32, data: [&[u8]; 6]) -> Result<Self, Error>
+    {
+        let number_of_channels = data[0].len() as i32 / (width as i32 * height as i32);
+        let format = match number_of_channels {
+            1 => Ok(Format::R8),
+            3 => Ok(Format::RGB8),
+            4 => Ok(Format::RGBA8),
+            _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
+        }?;
+
+        let mut texture = Self::new(gl, width as usize, height as usize,
+            min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, format)?;
+        texture.fill_with_u8(data)?;
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, data: [&mut [u8]; 6]) -> Result<(), Error>
+    pub fn fill_with_u8(&mut self, data: [&[u8]; 6]) -> Result<(), Error>
     {
-        // Todo: Check size of data
+        let format =
+            match self.format {
+                Format::R8 => Ok(consts::RED),
+                Format::RGB8 => Ok(consts::RGB),
+                Format::RGBA8 => Ok(consts::RGBA),
+                _ => Err(Error::FailedToCreateTexture {message: "Wrong texture format".to_string()})
+            }?;
+
+        let mut desired_length = self.width * self.height;
+        if format == consts::RGB { desired_length *= 3 };
+        if format == consts::RGBA { desired_length *= 4 };
+
+        if data[0].len() != desired_length {
+            Err(Error::FailedToCreateTexture {message: format!("Wrong size of data for the texture ({} != {})", data[0].len(), desired_length)})?
+        }
         self.gl.bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
         for i in 0..6 {
-            self.gl.tex_image_2d_with_u8_data(consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
-                                              0,
-                                              consts::RGB8,
-                                              self.width as u32,
-                                              self.height as u32,
-                                              0,
-                                              consts::RGB,
-                                              consts::UNSIGNED_BYTE,
-                                              data[i]);
+            self.gl.tex_sub_image_2d_with_u8_data(consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32, 0, 0, 0,
+                                                  self.width as u32, self.height as u32,
+                                                  format, consts::UNSIGNED_BYTE, data[i]);
         }
         self.generate_mip_maps();
         Ok(())
