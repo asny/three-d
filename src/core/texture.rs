@@ -109,11 +109,13 @@ impl Texture2D
         if format == consts::RGB { desired_length *= 3 };
         if format == consts::RGBA { desired_length *= 4 };
 
-        let mut d = extend_data(data, desired_length, 0)?;
+        if data.len() != desired_length {
+            Err(Error::FailedToCreateTexture {message: format!("Wrong size of data for the texture ({} != {})", data.len(), desired_length)})?
+        }
         self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
         self.gl.tex_sub_image_2d_with_u8_data(consts::TEXTURE_2D, 0, 0, 0,
                                               self.width as u32, self.height as u32,
-                                              format, consts::UNSIGNED_BYTE, &mut d);
+                                              format, consts::UNSIGNED_BYTE, data);
         self.generate_mip_maps();
         Ok(())
     }
@@ -132,11 +134,13 @@ impl Texture2D
         if format == consts::RGB { desired_length *= 3 };
         if format == consts::RGBA { desired_length *= 4 };
 
-        let mut d = extend_data(data, desired_length, 0.0)?;
+        if data.len() != desired_length {
+            Err(Error::FailedToCreateTexture {message: format!("Wrong size of data for the texture ({} != {})", data.len(), desired_length)})?
+        }
         self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
         self.gl.tex_sub_image_2d_with_f32_data(consts::TEXTURE_2D,0,0,0,
                                            self.width as u32,self.height as u32,
-                                               format,consts::FLOAT,&mut d);
+                                               format,consts::FLOAT,data);
         self.generate_mip_maps();
         Ok(())
     }
@@ -420,18 +424,4 @@ fn calculate_number_of_mip_maps(mip_map_filter: Option<Interpolation>, width: us
             let d = (depth as f64).log2().ceil();
             w.max(h).max(d) as u32 + 1
         } else {1}
-}
-
-fn extend_data<T>(data: &[T], desired_length: usize, value: T) -> Result<Vec<T>, Error> where T: std::clone::Clone
-{
-    if data.len() > desired_length {
-        Err(Error::FailedToCreateTexture {message: format!("Amount of data is too big for the texture ({} > {})", data.len(), desired_length)})?
-    }
-    let mut result = Vec::new();
-    result.extend_from_slice(data);
-    if data.len() < desired_length
-    {
-        result.extend(std::iter::repeat(value).take(desired_length - data.len()));
-    }
-    Ok(result)
 }
