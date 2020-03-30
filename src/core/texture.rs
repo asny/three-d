@@ -18,9 +18,12 @@ pub enum Wrapping {
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
     R8 = consts::R8 as isize,
+    R32F = consts::R32F as isize,
     RGB8 = consts::RGB8 as isize,
+    RGB32F = consts::RGB32F as isize,
     RGBA4 = consts::RGBA4 as isize,
     RGBA8 = consts::RGBA8 as isize,
+    RGBA32F = consts::RGBA32F as isize,
     Depth16 = consts::DEPTH_COMPONENT16 as isize,
     Depth24 = consts::DEPTH_COMPONENT24 as isize,
     Depth32F = consts::DEPTH_COMPONENT32F as isize
@@ -35,30 +38,24 @@ pub struct Texture2D {
     id: crate::gl::Texture,
     pub width: usize,
     pub height: usize,
+    format: Format,
     number_of_mip_maps: u32
 }
 
 impl Texture2D
 {
     pub fn new(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping) -> Result<Texture2D, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
         set_parameters(gl, &id,consts::TEXTURE_2D, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
-        Ok(Texture2D { gl: gl.clone(), id, width, height, number_of_mip_maps })
-    }
-
-    pub fn new_empty(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Texture2D, Error>
-    {
-        let texture = Texture2D::new(gl, width, height, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
         gl.tex_storage_2d(consts::TEXTURE_2D,
-                        texture.number_of_mip_maps,
+                        number_of_mip_maps,
                         format as u32,
                         width as u32,
                         height as u32);
-        Ok(texture)
+        Ok(Self { gl: gl.clone(), id, width, height, format, number_of_mip_maps })
     }
 
     #[cfg(feature = "image-io")]
@@ -66,11 +63,10 @@ impl Texture2D
            wrap_s: Wrapping, wrap_t: Wrapping, bytes: &[u8]) -> Result<Texture2D, Error>
     {
         // Todo: Check format
-        // Todo: Use new_empty + texSubImage
         use image::GenericImageView;
         let img = image::load_from_memory(bytes)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
-            min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
+            min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, Format::RGB8)?;
         texture.fill_with_u8(&mut img.raw_pixels())?;
         Ok(texture)
     }
@@ -80,54 +76,56 @@ impl Texture2D
            wrap_s: Wrapping, wrap_t: Wrapping, path: &str) -> Result<Texture2D, Error>
     {
         // Todo: Check format
-        // Todo: Use new_empty + texSubImage
         use image::GenericImageView;
         let img = image::open(path)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
-        min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
+        min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, Format::RGB8)?;
         texture.fill_with_u8(&mut img.raw_pixels())?;
         Ok(texture)
     }
 
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error>
     {
-        // Todo: Check size of data
-        // Todo: How to specify format?
-        // Todo: Use texSubImage
-        let mut d = extend_data(data, self.width * self.height, 0);
+        let format =
+            match self.format {
+                Format::R8 => Ok(consts::RED),
+                Format::RGB8 => Ok(consts::RGB),
+                Format::RGBA8 => Ok(consts::RGBA),
+                _ => Err(Error::FailedToCreateTexture {message: "Wrong texture format".to_string()})
+            }?;
+
+        let mut desired_length = self.width * self.height;
+        if format == consts::RGB { desired_length *= 3 };
+        if format == consts::RGBA { desired_length *= 4 };
+
+        let mut d = extend_data(data, desired_length, 0)?;
         self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
-        self.gl.tex_image_2d_with_u8_data(consts::TEXTURE_2D,
-                                          0,
-                                          consts::RGB8,
-                                          self.width as u32,
-                                          self.height as u32,
-                                          0,
-                                          consts::RGB,
-                                          consts::UNSIGNED_BYTE,
-                                          &mut d);
+        self.gl.tex_sub_image_2d_with_u8_data(consts::TEXTURE_2D, 0, 0, 0,
+                                              self.width as u32, self.height as u32,
+                                              format, consts::UNSIGNED_BYTE, &mut d);
         self.generate_mip_maps();
         Ok(())
     }
 
     pub fn fill_with_f32(&mut self, data: &[f32]) -> Result<(), Error>
     {
-        // Todo: Check size of data
-        // Todo: How to specify format?
-        // Todo: Use texSubImage
-        let no_elements = 1;
-        let mut d = extend_data(data, self.width * self.height, 0.0);
+        let format =
+            match self.format {
+                Format::R32F => Ok(consts::RED),
+                Format::RGB32F => Ok(consts::RGB),
+                Format::RGBA32F => Ok(consts::RGBA),
+                _ => Err(Error::FailedToCreateTexture {message: "Wrong texture format".to_string()})
+            }?;
+
+        let mut desired_length = self.width * self.height;
+        if format == consts::RGB { desired_length *= 3 };
+        if format == consts::RGBA { desired_length *= 4 };
+
+        let mut d = extend_data(data, desired_length, 0.0)?;
         self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
-        let format = if no_elements == 1 {consts::RED} else {consts::RGB};
-        let internal_format = if no_elements == 1 {consts::R16F} else {consts::RGB16F};
-        self.gl.tex_image_2d_with_f32_data(consts::TEXTURE_2D,
-                                           0,
-                                           internal_format,
-                                           self.width as u32,
-                                           self.height as u32,
-                                           0,
-                                           format,
-                                           consts::FLOAT,
-                                           &mut d);
+        self.gl.tex_sub_image_2d_with_f32_data(consts::TEXTURE_2D,0,0,0,
+                                           self.width as u32,self.height as u32,
+                                               format,consts::FLOAT,&mut d);
         self.generate_mip_maps();
         Ok(())
     }
@@ -387,13 +385,16 @@ fn calculate_number_of_mip_maps(mip_map_filter: Option<Interpolation>, width: us
         } else {1}
 }
 
-fn extend_data<T>(data: &[T], desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone
+fn extend_data<T>(data: &[T], desired_length: usize, value: T) -> Result<Vec<T>, Error> where T: std::clone::Clone
 {
+    if data.len() > desired_length {
+        Err(Error::FailedToCreateTexture {message: format!("Amount of data is too big for the texture ({} > {})", data.len(), desired_length)})?
+    }
     let mut result = Vec::new();
     result.extend_from_slice(data);
     if data.len() < desired_length
     {
         result.extend(std::iter::repeat(value).take(desired_length - data.len()));
     }
-    result
+    Ok(result)
 }
