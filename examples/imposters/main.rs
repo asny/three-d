@@ -12,7 +12,7 @@ fn main() {
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+                                                degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
     // Tree
     let mut leaves_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/leaves1.3d")).unwrap().to_mesh(&gl).unwrap();
@@ -30,7 +30,7 @@ fn main() {
             leaves_mesh.render(&Mat4::identity(), camera);
         }, (aabb.min, aabb.max), 256);
 
-    let t = 10;
+    let t = 100;
     let mut positions = Vec::new();
     let mut angles = Vec::new();
     for x in -t..t {
@@ -47,7 +47,7 @@ fn main() {
 
     // Plane
     let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
-    plane_mesh.scale(100.0);
+    plane_mesh.scale(1000.0);
     let mut plane = Mesh::new(&gl, &plane_mesh.indices_buffer(), &plane_mesh.positions_buffer_f32(), &plane_mesh.normals_buffer_f32()).unwrap();
     plane.color = vec3(0.5, 0.7, 0.3);
     plane.diffuse_intensity = 0.5;
@@ -56,7 +56,7 @@ fn main() {
     // Lights
     let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
     let mut directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
-    directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 300.0, 300.0, 300.0, 1024, 1024, &|camera: &Camera| {
+    directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 500.0, 4096, 4096, &|camera: &Camera| {
         state::cull(&gl, state::CullType::Back);
         tree_mesh.render(&Mat4::identity(), camera);
         leaves_mesh.render(&Mat4::identity(), camera);
