@@ -62,25 +62,36 @@ impl Texture2D
     pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, bytes: &[u8]) -> Result<Texture2D, Error>
     {
-        // Todo: Check format
         use image::GenericImageView;
         let img = image::load_from_memory(bytes)?;
-        let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
-            min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, Format::RGB8)?;
-        texture.fill_with_u8(&mut img.raw_pixels())?;
-        Ok(texture)
+        let (width, height) = img.dimensions();
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.raw_pixels())
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
     pub fn new_from_file(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, path: &str) -> Result<Texture2D, Error>
     {
-        // Todo: Check format
         use image::GenericImageView;
         let img = image::open(path)?;
-        let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
-        min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, Format::RGB8)?;
-        texture.fill_with_u8(&mut img.raw_pixels())?;
+        let (width, height) = img.dimensions();
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.raw_pixels())
+    }
+
+    pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+           wrap_s: Wrapping, wrap_t: Wrapping, width: u32, height: u32, data: &[u8]) -> Result<Texture2D, Error>
+    {
+        let number_of_channels = data.len() as i32 / (width as i32 * height as i32);
+        let format = match number_of_channels {
+            1 => Ok(Format::R8),
+            3 => Ok(Format::RGB8),
+            4 => Ok(Format::RGBA8),
+            _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
+        }?;
+
+        let mut texture = Texture2D::new(gl, width as usize, height as usize,
+            min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, format)?;
+        texture.fill_with_u8(data)?;
         Ok(texture)
     }
 
