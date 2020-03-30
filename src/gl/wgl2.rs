@@ -144,11 +144,10 @@ impl Glstruct {
                                                                                               None).unwrap();
     }
 
-    pub fn tex_sub_image_2d_with_u8_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[u8])
+    pub fn tex_sub_image_2d_with_u8_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, format: u32, data_type: u32, pixels: &[u8])
     {
         self.inner.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_u8_array(target,
                                                                                               level as i32,
-                                                                                              internalformat as i32,
                                                                                               x_offset as i32,
                                                                                               y_offset as i32,
                                                                                               width as i32,
@@ -158,7 +157,7 @@ impl Glstruct {
                                                                                               Some(pixels)).unwrap();
     }
 
-    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
+    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[u8])
     {
         self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(target,
                                                                                               level as i32,
@@ -171,7 +170,7 @@ impl Glstruct {
                                                                                               Some(pixels)).unwrap();
     }
 
-    pub fn tex_sub_image_2d_with_f32_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[f32])
+    pub fn tex_sub_image_2d_with_f32_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, format: u32, data_type: u32, pixels: &[f32])
     {
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
@@ -183,17 +182,16 @@ impl Glstruct {
 
         self.inner.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_array_buffer_view(target,
                                                                                               level as i32,
-                                                                                              internalformat as i32,
                                                                                               x_offset as i32,
                                                                                               y_offset as i32,
                                                                                               width as i32,
                                                                                               height as i32,
                                                                                               format,
                                                                                               data_type,
-                                                                                              Some(pixels)).unwrap();
+                                                                                              Some(&array)).unwrap();
     }
 
-    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [f32])
+    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[f32])
     {
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
@@ -323,32 +321,32 @@ impl Glstruct {
         self.inner.uniform1i(Some(location), data);
     }
 
-    pub fn uniform2fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform2fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform2fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform3fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform3fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform3fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform4fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform4fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform4fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform_matrix2fv_with_f32_array(Some(location), false, data);
     }
 
-    pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform_matrix3fv_with_f32_array(Some(location), false, data);
     }
 
-    pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform_matrix4fv_with_f32_array(Some(location), false, data);
     }
