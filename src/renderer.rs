@@ -72,10 +72,10 @@ impl DeferredPipeline
             spot_light_program,
             full_screen_positions,
             full_screen_uvs,
-            geometry_pass_texture: Some(Texture2DArray::new_empty(gl, 1, 1, 2,
+            geometry_pass_texture: Some(Texture2DArray::new(gl, 1, 1, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?),
-            geometry_pass_depth_texture: Some(Texture2DArray::new_empty(gl, 1, 1, 1,
+            geometry_pass_depth_texture: Some(Texture2DArray::new(gl, 1, 1, 1,
                     Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?)};
 
@@ -91,10 +91,10 @@ impl DeferredPipeline
         state::cull(&self.gl, state::CullType::None);
         state::blend(&self.gl, state::BlendType::None);
 
-        self.geometry_pass_texture = Some(Texture2DArray::new_empty(&self.gl, width, height, 2,
+        self.geometry_pass_texture = Some(Texture2DArray::new(&self.gl, width, height, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?);
-        self.geometry_pass_depth_texture = Some(Texture2DArray::new_empty(&self.gl, width, height, 1,
+        self.geometry_pass_depth_texture = Some(Texture2DArray::new(&self.gl, width, height, 1,
                     Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?);
         RenderTarget::write_array(&self.gl,0, 0, width, height,

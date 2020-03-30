@@ -145,7 +145,7 @@ impl Texture2D
         Ok(())
     }
 
-    pub(crate) fn generate_mip_maps(&self) { // Todo: Public?
+    pub(crate) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
             self.gl.generate_mipmap(consts::TEXTURE_2D);
@@ -205,8 +205,7 @@ impl TextureCubeMap
                     format as u32,
                     width as u32,
                     height as u32);
-        let texture = TextureCubeMap { gl: gl.clone(), id, width, height, format, number_of_mip_maps };
-        Ok(texture)
+        Ok(Self { gl: gl.clone(), id, width, height, format, number_of_mip_maps })
     }
 
     #[cfg(feature = "image-io")]
@@ -320,26 +319,19 @@ pub struct Texture2DArray {
 impl Texture2DArray
 {
     pub fn new(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping) -> Result<Self, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
     {
         let id = generate(gl)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, depth);
-
         set_parameters(gl, &id,consts::TEXTURE_2D_ARRAY, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
-        Ok(Self { gl: gl.clone(), id, width, height, depth, number_of_mip_maps })
-    }
-
-    pub fn new_empty(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
-    {
-        let texture = Self::new(gl, width, height, depth, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
+        gl.bind_texture(consts::TEXTURE_2D_ARRAY, &id);
         gl.tex_storage_3d(consts::TEXTURE_2D_ARRAY,
-                        texture.number_of_mip_maps,
+                        number_of_mip_maps,
                         format as u32,
                         width as u32,
                         height as u32,
                         depth as u32);
-        Ok(texture)
+        Ok(Self { gl: gl.clone(), id, width, height, depth, number_of_mip_maps })
     }
 
     pub(crate) fn generate_mip_maps(&self) {
