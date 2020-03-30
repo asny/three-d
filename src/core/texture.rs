@@ -38,7 +38,6 @@ pub struct Texture2D {
     number_of_mip_maps: u32
 }
 
-// TEXTURE 2D
 impl Texture2D
 {
     pub fn new(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
@@ -169,7 +168,7 @@ impl Drop for Texture2D
     }
 }
 
-pub struct Texture3D {
+pub struct TextureCubeMap {
     gl: Gl,
     id: crate::gl::Texture,
     pub width: usize,
@@ -177,25 +176,23 @@ pub struct Texture3D {
     number_of_mip_maps: u32
 }
 
-// Todo: rename
-// TEXTURE 3D
-impl Texture3D
+impl TextureCubeMap
 {
     pub fn new(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping) -> Result<Texture3D, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping) -> Result<TextureCubeMap, Error>
     {
         let id = generate(gl)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
         set_parameters(gl, &id,consts::TEXTURE_CUBE_MAP, min_filter, mag_filter,
                        if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, Some(wrap_r));
-        let texture = Texture3D { gl: gl.clone(), id, width, height, number_of_mip_maps };
+        let texture = TextureCubeMap { gl: gl.clone(), id, width, height, number_of_mip_maps };
         Ok(texture)
     }
 
     #[cfg(feature = "image-io")]
     pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping,
-                      back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
+                      back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<TextureCubeMap, Error>
     {
         use image::GenericImageView;
         let back = image::load_from_memory(back_bytes)?;
@@ -204,8 +201,8 @@ impl Texture3D
         let left = image::load_from_memory(left_bytes)?;
         let right = image::load_from_memory(right_bytes)?;
 
-        let mut texture = Texture3D::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
-                                         min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
+        let mut texture = TextureCubeMap::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
+                                              min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
         texture.fill_with_u8([&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
                               &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()])?;
         Ok(texture)
@@ -213,7 +210,7 @@ impl Texture3D
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
     pub fn new_from_files(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<TextureCubeMap, Error>
     {
         use image::GenericImageView;
         let back = image::open(format!("{}{}", path, back_name))?;
@@ -222,8 +219,8 @@ impl Texture3D
         let left = image::open(format!("{}{}", path, left_name))?;
         let right = image::open(format!("{}{}", path, right_name))?;
 
-        let mut texture = Texture3D::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
-                                         min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
+        let mut texture = TextureCubeMap::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
+                                              min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
         texture.fill_with_u8([&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
                               &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()])?;
         Ok(texture)
@@ -256,7 +253,7 @@ impl Texture3D
     }
 }
 
-impl Texture for Texture3D
+impl Texture for TextureCubeMap
 {
     fn bind(&self, location: u32)
     {
@@ -264,7 +261,7 @@ impl Texture for Texture3D
     }
 }
 
-impl Drop for Texture3D
+impl Drop for TextureCubeMap
 {
     fn drop(&mut self)
     {
@@ -281,7 +278,6 @@ pub struct Texture2DArray {
     number_of_mip_maps: u32
 }
 
-// TEXTURE 3D
 impl Texture2DArray
 {
     pub fn new(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,

@@ -6,12 +6,12 @@ pub struct Skybox {
     gl: Gl,
     program: program::Program,
     vertex_buffer: VertexBuffer,
-    texture: texture::Texture3D
+    texture: texture::TextureCubeMap
 }
 
 impl Skybox
 {
-    pub fn new(gl: &Gl, texture: texture::Texture3D) -> Skybox
+    pub fn new(gl: &Gl, texture: texture::TextureCubeMap) -> Skybox
     {
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/skybox.vert"),
@@ -38,7 +38,7 @@ impl Skybox
         Ok(())
     }
 
-    pub fn get_texture(&self) -> &texture::Texture3D
+    pub fn get_texture(&self) -> &texture::TextureCubeMap
     {
         &self.texture
     }
