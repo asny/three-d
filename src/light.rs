@@ -100,7 +100,8 @@ impl DirectionalLight {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        self.shadow_texture = Some(Texture2D::new_empty(&self.gl, texture_width, texture_height, Interpolation::Linear, Interpolation::Linear, None,
+        self.shadow_texture = Some(Texture2D::new_empty(&self.gl, texture_width, texture_height,
+                                                        Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap());
         RenderTarget::write_to_depth(&self.gl, 0, 0, texture_width, texture_height, Some(1.0),
             self.shadow_texture.as_ref(),
@@ -259,7 +260,8 @@ impl SpotLight {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        self.shadow_texture = Some(Texture2D::new_empty(&self.gl, texture_size, texture_size, Interpolation::Linear, Interpolation::Linear, None,
+        self.shadow_texture = Some(Texture2D::new_empty(&self.gl, texture_size, texture_size,
+                                                        Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap());
         RenderTarget::write_to_depth(&self.gl, 0, 0, texture_size, texture_size, Some(1.0),
             self.shadow_texture.as_ref(), &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
