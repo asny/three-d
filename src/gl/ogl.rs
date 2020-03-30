@@ -605,17 +605,17 @@ impl Glstruct {
         }
     }
 
-    pub fn tex_storage_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32)
+    pub fn tex_storage_2d(&self, target: u32, levels: u32, internalformat: u32, width: u32, height: u32)
     {
         unsafe {
-            self.inner.TexStorage2D(target, level as i32, internalformat, width as i32, height as i32);
+            self.inner.TexStorage2D(target, levels as i32, internalformat, width as i32, height as i32);
         }
     }
 
-    pub fn tex_storage_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32)
+    pub fn tex_storage_3d(&self, target: u32, levels: u32, internalformat: u32, width: u32, height: u32, depth: u32)
     {
         unsafe {
-            self.inner.TexStorage3D(target, level as i32, internalformat, width as i32, height as i32, depth as i32);
+            self.inner.TexStorage3D(target, levels as i32, internalformat, width as i32, height as i32, depth as i32);
         }
     }
 

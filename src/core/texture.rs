@@ -45,21 +45,9 @@ impl Texture2D
            wrap_s: Wrapping, wrap_t: Wrapping) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
-        let number_of_mip_maps = if mip_map_filter.is_some() {
-            let w = (width as f64).log2();
-            let h = (height as f64).log2();
-            if w.fract() == 0.0 && h.fract() == 0.0
-            {
-                let m = w.max(h) as u32;
-                m+2
-            }
-            else {1}
-        } else {1};
-
-        let texture = Texture2D { gl: gl.clone(), id, width, height, number_of_mip_maps };
-        gl.bind_texture(consts::TEXTURE_2D, &id);
-        set_parameters(gl, consts::TEXTURE_2D, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t);
-        Ok(texture)
+        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
+        set_parameters(gl, &id,consts::TEXTURE_2D, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
+        Ok(Texture2D { gl: gl.clone(), id, width, height, number_of_mip_maps })
     }
 
     pub fn new_empty(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
@@ -71,26 +59,20 @@ impl Texture2D
                         format as u32,
                         width as u32,
                         height as u32);
-        texture.generate_mip_maps();
         Ok(texture)
-    }
-
-    pub(crate) fn generate_mip_maps(&self) {
-        if self.number_of_mip_maps > 1 {
-            self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
-            self.gl.generate_mipmap(consts::TEXTURE_2D);
-        }
     }
 
     #[cfg(feature = "image-io")]
     pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, bytes: &[u8]) -> Result<Texture2D, Error>
     {
+        // Todo: Check format
+        // Todo: Use new_empty + texSubImage
         use image::GenericImageView;
         let img = image::load_from_memory(bytes)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
             min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
-        texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
+        texture.fill_with_u8(&mut img.raw_pixels())?;
         Ok(texture)
     }
 
@@ -98,47 +80,64 @@ impl Texture2D
     pub fn new_from_file(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, path: &str) -> Result<Texture2D, Error>
     {
+        // Todo: Check format
+        // Todo: Use new_empty + texSubImage
         use image::GenericImageView;
         let img = image::open(path)?;
         let mut texture = Texture2D::new(gl, img.dimensions().0 as usize, img.dimensions().1 as usize,
         min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
-        texture.fill_with_u8(texture.width, texture.height, &mut img.raw_pixels());
+        texture.fill_with_u8(&mut img.raw_pixels())?;
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: &[u8])
+    pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error>
     {
-        let mut d = extend_data(data, width * height, 0);
-        bind(&self.gl, &self.id, consts::TEXTURE_2D);
+        // Todo: Check size of data
+        // Todo: How to specify format?
+        // Todo: Use texSubImage
+        let mut d = extend_data(data, self.width * self.height, 0);
+        self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
         self.gl.tex_image_2d_with_u8_data(consts::TEXTURE_2D,
                                           0,
                                           consts::RGB8,
-                                          width as u32,
-                                          height as u32,
+                                          self.width as u32,
+                                          self.height as u32,
                                           0,
                                           consts::RGB,
                                           consts::UNSIGNED_BYTE,
                                           &mut d);
         self.generate_mip_maps();
+        Ok(())
     }
 
-    pub fn fill_with_f32(&mut self, width: usize, height: usize, data: &[f32])
+    pub fn fill_with_f32(&mut self, data: &[f32]) -> Result<(), Error>
     {
+        // Todo: Check size of data
+        // Todo: How to specify format?
+        // Todo: Use texSubImage
         let no_elements = 1;
-        let mut d = extend_data(data, width * height, 0.0);
-        bind(&self.gl, &self.id, consts::TEXTURE_2D);
+        let mut d = extend_data(data, self.width * self.height, 0.0);
+        self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
         let format = if no_elements == 1 {consts::RED} else {consts::RGB};
         let internal_format = if no_elements == 1 {consts::R16F} else {consts::RGB16F};
         self.gl.tex_image_2d_with_f32_data(consts::TEXTURE_2D,
                                            0,
                                            internal_format,
-                                           width as u32,
-                                           height as u32,
+                                           self.width as u32,
+                                           self.height as u32,
                                            0,
                                            format,
                                            consts::FLOAT,
                                            &mut d);
         self.generate_mip_maps();
+        Ok(())
+    }
+
+    pub(crate) fn generate_mip_maps(&self) { // Todo: Public?
+        if self.number_of_mip_maps > 1 {
+            self.gl.bind_texture(consts::TEXTURE_2D, &self.id);
+            self.gl.generate_mipmap(consts::TEXTURE_2D);
+        }
     }
 
     pub(crate) fn bind_as_color_target(&self, channel: usize)
@@ -166,30 +165,35 @@ impl Drop for Texture2D
 {
     fn drop(&mut self)
     {
-        drop(&self.gl, &self.id);
+        self.gl.delete_texture(&self.id);
     }
 }
 
 pub struct Texture3D {
     gl: Gl,
-    id: crate::gl::Texture
+    id: crate::gl::Texture,
+    pub width: usize,
+    pub height: usize,
+    number_of_mip_maps: u32
 }
 
+// Todo: rename
 // TEXTURE 3D
 impl Texture3D
 {
-    pub fn new(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+    pub fn new(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping) -> Result<Texture3D, Error>
     {
         let id = generate(gl)?;
-        let texture = Texture3D { gl: gl.clone(), id };
-        texture.set_interpolation(min_filter, mag_filter);
-        texture.set_wrapping(wrap_s, wrap_t, wrap_r);
+        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
+        set_parameters(gl, &id,consts::TEXTURE_CUBE_MAP, min_filter, mag_filter,
+                       if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, Some(wrap_r));
+        let texture = Texture3D { gl: gl.clone(), id, width, height, number_of_mip_maps };
         Ok(texture)
     }
 
     #[cfg(feature = "image-io")]
-    pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+    pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping,
                       back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<Texture3D, Error>
     {
@@ -200,15 +204,15 @@ impl Texture3D
         let left = image::load_from_memory(left_bytes)?;
         let right = image::load_from_memory(right_bytes)?;
 
-        let mut texture = Texture3D::new(gl, min_filter, mag_filter, wrap_s, wrap_t, wrap_r)?;
-        texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                             [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
-                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
+        let mut texture = Texture3D::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
+                                         min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
+        texture.fill_with_u8([&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
+                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()])?;
         Ok(texture)
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn new_from_files(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation,
+    pub fn new_from_files(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<Texture3D, Error>
     {
         use image::GenericImageView;
@@ -218,41 +222,36 @@ impl Texture3D
         let left = image::open(format!("{}{}", path, left_name))?;
         let right = image::open(format!("{}{}", path, right_name))?;
 
-        let mut texture = Texture3D::new(gl, min_filter, mag_filter, wrap_s, wrap_t, wrap_r)?;
-        texture.fill_with_u8(back.dimensions().0 as usize, back.dimensions().1 as usize,
-                             [&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
-                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()]);
+        let mut texture = Texture3D::new(gl, back.dimensions().0 as usize, back.dimensions().1 as usize,
+                                         min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r)?;
+        texture.fill_with_u8([&mut right.raw_pixels(), &mut left.raw_pixels(), &mut top.raw_pixels(),
+                              &mut top.raw_pixels(), &mut front.raw_pixels(), &mut back.raw_pixels()])?;
         Ok(texture)
     }
 
-    pub fn set_interpolation(&self, min_filter: Interpolation, mag_filter: Interpolation)
+    pub fn fill_with_u8(&mut self, data: [&mut [u8]; 6]) -> Result<(), Error>
     {
-        bind(&self.gl, &self.id, consts::TEXTURE_CUBE_MAP);
-        self.gl.tex_parameteri(consts::TEXTURE_CUBE_MAP, consts::TEXTURE_MIN_FILTER, min_filter as i32);
-        self.gl.tex_parameteri(consts::TEXTURE_CUBE_MAP, consts::TEXTURE_MAG_FILTER, mag_filter as i32);
-    }
-
-    pub fn set_wrapping(&self, wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping)
-    {
-        bind(&self.gl, &self.id, consts::TEXTURE_CUBE_MAP);
-        self.gl.tex_parameteri(consts::TEXTURE_CUBE_MAP, consts::TEXTURE_WRAP_S, wrap_s as i32);
-        self.gl.tex_parameteri(consts::TEXTURE_CUBE_MAP, consts::TEXTURE_WRAP_T, wrap_t as i32);
-        self.gl.tex_parameteri(consts::TEXTURE_CUBE_MAP, consts::TEXTURE_WRAP_R, wrap_r as i32);
-    }
-
-    pub fn fill_with_u8(&mut self, width: usize, height: usize, data: [&mut [u8]; 6])
-    {
-        bind(&self.gl, &self.id, consts::TEXTURE_CUBE_MAP);
+        // Todo: Check size of data
+        self.gl.bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
         for i in 0..6 {
             self.gl.tex_image_2d_with_u8_data(consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
                                               0,
                                               consts::RGB8,
-                                              width as u32,
-                                              height as u32,
+                                              self.width as u32,
+                                              self.height as u32,
                                               0,
                                               consts::RGB,
                                               consts::UNSIGNED_BYTE,
                                               data[i]);
+        }
+        self.generate_mip_maps();
+        Ok(())
+    }
+
+    pub(crate) fn generate_mip_maps(&self) {
+        if self.number_of_mip_maps > 1 {
+            self.gl.bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
+            self.gl.generate_mipmap(consts::TEXTURE_CUBE_MAP);
         }
     }
 }
@@ -269,7 +268,7 @@ impl Drop for Texture3D
 {
     fn drop(&mut self)
     {
-        drop(&self.gl, &self.id);
+        self.gl.delete_texture(&self.id);
     }
 }
 
@@ -279,48 +278,40 @@ pub struct Texture2DArray {
     pub width: usize,
     pub height: usize,
     pub depth: usize,
+    number_of_mip_maps: u32
 }
 
 // TEXTURE 3D
 impl Texture2DArray
 {
-    pub fn new(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation,
+    pub fn new(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping) -> Result<Self, Error>
     {
         let id = generate(gl)?;
-        let texture = Self { gl: gl.clone(), id, width, height, depth };
-        texture.set_interpolation(min_filter, mag_filter);
-        texture.set_wrapping(wrap_s, wrap_t);
-        Ok(texture)
+        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, depth);
+
+        set_parameters(gl, &id,consts::TEXTURE_2D_ARRAY, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
+        Ok(Self { gl: gl.clone(), id, width, height, depth, number_of_mip_maps })
     }
 
-    pub fn new_empty(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation,
+    pub fn new_empty(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
     {
-        let texture = Self::new(gl, width, height, depth, min_filter, mag_filter, wrap_s, wrap_t)?;
-
+        let texture = Self::new(gl, width, height, depth, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t)?;
         gl.tex_storage_3d(consts::TEXTURE_2D_ARRAY,
-                        1,
+                        texture.number_of_mip_maps,
                         format as u32,
                         width as u32,
                         height as u32,
                         depth as u32);
-
         Ok(texture)
     }
 
-    pub fn set_interpolation(&self, min_filter: Interpolation, mag_filter: Interpolation)
-    {
-        bind(&self.gl, &self.id, consts::TEXTURE_2D_ARRAY);
-        self.gl.tex_parameteri(consts::TEXTURE_2D_ARRAY, consts::TEXTURE_MIN_FILTER, min_filter as i32);
-        self.gl.tex_parameteri(consts::TEXTURE_2D_ARRAY, consts::TEXTURE_MAG_FILTER, mag_filter as i32);
-    }
-
-    pub fn set_wrapping(&self, wrap_s: Wrapping, wrap_t: Wrapping)
-    {
-        bind(&self.gl, &self.id, consts::TEXTURE_2D_ARRAY);
-        self.gl.tex_parameteri(consts::TEXTURE_2D_ARRAY, consts::TEXTURE_WRAP_S, wrap_s as i32);
-        self.gl.tex_parameteri(consts::TEXTURE_2D_ARRAY, consts::TEXTURE_WRAP_T, wrap_t as i32);
+    pub(crate) fn generate_mip_maps(&self) {
+        if self.number_of_mip_maps > 1 {
+            self.gl.bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
+            self.gl.generate_mipmap(consts::TEXTURE_2D_ARRAY);
+        }
     }
 
     pub(crate) fn bind_as_color_target(&self, layer: usize, channel: usize)
@@ -348,7 +339,7 @@ impl Drop for Texture2DArray
 {
     fn drop(&mut self)
     {
-        drop(&self.gl, &self.id);
+        self.gl.delete_texture(&self.id);
     }
 }
 
@@ -362,11 +353,12 @@ fn generate(gl: &Gl) -> Result<crate::gl::Texture, Error>
 fn bind_at(gl: &Gl, id: &crate::gl::Texture, target: u32, location: u32)
 {
     gl.active_texture(consts::TEXTURE0 + location);
-    bind(gl, id, target);
+    gl.bind_texture(target, id);
 }
 
-fn set_parameters(gl: &Gl, target: u32, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>, wrap_s: Wrapping, wrap_t: Wrapping)
+fn set_parameters(gl: &Gl, id: &crate::gl::Texture, target: u32, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>, wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Option<Wrapping>)
 {
+    gl.bind_texture(target, id);
     match mip_map_filter {
         None => gl.tex_parameteri(target, consts::TEXTURE_MIN_FILTER, min_filter as i32),
         Some(Interpolation::Nearest) =>
@@ -385,16 +377,18 @@ fn set_parameters(gl: &Gl, target: u32, min_filter: Interpolation, mag_filter: I
     gl.tex_parameteri(target, consts::TEXTURE_MAG_FILTER, mag_filter as i32);
     gl.tex_parameteri(target, consts::TEXTURE_WRAP_S, wrap_s as i32);
     gl.tex_parameteri(target, consts::TEXTURE_WRAP_T, wrap_t as i32);
+    if let Some(r) = wrap_r {
+        gl.tex_parameteri(target, consts::TEXTURE_WRAP_R, r as i32);
+    }
 }
 
-fn bind(gl: &Gl, id: &crate::gl::Texture, target: u32)
-{
-    gl.bind_texture(target, id)
-}
-
-fn drop(gl: &Gl, id: &crate::gl::Texture)
-{
-    gl.delete_texture(id);
+fn calculate_number_of_mip_maps(mip_map_filter: Option<Interpolation>, width: usize, height: usize, depth: usize) -> u32 {
+    if mip_map_filter.is_some() {
+            let w = (width as f64).log2().ceil();
+            let h = (height as f64).log2().ceil();
+            let d = (depth as f64).log2().ceil();
+            w.max(h).max(d) as u32 + 1
+        } else {1}
 }
 
 fn extend_data<T>(data: &[T], desired_length: usize, value: T) -> Vec<T> where T: std::clone::Clone

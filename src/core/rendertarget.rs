@@ -151,6 +151,13 @@ impl RenderTarget
         render();
 
         gl.delete_framebuffer(Some(&id));
+        if let Some(color_texture) = color_texture_array {
+            color_texture.generate_mip_maps();
+        }
+
+        if let Some(depth_texture) = depth_texture_array {
+            depth_texture.generate_mip_maps();
+        }
         Ok(())
     }
 

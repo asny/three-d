@@ -19,7 +19,7 @@ fn main() {
     box_mesh.texture = Some(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, include_bytes!("../assets/textures/test_texture.jpg")).unwrap());
 
-    let texture3d = Texture3D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
+    let texture3d = Texture3D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear), Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
                                                        include_bytes!("../assets/textures/skybox_evening/back.jpg"),
                                                        include_bytes!("../assets/textures/skybox_evening/front.jpg"),
                                                        include_bytes!("../assets/textures/skybox_evening/top.jpg"),

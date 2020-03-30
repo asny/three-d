@@ -73,10 +73,10 @@ impl DeferredPipeline
             full_screen_positions,
             full_screen_uvs,
             geometry_pass_texture: Some(Texture2DArray::new_empty(gl, 1, 1, 2,
-                  Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge,
+                  Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?),
             geometry_pass_depth_texture: Some(Texture2DArray::new_empty(gl, 1, 1, 1,
-                    Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge,
+                    Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?)};
 
         renderer.ambient_light_program.use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
@@ -92,10 +92,10 @@ impl DeferredPipeline
         state::blend(&self.gl, state::BlendType::None);
 
         self.geometry_pass_texture = Some(Texture2DArray::new_empty(&self.gl, width, height, 2,
-                  Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge,
+                  Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?);
         self.geometry_pass_depth_texture = Some(Texture2DArray::new_empty(&self.gl, width, height, 1,
-                    Interpolation::Nearest, Interpolation::Nearest, Wrapping::ClampToEdge,
+                    Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?);
         RenderTarget::write_array(&self.gl,0, 0, width, height,
             Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
