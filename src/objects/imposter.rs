@@ -26,7 +26,7 @@ impl Imposter {
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
         let texture = Texture2DArray::new(gl, texture_width, texture_height, NO_VIEW_ANGLES*2,
-                Interpolation::Nearest, Interpolation::Nearest, Some(Interpolation::Nearest),
+                Interpolation::Nearest, Interpolation::Nearest, None,
                                                 Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::RGBA8).unwrap();
         let depth_texture = Texture2DArray::new(gl, texture_width, texture_height, NO_VIEW_ANGLES,
                 Interpolation::Nearest, Interpolation::Nearest, None,
