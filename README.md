@@ -10,6 +10,9 @@ This means you can develop a 3D application on desktop and easily deploy it on w
 
 https://asny.github.io/three-d/
 
+![Lighting example](https://asny.github.io/three-d/lighting.png)
+![Spider example](https://asny.github.io/three-d/spider.png)
+
 ### Main features
 
 - Thin and low-level graphics abstraction layer which maps one-to-one with the OpenGL/WebGL2 graphics APIs.
