@@ -21,8 +21,8 @@ pub struct DeferredPipeline {
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
     spot_light_effect: ImageEffect,
-    debug_effect: ImageEffect,
-    pub debug_type: DebugType,
+    debug_effect: Option<ImageEffect>,
+    debug_type: DebugType,
     geometry_pass_texture: Option<Texture2DArray>,
     geometry_pass_depth_texture: Option<Texture2DArray>
 }
@@ -46,7 +46,7 @@ impl DeferredPipeline
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/shadow_shared.frag"),
                                                                        &include_str!("shaders/spot_light.frag")))?,
-            debug_effect: ImageEffect::new(gl, include_str!("shaders/debug.frag"))?,
+            debug_effect: None,
             debug_type: DebugType::NONE,
             geometry_pass_texture: Some(Texture2DArray::new(gl, 1, 1, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
@@ -59,21 +59,6 @@ impl DeferredPipeline
         renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
         renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_depth_texture(), "depthMap")?;
         Ok(renderer)
-    }
-
-    pub fn next_debug_type(&mut self)
-    {
-        self.debug_type =
-            match self.debug_type {
-                DebugType::NONE => DebugType::POSITION,
-                DebugType::POSITION => DebugType::NORMAL,
-                DebugType::NORMAL => DebugType::COLOR,
-                DebugType::COLOR => DebugType::DEPTH,
-                DebugType::DEPTH => DebugType::DIFFUSE,
-                DebugType::DIFFUSE => DebugType::SPECULAR,
-                DebugType::SPECULAR => DebugType::POWER,
-                DebugType::POWER => DebugType::NONE,
-            };
     }
 
     pub fn geometry_pass(&mut self, width: usize, height: usize, render_scene: &dyn Fn()) -> Result<(), Error>
@@ -104,12 +89,11 @@ impl DeferredPipeline
         state::blend(&self.gl, state::BlendType::None);
 
         if self.debug_type != DebugType::NONE {
-            self.debug_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-            self.debug_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.debug_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
-            self.debug_effect.program().add_uniform_int("type", &(self.debug_type as i32))?;
-
-            self.debug_effect.apply();
+            self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.debug_effect.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
+            self.debug_effect.as_ref().unwrap().apply();
             return Ok(());
         }
 
@@ -180,5 +164,34 @@ impl DeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> &Texture2DArray
     {
         &self.geometry_pass_depth_texture.as_ref().unwrap()
+    }
+
+    pub fn debug_type(&self) -> DebugType
+    {
+        self.debug_type
+    }
+
+    pub fn set_debug_type(&mut self, debug_type: DebugType)
+    {
+        self.debug_type = debug_type;
+        if self.debug_effect.is_none() {
+            self.debug_effect = Some(ImageEffect::new(&self.gl, include_str!("shaders/debug.frag")).unwrap());
+        }
+    }
+
+    pub fn next_debug_type(&mut self)
+    {
+        let debug_type =
+            match self.debug_type {
+                DebugType::NONE => DebugType::POSITION,
+                DebugType::POSITION => DebugType::NORMAL,
+                DebugType::NORMAL => DebugType::COLOR,
+                DebugType::COLOR => DebugType::DEPTH,
+                DebugType::DEPTH => DebugType::DIFFUSE,
+                DebugType::DIFFUSE => DebugType::SPECULAR,
+                DebugType::SPECULAR => DebugType::POWER,
+                DebugType::POWER => DebugType::NONE,
+            };
+        self.set_debug_type(debug_type);
     }
 }

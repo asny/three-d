@@ -86,7 +86,7 @@ fn main() {
                     if kind == "R" && *state == State::Pressed
                     {
                         renderer.next_debug_type();
-                        println!("{:?}", renderer.debug_type);
+                        println!("{:?}", renderer.debug_type());
                     }
                 }
             }
