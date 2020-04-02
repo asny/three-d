@@ -10,12 +10,12 @@ pub struct FogEffect {
 
 impl FogEffect {
 
-    pub fn new(gl: &Gl) -> Result<FogEffect, effects::Error>
+    pub fn new(gl: &Gl) -> Result<FogEffect, Error>
     {
         Ok(FogEffect {gl: gl.clone(), color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fog.frag"))?})
     }
 
-    pub fn apply(&self, time: f32, camera: &camera::Camera, depth_texture: &Texture2DArray) -> Result<(), effects::Error>
+    pub fn apply(&self, time: f32, camera: &camera::Camera, depth_texture: &Texture2DArray) -> Result<(), Error>
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);

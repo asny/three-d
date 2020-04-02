@@ -22,7 +22,6 @@ fn main() {
 
     let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
     fog_effect.color = vec3(0.8, 0.8, 0.8);
-    let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
 
     // main loop
     let mut time = 0.0;
@@ -47,7 +46,7 @@ fn main() {
                 Event::Key { state, kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
-                        debug_effect.change_type();
+                        renderer.change_debug_type();
                     }
                 }
             }
@@ -68,7 +67,6 @@ fn main() {
 
         // Effect
         fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
-        debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

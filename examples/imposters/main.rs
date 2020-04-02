@@ -63,8 +63,6 @@ fn main() {
         imposter.render(camera);
     });
 
-    let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
-
     // main loop
     let mut rotating = false;
     window.render_loop(move |frame_input|
@@ -87,7 +85,7 @@ fn main() {
                 Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
-                        debug_effect.change_type();
+                        renderer.change_debug_type();
                     }
                 }
             }
@@ -107,8 +105,6 @@ fn main() {
         Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), None, &|| {
             renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
         }).unwrap();
-
-        debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

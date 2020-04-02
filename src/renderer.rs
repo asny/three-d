@@ -3,8 +3,7 @@ use crate::*;
 
 #[derive(Debug)]
 pub enum Error {
-    Core(core::Error),
-    LightExtendsMaxLimit {message: String}
+    Core(core::Error)
 }
 
 impl From<core::Error> for Error {
@@ -13,12 +12,18 @@ impl From<core::Error> for Error {
     }
 }
 
+use num_derive::FromPrimitive;
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+enum DebugType {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, DIFFUSE = 4, SPECULAR = 5, POWER = 6, NONE = 7}
+
 pub struct DeferredPipeline {
     gl: Gl,
     ambient_light_effect: ImageEffect,
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
     spot_light_effect: ImageEffect,
+    debug_effect: ImageEffect,
+    debug_type: DebugType,
     geometry_pass_texture: Option<Texture2DArray>,
     geometry_pass_depth_texture: Option<Texture2DArray>
 }
@@ -42,6 +47,8 @@ impl DeferredPipeline
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/shadow_shared.frag"),
                                                                        &include_str!("shaders/spot_light.frag")))?,
+            debug_effect: ImageEffect::new(gl, include_str!("shaders/debug.frag"))?,
+            debug_type: DebugType::NONE,
             geometry_pass_texture: Some(Texture2DArray::new(gl, 1, 1, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?),
@@ -53,6 +60,12 @@ impl DeferredPipeline
         renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
         renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_depth_texture(), "depthMap")?;
         Ok(renderer)
+    }
+
+    pub fn change_debug_type(&mut self)
+    {
+        self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (DebugType::NONE as u32 + 1)).unwrap();
+        println!("{:?}", self.debug_type);
     }
 
     pub fn geometry_pass(&mut self, width: usize, height: usize, render_scene: &dyn Fn()) -> Result<(), Error>
@@ -80,8 +93,17 @@ impl DeferredPipeline
     {
         state::depth_write(&self.gl,false);
         state::depth_test(&self.gl, state::DepthTestType::None);
-        state::cull(&self.gl,state::CullType::Back);
         state::blend(&self.gl, state::BlendType::None);
+
+        if self.debug_type != DebugType::NONE {
+            self.debug_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.debug_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.debug_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.debug_effect.program().add_uniform_int("type", &(self.debug_type as i32))?;
+
+            self.debug_effect.apply();
+            return Ok(());
+        }
 
         // Ambient light
         if let Some(light) = ambient_light {
