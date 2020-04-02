@@ -12,9 +12,8 @@ impl From<core::Error> for Error {
     }
 }
 
-use num_derive::FromPrimitive;
-#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
-enum DebugType {POSITION = 0, NORMAL = 1, COLOR = 2, DEPTH = 3, DIFFUSE = 4, SPECULAR = 5, POWER = 6, NONE = 7}
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum DebugType {NONE, POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER}
 
 pub struct DeferredPipeline {
     gl: Gl,
@@ -23,7 +22,7 @@ pub struct DeferredPipeline {
     point_light_effect: ImageEffect,
     spot_light_effect: ImageEffect,
     debug_effect: ImageEffect,
-    debug_type: DebugType,
+    pub debug_type: DebugType,
     geometry_pass_texture: Option<Texture2DArray>,
     geometry_pass_depth_texture: Option<Texture2DArray>
 }
@@ -62,10 +61,19 @@ impl DeferredPipeline
         Ok(renderer)
     }
 
-    pub fn change_debug_type(&mut self)
+    pub fn next_debug_type(&mut self)
     {
-        self.debug_type = num::FromPrimitive::from_u32(((self.debug_type as u32) + 1) % (DebugType::NONE as u32 + 1)).unwrap();
-        println!("{:?}", self.debug_type);
+        self.debug_type =
+            match self.debug_type {
+                DebugType::NONE => DebugType::POSITION,
+                DebugType::POSITION => DebugType::NORMAL,
+                DebugType::NORMAL => DebugType::COLOR,
+                DebugType::COLOR => DebugType::DEPTH,
+                DebugType::DEPTH => DebugType::DIFFUSE,
+                DebugType::DIFFUSE => DebugType::SPECULAR,
+                DebugType::SPECULAR => DebugType::POWER,
+                DebugType::POWER => DebugType::NONE,
+            };
     }
 
     pub fn geometry_pass(&mut self, width: usize, height: usize, render_scene: &dyn Fn()) -> Result<(), Error>

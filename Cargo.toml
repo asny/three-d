@@ -23,9 +23,6 @@ debug = [] # Prints OpenGL debug information (only available when NOT building f
 
 [dependencies]
 cgmath = "0.17"
-num = "0.2"
-num-traits = "0.2"
-num-derive = "0.3"
 serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
 image = { version = "0.22", optional = true, default-features = false, features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]}

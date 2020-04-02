@@ -85,7 +85,8 @@ fn main() {
                 Event::Key { ref state, ref kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
-                        renderer.change_debug_type();
+                        renderer.next_debug_type();
+                        println!("{:?}", renderer.debug_type);
                     }
                 }
             }
