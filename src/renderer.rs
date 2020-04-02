@@ -15,14 +15,12 @@ impl From<core::Error> for Error {
 
 pub struct DeferredPipeline {
     gl: Gl,
-    ambient_light_program: program::Program,
-    directional_light_program: program::Program,
-    point_light_program: program::Program,
-    spot_light_program: program::Program,
+    ambient_light_effect: ImageEffect,
+    directional_light_effect: ImageEffect,
+    point_light_effect: ImageEffect,
+    spot_light_effect: ImageEffect,
     geometry_pass_texture: Option<Texture2DArray>,
-    geometry_pass_depth_texture: Option<Texture2DArray>,
-    full_screen_positions: VertexBuffer,
-    full_screen_uvs: VertexBuffer
+    geometry_pass_depth_texture: Option<Texture2DArray>
 }
 
 
@@ -30,57 +28,30 @@ impl DeferredPipeline
 {
     pub fn new(gl: &Gl) -> Result<DeferredPipeline, Error>
     {
-        let ambient_light_program = program::Program::from_source(gl,
-                                                               include_str!("shaders/light_pass.vert"),
-                                                               include_str!("shaders/ambient_light.frag"))?;
-        let directional_light_program = program::Program::from_source(gl,
-                                                               include_str!("shaders/light_pass.vert"),
-                                                               &format!("{}\n{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("shaders/shadow_shared.frag"),
-                                                                       &include_str!("shaders/directional_light.frag")))?;
-        let point_light_program = program::Program::from_source(gl,
-                                                               include_str!("shaders/light_pass.vert"),
-                                                               &format!("{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("shaders/point_light.frag")))?;
-        let spot_light_program = program::Program::from_source(gl,
-                                                               include_str!("shaders/light_pass.vert"),
-                                                               &format!("{}\n{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("shaders/shadow_shared.frag"),
-                                                                       &include_str!("shaders/spot_light.frag")))?;
-
-        let positions = vec![
-            -3.0, -1.0, 0.0,
-            3.0, -1.0, 0.0,
-            0.0, 2.0, 0.0
-        ];
-        let uvs = vec![
-            -1.0, 0.0,
-            2.0, 0.0,
-            0.5, 1.5
-        ];
-        let full_screen_positions = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
-        let full_screen_uvs = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
-
         let renderer = DeferredPipeline {
             gl: gl.clone(),
-            ambient_light_program,
-            directional_light_program,
-            point_light_program,
-            spot_light_program,
-            full_screen_positions,
-            full_screen_uvs,
+            ambient_light_effect: ImageEffect::new(gl, include_str!("shaders/ambient_light.frag"))?,
+            directional_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
+                                                                       &include_str!("shaders/light_shared.frag"),
+                                                                       &include_str!("shaders/shadow_shared.frag"),
+                                                                       &include_str!("shaders/directional_light.frag")))?,
+            point_light_effect: ImageEffect::new(gl, &format!("{}\n{}",
+                                                                       &include_str!("shaders/light_shared.frag"),
+                                                                       &include_str!("shaders/point_light.frag")))?,
+            spot_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
+                                                                       &include_str!("shaders/light_shared.frag"),
+                                                                       &include_str!("shaders/shadow_shared.frag"),
+                                                                       &include_str!("shaders/spot_light.frag")))?,
             geometry_pass_texture: Some(Texture2DArray::new(gl, 1, 1, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?),
             geometry_pass_depth_texture: Some(Texture2DArray::new(gl, 1, 1, 1,
                     Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge,
-                    Wrapping::ClampToEdge, Format::Depth32F)?)};
+                    Wrapping::ClampToEdge, Format::Depth32F)?)
+        };
 
-        renderer.ambient_light_program.use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
-        renderer.ambient_light_program.use_texture(renderer.geometry_pass_depth_texture(), "depthMap")?;
+        renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
+        renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_depth_texture(), "depthMap")?;
         Ok(renderer)
     }
 
@@ -114,78 +85,58 @@ impl DeferredPipeline
 
         // Ambient light
         if let Some(light) = ambient_light {
-
-            self.ambient_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.ambient_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
-
-            self.ambient_light_program.add_uniform_vec3("ambientLight.base.color", &light.color())?;
-            self.ambient_light_program.add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
-
-            self.ambient_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
-            self.ambient_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
-            self.ambient_light_program.draw_arrays(3);
+            self.ambient_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.ambient_light_effect.program().add_uniform_vec3("ambientLight.base.color", &light.color())?;
+            self.ambient_light_effect.program().add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
+            self.ambient_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         // Directional light
         for light in directional_lights {
-            self.directional_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.directional_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
-
-            self.directional_light_program.add_uniform_vec3("eyePosition", &camera.position())?;
-            self.directional_light_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-
+            self.directional_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.directional_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.directional_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
+            self.directional_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             if let Some(texture) = light.shadow_map() {
-                self.directional_light_program.use_texture(texture, "shadowMap")?;
+                self.directional_light_effect.program().use_texture(texture, "shadowMap")?;
             }
             else {
                 let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-                self.directional_light_program.use_texture(&dummy, "shadowMap")?;
+                self.directional_light_effect.program().use_texture(&dummy, "shadowMap")?;
             }
-            self.directional_light_program.use_uniform_block(light.buffer(), "DirectionalLight");
-
-            self.directional_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
-            self.directional_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
-            self.directional_light_program.draw_arrays(3);
+            self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLight");
+            self.directional_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         // Spot lights
         for light in spot_lights {
-            self.spot_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.spot_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
-
-            self.spot_light_program.add_uniform_vec3("eyePosition", &camera.position())?;
-            self.spot_light_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-
+            self.spot_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.spot_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.spot_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
+            self.spot_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             if let Some(texture) = light.shadow_map() {
-                self.spot_light_program.use_texture(texture, "shadowMap")?;
+                self.spot_light_effect.program().use_texture(texture, "shadowMap")?;
             }
             else {
                 let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-                self.spot_light_program.use_texture(&dummy, "shadowMap")?;
+                self.spot_light_effect.program().use_texture(&dummy, "shadowMap")?;
             }
-            self.spot_light_program.use_uniform_block(light.buffer(), "SpotLight");
-
-            self.spot_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
-            self.spot_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
-            self.spot_light_program.draw_arrays(3);
+            self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLight");
+            self.spot_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
 
         // Point lights
         for light in point_lights {
-            self.point_light_program.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.point_light_program.use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
-
-            self.point_light_program.add_uniform_vec3("eyePosition", &camera.position())?;
-            self.point_light_program.add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-
-            self.point_light_program.use_uniform_block(light.buffer(), "PointLight");
-
-            self.point_light_program.use_attribute_vec3_float(&self.full_screen_positions, "position").unwrap();
-            self.point_light_program.use_attribute_vec2_float(&self.full_screen_uvs, "uv_coordinate").unwrap();
-            self.point_light_program.draw_arrays(3);
+            self.point_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.point_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.point_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
+            self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLight");
+            self.point_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
 
