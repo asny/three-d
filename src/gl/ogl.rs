@@ -182,21 +182,7 @@ impl Glstruct {
 
     pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
     {
-        let pname = match target {
-            consts::ARRAY_BUFFER => consts::ARRAY_BUFFER_BINDING,
-            consts::ELEMENT_ARRAY_BUFFER => consts::ELEMENT_ARRAY_BUFFER_BINDING,
-            consts::UNIFORM_BUFFER => consts::UNIFORM_BUFFER_BINDING,
-            _ => unreachable!()
-        };
-
         unsafe {
-            let mut current = -1;
-            self.inner.GetIntegerv(pname, &mut current);
-            if current != 0
-            {
-                println!("{}", current);
-                panic!();
-            }
             self.inner.BindBuffer(target, *buffer);
         }
     }
