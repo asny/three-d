@@ -55,19 +55,15 @@ fn main() {
         time += frame_input.elapsed_time;
 
         // draw
-        // Geometry pass
         renderer.geometry_pass(width, height, &|| {
             let transformation = Mat4::identity();
             monkey.render(&transformation, &camera);
         }).unwrap();
 
-        // Light pass
         Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
             renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
+            fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
         }).unwrap();
-
-        // Effect
-        fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
