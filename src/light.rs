@@ -71,7 +71,7 @@ impl DirectionalLight {
 
     pub fn set_direction(&mut self, direction: &Vec3)
     {
-        self.light_buffer.update(2, &direction.to_slice()).unwrap();
+        self.light_buffer.update(2, &direction.normalize().to_slice()).unwrap();
     }
 
     pub fn direction(&self) -> Vec3 {
