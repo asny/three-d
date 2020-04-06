@@ -737,14 +737,21 @@ impl Glstruct {
         }
     }
 
-    pub fn read_pixels(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [u8])
+    pub fn read_pixels(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32)
+    {
+        unsafe {
+            self.inner.ReadPixels(x as i32, y as i32, width as i32, height as i32, format, data_type, 0 as *mut consts::types::GLvoid);
+        }
+    }
+
+    pub fn read_pixels_with_u8_data(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [u8])
     {
         unsafe {
             self.inner.ReadPixels(x as i32, y as i32, width as i32, height as i32, format, data_type, dst_data.as_ptr() as *mut consts::types::GLvoid)
         }
     }
 
-    pub fn read_depths(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [f32])
+    pub fn read_pixels_with_f32_data(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [f32])
     {
         unsafe {
             self.inner.ReadPixels(x as i32, y as i32, width as i32, height as i32, format, data_type, dst_data.as_ptr() as *mut consts::types::GLvoid)
