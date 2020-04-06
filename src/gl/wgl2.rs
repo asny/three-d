@@ -53,6 +53,16 @@ impl Glstruct {
         self.inner.bind_buffer(target, None);
     }
 
+    pub fn buffer_data(&self, target: u32, size_in_bytes: u32, usage: u32) {
+        self.inner.buffer_data_with_i32(target, size_in_bytes as i32, usage);
+    }
+
+
+    pub fn buffer_data_u8(&self, target: u32, data: &[u8], usage: u32)
+    {
+        self.inner.buffer_data_with_u8_array(target, data, usage)
+    }
+
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)
     {
         use wasm_bindgen::JsCast;

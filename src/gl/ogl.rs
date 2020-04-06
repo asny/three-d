@@ -223,6 +223,29 @@ impl Glstruct {
         }
     }
 
+    pub fn buffer_data(&self, target: u32, size_in_bytes: u32, usage: u32) {
+        unsafe {
+            self.inner.BufferData(
+                target,
+                size_in_bytes as consts::types::GLsizeiptr, // size of data in bytes
+                std::ptr::null() as *const consts::types::GLvoid, // pointer to data
+                usage
+            );
+        }
+    }
+
+    pub fn buffer_data_u8(&self, target: u32, data: &[u8], usage: u32)
+    {
+        unsafe {
+            self.inner.BufferData(
+                target,
+                (data.len() * std::mem::size_of::<u8>()) as consts::types::GLsizeiptr, // size of data in bytes
+                data.as_ptr() as *const consts::types::GLvoid, // pointer to data
+                usage
+            );
+        }
+    }
+
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)
     {
         unsafe {
