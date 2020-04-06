@@ -13,7 +13,7 @@ impl From<core::Error> for Error {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum DebugType {NONE, POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER}
+pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}
 
 pub struct DeferredPipeline {
     gl: Gl,
