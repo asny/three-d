@@ -56,7 +56,7 @@ fn main() {
                     camera.zoom(*delta as f32);
                 },
                 Event::Key { ref state, ref kind } => {
-                    if kind == "R" && *state == State::Pressed
+                    if kind == "T" && *state == State::Pressed
                     {
                         shadows_enabled = !shadows_enabled;
                         if !shadows_enabled {
@@ -64,6 +64,15 @@ fn main() {
                             directional_light0.clear_shadow_map();
                             directional_light1.clear_shadow_map();
                         }
+                    }
+                    if kind == "P" && *state == State::Pressed
+                    {
+                        Screen::save_color("lighting.png", &gl, 0, 0, width, height).unwrap();
+                    }
+                    if kind == "R" && *state == State::Pressed
+                    {
+                        renderer.next_debug_type();
+                        println!("{:?}", renderer.debug_type());
                     }
                 }
             }
