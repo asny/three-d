@@ -13,6 +13,7 @@ pub use web_sys::WebGlFramebuffer as Framebuffer;
 pub use web_sys::WebGlTexture as Texture;
 pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
 pub use web_sys::WebGlActiveInfo as ActiveInfo;
+pub use web_sys::WebGlSync as Sync;
 
 #[derive(Clone)]
 pub struct Glstruct {
@@ -371,6 +372,18 @@ impl Glstruct {
     pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
     {
         self.inner.get_active_uniform(program, index).unwrap()
+    }
+
+    pub fn fence_sync(&self) -> Sync {
+        self.inner.fence_sync(consts::SYNC_GPU_COMMANDS_COMPLETE, 0).unwrap()
+    }
+
+    pub fn client_wait_sync(&self, sync: &Sync, flags: u32, timeout: u32) -> u32 {
+        self.inner.client_wait_sync_with_u32(sync, flags, timeout)
+    }
+
+    pub fn delete_sync(&self, sync: &Sync) {
+        self.inner.delete_sync(Some(sync));
     }
 }
 

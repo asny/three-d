@@ -13,6 +13,7 @@ pub type Buffer = u32;
 pub type Framebuffer = u32;
 pub type Texture = u32;
 pub type VertexArrayObject = u32;
+pub type Sync = consts::types::GLsync;
 pub struct ActiveInfo { size: u32, type_: u32, name: String }
 impl ActiveInfo {
     pub fn new(size: u32, type_: u32, name: String) -> ActiveInfo {ActiveInfo {size, type_, name}}
@@ -755,6 +756,31 @@ impl Glstruct {
     {
         unsafe {
             self.inner.ReadPixels(x as i32, y as i32, width as i32, height as i32, format, data_type, dst_data.as_ptr() as *mut consts::types::GLvoid)
+        }
+    }
+
+    pub fn flush(&self)
+    {
+        unsafe {
+            self.inner.Flush();
+        }
+    }
+
+    pub fn fence_sync(&self) -> Sync {
+        unsafe {
+            self.inner.FenceSync(consts::SYNC_GPU_COMMANDS_COMPLETE, 0)
+        }
+    }
+
+    pub fn client_wait_sync(&self, sync: &Sync, flags: u32, timeout: u32) -> u32 {
+        unsafe {
+            self.inner.ClientWaitSync(*sync, flags, timeout as u64)
+        }
+    }
+
+    pub fn delete_sync(&self, sync: &Sync) {
+        unsafe {
+            self.inner.DeleteSync(*sync);
         }
     }
 }

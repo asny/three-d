@@ -45,7 +45,7 @@ version = "0.3"
 features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'Event', 'MouseEvent',
   'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer',
   'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject',
-  'WebGlActiveInfo', 'Performance']
+  'WebGlActiveInfo', 'WebGlSync', 'Performance']
 
 [dev-dependencies]
 tri-mesh = "0.5.0"
