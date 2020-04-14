@@ -414,6 +414,6 @@ fn calculate_number_of_mip_maps(mip_map_filter: Option<Interpolation>, width: us
             let w = (width as f64).log2().ceil();
             let h = (height as f64).log2().ceil();
             let d = (depth as f64).log2().ceil();
-            w.max(h).max(d) as u32 + 1
+            w.max(h).max(d).floor() as u32 + 1
         } else {1}
 }
