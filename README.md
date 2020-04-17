@@ -1,5 +1,7 @@
 # `three-d`
 
+[![](http://meritbadge.herokuapp.com/three-d)](https://crates.io/crates/three-d)
+
 ### What is it?
 
 A renderer written in Rust which enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
