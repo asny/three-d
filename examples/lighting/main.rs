@@ -67,6 +67,7 @@ fn main() {
                     }
                     if kind == "P" && *state == State::Pressed
                     {
+                        #[cfg(target_arch = "x86_64")]
                         Screen::save_color("lighting.png", &gl, 0, 0, width, height).unwrap();
                     }
                     if kind == "R" && *state == State::Pressed
