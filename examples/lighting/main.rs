@@ -15,15 +15,15 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let mut monkey = CPUMesh::from_bytes(include_bytes!("../assets/models/suzanne.3d")).unwrap().to_mesh(&gl).unwrap();
-    monkey.diffuse_intensity = 0.3;
+    monkey.diffuse_intensity = 0.7;
     monkey.specular_intensity = 0.8;
     monkey.specular_power = 20.0;
 
     let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
-    plane_mesh.scale(10.0);
+    plane_mesh.scale(100.0);
     plane_mesh.translate(tri_mesh::prelude::vec3(0.0, -1.0, 0.0));
     let mut plane = Mesh::new(&gl, &plane_mesh.indices_buffer(), &plane_mesh.positions_buffer_f32(), &plane_mesh.normals_buffer_f32()).unwrap();
-    plane.diffuse_intensity = 0.3;
+    plane.diffuse_intensity = 0.7;
     plane.specular_intensity = 0.8;
     plane.specular_power = 20.0;
 
@@ -56,7 +56,7 @@ fn main() {
                     camera.zoom(*delta as f32);
                 },
                 Event::Key { ref state, ref kind } => {
-                    if kind == "R" && *state == State::Pressed
+                    if kind == "T" && *state == State::Pressed
                     {
                         shadows_enabled = !shadows_enabled;
                         if !shadows_enabled {
@@ -64,6 +64,16 @@ fn main() {
                             directional_light0.clear_shadow_map();
                             directional_light1.clear_shadow_map();
                         }
+                    }
+                    if kind == "P" && *state == State::Pressed
+                    {
+                        #[cfg(target_arch = "x86_64")]
+                        Screen::save_color("lighting.png", &gl, 0, 0, width, height).unwrap();
+                    }
+                    if kind == "R" && *state == State::Pressed
+                    {
+                        renderer.next_debug_type();
+                        println!("{:?}", renderer.debug_type());
                     }
                 }
             }

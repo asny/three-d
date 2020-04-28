@@ -13,6 +13,7 @@ pub use web_sys::WebGlFramebuffer as Framebuffer;
 pub use web_sys::WebGlTexture as Texture;
 pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
 pub use web_sys::WebGlActiveInfo as ActiveInfo;
+pub use web_sys::WebGlSync as Sync;
 
 #[derive(Clone)]
 pub struct Glstruct {
@@ -52,6 +53,16 @@ impl Glstruct {
         self.inner.bind_buffer(target, None);
     }
 
+    pub fn buffer_data(&self, target: u32, size_in_bytes: u32, usage: u32) {
+        self.inner.buffer_data_with_i32(target, size_in_bytes as i32, usage);
+    }
+
+
+    pub fn buffer_data_u8(&self, target: u32, data: &[u8], usage: u32)
+    {
+        self.inner.buffer_data_with_u8_array(target, data, usage)
+    }
+
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32)
     {
         use wasm_bindgen::JsCast;
@@ -86,20 +97,13 @@ impl Glstruct {
         );
     }
 
-    pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
+    pub fn compile_shader(&self, source: &str, shader: &Shader)
     {
         let header = "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2DArray;\n";
         let s: &str = &[header, source].concat();
 
         self.inner.shader_source(shader, s);
         self.inner.compile_shader(shader);
-
-        if self.inner.get_shader_parameter(shader, consts::COMPILE_STATUS).as_bool().unwrap_or(false)
-        {
-            Ok(())
-        } else {
-            Err(self.inner.get_shader_info_log(shader).unwrap_or_else(|| "Unknown error creating shader".into()))
-        }
     }
 
     pub fn create_program(&self) -> Program
@@ -107,15 +111,10 @@ impl Glstruct {
         self.inner.create_program().unwrap()
     }
 
-    pub fn link_program(&self, program: &Program) -> Result<(), String>
+    pub fn link_program(&self, program: &Program) -> bool
     {
         self.inner.link_program(program);
-        if self.inner.get_program_parameter(program, consts::LINK_STATUS).as_bool().unwrap_or(false)
-        {
-            Ok(())
-        } else {
-            Err(self.inner.get_program_info_log(program).unwrap_or_else(|| "Unknown error creating program object".into()))
-        }
+        self.inner.get_program_parameter(program, consts::LINK_STATUS).as_bool().unwrap_or(false)
     }
 
     pub fn bind_vertex_array(&self, array: &VertexArrayObject)
@@ -156,7 +155,20 @@ impl Glstruct {
                                                                                               None).unwrap();
     }
 
-    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
+    pub fn tex_sub_image_2d_with_u8_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, format: u32, data_type: u32, pixels: &[u8])
+    {
+        self.inner.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_u8_array(target,
+                                                                                              level as i32,
+                                                                                              x_offset as i32,
+                                                                                              y_offset as i32,
+                                                                                              width as i32,
+                                                                                              height as i32,
+                                                                                              format,
+                                                                                              data_type,
+                                                                                              Some(pixels)).unwrap();
+    }
+
+    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[u8])
     {
         self.inner.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(target,
                                                                                               level as i32,
@@ -169,7 +181,28 @@ impl Glstruct {
                                                                                               Some(pixels)).unwrap();
     }
 
-    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [f32])
+    pub fn tex_sub_image_2d_with_f32_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, format: u32, data_type: u32, pixels: &[f32])
+    {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>().unwrap()
+            .buffer();
+        let data_location = pixels.as_ptr() as u32 / 4;
+        let array = js_sys::Float32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + pixels.len() as u32);
+
+        self.inner.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_array_buffer_view(target,
+                                                                                              level as i32,
+                                                                                              x_offset as i32,
+                                                                                              y_offset as i32,
+                                                                                              width as i32,
+                                                                                              height as i32,
+                                                                                              format,
+                                                                                              data_type,
+                                                                                              Some(&array)).unwrap();
+    }
+
+    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[f32])
     {
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
@@ -299,32 +332,32 @@ impl Glstruct {
         self.inner.uniform1i(Some(location), data);
     }
 
-    pub fn uniform2fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform2fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform2fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform3fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform3fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform3fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform4fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform4fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform4fv_with_f32_array(Some(location), data);
     }
 
-    pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform_matrix2fv_with_f32_array(Some(location), false, data);
     }
 
-    pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform_matrix3fv_with_f32_array(Some(location), false, data);
     }
 
-    pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &mut [f32])
+    pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &[f32])
     {
         self.inner.uniform_matrix4fv_with_f32_array(Some(location), false, data);
     }
@@ -349,6 +382,18 @@ impl Glstruct {
     pub fn get_active_uniform(&self, program: &Program, index: u32) -> ActiveInfo
     {
         self.inner.get_active_uniform(program, index).unwrap()
+    }
+
+    pub fn fence_sync(&self) -> Sync {
+        self.inner.fence_sync(consts::SYNC_GPU_COMMANDS_COMPLETE, 0).unwrap()
+    }
+
+    pub fn client_wait_sync(&self, sync: &Sync, flags: u32, timeout: u32) -> u32 {
+        self.inner.client_wait_sync_with_u32(sync, flags, timeout)
+    }
+
+    pub fn delete_sync(&self, sync: &Sync) {
+        self.inner.delete_sync(Some(sync));
     }
 }
 

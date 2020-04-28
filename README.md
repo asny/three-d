@@ -5,7 +5,7 @@
 ### What is it?
 
 A renderer written in Rust which enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
-(Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate).
+(Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL2 bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate).
 This means you can develop a 3D application on desktop and easily deploy it on web!
 
 ### Examples
@@ -36,7 +36,7 @@ $ cargo run --example hello_world --release
 #### Web: 
 Build and generate web output (webassembly, javascript and html files) into the pkg folder:
 ```console
-$ wasm-pack build examples/hello_world --target web --out-name web --out-dir ../../pkg
+$ wasm-pack build examples/hello_world --target web --out-name web --out-dir ../pkg
 ``` 
 Install a server that properly defines the `application/wasm` mime type for example:
 ```console

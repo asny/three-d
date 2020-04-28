@@ -22,7 +22,6 @@ fn main() {
 
     let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
     fog_effect.color = vec3(0.8, 0.8, 0.8);
-    let mut debug_effect = effects::DebugEffect::new(&gl).unwrap();
 
     // main loop
     let mut time = 0.0;
@@ -47,7 +46,8 @@ fn main() {
                 Event::Key { state, kind } => {
                     if kind == "R" && *state == State::Pressed
                     {
-                        debug_effect.change_type();
+                        renderer.next_debug_type();
+                        println!("{:?}", renderer.debug_type());
                     }
                 }
             }
@@ -55,20 +55,15 @@ fn main() {
         time += frame_input.elapsed_time;
 
         // draw
-        // Geometry pass
         renderer.geometry_pass(width, height, &|| {
             let transformation = Mat4::identity();
             monkey.render(&transformation, &camera);
         }).unwrap();
 
-        // Light pass
         Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
             renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
+            fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
         }).unwrap();
-
-        // Effect
-        fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
-        debug_effect.apply(&camera, renderer.geometry_pass_texture(), renderer.geometry_pass_depth_texture()).unwrap();
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]

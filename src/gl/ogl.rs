@@ -13,6 +13,7 @@ pub type Buffer = u32;
 pub type Framebuffer = u32;
 pub type Texture = u32;
 pub type VertexArrayObject = u32;
+pub type Sync = consts::types::GLsync;
 pub struct ActiveInfo { size: u32, type_: u32, name: String }
 impl ActiveInfo {
     pub fn new(size: u32, type_: u32, name: String) -> ActiveInfo {ActiveInfo {size, type_, name}}
@@ -49,7 +50,7 @@ impl Glstruct {
         Some(id)
     }
 
-    pub fn compile_shader(&self, source: &str, shader: &Shader) -> Result<(), String>
+    pub fn compile_shader(&self, source: &str, shader: &Shader)
     {
         let header = "#version 330 core\n";
         let s: &str = &[header, source].concat();
@@ -61,24 +62,25 @@ impl Glstruct {
             self.inner.ShaderSource(*shader, 1, &c_str.as_ptr(), std::ptr::null());
             self.inner.CompileShader(*shader);
         }
+    }
 
-        let mut success: consts::types::GLint = 1;
+    pub fn get_shader_info_log(&self, shader: &Shader) -> Option<String> {
+
+        let mut len: consts::types::GLint = 0;
         unsafe {
-            self.inner.GetShaderiv(*shader, consts::COMPILE_STATUS, &mut success);
+            self.inner.GetShaderiv(*shader, consts::INFO_LOG_LENGTH, &mut len);
         }
 
-        if success == 0 {
-            let mut len: consts::types::GLint = 0;
-            unsafe {
-                self.inner.GetShaderiv(*shader, consts::INFO_LOG_LENGTH, &mut len);
-            }
+        if len == 0 {
+            None
+        }
+        else {
             let error = create_whitespace_cstring_with_len(len as usize);
             unsafe {
                 self.inner.GetShaderInfoLog(*shader, len, std::ptr::null_mut(), error.as_ptr() as *mut consts::types::GLchar);
             }
-            return Err(format!("Failed to compile shader due to error: {}", error.to_string_lossy().into_owned()));
+            Some(error.to_string_lossy().into_owned())
         }
-        Ok(())
     }
 
     pub fn delete_shader(&self, shader: Option<&Shader>)
@@ -180,21 +182,7 @@ impl Glstruct {
 
     pub fn bind_buffer(&self, target: u32, buffer: &Buffer)
     {
-        let pname = match target {
-            consts::ARRAY_BUFFER => consts::ARRAY_BUFFER_BINDING,
-            consts::ELEMENT_ARRAY_BUFFER => consts::ELEMENT_ARRAY_BUFFER_BINDING,
-            consts::UNIFORM_BUFFER => consts::UNIFORM_BUFFER_BINDING,
-            _ => unreachable!()
-        };
-
         unsafe {
-            let mut current = -1;
-            self.inner.GetIntegerv(pname, &mut current);
-            if current != 0
-            {
-                println!("{}", current);
-                panic!();
-            }
             self.inner.BindBuffer(target, *buffer);
         }
     }
@@ -218,6 +206,29 @@ impl Glstruct {
     {
         unsafe {
             self.inner.UniformBlockBinding(*program, location, index);
+        }
+    }
+
+    pub fn buffer_data(&self, target: u32, size_in_bytes: u32, usage: u32) {
+        unsafe {
+            self.inner.BufferData(
+                target,
+                size_in_bytes as consts::types::GLsizeiptr, // size of data in bytes
+                std::ptr::null() as *const consts::types::GLvoid, // pointer to data
+                usage
+            );
+        }
+    }
+
+    pub fn buffer_data_u8(&self, target: u32, data: &[u8], usage: u32)
+    {
+        unsafe {
+            self.inner.BufferData(
+                target,
+                (data.len() * std::mem::size_of::<u8>()) as consts::types::GLsizeiptr, // size of data in bytes
+                data.as_ptr() as *const consts::types::GLvoid, // pointer to data
+                usage
+            );
         }
     }
 
@@ -266,7 +277,7 @@ impl Glstruct {
         unsafe { self.inner.CreateProgram() }
     }
 
-    pub fn link_program(&self, program: &Program) -> Result<(), String>
+    pub fn link_program(&self, program: &Program) -> bool
     {
         unsafe { self.inner.LinkProgram(*program); }
 
@@ -274,15 +285,21 @@ impl Glstruct {
         unsafe {
             self.inner.GetProgramiv(*program, consts::LINK_STATUS, &mut success);
         }
+        success == 1
+    }
 
-        if success == 0 {
-            let mut len: consts::types::GLint = 0;
-            unsafe {
-                self.inner.GetProgramiv(*program, consts::INFO_LOG_LENGTH, &mut len);
-            }
+    pub fn get_program_info_log(&self, program: &Program) -> Option<String>
+    {
+        let mut len: consts::types::GLint = 0;
+        unsafe {
+            self.inner.GetProgramiv(*program, consts::INFO_LOG_LENGTH, &mut len);
+        }
 
+        if len == 0 {
+            None
+        }
+        else {
             let error = create_whitespace_cstring_with_len(len as usize);
-
             unsafe {
                 self.inner.GetProgramInfoLog(
                     *program,
@@ -291,10 +308,8 @@ impl Glstruct {
                     error.as_ptr() as *mut consts::types::GLchar
                 );
             }
-
-            return Err(error.to_string_lossy().into_owned());
+            Some(error.to_string_lossy().into_owned())
         }
-        Ok(())
     }
 
     pub fn use_program(&self, program: &Program)
@@ -594,17 +609,23 @@ impl Glstruct {
         }
     }
 
-    pub fn tex_storage_2d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32)
-    {
+    pub fn generate_mipmap(&self, target: u32) {
         unsafe {
-            self.inner.TexStorage2D(target, level as i32, internalformat, width as i32, height as i32);
+            self.inner.GenerateMipmap(target);
         }
     }
 
-    pub fn tex_storage_3d(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, depth: u32)
+    pub fn tex_storage_2d(&self, target: u32, levels: u32, internalformat: u32, width: u32, height: u32)
     {
         unsafe {
-            self.inner.TexStorage3D(target, level as i32, internalformat, width as i32, height as i32, depth as i32);
+            self.inner.TexStorage2D(target, levels as i32, internalformat, width as i32, height as i32);
+        }
+    }
+
+    pub fn tex_storage_3d(&self, target: u32, levels: u32, internalformat: u32, width: u32, height: u32, depth: u32)
+    {
+        unsafe {
+            self.inner.TexStorage3D(target, levels as i32, internalformat, width as i32, height as i32, depth as i32);
         }
     }
 
@@ -615,17 +636,31 @@ impl Glstruct {
         }
     }
 
-    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [u8])
+    pub fn tex_image_2d_with_u8_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[u8])
     {
         unsafe {
             self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, border as i32, format, data_type, pixels.as_ptr() as *const consts::types::GLvoid);
         }
     }
 
-    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &mut [f32])
+    pub fn tex_sub_image_2d_with_u8_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, format: u32, data_type: u32, pixels: &[u8])
+    {
+        unsafe {
+            self.inner.TexSubImage2D(target, level as i32, x_offset as i32, y_offset as i32, width as i32, height as i32, format, data_type, pixels.as_ptr() as *const consts::types::GLvoid);
+        }
+    }
+
+    pub fn tex_image_2d_with_f32_data(&self, target: u32, level: u32, internalformat: u32, width: u32, height: u32, border: u32, format: u32, data_type: u32, pixels: &[f32])
     {
         unsafe {
             self.inner.TexImage2D(target, level as i32, internalformat as i32, width as i32, height as i32, border as i32, format, data_type, pixels.as_ptr() as *const consts::types::GLvoid);
+        }
+    }
+
+    pub fn tex_sub_image_2d_with_f32_data(&self, target: u32, level: u32, x_offset: u32, y_offset: u32, width: u32, height: u32, format: u32, data_type: u32, pixels: &[f32])
+    {
+        unsafe {
+            self.inner.TexSubImage2D(target, level as i32, x_offset as i32, y_offset as i32, width as i32, height as i32, format, data_type, pixels.as_ptr() as *const consts::types::GLvoid);
         }
     }
 
@@ -712,17 +747,49 @@ impl Glstruct {
         }
     }
 
-    pub fn read_pixels(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [u8])
+    pub fn read_pixels(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32)
+    {
+        unsafe {
+            self.inner.ReadPixels(x as i32, y as i32, width as i32, height as i32, format, data_type, 0 as *mut consts::types::GLvoid);
+        }
+    }
+
+    pub fn read_pixels_with_u8_data(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [u8])
     {
         unsafe {
             self.inner.ReadPixels(x as i32, y as i32, width as i32, height as i32, format, data_type, dst_data.as_ptr() as *mut consts::types::GLvoid)
         }
     }
 
-    pub fn read_depths(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [f32])
+    pub fn read_pixels_with_f32_data(&self, x: u32, y: u32, width: u32, height: u32, format: u32, data_type: u32, dst_data: &mut [f32])
     {
         unsafe {
             self.inner.ReadPixels(x as i32, y as i32, width as i32, height as i32, format, data_type, dst_data.as_ptr() as *mut consts::types::GLvoid)
+        }
+    }
+
+    pub fn flush(&self)
+    {
+        unsafe {
+            self.inner.Flush();
+        }
+    }
+
+    pub fn fence_sync(&self) -> Sync {
+        unsafe {
+            self.inner.FenceSync(consts::SYNC_GPU_COMMANDS_COMPLETE, 0)
+        }
+    }
+
+    pub fn client_wait_sync(&self, sync: &Sync, flags: u32, timeout: u32) -> u32 {
+        unsafe {
+            self.inner.ClientWaitSync(*sync, flags, timeout as u64)
+        }
+    }
+
+    pub fn delete_sync(&self, sync: &Sync) {
+        unsafe {
+            self.inner.DeleteSync(*sync);
         }
     }
 }

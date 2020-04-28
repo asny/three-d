@@ -16,10 +16,10 @@ fn main() {
 
     let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
     let mut box_mesh = Mesh::new(&gl, &box_mesh.indices_buffer(), &box_mesh.positions_buffer_f32(), &box_mesh.normals_buffer_f32()).unwrap();
-    box_mesh.texture = Some(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear,
+    box_mesh.texture = Some(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, include_bytes!("../assets/textures/test_texture.jpg")).unwrap());
 
-    let texture3d = Texture3D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
+    let texture3d = TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
                                                        include_bytes!("../assets/textures/skybox_evening/back.jpg"),
                                                        include_bytes!("../assets/textures/skybox_evening/front.jpg"),
                                                        include_bytes!("../assets/textures/skybox_evening/top.jpg"),

@@ -61,10 +61,11 @@ impl Window
         let mut count = 0;
         let mut accumulated_time = 0.0;
         let mut error = Ok(());
-        while error.is_ok() {
+        let mut exit = false;
+        while error.is_ok() && !exit {
             let mut events = Vec::new();
             self.events_loop.poll_events(|event| {
-                Self::handle_window_close_events(&event);
+                exit = Self::handle_window_close_events(&event);
                 if let Some(e) = Self::map_event(&event)
                 {
                     events.push(e);
@@ -161,22 +162,15 @@ impl Window
         None
     }
 
-    fn handle_window_close_events(event: &Event)
+    fn handle_window_close_events(event: &Event) -> bool
     {
         match event {
             Event::WindowEvent{ event, .. } => match event {
-                WindowEvent::CloseRequested => std::process::exit(1),
-                WindowEvent::KeyboardInput {input, ..} => {
-                    if let Some(keycode) = input.virtual_keycode {
-                        if keycode == VirtualKeyCode::Escape
-                        {
-                            std::process::exit(1);
-                        }
-                    }
-                },
-                _ => ()
+                WindowEvent::CloseRequested => true,
+                WindowEvent::KeyboardInput {input, ..} => Some(VirtualKeyCode::Escape) == input.virtual_keycode,
+                _ => false
             },
-            _ => ()
+            _ => false
         }
     }
 }

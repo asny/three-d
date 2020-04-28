@@ -13,24 +13,26 @@ impl Screen {
         Ok(())
     }
 
+    // TODO: Possible to change format
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
     {
         gl.viewport(x, y, width, height);
         let mut pixels = vec![0u8; width * height * 3];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
-        gl.read_pixels(x as u32, y as u32, width as u32, height as u32, consts::RGB,
+        gl.read_pixels_with_u8_data(x as u32, y as u32, width as u32, height as u32, consts::RGB,
                             consts::UNSIGNED_BYTE, &mut pixels);
         Ok(pixels)
     }
 
+    // TODO: Possible to change format
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
     {
         gl.viewport(x, y, width, height);
         let mut pixels = vec![0f32; width * height];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
-        gl.read_depths(x as u32, y as u32, width as u32, height as u32,
+        gl.read_pixels_with_f32_data(x as u32, y as u32, width as u32, height as u32,
                         consts::DEPTH_COMPONENT, consts::FLOAT, &mut pixels);
         Ok(pixels)
     }
@@ -86,12 +88,23 @@ impl RenderTarget
             depth_texture.bind_as_depth_target();
         }
 
-        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        #[cfg(feature = "debug")]
+        {
+            gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        }
         RenderTarget::clear(gl, clear_color, clear_depth);
 
         render();
 
         gl.delete_framebuffer(Some(&id));
+
+        if let Some(color_texture) = color_texture {
+            color_texture.generate_mip_maps();
+        }
+
+        if let Some(depth_texture) = depth_texture {
+            depth_texture.generate_mip_maps();
+        }
         Ok(())
     }
 
@@ -131,15 +144,26 @@ impl RenderTarget
             depth_texture.bind_as_depth_target(depth_layer);
         }
 
-        gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        #[cfg(feature = "debug")]
+        {
+            gl.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        }
         RenderTarget::clear(gl, clear_color, clear_depth);
 
         render();
 
         gl.delete_framebuffer(Some(&id));
+        if let Some(color_texture) = color_texture_array {
+            color_texture.generate_mip_maps();
+        }
+
+        if let Some(depth_texture) = depth_texture_array {
+            depth_texture.generate_mip_maps();
+        }
         Ok(())
     }
 
+    // TODO: Read color and depth from rendertarget to cpu
     /*#[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
     {
