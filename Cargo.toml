@@ -10,7 +10,7 @@ repository = "https://github.com/asny/three-d"
 homepage = "https://asny.github.io/three-d/"
 categories = ["graphics", "rendering", "visualization", "wasm", "web-programming"]
 keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
-exclude = ["/examples", ".gitignore"]
+exclude = ["/examples", ".gitignore", "index.html"]
 
 [features]
 default = ["glutin-window", "canvas", "3d-io", "image-io"]
@@ -26,6 +26,9 @@ cgmath = "0.17"
 serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
 image = { version = "0.22", optional = true, default-features = false, features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]}
+wasm-bindgen-futures = "0.4.10"
+serde_derive = "^1.0.59"
+log = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.build-dependencies]
 gl_generator = {version = "0.14"}
@@ -39,13 +42,19 @@ version = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
 version = "0.2"
+features = ["serde-serialize"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3"
 features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'Event', 'MouseEvent',
   'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer',
   'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject',
-  'WebGlActiveInfo', 'WebGlSync', 'Performance']
+  'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response']
 
 [dev-dependencies]
 tri-mesh = "0.5.0"
+tokio = { version = "0.2", features = ["macros"] }
