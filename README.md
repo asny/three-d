@@ -36,7 +36,7 @@ $ cargo run --example hello_world --release
 #### Web: 
 Build and generate web output (webassembly, javascript and html files) into the pkg folder:
 ```console
-$ wasm-pack build examples/hello_world --target web --out-name web --out-dir ../pkg
+$ wasm-pack build examples/hello_world --target web --out-name web --out-dir ../../pkg
 ``` 
 Install a server that properly defines the `application/wasm` mime type for example:
 ```console
@@ -44,7 +44,6 @@ $ npm install -g http-server
 ``` 
 Start the server and go to http://localhost:8080 in a browser:
 ```console
-$ cd examples/
 $ http-server
 ``` 
 
