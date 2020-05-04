@@ -44,52 +44,27 @@ impl CPUMesh {
 
     #[cfg(target_arch = "wasm32")]
     pub async fn from_file(url: &str) -> Result<CPUMesh, objects::Error> {
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
-use log::info;
-
-        info!("Loading!");
+        use wasm_bindgen::prelude::*;
+        use wasm_bindgen::JsCast;
+        use wasm_bindgen_futures::JsFuture;
+        use web_sys::{Request, RequestInit, RequestMode, Response};
 
         let mut opts = RequestInit::new();
         opts.method("GET");
         opts.mode(RequestMode::Cors);
 
         let request = Request::new_with_str_and_init(&url, &opts).unwrap();
-
-        request
-            .headers()
-            .set("Accept", "application/octet-stream").unwrap();
-        info!("Request!");
+        request.headers().set("Accept", "application/octet-stream").unwrap();
 
         let window = web_sys::window().unwrap();
         let resp_value = JsFuture::from(window.fetch_with_request(&request)).await.unwrap();
-
-        // `resp_value` is a `Response` object.
-        assert!(resp_value.is_instance_of::<Response>());
         let resp: Response = resp_value.dyn_into().unwrap();
-        info!("Got!");
 
         // Convert this other `Promise` into a rust `Future`.
         let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
-        info!("Awaited {:?}", data);
-
-        let uarray = js_sys::Uint8Array::new(&data);
-        info!("As array {:?}", uarray);
-        info!("Array length {:?}", uarray.length());
-
-        let bytes: Vec<u8> = uarray.to_vec();
-        info!("As bytes {:?}", bytes);
-
-        // Use serde to parse the data into a struct.
-        let decoded: CPUMesh = bincode::deserialize(&bytes)?;
-        info!("decoded! {:?}", decoded);
-
-        if decoded.magic_number != 61 {
-            Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
-        }
-        Ok(decoded)
+        let bytes: Vec<u8> = js_sys::Uint8Array::new(&data).to_vec();
+        let mesh = CPUMesh::from_bytes(&bytes)?;
+        Ok(mesh)
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, objects::Error>

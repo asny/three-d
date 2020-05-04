@@ -110,7 +110,7 @@ impl Window
         self.gl.clone()
     }
 
-    pub fn map_event(event: &Event) -> Option<frame_input::Event>
+    fn map_event(event: &Event) -> Option<frame_input::Event>
     {
         static mut CURSOR_POS: Option<(f64, f64)> = None;
         match event {
