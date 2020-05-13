@@ -1,5 +1,5 @@
 
-include!("../main.rs");
+include!("../example.rs");
 
 use wasm_bindgen::prelude::*;
 
