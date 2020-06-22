@@ -23,6 +23,7 @@ async fn run() {
     let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
     fog_effect.color = vec3(0.8, 0.8, 0.8);
     let fxaa_effect = effects::FXAAEffect::new(&gl).unwrap();
+    let mut fxaa_enabled = true;
 
     // main loop
     let mut time = 0.0;
@@ -50,6 +51,11 @@ async fn run() {
                         renderer.next_debug_type();
                         println!("{:?}", renderer.debug_type());
                     }
+                    if kind == "F" && *state == State::Pressed
+                    {
+                        fxaa_enabled = !fxaa_enabled;
+                        println!("FXAA: {:?}", fxaa_enabled);
+                    }
                 }
             }
         }
@@ -60,19 +66,25 @@ async fn run() {
             let transformation = Mat4::identity();
             monkey.render(&transformation, &camera);
         }).unwrap();
+        
+        if fxaa_enabled {
+            let color_texture = Texture2D::new(&gl, width, height, Interpolation::Nearest,
+                         Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
+            RenderTarget::write_to_color(&gl,0, 0, width, height,Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(&color_texture), &||
+                {
+                    renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
+                    fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
+                }).unwrap();
 
-
-        let color_texture = Texture2D::new(&gl, width, height, Interpolation::Nearest,
-                     Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
-        RenderTarget::write_to_color(&gl,0, 0, width, height,Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(&color_texture), &||
-            {
+            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
+                fxaa_effect.apply(&color_texture).unwrap();
+            }).unwrap();
+        } else {
+            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
                 renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
                 fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
             }).unwrap();
-
-        Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
-            fxaa_effect.apply(&color_texture).unwrap();
-        }).unwrap();
+        }
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
