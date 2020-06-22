@@ -8,6 +8,8 @@ in vec2 uv;
 layout (location = 0) out vec4 color;
 
 /**
+From:
+https://github.com/mattdesl/glsl-fxaa
 Basic FXAA implementation based on the code on geeks3d.com with the
 modification that the texture2DLod stuff was removed since it's
 unsupported by WebGL.
