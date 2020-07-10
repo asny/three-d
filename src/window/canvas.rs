@@ -76,7 +76,8 @@ impl Window
             last_time = now;
             let (screen_width, screen_height) = (window().inner_width().unwrap().as_f64().unwrap() as usize,
                         window().inner_height().unwrap().as_f64().unwrap() as usize);
-            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, screen_width, screen_height};
+            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, screen_width, screen_height,
+                window_width: screen_width, window_height: screen_height};
             callback(frame_input);
             &(*events).borrow_mut().clear();
 
@@ -253,12 +254,18 @@ impl Window
 
     pub fn size(&self) -> (usize, usize)
     {
-        (self.canvas.width() as usize, self.canvas.height() as usize)
+        (window().inner_width().unwrap().as_f64().unwrap() as usize,
+                        window().inner_height().unwrap().as_f64().unwrap() as usize)
     }
 
     pub fn framebuffer_size(&self) -> (usize, usize)
     {
-        self.size()
+        (self.canvas.width() as usize, self.canvas.height() as usize)
+    }
+
+    pub fn aspect(&self) -> f32 {
+        let (width, height) = self.framebuffer_size();
+        width as f32 / height as f32
     }
 
     pub fn gl(&self) -> crate::Gl
