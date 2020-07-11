@@ -66,7 +66,6 @@ impl ElementBuffer
         let id = gl.create_buffer().unwrap();
         let mut buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };
         buffer.fill_with_u32(data);
-        buffer.count = data.len();
         Ok(buffer)
     }
 
@@ -75,7 +74,7 @@ impl ElementBuffer
         self.bind();
         self.gl.buffer_data_u32(consts::ELEMENT_ARRAY_BUFFER, data, consts::STATIC_DRAW);
         self.gl.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
-
+        self.count = data.len();
     }
 
     pub fn count(&self) -> usize {
