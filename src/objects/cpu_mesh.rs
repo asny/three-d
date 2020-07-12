@@ -1,5 +1,7 @@
 
 use crate::*;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[cfg(feature = "3d-io")]
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
@@ -32,18 +34,38 @@ impl CPUMesh {
         Ok(decoded)
     }
 
+    pub fn from_file_to_mesh(path: &'static str, output: Rc<RefCell<Mesh>>) {
+        Self::from_file_with_mapping(path, output, |cpu_mesh, mesh| {
+            mesh.borrow_mut().update(&cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals).unwrap();
+        });
+    }
+
+    pub fn from_file(path: &'static str, output: Rc<RefCell<CPUMesh>>) {
+        Self::from_file_with_mapping(path, output, |mesh, output| {*output.borrow_mut() = mesh;});
+    }
+
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn from_file(path: &str) -> Result<CPUMesh, objects::Error>
+    pub fn from_file_with_mapping<T: 'static, F: 'static>(path: &'static str, output: Rc<RefCell<T>>, mapping: F)
+        where F: Fn(CPUMesh, Rc<RefCell<T>>)
     {
-        let mut file = std::fs::File::open(path)?;
+        let mut file = std::fs::File::open(path).unwrap();
         let mut bytes = Vec::new();
         use std::io::prelude::*;
-        file.read_to_end(&mut bytes)?;
-        Ok(Self::from_bytes(&bytes)?)
+        file.read_to_end(&mut bytes).unwrap();
+        mapping(Self::from_bytes(&bytes).unwrap(), output);
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub async fn from_file(url: &str) -> Result<CPUMesh, objects::Error> {
+    pub fn from_file_with_mapping<T: 'static, F: 'static>(path: &'static str, output: Rc<RefCell<T>>, mapping: F)
+        where F: Fn(CPUMesh, Rc<RefCell<T>>)
+    {
+        wasm_bindgen_futures::spawn_local(Self::load(path, output, mapping));
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    async fn load<T: 'static, F: 'static>(url: &'static str, output: Rc<RefCell<T>>, mapping: F)
+        where F: Fn(CPUMesh, Rc<RefCell<T>>)
+    {
         use wasm_bindgen::prelude::*;
         use wasm_bindgen::JsCast;
         use wasm_bindgen_futures::JsFuture;
@@ -63,8 +85,7 @@ impl CPUMesh {
         // Convert this other `Promise` into a rust `Future`.
         let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
         let bytes: Vec<u8> = js_sys::Uint8Array::new(&data).to_vec();
-        let mesh = CPUMesh::from_bytes(&bytes)?;
-        Ok(mesh)
+        mapping(CPUMesh::from_bytes(&bytes).unwrap(), output);
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, objects::Error>
