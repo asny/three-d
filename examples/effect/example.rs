@@ -1,7 +1,7 @@
 
 use three_d::*;
 
-async fn run() {
+fn run() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
@@ -14,8 +14,8 @@ async fn run() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut monkey = CPUMesh::from_file("./examples/assets/models/suzanne.3d").await.unwrap().to_mesh(&gl).unwrap();
-    monkey.color = vec3(0.5, 1.0, 0.5);
+    let monkey = Mesh::from_file(&gl, "./examples/assets/models/suzanne.3d");
+    monkey.borrow_mut().color = vec3(0.5, 1.0, 0.5);
 
     let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
     let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
@@ -70,7 +70,7 @@ async fn run() {
         // draw
         renderer.geometry_pass(width, height, &|| {
             let transformation = Mat4::identity();
-            monkey.render(&transformation, &camera);
+            monkey.borrow().render(&transformation, &camera);
         }).unwrap();
 
         let render = || {
