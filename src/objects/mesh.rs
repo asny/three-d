@@ -44,6 +44,13 @@ impl Mesh
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
     }
 
+    pub fn update(&mut self, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<(), Error> {
+        self.update_indices(indices)?;
+        self.update_positions(positions)?;
+        self.update_normals(normals)?;
+        Ok(())
+    }
+
     pub fn update_indices(&mut self, indices: &[u32]) -> Result<(), Error>
     {
         self.index_buffer.fill_with_u32(indices);
