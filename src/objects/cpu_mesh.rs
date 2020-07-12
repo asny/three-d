@@ -15,6 +15,11 @@ pub struct CPUMesh {
 
 #[cfg(feature = "3d-io")]
 impl CPUMesh {
+    pub fn empty() -> Self
+    {
+        Self::new(&[], &[], &[]).unwrap()
+    }
+
     pub fn new(indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, objects::Error>
     {
         Ok(CPUMesh {magic_number: 61, version: 1, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned()})
@@ -35,7 +40,7 @@ impl CPUMesh {
     }
 
     pub fn from_file(path: &'static str) -> Rc<RefCell<CPUMesh>> {
-        let mesh = Rc::new(RefCell::new(Self::new(&[], &[], &[]).unwrap()));
+        let mesh = Rc::new(RefCell::new(Self::empty()));
         Self::from_file_with_mapping(path, mesh.clone(), |mesh, output| {*output.borrow_mut() = mesh;});
         mesh
     }

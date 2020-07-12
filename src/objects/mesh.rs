@@ -32,6 +32,12 @@ pub struct Mesh {
 
 impl Mesh
 {
+
+    pub fn empty(gl: &Gl) -> Self
+    {
+        Self::new(gl, &[], &[], &[]).unwrap()
+    }
+
     pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
@@ -47,7 +53,7 @@ impl Mesh
     }
 
     pub fn from_file(gl: &Gl, path: &'static str) -> Rc<RefCell<Mesh>> {
-        let mesh = Rc::new(RefCell::new(Self::new(gl, &[], &[], &[]).unwrap()));
+        let mesh = Rc::new(RefCell::new(Self::empty(gl)));
         CPUMesh::from_file_with_mapping(path, mesh.clone(), |cpu_mesh, mesh| {
             mesh.borrow_mut().update(&cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals).unwrap();
         });
