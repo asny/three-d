@@ -1,5 +1,7 @@
 
 use crate::*;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct AxisAllignedBoundingBox {
     pub min: Vec3,
@@ -42,6 +44,14 @@ impl Mesh
 
         Ok(Mesh { index_buffer, position_buffer, normal_buffer, program, aabb: compute_aabb(positions), color: vec3(1.0, 1.0, 1.0), texture: None,
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
+    }
+
+    pub fn from_file(gl: &Gl, path: &'static str) -> Rc<RefCell<Mesh>> {
+        let mesh = Rc::new(RefCell::new(Self::new(gl, &[], &[], &[]).unwrap()));
+        CPUMesh::from_file_with_mapping(path, mesh.clone(), |cpu_mesh, mesh| {
+            mesh.borrow_mut().update(&cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals).unwrap();
+        });
+        mesh
     }
 
     pub fn update(&mut self, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<(), Error> {
