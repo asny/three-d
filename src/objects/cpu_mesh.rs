@@ -34,14 +34,18 @@ impl CPUMesh {
         Ok(decoded)
     }
 
-    pub fn from_file_to_mesh(path: &'static str, output: Rc<RefCell<Mesh>>) {
-        Self::from_file_with_mapping(path, output, |cpu_mesh, mesh| {
+    pub fn from_file_to_mesh(gl: &Gl, path: &'static str) -> Rc<RefCell<Mesh>> {
+        let mesh = Rc::new(RefCell::new(Mesh::new(&gl, &[], &[], &[]).unwrap()));
+        Self::from_file_with_mapping(path, mesh.clone(), |cpu_mesh, mesh| {
             mesh.borrow_mut().update(&cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals).unwrap();
         });
+        mesh
     }
 
-    pub fn from_file(path: &'static str, output: Rc<RefCell<CPUMesh>>) {
-        Self::from_file_with_mapping(path, output, |mesh, output| {*output.borrow_mut() = mesh;});
+    pub fn from_file(path: &'static str) -> Rc<RefCell<CPUMesh>> {
+        let mesh = Rc::new(RefCell::new(Self::new(&[], &[], &[]).unwrap()));
+        Self::from_file_with_mapping(path, mesh.clone(), |mesh, output| {*output.borrow_mut() = mesh;});
+        mesh
     }
 
     #[cfg(not(target_arch = "wasm32"))]
