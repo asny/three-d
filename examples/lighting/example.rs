@@ -1,6 +1,6 @@
 use three_d::*;
 
-pub async fn run() {
+pub fn run() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
@@ -13,10 +13,10 @@ pub async fn run() {
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut monkey = CPUMesh::from_file("./examples/assets/models/suzanne.3d").await.unwrap().to_mesh(&gl).unwrap();
-    monkey.diffuse_intensity = 0.7;
-    monkey.specular_intensity = 0.8;
-    monkey.specular_power = 20.0;
+    let monkey = Mesh::from_file(&gl, "./examples/assets/models/suzanne.3d");
+    monkey.borrow_mut().diffuse_intensity = 0.7;
+    monkey.borrow_mut().specular_intensity = 0.8;
+    monkey.borrow_mut().specular_power = 20.0;
 
     let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
     plane_mesh.scale(100.0);
@@ -77,7 +77,7 @@ pub async fn run() {
                 }
             }
             handle_surface_parameters(&event, &mut plane);
-            handle_surface_parameters(&event, &mut monkey);
+            //handle_surface_parameters(&event, &mut monkey);
         }
         let c = time.cos() as f32;
         let s = time.sin() as f32;
@@ -90,7 +90,7 @@ pub async fn run() {
 
         // Draw
         let render_scene = |camera: &Camera| {
-            monkey.render(&Mat4::identity(), camera);
+            monkey.borrow().render(&Mat4::identity(), camera);
         };
         if shadows_enabled {
             directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
