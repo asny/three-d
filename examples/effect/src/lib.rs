@@ -1,5 +1,5 @@
 
-include!("../example.rs");
+include!("../main.rs");
 
 use wasm_bindgen::prelude::*;
 
@@ -12,6 +12,6 @@ pub fn start() -> Result<(), JsValue>
     info!("Logging works!");
 
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    run();
+    main();
     Ok(())
 }
