@@ -1,7 +1,7 @@
 
 use three_d::*;
 
-async fn run() {
+fn run() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
     
@@ -17,7 +17,7 @@ async fn run() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     // Objects
-    let cpu_mesh = CPUMesh::from_file("./examples/assets/models/suzanne.3d").await.unwrap();
+    let cpu_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/suzanne.3d")).unwrap();
 
     let mut edges = Edges::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.007);
     edges.diffuse_intensity = 0.8;
