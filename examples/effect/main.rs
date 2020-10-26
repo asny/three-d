@@ -14,14 +14,17 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut monkey = CPUMesh::from_bytes(include_bytes!("../assets/models/suzanne.3d")).unwrap().to_mesh(&gl).unwrap();
-    monkey.color = vec3(0.5, 1.0, 0.5);
+    let monkey = Mesh::from_file(&gl, "./examples/assets/models/suzanne.3d");
+    monkey.borrow_mut().color = vec3(0.5, 1.0, 0.5);
 
     let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
     let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
     let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
     fog_effect.color = vec3(0.8, 0.8, 0.8);
+    let mut fog_enabled = true;
+    let fxaa_effect = effects::FXAAEffect::new(&gl).unwrap();
+    let mut fxaa_enabled = true;
 
     // main loop
     let mut time = 0.0;
@@ -49,6 +52,16 @@ fn main() {
                         renderer.next_debug_type();
                         println!("{:?}", renderer.debug_type());
                     }
+                    if kind == "F" && *state == State::Pressed
+                    {
+                        fog_enabled = !fog_enabled;
+                        println!("Fog: {:?}", fog_enabled);
+                    }
+                    if kind == "X" && *state == State::Pressed
+                    {
+                        fxaa_enabled = !fxaa_enabled;
+                        println!("FXAA: {:?}", fxaa_enabled);
+                    }
                 }
             }
         }
@@ -57,13 +70,26 @@ fn main() {
         // draw
         renderer.geometry_pass(width, height, &|| {
             let transformation = Mat4::identity();
-            monkey.render(&transformation, &camera);
+            monkey.borrow().render(&transformation, &camera);
         }).unwrap();
 
-        Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
-            renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
-            fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
-        }).unwrap();
+        let render = || {
+                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
+                if fog_enabled {
+                    fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
+                }
+            };
+
+        if fxaa_enabled {
+            let color_texture = Texture2D::new(&gl, width, height, Interpolation::Nearest,
+                         Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
+            RenderTarget::write_to_color(&gl,0, 0, width, height,Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(&color_texture), &render).unwrap();
+            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
+                fxaa_effect.apply(&color_texture).unwrap();
+            }).unwrap();
+        } else {
+            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &render).unwrap();
+        }
 
         if let Some(ref path) = screenshot_path {
             #[cfg(target_arch = "x86_64")]
