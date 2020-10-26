@@ -1,6 +1,6 @@
 use three_d::*;
 
-pub fn main() {
+fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
@@ -77,7 +77,7 @@ pub fn main() {
                 }
             }
             handle_surface_parameters(&event, &mut plane);
-            //handle_surface_parameters(&event, &mut monkey);
+            handle_surface_parameters(&event, &mut monkey.borrow_mut());
         }
         let c = time.cos() as f32;
         let s = time.sin() as f32;

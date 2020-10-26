@@ -1,7 +1,7 @@
 
 use three_d::*;
 
-pub fn main() {
+fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
@@ -17,7 +17,6 @@ pub fn main() {
     // Tree
     let mut leaves_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/leaves1.3d")).unwrap().to_mesh(&gl).unwrap();
     let mut tree_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/tree1.3d")).unwrap().to_mesh(&gl).unwrap();
-    tree_mesh.color = vec3(0.5, 0.2, 0.2);
     tree_mesh.color = vec3(0.5, 0.2, 0.2);
     tree_mesh.specular_intensity = 0.0;
     tree_mesh.diffuse_intensity = 1.0;
