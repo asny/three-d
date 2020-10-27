@@ -10,7 +10,8 @@ pub struct CPUMesh {
     pub version: u8,
     pub indices: Vec<u32>,
     pub positions: Vec<f32>,
-    pub normals: Vec<f32>
+    pub normals: Vec<f32>,
+    pub uvs: Vec<f32>
 }
 
 #[cfg(feature = "3d-io")]
@@ -22,7 +23,7 @@ impl CPUMesh {
 
     pub fn new(indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, objects::Error>
     {
-        Ok(CPUMesh {magic_number: 61, version: 1, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned()})
+        Ok(CPUMesh {magic_number: 61, version: 1, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: Vec::new()})
     }
 
     pub fn new_with_computed_normals(indices: &[u32], positions: &[f32]) -> Result<Self, objects::Error>

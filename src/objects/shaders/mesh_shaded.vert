@@ -12,14 +12,17 @@ layout (std140) uniform Camera
 
 in vec3 position;
 in vec3 normal;
+in vec2 uv_coordinates;
 
 out vec3 pos;
 out vec3 nor;
+out vec2 uvs;
 
 void main()
 {
     vec4 worldPosition = modelMatrix * vec4(position, 1.);
     nor = mat3(normalMatrix) * normal;
     pos = worldPosition.xyz;
+    uvs = uv_coordinates;
     gl_Position = camera.viewProjection * worldPosition;
 }
