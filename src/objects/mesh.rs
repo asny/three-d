@@ -18,14 +18,12 @@ impl AxisAllignedBoundingBox {
 }
 
 pub struct Mesh {
-    position_buffer: VertexBuffer,
-    normal_buffer: VertexBuffer,
-    uv_buffer: Option<VertexBuffer>,
-    index_buffer: ElementBuffer,
     program: program::Program,
     aabb: AxisAllignedBoundingBox,
+    pub position_buffer: VertexBuffer,
+    pub normal_buffer: VertexBuffer,
+    pub index_buffer: ElementBuffer,
     pub color: Vec3,
-    texture: Option<texture::Texture2D>,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32
@@ -49,58 +47,18 @@ impl Mesh
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
 
-        Ok(Mesh { index_buffer, position_buffer, normal_buffer, uv_buffer: None, program, aabb: compute_aabb(positions), color: vec3(1.0, 1.0, 1.0), texture: None,
-            diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
-    }
-
-    pub fn new_textured(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32], texture: texture::Texture2D) -> Result<Self, Error>
-    {
-        let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
-        let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
-        let uv_buffer = if uvs.len() == 0 {None} else { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) };
-        let index_buffer = ElementBuffer::new_with_u32(gl, indices)?;
-
-        let program = program::Program::from_source(&gl,
-                                                    include_str!("shaders/mesh_shaded.vert"),
-                                                    include_str!("shaders/textured.frag"))?;
-
-        Ok(Mesh { index_buffer, position_buffer, normal_buffer, uv_buffer, program, aabb: compute_aabb(positions), color: vec3(1.0, 1.0, 1.0), texture: Some(texture),
+        Ok(Mesh { index_buffer, position_buffer, normal_buffer, program, aabb: compute_aabb(positions), color: vec3(1.0, 1.0, 1.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
     }
 
     pub fn from_file(gl: &Gl, path: &'static str) -> Rc<RefCell<Mesh>> {
         let mesh = Rc::new(RefCell::new(Self::empty(gl)));
         CPUMesh::from_file_with_mapping(path, mesh.clone(), |cpu_mesh, mesh| {
-            mesh.borrow_mut().update_indices(&cpu_mesh.indices).unwrap();
-            mesh.borrow_mut().update_positions(&cpu_mesh.positions).unwrap();
-            mesh.borrow_mut().update_normals(&cpu_mesh.normals).unwrap();
-            mesh.borrow_mut().update_uvs(&cpu_mesh.uvs).unwrap();
+            mesh.borrow_mut().index_buffer.fill_with_u32(&cpu_mesh.indices);
+            mesh.borrow_mut().position_buffer.fill_with_static_f32(&cpu_mesh.positions);
+            mesh.borrow_mut().normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
         });
         mesh
-    }
-
-    pub fn update_indices(&mut self, indices: &[u32]) -> Result<(), Error>
-    {
-        self.index_buffer.fill_with_u32(indices);
-        Ok(())
-    }
-
-    pub fn update_positions(&mut self, positions: &[f32]) -> Result<(), Error>
-    {
-        self.position_buffer.fill_with_static_f32(positions);
-        Ok(())
-    }
-
-    pub fn update_normals(&mut self, normals: &[f32]) -> Result<(), Error>
-    {
-        self.normal_buffer.fill_with_static_f32(normals);
-        Ok(())
-    }
-
-    pub fn update_uvs(&mut self, uvs: &[f32]) -> Result<(), Error>
-    {
-        self.uv_buffer.as_mut().unwrap().fill_with_static_f32(uvs);
-        Ok(())
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
@@ -108,23 +66,7 @@ impl Mesh
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
         self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
-
-        if let Some(ref tex) = self.texture
-        {
-            self.program.use_texture(tex,"tex").unwrap();
-        }
-        else {
-            self.program.add_uniform_vec3("color", &self.color).unwrap();
-        }
-
-        if let Some(ref buffer) = self.uv_buffer
-        {
-            self.program.use_attribute_vec3_float(buffer, "uv_coordinates").unwrap();
-            self.program.add_uniform_int("use_uvs", &1).unwrap();
-        }
-        else {
-            self.program.add_uniform_int("use_uvs", &0).unwrap();
-        }
+        self.program.add_uniform_vec3("color", &self.color).unwrap();
 
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");

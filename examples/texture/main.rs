@@ -17,7 +17,7 @@ fn main() {
     let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
     let texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, include_bytes!("../assets/textures/test_texture.jpg")).unwrap();
-    let box_mesh = Mesh::new_textured(&gl, &box_mesh.indices_buffer(), &box_mesh.positions_buffer_f32(), &box_mesh.normals_buffer_f32(), &[], texture).unwrap();
+    let box_mesh = TexturedMesh::new(&gl, &box_mesh.indices_buffer(), &box_mesh.positions_buffer_f32(), &box_mesh.normals_buffer_f32(), &[], texture).unwrap();
 
     let texture3d = TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
                                                        include_bytes!("../assets/textures/skybox_evening/back.jpg"),
