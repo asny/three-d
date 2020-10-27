@@ -6,6 +6,7 @@ pub mod texture;
 pub mod types;
 pub mod camera;
 pub mod image_effect;
+pub mod aabb;
 
 pub use crate::gl::Gl;
 pub use crate::gl::consts;
@@ -18,6 +19,7 @@ pub use texture::*;
 pub use types::*;
 pub use camera::*;
 pub use image_effect::*;
+pub use aabb::*;
 
 #[derive(Debug)]
 pub enum Error {
