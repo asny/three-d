@@ -28,7 +28,7 @@ fn main() {
 
     // Imposters
     let mut aabb = AxisAlignedBoundingBox::new(&leaves_cpu_mesh.positions);
-    aabb.add(&AxisAlignedBoundingBox::new(&tree_cpu_mesh.positions));
+    aabb.expand(&tree_cpu_mesh.positions);
     let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
             state::cull(&gl, state::CullType::Back);
             tree_mesh.render(&Mat4::identity(), camera);

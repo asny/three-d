@@ -10,25 +10,28 @@ impl AxisAlignedBoundingBox {
     pub fn new(positions: &[f32]) -> Self {
         let mut aabb = Self {min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
             max: vec3(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY, std::f32::NEG_INFINITY)};
+        aabb.expand(positions);
+        aabb
+    }
 
+    pub fn expand(&mut self, positions: &[f32]) {
         for i in 0..positions.len() {
             match i%3 {
                 0 => {
-                    aabb.min.x = f32::min(positions[i], aabb.min.x);
-                    aabb.max.x = f32::max(positions[i], aabb.max.x);
+                    self.min.x = f32::min(positions[i], self.min.x);
+                    self.max.x = f32::max(positions[i], self.max.x);
                 },
                 1 => {
-                    aabb.min.y = f32::min(positions[i], aabb.min.y);
-                    aabb.max.y = f32::max(positions[i], aabb.max.y);
+                    self.min.y = f32::min(positions[i], self.min.y);
+                    self.max.y = f32::max(positions[i], self.max.y);
                 },
                 2 => {
-                    aabb.min.z = f32::min(positions[i], aabb.min.z);
-                    aabb.max.z = f32::max(positions[i], aabb.max.z);
+                    self.min.z = f32::min(positions[i], self.min.z);
+                    self.max.z = f32::max(positions[i], self.max.z);
                 },
                 _ => {unreachable!()}
             };
         }
-        aabb
     }
 
     pub fn add(&mut self, other: &AxisAlignedBoundingBox) {
