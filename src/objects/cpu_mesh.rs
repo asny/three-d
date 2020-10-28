@@ -50,31 +50,32 @@ impl CPUMesh {
 
     pub fn from_file(path: &'static str) -> Rc<RefCell<CPUMesh>> {
         let mesh = Rc::new(RefCell::new(Self::empty()));
-        Self::from_file_with_mapping(path, mesh.clone(), |mesh, output| {*output.borrow_mut() = mesh;});
+        let m = mesh.clone();
+        Self::from_file_with_mapping(path, move |mesh| {*m.borrow_mut() = mesh;});
         mesh
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_file_with_mapping<T: 'static, F: 'static>(path: &'static str, output: Rc<RefCell<T>>, mapping: F)
-        where F: Fn(CPUMesh, Rc<RefCell<T>>)
+    pub fn from_file_with_mapping<F: 'static>(path: &'static str, mapping: F)
+        where F: Fn(CPUMesh)
     {
         let mut file = std::fs::File::open(path).unwrap();
         let mut bytes = Vec::new();
         use std::io::prelude::*;
         file.read_to_end(&mut bytes).unwrap();
-        mapping(Self::from_bytes(&bytes).unwrap(), output);
+        mapping(Self::from_bytes(&bytes).unwrap());
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn from_file_with_mapping<T: 'static, F: 'static>(path: &'static str, output: Rc<RefCell<T>>, mapping: F)
-        where F: Fn(CPUMesh, Rc<RefCell<T>>)
+    pub fn from_file_with_mapping<F: 'static>(path: &'static str, mapping: F)
+        where F: Fn(CPUMesh)
     {
-        wasm_bindgen_futures::spawn_local(Self::load(path, output, mapping));
+        wasm_bindgen_futures::spawn_local(Self::load(path, mapping));
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load<T: 'static, F: 'static>(url: &'static str, output: Rc<RefCell<T>>, mapping: F)
-        where F: Fn(CPUMesh, Rc<RefCell<T>>)
+    async fn load<F: 'static>(url: &'static str, mapping: F)
+        where F: Fn(CPUMesh)
     {
         use wasm_bindgen::prelude::*;
         use wasm_bindgen::JsCast;
@@ -95,7 +96,7 @@ impl CPUMesh {
         // Convert this other `Promise` into a rust `Future`.
         let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
         let bytes: Vec<u8> = js_sys::Uint8Array::new(&data).to_vec();
-        mapping(CPUMesh::from_bytes(&bytes).unwrap(), output);
+        mapping(CPUMesh::from_bytes(&bytes).unwrap());
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, objects::Error>
@@ -110,11 +111,6 @@ impl CPUMesh {
         use std::io::prelude::*;
         file.write_all(&self.to_bytes()?)?;
         Ok(())
-    }
-
-    pub fn to_mesh(&self, gl: &crate::Gl) -> Result<Mesh, objects::Error>
-    {
-        Ok(crate::Mesh::new( &gl, &self.indices, &self.positions, &self.normals)?)
     }
 }
 

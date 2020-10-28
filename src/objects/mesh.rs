@@ -16,7 +16,6 @@ pub struct Mesh {
 
 impl Mesh
 {
-
     pub fn empty(gl: &Gl) -> Self
     {
         Self::new(gl, &[], &[], &[]).unwrap()
@@ -38,12 +37,18 @@ impl Mesh
 
     pub fn from_file(gl: &Gl, path: &'static str) -> Rc<RefCell<Mesh>> {
         let mesh = Rc::new(RefCell::new(Self::empty(gl)));
-        CPUMesh::from_file_with_mapping(path, mesh.clone(), |cpu_mesh, mesh| {
-            mesh.borrow_mut().index_buffer.fill_with_u32(&cpu_mesh.indices);
-            mesh.borrow_mut().position_buffer.fill_with_static_f32(&cpu_mesh.positions);
-            mesh.borrow_mut().normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
+        let m = mesh.clone();
+        CPUMesh::from_file_with_mapping(path, move |cpu_mesh| {
+            m.borrow_mut().update(&cpu_mesh).unwrap();
         });
         mesh
+    }
+
+    pub fn update(&mut self, cpu_mesh: &CPUMesh) -> Result<(), Error> {
+        self.index_buffer.fill_with_u32(&cpu_mesh.indices);
+        self.position_buffer.fill_with_static_f32(&cpu_mesh.positions);
+        self.normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
+        Ok(())
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
