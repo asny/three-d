@@ -18,22 +18,30 @@ pub struct CPUMesh {
 impl CPUMesh {
     pub fn empty() -> Self
     {
-        Self::new(&[], &[], &[]).unwrap()
+        Self::new(&[], &[], &[], &[]).unwrap()
     }
 
-    pub fn new(indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, objects::Error>
+    pub fn new(indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32]) -> Result<Self, objects::Error>
     {
-        Ok(CPUMesh {magic_number: 61, version: 1, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: Vec::new()})
+        Ok(CPUMesh {magic_number: 61, version: 2, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()})
     }
 
-    pub fn new_with_computed_normals(indices: &[u32], positions: &[f32]) -> Result<Self, objects::Error>
+    pub fn new_with_computed_normals(indices: &[u32], positions: &[f32], uvs: &[f32]) -> Result<Self, objects::Error>
     {
-        Self::new(indices, positions, &compute_normals(indices, positions))
+        Self::new(indices, positions, &compute_normals(indices, positions), uvs)
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<CPUMesh, bincode::Error>
     {
-        let decoded: CPUMesh = bincode::deserialize(bytes)?;
+        let decoded = bincode::deserialize::<CPUMesh>(bytes)
+            .or_else(|_| bincode::deserialize::<CPUMeshV1>(bytes).map(|m| CPUMesh {
+                magic_number: m.magic_number,
+                version: 2,
+                indices: m.indices,
+                positions: m.positions,
+                normals: m.normals,
+                uvs: vec![]
+            }))?;
         if decoded.magic_number != 61 {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
         }
@@ -108,6 +116,16 @@ impl CPUMesh {
     {
         Ok(crate::Mesh::new( &gl, &self.indices, &self.positions, &self.normals)?)
     }
+}
+
+#[cfg(feature = "3d-io")]
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+struct CPUMeshV1 {
+    pub magic_number: u8,
+    pub version: u8,
+    pub indices: Vec<u32>,
+    pub positions: Vec<f32>,
+    pub normals: Vec<f32>
 }
 
 fn compute_normals(indices: &[u32], positions: &[f32]) -> Vec<f32> {
