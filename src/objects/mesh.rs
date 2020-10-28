@@ -16,11 +16,6 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn empty(gl: &Gl) -> Self
-    {
-        Self::new(gl, &[], &[], &[]).unwrap()
-    }
-
     pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
@@ -35,20 +30,22 @@ impl Mesh
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
     }
 
-    pub fn from_file(gl: &Gl, path: &'static str) -> Rc<RefCell<Mesh>> {
-        let mesh = Rc::new(RefCell::new(Self::empty(gl)));
-        let m = mesh.clone();
-        CPUMesh::from_file_with_mapping(path, move |cpu_mesh| {
-            m.borrow_mut().update(&cpu_mesh).unwrap();
-        });
-        mesh
+    pub fn from_file(gl: &Gl, path: &'static str) -> Rc<RefCell<Self>> {
+        Self::from_file_with_mapping(gl, path, |_| {})
     }
 
-    pub fn update(&mut self, cpu_mesh: &CPUMesh) -> Result<(), Error> {
-        self.index_buffer.fill_with_u32(&cpu_mesh.indices);
-        self.position_buffer.fill_with_static_f32(&cpu_mesh.positions);
-        self.normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
-        Ok(())
+    pub fn from_file_with_mapping<F: 'static>(gl: &Gl, path: &'static str, mapping: F) -> Rc<RefCell<Self>>
+        where F: Fn(CPUMesh)
+    {
+        let m = Rc::new(RefCell::new(Self::new(gl, &[], &[], &[]).unwrap()));
+        let clone = m.clone();
+        CPUMesh::from_file_with_mapping(path, move |cpu_mesh| {
+            m.borrow_mut().index_buffer.fill_with_u32(&cpu_mesh.indices);
+            m.borrow_mut().position_buffer.fill_with_static_f32(&cpu_mesh.positions);
+            m.borrow_mut().normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
+            mapping(cpu_mesh);
+        });
+        clone
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
