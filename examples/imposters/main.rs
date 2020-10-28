@@ -15,8 +15,10 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
     // Tree
-    let mut leaves_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/leaves1.3d")).unwrap().to_mesh(&gl).unwrap();
-    let mut tree_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/tree1.3d")).unwrap().to_mesh(&gl).unwrap();
+    let leaves_cpu_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/leaves1.3d")).unwrap();
+    let mut leaves_mesh = Mesh::from_cpu_mesh(&gl, &leaves_cpu_mesh).unwrap();
+    let tree_cpu_mesh = CPUMesh::from_bytes(include_bytes!("../assets/models/tree1.3d")).unwrap();
+    let mut tree_mesh = Mesh::from_cpu_mesh(&gl, &tree_cpu_mesh).unwrap();
     tree_mesh.color = vec3(0.5, 0.2, 0.2);
     tree_mesh.specular_intensity = 0.0;
     tree_mesh.diffuse_intensity = 1.0;
@@ -25,7 +27,8 @@ fn main() {
     leaves_mesh.diffuse_intensity = 1.0;
 
     // Imposters
-    let aabb = tree_mesh.axis_aligned_bounding_box().add(leaves_mesh.axis_aligned_bounding_box());
+    let mut aabb = AxisAlignedBoundingBox::new(&leaves_cpu_mesh.positions);
+    aabb.add(&AxisAlignedBoundingBox::new(&tree_cpu_mesh.positions));
     let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
             state::cull(&gl, state::CullType::Back);
             tree_mesh.render(&Mat4::identity(), camera);

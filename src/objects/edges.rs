@@ -97,7 +97,6 @@ impl Edges
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
         self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
 
-        self.program.add_uniform_int("use_texture", &0).unwrap();
         self.program.add_uniform_vec3("color", &self.color).unwrap();
 
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");

@@ -31,7 +31,7 @@ fn main() {
     vertices.specular_power = 5.0;
     vertices.color = vec3(0.9, 0.2, 0.2);
 
-    let mut model = cpu_mesh.to_mesh(&gl).unwrap();
+    let mut model = Mesh::from_cpu_mesh(&gl, &cpu_mesh).unwrap();
     model.diffuse_intensity = 0.2;
     model.specular_intensity = 0.4;
     model.specular_power = 20.0;

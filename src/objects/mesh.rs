@@ -48,6 +48,10 @@ impl Mesh
         clone
     }
 
+    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+        Self::new(gl, &cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals)
+    }
+
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
