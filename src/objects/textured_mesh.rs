@@ -69,9 +69,9 @@ impl TexturedMesh
 
         self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
-        self.program.use_attribute_vec3_float(&self.uv_buffer, "uv_coordinates").unwrap();
         self.program.use_attribute_vec3_float(&self.position_buffer, "position").unwrap();
         self.program.use_attribute_vec3_float(&self.normal_buffer, "normal").unwrap();
+        self.program.use_attribute_vec2_float(&self.uv_buffer, "uv_coordinates").unwrap();
 
         self.program.draw_elements(&self.index_buffer);
     }
