@@ -4,7 +4,8 @@ use crate::gl::consts;
 
 pub struct VertexBuffer {
     gl: Gl,
-    id: crate::gl::Buffer
+    id: crate::gl::Buffer,
+    count: usize
 }
 
 impl VertexBuffer
@@ -12,8 +13,10 @@ impl VertexBuffer
     pub fn new_with_static_f32(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let mut buffer = VertexBuffer { gl: gl.clone(), id };
-        buffer.fill_with_static_f32(data);
+        let mut buffer = VertexBuffer { gl: gl.clone(), id, count: 0 };
+        if data.len() > 0 {
+            buffer.fill_with_static_f32(data);
+        }
         Ok(buffer)
     }
 
@@ -22,13 +25,16 @@ impl VertexBuffer
         self.bind();
         self.gl.buffer_data_f32(consts::ARRAY_BUFFER, data, consts::STATIC_DRAW);
         self.gl.unbind_buffer(consts::ARRAY_BUFFER);
+        self.count = data.len();
     }
 
     pub fn new_with_dynamic_f32(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
-        let mut buffer = VertexBuffer { gl: gl.clone(), id };
-        buffer.fill_with_dynamic_f32(data);
+        let mut buffer = VertexBuffer { gl: gl.clone(), id, count: 0 };
+        if data.len() > 0 {
+            buffer.fill_with_dynamic_f32(data);
+        }
         Ok(buffer)
     }
 
@@ -37,6 +43,11 @@ impl VertexBuffer
         self.bind();
         self.gl.buffer_data_f32(consts::ARRAY_BUFFER, data, consts::DYNAMIC_DRAW);
         self.gl.unbind_buffer(consts::ARRAY_BUFFER);
+        self.count = data.len();
+    }
+
+    pub fn count(&self) -> usize {
+        self.count
     }
 
     pub(crate) fn bind(&self)
@@ -65,7 +76,9 @@ impl ElementBuffer
     {
         let id = gl.create_buffer().unwrap();
         let mut buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };
-        buffer.fill_with_u32(data);
+        if data.len() > 0 {
+            buffer.fill_with_u32(data);
+        }
         Ok(buffer)
     }
 
