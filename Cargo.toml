@@ -26,7 +26,7 @@ log = "0.4"
 cgmath = "0.17"
 serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
-image = { version = "0.22", optional = true, default-features = false, features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]}
+image = { version = "0.23", optional = true, default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"]}
 
 [target.'cfg(not(target_arch = "wasm32"))'.build-dependencies]
 gl_generator = {version = "0.14"}

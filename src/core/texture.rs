@@ -65,7 +65,7 @@ impl Texture2D
         use image::GenericImageView;
         let img = image::load_from_memory(bytes)?;
         let (width, height) = img.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.raw_pixels())
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.to_bytes())
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
@@ -75,7 +75,7 @@ impl Texture2D
         use image::GenericImageView;
         let img = image::open(path)?;
         let (width, height) = img.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.raw_pixels())
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.to_bytes())
     }
 
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
@@ -220,8 +220,8 @@ impl TextureCubeMap
         let left = image::load_from_memory(left_bytes)?;
         let right = image::load_from_memory(right_bytes)?;
         let (width, height) = back.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()])
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.to_bytes(), &left.to_bytes(), &top.to_bytes(),
+                              &top.to_bytes(), &front.to_bytes(), &back.to_bytes()])
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
@@ -235,8 +235,8 @@ impl TextureCubeMap
         let left = image::open(format!("{}{}", path, left_name))?;
         let right = image::open(format!("{}{}", path, right_name))?;
         let (width, height) = back.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()])
+        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.to_bytes(), &left.to_bytes(), &top.to_bytes(),
+                              &top.to_bytes(), &front.to_bytes(), &back.to_bytes()])
     }
 
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,

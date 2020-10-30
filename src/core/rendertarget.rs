@@ -51,7 +51,7 @@ impl Screen {
             }
         }
 
-        image::save_buffer(&std::path::Path::new(path), &pixels_out, width as u32, height as u32, image::RGB(8))?;
+        image::save_buffer(&std::path::Path::new(path), &pixels_out, width as u32, height as u32, image::ColorType::Rgb8)?;
         Ok(())
     }
 }
