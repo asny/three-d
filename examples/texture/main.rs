@@ -11,7 +11,7 @@ fn main() {
 
     // Renderer
     let mut renderer = DeferredPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(5.0, -3.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
@@ -26,6 +26,10 @@ fn main() {
                                                        include_bytes!("../assets/textures/skybox_evening/left.jpg"),
                                                        include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap();
     let skybox = objects::Skybox::new(&gl, texture3d);
+
+    let penguin_texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None,
+                       Wrapping::ClampToEdge, Wrapping::ClampToEdge, include_bytes!("../assets/textures/penguin.png")).unwrap();
+    let penguin = TexturedMesh::from_file(&gl, "examples/assets/models/penguin.3d", penguin_texture);
 
     let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
     let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
@@ -49,15 +53,23 @@ fn main() {
                 Event::MouseWheel {delta} => {
                     camera.zoom(*delta as f32);
                 },
-                _ => {}
+                Event::Key { state, kind } => {
+                    if kind == "R" && *state == State::Pressed
+                    {
+                        renderer.next_debug_type();
+                        println!("{:?}", renderer.debug_type());
+                    }
+                }
             }
         }
 
         // draw
         // Geometry pass
         renderer.geometry_pass(width, height, &|| {
-            let transformation = Mat4::identity();
+            let mut transformation = Mat4::identity();
             box_mesh.render(&transformation, &camera);
+            transformation = Mat4::from_translation(vec3(0.0, 1.0, 0.0));
+            penguin.borrow_mut().render(&transformation, &camera);
         }).unwrap();
 
         Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.0, 0.0, 1.0)), None, &|| {
