@@ -27,7 +27,7 @@ fn main() {
                                                        include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap();
     let skybox = objects::Skybox::new(&gl, texture3d);
 
-    let penguin_texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None,
+    let penguin_texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, include_bytes!("../assets/textures/penguin.png")).unwrap();
     let penguin = TexturedMesh::from_file(&gl, "examples/assets/models/penguin.3d", penguin_texture);
 
