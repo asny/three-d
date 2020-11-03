@@ -5,8 +5,8 @@ use std::cell::RefCell;
 
 pub struct Mesh {
     program: program::Program,
-    pub position_buffer: VertexBuffer,
-    pub normal_buffer: VertexBuffer,
+    position_buffer: VertexBuffer,
+    normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
     pub color: Vec3,
     pub diffuse_intensity: f32,

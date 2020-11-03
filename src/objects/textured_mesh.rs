@@ -5,11 +5,11 @@ use std::cell::RefCell;
 
 pub struct TexturedMesh {
     program: program::Program,
-    pub position_buffer: VertexBuffer,
-    pub normal_buffer: VertexBuffer,
-    pub uv_buffer: VertexBuffer,
-    pub index_buffer: Option<ElementBuffer>,
-    pub texture: texture::Texture2D,
+    position_buffer: VertexBuffer,
+    normal_buffer: VertexBuffer,
+    uv_buffer: VertexBuffer,
+    index_buffer: Option<ElementBuffer>,
+    texture: texture::Texture2D,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32
