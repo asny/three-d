@@ -7,7 +7,7 @@ pub struct Mesh {
     program: program::Program,
     pub position_buffer: VertexBuffer,
     pub normal_buffer: VertexBuffer,
-    pub index_buffer: ElementBuffer,
+    index_buffer: Option<ElementBuffer>,
     pub color: Vec3,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
@@ -20,7 +20,7 @@ impl Mesh
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
-        let index_buffer = ElementBuffer::new_with_u32(gl, indices)?;
+        let index_buffer = if indices.len() > 0 { Some(ElementBuffer::new_with_u32(gl, indices)?) } else { None };
 
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
@@ -39,8 +39,11 @@ impl Mesh
     {
         let m = Rc::new(RefCell::new(Self::new(gl, &[], &[], &[]).unwrap()));
         let clone = m.clone();
+        let gl_clone = gl.clone();
         CPUMesh::from_file_with_mapping(path, move |cpu_mesh| {
-            m.borrow_mut().index_buffer.fill_with_u32(&cpu_mesh.indices);
+            if cpu_mesh.indices.len() > 0 {
+                m.borrow_mut().index_buffer = Some(ElementBuffer::new_with_u32(&gl_clone, &cpu_mesh.indices).unwrap());
+            }
             m.borrow_mut().position_buffer.fill_with_static_f32(&cpu_mesh.positions);
             m.borrow_mut().normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
             mapping(cpu_mesh);
@@ -67,6 +70,10 @@ impl Mesh
         self.program.use_attribute_vec3_float(&self.position_buffer, "position").unwrap();
         self.program.use_attribute_vec3_float(&self.normal_buffer, "normal").unwrap();
 
-        self.program.draw_elements(&self.index_buffer);
+        if let Some(ref index_buffer) = self.index_buffer {
+            self.program.draw_elements(index_buffer);
+        } else {
+            self.program.draw_arrays(self.position_buffer.count() as u32/3);
+        }
     }
 }
