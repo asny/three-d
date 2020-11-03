@@ -7,7 +7,7 @@ pub struct TexturedMesh {
     program: program::Program,
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
-    uv_buffer: VertexBuffer,
+    uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     texture: texture::Texture2D,
     pub diffuse_intensity: f32,
@@ -21,7 +21,7 @@ impl TexturedMesh
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
-        let uv_buffer = VertexBuffer::new_with_static_f32(gl, uvs)?;
+        let uv_buffer = if uvs.len() > 0 { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else { None };
         let index_buffer = if indices.len() > 0 { Some(ElementBuffer::new_with_u32(gl, indices)?) } else { None };
 
         let program = program::Program::from_source(&gl,
@@ -48,7 +48,9 @@ impl TexturedMesh
             }
             m.borrow_mut().position_buffer.fill_with_static_f32(&cpu_mesh.positions);
             m.borrow_mut().normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
-            m.borrow_mut().uv_buffer.fill_with_static_f32(&cpu_mesh.uvs);
+            if cpu_mesh.uvs.len() > 0 {
+                m.borrow_mut().uv_buffer = Some(VertexBuffer::new_with_static_f32(&gl_clone, &cpu_mesh.uvs).unwrap());
+            }
             mapping(cpu_mesh);
         });
         clone
@@ -66,7 +68,7 @@ impl TexturedMesh
 
         self.program.use_texture(&self.texture,"tex").unwrap();
 
-        self.program.add_uniform_int("use_uvs", &(if self.uv_buffer.count() > 0 {1} else {0})).unwrap();
+        self.program.add_uniform_int("use_uvs", &(if self.uv_buffer.is_some() {1} else {0})).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
@@ -74,7 +76,9 @@ impl TexturedMesh
 
         self.program.use_attribute_vec3_float(&self.position_buffer, "position").unwrap();
         self.program.use_attribute_vec3_float(&self.normal_buffer, "normal").unwrap();
-        self.program.use_attribute_vec2_float(&self.uv_buffer, "uv_coordinates").unwrap();
+        if let Some(ref uv_buffer) = self.uv_buffer {
+            self.program.use_attribute_vec2_float(uv_buffer, "uv_coordinates").unwrap();
+        }
 
         if let Some(ref index_buffer) = self.index_buffer {
             self.program.draw_elements(index_buffer);
