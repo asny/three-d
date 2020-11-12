@@ -17,14 +17,11 @@ impl Loader {
         Self { loads: Rc::new(RefCell::new(HashMap::new()))}
     }
 
-    pub fn load_cpu_mesh(&mut self, path: &'static str)
+    pub fn start_loading(&mut self, path: &'static str)
     {
         let bytes = Rc::new(RefCell::new(Vec::new()));
-
         Self::load_file(path,bytes.clone());
-
         self.loads.borrow_mut().insert(path.to_string(), bytes);
-
     }
 
     pub fn wait_all<F>(&mut self, callback: F)
@@ -37,12 +34,15 @@ impl Loader {
         where F: 'static + FnOnce(Loads)
     {
         info!("Wait");
-        Self::sleep(1000, move || {
+        Self::sleep(100, move || {
 
             let mut is_loading = false;
             for bytes in loads.borrow_mut().values() {
-                if let Ok(b) = bytes.try_borrow() {
-                    is_loading = b.len() == 0;
+                if !is_loading {
+                    match bytes.try_borrow() {
+                        Ok(b) => is_loading = b.len() == 0,
+                        Err(_) => is_loading = true
+                    }
                 }
             }
             info!("Is loading: {}", is_loading);
