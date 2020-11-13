@@ -2,8 +2,6 @@
 use crate::*;
 
 pub struct CPUMesh {
-    pub magic_number: u8,
-    pub version: u8,
     pub indices: Vec<u32>,
     pub positions: Vec<f32>,
     pub normals: Vec<f32>,
@@ -13,11 +11,19 @@ pub struct CPUMesh {
 impl CPUMesh {
     pub fn new(indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32]) -> Self
     {
-        CPUMesh {magic_number: 61, version: 2, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()}
+        CPUMesh {indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()}
+    }
+
+    pub fn compute_normals(&mut self) {
+        if self.indices.len() > 0 {
+            self.normals = compute_normals_with_indices(&self.indices, &self.positions);
+        } else {
+            self.normals = compute_normals(&self.positions);
+        }
     }
 }
 
-pub fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
+fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
     let mut normals = vec![0.0f32; positions.len() * 3];
     for face in 0..indices.len()/3 {
         let index0 = indices[face*3] as usize;
@@ -49,7 +55,7 @@ pub fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f
 }
 
 
-pub fn compute_normals(positions: &[f32]) -> Vec<f32> {
+fn compute_normals(positions: &[f32]) -> Vec<f32> {
     let mut normals = vec![0.0f32; positions.len()];
     for face in 0..positions.len()/9 {
         let index0 = face*3 as usize;
