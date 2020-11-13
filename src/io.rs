@@ -4,8 +4,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use log::info;
 
-type Ref<T> = Rc<RefCell<T>>;
-type Loads = Ref<HashMap<String, Ref<Vec<u8>>>>;
+type Loads = Rc<RefCell<HashMap<&'static str, Vec<u8>>>>;
 
 pub struct Loader {
     loads: Loads
@@ -19,38 +18,40 @@ impl Loader {
 
     pub fn start_loading(&mut self, path: &'static str)
     {
-        let bytes = Rc::new(RefCell::new(Vec::new()));
-        Self::load_file(path,bytes.clone());
-        self.loads.borrow_mut().insert(path.to_string(), bytes);
+        self.loads.borrow_mut().insert(path, Vec::new());
+        Self::load_file(path,self.loads.clone());
     }
 
     pub fn wait_all<F>(&mut self, callback: F)
-        where F: 'static + FnOnce(Loads)
+        where F: 'static + FnOnce(&mut HashMap<&'static str, Vec<u8>>)
     {
         Self::wait(self.loads.clone(), callback);
     }
 
     fn wait<F>(loads: Loads, callback: F)
-        where F: 'static + FnOnce(Loads)
+        where F: 'static + FnOnce(&mut HashMap<&'static str, Vec<u8>>)
     {
         info!("Wait");
         Self::sleep(100, move || {
 
             let mut is_loading = false;
-            for bytes in loads.borrow_mut().values() {
-                if !is_loading {
-                    match bytes.try_borrow() {
-                        Ok(b) => is_loading = b.len() == 0,
-                        Err(_) => is_loading = true
+            match loads.try_borrow() {
+                Ok(map) => {
+
+                    for bytes in map.values() {
+                        if !is_loading {
+                            is_loading = bytes.len() == 0
+                        }
                     }
-                }
+                },
+                Err(_) => is_loading = true
             }
             info!("Is loading: {}", is_loading);
 
             if is_loading {
                 Self::wait(loads, callback);
             } else {
-                callback(loads);
+                callback(&mut loads.borrow_mut());
             }
         });
     }
@@ -75,21 +76,23 @@ impl Loader {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    fn load_file(path: &'static str, bytes: Rc<RefCell<Vec<u8>>>)
+    fn load_file(path: &'static str, loads: Loads)
     {
         let mut file = std::fs::File::open(path).unwrap();
         use std::io::prelude::*;
-        file.read_to_end(&mut bytes.borrow_mut()).unwrap();
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes).unwrap();
+        loads.borrow_mut().insert(path, bytes);
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn load_file(path: &'static str, bytes: Rc<RefCell<Vec<u8>>>)
+    fn load_file(path: &'static str, loads: Loads)
     {
-        wasm_bindgen_futures::spawn_local(Self::load(path, bytes));
+        wasm_bindgen_futures::spawn_local(Self::load(path, loads));
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load(url: &'static str, bytes: Rc<RefCell<Vec<u8>>>)
+    async fn load(url: &'static str, loads: Loads)
     {
         use wasm_bindgen::prelude::*;
         use wasm_bindgen::JsCast;
@@ -109,7 +112,7 @@ impl Loader {
 
         // Convert this other `Promise` into a rust `Future`.
         let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
-        *bytes.borrow_mut() = js_sys::Uint8Array::new(&data).to_vec();
+        loads.borrow_mut().insert(url, js_sys::Uint8Array::new(&data).to_vec());
     }
 }
 
