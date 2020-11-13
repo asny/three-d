@@ -1,7 +1,5 @@
 
 use crate::*;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 pub struct TexturedMesh {
     program: program::Program,
@@ -30,30 +28,6 @@ impl TexturedMesh
 
         Ok(Self { index_buffer, position_buffer, normal_buffer, uv_buffer, program, texture,
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
-    }
-
-    pub fn from_file(gl: &Gl, path: &'static str, texture: texture::Texture2D) -> Rc<RefCell<Self>> {
-        Self::from_file_with_mapping(gl, path, texture, |_| {})
-    }
-
-    pub fn from_file_with_mapping<F: 'static>(gl: &Gl, path: &'static str, texture: texture::Texture2D, mapping: F) -> Rc<RefCell<Self>>
-        where F: Fn(CPUMesh)
-    {
-        let m = Rc::new(RefCell::new(Self::new(gl, &[], &[], &[], &[], texture).unwrap()));
-        let clone = m.clone();
-        let gl_clone = gl.clone();
-        CPUMesh::from_file_with_mapping(path, move |cpu_mesh| {
-            if cpu_mesh.indices.len() > 0 {
-                m.borrow_mut().index_buffer = Some(ElementBuffer::new_with_u32(&gl_clone, &cpu_mesh.indices).unwrap());
-            }
-            m.borrow_mut().position_buffer.fill_with_static_f32(&cpu_mesh.positions);
-            m.borrow_mut().normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
-            if cpu_mesh.uvs.len() > 0 {
-                m.borrow_mut().uv_buffer = Some(VertexBuffer::new_with_static_f32(&gl_clone, &cpu_mesh.uvs).unwrap());
-            }
-            mapping(cpu_mesh);
-        });
-        clone
     }
 
     pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh, texture: texture::Texture2D) -> Result<Self, Error> {

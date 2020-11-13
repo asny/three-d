@@ -1,7 +1,5 @@
 
 use crate::*;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 pub struct Mesh {
     program: program::Program,
@@ -28,27 +26,6 @@ impl Mesh
 
         Ok(Mesh { index_buffer, position_buffer, normal_buffer, program, color: vec3(1.0, 1.0, 1.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
-    }
-
-    pub fn from_file(gl: &Gl, path: &'static str) -> Rc<RefCell<Self>> {
-        Self::from_file_with_mapping(gl, path, |_| {})
-    }
-
-    pub fn from_file_with_mapping<F: 'static>(gl: &Gl, path: &'static str, mapping: F) -> Rc<RefCell<Self>>
-        where F: Fn(CPUMesh)
-    {
-        let m = Rc::new(RefCell::new(Self::new(gl, &[], &[], &[]).unwrap()));
-        let clone = m.clone();
-        let gl_clone = gl.clone();
-        CPUMesh::from_file_with_mapping(path, move |cpu_mesh| {
-            if cpu_mesh.indices.len() > 0 {
-                m.borrow_mut().index_buffer = Some(ElementBuffer::new_with_u32(&gl_clone, &cpu_mesh.indices).unwrap());
-            }
-            m.borrow_mut().position_buffer.fill_with_static_f32(&cpu_mesh.positions);
-            m.borrow_mut().normal_buffer.fill_with_static_f32(&cpu_mesh.normals);
-            mapping(cpu_mesh);
-        });
-        clone
     }
 
     pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {

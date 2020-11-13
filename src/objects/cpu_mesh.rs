@@ -1,7 +1,5 @@
 
 use crate::*;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 #[cfg(feature = "3d-io")]
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
@@ -16,11 +14,6 @@ pub struct CPUMesh {
 
 #[cfg(feature = "3d-io")]
 impl CPUMesh {
-    pub fn empty() -> Self
-    {
-        Self::new(&[], &[], &[], &[]).unwrap()
-    }
-
     pub fn new(indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32]) -> Result<Self, objects::Error>
     {
         Ok(CPUMesh {magic_number: 61, version: 2, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()})
@@ -41,57 +34,6 @@ impl CPUMesh {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
         }
         Ok(decoded)
-    }
-
-    pub fn from_file(path: &'static str) -> Rc<RefCell<CPUMesh>> {
-        let mesh = Rc::new(RefCell::new(Self::empty()));
-        let m = mesh.clone();
-        Self::from_file_with_mapping(path, move |mesh| {*m.borrow_mut() = mesh;});
-        mesh
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_file_with_mapping<F: 'static>(path: &'static str, mapping: F)
-        where F: Fn(CPUMesh)
-    {
-        let mut file = std::fs::File::open(path).unwrap();
-        let mut bytes = Vec::new();
-        use std::io::prelude::*;
-        file.read_to_end(&mut bytes).unwrap();
-        mapping(Self::from_bytes(&bytes).unwrap());
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    pub fn from_file_with_mapping<F: 'static>(path: &'static str, mapping: F)
-        where F: Fn(CPUMesh)
-    {
-        wasm_bindgen_futures::spawn_local(Self::load(path, mapping));
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    async fn load<F: 'static>(url: &'static str, mapping: F)
-        where F: Fn(CPUMesh)
-    {
-        use wasm_bindgen::prelude::*;
-        use wasm_bindgen::JsCast;
-        use wasm_bindgen_futures::JsFuture;
-        use web_sys::{Request, RequestInit, RequestMode, Response};
-
-        let mut opts = RequestInit::new();
-        opts.method("GET");
-        opts.mode(RequestMode::Cors);
-
-        let request = Request::new_with_str_and_init(&url, &opts).unwrap();
-        request.headers().set("Accept", "application/octet-stream").unwrap();
-
-        let window = web_sys::window().unwrap();
-        let resp_value = JsFuture::from(window.fetch_with_request(&request)).await.unwrap();
-        let resp: Response = resp_value.dyn_into().unwrap();
-
-        // Convert this other `Promise` into a rust `Future`.
-        let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
-        let bytes: Vec<u8> = js_sys::Uint8Array::new(&data).to_vec();
-        mapping(CPUMesh::from_bytes(&bytes).unwrap());
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, objects::Error>
