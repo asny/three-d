@@ -18,8 +18,8 @@ fn main() {
     loader.start_loading("./examples/assets/models/leaves1.3d");
     loader.start_loading("./examples/assets/models/tree1.3d");
     loader.wait_all(move |loaded| {
-        let leaves_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/leaves1.3d").unwrap()).unwrap();
-        let tree_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/tree1.3d").unwrap()).unwrap();
+        let leaves_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/leaves1.3d").unwrap().as_ref().unwrap()).unwrap();
+        let tree_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/tree1.3d").unwrap().as_ref().unwrap()).unwrap();
         loaded.clear();
 
         // Tree

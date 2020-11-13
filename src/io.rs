@@ -3,10 +3,11 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use log::info;
 
-type Loads = Rc<RefCell<HashMap<&'static str, Vec<u8>>>>;
+type Loads = HashMap<&'static str, Result<Vec<u8>, std::io::Error>>;
+type RefLoads = Rc<RefCell<Loads>>;
 
 pub struct Loader {
-    loads: Loads
+    loads: RefLoads
 }
 
 impl Loader {
@@ -17,19 +18,19 @@ impl Loader {
 
     pub fn start_loading(&mut self, path: &'static str)
     {
-        self.loads.borrow_mut().insert(path, Vec::new());
+        self.loads.borrow_mut().insert(path, Ok(Vec::new()));
         Self::load_file(path,self.loads.clone());
     }
 
     pub fn wait_all<F>(&mut self, callback: F)
-        where F: 'static + FnOnce(&mut HashMap<&'static str, Vec<u8>>)
+        where F: 'static + FnOnce(&mut Loads)
     {
         info!("Loading started...");
         Self::wait(self.loads.clone(), callback);
     }
 
-    fn wait<F>(loads: Loads, callback: F)
-        where F: 'static + FnOnce(&mut HashMap<&'static str, Vec<u8>>)
+    fn wait<F>(loads: RefLoads, callback: F)
+        where F: 'static + FnOnce(&mut Loads)
     {
         Self::sleep(100, move || {
 
@@ -39,7 +40,7 @@ impl Loader {
 
                     for bytes in map.values() {
                         if !is_loading {
-                            is_loading = bytes.len() == 0
+                            is_loading = bytes.is_ok() && bytes.as_ref().unwrap().len() == 0
                         }
                     }
                 },
@@ -75,23 +76,28 @@ impl Loader {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    fn load_file(path: &'static str, loads: Loads)
+    fn load_file(path: &'static str, loads: RefLoads)
     {
-        let mut file = std::fs::File::open(path).unwrap();
-        use std::io::prelude::*;
-        let mut bytes = Vec::new();
-        file.read_to_end(&mut bytes).unwrap();
-        loads.borrow_mut().insert(path, bytes);
+        let file = std::fs::File::open(path);
+        match file {
+            Ok(mut f) => {
+                use std::io::prelude::*;
+                let mut bytes = Vec::new();
+                let result = f.read_to_end(&mut bytes).and(Ok(bytes));
+                loads.borrow_mut().insert(path, result);
+            },
+            Err(e) => {loads.borrow_mut().insert(path, Err(e));}
+        }
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn load_file(path: &'static str, loads: Loads)
+    fn load_file(path: &'static str, loads: RefLoads)
     {
         wasm_bindgen_futures::spawn_local(Self::load(path, loads));
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load(url: &'static str, loads: Loads)
+    async fn load(url: &'static str, loads: RefLoads)
     {
         use wasm_bindgen::prelude::*;
         use wasm_bindgen::JsCast;
@@ -111,7 +117,7 @@ impl Loader {
 
         // Convert this other `Promise` into a rust `Future`.
         let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
-        loads.borrow_mut().insert(url, js_sys::Uint8Array::new(&data).to_vec());
+        loads.borrow_mut().insert(url, Ok(js_sys::Uint8Array::new(&data).to_vec()));
     }
 }
 

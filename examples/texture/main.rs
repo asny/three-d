@@ -20,7 +20,7 @@ fn main() {
     loader.wait_all(move |loaded| {
         let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
         let texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
-                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/test_texture.jpg").unwrap()).unwrap();
+                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/test_texture.jpg").unwrap().as_ref().unwrap()).unwrap();
         let box_mesh = TexturedMesh::new(&gl, &box_mesh.indices_buffer(), &box_mesh.positions_buffer_f32(), &box_mesh.normals_buffer_f32(), &[], texture).unwrap();
 
         let texture3d = TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
@@ -33,7 +33,7 @@ fn main() {
 
         let penguin_texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                            Wrapping::ClampToEdge, Wrapping::ClampToEdge, include_bytes!("../assets/textures/penguin.png")).unwrap();
-        let penguin = TexturedMesh::from_cpu_mesh(&gl, &ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap()).unwrap(), penguin_texture).unwrap();
+        let penguin = TexturedMesh::from_cpu_mesh(&gl, &ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap(), penguin_texture).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
