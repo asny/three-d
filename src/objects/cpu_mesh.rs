@@ -1,8 +1,6 @@
 
 use crate::*;
 
-#[cfg(feature = "3d-io")]
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct CPUMesh {
     pub magic_number: u8,
     pub version: u8,
@@ -12,53 +10,11 @@ pub struct CPUMesh {
     pub uvs: Vec<f32>
 }
 
-#[cfg(feature = "3d-io")]
 impl CPUMesh {
     pub fn new(indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32]) -> Result<Self, objects::Error>
     {
         Ok(CPUMesh {magic_number: 61, version: 2, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()})
     }
-
-    pub fn from_bytes(bytes: &[u8]) -> Result<CPUMesh, bincode::Error>
-    {
-        let decoded = bincode::deserialize::<CPUMesh>(bytes)
-            .or_else(|_| bincode::deserialize::<CPUMeshV1>(bytes).map(|m| CPUMesh {
-                magic_number: m.magic_number,
-                version: 2,
-                indices: m.indices,
-                positions: m.positions,
-                normals: m.normals,
-                uvs: vec![]
-            }))?;
-        if decoded.magic_number != 61 {
-            Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
-        }
-        Ok(decoded)
-    }
-
-    pub fn to_bytes(&self) -> Result<Vec<u8>, objects::Error>
-    {
-        Ok(bincode::serialize(self)?)
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_file(&self, path: &str) -> Result<(), objects::Error>
-    {
-        let mut file = std::fs::File::create(path)?;
-        use std::io::prelude::*;
-        file.write_all(&self.to_bytes()?)?;
-        Ok(())
-    }
-}
-
-#[cfg(feature = "3d-io")]
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
-struct CPUMeshV1 {
-    pub magic_number: u8,
-    pub version: u8,
-    pub indices: Vec<u32>,
-    pub positions: Vec<f32>,
-    pub normals: Vec<f32>
 }
 
 pub fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {

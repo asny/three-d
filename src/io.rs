@@ -1,8 +1,23 @@
 
+#[cfg(feature = "3d-io")]
+pub mod threed;
+
+#[cfg(feature = "3d-io")]
+pub use threed::*;
+
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use log::info;
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn to_3d_file(mesh: &crate::CPUMesh, path: &str) -> Result<(), crate::objects::Error>
+{
+    let mut file = std::fs::File::create(path)?;
+    use std::io::prelude::*;
+    file.write_all(&ThreeD::serialize(mesh)?)?;
+    Ok(())
+}
 
 type Loads = Rc<RefCell<HashMap<&'static str, Vec<u8>>>>;
 
