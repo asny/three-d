@@ -22,36 +22,51 @@ impl Loader {
         Self::load_file(path,self.loads.clone());
     }
 
-    pub fn wait_all<F>(&mut self, callback: F)
+    pub fn wait<F>(&mut self, on_done: F)
         where F: 'static + FnOnce(&mut Loads)
     {
-        info!("Loading started...");
-        Self::wait(self.loads.clone(), callback);
+        self.wait_with_progress(|progress| {
+                    info!("Progress: {}%", 100.0f32 * progress);
+        }, on_done);
     }
 
-    fn wait<F>(loads: RefLoads, callback: F)
-        where F: 'static + FnOnce(&mut Loads)
+    pub fn wait_with_progress<F, G>(&mut self, progress_callback: G, on_done: F)
+        where
+            G: 'static + Fn(f32),
+            F: 'static + FnOnce(&mut Loads)
+    {
+        info!("Loading started...");
+        Self::wait_local(self.loads.clone(), progress_callback, on_done);
+    }
+
+    fn wait_local<F, G>(loads: RefLoads, progress_callback: G, on_done: F)
+        where
+            G: 'static + Fn(f32),
+            F: 'static + FnOnce(&mut Loads)
     {
         Self::sleep(100, move || {
 
             let mut is_loading = false;
             match loads.try_borrow() {
                 Ok(map) => {
-
+                    let total_count = map.len();
+                    let mut count = 0;
                     for bytes in map.values() {
-                        if !is_loading {
-                            is_loading = bytes.is_ok() && bytes.as_ref().unwrap().len() == 0
+                        if bytes.is_err() || bytes.as_ref().unwrap().len() > 0 {
+                            count = count + 1;
                         }
                     }
+                    progress_callback(count as f32 / total_count as f32);
+                    is_loading = count < total_count;
                 },
                 Err(_) => is_loading = true
             }
 
             if is_loading {
-                Self::wait(loads, callback);
+                Self::wait_local(loads, progress_callback, on_done);
             } else {
                 info!("Loading done.");
-                callback(&mut loads.borrow_mut());
+                on_done(&mut loads.borrow_mut());
             }
         });
     }

@@ -17,7 +17,7 @@ fn main() {
     let mut loader = Loader::new();
     loader.start_loading("examples/assets/models/penguin.3d");
     loader.start_loading("examples/assets/textures/test_texture.jpg");
-    loader.wait_all(move |loaded| {
+    loader.wait(move |loaded| {
         let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
         let texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                            Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/test_texture.jpg").unwrap().as_ref().unwrap()).unwrap();
