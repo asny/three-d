@@ -24,13 +24,13 @@ impl Loader {
     pub fn wait_all<F>(&mut self, callback: F)
         where F: 'static + FnOnce(&mut HashMap<&'static str, Vec<u8>>)
     {
+        info!("Loading started...");
         Self::wait(self.loads.clone(), callback);
     }
 
     fn wait<F>(loads: Loads, callback: F)
         where F: 'static + FnOnce(&mut HashMap<&'static str, Vec<u8>>)
     {
-        info!("Wait");
         Self::sleep(100, move || {
 
             let mut is_loading = false;
@@ -45,11 +45,11 @@ impl Loader {
                 },
                 Err(_) => is_loading = true
             }
-            info!("Is loading: {}", is_loading);
 
             if is_loading {
                 Self::wait(loads, callback);
             } else {
+                info!("Loading done.");
                 callback(&mut loads.borrow_mut());
             }
         });
