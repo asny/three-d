@@ -4,8 +4,8 @@ pub mod gl;
 pub mod core;
 pub use crate::core::*;
 
-pub mod loader;
-pub use crate::loader::*;
+pub mod io;
+pub use crate::io::*;
 
 #[cfg(not(feature = "no-renderer"))]
 pub mod renderer;
@@ -26,9 +26,9 @@ pub use crate::objects::*;
 pub use crate::effects::*;
 
 #[cfg(not(feature = "no-renderer"))]
-pub mod io;
+pub mod parsers;
 #[cfg(not(feature = "no-renderer"))]
-pub use crate::io::*;
+pub use crate::parsers::*;
 
 #[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub mod window;
