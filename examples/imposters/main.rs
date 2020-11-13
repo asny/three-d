@@ -33,8 +33,8 @@ fn main() {
         leaves_mesh.diffuse_intensity = 1.0;
 
         // Imposters
-        let mut aabb = AxisAlignedBoundingBox::new(&leaves_cpu_mesh.positions);
-        aabb.expand(&tree_cpu_mesh.positions);
+        let mut aabb = leaves_cpu_mesh.compute_aabb();
+        aabb.add(&tree_cpu_mesh.compute_aabb());
         let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
                 state::cull(&gl, state::CullType::Back);
                 tree_mesh.render(&Mat4::identity(), camera);

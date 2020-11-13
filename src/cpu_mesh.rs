@@ -21,6 +21,10 @@ impl CPUMesh {
             self.normals = compute_normals(&self.positions);
         }
     }
+
+    pub fn compute_aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new(&self.positions)
+    }
 }
 
 fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
