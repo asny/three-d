@@ -2,7 +2,7 @@
 
 pub fn load_obj2(bytes: &[u8]) -> (Vec<u32>, Vec<f32>, Vec<f32>, Vec<f32>) {
 
-    let objs = wavefront_obj::obj::parse(String::from_utf8(bytes).unwrap()).unwrap();
+    let objs = wavefront_obj::obj::parse(String::from_utf8(bytes.to_owned()).unwrap()).unwrap();
     let mut positions = Vec::new();
     let mut normals_out = Vec::new();
     let mut uvs_out = Vec::new();
@@ -55,10 +55,6 @@ pub fn load_obj2(bytes: &[u8]) -> (Vec<u32>, Vec<f32>, Vec<f32>, Vec<f32>) {
                 }
             }
         }
-    }
-
-    if normals_out.len() == 0 {
-        normals_out = if indices.len() > 0 {compute_normals_with_indices(&indices, &positions)} else {compute_normals(&positions)};
     }
 
     //println!("indices: {:?}", indices);
