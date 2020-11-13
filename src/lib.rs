@@ -7,6 +7,9 @@ pub use crate::core::*;
 pub mod io;
 pub use crate::io::*;
 
+pub mod cpu_mesh;
+pub use crate::cpu_mesh::*;
+
 #[cfg(not(feature = "no-renderer"))]
 pub mod renderer;
 #[cfg(not(feature = "no-renderer"))]
