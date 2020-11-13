@@ -11,9 +11,9 @@ pub struct CPUMesh {
 }
 
 impl CPUMesh {
-    pub fn new(indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32]) -> Result<Self, objects::Error>
+    pub fn new(indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32]) -> Self
     {
-        Ok(CPUMesh {magic_number: 61, version: 2, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()})
+        CPUMesh {magic_number: 61, version: 2, indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()}
     }
 }
 

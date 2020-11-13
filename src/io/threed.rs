@@ -5,7 +5,7 @@ pub struct ThreeD {
 }
 
 impl ThreeD {
-    pub fn parse(bytes: &[u8]) -> Result<CPUMesh, objects::Error>
+    pub fn parse(bytes: &[u8]) -> Result<CPUMesh, bincode::Error>
     {
         let decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
@@ -19,10 +19,10 @@ impl ThreeD {
         if decoded.magic_number != 61 {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
         }
-        Ok(CPUMesh::new(&decoded.indices, &decoded.positions, &decoded.normals, &decoded.uvs)?)
+        Ok(CPUMesh::new(&decoded.indices, &decoded.positions, &decoded.normals, &decoded.uvs))
     }
 
-    pub fn serialize(mesh: &CPUMesh) -> Result<Vec<u8>, objects::Error>
+    pub fn serialize(mesh: &CPUMesh) -> Result<Vec<u8>, bincode::Error>
     {
         Ok(bincode::serialize(&ThreeDMesh {magic_number: 61, version: 2, indices: mesh.indices.to_owned(), positions: mesh.positions.to_owned(), normals: mesh.normals.to_owned(), uvs: mesh.uvs.to_owned()})?)
     }
