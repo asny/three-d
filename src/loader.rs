@@ -114,3 +114,12 @@ impl Loader {
         loads.borrow_mut().insert(url, js_sys::Uint8Array::new(&data).to_vec());
     }
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn to_file(path: &str, bytes: &[u8]) -> Result<(), std::io::Error>
+{
+    let mut file = std::fs::File::create(path)?;
+    use std::io::prelude::*;
+    file.write_all(bytes)?;
+    Ok(())
+}
