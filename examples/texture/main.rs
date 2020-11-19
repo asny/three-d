@@ -15,6 +15,7 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let mut loader = Loader::new();
+    loader.start_loading("examples/assets/textures/penguin.png");
     loader.start_loading("examples/assets/models/penguin.3d");
     loader.start_loading("examples/assets/textures/test_texture.jpg");
     loader.wait(move |loaded| {
@@ -32,8 +33,9 @@ fn main() {
         let skybox = objects::Skybox::new(&gl, texture3d);
 
         let penguin_texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
-                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, include_bytes!("../assets/textures/penguin.png")).unwrap();
-        let penguin = TexturedMesh::from_cpu_mesh(&gl, &ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap(), penguin_texture).unwrap();
+                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/penguin.png").unwrap().as_ref().unwrap()).unwrap();
+        let penguin_cpu_mesh = ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap();
+        let penguin = TexturedMesh::from_cpu_mesh(&gl, &penguin_cpu_mesh, penguin_texture).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
