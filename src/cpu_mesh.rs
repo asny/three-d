@@ -7,13 +7,24 @@ pub struct CPUMesh {
     pub positions: Vec<f32>,
     pub normals: Vec<f32>,
     pub uvs: Vec<f32>,
-    pub texture: Option<Rc<Texture2D>>
+    pub texture: Option<Rc<Texture2D>>,
+    pub diffuse_intensity: Option<f32>,
+    pub specular_intensity: Option<f32>,
+    pub specular_power: Option<f32>
 }
 
 impl CPUMesh {
     pub fn to_textured_mesh(&self, gl: &Gl) -> Result<TexturedMesh, Error>
     {
-        TexturedMesh::new(gl, &self.indices, &self.positions, &self.normals, &self.uvs, self.texture.as_ref().ok_or(Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?.clone())
+        TexturedMesh::new(gl,
+                          &self.indices,
+                          &self.positions,
+                          &self.normals,
+                          &self.uvs,
+                          self.texture.as_ref().ok_or(Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?.clone(),
+                          self.diffuse_intensity.unwrap_or(0.5),
+                          self.specular_intensity.unwrap_or(0.2),
+                          self.specular_power.unwrap_or(6.0))
     }
 
     pub fn compute_normals(&mut self) {

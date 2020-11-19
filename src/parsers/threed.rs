@@ -19,7 +19,7 @@ impl ThreeD {
         if decoded.magic_number != 61 {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
         }
-        Ok(CPUMesh{indices: decoded.indices, positions: decoded.positions, normals: decoded.normals, uvs: decoded.uvs, texture: None })
+        Ok(CPUMesh{indices: decoded.indices, positions: decoded.positions, normals: decoded.normals, uvs: decoded.uvs, texture: None, diffuse_intensity: None, specular_intensity: None, specular_power: None })
     }
 
     pub fn serialize(mesh: &CPUMesh) -> Result<Vec<u8>, bincode::Error>

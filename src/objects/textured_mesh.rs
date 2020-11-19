@@ -16,7 +16,7 @@ pub struct TexturedMesh {
 
 impl TexturedMesh
 {
-    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32], texture: Rc<Texture2D>) -> Result<Self, Error>
+    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32], texture: Rc<Texture2D>, diffuse_intensity: f32, specular_intensity: f32, specular_power: f32) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
@@ -27,8 +27,7 @@ impl TexturedMesh
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/textured.frag"))?;
 
-        Ok(Self { index_buffer, position_buffer, normal_buffer, uv_buffer, program, texture,
-            diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
+        Ok(Self { index_buffer, position_buffer, normal_buffer, uv_buffer, program, texture, diffuse_intensity, specular_intensity, specular_power })
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
