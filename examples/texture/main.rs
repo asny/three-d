@@ -19,14 +19,13 @@ fn main() {
     loader.start_loading("examples/assets/models/penguin.3d");
     loader.start_loading("examples/assets/textures/test_texture.jpg");
     loader.wait(move |loaded| {
-        let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
-        let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &CPUMesh {
-            indices: Some(box_mesh.indices_buffer()),
-            positions: box_mesh.positions_buffer_f32(),
-            normals: Some(box_mesh.normals_buffer_f32()),
+        let mut box_mesh = CPUMesh {
+            positions: cube_positions(),
             texture: Some(std::rc::Rc::new(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                            Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/test_texture.jpg").unwrap().as_ref().unwrap()).unwrap())),
-            ..Default::default() }).unwrap();
+            ..Default::default() };
+        box_mesh.compute_normals();
+        let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &box_mesh).unwrap();
 
         let skybox = objects::Skybox::new(&gl, TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
                                                            include_bytes!("../assets/textures/skybox_evening/back.jpg"),
@@ -93,6 +92,50 @@ fn main() {
             }
         }).unwrap();
     });
+}
 
+fn cube_positions() -> Vec<f32> {
+    vec![
+        1.0, 1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, -1.0,
 
+        -1.0, -1.0, -1.0,
+        1.0, -1.0, -1.0,
+        1.0, -1.0, 1.0,
+        1.0, -1.0, 1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, -1.0, -1.0,
+
+        1.0, -1.0, -1.0,
+        -1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, -1.0,
+        -1.0, -1.0, -1.0,
+
+        -1.0, -1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, 1.0,
+
+        1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, -1.0, -1.0,
+
+        -1.0, 1.0, -1.0,
+        -1.0, -1.0, -1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, -1.0, -1.0
+    ]
 }
