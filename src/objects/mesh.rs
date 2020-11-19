@@ -14,11 +14,13 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32]) -> Result<Self, Error>
+    pub fn new(gl: &Gl, indices: Option<&[u32]>, positions: &[f32], normals: &[f32]) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
-        let index_buffer = if indices.len() > 0 { Some(ElementBuffer::new_with_u32(gl, indices)?) } else { None };
+        let index_buffer = if let Some(ind) = indices {
+            Some(ElementBuffer::new_with_u32(gl, ind)?)
+        } else {None};
 
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
@@ -29,7 +31,7 @@ impl Mesh
     }
 
     pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
-        Self::new(gl, &cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals)
+        Self::new(gl, cpu_mesh.indices.as_ref().map(|i| {i.as_slice()}), &cpu_mesh.positions, &cpu_mesh.normals)
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)

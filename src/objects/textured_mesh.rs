@@ -16,18 +16,32 @@ pub struct TexturedMesh {
 
 impl TexturedMesh
 {
-    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32], texture: Rc<Texture2D>, diffuse_intensity: f32, specular_intensity: f32, specular_power: f32) -> Result<Self, Error>
+    pub fn new(gl: &Gl, indices: Option<&[u32]>, positions: &[f32], normals: &[f32], uvs: &[f32], texture: Rc<Texture2D>, diffuse_intensity: f32, specular_intensity: f32, specular_power: f32) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
         let uv_buffer = if uvs.len() > 0 { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else { None };
-        let index_buffer = if indices.len() > 0 { Some(ElementBuffer::new_with_u32(gl, indices)?) } else { None };
+        let index_buffer = if let Some(ind) = indices {
+            Some(ElementBuffer::new_with_u32(gl, ind)?)
+        } else {None};
 
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/textured.frag"))?;
 
         Ok(Self { index_buffer, position_buffer, normal_buffer, uv_buffer, program, texture, diffuse_intensity, specular_intensity, specular_power })
+    }
+
+    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+        Self::new(gl,
+                  cpu_mesh.indices.as_ref().map(|i| {i.as_slice()}),
+                  &cpu_mesh.positions,
+                  &cpu_mesh.normals,
+                  &cpu_mesh.uvs,
+                  cpu_mesh.texture.as_ref().ok_or(Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?.clone(),
+                  cpu_mesh.diffuse_intensity.unwrap_or(0.5),
+                  cpu_mesh.specular_intensity.unwrap_or(0.2),
+                  cpu_mesh.specular_power.unwrap_or(6.0))
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)

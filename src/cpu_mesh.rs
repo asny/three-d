@@ -2,8 +2,9 @@
 use crate::*;
 use std::rc::Rc;
 
+#[derive(Default)]
 pub struct CPUMesh {
-    pub indices: Vec<u32>,
+    pub indices: Option<Vec<u32>>,
     pub positions: Vec<f32>,
     pub normals: Vec<f32>,
     pub uvs: Vec<f32>,
@@ -14,22 +15,9 @@ pub struct CPUMesh {
 }
 
 impl CPUMesh {
-    pub fn to_textured_mesh(&self, gl: &Gl) -> Result<TexturedMesh, Error>
-    {
-        TexturedMesh::new(gl,
-                          &self.indices,
-                          &self.positions,
-                          &self.normals,
-                          &self.uvs,
-                          self.texture.as_ref().ok_or(Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?.clone(),
-                          self.diffuse_intensity.unwrap_or(0.5),
-                          self.specular_intensity.unwrap_or(0.2),
-                          self.specular_power.unwrap_or(6.0))
-    }
-
     pub fn compute_normals(&mut self) {
-        if self.indices.len() > 0 {
-            self.normals = compute_normals_with_indices(&self.indices, &self.positions);
+        if let Some(ref ind) = self.indices {
+            self.normals = compute_normals_with_indices(ind, &self.positions);
         } else {
             self.normals = compute_normals(&self.positions);
         }
