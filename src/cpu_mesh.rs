@@ -9,6 +9,7 @@ pub struct CPUMesh {
     pub normals: Vec<f32>,
     pub uvs: Vec<f32>,
     pub texture: Option<Rc<Texture2D>>,
+    pub color: Option<Vec3>,
     pub diffuse_intensity: Option<f32>,
     pub specular_intensity: Option<f32>,
     pub specular_power: Option<f32>

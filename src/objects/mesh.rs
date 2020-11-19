@@ -14,11 +14,10 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn new(gl: &Gl, indices: Option<&[u32]>, positions: &[f32], normals: &[f32]) -> Result<Self, Error>
-    {
-        let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
-        let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
-        let index_buffer = if let Some(ind) = indices {
+    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+        let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
+        let normal_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.normals)?;
+        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
             Some(ElementBuffer::new_with_u32(gl, ind)?)
         } else {None};
 
@@ -26,12 +25,11 @@ impl Mesh
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     include_str!("shaders/shaded.frag"))?;
 
-        Ok(Mesh { index_buffer, position_buffer, normal_buffer, program, color: vec3(1.0, 1.0, 1.0),
-            diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
-    }
-
-    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
-        Self::new(gl, cpu_mesh.indices.as_ref().map(|i| {i.as_slice()}), &cpu_mesh.positions, &cpu_mesh.normals)
+        Ok(Self { index_buffer, position_buffer, normal_buffer, program,
+            color: cpu_mesh.color.unwrap_or(vec3(1.0, 1.0, 1.0)),
+            diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
+            specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
+            specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
