@@ -19,7 +19,9 @@ impl TexturedMesh
     pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.normals)?;
-        let uv_buffer = if cpu_mesh.uvs.len() > 0 { Some(VertexBuffer::new_with_static_f32(gl, &cpu_mesh.uvs)?) } else { None };
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
+            Some(VertexBuffer::new_with_static_f32(gl, uvs)?)
+        } else {None};
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
             Some(ElementBuffer::new_with_u32(gl, ind)?)
         } else {None};
