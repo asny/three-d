@@ -20,27 +20,24 @@ fn main() {
     loader.start_loading("examples/assets/textures/test_texture.jpg");
     loader.wait(move |loaded| {
         let box_mesh = tri_mesh::MeshBuilder::new().unconnected_cube().build().unwrap();
-        let texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
-                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/test_texture.jpg").unwrap().as_ref().unwrap()).unwrap();
         let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &CPUMesh {
             indices: Some(box_mesh.indices_buffer()),
             positions: box_mesh.positions_buffer_f32(),
             normals: Some(box_mesh.normals_buffer_f32()),
-            texture: Some(std::rc::Rc::new(texture)),
+            texture: Some(std::rc::Rc::new(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
+                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/test_texture.jpg").unwrap().as_ref().unwrap()).unwrap())),
             ..Default::default() }).unwrap();
 
-        let texture3d = TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
+        let skybox = objects::Skybox::new(&gl, TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
                                                            include_bytes!("../assets/textures/skybox_evening/back.jpg"),
                                                            include_bytes!("../assets/textures/skybox_evening/front.jpg"),
                                                            include_bytes!("../assets/textures/skybox_evening/top.jpg"),
                                                            include_bytes!("../assets/textures/skybox_evening/left.jpg"),
-                                                           include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap();
-        let skybox = objects::Skybox::new(&gl, texture3d);
+                                                           include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap());
 
-        let penguin_texture = texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
-                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/penguin.png").unwrap().as_ref().unwrap()).unwrap();
         let mut penguin_cpu_mesh = ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap();
-        penguin_cpu_mesh.texture = Some(std::rc::Rc::new(penguin_texture));
+        penguin_cpu_mesh.texture = Some(std::rc::Rc::new(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
+                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/penguin.png").unwrap().as_ref().unwrap()).unwrap()));
         let penguin = TexturedMesh::from_cpu_mesh(&gl, &penguin_cpu_mesh).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
