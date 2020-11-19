@@ -42,6 +42,3 @@ wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
 gloo-timers = "0.2"
-
-[dev-dependencies]
-tri-mesh = "0.5"
