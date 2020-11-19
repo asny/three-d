@@ -1,5 +1,6 @@
 
 use crate::*;
+use std::rc::Rc;
 
 pub struct TexturedMesh {
     program: program::Program,
@@ -7,7 +8,7 @@ pub struct TexturedMesh {
     normal_buffer: VertexBuffer,
     uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
-    texture: texture::Texture2D,
+    texture: Rc<texture::Texture2D>,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32
@@ -15,7 +16,7 @@ pub struct TexturedMesh {
 
 impl TexturedMesh
 {
-    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32], texture: texture::Texture2D) -> Result<Self, Error>
+    pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32], texture: Rc<Texture2D>) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl, normals)?;
@@ -30,17 +31,13 @@ impl TexturedMesh
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 6.0 })
     }
 
-    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh, texture: texture::Texture2D) -> Result<Self, Error> {
-        Self::new(gl, &cpu_mesh.indices, &cpu_mesh.positions, &cpu_mesh.normals, &cpu_mesh.uvs, texture)
-    }
-
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
         self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
         self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
 
-        self.program.use_texture(&self.texture,"tex").unwrap();
+        self.program.use_texture(self.texture.as_ref(),"tex").unwrap();
 
         self.program.add_uniform_int("use_uvs", &(if self.uv_buffer.is_some() {1} else {0})).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();

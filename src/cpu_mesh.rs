@@ -11,6 +11,11 @@ pub struct CPUMesh {
 }
 
 impl CPUMesh {
+    pub fn to_textured_mesh(&self, gl: &Gl) -> Result<TexturedMesh, Error>
+    {
+        TexturedMesh::new(gl, &self.indices, &self.positions, &self.normals, &self.uvs, self.texture.as_ref().ok_or(Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?.clone())
+    }
+
     pub fn compute_normals(&mut self) {
         if self.indices.len() > 0 {
             self.normals = compute_normals_with_indices(&self.indices, &self.positions);

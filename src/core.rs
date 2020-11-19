@@ -33,7 +33,8 @@ pub enum Error {
     #[cfg(feature = "image-io")]
     Image(image::ImageError),
     FailedToCreateTexture {message: String},
-    BufferUpdateFailed {message: String}
+    BufferUpdateFailed {message: String},
+    FailedToCreateMesh {message: String}
 }
 
 #[cfg(feature = "image-io")]
