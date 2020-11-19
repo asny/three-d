@@ -8,7 +8,7 @@ pub struct TexturedMesh {
     normal_buffer: VertexBuffer,
     uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
-    texture: Rc<texture::Texture2D>,
+    pub texture: Rc<texture::Texture2D>,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32
