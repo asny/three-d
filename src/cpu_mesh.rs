@@ -1,19 +1,16 @@
 
 use crate::*;
+use std::rc::Rc;
 
 pub struct CPUMesh {
     pub indices: Vec<u32>,
     pub positions: Vec<f32>,
     pub normals: Vec<f32>,
-    pub uvs: Vec<f32>
+    pub uvs: Vec<f32>,
+    pub texture: Option<Rc<Texture2D>>
 }
 
 impl CPUMesh {
-    pub fn new(indices: &[u32], positions: &[f32], normals: &[f32], uvs: &[f32]) -> Self
-    {
-        CPUMesh {indices: indices.to_owned(), positions: positions.to_owned(), normals: normals.to_owned(), uvs: uvs.to_owned()}
-    }
-
     pub fn compute_normals(&mut self) {
         if self.indices.len() > 0 {
             self.normals = compute_normals_with_indices(&self.indices, &self.positions);
