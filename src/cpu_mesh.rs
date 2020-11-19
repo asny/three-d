@@ -6,7 +6,7 @@ use std::rc::Rc;
 pub struct CPUMesh {
     pub indices: Option<Vec<u32>>,
     pub positions: Vec<f32>,
-    pub normals: Vec<f32>,
+    pub normals: Option<Vec<f32>>,
     pub uvs: Option<Vec<f32>>,
     pub texture: Option<Rc<Texture2D>>,
     pub color: Option<Vec3>,
@@ -18,9 +18,9 @@ pub struct CPUMesh {
 impl CPUMesh {
     pub fn compute_normals(&mut self) {
         if let Some(ref ind) = self.indices {
-            self.normals = compute_normals_with_indices(ind, &self.positions);
+            self.normals = Some(compute_normals_with_indices(ind, &self.positions));
         } else {
-            self.normals = compute_normals(&self.positions);
+            self.normals = Some(compute_normals(&self.positions));
         }
     }
 

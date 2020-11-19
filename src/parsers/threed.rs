@@ -22,7 +22,7 @@ impl ThreeD {
         Ok(CPUMesh{
             indices: if decoded.indices.len() > 0 {Some(decoded.indices)} else {None},
             positions: decoded.positions,
-            normals: decoded.normals,
+            normals: if decoded.normals.len() > 0 {Some(decoded.normals)} else {None},
             uvs: if decoded.uvs.len() > 0 {Some(decoded.uvs)} else {None},
             ..Default::default() })
     }
@@ -34,7 +34,7 @@ impl ThreeD {
             version: 2,
             indices: mesh.indices.as_ref().unwrap_or(&Vec::new()).to_owned(),
             positions: mesh.positions.to_owned(),
-            normals: mesh.normals.to_owned(),
+            normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
             uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned()
         })?)
     }

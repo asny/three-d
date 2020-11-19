@@ -18,7 +18,9 @@ impl TexturedMesh
 {
     pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
-        let normal_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.normals)?;
+        let normal_buffer = VertexBuffer::new_with_static_f32(gl,
+              cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
+              "Cannot create a textured mesh without normals. Consider calling compute_normals on the CPUMesh before creating the textured mesh.".to_string()})?)?;
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
             Some(VertexBuffer::new_with_static_f32(gl, uvs)?)
         } else {None};

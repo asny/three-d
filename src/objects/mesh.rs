@@ -16,7 +16,9 @@ impl Mesh
 {
     pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
-        let normal_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.normals)?;
+        let normal_buffer = VertexBuffer::new_with_static_f32(gl,
+              cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
+              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?)?;
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
             Some(ElementBuffer::new_with_u32(gl, ind)?)
         } else {None};

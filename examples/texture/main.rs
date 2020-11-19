@@ -25,7 +25,7 @@ fn main() {
         let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &CPUMesh {
             indices: Some(box_mesh.indices_buffer()),
             positions: box_mesh.positions_buffer_f32(),
-            normals: box_mesh.normals_buffer_f32(),
+            normals: Some(box_mesh.normals_buffer_f32()),
             texture: Some(std::rc::Rc::new(texture)),
             ..Default::default() }).unwrap();
 
