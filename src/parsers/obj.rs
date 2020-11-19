@@ -6,12 +6,12 @@ pub fn load_obj2(bytes: &[u8]) -> (Vec<u32>, Vec<f32>, Vec<f32>, Vec<f32>) {
     let mut positions = Vec::new();
     let mut normals_out = Vec::new();
     let mut uvs_out = Vec::new();
-    let mut indices = Vec::new();
+    let indices = Vec::new();
 
     for obj in objs.objects.iter() { // Objects consisting of several meshes with different materials
         println!("Object: {:?}", obj.name);
         if true {
-            let start_index = positions.len()/3;
+            let _start_index = positions.len()/3;
 
             for mesh in obj.geometry.iter() { // All meshes with different materials
                     println!("mesh");

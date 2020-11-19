@@ -46,7 +46,7 @@ impl Loader {
     {
         Self::sleep(100, move || {
 
-            let mut is_loading = false;
+            let is_loading;
             match loads.try_borrow() {
                 Ok(map) => {
                     let total_count = map.len();
