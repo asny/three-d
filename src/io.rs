@@ -46,8 +46,7 @@ impl Loader {
     {
         Self::sleep(100, move || {
 
-            let is_loading;
-            match loads.try_borrow() {
+            let is_loading = match loads.try_borrow() {
                 Ok(map) => {
                     let total_count = map.len();
                     let mut count = 0;
@@ -57,10 +56,10 @@ impl Loader {
                         }
                     }
                     progress_callback(count as f32 / total_count as f32);
-                    is_loading = count < total_count;
+                    count < total_count
                 },
-                Err(_) => is_loading = true
-            }
+                Err(_) => true
+            };
 
             if is_loading {
                 Self::wait_local(loads, progress_callback, on_done);
