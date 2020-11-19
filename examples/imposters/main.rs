@@ -57,12 +57,12 @@ fn main() {
         imposter.update_positions(&positions, &angles);
 
         // Plane
-        let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
-        plane_mesh.scale(1000.0);
-        let mut plane = Mesh::new(&gl, &plane_mesh.indices_buffer(), &plane_mesh.positions_buffer_f32(), &plane_mesh.normals_buffer_f32()).unwrap();
-        plane.color = vec3(0.5, 0.7, 0.3);
-        plane.diffuse_intensity = 1.0;
-        plane.specular_intensity = 0.0;
+        let plane = Mesh::from_cpu_mesh(&gl, &CPUMesh {
+            positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
+            normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
+            color: Some(vec3(0.5, 0.7, 0.3)),
+            diffuse_intensity: Some(1.0),
+            specular_intensity: Some(0.0), ..Default::default()}).unwrap();
 
         // Lights
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
