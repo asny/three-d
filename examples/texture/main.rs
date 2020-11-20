@@ -14,7 +14,9 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["examples/assets/textures/penguin.png", "examples/assets/models/penguin.3d", "examples/assets/textures/test_texture.jpg"], move |loaded|
+    Loader::load(&["examples/assets/textures/penguin.png", "examples/assets/models/penguin.3d", "examples/assets/textures/test_texture.jpg",
+        "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg", "examples/assets/textures/skybox_evening/top.jpg",
+        "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg"], move |loaded|
     {
         let mut box_mesh = CPUMesh {
             positions: cube_positions(),
@@ -25,11 +27,11 @@ fn main() {
         let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &box_mesh).unwrap();
 
         let skybox = objects::Skybox::new(&gl, TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
-                                                           include_bytes!("../assets/textures/skybox_evening/back.jpg"),
-                                                           include_bytes!("../assets/textures/skybox_evening/front.jpg"),
-                                                           include_bytes!("../assets/textures/skybox_evening/top.jpg"),
-                                                           include_bytes!("../assets/textures/skybox_evening/left.jpg"),
-                                                           include_bytes!("../assets/textures/skybox_evening/right.jpg")).unwrap());
+                                                           loaded.get("examples/assets/textures/skybox_evening/back.jpg").unwrap().as_ref().unwrap(),
+                                                           loaded.get("examples/assets/textures/skybox_evening/front.jpg").unwrap().as_ref().unwrap(),
+                                                           loaded.get("examples/assets/textures/skybox_evening/top.jpg").unwrap().as_ref().unwrap(),
+                                                           loaded.get("examples/assets/textures/skybox_evening/left.jpg").unwrap().as_ref().unwrap(),
+                                                           loaded.get("examples/assets/textures/skybox_evening/right.jpg").unwrap().as_ref().unwrap()).unwrap());
 
         let mut penguin_cpu_mesh = ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap();
         penguin_cpu_mesh.texture = Some(std::rc::Rc::new(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
