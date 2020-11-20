@@ -14,10 +14,7 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
-    let mut loader = Loader::new();
-    loader.start_loading("./examples/assets/models/leaves1.3d");
-    loader.start_loading("./examples/assets/models/tree1.3d");
-    loader.wait(move |loaded| {
+    Loader::load(&["./examples/assets/models/leaves1.3d", "./examples/assets/models/tree1.3d"], move |loaded| {
         let leaves_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/leaves1.3d").unwrap().as_ref().unwrap()).unwrap();
         let tree_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/tree1.3d").unwrap().as_ref().unwrap()).unwrap();
         loaded.clear();

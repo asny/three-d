@@ -14,9 +14,7 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut loader = Loader::new();
-    loader.start_loading("./examples/assets/models/suzanne.3d");
-    loader.wait(move |loaded| {
+    Loader::load(&["./examples/assets/models/suzanne.3d"], move |loaded| {
         let mut monkey = ThreeD::parse(loaded.get("./examples/assets/models/suzanne.3d").unwrap().as_ref().unwrap()).unwrap();
         monkey.color = Some(vec3(0.5, 1.0, 0.5));
         let monkey = Mesh::from_cpu_mesh(&gl, &monkey).unwrap();
