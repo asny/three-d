@@ -14,11 +14,8 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    let mut loader = Loader::new();
-    loader.start_loading("examples/assets/textures/penguin.png");
-    loader.start_loading("examples/assets/models/penguin.3d");
-    loader.start_loading("examples/assets/textures/test_texture.jpg");
-    loader.wait(move |loaded| {
+    Loader::load(&["examples/assets/textures/penguin.png", "examples/assets/models/penguin.3d", "examples/assets/textures/test_texture.jpg"], move |loaded|
+    {
         let mut box_mesh = CPUMesh {
             positions: cube_positions(),
             texture: Some(std::rc::Rc::new(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),

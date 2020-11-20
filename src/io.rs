@@ -7,36 +7,30 @@ type Loads = HashMap<&'static str, Result<Vec<u8>, std::io::Error>>;
 type RefLoads = Rc<RefCell<Loads>>;
 
 pub struct Loader {
-    loads: RefLoads
 }
 
 impl Loader {
 
-    pub fn new() -> Self {
-        Self { loads: Rc::new(RefCell::new(HashMap::new()))}
-    }
-
-    pub fn start_loading(&mut self, path: &'static str)
-    {
-        self.loads.borrow_mut().insert(path, Ok(Vec::new()));
-        Self::load_file(path,self.loads.clone());
-    }
-
-    pub fn wait<F>(&mut self, on_done: F)
+    pub fn load<F>(paths: &[&'static str], on_done: F)
         where F: 'static + FnOnce(&mut Loads)
     {
-        self.wait_with_progress(|progress| {
+        Self::load_with_progress(paths, |progress| {
                     info!("Progress: {}%", 100.0f32 * progress);
         }, on_done);
     }
 
-    pub fn wait_with_progress<F, G>(&mut self, progress_callback: G, on_done: F)
+    pub fn load_with_progress<F, G>(paths: &[&'static str], progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),
             F: 'static + FnOnce(&mut Loads)
     {
+        let loads = Rc::new(RefCell::new(HashMap::new()));
+        for path in paths {
+            loads.borrow_mut().insert(*path, Ok(Vec::new()));
+            Self::load_file(*path,loads.clone());
+        }
         info!("Loading started...");
-        Self::wait_local(self.loads.clone(), progress_callback, on_done);
+        Self::wait_local(loads.clone(), progress_callback, on_done);
     }
 
     fn wait_local<F, G>(loads: RefLoads, progress_callback: G, on_done: F)
