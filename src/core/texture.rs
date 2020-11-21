@@ -211,17 +211,18 @@ impl TextureCubeMap
     #[cfg(feature = "image-io")]
     pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping,
-                      back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<TextureCubeMap, Error>
+                      back_bytes: &[u8], front_bytes: &[u8], bottom_bytes: &[u8], top_bytes: &[u8],left_bytes: &[u8], right_bytes: &[u8]) -> Result<TextureCubeMap, Error>
     {
         use image::GenericImageView;
         let back = image::load_from_memory(back_bytes)?;
         let front = image::load_from_memory(front_bytes)?;
+        let bottom = image::load_from_memory(bottom_bytes)?;
         let top = image::load_from_memory(top_bytes)?;
         let left = image::load_from_memory(left_bytes)?;
         let right = image::load_from_memory(right_bytes)?;
         let (width, height) = back.dimensions();
         Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.to_bytes(), &left.to_bytes(), &top.to_bytes(),
-                              &top.to_bytes(), &front.to_bytes(), &back.to_bytes()])
+                              &bottom.to_bytes(), &front.to_bytes(), &back.to_bytes()])
     }
 
     #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]

@@ -11,15 +11,39 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(gl: &Gl, texture: texture::TextureCubeMap) -> Skybox
+    pub fn new(gl: &Gl, loaded: &Loaded, back_path: &str, front_path: &str, top_path: &str, left_path: &str, right_path: &str) -> Result<Skybox, Error>
+    {
+        let texture = TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
+                                                           loaded.get(back_path).ok_or(
+            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", back_path)})?.as_ref().map_err(
+            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", back_path)})?,
+                                                           loaded.get(front_path).ok_or(
+            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", front_path)})?.as_ref().map_err(
+            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", front_path)})?,
+                                                           loaded.get(top_path).ok_or(
+            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", top_path)})?.as_ref().map_err(
+            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", top_path)})?,
+                                                           loaded.get(top_path).ok_or(
+            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", top_path)})?.as_ref().map_err(
+            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", top_path)})?,
+                                                           loaded.get(left_path).ok_or(
+            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", left_path)})?.as_ref().map_err(
+            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", left_path)})?,
+                                                           loaded.get(right_path).ok_or(
+            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", right_path)})?.as_ref().map_err(
+            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", right_path)})?)?;
+        Self::new_with_texture(gl, texture)
+    }
+
+    pub fn new_with_texture(gl: &Gl, texture: texture::TextureCubeMap) -> Result<Skybox, Error>
     {
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/skybox.vert"),
-                                                    include_str!("shaders/skybox.frag")).unwrap();
+                                                    include_str!("shaders/skybox.frag"))?;
 
-        let vertex_buffer = VertexBuffer::new_with_static_f32(gl, &get_positions()).unwrap();
+        let vertex_buffer = VertexBuffer::new_with_static_f32(gl, &get_positions())?;
 
-        Skybox { gl: gl.clone(), program, vertex_buffer, texture }
+        Ok(Skybox { gl: gl.clone(), program, vertex_buffer, texture })
     }
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
