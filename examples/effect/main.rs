@@ -15,7 +15,7 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     Loader::load(&["./examples/assets/models/suzanne.3d"], move |loaded| {
-        let mut monkey = ThreeD::parse(loaded.get("./examples/assets/models/suzanne.3d").unwrap().as_ref().unwrap()).unwrap();
+        let mut monkey = ThreeD::parse(loaded.get("./examples/assets/models/suzanne.3d").unwrap().as_ref().unwrap()).unwrap().remove(0);
         monkey.color = Some(vec3(0.5, 1.0, 0.5));
         let monkey = Mesh::from_cpu_mesh(&gl, &monkey).unwrap();
 

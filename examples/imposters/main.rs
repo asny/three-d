@@ -15,8 +15,8 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
     Loader::load(&["./examples/assets/models/leaves1.3d", "./examples/assets/models/tree1.3d"], move |loaded| {
-        let leaves_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/leaves1.3d").unwrap().as_ref().unwrap()).unwrap();
-        let tree_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/tree1.3d").unwrap().as_ref().unwrap()).unwrap();
+        let leaves_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/leaves1.3d").unwrap().as_ref().unwrap()).unwrap().remove(0);
+        let tree_cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/tree1.3d").unwrap().as_ref().unwrap()).unwrap().remove(0);
         loaded.clear();
 
         // Tree

@@ -12,13 +12,14 @@ impl ThreeD {
 
         if decoded.submeshes.len() == 0 {
             decoded = Self::parse_version1(bytes)?;
-            if decoded.submeshes.len() == 0 {
-                Err(bincode::Error::new(bincode::ErrorKind::Custom("No mesh data in file!".to_string())))?;
-            }
         }
 
         if decoded.magic_number != 61 {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
+        }
+
+        if decoded.submeshes.len() == 0 {
+            Err(bincode::Error::new(bincode::ErrorKind::Custom("No mesh data in file!".to_string())))?;
         }
 
         let mut cpu_meshes = Vec::new();
@@ -42,7 +43,7 @@ impl ThreeD {
                     indices: m.indices,
                     positions: m.positions,
                     normals: m.normals,
-                    uvs: vec![]
+                    ..Default::default()
                 }]
             })
     }
@@ -57,7 +58,11 @@ impl ThreeD {
                 indices: mesh.indices.as_ref().unwrap_or(&Vec::new()).to_owned(),
                 positions: mesh.positions.to_owned(),
                 normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned()
+                uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned(),
+                color: mesh.color.map(|c| (c.x, c.y, c.z)),
+                diffuse_intensity: mesh.diffuse_intensity,
+                specular_intensity: mesh.specular_intensity,
+                specular_power: mesh.specular_power
             }).collect()
         })?)
     }
@@ -70,12 +75,16 @@ struct ThreeDMesh {
     pub submeshes: Vec<ThreeDMeshSubMesh>
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
 struct ThreeDMeshSubMesh {
     pub indices: Vec<u32>,
     pub positions: Vec<f32>,
     pub normals: Vec<f32>,
-    pub uvs: Vec<f32>
+    pub uvs: Vec<f32>,
+    pub color: Option<(f32, f32, f32)>,
+    pub diffuse_intensity: Option<f32>,
+    pub specular_intensity: Option<f32>,
+    pub specular_power: Option<f32>
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
