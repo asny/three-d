@@ -3,8 +3,8 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use log::info;
 
-type Loads = HashMap<&'static str, Result<Vec<u8>, std::io::Error>>;
-type RefLoads = Rc<RefCell<Loads>>;
+pub type Loaded = HashMap<&'static str, Result<Vec<u8>, std::io::Error>>;
+type RefLoaded = Rc<RefCell<Loaded>>;
 
 pub struct Loader {
 }
@@ -12,7 +12,7 @@ pub struct Loader {
 impl Loader {
 
     pub fn load<F>(paths: &[&'static str], on_done: F)
-        where F: 'static + FnOnce(&mut Loads)
+        where F: 'static + FnOnce(&mut Loaded)
     {
         Self::load_with_progress(paths, |progress| {
                     info!("Progress: {}%", 100.0f32 * progress);
@@ -22,7 +22,7 @@ impl Loader {
     pub fn load_with_progress<F, G>(paths: &[&'static str], progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),
-            F: 'static + FnOnce(&mut Loads)
+            F: 'static + FnOnce(&mut Loaded)
     {
         let loads = Rc::new(RefCell::new(HashMap::new()));
         for path in paths {
@@ -33,10 +33,10 @@ impl Loader {
         Self::wait_local(loads.clone(), progress_callback, on_done);
     }
 
-    fn wait_local<F, G>(loads: RefLoads, progress_callback: G, on_done: F)
+    fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),
-            F: 'static + FnOnce(&mut Loads)
+            F: 'static + FnOnce(&mut Loaded)
     {
         Self::sleep(100, move || {
 
@@ -84,7 +84,7 @@ impl Loader {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    fn load_file(path: &'static str, loads: RefLoads)
+    fn load_file(path: &'static str, loads: RefLoaded)
     {
         let file = std::fs::File::open(path);
         match file {
@@ -99,13 +99,13 @@ impl Loader {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn load_file(path: &'static str, loads: RefLoads)
+    fn load_file(path: &'static str, loads: RefLoaded)
     {
         wasm_bindgen_futures::spawn_local(Self::load(path, loads));
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load(url: &'static str, loads: RefLoads)
+    async fn load(url: &'static str, loads: RefLoaded)
     {
         use wasm_bindgen::prelude::*;
         use wasm_bindgen::JsCast;

@@ -8,7 +8,7 @@ pub struct TexturedMesh {
     normal_buffer: VertexBuffer,
     uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
-    pub texture: Rc<texture::Texture2D>,
+    pub texture: Rc<Texture2D>,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32
@@ -16,7 +16,20 @@ pub struct TexturedMesh {
 
 impl TexturedMesh
 {
-    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+    pub fn from_cpu_mesh(gl: &Gl, loaded: &Loaded, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+
+        let path = cpu_mesh.texture.ok_or(
+            Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?.clone();
+        let bytes = loaded.get(path).ok_or(
+            Error::FailedToCreateMesh {message:format!("Tried to use a texture which was not loaded: {}", path)})?.as_ref().map_err(
+            |_| Error::FailedToCreateMesh {message:format!("Could not load texture: {}", path)})?;
+        let texture = Rc::new(texture::Texture2D::new_from_bytes(&gl,
+         Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
+       Wrapping::Repeat, Wrapping::Repeat, bytes).unwrap());
+        Self::from_cpu_mesh_and_texture(gl, cpu_mesh, texture)
+    }
+
+    pub fn from_cpu_mesh_and_texture(gl: &Gl, cpu_mesh: &CPUMesh, texture: Rc<Texture2D>) -> Result<Self, Error> {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,
               cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
@@ -27,7 +40,6 @@ impl TexturedMesh
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
             Some(ElementBuffer::new_with_u32(gl, ind)?)
         } else {None};
-        let texture = cpu_mesh.texture.as_ref().ok_or(Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?.clone();
 
         let program = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
