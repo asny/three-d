@@ -33,7 +33,7 @@ fn main() {
                                                            loaded.get("examples/assets/textures/skybox_evening/left.jpg").unwrap().as_ref().unwrap(),
                                                            loaded.get("examples/assets/textures/skybox_evening/right.jpg").unwrap().as_ref().unwrap()).unwrap());
 
-        let mut penguin_cpu_mesh = ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap();
+        let mut penguin_cpu_mesh = ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap().remove(0);
         penguin_cpu_mesh.texture = Some(std::rc::Rc::new(texture::Texture2D::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
                            Wrapping::ClampToEdge, Wrapping::ClampToEdge, loaded.get("examples/assets/textures/penguin.png").unwrap().as_ref().unwrap()).unwrap()));
         let penguin = TexturedMesh::from_cpu_mesh(&gl, &penguin_cpu_mesh).unwrap();
