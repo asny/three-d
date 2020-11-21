@@ -101,11 +101,11 @@ impl Loader {
     #[cfg(target_arch = "wasm32")]
     fn load_file(path: &'static str, loads: RefLoaded)
     {
-        wasm_bindgen_futures::spawn_local(Self::load(path, loads));
+        wasm_bindgen_futures::spawn_local(Self::load_file_async(path, loads));
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load(url: &'static str, loads: RefLoaded)
+    async fn load_file_async(url: &'static str, loads: RefLoaded)
     {
         use wasm_bindgen::prelude::*;
         use wasm_bindgen::JsCast;
