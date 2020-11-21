@@ -25,8 +25,9 @@ impl ThreeD {
         let mut cpu_meshes = Vec::new();
         for mesh in decoded.submeshes {
             cpu_meshes.push(CPUMesh {
-                indices: if mesh.indices.len() > 0 {Some(mesh.indices)} else {None},
+                name: mesh.name,
                 positions: mesh.positions,
+                indices: if mesh.indices.len() > 0 {Some(mesh.indices)} else {None},
                 normals: if mesh.normals.len() > 0 {Some(mesh.normals)} else {None},
                 uvs: if mesh.uvs.len() > 0 {Some(mesh.uvs)} else {None},
                 color: mesh.color.map(|(r, g, b)| vec3(r, g, b)),
@@ -59,6 +60,7 @@ impl ThreeD {
             version: 2,
             submeshes: meshes.iter().map(|mesh|
             ThreeDMeshSubMesh {
+                name: mesh.name.clone(),
                 indices: mesh.indices.as_ref().unwrap_or(&Vec::new()).to_owned(),
                 positions: mesh.positions.to_owned(),
                 normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
@@ -82,6 +84,7 @@ struct ThreeDMesh {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
 struct ThreeDMeshSubMesh {
+    pub name: String,
     pub indices: Vec<u32>,
     pub positions: Vec<f32>,
     pub normals: Vec<f32>,

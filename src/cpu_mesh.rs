@@ -3,8 +3,9 @@ use crate::*;
 
 #[derive(Default)]
 pub struct CPUMesh {
-    pub indices: Option<Vec<u32>>,
+    pub name: String,
     pub positions: Vec<f32>,
+    pub indices: Option<Vec<u32>>,
     pub normals: Option<Vec<f32>>,
     pub uvs: Option<Vec<f32>>,
     pub texture_path: Option<String>,
