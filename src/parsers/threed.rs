@@ -7,17 +7,15 @@ pub struct ThreeD {
 impl ThreeD {
     pub fn parse(bytes: &[u8]) -> Result<Vec<CPUMesh>, bincode::Error>
     {
-        let decoded = bincode::deserialize::<ThreeDMesh>(bytes)
-            .or_else(|_| bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
-                magic_number: m.magic_number,
-                version: 2,
-                submeshes: vec![ThreeDMeshSubMesh {
-                    indices: m.indices,
-                    positions: m.positions,
-                    normals: m.normals,
-                    uvs: vec![]
-                }]
-            }))?;
+        let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
+            .or_else(|_| Self::parse_version1(bytes))?;
+
+        if decoded.submeshes.len() == 0 {
+            decoded = Self::parse_version1(bytes)?;
+            if decoded.submeshes.len() == 0 {
+                Err(bincode::Error::new(bincode::ErrorKind::Custom("No mesh data in file!".to_string())))?;
+            }
+        }
 
         if decoded.magic_number != 61 {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
@@ -33,8 +31,20 @@ impl ThreeD {
                 ..Default::default()
             });
         }
-        println!("{:?}", cpu_meshes.len());
         Ok(cpu_meshes)
+    }
+
+    fn parse_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
+        bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
+                magic_number: m.magic_number,
+                version: 2,
+                submeshes: vec![ThreeDMeshSubMesh {
+                    indices: m.indices,
+                    positions: m.positions,
+                    normals: m.normals,
+                    uvs: vec![]
+                }]
+            })
     }
 
     pub fn serialize(meshes: &Vec<CPUMesh>) -> Result<Vec<u8>, bincode::Error>
