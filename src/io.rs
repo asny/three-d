@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use log::info;
 
-pub type Loaded = HashMap<&'static str, Result<Vec<u8>, std::io::Error>>;
+pub type Loaded = HashMap<String, Result<Vec<u8>, std::io::Error>>;
 type RefLoaded = Rc<RefCell<Loaded>>;
 
 pub struct Loader {
@@ -26,7 +26,7 @@ impl Loader {
     {
         let loads = Rc::new(RefCell::new(HashMap::new()));
         for path in paths {
-            loads.borrow_mut().insert(*path, Ok(Vec::new()));
+            loads.borrow_mut().insert((*path).to_owned(), Ok(Vec::new()));
             Self::load_file(*path,loads.clone());
         }
         info!("Loading started...");
@@ -92,9 +92,9 @@ impl Loader {
                 use std::io::prelude::*;
                 let mut bytes = Vec::new();
                 let result = f.read_to_end(&mut bytes).and(Ok(bytes));
-                loads.borrow_mut().insert(path, result);
+                loads.borrow_mut().insert(path.to_owned(), result);
             },
-            Err(e) => {loads.borrow_mut().insert(path, Err(e));}
+            Err(e) => {loads.borrow_mut().insert(path.to_owned(), Err(e));}
         }
     }
 
@@ -116,7 +116,7 @@ impl Loader {
         opts.method("GET");
         opts.mode(RequestMode::Cors);
 
-        let request = Request::new_with_str_and_init(&url, &opts).unwrap();
+        let request = Request::new_with_str_and_init(url, &opts).unwrap();
         request.headers().set("Accept", "application/octet-stream").unwrap();
 
         let window = web_sys::window().unwrap();
@@ -125,7 +125,7 @@ impl Loader {
 
         // Convert this other `Promise` into a rust `Future`.
         let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
-        loads.borrow_mut().insert(url, Ok(js_sys::Uint8Array::new(&data).to_vec()));
+        loads.borrow_mut().insert(url.to_owned(), Ok(js_sys::Uint8Array::new(&data).to_vec()));
     }
 }
 

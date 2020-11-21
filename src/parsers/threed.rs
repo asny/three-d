@@ -29,7 +29,11 @@ impl ThreeD {
                 positions: mesh.positions,
                 normals: if mesh.normals.len() > 0 {Some(mesh.normals)} else {None},
                 uvs: if mesh.uvs.len() > 0 {Some(mesh.uvs)} else {None},
-                ..Default::default()
+                color: mesh.color.map(|(r, g, b)| vec3(r, g, b)),
+                diffuse_intensity: mesh.diffuse_intensity,
+                specular_intensity: mesh.specular_intensity,
+                specular_power: mesh.specular_power,
+                texture_path: mesh.texture_path
             });
         }
         Ok(cpu_meshes)
@@ -59,7 +63,7 @@ impl ThreeD {
                 positions: mesh.positions.to_owned(),
                 normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
                 uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                texture_path: mesh.texture.map(|s| s.to_owned()),
+                texture_path: mesh.texture_path.clone(),
                 color: mesh.color.map(|c| (c.x, c.y, c.z)),
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,

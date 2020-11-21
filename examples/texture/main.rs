@@ -20,7 +20,7 @@ fn main() {
     {
         let mut box_mesh = CPUMesh {
             positions: cube_positions(),
-            texture: Some("examples/assets/textures/test_texture.jpg"),
+            texture_path: Some("examples/assets/textures/test_texture.jpg".to_string()),
             ..Default::default() };
         box_mesh.compute_normals();
         let box_mesh = TexturedMesh::from_cpu_mesh(&gl, loaded, &box_mesh).unwrap();
@@ -33,7 +33,7 @@ fn main() {
                                                            loaded.get("examples/assets/textures/skybox_evening/right.jpg").unwrap().as_ref().unwrap()).unwrap());
 
         let mut penguin_cpu_mesh = ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap().remove(0);
-        penguin_cpu_mesh.texture = Some("examples/assets/textures/penguin.png");
+        penguin_cpu_mesh.texture_path = Some("examples/assets/textures/penguin.png".to_string());
         let penguin = TexturedMesh::from_cpu_mesh(&gl, loaded, &penguin_cpu_mesh).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
