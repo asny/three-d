@@ -12,7 +12,7 @@ impl Obj {
         let obj_bytes = Loader::get(loaded, path).unwrap();
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let materials = obj.material_library.map(|lib_name| {
-            let mtl_path = format!("examples/assets/models/{}", lib_name);
+            let mtl_path = format!("examples/assets/{}", lib_name);
             let mtl_bytes = Loader::get(loaded, &mtl_path).unwrap();
             wavefront_obj::mtl::parse(String::from_utf8(mtl_bytes.to_owned()).unwrap()).unwrap().materials
         });
