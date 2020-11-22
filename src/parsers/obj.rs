@@ -11,10 +11,10 @@ impl Obj {
     pub fn parse<'a>(loaded: &Loaded, path: &'a str) -> Result<Vec<CPUMesh>, wavefront_obj::ParseError> {
         let obj_bytes = Loader::get(loaded, path).unwrap();
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
+        let p = std::path::Path::new(path).parent().unwrap();
         let materials = obj.material_library.map(|lib_name| {
-            let mtl_path = format!("examples/assets/{}", lib_name);
-            let mtl_bytes = Loader::get(loaded, &mtl_path).unwrap();
-            wavefront_obj::mtl::parse(String::from_utf8(mtl_bytes.to_owned()).unwrap()).unwrap().materials
+            let bytes = Loader::get(loaded, p.join(lib_name).to_str().unwrap()).unwrap().to_owned();
+            wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap()).unwrap().materials
         });
         println!("Materials: {:?}", materials);
         let objects = obj.objects;
@@ -108,7 +108,8 @@ impl Obj {
                         cpu_mesh.diffuse_intensity = Some(material.color_diffuse.r as f32);
                         cpu_mesh.specular_intensity = Some(material.color_specular.r as f32);
                         cpu_mesh.specular_power = Some(material.specular_coefficient as f32);
-                        cpu_mesh.texture_path = material.uv_map.as_ref().map(|path| path.clone());
+                        cpu_mesh.texture_path = material.uv_map.as_ref().map(|texture_name|
+                            p.join(texture_name).to_str().unwrap().to_owned());
                     }
                 }
 
