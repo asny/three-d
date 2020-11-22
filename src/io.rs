@@ -33,6 +33,13 @@ impl Loader {
         Self::wait_local(loads.clone(), progress_callback, on_done);
     }
 
+    pub fn get<'a>(loaded: &'a Loaded, path: &'a str) -> Result<&'a [u8], crate::core::Error> {
+        let bytes = loaded.get(&path.to_string()).ok_or(
+            crate::core::Error::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path)})?.as_ref()
+            .map_err(|_| crate::core::Error::FailedToLoad {message:format!("Could not load resource: {}", path)})?;
+        Ok(bytes)
+    }
+
     fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),

@@ -32,6 +32,7 @@ pub enum Error {
     FailedToCreateFramebuffer {message: String},
     #[cfg(feature = "image-io")]
     Image(image::ImageError),
+    FailedToLoad {message: String},
     FailedToCreateTexture {message: String},
     BufferUpdateFailed {message: String},
     FailedToCreateMesh {message: String}

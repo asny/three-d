@@ -28,7 +28,7 @@ fn main() {
         let skybox = objects::Skybox::new(&gl, loaded, "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
             "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg").unwrap();
 
-        let mut penguin_cpu_mesh = ThreeD::parse(loaded.get("examples/assets/models/penguin.3d").unwrap().as_ref().unwrap()).unwrap().remove(0);
+        let mut penguin_cpu_mesh = ThreeD::parse(Loader::get(loaded, "examples/assets/models/penguin.3d").unwrap()).unwrap().remove(0);
         penguin_cpu_mesh.texture_path = Some("examples/assets/textures/penguin.png".to_string());
         let penguin = TexturedMesh::from_cpu_mesh(&gl, loaded, &penguin_cpu_mesh).unwrap();
 
