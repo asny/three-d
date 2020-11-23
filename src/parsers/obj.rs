@@ -16,15 +16,11 @@ impl Obj {
             let bytes = Loader::get(loaded, p.join(lib_name).to_str().unwrap()).unwrap().to_owned();
             wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap()).unwrap().materials
         });
-        println!("Materials: {:?}", materials);
         let objects = obj.objects;
         let mut cpu_meshes = Vec::new();
 
         for object in objects.iter() { // Objects consisting of several meshes with different materials
-            println!("Object: {:?}", object.name);
-
             for mesh in object.geometry.iter() { // All meshes with different materials
-                println!("mesh, mat: {:?}", mesh.material_name);
                 let mut positions = Vec::new();
                 let mut normals = Vec::new();
                 let mut uvs = Vec::new();
@@ -87,10 +83,6 @@ impl Obj {
                     }
                 }
 
-                println!("indices: {:?}", indices.len());
-                println!("pos: {}", positions.len());
-                println!("nor: {}", normals.len());
-                println!("uvs: {}", uvs.len());
                 let mut cpu_mesh = CPUMesh {
                     name: object.name.to_string(),
                     positions,
@@ -104,9 +96,15 @@ impl Obj {
                     if let Some(Some(material)) = materials.as_ref().map( |material_lib|
                         material_lib.iter().filter(|m| &m.name == material_name).last())
                     {
-                        cpu_mesh.color = Some(crate::vec3(material.color_diffuse.r as f32, material.color_diffuse.g as f32, material.color_diffuse.b as f32));
-                        cpu_mesh.diffuse_intensity = Some(material.color_diffuse.r as f32);
-                        cpu_mesh.specular_intensity = Some(material.color_specular.r as f32);
+                        let color = if material.color_diffuse.r != material.color_diffuse.g || material.color_diffuse.g != material.color_diffuse.b { material.color_diffuse }
+                            else if material.color_specular.r != material.color_specular.g || material.color_specular.g != material.color_specular.b { material.color_specular }
+                            else if material.color_ambient.r != material.color_ambient.g || material.color_ambient.g != material.color_ambient.b { material.color_ambient }
+                            else {material.color_diffuse};
+                        cpu_mesh.color = Some(crate::vec3(color.r as f32, color.g as f32, color.b as f32));
+                        let diffuse_intensity = (material.color_diffuse.r as f32).max(material.color_diffuse.g as f32).max(material.color_diffuse.b as f32);
+                        cpu_mesh.diffuse_intensity = Some(diffuse_intensity);
+                        let specular_intensity = (material.color_specular.r as f32).max(material.color_specular.g as f32).max(material.color_specular.b as f32);
+                        cpu_mesh.specular_intensity = Some(specular_intensity);
                         cpu_mesh.specular_power = Some(material.specular_coefficient as f32);
                         cpu_mesh.texture_path = material.uv_map.as_ref().map(|texture_name|
                             p.join(texture_name).to_str().unwrap().to_owned());
