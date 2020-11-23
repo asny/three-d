@@ -28,11 +28,6 @@ pub use crate::objects::*;
 #[cfg(not(feature = "no-renderer"))]
 pub use crate::effects::*;
 
-#[cfg(not(feature = "no-renderer"))]
-pub mod parsers;
-#[cfg(not(feature = "no-renderer"))]
-pub use crate::parsers::*;
-
 #[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub mod window;
 #[cfg(any(feature = "glutin-window", feature = "canvas"))]
