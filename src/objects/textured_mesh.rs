@@ -18,11 +18,11 @@ impl TexturedMesh
 {
     pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
 
-        let (_, bytes) = cpu_mesh.texture.as_ref().ok_or(
+        let img = cpu_mesh.texture.as_ref().ok_or(
             Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?;
-        let texture = Rc::new(texture::Texture2D::new_from_bytes(&gl,
+        let texture = Rc::new(texture::Texture2D::new_from_image(&gl,
          Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
-       Wrapping::Repeat, Wrapping::Repeat, bytes).unwrap());
+       Wrapping::Repeat, Wrapping::Repeat, img).unwrap());
         Self::from_cpu_mesh_and_texture(gl, cpu_mesh, texture)
     }
 

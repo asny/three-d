@@ -40,6 +40,11 @@ impl Loader {
         Ok(bytes)
     }
 
+    pub fn get_image<'a>(loaded: &'a Loaded, path: &'a str) -> Result<image::DynamicImage, crate::core::Error> {
+        let img = image::load_from_memory(Self::get(loaded, path)?)?;
+        Ok(img)
+    }
+
     fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),

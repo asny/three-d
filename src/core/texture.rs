@@ -58,12 +58,10 @@ impl Texture2D
         Ok(Self { gl: gl.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    #[cfg(feature = "image-io")]
-    pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, bytes: &[u8]) -> Result<Texture2D, Error>
+    pub fn new_from_image(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+           wrap_s: Wrapping, wrap_t: Wrapping, img: &image::DynamicImage) -> Result<Texture2D, Error>
     {
         use image::GenericImageView;
-        let img = image::load_from_memory(bytes)?;
         let (width, height) = img.dimensions();
         Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.to_bytes())
     }

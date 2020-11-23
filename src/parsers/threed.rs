@@ -35,7 +35,7 @@ impl ThreeD {
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,
                 specular_power: mesh.specular_power,
-                texture: if let Some(path) = mesh.texture_path { Some((path.clone(), Vec::from(Loader::get(loaded, &path)?))) } else {None}
+                texture: if let Some(path) = mesh.texture_path { Some(Loader::get_image(loaded, &path)?) } else {None}
             });
         }
         Ok(cpu_meshes)
@@ -54,7 +54,7 @@ impl ThreeD {
             })
     }
 
-    pub fn serialize(meshes: &Vec<CPUMesh>) -> Result<Vec<u8>, bincode::Error>
+    /*pub fn serialize(meshes: &Vec<CPUMesh>) -> Result<Vec<u8>, bincode::Error>
     {
         Ok(bincode::serialize::<ThreeDMesh>(&ThreeDMesh {
             magic_number: 61,
@@ -73,7 +73,7 @@ impl ThreeD {
                 specular_power: mesh.specular_power
             }).collect()
         })?)
-    }
+    }*/
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]

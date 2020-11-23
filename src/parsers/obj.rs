@@ -107,7 +107,7 @@ impl Obj {
                         cpu_mesh.specular_intensity = Some(specular_intensity);
                         cpu_mesh.specular_power = Some(material.specular_coefficient as f32);
                         cpu_mesh.texture = if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
-                            { Some((path.clone(), Vec::from(Loader::get(loaded, &path)?))) } else {None};
+                            { Some(Loader::get_image(loaded, &path)?) } else {None};
                     }
                 }
 

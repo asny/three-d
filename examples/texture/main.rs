@@ -20,8 +20,7 @@ fn main() {
     {
         let mut box_mesh = CPUMesh {
             positions: cube_positions(),
-            texture: Some(("examples/assets/textures/test_texture.jpg".to_string(),
-                           Loader::get(loaded, "examples/assets/textures/test_texture.jpg").unwrap().to_vec())),
+            texture: Some(Loader::get_image(loaded, "examples/assets/textures/test_texture.jpg").unwrap()),
             ..Default::default() };
         box_mesh.compute_normals();
         let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &box_mesh).unwrap();
@@ -30,8 +29,7 @@ fn main() {
             "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg").unwrap();
 
         let mut penguin_cpu_mesh = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap().remove(0);
-        penguin_cpu_mesh.texture = Some(("examples/assets/penguin.png".to_string(),
-                           Loader::get(loaded, "examples/assets/penguin.png").unwrap().to_vec()));
+        penguin_cpu_mesh.texture = Some(Loader::get_image(loaded, "examples/assets/penguin.png").unwrap());
         let penguin = TexturedMesh::from_cpu_mesh(&gl, &penguin_cpu_mesh).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
