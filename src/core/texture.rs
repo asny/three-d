@@ -68,16 +68,6 @@ impl Texture2D
         Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.to_bytes())
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn new_from_file(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, path: &str) -> Result<Texture2D, Error>
-    {
-        use image::GenericImageView;
-        let img = image::open(path)?;
-        let (width, height) = img.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.to_bytes())
-    }
-
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
            wrap_s: Wrapping, wrap_t: Wrapping, width: u32, height: u32, data: &[u8]) -> Result<Texture2D, Error>
     {
@@ -223,21 +213,6 @@ impl TextureCubeMap
         let (width, height) = back.dimensions();
         Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.to_bytes(), &left.to_bytes(), &top.to_bytes(),
                               &bottom.to_bytes(), &front.to_bytes(), &back.to_bytes()])
-    }
-
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn new_from_files(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<TextureCubeMap, Error>
-    {
-        use image::GenericImageView;
-        let back = image::open(format!("{}{}", path, back_name))?;
-        let front = image::open(format!("{}{}", path, front_name))?;
-        let top = image::open(format!("{}{}", path, top_name))?;
-        let left = image::open(format!("{}{}", path, left_name))?;
-        let right = image::open(format!("{}{}", path, right_name))?;
-        let (width, height) = back.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.to_bytes(), &left.to_bytes(), &top.to_bytes(),
-                              &top.to_bytes(), &front.to_bytes(), &back.to_bytes()])
     }
 
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
