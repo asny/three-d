@@ -16,17 +16,19 @@ pub struct TexturedMesh {
 
 impl TexturedMesh
 {
-    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
-
+    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    {
         let img = cpu_mesh.texture.as_ref().ok_or(
             Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?;
-        let texture = Rc::new(texture::Texture2D::new_from_image(&gl,
+        use image::GenericImageView;
+        let texture = Rc::new(texture::Texture2D::new_with_u8(&gl,
          Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
-       Wrapping::Repeat, Wrapping::Repeat, img).unwrap());
+       Wrapping::Repeat, Wrapping::Repeat, img.width(), img.height(), &img.to_bytes()).unwrap());
         Self::from_cpu_mesh_and_texture(gl, cpu_mesh, texture)
     }
 
-    pub fn from_cpu_mesh_and_texture(gl: &Gl, cpu_mesh: &CPUMesh, texture: Rc<Texture2D>) -> Result<Self, Error> {
+    pub fn from_cpu_mesh_and_texture(gl: &Gl, cpu_mesh: &CPUMesh, texture: Rc<Texture2D>) -> Result<Self, Error>
+    {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,
               cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:

@@ -25,8 +25,12 @@ fn main() {
         box_mesh.compute_normals();
         let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &box_mesh).unwrap();
 
-        let skybox = objects::Skybox::new(&gl, loaded, "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
-            "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg").unwrap();
+        let skybox = objects::Skybox::new(&gl,
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/right.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/left.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/top.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/front.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let mut penguin_cpu_mesh = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap().remove(0);
         penguin_cpu_mesh.texture = Some(Loader::get_image(loaded, "examples/assets/penguin.png").unwrap());

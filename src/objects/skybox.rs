@@ -1,6 +1,7 @@
 
 use crate::*;
 use crate::core::Error;
+use image::{DynamicImage, GenericImageView};
 
 pub struct Skybox {
     gl: Gl,
@@ -11,27 +12,13 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(gl: &Gl, loaded: &Loaded, back_path: &str, front_path: &str, top_path: &str, left_path: &str, right_path: &str) -> Result<Skybox, Error>
+    pub fn new(gl: &Gl, right: &DynamicImage, left: &DynamicImage, top: &DynamicImage, front: &DynamicImage, back: &DynamicImage) -> Result<Skybox, Error>
     {
-        let texture = TextureCubeMap::new_from_bytes(&gl, Interpolation::Linear, Interpolation::Linear, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
-                                                           loaded.get(back_path).ok_or(
-            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", back_path)})?.as_ref().map_err(
-            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", back_path)})?,
-                                                           loaded.get(front_path).ok_or(
-            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", front_path)})?.as_ref().map_err(
-            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", front_path)})?,
-                                                           loaded.get(top_path).ok_or(
-            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", top_path)})?.as_ref().map_err(
-            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", top_path)})?,
-                                                           loaded.get(top_path).ok_or(
-            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", top_path)})?.as_ref().map_err(
-            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", top_path)})?,
-                                                           loaded.get(left_path).ok_or(
-            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", left_path)})?.as_ref().map_err(
-            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", left_path)})?,
-                                                           loaded.get(right_path).ok_or(
-            Error::FailedToCreateTexture {message:format!("Tried to use a texture which was not loaded: {}", right_path)})?.as_ref().map_err(
-            |_| Error::FailedToCreateTexture {message:format!("Could not load texture: {}", right_path)})?)?;
+        let texture = TextureCubeMap::new_with_u8(&gl,
+                                                  Interpolation::Linear, Interpolation::Linear, None,
+                                                  Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
+                                                  right.width(), right.height(),
+                                                  [&right.to_bytes(), &left.to_bytes(), &top.to_bytes(), &top.to_bytes(), &front.to_bytes(), &back.to_bytes()])?;
         Self::new_with_texture(gl, texture)
     }
 
