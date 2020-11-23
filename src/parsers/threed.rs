@@ -5,8 +5,9 @@ pub struct ThreeD {
 }
 
 impl ThreeD {
-    pub fn parse(bytes: &[u8]) -> Result<Vec<CPUMesh>, bincode::Error>
+    pub fn parse(loaded: &Loaded, path: &str) -> Result<Vec<CPUMesh>, Error>
     {
+        let bytes = Loader::get(loaded, path)?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| Self::parse_version1(bytes))?;
 
@@ -34,7 +35,7 @@ impl ThreeD {
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,
                 specular_power: mesh.specular_power,
-                texture_path: mesh.texture_path
+                texture: if let Some(path) = mesh.texture_path { Some((path.clone(), Vec::from(Loader::get(loaded, &path)?))) } else {None}
             });
         }
         Ok(cpu_meshes)
@@ -65,7 +66,7 @@ impl ThreeD {
                 positions: mesh.positions.to_owned(),
                 normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
                 uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                texture_path: mesh.texture_path.clone(),
+                texture_path: mesh.texture.as_ref().map(|(path, _)| path.clone()),
                 color: mesh.color.map(|c| (c.x, c.y, c.z)),
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,

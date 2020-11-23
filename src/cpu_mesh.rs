@@ -8,7 +8,7 @@ pub struct CPUMesh {
     pub indices: Option<Vec<u32>>,
     pub normals: Option<Vec<f32>>,
     pub uvs: Option<Vec<f32>>,
-    pub texture_path: Option<String>,
+    pub texture: Option<(String, Vec<u8>)>,
     pub color: Option<Vec3>,
     pub diffuse_intensity: Option<f32>,
     pub specular_intensity: Option<f32>,

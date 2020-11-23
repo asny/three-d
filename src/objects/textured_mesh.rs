@@ -16,11 +16,10 @@ pub struct TexturedMesh {
 
 impl TexturedMesh
 {
-    pub fn from_cpu_mesh(gl: &Gl, loaded: &Loaded, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
 
-        let path = cpu_mesh.texture_path.as_ref().ok_or(
+        let (_, bytes) = cpu_mesh.texture.as_ref().ok_or(
             Error::FailedToCreateMesh {message:"Cannot create a textured mesh without a texture.".to_string()})?;
-        let bytes = Loader::get(loaded, path)?;
         let texture = Rc::new(texture::Texture2D::new_from_bytes(&gl,
          Interpolation::Linear, Interpolation::Linear, Some(Interpolation::Linear),
        Wrapping::Repeat, Wrapping::Repeat, bytes).unwrap());

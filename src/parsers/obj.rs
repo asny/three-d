@@ -8,7 +8,7 @@ pub struct Obj {
 }
 
 impl Obj {
-    pub fn parse<'a>(loaded: &Loaded, path: &'a str) -> Result<Vec<CPUMesh>, wavefront_obj::ParseError> {
+    pub fn parse(loaded: &Loaded, path: &str) -> Result<Vec<CPUMesh>, crate::core::Error> {
         let obj_bytes = Loader::get(loaded, path).unwrap();
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = std::path::Path::new(path).parent().unwrap();
@@ -106,8 +106,8 @@ impl Obj {
                         let specular_intensity = (material.color_specular.r as f32).max(material.color_specular.g as f32).max(material.color_specular.b as f32);
                         cpu_mesh.specular_intensity = Some(specular_intensity);
                         cpu_mesh.specular_power = Some(material.specular_coefficient as f32);
-                        cpu_mesh.texture_path = material.uv_map.as_ref().map(|texture_name|
-                            p.join(texture_name).to_str().unwrap().to_owned());
+                        cpu_mesh.texture = if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
+                            { Some((path.clone(), Vec::from(Loader::get(loaded, &path)?))) } else {None};
                     }
                 }
 

@@ -20,17 +20,19 @@ fn main() {
     {
         let mut box_mesh = CPUMesh {
             positions: cube_positions(),
-            texture_path: Some("examples/assets/textures/test_texture.jpg".to_string()),
+            texture: Some(("examples/assets/textures/test_texture.jpg".to_string(),
+                           Loader::get(loaded, "examples/assets/textures/test_texture.jpg").unwrap().to_vec())),
             ..Default::default() };
         box_mesh.compute_normals();
-        let box_mesh = TexturedMesh::from_cpu_mesh(&gl, loaded, &box_mesh).unwrap();
+        let box_mesh = TexturedMesh::from_cpu_mesh(&gl, &box_mesh).unwrap();
 
         let skybox = objects::Skybox::new(&gl, loaded, "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
             "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg").unwrap();
 
         let mut penguin_cpu_mesh = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap().remove(0);
-        penguin_cpu_mesh.texture_path = Some("examples/assets/penguin.png".to_string());
-        let penguin = TexturedMesh::from_cpu_mesh(&gl, loaded, &penguin_cpu_mesh).unwrap();
+        penguin_cpu_mesh.texture = Some(("examples/assets/penguin.png".to_string(),
+                           Loader::get(loaded, "examples/assets/penguin.png").unwrap().to_vec()));
+        let penguin = TexturedMesh::from_cpu_mesh(&gl, &penguin_cpu_mesh).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
