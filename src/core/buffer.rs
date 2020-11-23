@@ -141,7 +141,7 @@ impl UniformBuffer
         let (offset, length) = self.offset_length(index)?;
         if data.len() != length
         {
-            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer data for index {} has length {} but it must be {}.", index, data.len(), length)})
+            return Err(Error::FailedToUpdateBuffer {message: format!("The uniform buffer data for index {} has length {} but it must be {}.", index, data.len(), length)})
         }
         self.data.splice(offset..offset+length, data.iter().cloned());
         self.send();
@@ -159,7 +159,7 @@ impl UniformBuffer
     {
         if index >= self.offsets.len()
         {
-            return Err(Error::BufferUpdateFailed {message: format!("The uniform buffer index {} is outside the range 0-{}", index, self.offsets.len()-1)})
+            return Err(Error::FailedToUpdateBuffer {message: format!("The uniform buffer index {} is outside the range 0-{}", index, self.offsets.len()-1)})
         }
         let offset = self.offsets[index];
         let length = if index + 1 == self.offsets.len() {self.data.len()} else {self.offsets[index+1]}  - offset;

@@ -1,4 +1,5 @@
-use crate::*;
+use crate::io::*;
+use crate::cpu_mesh::CPUMesh;
 
 pub struct ThreeD {
 
@@ -31,7 +32,7 @@ impl ThreeD {
                 indices: if mesh.indices.len() > 0 {Some(mesh.indices)} else {None},
                 normals: if mesh.normals.len() > 0 {Some(mesh.normals)} else {None},
                 uvs: if mesh.uvs.len() > 0 {Some(mesh.uvs)} else {None},
-                color: mesh.color.map(|(r, g, b)| vec3(r, g, b)),
+                color: mesh.color,
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,
                 specular_power: mesh.specular_power,

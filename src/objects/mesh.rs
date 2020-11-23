@@ -28,7 +28,7 @@ impl Mesh
                                                     include_str!("shaders/shaded.frag"))?;
 
         Ok(Self { index_buffer, position_buffer, normal_buffer, program,
-            color: cpu_mesh.color.unwrap_or(vec3(1.0, 1.0, 1.0)),
+            color: cpu_mesh.color.map(|(r, g, b)| vec3(r, g, b)).unwrap_or(vec3(1.0, 1.0, 1.0)),
             diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
             specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
             specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })

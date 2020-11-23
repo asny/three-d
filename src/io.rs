@@ -3,6 +3,38 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use log::info;
 
+
+#[derive(Debug)]
+pub enum Error {
+    #[cfg(feature = "image-io")]
+    Image(image::ImageError),
+    #[cfg(feature = "3d-io")]
+    Bincode(bincode::Error),
+    #[cfg(feature = "obj-io")]
+    Obj(wavefront_obj::ParseError),
+    FailedToLoad {message: String}
+}
+
+#[cfg(feature = "image-io")]
+impl From<image::ImageError> for Error {
+    fn from(other: image::ImageError) -> Self {
+        Error::Image(other)
+    }
+}
+
+#[cfg(feature = "3d-io")]
+impl From<bincode::Error> for Error {
+    fn from(other: bincode::Error) -> Self {
+        Error::Bincode(other)
+    }
+}
+#[cfg(feature = "obj-io")]
+impl From<wavefront_obj::ParseError> for Error {
+    fn from(other: wavefront_obj::ParseError) -> Self {
+        Error::Obj(other)
+    }
+}
+
 pub type Loaded = HashMap<String, Result<Vec<u8>, std::io::Error>>;
 type RefLoaded = Rc<RefCell<Loaded>>;
 
@@ -33,14 +65,15 @@ impl Loader {
         Self::wait_local(loads.clone(), progress_callback, on_done);
     }
 
-    pub fn get<'a>(loaded: &'a Loaded, path: &'a str) -> Result<&'a [u8], crate::core::Error> {
+    pub fn get<'a>(loaded: &'a Loaded, path: &'a str) -> Result<&'a [u8], Error> {
         let bytes = loaded.get(&path.to_string()).ok_or(
-            crate::core::Error::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path)})?.as_ref()
-            .map_err(|_| crate::core::Error::FailedToLoad {message:format!("Could not load resource: {}", path)})?;
+            Error::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path)})?.as_ref()
+            .map_err(|_| Error::FailedToLoad {message:format!("Could not load resource: {}", path)})?;
         Ok(bytes)
     }
 
-    pub fn get_image<'a>(loaded: &'a Loaded, path: &'a str) -> Result<image::DynamicImage, crate::core::Error> {
+    #[cfg(feature = "image-io")]
+    pub fn get_image<'a>(loaded: &'a Loaded, path: &'a str) -> Result<image::DynamicImage, Error> {
         let img = image::load_from_memory(Self::get(loaded, path)?)?;
         Ok(img)
     }

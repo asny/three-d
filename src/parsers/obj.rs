@@ -8,7 +8,7 @@ pub struct Obj {
 }
 
 impl Obj {
-    pub fn parse(loaded: &Loaded, path: &str) -> Result<Vec<CPUMesh>, crate::core::Error> {
+    pub fn parse(loaded: &Loaded, path: &str) -> Result<Vec<CPUMesh>, Error> {
         let obj_bytes = Loader::get(loaded, path).unwrap();
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = std::path::Path::new(path).parent().unwrap();
@@ -100,7 +100,7 @@ impl Obj {
                             else if material.color_specular.r != material.color_specular.g || material.color_specular.g != material.color_specular.b { material.color_specular }
                             else if material.color_ambient.r != material.color_ambient.g || material.color_ambient.g != material.color_ambient.b { material.color_ambient }
                             else {material.color_diffuse};
-                        cpu_mesh.color = Some(crate::vec3(color.r as f32, color.g as f32, color.b as f32));
+                        cpu_mesh.color = Some((color.r as f32, color.g as f32, color.b as f32));
                         let diffuse_intensity = (material.color_diffuse.r as f32).max(material.color_diffuse.g as f32).max(material.color_diffuse.b as f32);
                         cpu_mesh.diffuse_intensity = Some(diffuse_intensity);
                         let specular_intensity = (material.color_specular.r as f32).max(material.color_specular.g as f32).max(material.color_specular.b as f32);
