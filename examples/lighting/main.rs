@@ -15,16 +15,16 @@ fn main() {
 
     Loader::load(&["examples/assets/models/suzanne.3d"], move |loaded|
     {
-        let mut monkey = ThreeD::parse(loaded.get("examples/assets/models/suzanne.3d").unwrap().as_ref().unwrap()).unwrap();
+        let mut monkey = ThreeD::parse(loaded, "examples/assets/models/suzanne.3d").unwrap().remove(0);
         monkey.diffuse_intensity = Some(0.7);
         monkey.specular_intensity = Some(0.8);
         monkey.specular_power = Some(20.0);
-        let mut monkey = Mesh::from_cpu_mesh(&gl, &monkey).unwrap();
+        let mut monkey = Mesh::new(&gl, &monkey).unwrap();
 
-        let mut plane = Mesh::from_cpu_mesh(&gl, &CPUMesh {
+        let mut plane = Mesh::new(&gl, &CPUMesh {
             positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
             normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-            color: Some(vec3(0.5, 0.7, 0.3)),
+            color: Some((0.5, 0.7, 0.3)),
             diffuse_intensity: Some(0.7),
             specular_intensity: Some(0.8),
             specular_power: Some(20.0),
