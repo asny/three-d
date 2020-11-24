@@ -20,7 +20,23 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn from_cpu_mesh(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    {
+        let texture = if let Some(ref img) = cpu_mesh.texture {
+            use image::GenericImageView;
+            Some(Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
+                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
+                                                                  img.width(), img.height(), &img.to_bytes()).unwrap()))
+        } else {None};
+        Self::from_cpu_mesh_and_optional_texture(gl, cpu_mesh, texture)
+    }
+
+    pub fn new_with_texture(gl: &Gl, cpu_mesh: &CPUMesh, texture: Rc<Texture2D>) -> Result<Self, Error>
+    {
+        Self::from_cpu_mesh_and_optional_texture(gl, cpu_mesh, Some(texture))
+    }
+
+    fn from_cpu_mesh_and_optional_texture(gl: &Gl, cpu_mesh: &CPUMesh, texture: Option<Rc<Texture2D>>) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,
@@ -28,14 +44,9 @@ impl Mesh
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?)?;
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
 
-
-        let color = if let Some(ref img) = cpu_mesh.texture {
+        let color = if let Some(tex) = texture {
             let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
-            use image::GenericImageView;
-            let texture = Rc::new(texture::Texture2D::new_with_u8(&gl,Interpolation::Linear, Interpolation::Linear,
-                                                                  Some(Interpolation::Linear),Wrapping::Repeat, Wrapping::Repeat,
-                                                                  img.width(), img.height(), &img.to_bytes()).unwrap());
-            ColorSource::Texture((texture, uv_buffer))
+            ColorSource::Texture((tex, uv_buffer))
         } else {
             ColorSource::Color(cpu_mesh.color.map(|(r, g, b)| vec3(r, g, b)).unwrap_or(vec3(1.0, 1.0, 1.0)))
         };
