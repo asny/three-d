@@ -1,5 +1,6 @@
 use crate::io::*;
 use crate::cpu_mesh::CPUMesh;
+use std::path::Path;
 
 pub struct ThreeD {
 
@@ -55,26 +56,26 @@ impl ThreeD {
             })
     }
 
-    /*pub fn serialize(meshes: &Vec<CPUMesh>) -> Result<Vec<u8>, bincode::Error>
+    pub fn serialize<P: AsRef<Path>>(meshes: &Vec<(&CPUMesh, Option<P>)>) -> Result<Vec<u8>, Error>
     {
         Ok(bincode::serialize::<ThreeDMesh>(&ThreeDMesh {
             magic_number: 61,
             version: 2,
-            submeshes: meshes.iter().map(|mesh|
+            submeshes: meshes.iter().map(|(mesh, texture_path)|
             ThreeDMeshSubMesh {
                 name: mesh.name.clone(),
                 indices: mesh.indices.as_ref().unwrap_or(&Vec::new()).to_owned(),
                 positions: mesh.positions.to_owned(),
                 normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
                 uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                texture_path: mesh.texture.as_ref().map(|(path, _)| path.clone()),
-                color: mesh.color.map(|c| (c.x, c.y, c.z)),
+                texture_path: texture_path.as_ref().map(|p| p.as_ref().to_str().unwrap().to_owned()),
+                color: mesh.color,
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,
                 specular_power: mesh.specular_power
             }).collect()
         })?)
-    }*/
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use log::info;
+use std::path::Path;
 
 #[cfg(feature = "3d-io")]
 pub mod threed;
@@ -24,6 +25,8 @@ pub enum Error {
     Bincode(bincode::Error),
     #[cfg(feature = "obj-io")]
     Obj(wavefront_obj::ParseError),
+    #[cfg(not(target_arch = "wasm32"))]
+    IO(std::io::Error),
     FailedToLoad {message: String}
 }
 
@@ -40,10 +43,18 @@ impl From<bincode::Error> for Error {
         Error::Bincode(other)
     }
 }
+
 #[cfg(feature = "obj-io")]
 impl From<wavefront_obj::ParseError> for Error {
     fn from(other: wavefront_obj::ParseError) -> Self {
         Error::Obj(other)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<std::io::Error> for Error {
+    fn from(other: std::io::Error) -> Self {
+        Error::IO(other)
     }
 }
 
@@ -187,10 +198,40 @@ impl Loader {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn save_file(path: &str, bytes: &[u8]) -> Result<(), std::io::Error>
-{
-    let mut file = std::fs::File::create(path)?;
-    use std::io::prelude::*;
-    file.write_all(bytes)?;
-    Ok(())
+pub struct Saver {
+
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Saver {
+    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: &Vec<crate::CPUMesh>) -> Result<(), Error>
+    {
+        let mut input = Vec::new();
+        let mut i = 0;
+        for cpu_mesh in cpu_meshes {
+            let texture_path = if let Some(ref img) = cpu_mesh.texture {
+                let tex_path = path.as_ref().parent().unwrap().join(format!("{}{}", i, ".png"));
+                i += 1;
+                img.save_with_format(&tex_path, image::ImageFormat::Png)?;
+                Some(tex_path)
+            } else {None};
+            input.push((cpu_mesh, texture_path));
+        }
+
+        let bytes = ThreeD::serialize(&input)?;
+        if path.as_ref().ends_with(".3d") {
+            Self::save_file(path, &bytes)?;
+        } else {
+            Self::save_file(path.as_ref().join(".3d"), &bytes)?;
+        }
+        Ok(())
+    }
+
+    pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> Result<(), Error>
+    {
+        let mut file = std::fs::File::create(path)?;
+        use std::io::prelude::*;
+        file.write_all(bytes)?;
+        Ok(())
+    }
 }
