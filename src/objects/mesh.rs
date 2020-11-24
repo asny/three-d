@@ -2,7 +2,7 @@
 use crate::*;
 use std::rc::Rc;
 
-pub enum ColorSource {
+enum ColorSource {
     Color(Vec3),
     Texture((Rc<Texture2D>, Option<VertexBuffer>))
 }
@@ -12,7 +12,7 @@ pub struct Mesh {
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
-    pub color: ColorSource,
+    color: ColorSource,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32
