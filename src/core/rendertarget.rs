@@ -36,24 +36,6 @@ impl Screen {
                         consts::DEPTH_COMPONENT, consts::FLOAT, &mut pixels);
         Ok(pixels)
     }
-
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn save_color(path: &str, gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<(), Error>
-    {
-        let pixels = Self::read_color(gl, x, y, width, height)?;
-        let mut pixels_out = vec![0u8; width * height * 3];
-        for row in 0..height {
-            for col in 0..width {
-                for i in 0..3 {
-                    pixels_out[3 * width * (height - row - 1) + 3 * col + i] =
-                        pixels[3 * width * row + 3 * col + i];
-                }
-            }
-        }
-
-        image::save_buffer(&std::path::Path::new(path), &pixels_out, width as u32, height as u32, image::ColorType::Rgb8).unwrap();
-        Ok(())
-    }
 }
 
 pub struct RenderTarget {}

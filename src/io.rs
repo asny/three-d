@@ -204,6 +204,8 @@ pub struct Saver {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Saver {
+
+    #[cfg(all(feature = "3d-io", feature = "image-io"))]
     pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: &Vec<crate::CPUMesh>) -> Result<(), Error>
     {
         let mut input = Vec::new();
@@ -224,6 +226,23 @@ impl Saver {
         } else {
             Self::save_file(path.as_ref().join(".3d"), &bytes)?;
         }
+        Ok(())
+    }
+
+    #[cfg(feature = "image-io")]
+    pub fn save_pixels<P: AsRef<Path>>(path: P, pixels: &[u8], width: usize, height: usize) -> Result<(), Error>
+    {
+        let mut pixels_out = vec![0u8; width * height * 3];
+        for row in 0..height {
+            for col in 0..width {
+                for i in 0..3 {
+                    pixels_out[3 * width * (height - row - 1) + 3 * col + i] =
+                        pixels[3 * width * row + 3 * col + i];
+                }
+            }
+        }
+
+        image::save_buffer(path, &pixels_out, width as u32, height as u32, image::ColorType::Rgb8).unwrap();
         Ok(())
     }
 

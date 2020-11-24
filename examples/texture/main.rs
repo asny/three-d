@@ -82,9 +82,10 @@ fn main() {
                 renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
             }).unwrap();
 
+            #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                #[cfg(target_arch = "x86_64")]
-                Screen::save_color(path, &gl, 0, 0, width, height).unwrap();
+                let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
+                Saver::save_pixels(path, &pixels, width, height).unwrap();
                 std::process::exit(1);
             }
         }).unwrap();
