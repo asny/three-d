@@ -206,7 +206,7 @@ pub struct Saver {
 impl Saver {
 
     #[cfg(all(feature = "3d-io", feature = "image-io"))]
-    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: &Vec<crate::CPUMesh>) -> Result<(), Error>
+    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: &Vec<&crate::CPUMesh>) -> Result<(), Error>
     {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
@@ -214,12 +214,12 @@ impl Saver {
         let mut i = 0;
         for cpu_mesh in cpu_meshes {
             let texture_path = if let Some(ref img) = cpu_mesh.texture {
-                let tex_path = dir.join(format!("{}_tex_{}.png", filename, i));
+                let tex_path = dir.join(format!("{}_tex{}.png", filename, i));
                 i += 1;
                 img.save_with_format(&tex_path, image::ImageFormat::Png)?;
                 Some(tex_path)
             } else {None};
-            input.push((cpu_mesh, texture_path));
+            input.push((*cpu_mesh, texture_path));
         }
 
         let bytes = ThreeD::serialize(&input)?;
