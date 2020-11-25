@@ -208,11 +208,13 @@ impl Saver {
     #[cfg(all(feature = "3d-io", feature = "image-io"))]
     pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: &Vec<crate::CPUMesh>) -> Result<(), Error>
     {
+        let dir = path.as_ref().parent().unwrap();
+        let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         let mut input = Vec::new();
         let mut i = 0;
         for cpu_mesh in cpu_meshes {
             let texture_path = if let Some(ref img) = cpu_mesh.texture {
-                let tex_path = path.as_ref().parent().unwrap().join(format!("{}{}", i, ".png"));
+                let tex_path = dir.join(format!("{}_tex_{}.png", filename, i));
                 i += 1;
                 img.save_with_format(&tex_path, image::ImageFormat::Png)?;
                 Some(tex_path)
@@ -221,11 +223,7 @@ impl Saver {
         }
 
         let bytes = ThreeD::serialize(&input)?;
-        if path.as_ref().ends_with(".3d") {
-            Self::save_file(path, &bytes)?;
-        } else {
-            Self::save_file(path.as_ref().join(".3d"), &bytes)?;
-        }
+        Self::save_file(dir.join(format!("{}.3d", filename)), &bytes)?;
         Ok(())
     }
 
