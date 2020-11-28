@@ -42,86 +42,88 @@ fn main() {
         let mut rotating = false;
         let mut shadows_enabled = true;
         window.render_loop(move |frame_input|
-            {
-                camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
+        {
+            camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
-                time += (0.001 * frame_input.elapsed_time) % 1000.0;
-                for event in frame_input.events.iter() {
-                    match event {
-                        Event::MouseClick { state, button, .. } => {
-                            rotating = *button == MouseButton::Left && *state == State::Pressed;
-                        },
-                        Event::MouseMotion { delta } => {
-                            if rotating {
-                                camera.rotate(delta.0 as f32, delta.1 as f32);
-                            }
-                        },
-                        Event::MouseWheel { delta } => {
-                            camera.zoom(*delta as f32);
-                        },
-                        Event::Key { ref state, ref kind } => {
-                            if kind == "T" && *state == State::Pressed
-                            {
-                                shadows_enabled = !shadows_enabled;
-                                if !shadows_enabled {
-                                    spot_light.clear_shadow_map();
-                                    directional_light0.clear_shadow_map();
-                                    directional_light1.clear_shadow_map();
-                                }
-                            }
-                            if kind == "P" && *state == State::Pressed
-                            {
-                                #[cfg(target_arch = "x86_64")]
-                                    Screen::save_color("lighting.png", &gl, 0, 0, width, height).unwrap();
-                            }
-                            if kind == "R" && *state == State::Pressed
-                            {
-                                renderer.next_debug_type();
-                                println!("{:?}", renderer.debug_type());
+            time += (0.001 * frame_input.elapsed_time) % 1000.0;
+            for event in frame_input.events.iter() {
+                match event {
+                    Event::MouseClick { state, button, .. } => {
+                        rotating = *button == MouseButton::Left && *state == State::Pressed;
+                    },
+                    Event::MouseMotion { delta } => {
+                        if rotating {
+                            camera.rotate(delta.0 as f32, delta.1 as f32);
+                        }
+                    },
+                    Event::MouseWheel { delta } => {
+                        camera.zoom(*delta as f32);
+                    },
+                    Event::Key { ref state, ref kind } => {
+                        if kind == "T" && *state == State::Pressed
+                        {
+                            shadows_enabled = !shadows_enabled;
+                            if !shadows_enabled {
+                                spot_light.clear_shadow_map();
+                                directional_light0.clear_shadow_map();
+                                directional_light1.clear_shadow_map();
                             }
                         }
+                        #[cfg(target_arch = "x86_64")]
+                        if kind == "P" && *state == State::Pressed
+                        {
+                            let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
+                            Saver::save_pixels("lighting.png", &pixels, width, height).unwrap();
+                        }
+                        if kind == "R" && *state == State::Pressed
+                        {
+                            renderer.next_debug_type();
+                            println!("{:?}", renderer.debug_type());
+                        }
                     }
-                    handle_surface_parameters(&event, &mut plane);
-                    handle_surface_parameters(&event, &mut monkey);
                 }
-                let c = time.cos() as f32;
-                let s = time.sin() as f32;
-                directional_light0.set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
-                directional_light1.set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
-                spot_light.set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
-                spot_light.set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
-                point_light0.set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
-                point_light1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
+                handle_surface_parameters(&event, &mut plane);
+                handle_surface_parameters(&event, &mut monkey);
+            }
+            let c = time.cos() as f32;
+            let s = time.sin() as f32;
+            directional_light0.set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
+            directional_light1.set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
+            spot_light.set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
+            spot_light.set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
+            point_light0.set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
+            point_light1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
-                // Draw
-                let render_scene = |camera: &Camera| {
-                    monkey.render(&Mat4::identity(), camera);
-                };
-                if shadows_enabled {
-                    directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
-                    directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
-                    spot_light.generate_shadow_map(20.0, 1024, &render_scene);
-                }
+            // Draw
+            let render_scene = |camera: &Camera| {
+                monkey.render(&Mat4::identity(), camera);
+            };
+            if shadows_enabled {
+                directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
+                directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
+                spot_light.generate_shadow_map(20.0, 1024, &render_scene);
+            }
 
-                // Geometry pass
-                renderer.geometry_pass(width, height, &||
-                    {
-                        render_scene(&camera);
-                        plane.render(&Mat4::identity(), &camera);
-                    }).unwrap();
-
-                // Light pass
-                Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), None, &|| {
-                    renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
-                                        &[&spot_light], &[&point_light0, &point_light1]).unwrap();
+            // Geometry pass
+            renderer.geometry_pass(width, height, &||
+                {
+                    render_scene(&camera);
+                    plane.render(&Mat4::identity(), &camera);
                 }).unwrap();
 
-                if let Some(ref path) = screenshot_path {
-                    #[cfg(target_arch = "x86_64")]
-                        Screen::save_color(path, &gl, 0, 0, width, height).unwrap();
-                    std::process::exit(1);
-                }
+            // Light pass
+            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), None, &|| {
+                renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
+                                    &[&spot_light], &[&point_light0, &point_light1]).unwrap();
             }).unwrap();
+
+            #[cfg(target_arch = "x86_64")]
+            if let Some(ref path) = screenshot_path {
+                let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
+                Saver::save_pixels(path, &pixels, width, height).unwrap();
+                std::process::exit(1);
+            }
+        }).unwrap();
     });
 }
 
