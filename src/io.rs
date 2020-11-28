@@ -170,7 +170,7 @@ impl Loader {
     #[cfg(target_arch = "wasm32")]
     fn load_file<P: AsRef<Path>>(path: P, loads: RefLoaded)
     {
-        wasm_bindgen_futures::spawn_local(Self::load_file_async(path, loads));
+        wasm_bindgen_futures::spawn_local(Self::load_file_async(path.as_ref().to_path_buf(), loads));
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -185,7 +185,7 @@ impl Loader {
         opts.method("GET");
         opts.mode(RequestMode::Cors);
 
-        let request = Request::new_with_str_and_init(path.as_ref().to_str(), &opts).unwrap();
+        let request = Request::new_with_str_and_init(path.as_ref().to_str().unwrap(), &opts).unwrap();
         request.headers().set("Accept", "application/octet-stream").unwrap();
 
         let window = web_sys::window().unwrap();
@@ -194,7 +194,7 @@ impl Loader {
 
         // Convert this other `Promise` into a rust `Future`.
         let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
-        loads.borrow_mut().insert(path.to_owned(), Ok(js_sys::Uint8Array::new(&data).to_vec()));
+        loads.borrow_mut().insert(path.as_ref().to_path_buf(), Ok(js_sys::Uint8Array::new(&data).to_vec()));
     }
 }
 
