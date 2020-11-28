@@ -17,11 +17,11 @@ fn main() {
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     Loader::load(&["./examples/assets/models/suzanne.3d"], move |loaded| {
-        let mut cpu_mesh = ThreeD::parse(loaded.get("./examples/assets/models/suzanne.3d").unwrap().as_ref().unwrap()).unwrap();
+        let mut cpu_mesh = ThreeD::parse(loaded, "./examples/assets/models/suzanne.3d").unwrap().remove(0);
         cpu_mesh.diffuse_intensity = Some(0.2);
         cpu_mesh.specular_intensity = Some(0.4);
         cpu_mesh.specular_power = Some(20.0);
-        let model = Mesh::from_cpu_mesh(&gl, &cpu_mesh).unwrap();
+        let model = Mesh::new(&gl, &cpu_mesh).unwrap();
 
         let mut edges = Edges::new(&gl, cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007);
         edges.diffuse_intensity = 0.8;
@@ -35,7 +35,7 @@ fn main() {
         vertices.specular_power = 5.0;
         vertices.color = vec3(0.9, 0.2, 0.2);
 
-        let plane = Mesh::from_cpu_mesh(&gl, &CPUMesh {
+        let plane = Mesh::new(&gl, &CPUMesh {
             positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
             normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
             diffuse_intensity: Some(0.2),
@@ -101,10 +101,11 @@ fn main() {
                 Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), None, &|| {
                     renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
                 }).unwrap();
-
+                
+                #[cfg(target_arch = "x86_64")]
                 if let Some(ref path) = screenshot_path {
-                    #[cfg(target_arch = "x86_64")]
-                        Screen::save_color(path, &gl, 0, 0, width, height).unwrap();
+                    let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
+                    Saver::save_pixels(path, &pixels, width, height).unwrap();
                     std::process::exit(1);
                 }
             }).unwrap();
