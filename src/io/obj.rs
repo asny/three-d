@@ -2,16 +2,17 @@
 use crate::cpu_mesh::CPUMesh;
 use crate::io::*;
 use std::collections::HashMap;
+use std::path::Path;
 
 pub struct Obj {
 
 }
 
 impl Obj {
-    pub fn parse(loaded: &Loaded, path: &str) -> Result<Vec<CPUMesh>, Error> {
-        let obj_bytes = Loader::get(loaded, path).unwrap();
+    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<Vec<CPUMesh>, Error> {
+        let obj_bytes = Loader::get(loaded, path.as_ref()).unwrap();
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
-        let p = std::path::Path::new(path).parent().unwrap();
+        let p = path.as_ref().parent().unwrap();
         let materials = obj.material_library.map(|lib_name| {
             let bytes = Loader::get(loaded, p.join(lib_name).to_str().unwrap()).unwrap().to_owned();
             wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap()).unwrap().materials

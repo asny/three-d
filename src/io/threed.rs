@@ -7,9 +7,9 @@ pub struct ThreeD {
 }
 
 impl ThreeD {
-    pub fn parse(loaded: &Loaded, path: &str) -> Result<Vec<CPUMesh>, Error>
+    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<Vec<CPUMesh>, Error>
     {
-        let bytes = Loader::get(loaded, path)?;
+        let bytes = Loader::get(loaded, path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| Self::parse_version1(bytes))?;
 
@@ -37,7 +37,10 @@ impl ThreeD {
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,
                 specular_power: mesh.specular_power,
-                texture: if let Some(path) = mesh.texture_path { Some(Loader::get_image(loaded, &path)?) } else {None}
+                texture: if let Some(filename) = mesh.texture_path {
+                    let texture_path = path.as_ref().parent().unwrap_or(&Path::new("./")).join(filename);
+                    Some(Loader::get_image(loaded, &texture_path)?)
+                } else {None}
             });
         }
         Ok(cpu_meshes)
@@ -68,7 +71,7 @@ impl ThreeD {
                 positions: mesh.positions.to_owned(),
                 normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
                 uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                texture_path: texture_path.as_ref().map(|p| p.as_ref().to_str().unwrap().to_owned()),
+                texture_path: texture_path.as_ref().map(|p| p.as_ref().file_name().unwrap().to_str().unwrap().to_owned()),
                 color: mesh.color,
                 diffuse_intensity: mesh.diffuse_intensity,
                 specular_intensity: mesh.specular_intensity,
