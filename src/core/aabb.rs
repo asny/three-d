@@ -7,9 +7,13 @@ pub struct AxisAlignedBoundingBox {
 
 impl AxisAlignedBoundingBox {
 
-    pub fn new(positions: &[f32]) -> Self {
-        let mut aabb = Self {min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
-            max: vec3(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY, std::f32::NEG_INFINITY)};
+    pub fn new() -> Self {
+        Self {min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
+            max: vec3(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY, std::f32::NEG_INFINITY)}
+    }
+
+    pub fn new_from_positions(positions: &[f32]) -> Self {
+        let mut aabb = Self::new();
         aabb.expand(positions);
         aabb
     }

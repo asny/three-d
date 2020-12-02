@@ -25,7 +25,7 @@ impl CPUMesh {
     }
 
     pub fn compute_aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new(&self.positions)
+        AxisAlignedBoundingBox::new_from_positions(&self.positions)
     }
 }
 
