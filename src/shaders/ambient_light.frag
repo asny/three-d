@@ -27,4 +27,5 @@ void main()
     }
    	vec4 c = texture(gbuffer, vec3(uv, 0));
     color = vec4(c.rgb * ambientLight.base.color * ambientLight.base.intensity, 1.0);
+    gl_FragDepth = depth;
 }

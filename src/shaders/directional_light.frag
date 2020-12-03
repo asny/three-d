@@ -34,4 +34,5 @@ void main()
         light *= calculate_shadow(directionalLight.shadowMVP, position);
     }
     color = vec4(surface_color * light, 1.0);
+    gl_FragDepth = depth;
 }

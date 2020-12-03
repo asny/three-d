@@ -43,4 +43,5 @@ void main()
         }
     }
     color = vec4(surface_color * light, 1.0);
+    gl_FragDepth = depth;
 }

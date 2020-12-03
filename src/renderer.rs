@@ -84,8 +84,9 @@ impl DeferredPipeline
 
     pub fn light_pass(&self, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight], spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
-        state::depth_write(&self.gl,false);
-        state::depth_test(&self.gl, state::DepthTestType::None);
+        state::depth_write(&self.gl,true);
+        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
+        state::cull(&self.gl, state::CullType::Back);
         state::blend(&self.gl, state::BlendType::None);
 
         if self.debug_type != DebugType::NONE {
@@ -153,6 +154,7 @@ impl DeferredPipeline
             self.point_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
+        state::blend(&self.gl, state::BlendType::None);
 
         Ok(())
     }
