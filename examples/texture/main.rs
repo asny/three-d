@@ -23,7 +23,7 @@ fn main() {
             texture: Some(Loader::get_image(loaded, "examples/assets/textures/test_texture.jpg").unwrap()),
             ..Default::default() };
         box_mesh.compute_normals();
-        let box_mesh = Mesh::new(&gl, &box_mesh).unwrap();
+        let box_mesh = renderer.new_mesh(&box_mesh).unwrap();
 
         let skybox = objects::Skybox::new(&gl,
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/right.jpg").unwrap(),
@@ -33,7 +33,7 @@ fn main() {
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let penguin_cpu_mesh = ThreeD::parse(loaded, "examples/assets/penguin.3d").unwrap().remove(0);
-        let penguin = Mesh::new(&gl, &penguin_cpu_mesh).unwrap();
+        let penguin = renderer.new_mesh(&penguin_cpu_mesh).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
@@ -76,7 +76,7 @@ fn main() {
                 penguin.render(&transformation, &camera);
             }).unwrap();
 
-            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.0, 0.0, 1.0)), None, &|| {
+            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.0, 0.0, 1.0)), Some(1.0), &|| {
                 skybox.render(&camera).unwrap();
                 renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
             }).unwrap();

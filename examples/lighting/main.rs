@@ -19,12 +19,12 @@ fn main() {
         monkey.diffuse_intensity = Some(0.7);
         monkey.specular_intensity = Some(0.8);
         monkey.specular_power = Some(20.0);
-        let mut monkey = Mesh::new(&gl, &monkey).unwrap();
+        let mut monkey = renderer.new_mesh(&monkey).unwrap();
 
-        let mut plane = Mesh::new(&gl, &CPUMesh {
+        let mut plane = renderer.new_mesh(&CPUMesh {
             positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
             normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-            color: Some((0.5, 0.7, 0.3)),
+            color: Some((0.5, 0.7, 0.3, 1.0)),
             diffuse_intensity: Some(0.7),
             specular_intensity: Some(0.8),
             specular_power: Some(20.0),
@@ -112,7 +112,7 @@ fn main() {
                 }).unwrap();
 
             // Light pass
-            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), None, &|| {
+            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), Some(1.0), &|| {
                 renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
                                     &[&spot_light], &[&point_light0, &point_light1]).unwrap();
             }).unwrap();
