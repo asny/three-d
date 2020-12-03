@@ -31,16 +31,6 @@ impl Mesh
                                                                   Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
                                                                   img.width(), img.height(), &img.to_bytes()).unwrap()))
         } else {None};
-        Self::from_cpu_mesh_and_optional_texture(gl, cpu_mesh, texture)
-    }
-
-    pub fn new_with_texture(gl: &Gl, cpu_mesh: &CPUMesh, texture: Rc<Texture2D>) -> Result<Self, Error>
-    {
-        Self::from_cpu_mesh_and_optional_texture(gl, cpu_mesh, Some(texture))
-    }
-
-    fn from_cpu_mesh_and_optional_texture(gl: &Gl, cpu_mesh: &CPUMesh, texture: Option<Rc<Texture2D>>) -> Result<Self, Error>
-    {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,
               cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
