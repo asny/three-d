@@ -8,7 +8,9 @@ enum ColorSource {
 }
 
 pub struct Mesh {
-    program: program::Program,
+    pub name: String,
+    program_forward: program::Program,
+    program_deferred: program::Program,
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
@@ -51,52 +53,69 @@ impl Mesh
             ColorSource::Color(cpu_mesh.color.map(|(r, g, b)| vec3(r, g, b)).unwrap_or(vec3(1.0, 1.0, 1.0)))
         };
 
-        let program = program::Program::from_source(&gl,
+        let program_forward = program::Program::from_source(&gl,
+                                                    include_str!("shaders/mesh_shaded.vert"),
+                                                    match color {
+                                                        ColorSource::Color(_) => include_str!("shaders/shaded_forward.frag"),
+                                                        ColorSource::Texture(_) => include_str!("shaders/textured_forward.frag")
+                                                    })?;
+
+        let program_deferred = program::Program::from_source(&gl,
                                                     include_str!("shaders/mesh_shaded.vert"),
                                                     match color {
                                                         ColorSource::Color(_) => include_str!("shaders/shaded.frag"),
                                                         ColorSource::Texture(_) => include_str!("shaders/textured.frag")
                                                     })?;
 
-        Ok(Self { index_buffer, position_buffer, normal_buffer, program, color,
+        Ok(Self { name: cpu_mesh.name.clone(), index_buffer, position_buffer, normal_buffer, program_forward, program_deferred, color,
             diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
             specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
             specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
     }
 
+    pub fn render_with_lighting(&self, transformation: &Mat4, camera: &camera::Camera)
+    {
+        self.render_internal(&self.program_forward, transformation, camera);
+    }
+
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
-        self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
-        self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
-        self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
+        self.render_internal(&self.program_deferred, transformation, camera);
+    }
 
-        self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
-        self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
+    fn render_internal(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera)
+    {
+        program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity).unwrap();
+        program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
+        program.add_uniform_float("specular_power", &self.specular_power).unwrap();
+
+        program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose()).unwrap();
 
         match self.color {
             ColorSource::Color(ref color) => {
-                self.program.add_uniform_vec3("color", color).unwrap();
+                program.add_uniform_vec3("color", color).unwrap();
             },
             ColorSource::Texture((ref texture, ref uv_buffer)) => {
 
-                self.program.use_texture(texture.as_ref(),"tex").unwrap();
+                program.use_texture(texture.as_ref(),"tex").unwrap();
                 if let Some(uv_buffer) = uv_buffer {
-                    self.program.add_uniform_int("use_uvs", &1).unwrap();
-                    self.program.use_attribute_vec2_float(uv_buffer, "uv_coordinates").unwrap();
+                    program.add_uniform_int("use_uvs", &1).unwrap();
+                    program.use_attribute_vec2_float(uv_buffer, "uv_coordinates").unwrap();
                 } else {
-                    self.program.add_uniform_int("use_uvs", &0).unwrap();
+                    program.add_uniform_int("use_uvs", &0).unwrap();
                 }
             }
         }
 
-        self.program.use_attribute_vec3_float(&self.position_buffer, "position").unwrap();
-        self.program.use_attribute_vec3_float(&self.normal_buffer, "normal").unwrap();
+        program.use_attribute_vec3_float(&self.position_buffer, "position").unwrap();
+        program.use_attribute_vec3_float(&self.normal_buffer, "normal").unwrap();
 
         if let Some(ref index_buffer) = self.index_buffer {
-            self.program.draw_elements(index_buffer);
+            program.draw_elements(index_buffer);
         } else {
-            self.program.draw_arrays(self.position_buffer.count() as u32/3);
+            program.draw_arrays(self.position_buffer.count() as u32/3);
         }
     }
 }
