@@ -96,7 +96,7 @@ struct ThreeDMeshSubMesh {
     pub normals: Vec<f32>,
     pub uvs: Vec<f32>,
     pub texture_path: Option<String>,
-    pub color: Option<(f32, f32, f32)>,
+    pub color: Option<(f32, f32, f32, f32)>,
     pub diffuse_intensity: Option<f32>,
     pub specular_intensity: Option<f32>,
     pub specular_power: Option<f32>

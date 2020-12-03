@@ -3,7 +3,7 @@ use crate::*;
 use std::rc::Rc;
 
 pub enum ColorSource {
-    Color(Vec3),
+    Color(Vec4),
     Texture(Rc<Texture2D>)
 }
 
@@ -45,7 +45,7 @@ impl Mesh
         let color = if let Some(tex) = texture {
             ColorSource::Texture(tex)
         } else {
-            ColorSource::Color(cpu_mesh.color.map(|(r, g, b)| vec3(r, g, b)).unwrap_or(vec3(1.0, 1.0, 1.0)))
+            ColorSource::Color(cpu_mesh.color.map(|(r, g, b, a)| vec4(r, g, b, a)).unwrap_or(vec4(1.0, 1.0, 1.0, 1.0)))
         };
 
         Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer,
@@ -85,7 +85,7 @@ impl Mesh
 
         match self.color {
             ColorSource::Color(ref color) => {
-                program.add_uniform_vec3("color", color).unwrap();
+                program.add_uniform_vec4("color", color).unwrap();
             },
             ColorSource::Texture(ref texture) => {
                 program.use_texture(texture.as_ref(),"tex").unwrap();

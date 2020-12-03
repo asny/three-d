@@ -1,5 +1,5 @@
 
-uniform vec3 color;
+uniform vec4 color;
 uniform float diffuse_intensity;
 uniform float specular_intensity;
 uniform float specular_power;
@@ -14,5 +14,5 @@ void main()
 {
 	vec3 n = normalize(gl_FrontFacing ? nor : -nor);
 	float d = diffuse_intensity + specular_intensity*specular_power;
-    out_color = vec4(color * d, 1.0);
+    out_color = vec4(color.rgb * d, color.a);
 }

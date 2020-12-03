@@ -101,7 +101,7 @@ impl Obj {
                             else if material.color_specular.r != material.color_specular.g || material.color_specular.g != material.color_specular.b { material.color_specular }
                             else if material.color_ambient.r != material.color_ambient.g || material.color_ambient.g != material.color_ambient.b { material.color_ambient }
                             else {material.color_diffuse};
-                        cpu_mesh.color = Some((color.r as f32, color.g as f32, color.b as f32));
+                        cpu_mesh.color = Some((color.r as f32, color.g as f32, color.b as f32, material.alpha as f32));
                         let diffuse_intensity = (material.color_diffuse.r as f32).max(material.color_diffuse.g as f32).max(material.color_diffuse.b as f32);
                         cpu_mesh.diffuse_intensity = Some(diffuse_intensity);
                         let specular_intensity = (material.color_specular.r as f32).max(material.color_specular.g as f32).max(material.color_specular.b as f32);
