@@ -2,9 +2,9 @@
 use crate::*;
 use std::rc::Rc;
 
-enum ColorSource {
+pub enum ColorSource {
     Color(Vec3),
-    Texture((Rc<Texture2D>, Option<VertexBuffer>))
+    Texture(Rc<Texture2D>)
 }
 
 pub struct Mesh {
@@ -14,7 +14,8 @@ pub struct Mesh {
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
-    color: ColorSource,
+    uv_buffer: Option<VertexBuffer>,
+    pub color: ColorSource,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32
@@ -45,10 +46,10 @@ impl Mesh
               cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?)?;
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
 
         let color = if let Some(tex) = texture {
-            let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
-            ColorSource::Texture((tex, uv_buffer))
+            ColorSource::Texture(tex)
         } else {
             ColorSource::Color(cpu_mesh.color.map(|(r, g, b)| vec3(r, g, b)).unwrap_or(vec3(1.0, 1.0, 1.0)))
         };
@@ -67,7 +68,7 @@ impl Mesh
                                                         ColorSource::Texture(_) => include_str!("shaders/textured.frag")
                                                     })?;
 
-        Ok(Self { name: cpu_mesh.name.clone(), index_buffer, position_buffer, normal_buffer, program_forward, program_deferred, color,
+        Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer, program_forward, program_deferred, color,
             diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
             specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
             specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
@@ -97,10 +98,9 @@ impl Mesh
             ColorSource::Color(ref color) => {
                 program.add_uniform_vec3("color", color).unwrap();
             },
-            ColorSource::Texture((ref texture, ref uv_buffer)) => {
-
+            ColorSource::Texture(ref texture) => {
                 program.use_texture(texture.as_ref(),"tex").unwrap();
-                if let Some(uv_buffer) = uv_buffer {
+                if let Some(ref uv_buffer) = self.uv_buffer {
                     program.add_uniform_int("use_uvs", &1).unwrap();
                     program.use_attribute_vec2_float(uv_buffer, "uv_coordinates").unwrap();
                 } else {
