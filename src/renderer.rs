@@ -210,11 +210,12 @@ impl DeferredPipeline
         self.set_debug_type(debug_type);
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<Mesh, core::Error>
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<Mesh, Error>
     {
-        Mesh::new(&self.gl, self.mesh_forward_color_program.clone(),
+        let mesh = Mesh::new(&self.gl, self.mesh_forward_color_program.clone(),
                   self.mesh_forward_texture_program.clone(),
                   self.mesh_deferred_color_program.clone(),
-                  self.mesh_deferred_texture_program.clone(), cpu_mesh)
+                  self.mesh_deferred_texture_program.clone(), cpu_mesh)?;
+        Ok(mesh)
     }
 }
