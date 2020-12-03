@@ -41,12 +41,18 @@ impl DeferredPipeline
             gl: gl.clone(),
             mesh_forward_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
                                                              include_str!("objects/shaders/shaded_forward.frag"))?),
+
             mesh_forward_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
-                                                    include_str!("objects/shaders/textured_forward.frag"))?),
+                                                    &format!("{}\n{}", include_str!("objects/shaders/triplanar_mapping.frag"),
+                                                             include_str!("objects/shaders/textured_forward.frag")))?),
+
             mesh_deferred_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
                                                               include_str!("objects/shaders/shaded.frag"))?),
+
             mesh_deferred_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
-                                                    include_str!("objects/shaders/textured.frag"))?),
+                                                    &format!("{}\n{}", include_str!("objects/shaders/triplanar_mapping.frag"),
+                                                             include_str!("objects/shaders/textured.frag")))?),
+
             ambient_light_effect: ImageEffect::new(gl, include_str!("shaders/ambient_light.frag"))?,
             directional_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
