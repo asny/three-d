@@ -9,8 +9,10 @@ pub enum ColorSource {
 
 pub struct Mesh {
     pub name: String,
-    program_forward: program::Program,
-    program_deferred: program::Program,
+    program_forward_color: Rc<Program>,
+    program_forward_texture: Rc<Program>,
+    program_deferred_color: Rc<Program>,
+    program_deferred_texture: Rc<Program>,
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
@@ -23,7 +25,9 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub(crate) fn new(gl: &Gl, program_forward_color: Rc<Program>, program_forward_texture: Rc<Program>,
+                   program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>,
+                   cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let texture = if let Some(ref img) = cpu_mesh.texture {
             use image::GenericImageView;
@@ -44,21 +48,8 @@ impl Mesh
             ColorSource::Color(cpu_mesh.color.map(|(r, g, b)| vec3(r, g, b)).unwrap_or(vec3(1.0, 1.0, 1.0)))
         };
 
-        let program_forward = program::Program::from_source(&gl,
-                                                    include_str!("shaders/mesh_shaded.vert"),
-                                                    match color {
-                                                        ColorSource::Color(_) => include_str!("shaders/shaded_forward.frag"),
-                                                        ColorSource::Texture(_) => include_str!("shaders/textured_forward.frag")
-                                                    })?;
-
-        let program_deferred = program::Program::from_source(&gl,
-                                                    include_str!("shaders/mesh_shaded.vert"),
-                                                    match color {
-                                                        ColorSource::Color(_) => include_str!("shaders/shaded.frag"),
-                                                        ColorSource::Texture(_) => include_str!("shaders/textured.frag")
-                                                    })?;
-
-        Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer, program_forward, program_deferred, color,
+        Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer,
+            program_forward_color, program_forward_texture, program_deferred_color, program_deferred_texture, color,
             diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
             specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
             specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
@@ -66,12 +57,20 @@ impl Mesh
 
     pub fn render_with_lighting(&self, transformation: &Mat4, camera: &camera::Camera)
     {
-        self.render_internal(&self.program_forward, transformation, camera);
+        let program = match self.color {
+            ColorSource::Color(_) => self.program_forward_color.as_ref(),
+            ColorSource::Texture(_) => self.program_forward_texture.as_ref()
+        };
+        self.render_internal(program, transformation, camera);
     }
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
     {
-        self.render_internal(&self.program_deferred, transformation, camera);
+        let program = match self.color {
+            ColorSource::Color(_) => self.program_deferred_color.as_ref(),
+            ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
+        };
+        self.render_internal(program, transformation, camera);
     }
 
     fn render_internal(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera)

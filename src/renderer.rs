@@ -1,5 +1,6 @@
 
 use crate::*;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Error {
@@ -24,7 +25,11 @@ pub struct DeferredPipeline {
     debug_effect: Option<ImageEffect>,
     debug_type: DebugType,
     geometry_pass_texture: Option<Texture2DArray>,
-    geometry_pass_depth_texture: Option<Texture2DArray>
+    geometry_pass_depth_texture: Option<Texture2DArray>,
+    mesh_forward_color_program: Rc<Program>,
+    mesh_forward_texture_program: Rc<Program>,
+    mesh_deferred_color_program: Rc<Program>,
+    mesh_deferred_texture_program: Rc<Program>,
 }
 
 
@@ -34,6 +39,14 @@ impl DeferredPipeline
     {
         let renderer = DeferredPipeline {
             gl: gl.clone(),
+            mesh_forward_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
+                                                             include_str!("objects/shaders/shaded_forward.frag"))?),
+            mesh_forward_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
+                                                    include_str!("objects/shaders/textured_forward.frag"))?),
+            mesh_deferred_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
+                                                              include_str!("objects/shaders/shaded.frag"))?),
+            mesh_deferred_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh_shaded.vert"),
+                                                    include_str!("objects/shaders/textured.frag"))?),
             ambient_light_effect: ImageEffect::new(gl, include_str!("shaders/ambient_light.frag"))?,
             directional_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
@@ -195,5 +208,13 @@ impl DeferredPipeline
                 DebugType::POWER => DebugType::NONE,
             };
         self.set_debug_type(debug_type);
+    }
+
+    pub fn mesh(&self, cpu_mesh: &CPUMesh) -> Result<Mesh, core::Error>
+    {
+        Mesh::new(&self.gl, self.mesh_forward_color_program.clone(),
+                  self.mesh_forward_texture_program.clone(),
+                  self.mesh_deferred_color_program.clone(),
+                  self.mesh_deferred_texture_program.clone(), cpu_mesh)
     }
 }
