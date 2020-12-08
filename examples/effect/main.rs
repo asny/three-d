@@ -16,8 +16,8 @@ fn main() {
 
     Loader::load(&["./examples/assets/models/suzanne.3d"], move |loaded| {
         let mut monkey = ThreeD::parse(loaded, "./examples/assets/models/suzanne.3d").unwrap().remove(0);
-        monkey.color = Some((0.5, 1.0, 0.5));
-        let monkey = Mesh::new(&gl, &monkey).unwrap();
+        monkey.color = Some((0.5, 1.0, 0.5, 0.5));
+        let monkey = renderer.new_mesh(&monkey).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
@@ -90,7 +90,7 @@ fn main() {
                     fxaa_effect.apply(&color_texture).unwrap();
                 }).unwrap();
             } else {
-                Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &render).unwrap();
+                Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &render).unwrap();
             }
 
             #[cfg(target_arch = "x86_64")]
