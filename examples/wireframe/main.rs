@@ -21,21 +21,21 @@ fn main() {
         cpu_mesh.diffuse_intensity = Some(0.2);
         cpu_mesh.specular_intensity = Some(0.4);
         cpu_mesh.specular_power = Some(20.0);
-        let model = Mesh::new(&gl, &cpu_mesh).unwrap();
+        let model = renderer.new_mesh(&cpu_mesh).unwrap();
 
         let mut edges = Edges::new(&gl, cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007);
         edges.diffuse_intensity = 0.8;
         edges.specular_intensity = 0.2;
         edges.specular_power = 5.0;
-        edges.color = vec3(0.7, 0.2, 0.2);
+        edges.color = vec4(0.7, 0.2, 0.2, 1.0);
 
         let mut vertices = Vertices::new(&gl, &cpu_mesh.positions, 0.015);
         vertices.diffuse_intensity = 0.8;
         vertices.specular_intensity = 0.2;
         vertices.specular_power = 5.0;
-        vertices.color = vec3(0.9, 0.2, 0.2);
+        vertices.color = vec4(0.9, 0.2, 0.2, 1.0);
 
-        let plane = Mesh::new(&gl, &CPUMesh {
+        let plane = renderer.new_mesh(&CPUMesh {
             positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
             normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
             diffuse_intensity: Some(0.2),
@@ -83,7 +83,13 @@ fn main() {
                         Event::MouseWheel { delta } => {
                             camera.zoom(*delta as f32);
                         },
-                        _ => {}
+                        Event::Key { state, kind } => {
+                            if kind == "R" && *state == State::Pressed
+                            {
+                                renderer.next_debug_type();
+                                println!("{:?}", renderer.debug_type());
+                            }
+                        }
                     }
                 }
 
@@ -98,7 +104,7 @@ fn main() {
                 }).unwrap();
 
                 // Light pass
-                Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), None, &|| {
+                Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), Some(1.0), &|| {
                     renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
                 }).unwrap();
                 

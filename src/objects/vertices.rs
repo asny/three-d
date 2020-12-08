@@ -7,7 +7,7 @@ pub struct Vertices {
     ball_index_buffer: ElementBuffer,
     ball_vertex_buffer: VertexBuffer,
     no_vertices: u32,
-    pub color: Vec3,
+    pub color: Vec4,
     pub diffuse_intensity: f32,
     pub specular_intensity: f32,
     pub specular_power: f32,
@@ -40,7 +40,8 @@ impl Vertices
         let ball_vertex_buffer = VertexBuffer::new_with_static_f32(gl, &ball_positions).unwrap();
         let instance_buffer = VertexBuffer::new_with_dynamic_f32(gl, positions).unwrap();
 
-        Vertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3, color: vec3(1.0, 0.0, 0.0),
+        Vertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3,
+            color: vec4(1.0, 0.0, 0.0, 1.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, ball_radius }
     }
 
@@ -55,7 +56,7 @@ impl Vertices
         self.program.add_uniform_float("specular_intensity", &self.specular_intensity).unwrap();
         self.program.add_uniform_float("specular_power", &self.specular_power).unwrap();
 
-        self.program.add_uniform_vec3("color", &self.color).unwrap();
+        self.program.add_uniform_vec4("color", &self.color).unwrap();
 
         self.program.add_uniform_float("scale", &self.ball_radius).unwrap();
         self.program.add_uniform_mat4("modelMatrix", &transformation).unwrap();
