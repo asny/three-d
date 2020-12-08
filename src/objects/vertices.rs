@@ -19,8 +19,8 @@ impl Vertices
     pub fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> Vertices
     {
         let program = Program::from_source(&gl,
-                                                    include_str!("shaders/vertex_shaded.vert"),
-                                                    include_str!("shaders/shaded.frag")).unwrap();
+                                                    include_str!("shaders/vertex.vert"),
+                                                    include_str!("shaders/colored_deferred.frag")).unwrap();
 
         let x = 0.525731112119133606;
         let z = 0.850650808352039932;

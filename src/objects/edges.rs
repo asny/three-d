@@ -21,8 +21,8 @@ impl Edges
     pub fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Edges
     {
         let program = core::Program::from_source(&gl,
-                                                    include_str!("shaders/line_shaded.vert"),
-                                                    include_str!("shaders/shaded.frag")).unwrap();
+                                                    include_str!("shaders/line.vert"),
+                                                    include_str!("shaders/colored_deferred.frag")).unwrap();
 
         let x_subdivisions = 1;
         let angle_subdivisions = 10;
