@@ -62,13 +62,7 @@ impl Mesh
             ColorSource::Texture(_) => self.program_forward_texture.as_ref()
         };
         program.add_uniform_vec3("eyePosition", &camera.position()).unwrap();
-        if let Some(texture) = light.shadow_map() {
-            program.use_texture(texture, "shadowMap").unwrap();
-        }
-        else {
-            //let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-            //program.use_texture(&dummy, "shadowMap").unwrap();
-        }
+        program.use_texture(light.shadow_map(), "shadowMap").unwrap();
         program.use_uniform_block(light.buffer(), "DirectionalLightUniform");
         self.render_internal(program, transformation, camera);
     }

@@ -136,13 +136,7 @@ impl DeferredPipeline
             self.directional_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
             self.directional_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
             self.directional_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-            if let Some(texture) = light.shadow_map() {
-                self.directional_light_effect.program().use_texture(texture, "shadowMap")?;
-            }
-            else {
-                let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-                self.directional_light_effect.program().use_texture(&dummy, "shadowMap")?;
-            }
+            self.directional_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLightUniform");
             self.directional_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
@@ -154,13 +148,7 @@ impl DeferredPipeline
             self.spot_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
             self.spot_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
             self.spot_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-            if let Some(texture) = light.shadow_map() {
-                self.spot_light_effect.program().use_texture(texture, "shadowMap")?;
-            }
-            else {
-                let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-                self.spot_light_effect.program().use_texture(&dummy, "shadowMap")?;
-            }
+            self.spot_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLightUniform");
             self.spot_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);

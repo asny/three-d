@@ -39,7 +39,7 @@ impl AmbientLight
 pub struct DirectionalLight {
     gl: Gl,
     light_buffer: UniformBuffer,
-    shadow_texture: Option<Texture2D>,
+    shadow_texture: Texture2D,
     shadow_camera: Option<Camera>
 }
 
@@ -50,7 +50,7 @@ impl DirectionalLight {
         let mut light = DirectionalLight {
             gl: gl.clone(),
             light_buffer: UniformBuffer::new(gl, &[3u32, 1, 3, 1, 16])?,
-            shadow_texture: None,
+            shadow_texture: Texture2D::new(gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?,
             shadow_camera: None};
 
         light.set_intensity(intensity);
@@ -82,7 +82,7 @@ impl DirectionalLight {
     pub fn clear_shadow_map(&mut self)
     {
         self.shadow_camera = None;
-        self.shadow_texture = None;
+        self.shadow_texture = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
@@ -100,18 +100,18 @@ impl DirectionalLight {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        self.shadow_texture = Some(Texture2D::new(&self.gl, texture_width, texture_height,
+        self.shadow_texture = Texture2D::new(&self.gl, texture_width, texture_height,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
-                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap());
+                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
         RenderTarget::write_to_depth(&self.gl, 0, 0, texture_width, texture_height, Some(1.0),
-            self.shadow_texture.as_ref(),
+            Some(&self.shadow_texture),
             &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
         self.light_buffer.update(3, &[1.0]).unwrap();
     }
 
-    pub(crate) fn shadow_map(&self) -> Option<&Texture2D>
+    pub(crate) fn shadow_map(&self) -> &Texture2D
     {
-        self.shadow_texture.as_ref()
+        &self.shadow_texture
     }
 
     pub(crate) fn buffer(&self) -> &UniformBuffer
@@ -169,7 +169,7 @@ impl PointLight {
 pub struct SpotLight {
     gl: Gl,
     light_buffer: UniformBuffer,
-    shadow_texture: Option<Texture2D>,
+    shadow_texture: Texture2D,
     shadow_camera: Option<Camera>
 }
 
@@ -182,7 +182,7 @@ impl SpotLight {
         let mut light = SpotLight {
             gl: gl.clone(),
             light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
-            shadow_texture: None,
+            shadow_texture: Texture2D::new(gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?,
             shadow_camera: None
         };
         light.set_intensity(intensity);
@@ -241,7 +241,7 @@ impl SpotLight {
     pub fn clear_shadow_map(&mut self)
     {
         self.shadow_camera = None;
-        self.shadow_texture = None;
+        self.shadow_texture = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
@@ -260,17 +260,17 @@ impl SpotLight {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
-        self.shadow_texture = Some(Texture2D::new(&self.gl, texture_size, texture_size,
+        self.shadow_texture = Texture2D::new(&self.gl, texture_size, texture_size,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
-                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap());
+                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
         RenderTarget::write_to_depth(&self.gl, 0, 0, texture_size, texture_size, Some(1.0),
-            self.shadow_texture.as_ref(), &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
+            Some(&self.shadow_texture), &|| render_scene(self.shadow_camera.as_ref().unwrap())).unwrap();
         self.light_buffer.update(9, &[1.0]).unwrap();
     }
 
-    pub(crate) fn shadow_map(&self) -> Option<&Texture2D>
+    pub(crate) fn shadow_map(&self) -> &Texture2D
     {
-        self.shadow_texture.as_ref()
+        &self.shadow_texture
     }
 
     pub(crate) fn buffer(&self) -> &UniformBuffer
