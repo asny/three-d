@@ -55,7 +55,10 @@ impl DeferredPipeline
                                                     &format!("{}\n{}", include_str!("objects/shaders/triplanar_mapping.frag"),
                                                              include_str!("objects/shaders/textured_deferred.frag")))?),
 
-            ambient_light_effect: ImageEffect::new(gl, include_str!("shaders/ambient_light.frag"))?,
+            ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
+                                                                       &include_str!("shaders/light_shared.frag"),
+                                                                       &include_str!("shaders/deferred_light_shared.frag"),
+                                                                       &include_str!("shaders/ambient_light.frag")))?,
             directional_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
@@ -124,8 +127,8 @@ impl DeferredPipeline
         if let Some(light) = ambient_light {
             self.ambient_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
-            self.ambient_light_effect.program().add_uniform_vec3("ambientLight.base.color", &light.color())?;
-            self.ambient_light_effect.program().add_uniform_float("ambientLight.base.intensity", &light.intensity())?;
+            self.ambient_light_effect.program().add_uniform_vec3("ambientLight.color", &light.color())?;
+            self.ambient_light_effect.program().add_uniform_float("ambientLight.intensity", &light.intensity())?;
             self.ambient_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
