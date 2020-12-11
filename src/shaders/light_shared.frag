@@ -26,23 +26,23 @@ struct Attenuation
     float padding;
 };
 
-layout (std140) uniform DirectionalLight
+struct DirectionalLight
 {
     BaseLight base;
     vec3 direction;
     float shadowEnabled;
     mat4 shadowMVP;
-} directionalLight;
+};
 
-layout (std140) uniform PointLight
+struct PointLight
 {
     BaseLight base;
     Attenuation attenuation;
     vec3 position;
     float padding;
-} pointLight;
+};
 
-layout (std140) uniform SpotLight
+struct SpotLight
 {
     BaseLight base;
     Attenuation attenuation;
@@ -51,7 +51,7 @@ layout (std140) uniform SpotLight
     vec3 direction;
     float shadowEnabled;
     mat4 shadowMVP;
-} spotLight;
+};
 
 vec3 calculate_light(BaseLight light, vec3 lightDirection, Surface surface)
 {
@@ -121,7 +121,7 @@ float calculate_shadow(mat4 shadowMVP, vec3 position)
     return visibility * 0.25;
 }
 
-vec3 calculate_directional_light(Surface surface)
+vec3 calculate_directional_light(DirectionalLight directionalLight, Surface surface)
 {
     vec3 light = calculate_light(directionalLight.base, directionalLight.direction, surface);
     if(directionalLight.shadowEnabled > 0.5) {
@@ -130,12 +130,12 @@ vec3 calculate_directional_light(Surface surface)
     return surface.color * light;
 }
 
-vec3 calculate_point_light(Surface surface)
+vec3 calculate_point_light(PointLight pointLight, Surface surface)
 {
     return surface.color * calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, surface);
 }
 
-vec3 calculate_spot_light(Surface surface)
+vec3 calculate_spot_light(SpotLight spotLight, Surface surface)
 {
     vec3 light_direction = normalize(surface.position - spotLight.position);
     float angle = acos(dot(light_direction, normalize(spotLight.direction)));

@@ -141,7 +141,7 @@ impl DeferredPipeline
                 let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
                 self.directional_light_effect.program().use_texture(&dummy, "shadowMap")?;
             }
-            self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLight");
+            self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLightUniform");
             self.directional_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
@@ -159,7 +159,7 @@ impl DeferredPipeline
                 let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
                 self.spot_light_effect.program().use_texture(&dummy, "shadowMap")?;
             }
-            self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLight");
+            self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLightUniform");
             self.spot_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
@@ -170,7 +170,7 @@ impl DeferredPipeline
             self.point_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
             self.point_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
             self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-            self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLight");
+            self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLightUniform");
             self.point_light_effect.apply();
             state::blend(&self.gl, state::BlendType::OneOne);
         }
