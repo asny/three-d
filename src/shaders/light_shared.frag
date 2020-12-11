@@ -1,8 +1,15 @@
-uniform sampler2DArray gbuffer;
-uniform sampler2DArray depthMap;
 
-uniform mat4 viewProjectionInverse;
 uniform vec3 eyePosition;
+
+struct Surface
+{
+    vec3 position;
+    vec3 normal;
+    vec3 color;
+    float diffuse_intensity;
+    float specular_intensity;
+    float specular_power;
+};
 
 struct BaseLight
 {
@@ -55,10 +62,4 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
         attenuation.exp * distance * distance;
 
     return color / max(1.0, att);
-}
-
-vec3 WorldPosFromDepth(float depth, vec2 uv) {
-    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    vec4 position = viewProjectionInverse * clipSpacePosition;
-    return position.xyz / position.w;
 }
