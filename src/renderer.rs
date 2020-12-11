@@ -40,7 +40,9 @@ impl DeferredPipeline
         let renderer = DeferredPipeline {
             gl: gl.clone(),
             mesh_forward_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
-                                                             include_str!("objects/shaders/colored_forward.frag"))?),
+                                                             &format!("{}\n{}",
+                                                                       &include_str!("shaders/light_shared.frag"),
+                                                                       &include_str!("objects/shaders/colored_forward.frag")))?),
 
             mesh_forward_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
                                                     &format!("{}\n{}", include_str!("objects/shaders/triplanar_mapping.frag"),

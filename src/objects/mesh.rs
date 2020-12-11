@@ -55,12 +55,21 @@ impl Mesh
             specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
     }
 
-    pub fn render_with_lighting(&self, transformation: &Mat4, camera: &camera::Camera)
+    pub fn render_with_lighting(&self, transformation: &Mat4, camera: &camera::Camera, light: &DirectionalLight)
     {
         let program = match self.color {
             ColorSource::Color(_) => self.program_forward_color.as_ref(),
             ColorSource::Texture(_) => self.program_forward_texture.as_ref()
         };
+        program.add_uniform_vec3("eyePosition", &camera.position()).unwrap();
+        if let Some(texture) = light.shadow_map() {
+            program.use_texture(texture, "shadowMap").unwrap();
+        }
+        else {
+            //let dummy = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
+            //program.use_texture(&dummy, "shadowMap").unwrap();
+        }
+        program.use_uniform_block(light.buffer(), "DirectionalLightUniform");
         self.render_internal(program, transformation, camera);
     }
 
