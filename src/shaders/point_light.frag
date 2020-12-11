@@ -9,14 +9,6 @@ uniform mat4 shadowMVP3;
 uniform mat4 shadowMVP4;
 uniform mat4 shadowMVP5;*/
 
-layout (std140) uniform PointLight
-{
-    BaseLight base;
-    Attenuation attenuation;
-    vec3 position;
-    float padding;
-} pointLight;
-
 /*vec3 calculate_point_light(vec3 position)
 {
     vec3 color = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position);
@@ -71,7 +63,5 @@ layout (std140) uniform PointLight
 
 void main()
 {
-    Surface surface = get_surface();
-    vec3 light = calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, surface);
-    color = vec4(surface.color * light, 1.0);
+    color = vec4(calculate_point_light(get_surface()), 1.0);
 }

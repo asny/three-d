@@ -34,6 +34,25 @@ layout (std140) uniform DirectionalLight
     mat4 shadowMVP;
 } directionalLight;
 
+layout (std140) uniform PointLight
+{
+    BaseLight base;
+    Attenuation attenuation;
+    vec3 position;
+    float padding;
+} pointLight;
+
+layout (std140) uniform SpotLight
+{
+    BaseLight base;
+    Attenuation attenuation;
+    vec3 position;
+    float cutoff;
+    vec3 direction;
+    float shadowEnabled;
+    mat4 shadowMVP;
+} spotLight;
+
 vec3 calculate_light(BaseLight light, vec3 lightDirection, Surface surface)
 {
     float DiffuseFactor = dot(surface.normal, -lightDirection);
@@ -107,6 +126,27 @@ vec3 calculate_directional_light(Surface surface)
     vec3 light = calculate_light(directionalLight.base, directionalLight.direction, surface);
     if(directionalLight.shadowEnabled > 0.5) {
         light *= calculate_shadow(directionalLight.shadowMVP, surface.position);
+    }
+    return surface.color * light;
+}
+
+vec3 calculate_point_light(Surface surface)
+{
+    return surface.color * calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, surface);
+}
+
+vec3 calculate_spot_light(Surface surface)
+{
+    vec3 light_direction = normalize(surface.position - spotLight.position);
+    float angle = acos(dot(light_direction, normalize(spotLight.direction)));
+    float cutoff = 3.14 * spotLight.cutoff / 180.0;
+
+    vec3 light = vec3(0.0);
+    if (angle < cutoff) {
+        light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, surface) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+        if(spotLight.shadowEnabled > 0.5) {
+            light *= calculate_shadow(spotLight.shadowMVP, surface.position);
+        }
     }
     return surface.color * light;
 }
