@@ -12,8 +12,7 @@ layout (std140) uniform DirectionalLight
 
 vec3 calculate_directional_light(Surface surface)
 {
-    vec3 light = calculate_light(directionalLight.base, directionalLight.direction, surface.position, surface.normal,
-        surface.diffuse_intensity, surface.specular_intensity, surface.specular_power);
+    vec3 light = calculate_light(directionalLight.base, directionalLight.direction, surface);
     if(directionalLight.shadowEnabled > 0.5) {
         light *= calculate_shadow(directionalLight.shadowMVP, surface.position);
     }
