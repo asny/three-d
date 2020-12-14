@@ -35,8 +35,8 @@ impl Skybox
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        state::depth_write(&self.gl, false);
-        state::depth_test(&self.gl, state::DepthTestType::None);
+        state::depth_write(&self.gl, true);
+        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
         state::cull(&self.gl, state::CullType::Front);
         state::blend(&self.gl, state::BlendType::None);
 

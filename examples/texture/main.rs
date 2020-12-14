@@ -71,14 +71,19 @@ fn main() {
             // Geometry pass
             renderer.geometry_pass(width, height, &|| {
                 let mut transformation = Mat4::identity();
-                box_mesh.render(&transformation, &camera);
-                transformation = Mat4::from_translation(vec3(0.0, 1.0, 0.0));
-                penguin.render(&transformation, &camera);
+                box_mesh.render_geometry(&transformation, &camera)?;
+                transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
+                state::cull(&gl, state::CullType::Back);
+                penguin.render_geometry(&transformation, &camera)?;
+                Ok(())
             }).unwrap();
 
-            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.0, 0.0, 1.0)), Some(1.0), &|| {
-                skybox.render(&camera).unwrap();
-                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
+            renderer.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
+                skybox.render(&camera)?;
+                let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
+                state::cull(&gl, state::CullType::Back);
+                penguin.mesh().render_with_lighting(&transformation, &camera, &directional_light)?;
+                Ok(())
             }).unwrap();
 
             #[cfg(target_arch = "x86_64")]
