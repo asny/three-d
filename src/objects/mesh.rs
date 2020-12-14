@@ -9,10 +9,8 @@ pub enum ColorSource {
 
 pub struct Mesh {
     pub name: String,
-    program_forward_color: Rc<Program>,
-    program_forward_texture: Rc<Program>,
-    program_deferred_color: Rc<Program>,
-    program_deferred_texture: Rc<Program>,
+    program_color: Rc<Program>,
+    program_texture: Rc<Program>,
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
@@ -25,16 +23,9 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub(crate) fn new(gl: &Gl, program_forward_color: Rc<Program>, program_forward_texture: Rc<Program>,
-                   program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>,
+    pub(crate) fn new_with_programs(gl: &Gl, program_color: Rc<Program>, program_texture: Rc<Program>,
                    cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
-        let texture = if let Some(ref img) = cpu_mesh.texture {
-            use image::GenericImageView;
-            Some(Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
-                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
-                                                                  img.width(), img.height(), &img.to_bytes()).unwrap()))
-        } else {None};
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,
               cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
@@ -42,37 +33,35 @@ impl Mesh
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
 
-        let color = if let Some(tex) = texture {
-            ColorSource::Texture(tex)
+        let color = if let Some(ref img) = cpu_mesh.texture {
+            use image::GenericImageView;
+            ColorSource::Texture(Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
+                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
+                                                                  img.width(), img.height(), &img.to_bytes()).unwrap()))
         } else {
             ColorSource::Color(cpu_mesh.color.map(|(r, g, b, a)| vec4(r, g, b, a)).unwrap_or(vec4(1.0, 1.0, 1.0, 1.0)))
         };
 
         Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer,
-            program_forward_color, program_forward_texture, program_deferred_color, program_deferred_texture, color,
+            program_color, program_texture, color,
             diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
             specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
             specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn render_with_lighting(&self, transformation: &Mat4, camera: &camera::Camera, light: &DirectionalLight)
     {
         let program = match self.color {
-            ColorSource::Color(_) => self.program_forward_color.as_ref(),
-            ColorSource::Texture(_) => self.program_forward_texture.as_ref()
+            ColorSource::Color(_) => self.program_color.as_ref(),
+            ColorSource::Texture(_) => self.program_texture.as_ref()
         };
         program.add_uniform_vec3("eyePosition", &camera.position()).unwrap();
         program.use_texture(light.shadow_map(), "shadowMap").unwrap();
         program.use_uniform_block(light.buffer(), "DirectionalLightUniform");
-        self.render_internal(program, transformation, camera);
-    }
-
-    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
-    {
-        let program = match self.color {
-            ColorSource::Color(_) => self.program_deferred_color.as_ref(),
-            ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
-        };
         self.render_internal(program, transformation, camera);
     }
 
@@ -109,5 +98,43 @@ impl Mesh
         } else {
             program.draw_arrays(self.position_buffer.count() as u32/3);
         }
+    }
+}
+
+pub struct DeferredMesh {
+    mesh: Mesh,
+    program_deferred_color: Rc<Program>,
+    program_deferred_texture: Rc<Program>
+}
+
+impl DeferredMesh {
+    pub(crate) fn new_with_programs(gl: &Gl, program_forward_color: Rc<Program>, program_forward_texture: Rc<Program>,
+                      program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    {
+        Ok(Self {
+            mesh: Mesh::new_with_programs(gl, program_forward_color, program_forward_texture, cpu_mesh)?,
+            program_deferred_color, program_deferred_texture
+        })
+    }
+
+    pub fn name(&self) -> &str {
+        self.mesh.name()
+    }
+
+    pub fn mesh(&self) -> &Mesh {
+        &self.mesh
+    }
+
+    pub fn mesh_mut(&mut self) -> &mut Mesh {
+        &mut self.mesh
+    }
+
+    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera)
+    {
+        let program = match self.mesh.color {
+            ColorSource::Color(_) => self.program_deferred_color.as_ref(),
+            ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
+        };
+        self.mesh.render_internal(program, transformation, camera);
     }
 }
