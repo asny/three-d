@@ -2,16 +2,6 @@
 use crate::*;
 use std::rc::Rc;
 
-#[derive(Debug)]
-pub enum Error {
-    Core(core::Error)
-}
-
-impl From<core::Error> for Error {
-    fn from(other: core::Error) -> Self {
-        Error::Core(other)
-    }
-}
 pub struct ForwardPipeline {
     gl: Gl,
     mesh_color_program: Rc<Program>,
@@ -108,7 +98,7 @@ impl DeferredPipeline
         Ok(renderer)
     }
 
-    pub fn geometry_pass(&mut self, width: usize, height: usize, render_scene: &dyn Fn()) -> Result<(), Error>
+    pub fn geometry_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
@@ -129,7 +119,8 @@ impl DeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass(&self, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight], spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
+    pub fn light_pass(&self, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
+                      spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
         state::depth_write(&self.gl,true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);

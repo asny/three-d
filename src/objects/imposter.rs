@@ -14,7 +14,7 @@ pub struct Imposter {
 }
 
 impl Imposter {
-    pub fn new(gl: &Gl, render: &dyn Fn(&Camera), aabb: (Vec3, Vec3), max_texture_size: usize) -> Self
+    pub fn new<F: Fn(&Camera) -> Result<(), Error>>(gl: &Gl, render: F, aabb: (Vec3, Vec3), max_texture_size: usize) -> Self
     {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -45,7 +45,7 @@ impl Imposter {
                               Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
                               Some(&texture), Some(&depth_texture),
                               2, &|channel| { i + channel * NO_VIEW_ANGLES },
-                              i, &|| render(&camera)).unwrap();
+                              i, || {render(&camera)?; Ok(())}).unwrap();
         }
 
         let xmin = center.x - 0.5 * width;
