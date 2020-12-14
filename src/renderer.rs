@@ -12,12 +12,38 @@ impl From<core::Error> for Error {
         Error::Core(other)
     }
 }
+pub struct ForwardPipeline {
+    gl: Gl,
+    mesh_color_program: Rc<Program>,
+    mesh_texture_program: Rc<Program>,
+}
+
+impl ForwardPipeline {
+
+    pub fn new(gl: &Gl) -> Result<Self, Error>
+    {
+        Ok(Self {
+            gl: gl.clone(),
+            mesh_color_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
+                                                                     &format!("{}\n{}",
+                                                                              &include_str!("shaders/light_shared.frag"),
+                                                                              &include_str!("objects/shaders/colored_forward.frag")))?),
+
+            mesh_texture_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
+                                                                       &format!("{}\n{}\n{}",
+                                                                                include_str!("shaders/light_shared.frag"),
+                                                                                include_str!("objects/shaders/triplanar_mapping.frag"),
+                                                                                include_str!("objects/shaders/textured_forward.frag")))?)
+        })
+    }
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}
 
 pub struct DeferredPipeline {
     gl: Gl,
+    forward_pipeline: ForwardPipeline,
     ambient_light_effect: ImageEffect,
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
@@ -26,34 +52,21 @@ pub struct DeferredPipeline {
     debug_type: DebugType,
     geometry_pass_texture: Option<Texture2DArray>,
     geometry_pass_depth_texture: Option<Texture2DArray>,
-    mesh_forward_color_program: Rc<Program>,
-    mesh_forward_texture_program: Rc<Program>,
-    mesh_deferred_color_program: Rc<Program>,
-    mesh_deferred_texture_program: Rc<Program>,
+    mesh_color_program: Rc<Program>,
+    mesh_texture_program: Rc<Program>,
 }
-
 
 impl DeferredPipeline
 {
-    pub fn new(gl: &Gl) -> Result<DeferredPipeline, Error>
+    pub fn new(gl: &Gl) -> Result<Self, Error>
     {
-        let renderer = DeferredPipeline {
+        let renderer = Self {
             gl: gl.clone(),
-            mesh_forward_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
-                                                             &format!("{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("objects/shaders/colored_forward.frag")))?),
-
-            mesh_forward_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
-                                                    &format!("{}\n{}\n{}",
-                                                             include_str!("shaders/light_shared.frag"),
-                                                             include_str!("objects/shaders/triplanar_mapping.frag"),
-                                                             include_str!("objects/shaders/textured_forward.frag")))?),
-
-            mesh_deferred_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
+            forward_pipeline: ForwardPipeline::new(gl)?,
+            mesh_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
                                                               include_str!("objects/shaders/colored_deferred.frag"))?),
 
-            mesh_deferred_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
+            mesh_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
                                                     &format!("{}\n{}", include_str!("objects/shaders/triplanar_mapping.frag"),
                                                              include_str!("objects/shaders/textured_deferred.frag")))?),
 
@@ -215,9 +228,9 @@ impl DeferredPipeline
     pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<DeferredMesh, Error>
     {
         Ok(DeferredMesh::new_with_programs(&self.gl,
-                  self.mesh_forward_color_program.clone(),
-                  self.mesh_forward_texture_program.clone(),
-                  self.mesh_deferred_color_program.clone(),
-                  self.mesh_deferred_texture_program.clone(), cpu_mesh)?)
+                  self.forward_pipeline.mesh_color_program.clone(),
+                  self.forward_pipeline.mesh_texture_program.clone(),
+                  self.mesh_color_program.clone(),
+                  self.mesh_texture_program.clone(), cpu_mesh)?)
     }
 }
