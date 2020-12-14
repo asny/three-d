@@ -82,8 +82,8 @@ fn main() {
                         }
                     }
                 }
-                handle_surface_parameters(&event, &mut plane);
-                handle_surface_parameters(&event, &mut monkey);
+                handle_surface_parameters(&event, plane.mesh_mut());
+                handle_surface_parameters(&event, monkey.mesh_mut());
             }
             let c = time.cos() as f32;
             let s = time.sin() as f32;
@@ -96,26 +96,26 @@ fn main() {
 
             // Draw
             let render_scene = |camera: &Camera| {
-                monkey.render(&Mat4::identity(), camera);
+                monkey.render_geometry(&Mat4::identity(), camera)?;
+                Ok(())
             };
             if shadows_enabled {
-                directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
-                directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, &render_scene);
-                spot_light.generate_shadow_map(20.0, 1024, &render_scene);
+                directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene);
+                directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene);
+                spot_light.generate_shadow_map(20.0, 1024, render_scene);
             }
 
             // Geometry pass
             renderer.geometry_pass(width, height, &||
                 {
-                    render_scene(&camera);
-                    plane.render(&Mat4::identity(), &camera);
+                    render_scene(&camera)?;
+                    plane.render_geometry(&Mat4::identity(), &camera)?;
+                    Ok(())
                 }).unwrap();
 
             // Light pass
-            Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), Some(1.0), &|| {
-                renderer.light_pass(&camera, None, &[&directional_light0, &directional_light1],
-                                    &[&spot_light], &[&point_light0, &point_light1]).unwrap();
-            }).unwrap();
+            renderer.render_to_screen(&camera, None, &[&directional_light0, &directional_light1],
+                                    &[&spot_light], &[&point_light0, &point_light1], width, height).unwrap();
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
