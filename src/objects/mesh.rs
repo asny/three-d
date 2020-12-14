@@ -108,13 +108,9 @@ pub struct DeferredMesh {
 }
 
 impl DeferredMesh {
-    pub(crate) fn new_with_programs(gl: &Gl, program_forward_color: Rc<Program>, program_forward_texture: Rc<Program>,
-                      program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub(crate) fn new_with_programs(mesh: Mesh, program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Self
     {
-        Ok(Self {
-            mesh: Mesh::new_with_programs(gl, program_forward_color, program_forward_texture, cpu_mesh)?,
-            program_deferred_color, program_deferred_texture
-        })
+        Self { mesh,program_deferred_color, program_deferred_texture }
     }
 
     pub fn name(&self) -> &str {

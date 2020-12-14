@@ -36,6 +36,13 @@ impl ForwardPipeline {
                                                                                 include_str!("objects/shaders/textured_forward.frag")))?)
         })
     }
+
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<Mesh, Error>
+    {
+        Ok(Mesh::new_with_programs(&self.gl,
+                  self.mesh_color_program.clone(),
+                  self.mesh_texture_program.clone(), cpu_mesh)?)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -227,10 +234,8 @@ impl DeferredPipeline
 
     pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<DeferredMesh, Error>
     {
-        Ok(DeferredMesh::new_with_programs(&self.gl,
-                  self.forward_pipeline.mesh_color_program.clone(),
-                  self.forward_pipeline.mesh_texture_program.clone(),
+        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh)?,
                   self.mesh_color_program.clone(),
-                  self.mesh_texture_program.clone(), cpu_mesh)?)
+                  self.mesh_texture_program.clone()))
     }
 }
