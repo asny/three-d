@@ -38,14 +38,15 @@ fn main() {
         time += frame_input.elapsed_time as f32;
         camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
 
-        Screen::write(&gl, 0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
-            program.use_attribute_vec3_float(&position_buffer, "position").unwrap();
-            program.use_attribute_vec3_float(&color_buffer, "color").unwrap();
+        Screen::write(&gl, 0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), || {
+            program.use_attribute_vec3_float(&position_buffer, "position")?;
+            program.use_attribute_vec3_float(&color_buffer, "color")?;
 
             let world_view_projection = camera.get_projection() * camera.get_view() * Mat4::from_angle_y(radians(time * 0.005));
-            program.add_uniform_mat4("worldViewProjectionMatrix", &world_view_projection).unwrap();
+            program.add_uniform_mat4("worldViewProjectionMatrix", &world_view_projection)?;
 
             program.draw_arrays(3);
+            Ok(())
         }).unwrap();
 
         #[cfg(target_arch = "x86_64")]
