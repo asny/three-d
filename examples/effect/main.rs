@@ -71,26 +71,33 @@ fn main() {
 
             // draw
             renderer.geometry_pass(width, height, &|| {
-                let transformation = Mat4::identity();
-                monkey.render(&transformation, &camera);
+                monkey.render_geometry(&Mat4::identity(), &camera)?;
+                Ok(())
             }).unwrap();
-
-            let render = || {
-                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[]).unwrap();
-                if fog_enabled {
-                    fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture()).unwrap();
-                }
-            };
 
             if fxaa_enabled {
                 let color_texture = Texture2D::new(&gl, width, height, Interpolation::Nearest,
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
-                RenderTarget::write_to_color(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(&color_texture), &render).unwrap();
+
+                RenderTarget::write_to_color(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(&color_texture), || {
+                    renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
+                    if fog_enabled {
+                        fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture())?;
+                    }
+                    Ok(())
+                }).unwrap();
+
                 Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, &|| {
-                    fxaa_effect.apply(&color_texture).unwrap();
+                    fxaa_effect.apply(&color_texture)?;
+                    Ok(())
                 }).unwrap();
             } else {
-                Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &render).unwrap();
+                renderer.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
+                    if fog_enabled {
+                        fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture())?;
+                    }
+                    Ok(())
+                }).unwrap();
             }
 
             #[cfg(target_arch = "x86_64")]
