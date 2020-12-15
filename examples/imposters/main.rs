@@ -56,9 +56,8 @@ fn main() {
 
         // Lights
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
-        let mut directional_light0 = DirectionalLight::new(&gl, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
-        let directional_light1 = DirectionalLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0), &vec3(1.0, 1.0, 1.0)).unwrap();
-        directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 500.0, 4096, 4096, &|camera: &Camera| {
+        let mut directional_light = DirectionalLight::new(&gl, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
+        directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 500.0, 4096, 4096, &|camera: &Camera| {
             for mesh in tree_mesh.iter() {
                 mesh.render_geometry(&Mat4::identity(), camera)?;
             }
@@ -111,13 +110,13 @@ fn main() {
 
             // Light pass
             Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
-                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light0, &directional_light1], &[], &[])?;
+                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
 
                 state::cull(&gl, state::CullType::None);
                 state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
                 for mesh in tree_mesh.iter() {
                     if mesh.name() == "leaves" {
-                        mesh.mesh().render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light0)?;
+                        mesh.mesh().render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     }
                 }
                 Ok(())
