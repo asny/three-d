@@ -14,7 +14,7 @@ pub struct Imposter {
 }
 
 impl Imposter {
-    pub fn new<F: Fn(&Camera) -> Result<(), Error>>(gl: &Gl, render: F, aabb: (Vec3, Vec3), max_texture_size: usize) -> Self
+    pub fn new<F: Fn(&Camera) -> Result<(), Error>>(gl: &Gl, render: F, aabb: (Vec3, Vec3), max_texture_size: usize) -> Result<Self, Error>
     {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -27,10 +27,10 @@ impl Imposter {
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
         let texture = Texture2DArray::new(gl, texture_width, texture_height, NO_VIEW_ANGLES*2,
                 Interpolation::Nearest, Interpolation::Nearest, None,
-                                                Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::RGBA8).unwrap();
+                                                Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::RGBA8)?;
         let depth_texture = Texture2DArray::new(gl, texture_width, texture_height, NO_VIEW_ANGLES,
                 Interpolation::Nearest, Interpolation::Nearest, None,
-                                                      Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::Depth32F).unwrap();
+                                                      Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::Depth32F)?;
 
         state::depth_write(&gl, true);
         state::depth_test(&gl, state::DepthTestType::LessOrEqual);
@@ -45,7 +45,7 @@ impl Imposter {
                               Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
                               Some(&texture), Some(&depth_texture),
                               2, &|channel| { i + channel * NO_VIEW_ANGLES },
-                              i, || {render(&camera)?; Ok(())}).unwrap();
+                              i, || {render(&camera)?; Ok(())})?;
         }
 
         let xmin = center.x - 0.5 * width;
@@ -68,17 +68,17 @@ impl Imposter {
             0.0, 1.0,
             0.0, 0.0
         ];
-        let positions_buffer = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
-        let uvs_buffer = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
+        let positions_buffer = VertexBuffer::new_with_static_f32(&gl, &positions)?;
+        let uvs_buffer = VertexBuffer::new_with_static_f32(&gl, &uvs)?;
 
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/imposter.vert"),
-                                                    include_str!("shaders/imposter.frag")).unwrap();
+                                                    include_str!("shaders/imposter.frag"))?;
 
-        let center_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[]).unwrap();
-        let rotation_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[]).unwrap();
+        let center_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[])?;
+        let rotation_buffer = VertexBuffer::new_with_dynamic_f32(gl, &[])?;
 
-        Imposter {texture, program, center_buffer, rotation_buffer, positions_buffer, uvs_buffer, instance_count:0 }
+        Ok(Imposter {texture, program, center_buffer, rotation_buffer, positions_buffer, uvs_buffer, instance_count:0 })
     }
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
@@ -88,17 +88,19 @@ impl Imposter {
         self.instance_count = positions.len() as u32/3;
     }
 
-    pub fn render(&self, camera: &camera::Camera) {
-        self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32)).unwrap();
+    pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
+    {
+        self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
-        self.program.use_texture(&self.texture, "tex").unwrap();
+        self.program.use_texture(&self.texture, "tex")?;
 
-        self.program.use_attribute_vec3_float(&self.positions_buffer, "position").unwrap();
-        self.program.use_attribute_vec2_float(&self.uvs_buffer, "uv_coordinate").unwrap();
+        self.program.use_attribute_vec3_float(&self.positions_buffer, "position")?;
+        self.program.use_attribute_vec2_float(&self.uvs_buffer, "uv_coordinate")?;
 
-        self.program.use_attribute_vec3_float_divisor(&self.center_buffer, "center", 1).unwrap();
-        self.program.use_attribute_float_divisor(&self.rotation_buffer, "theta", 1).unwrap();
+        self.program.use_attribute_vec3_float_divisor(&self.center_buffer, "center", 1)?;
+        self.program.use_attribute_float_divisor(&self.rotation_buffer, "theta", 1)?;
         self.program.draw_arrays_instanced(6, self.instance_count);
+        Ok(())
     }
 }
