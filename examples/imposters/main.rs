@@ -19,16 +19,17 @@ fn main() {
         loaded.clear();
 
         // Tree
-        let tree_mesh = tree_cpu_mesh.iter().map(|cpu_mesh| renderer.new_mesh(&cpu_mesh).unwrap()).collect::<Vec<Mesh>>();
+        let tree_mesh = tree_cpu_mesh.iter().map(|cpu_mesh| renderer.new_mesh(&cpu_mesh).unwrap()).collect::<Vec<DeferredMesh>>();
 
         // Imposters
         let mut aabb = AxisAlignedBoundingBox::new();
         tree_cpu_mesh.iter().for_each(|m| aabb.add(&m.compute_aabb()));
         let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
-                for mesh in tree_mesh.iter() {
-                    mesh.render(&Mat4::identity(), camera);
-                }
-            }, (aabb.min, aabb.max), 256);
+            for mesh in tree_mesh.iter() {
+                mesh.render_geometry(&Mat4::identity(), camera)?;
+            }
+            Ok(())
+        }, (aabb.min, aabb.max), 256).unwrap();
 
         let t = 100;
         let mut positions = Vec::new();
@@ -59,9 +60,10 @@ fn main() {
         let directional_light1 = DirectionalLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0), &vec3(1.0, 1.0, 1.0)).unwrap();
         directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 500.0, 4096, 4096, &|camera: &Camera| {
             for mesh in tree_mesh.iter() {
-                mesh.render(&Mat4::identity(), camera);
+                mesh.render_geometry(&Mat4::identity(), camera)?;
             }
-            imposter.render(camera);
+            imposter.render(camera)?;
+            Ok(())
         });
 
         // main loop
@@ -98,25 +100,27 @@ fn main() {
                 {
                     state::cull(&gl, state::CullType::Back);
                     for mesh in tree_mesh.iter() {
-                        if mesh.name == "trunk" {
-                            mesh.render(&Mat4::identity(), &camera);
+                        if mesh.name() == "trunk" {
+                            mesh.render_geometry(&Mat4::identity(), &camera)?;
                         }
                     }
-                    imposter.render(&camera);
-                    plane.render(&Mat4::identity(), &camera);
+                    imposter.render(&camera)?;
+                    plane.render_geometry(&Mat4::identity(), &camera)?;
+                    Ok(())
                 }).unwrap();
 
             // Light pass
             Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
-                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light0, &directional_light1], &[], &[]).unwrap();
+                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light0, &directional_light1], &[], &[])?;
 
                 state::cull(&gl, state::CullType::None);
                 state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
                 for mesh in tree_mesh.iter() {
-                    if mesh.name == "leaves" {
-                        mesh.render_with_lighting(&Mat4::identity(), &camera);
+                    if mesh.name() == "leaves" {
+                        mesh.mesh().render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light0)?;
                     }
                 }
+                Ok(())
             }).unwrap();
 
             #[cfg(target_arch = "x86_64")]
