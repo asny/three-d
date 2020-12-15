@@ -4,8 +4,10 @@ use std::rc::Rc;
 
 pub struct ForwardPipeline {
     gl: Gl,
-    mesh_color_program: Rc<Program>,
-    mesh_texture_program: Rc<Program>,
+    mesh_color_ambient_program: Rc<Program>,
+    mesh_color_ambient_directional_program: Rc<Program>,
+    mesh_texture_ambient_program: Rc<Program>,
+    mesh_texture_ambient_directional_program: Rc<Program>,
 }
 
 impl ForwardPipeline {
@@ -14,16 +16,27 @@ impl ForwardPipeline {
     {
         Ok(Self {
             gl: gl.clone(),
-            mesh_color_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
+            mesh_color_ambient_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
                                                                      &format!("{}\n{}",
                                                                               &include_str!("shaders/light_shared.frag"),
-                                                                              &include_str!("objects/shaders/colored_forward.frag")))?),
+                                                                              &include_str!("objects/shaders/colored_forward_ambient.frag")))?),
 
-            mesh_texture_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
+            mesh_color_ambient_directional_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
+                                                                     &format!("{}\n{}",
+                                                                              &include_str!("shaders/light_shared.frag"),
+                                                                              &include_str!("objects/shaders/colored_forward_ambient_directional.frag")))?),
+
+            mesh_texture_ambient_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
                                                                        &format!("{}\n{}\n{}",
                                                                                 include_str!("shaders/light_shared.frag"),
                                                                                 include_str!("objects/shaders/triplanar_mapping.frag"),
-                                                                                include_str!("objects/shaders/textured_forward.frag")))?)
+                                                                                include_str!("objects/shaders/textured_forward_ambient.frag")))?),
+
+            mesh_texture_ambient_directional_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
+                                                                       &format!("{}\n{}\n{}",
+                                                                                include_str!("shaders/light_shared.frag"),
+                                                                                include_str!("objects/shaders/triplanar_mapping.frag"),
+                                                                                include_str!("objects/shaders/textured_forward_ambient_directional.frag")))?)
         })
     }
 
@@ -38,8 +51,10 @@ impl ForwardPipeline {
     pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<Mesh, Error>
     {
         Ok(Mesh::new_with_programs(&self.gl,
-                  self.mesh_color_program.clone(),
-                  self.mesh_texture_program.clone(), cpu_mesh)?)
+                  self.mesh_color_ambient_program.clone(),
+                  self.mesh_color_ambient_directional_program.clone(),
+                  self.mesh_texture_ambient_program.clone(),
+                  self.mesh_texture_ambient_directional_program.clone(), cpu_mesh)?)
     }
 }
 

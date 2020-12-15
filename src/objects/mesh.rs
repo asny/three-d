@@ -9,8 +9,10 @@ pub enum ColorSource {
 
 pub struct Mesh {
     pub name: String,
-    program_color: Rc<Program>,
-    program_texture: Rc<Program>,
+    program_color_ambient: Rc<Program>,
+    program_color_ambient_directional: Rc<Program>,
+    program_texture_ambient: Rc<Program>,
+    program_texture_ambient_directional: Rc<Program>,
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
@@ -23,7 +25,8 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub(crate) fn new_with_programs(gl: &Gl, program_color: Rc<Program>, program_texture: Rc<Program>,
+    pub(crate) fn new_with_programs(gl: &Gl, program_color_ambient: Rc<Program>, program_color_ambient_directional: Rc<Program>,
+                                    program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
                    cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
@@ -43,7 +46,7 @@ impl Mesh
         };
 
         Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer,
-            program_color, program_texture, color,
+            program_color_ambient, program_color_ambient_directional, program_texture_ambient, program_texture_ambient_directional, color,
             diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
             specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
             specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
@@ -53,15 +56,29 @@ impl Mesh
         &self.name
     }
 
-    pub fn render_with_lighting(&self, transformation: &Mat4, camera: &camera::Camera, light: &DirectionalLight) -> Result<(), Error>
+    pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.color {
-            ColorSource::Color(_) => self.program_color.as_ref(),
-            ColorSource::Texture(_) => self.program_texture.as_ref()
+            ColorSource::Color(_) => self.program_color_ambient.as_ref(),
+            ColorSource::Texture(_) => self.program_texture_ambient.as_ref()
         };
+        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
+        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
+        self.render_internal(program, transformation, camera)?;
+        Ok(())
+    }
+
+    pub fn render_with_ambient_and_directional(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
+    {
+        let program = match self.color {
+            ColorSource::Color(_) => self.program_color_ambient_directional.as_ref(),
+            ColorSource::Texture(_) => self.program_texture_ambient_directional.as_ref()
+        };
+        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
+        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
         program.add_uniform_vec3("eyePosition", &camera.position())?;
-        program.use_texture(light.shadow_map(), "shadowMap")?;
-        program.use_uniform_block(light.buffer(), "DirectionalLightUniform");
+        program.use_texture(directional_light.shadow_map(), "shadowMap")?;
+        program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
         self.render_internal(program, transformation, camera)?;
         Ok(())
     }
