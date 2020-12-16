@@ -87,7 +87,9 @@ impl DeferredPipeline
                                                               include_str!("objects/shaders/colored_deferred.frag"))?),
 
             mesh_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
-                                                    &format!("{}\n{}", include_str!("objects/shaders/triplanar_mapping.frag"),
+                                                    &format!("{}\n{}\n{}",
+                                                             include_str!("objects/shaders/deferred_objects_shared.frag"),
+                                                             include_str!("objects/shaders/triplanar_mapping.frag"),
                                                              include_str!("objects/shaders/textured_deferred.frag")))?),
 
             ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
