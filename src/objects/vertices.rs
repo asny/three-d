@@ -20,7 +20,9 @@ impl Vertices
     {
         let program = Program::from_source(&gl,
                                                     include_str!("shaders/vertex.vert"),
-                                                    include_str!("shaders/colored_deferred.frag")).unwrap();
+                                                    &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/colored_deferred.frag"))).unwrap();
 
         let x = 0.525731112119133606;
         let z = 0.850650808352039932;

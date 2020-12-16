@@ -22,7 +22,9 @@ impl Edges
     {
         let program = core::Program::from_source(&gl,
                                                     include_str!("shaders/line.vert"),
-                                                    include_str!("shaders/colored_deferred.frag")).unwrap();
+                                                    &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/colored_deferred.frag"))).unwrap();
 
         let x_subdivisions = 1;
         let angle_subdivisions = 10;

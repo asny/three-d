@@ -84,7 +84,9 @@ impl DeferredPipeline
             gl: gl.clone(),
             forward_pipeline: ForwardPipeline::new(gl)?,
             mesh_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
-                                                              include_str!("objects/shaders/colored_deferred.frag"))?),
+                                                              &format!("{}\n{}",
+                                                             include_str!("objects/shaders/deferred_objects_shared.frag"),
+                                                             include_str!("objects/shaders/colored_deferred.frag")))?),
 
             mesh_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
                                                     &format!("{}\n{}\n{}",
