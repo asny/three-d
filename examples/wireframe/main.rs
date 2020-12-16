@@ -55,9 +55,10 @@ fn main() {
 
         let render_scene = |camera: &Camera| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-            model.render(&transformation, camera);
+            model.render_geometry(&transformation, camera)?;
             edges.render(&transformation, camera);
             vertices.render(&transformation, camera);
+            Ok(())
         };
         spot_light0.generate_shadow_map(50.0, 512, &render_scene);
         spot_light1.generate_shadow_map(50.0, 512, &render_scene);
@@ -97,15 +98,17 @@ fn main() {
                 renderer.geometry_pass(width, height, &|| {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                     state::cull(&gl, state::CullType::Back);
-                    model.render(&transformation, &camera);
+                    model.render_geometry(&transformation, &camera)?;
                     edges.render(&transformation, &camera);
                     vertices.render(&transformation, &camera);
-                    plane.render(&Mat4::identity(), &camera);
+                    plane.render_geometry(&Mat4::identity(), &camera)?;
+                    Ok(())
                 }).unwrap();
 
                 // Light pass
                 Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), Some(1.0), &|| {
-                    renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[]).unwrap();
+                    renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[])?;
+                    Ok(())
                 }).unwrap();
                 
                 #[cfg(target_arch = "x86_64")]
