@@ -64,7 +64,7 @@ void main()
         float nw = texture(gbuffer, vec3(uv, 1)).w;
         int t = int(floor(nw*255.0));
         float val = 2.0 * float((t & 240) >> 4);
-        val /= 32.0;
+        val /= 30.0;
         color = vec4(val, val, val, 1.);
     }
     else {
