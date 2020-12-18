@@ -21,7 +21,7 @@ impl CylinderInstances
     pub(crate) fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Result<Self, Error>
     {
         let program = core::Program::from_source(&gl,
-                                                    include_str!("shaders/line.vert"),
+                                                    include_str!("shaders/cylinder.vert"),
                                                     &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/colored_deferred.frag")))?;

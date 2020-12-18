@@ -19,7 +19,7 @@ impl SphereInstances
     pub(crate) fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> Result<Self, Error>
     {
         let program = Program::from_source(&gl,
-                                                    include_str!("shaders/vertex.vert"),
+                                                    include_str!("shaders/sphere.vert"),
                                                     &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/colored_deferred.frag")))?;
