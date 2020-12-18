@@ -25,31 +25,12 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub(crate) fn new_with_programs(gl: &Gl, program_color_ambient: Rc<Program>, program_color_ambient_directional: Rc<Program>,
-                                    program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
-                   cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub(crate) fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
-        let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
-        let normal_buffer = VertexBuffer::new_with_static_f32(gl,
-              cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
-              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?)?;
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
-
-        let color = if let Some(ref img) = cpu_mesh.texture {
-            use image::GenericImageView;
-            ColorSource::Texture(Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
-                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
-                                                                  img.width(), img.height(), &img.to_bytes())?))
-        } else {
-            ColorSource::Color(cpu_mesh.color.map(|(r, g, b, a)| vec4(r, g, b, a)).unwrap_or(vec4(1.0, 1.0, 1.0, 1.0)))
-        };
-
-        Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer,
-            program_color_ambient, program_color_ambient_directional, program_texture_ambient, program_texture_ambient_directional, color,
-            diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
-            specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
-            specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
+        Self::new_with_programs(gl, Self::program_color_ambient(gl)?,
+                                Self::program_color_ambient_directional(gl)?,
+                                Self::program_texture_ambient(gl)?,
+                                Self::program_texture_ambient_directional(gl)?, cpu_mesh)
     }
 
     pub fn name(&self) -> &str {
@@ -81,6 +62,67 @@ impl Mesh
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
         self.render_internal(program, transformation, camera)?;
         Ok(())
+    }
+
+    pub(crate) fn program_color_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+                                                                     &format!("{}\n{}",
+                                                                              &include_str!("../shaders/light_shared.frag"),
+                                                                              &include_str!("shaders/colored_forward_ambient.frag")))?))
+    }
+
+    pub(crate) fn program_color_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+                                                                     &format!("{}\n{}",
+                                                                              &include_str!("../shaders/light_shared.frag"),
+                                                                              &include_str!("shaders/colored_forward_ambient_directional.frag")))?))
+    }
+
+    pub(crate) fn program_texture_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+                                                                       &format!("{}\n{}\n{}",
+                                                                                include_str!("../shaders/light_shared.frag"),
+                                                                                include_str!("shaders/triplanar_mapping.frag"),
+                                                                                include_str!("shaders/textured_forward_ambient.frag")))?))
+    }
+
+    pub(crate) fn program_texture_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+                                                                       &format!("{}\n{}\n{}",
+                                                                                include_str!("../shaders/light_shared.frag"),
+                                                                                include_str!("shaders/triplanar_mapping.frag"),
+                                                                                include_str!("shaders/textured_forward_ambient_directional.frag")))?))
+    }
+
+    pub(crate) fn new_with_programs(gl: &Gl, program_color_ambient: Rc<Program>, program_color_ambient_directional: Rc<Program>,
+                                    program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
+                   cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    {
+        let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
+        let normal_buffer = VertexBuffer::new_with_static_f32(gl,
+              cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
+              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?)?;
+        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
+
+        let color = if let Some(ref img) = cpu_mesh.texture {
+            use image::GenericImageView;
+            ColorSource::Texture(Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
+                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
+                                                                  img.width(), img.height(), &img.to_bytes())?))
+        } else {
+            ColorSource::Color(cpu_mesh.color.map(|(r, g, b, a)| vec4(r, g, b, a)).unwrap_or(vec4(1.0, 1.0, 1.0, 1.0)))
+        };
+
+        Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer,
+            program_color_ambient, program_color_ambient_directional, program_texture_ambient, program_texture_ambient_directional, color,
+            diffuse_intensity: cpu_mesh.diffuse_intensity.unwrap_or(0.5),
+            specular_intensity: cpu_mesh.specular_intensity.unwrap_or(0.2),
+            specular_power: cpu_mesh.specular_power.unwrap_or(6.0) })
     }
 
     fn render_internal(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>

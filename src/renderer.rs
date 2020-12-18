@@ -16,27 +16,10 @@ impl ForwardPipeline {
     {
         Ok(Self {
             gl: gl.clone(),
-            mesh_color_ambient_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
-                                                                     &format!("{}\n{}",
-                                                                              &include_str!("shaders/light_shared.frag"),
-                                                                              &include_str!("objects/shaders/colored_forward_ambient.frag")))?),
-
-            mesh_color_ambient_directional_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
-                                                                     &format!("{}\n{}",
-                                                                              &include_str!("shaders/light_shared.frag"),
-                                                                              &include_str!("objects/shaders/colored_forward_ambient_directional.frag")))?),
-
-            mesh_texture_ambient_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
-                                                                       &format!("{}\n{}\n{}",
-                                                                                include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("objects/shaders/triplanar_mapping.frag"),
-                                                                                include_str!("objects/shaders/textured_forward_ambient.frag")))?),
-
-            mesh_texture_ambient_directional_program: Rc::new(Program::from_source(&gl, include_str!("objects/shaders/mesh.vert"),
-                                                                       &format!("{}\n{}\n{}",
-                                                                                include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("objects/shaders/triplanar_mapping.frag"),
-                                                                                include_str!("objects/shaders/textured_forward_ambient_directional.frag")))?)
+            mesh_color_ambient_program: Mesh::program_color_ambient(gl)?,
+            mesh_color_ambient_directional_program: Mesh::program_color_ambient_directional(gl)?,
+            mesh_texture_ambient_program: Mesh::program_texture_ambient(gl)?,
+            mesh_texture_ambient_directional_program: Mesh::program_texture_ambient_directional(gl)?
         })
     }
 
