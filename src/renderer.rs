@@ -1,6 +1,7 @@
 
 use crate::*;
 use std::rc::Rc;
+use image::DynamicImage;
 
 pub struct ForwardPipeline {
     gl: Gl,
@@ -38,6 +39,11 @@ impl ForwardPipeline {
                   self.mesh_color_ambient_directional_program.clone(),
                   self.mesh_texture_ambient_program.clone(),
                   self.mesh_texture_ambient_directional_program.clone(), cpu_mesh)?)
+    }
+
+    pub fn new_skybox(&self, right: &DynamicImage, left: &DynamicImage, top: &DynamicImage, front: &DynamicImage, back: &DynamicImage) -> Result<Skybox, Error>
+    {
+        Skybox::new(&self.gl, right, left, top, front, back)
     }
 }
 
@@ -247,5 +253,10 @@ impl DeferredPipeline
         Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh)?,
                   self.mesh_color_program.clone(),
                   self.mesh_texture_program.clone()))
+    }
+
+    pub fn forward_pipeline(&self) -> &ForwardPipeline
+    {
+        &self.forward_pipeline
     }
 }

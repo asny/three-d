@@ -25,7 +25,7 @@ fn main() {
         box_mesh.compute_normals();
         let box_mesh = renderer.new_mesh(&box_mesh).unwrap();
 
-        let skybox = objects::Skybox::new(&gl,
+        let skybox = renderer.forward_pipeline().new_skybox(
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/right.jpg").unwrap(),
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/left.jpg").unwrap(),
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/top.jpg").unwrap(),
