@@ -255,6 +255,16 @@ impl DeferredPipeline
                   self.mesh_texture_program.clone()))
     }
 
+    pub fn new_sphere_instances(&self, centers: &[f32], sphere_radius: f32) -> Result<Vertices, Error>
+    {
+        Vertices::new(&self.gl, centers, sphere_radius)
+    }
+
+    pub fn new_cylinder_instances(&self, indices: &[u32], end_points: &[f32], cylinder_radius: f32) -> Result<Edges, Error>
+    {
+        Edges::new(&self.gl, indices, end_points, cylinder_radius)
+    }
+
     pub fn forward_pipeline(&self) -> &ForwardPipeline
     {
         &self.forward_pipeline

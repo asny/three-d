@@ -23,13 +23,13 @@ fn main() {
         cpu_mesh.specular_power = Some(20.0);
         let model = renderer.new_mesh(&cpu_mesh).unwrap();
 
-        let mut edges = Edges::new(&gl, cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007);
+        let mut edges = renderer.new_cylinder_instances(cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007).unwrap();
         edges.diffuse_intensity = 0.8;
         edges.specular_intensity = 0.2;
         edges.specular_power = 5.0;
         edges.color = vec4(0.7, 0.2, 0.2, 1.0);
 
-        let mut vertices = Vertices::new(&gl, &cpu_mesh.positions, 0.015);
+        let mut vertices = renderer.new_sphere_instances(&cpu_mesh.positions, 0.015).unwrap();
         vertices.diffuse_intensity = 0.8;
         vertices.specular_intensity = 0.2;
         vertices.specular_power = 5.0;
@@ -56,8 +56,8 @@ fn main() {
         let render_scene = |camera: &Camera| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.render_geometry(&transformation, camera)?;
-            edges.render(&transformation, camera);
-            vertices.render(&transformation, camera);
+            edges.render(&transformation, camera)?;
+            vertices.render(&transformation, camera)?;
             Ok(())
         };
         spot_light0.generate_shadow_map(50.0, 512, &render_scene);
@@ -99,17 +99,14 @@ fn main() {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                     state::cull(&gl, state::CullType::Back);
                     model.render_geometry(&transformation, &camera)?;
-                    edges.render(&transformation, &camera);
-                    vertices.render(&transformation, &camera);
+                    edges.render(&transformation, &camera)?;
+                    vertices.render(&transformation, &camera)?;
                     plane.render_geometry(&Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 
                 // Light pass
-                Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.1, 0.1, 0.1, 1.0)), Some(1.0), &|| {
-                    renderer.light_pass(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[])?;
-                    Ok(())
-                }).unwrap();
+                renderer.render_to_screen(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[], width, height).unwrap();
                 
                 #[cfg(target_arch = "x86_64")]
                 if let Some(ref path) = screenshot_path {
