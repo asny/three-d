@@ -169,11 +169,6 @@ pub struct DeferredMesh {
 }
 
 impl DeferredMesh {
-    pub(crate) fn new_with_programs(mesh: Mesh, program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Self
-    {
-        Self { mesh,program_deferred_color, program_deferred_texture }
-    }
-
     pub fn name(&self) -> &str {
         self.mesh.name()
     }
@@ -194,5 +189,27 @@ impl DeferredMesh {
         };
         self.mesh.render_internal(program, transformation, camera)?;
         Ok(())
+    }
+
+    pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(&gl,include_str!("shaders/mesh.vert"),
+                                                              &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/colored_deferred.frag")))?))
+    }
+
+    pub(crate) fn program_textured(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(&gl,include_str!("shaders/mesh.vert"),
+                                                    &format!("{}\n{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/triplanar_mapping.frag"),
+                                                             include_str!("shaders/textured_deferred.frag")))?))
+    }
+
+    pub(crate) fn new_with_programs(mesh: Mesh, program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Self
+    {
+        Self { mesh,program_deferred_color, program_deferred_texture }
     }
 }

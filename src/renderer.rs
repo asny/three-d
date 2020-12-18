@@ -66,17 +66,8 @@ impl DeferredPipeline
         let renderer = Self {
             gl: gl.clone(),
             forward_pipeline: ForwardPipeline::new(gl)?,
-            mesh_color_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
-                                                              &format!("{}\n{}",
-                                                             include_str!("objects/shaders/deferred_objects_shared.frag"),
-                                                             include_str!("objects/shaders/colored_deferred.frag")))?),
-
-            mesh_texture_program: Rc::new(Program::from_source(&gl,include_str!("objects/shaders/mesh.vert"),
-                                                    &format!("{}\n{}\n{}",
-                                                             include_str!("objects/shaders/deferred_objects_shared.frag"),
-                                                             include_str!("objects/shaders/triplanar_mapping.frag"),
-                                                             include_str!("objects/shaders/textured_deferred.frag")))?),
-
+            mesh_color_program: DeferredMesh::program_color(gl)?,
+            mesh_texture_program: DeferredMesh::program_textured(gl)?,
             ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
