@@ -25,7 +25,7 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub(crate) fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         Self::new_with_programs(gl, Self::program_color_ambient(gl)?,
                                 Self::program_color_ambient_directional(gl)?,
