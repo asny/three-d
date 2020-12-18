@@ -1,7 +1,7 @@
 
 use crate::*;
 
-pub struct Edges {
+pub struct CylinderInstances {
     program: core::Program,
     translation_buffer: VertexBuffer,
     direction_buffer: VertexBuffer,
@@ -16,9 +16,9 @@ pub struct Edges {
     pub specular_power: f32
 }
 
-impl Edges
+impl CylinderInstances
 {
-    pub(crate) fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Result<Edges, Error>
+    pub(crate) fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Result<Self, Error>
     {
         let program = core::Program::from_source(&gl,
                                                     include_str!("shaders/line.vert"),
@@ -69,7 +69,7 @@ impl Edges
         let translation_buffer = VertexBuffer::new_with_dynamic_f32(gl, &translation)?;
         let direction_buffer = VertexBuffer::new_with_dynamic_f32(gl, &direction)?;
 
-        Ok(Edges { program, translation_buffer, direction_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius,
+        Ok(Self { program, translation_buffer, direction_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius,
             color: vec4(1.0, 0.0, 0.0, 1.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
     }
 

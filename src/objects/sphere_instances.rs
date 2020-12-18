@@ -1,7 +1,7 @@
 
 use crate::*;
 
-pub struct Vertices {
+pub struct SphereInstances {
     program: Program,
     instance_buffer: VertexBuffer,
     ball_index_buffer: ElementBuffer,
@@ -14,9 +14,9 @@ pub struct Vertices {
     pub ball_radius: f32
 }
 
-impl Vertices
+impl SphereInstances
 {
-    pub(crate) fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> Result<Vertices, Error>
+    pub(crate) fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> Result<Self, Error>
     {
         let program = Program::from_source(&gl,
                                                     include_str!("shaders/vertex.vert"),
@@ -42,7 +42,7 @@ impl Vertices
         let ball_vertex_buffer = VertexBuffer::new_with_static_f32(gl, &ball_positions)?;
         let instance_buffer = VertexBuffer::new_with_dynamic_f32(gl, positions)?;
 
-        Ok(Vertices { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3,
+        Ok(SphereInstances { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3,
             color: vec4(1.0, 0.0, 0.0, 1.0),
             diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, ball_radius })
     }
