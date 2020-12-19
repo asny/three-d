@@ -14,10 +14,10 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["./examples/assets/models/suzanne.3d"], move |loaded| {
-        let mut monkey = ThreeD::parse(loaded, "./examples/assets/models/suzanne.3d").unwrap().remove(0);
-        monkey.color = Some((0.5, 1.0, 0.5, 0.5));
-        let monkey = renderer.new_mesh(&monkey).unwrap();
+    Loader::load(&["./examples/assets/suzanne.3d"], move |loaded| {
+        let (meshes, mut materials) = ThreeD::parse(loaded, "./examples/assets/suzanne.3d").unwrap();
+        materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
+        let monkey = renderer.new_meshes(&meshes, &materials).unwrap().remove(0);
 
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
