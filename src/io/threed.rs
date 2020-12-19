@@ -14,7 +14,7 @@ impl ThreeD {
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| Self::parse_version1(bytes))?;
 
-        if decoded.submeshes.len() == 0 {
+        if decoded.meshes.len() == 0 {
             decoded = Self::parse_version1(bytes)?;
         }
 
@@ -22,19 +22,19 @@ impl ThreeD {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("Corrupt file!".to_string())))?;
         }
 
-        if decoded.submeshes.len() == 0 {
+        if decoded.meshes.len() == 0 {
             Err(bincode::Error::new(bincode::ErrorKind::Custom("No mesh data in file!".to_string())))?;
         }
 
         let mut cpu_meshes = Vec::new();
-        for mesh in decoded.submeshes {
+        for mesh in decoded.meshes {
             cpu_meshes.push(CPUMesh {
                 name: mesh.name,
                 material_name: mesh.material_name,
                 positions: mesh.positions,
-                indices: if mesh.indices.len() > 0 {Some(mesh.indices)} else {None},
-                normals: if mesh.normals.len() > 0 {Some(mesh.normals)} else {None},
-                uvs: if mesh.uvs.len() > 0 {Some(mesh.uvs)} else {None}
+                indices: mesh.indices,
+                normals: mesh.normals,
+                uvs: mesh.uvs
             });
         }
 
@@ -59,39 +59,48 @@ impl ThreeD {
         bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
                 magic_number: m.magic_number,
                 version: 2,
-                submeshes: vec![ThreeDMeshSubMesh {
-                    indices: m.indices,
+                meshes: vec![ThreeDMeshSubMesh {
+                    indices: if m.indices.len() > 0 { Some(m.indices) } else {None},
                     positions: m.positions,
-                    normals: m.normals,
+                    normals: if m.normals.len() > 0 { Some(m.normals) } else {None},
                     ..Default::default()
                 }],
                 materials: vec![]
             })
     }
 
-    pub fn serialize(filename: &str, meshes: &Vec<&CPUMesh>, materials: &Vec<&CPUMaterial>) -> Result<Vec<u8>, Error>
+    pub fn serialize(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, Error>
     {
+        let mut meshes = Vec::new();
+        for cpu_mesh in cpu_meshes {
+            meshes.push(ThreeDMeshSubMesh {
+                    name: cpu_mesh.name,
+                    material_name: cpu_mesh.material_name,
+                    indices: cpu_mesh.indices,
+                    positions: cpu_mesh.positions,
+                    normals: cpu_mesh.normals,
+                    uvs: cpu_mesh.uvs
+                });
+        }
+
+        let mut materials = Vec::new();
+        for cpu_material in cpu_materials {
+            let texture_path = cpu_material.texture_image.as_ref().map(|_| format!("{}_{}.png", filename, cpu_material.name));
+            materials.push(ThreeDMaterial {
+                    name: cpu_material.name,
+                    texture_path,
+                    color: cpu_material.color,
+                    diffuse_intensity: cpu_material.diffuse_intensity,
+                    specular_intensity: cpu_material.specular_intensity,
+                    specular_power: cpu_material.specular_power
+                });
+        }
+
         Ok(bincode::serialize::<ThreeDMesh>(&ThreeDMesh {
             magic_number: 61,
             version: 2,
-            submeshes: meshes.iter().map(|mesh|
-                ThreeDMeshSubMesh {
-                    name: mesh.name.clone(),
-                    material_name: mesh.material_name.clone(),
-                    indices: mesh.indices.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                    positions: mesh.positions.to_owned(),
-                    normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                    uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned()
-                }).collect(),
-            materials: materials.iter().map(|material|
-                ThreeDMaterial {
-                    name: material.name.clone(),
-                    texture_path: material.texture_image.as_ref().map(|_| format!("{}_{}.png", filename, material.name)),
-                    color: material.color,
-                    diffuse_intensity: material.diffuse_intensity,
-                    specular_intensity: material.specular_intensity,
-                    specular_power: material.specular_power
-                }).collect()
+            meshes,
+            materials
         })?)
     }
 }
@@ -100,7 +109,7 @@ impl ThreeD {
 struct ThreeDMesh {
     pub magic_number: u8,
     pub version: u8,
-    pub submeshes: Vec<ThreeDMeshSubMesh>,
+    pub meshes: Vec<ThreeDMeshSubMesh>,
     pub materials: Vec<ThreeDMaterial>
 }
 
@@ -108,10 +117,10 @@ struct ThreeDMesh {
 struct ThreeDMeshSubMesh {
     pub name: String,
     pub material_name: Option<String>,
-    pub indices: Vec<u32>,
+    pub indices: Option<Vec<u32>>,
     pub positions: Vec<f32>,
-    pub normals: Vec<f32>,
-    pub uvs: Vec<f32>,
+    pub normals: Option<Vec<f32>>,
+    pub uvs: Option<Vec<f32>>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
