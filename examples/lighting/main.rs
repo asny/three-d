@@ -22,14 +22,15 @@ fn main() {
         let mut monkey = renderer.new_meshes(&monkey_cpu_meshes, &monkey_cpu_materials).unwrap().remove(0);
 
         let mut plane = renderer.new_mesh(
-        &CPUMesh {
-            positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
-            normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-            ..Default::default()},
-        &Material {color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
-            diffuse_intensity: 0.7,
-            specular_intensity: 0.8,
-            specular_power: 20.0, ..Default::default()}).unwrap();
+            &CPUMesh {
+                positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
+                normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
+                ..Default::default()},
+            &Material {color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
+                diffuse_intensity: 0.7,
+                specular_intensity: 0.8,
+                specular_power: 20.0, ..Default::default()}
+        ).unwrap();
 
         let mut directional_light0 = DirectionalLight::new(&gl, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
         let mut directional_light1 = DirectionalLight::new(&gl, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();

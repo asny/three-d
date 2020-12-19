@@ -14,16 +14,16 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
-    Loader::load(&["./examples/assets/tree.3d", "./examples/assets/tree_tex0.png", "./examples/assets/tree_tex1.png"], move |loaded| {
-        let tree_cpu_mesh = ThreeD::parse(loaded, "./examples/assets/tree.3d").unwrap();
+    Loader::load(&["./examples/assets/tree.3d", "./examples/assets/tree_Leaves.png", "./examples/assets/tree_Material.001.png"], move |loaded| {
+        let (meshes, materials)  = ThreeD::parse(loaded, "./examples/assets/tree.3d").unwrap();
         loaded.clear();
 
         // Tree
-        let tree_mesh = tree_cpu_mesh.iter().map(|cpu_mesh| renderer.new_mesh(&cpu_mesh).unwrap()).collect::<Vec<DeferredMesh>>();
+        let tree_mesh = renderer.new_meshes(&meshes, &materials).unwrap();
 
         // Imposters
         let mut aabb = AxisAlignedBoundingBox::new();
-        tree_cpu_mesh.iter().for_each(|m| aabb.add(&m.compute_aabb()));
+        meshes.iter().for_each(|m| aabb.add(&m.compute_aabb()));
         let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
             for mesh in tree_mesh.iter() {
                 mesh.render_geometry(&Mat4::identity(), camera)?;
@@ -47,12 +47,15 @@ fn main() {
         imposter.update_positions(&positions, &angles);
 
         // Plane
-        let plane = renderer.new_mesh(&CPUMesh {
-            positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
-            normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-            color: Some((0.5, 0.7, 0.3, 1.0)),
-            diffuse_intensity: Some(1.0),
-            specular_intensity: Some(0.0), ..Default::default()}).unwrap();
+        let plane = renderer.new_mesh(
+            &CPUMesh {
+                positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
+                normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
+                ..Default::default()},
+            &Material {color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
+                diffuse_intensity: 1.0,
+                specular_intensity: 0.0, ..Default::default()}
+        ).unwrap();
 
         // Lights
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
