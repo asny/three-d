@@ -14,16 +14,24 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["examples/assets/penguin_tex0.png", "examples/assets/penguin.3d", "examples/assets/textures/test_texture.jpg",
+    Loader::load(&["examples/assets/penguin_PenguinMat.png", "examples/assets/penguin.3d", "examples/assets/textures/test_texture.jpg",
         "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
         "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg"], move |loaded|
     {
-        let mut box_mesh = CPUMesh {
+        let mut box_cpu_mesh = CPUMesh {
             positions: cube_positions(),
-            texture: Some(Loader::get_image(loaded, "examples/assets/textures/test_texture.jpg").unwrap()),
-            ..Default::default() };
-        box_mesh.compute_normals();
-        let box_mesh = renderer.new_mesh(&box_mesh).unwrap();
+            ..Default::default()
+        };
+        box_cpu_mesh.compute_normals();
+        use image::GenericImageView;
+        let texture_image = Loader::get_image(loaded, "examples/assets/textures/test_texture.jpg").unwrap();
+        let box_material = Material {
+            color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
+                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
+                                                                  texture_image.width(), texture_image.height(), &texture_image.to_bytes()).unwrap())),
+            ..Default::default()
+        };
+        let box_mesh = renderer.new_mesh(&box_cpu_mesh, &box_material).unwrap();
 
         let skybox = renderer.forward_pipeline().new_skybox(
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/right.jpg").unwrap(),
@@ -32,8 +40,8 @@ fn main() {
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/front.jpg").unwrap(),
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/back.jpg").unwrap()).unwrap();
 
-        let penguin_cpu_mesh = ThreeD::parse(loaded, "examples/assets/penguin.3d").unwrap().remove(0);
-        let penguin = renderer.new_mesh(&penguin_cpu_mesh).unwrap();
+        let (penguin_cpu_meshes, penguin_cpu_materials) = ThreeD::parse(loaded, "examples/assets/penguin.3d").unwrap();
+        let penguin = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
