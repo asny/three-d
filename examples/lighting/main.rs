@@ -13,23 +13,23 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["examples/assets/models/suzanne.3d"], move |loaded|
+    Loader::load(&["examples/assets/suzanne.3d"], move |loaded|
     {
-        let mut monkey = ThreeD::parse(loaded, "examples/assets/models/suzanne.3d").unwrap().remove(0);
-        monkey.diffuse_intensity = Some(0.7);
-        monkey.specular_intensity = Some(0.8);
-        monkey.specular_power = Some(20.0);
-        let mut monkey = renderer.new_mesh(&monkey).unwrap();
+        let (monkey_cpu_meshes, mut monkey_cpu_materials) = ThreeD::parse(loaded, "examples/assets/suzanne.3d").unwrap();
+        monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
+        monkey_cpu_materials[0].specular_intensity = Some(0.8);
+        monkey_cpu_materials[0].specular_power = Some(20.0);
+        let mut monkey = renderer.new_meshes(&monkey_cpu_meshes, &monkey_cpu_materials).unwrap().remove(0);
 
-        let mut plane = renderer.new_mesh(&CPUMesh {
+        let mut plane = renderer.new_mesh(
+        &CPUMesh {
             positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
             normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-            color: Some((0.5, 0.7, 0.3, 1.0)),
-            diffuse_intensity: Some(0.7),
-            specular_intensity: Some(0.8),
-            specular_power: Some(20.0),
-            ..Default::default()
-        }).unwrap();
+            ..Default::default()},
+        &Material {color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
+            diffuse_intensity: 0.7,
+            specular_intensity: 0.8,
+            specular_power: 20.0, ..Default::default()}).unwrap();
 
         let mut directional_light0 = DirectionalLight::new(&gl, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
         let mut directional_light1 = DirectionalLight::new(&gl, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
@@ -82,8 +82,8 @@ fn main() {
                         }
                     }
                 }
-                handle_surface_parameters(&event, plane.mesh_mut());
-                handle_surface_parameters(&event, monkey.mesh_mut());
+                handle_surface_parameters(&event, &mut plane.mesh_mut().material);
+                handle_surface_parameters(&event, &mut monkey.mesh_mut().material);
             }
             let c = time.cos() as f32;
             let s = time.sin() as f32;
@@ -127,7 +127,7 @@ fn main() {
     });
 }
 
-fn handle_surface_parameters(event: &Event, surface: &mut Mesh)
+fn handle_surface_parameters(event: &Event, surface: &mut Material)
 {
     match event {
         Event::Key { state, kind } => {
