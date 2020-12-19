@@ -32,7 +32,7 @@ impl ForwardPipeline {
                          render_scene)?)
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &Material) -> Result<Mesh, Error>
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: Material) -> Result<Mesh, Error>
     {
         Ok(Mesh::new_with_programs(&self.gl,
                   self.mesh_color_ambient_program.clone(),
@@ -248,8 +248,20 @@ impl DeferredPipeline
         self.set_debug_type(debug_type);
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &Material) -> Result<DeferredMesh, Error>
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &CPUMaterial) -> Result<DeferredMesh, Error>
     {
+        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh,
+          Material::new(&self.gl, material)?)?,
+                  self.mesh_color_program.clone(),
+                  self.mesh_texture_program.clone()))
+    }
+
+    pub fn new_mesh_with_materials(&self, cpu_mesh: &CPUMesh, materials: &Vec<Material>) -> Result<DeferredMesh, Error>
+    {
+        let material = cpu_mesh.material_name.as_ref().map(|material_name|
+            materials.iter().filter(|m| &m.name == material_name).last()
+            .map(|m| m.clone()).unwrap_or_else(|| Material::default()))
+            .unwrap_or_else(|| Material::default());
         Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, material)?,
                   self.mesh_color_program.clone(),
                   self.mesh_texture_program.clone()))

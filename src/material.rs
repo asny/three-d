@@ -49,3 +49,15 @@ impl Material {
             specular_intensity: cpu_material.specular_intensity, specular_power: cpu_material.specular_power})
     }
 }
+
+impl Default for Material {
+    fn default() -> Self {
+        Material {
+            name: "default".to_string(),
+            color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
+            diffuse_intensity: None,
+            specular_intensity: None,
+            specular_power: None
+        }
+     }
+}

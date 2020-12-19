@@ -17,7 +17,7 @@ pub struct Mesh {
 
 impl Mesh
 {
-    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &Material) -> Result<Self, Error>
+    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: Material) -> Result<Self, Error>
     {
         Self::new_with_programs(gl, Self::program_color_ambient(gl)?,
                                 Self::program_color_ambient_directional(gl)?,
@@ -92,7 +92,7 @@ impl Mesh
 
     pub(crate) fn new_with_programs(gl: &Gl, program_color_ambient: Rc<Program>, program_color_ambient_directional: Rc<Program>,
                                     program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
-                   cpu_mesh: &CPUMesh, material: &Material) -> Result<Self, Error>
+                   cpu_mesh: &CPUMesh, material: Material) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,
@@ -102,7 +102,7 @@ impl Mesh
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
 
         Ok(Self { name: cpu_mesh.name.clone(), index_buffer, uv_buffer, position_buffer, normal_buffer,
-            program_color_ambient, program_color_ambient_directional, program_texture_ambient, program_texture_ambient_directional, material: material.clone() })
+            program_color_ambient, program_color_ambient_directional, program_texture_ambient, program_texture_ambient_directional, material })
     }
 
     fn render_internal(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
