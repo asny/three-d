@@ -46,6 +46,20 @@ impl ForwardPipeline {
                   self.mesh_texture_ambient_directional_program.clone(), cpu_mesh, material)?)
     }
 
+    pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<Mesh>, Error>
+    {
+        let materials = cpu_materials.iter().map(|m| Material::new(&self.gl, m).unwrap()).collect::<Vec<Material>>();
+        let mut meshes = Vec::new();
+        for cpu_mesh in cpu_meshes {
+            let material = cpu_mesh.material_name.as_ref().map(|material_name|
+                materials.iter().filter(|m| &m.name == material_name).last()
+                .map(|m| m.clone()).unwrap_or_else(|| Material::default()))
+                .unwrap_or_else(|| Material::default());
+            meshes.push(self.new_mesh(cpu_mesh, &material)?);
+        }
+        Ok(meshes)
+    }
+
     pub fn new_skybox(&self, right: &DynamicImage, left: &DynamicImage, top: &DynamicImage, front: &DynamicImage, back: &DynamicImage) -> Result<Skybox, Error>
     {
         Skybox::new(&self.gl, right, left, top, front, back)
@@ -274,9 +288,7 @@ impl DeferredPipeline
                 materials.iter().filter(|m| &m.name == material_name).last()
                 .map(|m| m.clone()).unwrap_or_else(|| Material::default()))
                 .unwrap_or_else(|| Material::default());
-            meshes.push(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, &material)?,
-                  self.mesh_color_program.clone(),
-                  self.mesh_texture_program.clone()));
+            meshes.push(self.new_mesh(cpu_mesh, &material)?);
         }
         Ok(meshes)
     }
