@@ -2,7 +2,6 @@
 use crate::core::*;
 use std::rc::Rc;
 
-#[derive(Default)]
 pub struct CPUMaterial {
     pub name: String,
     pub color: Option<(f32, f32, f32, f32)>,
@@ -12,11 +11,17 @@ pub struct CPUMaterial {
     pub specular_power: Option<f32>
 }
 
-impl CPUMaterial {
-    pub fn new(name: &str, texture_image: Option<image::DynamicImage>, color: Option<(f32, f32, f32, f32)>,
-               diffuse_intensity: Option<f32>, specular_intensity: Option<f32>, specular_power: Option<f32>) -> Result<Self, Error> {
-        Ok(Self { name: name.to_string(), texture_image, color, diffuse_intensity, specular_intensity, specular_power })
-    }
+impl Default for CPUMaterial {
+    fn default() -> Self {
+        Self {
+            name: "default".to_string(),
+            color: Some((1.0, 1.0, 1.0, 1.0)),
+            texture_image: None,
+            diffuse_intensity: Some(0.5),
+            specular_intensity: Some(0.2),
+            specular_power: Some(6.0)
+        }
+     }
 }
 
 #[derive(Clone)]
