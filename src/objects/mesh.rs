@@ -107,9 +107,9 @@ impl Mesh
 
     fn render_internal(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        program.add_uniform_float("diffuse_intensity", &self.material.diffuse_intensity.unwrap_or(0.5))?;
-        program.add_uniform_float("specular_intensity", &self.material.specular_intensity.unwrap_or(0.2))?;
-        program.add_uniform_float("specular_power", &self.material.specular_power.unwrap_or(6.0))?;
+        program.add_uniform_float("diffuse_intensity", &self.material.diffuse_intensity)?;
+        program.add_uniform_float("specular_intensity", &self.material.specular_intensity)?;
+        program.add_uniform_float("specular_power", &self.material.specular_power)?;
 
         program.add_uniform_mat4("modelMatrix", &transformation)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");

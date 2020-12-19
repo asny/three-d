@@ -29,9 +29,9 @@ pub enum ColorSource {
 pub struct Material {
     pub name: String,
     pub color_source: ColorSource,
-    pub diffuse_intensity: Option<f32>,
-    pub specular_intensity: Option<f32>,
-    pub specular_power: Option<f32>
+    pub diffuse_intensity: f32,
+    pub specular_intensity: f32,
+    pub specular_power: f32
 }
 
 impl Material {
@@ -45,19 +45,20 @@ impl Material {
         else {
             ColorSource::Color(cpu_material.color.map(|(r, g, b, a)| vec4(r, g, b, a)).unwrap_or(vec4(1.0, 1.0, 1.0, 1.0)))
         };
-        Ok(Material {name: cpu_material.name.clone(), color_source, diffuse_intensity: cpu_material.diffuse_intensity,
-            specular_intensity: cpu_material.specular_intensity, specular_power: cpu_material.specular_power})
+        Ok(Self {name: cpu_material.name.clone(), color_source, diffuse_intensity: cpu_material.diffuse_intensity.unwrap_or(0.5),
+            specular_intensity: cpu_material.specular_intensity.unwrap_or(0.2),
+            specular_power: cpu_material.specular_power.unwrap_or(6.0)})
     }
 }
 
 impl Default for Material {
     fn default() -> Self {
-        Material {
+        Self {
             name: "default".to_string(),
             color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
-            diffuse_intensity: None,
-            specular_intensity: None,
-            specular_power: None
+            diffuse_intensity: 0.5,
+            specular_intensity: 0.2,
+            specular_power: 6.0
         }
      }
 }
