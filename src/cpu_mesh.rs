@@ -1,18 +1,14 @@
 
 use crate::core::*;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct CPUMesh {
     pub name: String,
+    pub material_name: Option<String>,
     pub positions: Vec<f32>,
     pub indices: Option<Vec<u32>>,
     pub normals: Option<Vec<f32>>,
-    pub uvs: Option<Vec<f32>>,
-    pub texture: Option<image::DynamicImage>,
-    pub color: Option<(f32, f32, f32, f32)>,
-    pub diffuse_intensity: Option<f32>,
-    pub specular_intensity: Option<f32>,
-    pub specular_power: Option<f32>
+    pub uvs: Option<Vec<f32>>
 }
 
 impl CPUMesh {

@@ -3,24 +3,46 @@ use crate::cpu_mesh::CPUMesh;
 use crate::io::*;
 use std::collections::HashMap;
 use std::path::Path;
+use crate::CPUMaterial;
 
 pub struct Obj {
 
 }
 
 impl Obj {
-    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<Vec<CPUMesh>, Error> {
+    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), Error> {
         let obj_bytes = Loader::get(loaded, path.as_ref()).unwrap();
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = path.as_ref().parent().unwrap();
-        let materials = obj.material_library.map(|lib_name| {
-            let bytes = Loader::get(loaded, p.join(lib_name).to_str().unwrap()).unwrap().to_owned();
-            wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap()).unwrap().materials
-        });
-        let objects = obj.objects;
-        let mut cpu_meshes = Vec::new();
 
-        for object in objects.iter() { // Objects consisting of several meshes with different materials
+        // Parse materials
+        let mut cpu_materials = Vec::new();
+        if let Some(material_library) = obj.material_library {
+            let bytes = Loader::get(loaded, p.join(material_library).to_str().unwrap()).unwrap().to_owned();
+            let materials = wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap()).unwrap().materials;
+
+            for material in materials {
+                let color = if material.color_diffuse.r != material.color_diffuse.g || material.color_diffuse.g != material.color_diffuse.b { material.color_diffuse }
+                    else if material.color_specular.r != material.color_specular.g || material.color_specular.g != material.color_specular.b { material.color_specular }
+                    else if material.color_ambient.r != material.color_ambient.g || material.color_ambient.g != material.color_ambient.b { material.color_ambient }
+                    else {material.color_diffuse};
+                let diffuse_intensity = (material.color_diffuse.r as f32).max(material.color_diffuse.g as f32).max(material.color_diffuse.b as f32);
+                let specular_intensity = (material.color_specular.r as f32).max(material.color_specular.g as f32).max(material.color_specular.b as f32);
+                cpu_materials.push(CPUMaterial {
+                    name: material.name,
+                    color: Some((color.r as f32, color.g as f32, color.b as f32, material.alpha as f32)),
+                    diffuse_intensity: Some(diffuse_intensity),
+                    specular_intensity: Some(specular_intensity),
+                    specular_power: Some(material.specular_coefficient as f32),
+                    texture_image: if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
+                        { Some(Loader::get_image(loaded, &path)?) } else {None}
+                });
+            }
+        }
+
+        // Parse meshes
+        let mut cpu_meshes = Vec::new();
+        for object in obj.objects.iter() { // Objects consisting of several meshes with different materials
             for mesh in object.geometry.iter() { // All meshes with different materials
                 let mut positions = Vec::new();
                 let mut normals = Vec::new();
@@ -84,37 +106,16 @@ impl Obj {
                     }
                 }
 
-                let mut cpu_mesh = CPUMesh {
+                cpu_meshes.push(CPUMesh {
                     name: object.name.to_string(),
+                    material_name: mesh.material_name.clone(),
                     positions,
                     indices: Some(indices),
                     normals: Some(normals),
-                    uvs: Some(uvs),
-                    .. Default::default()
-                };
-
-                if let Some(ref material_name) = mesh.material_name {
-                    if let Some(Some(material)) = materials.as_ref().map( |material_lib|
-                        material_lib.iter().filter(|m| &m.name == material_name).last())
-                    {
-                        let color = if material.color_diffuse.r != material.color_diffuse.g || material.color_diffuse.g != material.color_diffuse.b { material.color_diffuse }
-                            else if material.color_specular.r != material.color_specular.g || material.color_specular.g != material.color_specular.b { material.color_specular }
-                            else if material.color_ambient.r != material.color_ambient.g || material.color_ambient.g != material.color_ambient.b { material.color_ambient }
-                            else {material.color_diffuse};
-                        cpu_mesh.color = Some((color.r as f32, color.g as f32, color.b as f32, material.alpha as f32));
-                        let diffuse_intensity = (material.color_diffuse.r as f32).max(material.color_diffuse.g as f32).max(material.color_diffuse.b as f32);
-                        cpu_mesh.diffuse_intensity = Some(diffuse_intensity);
-                        let specular_intensity = (material.color_specular.r as f32).max(material.color_specular.g as f32).max(material.color_specular.b as f32);
-                        cpu_mesh.specular_intensity = Some(specular_intensity);
-                        cpu_mesh.specular_power = Some(material.specular_coefficient as f32);
-                        cpu_mesh.texture = if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
-                            { Some(Loader::get_image(loaded, &path)?) } else {None};
-                    }
-                }
-
-                cpu_meshes.push(cpu_mesh);
+                    uvs: Some(uvs)
+                });
             }
         }
-        Ok(cpu_meshes)
+        Ok((cpu_meshes, cpu_materials))
     }
 }

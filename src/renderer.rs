@@ -32,13 +32,13 @@ impl ForwardPipeline {
                          render_scene)?)
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<Mesh, Error>
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &Material) -> Result<Mesh, Error>
     {
         Ok(Mesh::new_with_programs(&self.gl,
                   self.mesh_color_ambient_program.clone(),
                   self.mesh_color_ambient_directional_program.clone(),
                   self.mesh_texture_ambient_program.clone(),
-                  self.mesh_texture_ambient_directional_program.clone(), cpu_mesh)?)
+                  self.mesh_texture_ambient_directional_program.clone(), cpu_mesh, material)?)
     }
 
     pub fn new_skybox(&self, right: &DynamicImage, left: &DynamicImage, top: &DynamicImage, front: &DynamicImage, back: &DynamicImage) -> Result<Skybox, Error>
@@ -248,9 +248,9 @@ impl DeferredPipeline
         self.set_debug_type(debug_type);
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh) -> Result<DeferredMesh, Error>
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &Material) -> Result<DeferredMesh, Error>
     {
-        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh)?,
+        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, material)?,
                   self.mesh_color_program.clone(),
                   self.mesh_texture_program.clone()))
     }

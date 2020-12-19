@@ -1,13 +1,14 @@
 use crate::io::*;
 use crate::cpu_mesh::CPUMesh;
 use std::path::Path;
+use crate::CPUMaterial;
 
 pub struct ThreeD {
 
 }
 
 impl ThreeD {
-    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<Vec<CPUMesh>, Error>
+    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), Error>
     {
         let bytes = Loader::get(loaded, path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
@@ -29,21 +30,29 @@ impl ThreeD {
         for mesh in decoded.submeshes {
             cpu_meshes.push(CPUMesh {
                 name: mesh.name,
+                material_name: mesh.material_name,
                 positions: mesh.positions,
                 indices: if mesh.indices.len() > 0 {Some(mesh.indices)} else {None},
                 normals: if mesh.normals.len() > 0 {Some(mesh.normals)} else {None},
-                uvs: if mesh.uvs.len() > 0 {Some(mesh.uvs)} else {None},
-                color: mesh.color,
-                diffuse_intensity: mesh.diffuse_intensity,
-                specular_intensity: mesh.specular_intensity,
-                specular_power: mesh.specular_power,
-                texture: if let Some(filename) = mesh.texture_path {
+                uvs: if mesh.uvs.len() > 0 {Some(mesh.uvs)} else {None}
+            });
+        }
+
+        let mut cpu_materials = Vec::new();
+        for material in decoded.materials {
+            cpu_materials.push(CPUMaterial {
+                name: material.name,
+                color: material.color,
+                diffuse_intensity: material.diffuse_intensity,
+                specular_intensity: material.specular_intensity,
+                specular_power: material.specular_power,
+                texture_image: if let Some(filename) = material.texture_path {
                     let texture_path = path.as_ref().parent().unwrap_or(&Path::new("./")).join(filename);
                     Some(Loader::get_image(loaded, &texture_path)?)
                 } else {None}
             });
         }
-        Ok(cpu_meshes)
+        Ok((cpu_meshes, cpu_materials))
     }
 
     fn parse_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
@@ -55,28 +64,34 @@ impl ThreeD {
                     positions: m.positions,
                     normals: m.normals,
                     ..Default::default()
-                }]
+                }],
+                materials: vec![]
             })
     }
 
-    pub fn serialize<P: AsRef<Path>>(meshes: &Vec<(&CPUMesh, Option<P>)>) -> Result<Vec<u8>, Error>
+    pub fn serialize(filename: &str, meshes: &Vec<&CPUMesh>, materials: &Vec<&CPUMaterial>) -> Result<Vec<u8>, Error>
     {
         Ok(bincode::serialize::<ThreeDMesh>(&ThreeDMesh {
             magic_number: 61,
             version: 2,
-            submeshes: meshes.iter().map(|(mesh, texture_path)|
-            ThreeDMeshSubMesh {
-                name: mesh.name.clone(),
-                indices: mesh.indices.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                positions: mesh.positions.to_owned(),
-                normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned(),
-                texture_path: texture_path.as_ref().map(|p| p.as_ref().file_name().unwrap().to_str().unwrap().to_owned()),
-                color: mesh.color,
-                diffuse_intensity: mesh.diffuse_intensity,
-                specular_intensity: mesh.specular_intensity,
-                specular_power: mesh.specular_power
-            }).collect()
+            submeshes: meshes.iter().map(|mesh|
+                ThreeDMeshSubMesh {
+                    name: mesh.name.clone(),
+                    material_name: mesh.material_name.clone(),
+                    indices: mesh.indices.as_ref().unwrap_or(&Vec::new()).to_owned(),
+                    positions: mesh.positions.to_owned(),
+                    normals: mesh.normals.as_ref().unwrap_or(&Vec::new()).to_owned(),
+                    uvs: mesh.uvs.as_ref().unwrap_or(&Vec::new()).to_owned()
+                }).collect(),
+            materials: materials.iter().map(|material|
+                ThreeDMaterial {
+                    name: material.name.clone(),
+                    texture_path: material.texture_image.as_ref().map(|_| format!("{}_{}.png", filename, material.name)),
+                    color: material.color,
+                    diffuse_intensity: material.diffuse_intensity,
+                    specular_intensity: material.specular_intensity,
+                    specular_power: material.specular_power
+                }).collect()
         })?)
     }
 }
@@ -85,16 +100,23 @@ impl ThreeD {
 struct ThreeDMesh {
     pub magic_number: u8,
     pub version: u8,
-    pub submeshes: Vec<ThreeDMeshSubMesh>
+    pub submeshes: Vec<ThreeDMeshSubMesh>,
+    pub materials: Vec<ThreeDMaterial>
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
 struct ThreeDMeshSubMesh {
     pub name: String,
+    pub material_name: Option<String>,
     pub indices: Vec<u32>,
     pub positions: Vec<f32>,
     pub normals: Vec<f32>,
     pub uvs: Vec<f32>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
+struct ThreeDMaterial {
+    pub name: String,
     pub texture_path: Option<String>,
     pub color: Option<(f32, f32, f32, f32)>,
     pub diffuse_intensity: Option<f32>,
