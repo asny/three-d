@@ -32,7 +32,12 @@ impl ForwardPipeline {
                          render_scene)?)
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: Material) -> Result<Mesh, Error>
+    pub fn new_material(&self, cpu_material: &CPUMaterial) -> Result<Material, Error>
+    {
+        Material::new(&self.gl, cpu_material)
+    }
+
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &Material) -> Result<Mesh, Error>
     {
         Ok(Mesh::new_with_programs(&self.gl,
                   self.mesh_color_ambient_program.clone(),
@@ -248,23 +253,32 @@ impl DeferredPipeline
         self.set_debug_type(debug_type);
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &CPUMaterial) -> Result<DeferredMesh, Error>
+    pub fn new_material(&self, cpu_material: &CPUMaterial) -> Result<Material, Error>
     {
-        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh,
-          Material::new(&self.gl, material)?)?,
+        self.forward_pipeline.new_material(cpu_material)
+    }
+
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &Material) -> Result<DeferredMesh, Error>
+    {
+        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, material)?,
                   self.mesh_color_program.clone(),
                   self.mesh_texture_program.clone()))
     }
 
-    pub fn new_mesh_with_materials(&self, cpu_mesh: &CPUMesh, materials: &Vec<Material>) -> Result<DeferredMesh, Error>
+    pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<DeferredMesh>, Error>
     {
-        let material = cpu_mesh.material_name.as_ref().map(|material_name|
-            materials.iter().filter(|m| &m.name == material_name).last()
-            .map(|m| m.clone()).unwrap_or_else(|| Material::default()))
-            .unwrap_or_else(|| Material::default());
-        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, material)?,
+        let materials = cpu_materials.iter().map(|m| Material::new(&self.gl, m).unwrap()).collect::<Vec<Material>>();
+        let mut meshes = Vec::new();
+        for cpu_mesh in cpu_meshes {
+            let material = cpu_mesh.material_name.as_ref().map(|material_name|
+                materials.iter().filter(|m| &m.name == material_name).last()
+                .map(|m| m.clone()).unwrap_or_else(|| Material::default()))
+                .unwrap_or_else(|| Material::default());
+            meshes.push(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, &material)?,
                   self.mesh_color_program.clone(),
-                  self.mesh_texture_program.clone()))
+                  self.mesh_texture_program.clone()));
+        }
+        Ok(meshes)
     }
 
     pub fn new_sphere_instances(&self, centers: &[f32], sphere_radius: f32) -> Result<SphereInstances, Error>
