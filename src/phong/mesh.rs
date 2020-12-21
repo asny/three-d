@@ -60,7 +60,7 @@ impl Mesh
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
                                                                      &format!("{}\n{}",
-                                                                              &include_str!("../shaders/light_shared.frag"),
+                                                                              &include_str!("shaders/light_shared.frag"),
                                                                               &include_str!("shaders/colored_forward_ambient.frag")))?))
     }
 
@@ -68,7 +68,7 @@ impl Mesh
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
                                                                      &format!("{}\n{}",
-                                                                              &include_str!("../shaders/light_shared.frag"),
+                                                                              &include_str!("shaders/light_shared.frag"),
                                                                               &include_str!("shaders/colored_forward_ambient_directional.frag")))?))
     }
 
@@ -76,7 +76,7 @@ impl Mesh
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
                                                                        &format!("{}\n{}\n{}",
-                                                                                include_str!("../shaders/light_shared.frag"),
+                                                                                include_str!("shaders/light_shared.frag"),
                                                                                 include_str!("shaders/triplanar_mapping.frag"),
                                                                                 include_str!("shaders/textured_forward_ambient.frag")))?))
     }
@@ -85,7 +85,7 @@ impl Mesh
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
                                                                        &format!("{}\n{}\n{}",
-                                                                                include_str!("../shaders/light_shared.frag"),
+                                                                                include_str!("shaders/light_shared.frag"),
                                                                                 include_str!("shaders/triplanar_mapping.frag"),
                                                                                 include_str!("shaders/textured_forward_ambient_directional.frag")))?))
     }
