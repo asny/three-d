@@ -12,12 +12,12 @@ pub struct Mesh {
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
-    pub material: Material
+    pub material: PhongMaterial
 }
 
 impl Mesh
 {
-    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &Material) -> Result<Self, Error>
+    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
         Self::new_with_programs(gl, Self::program_color_ambient(gl)?,
                                 Self::program_color_ambient_directional(gl)?,
@@ -92,7 +92,7 @@ impl Mesh
 
     pub(crate) fn new_with_programs(gl: &Gl, program_color_ambient: Rc<Program>, program_color_ambient_directional: Rc<Program>,
                                     program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
-                   cpu_mesh: &CPUMesh, material: &Material) -> Result<Self, Error>
+                   cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,

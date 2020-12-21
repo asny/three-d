@@ -13,6 +13,9 @@ pub use crate::cpu_mesh::*;
 pub mod cpu_material;
 pub use crate::cpu_material::*;
 
+pub mod phong;
+pub use crate::phong::*;
+
 #[cfg(not(feature = "no-renderer"))]
 pub mod renderer;
 #[cfg(not(feature = "no-renderer"))]
