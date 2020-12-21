@@ -3,7 +3,7 @@ use crate::*;
 use std::rc::Rc;
 use image::DynamicImage;
 
-pub struct ForwardPipeline {
+pub struct PhongForwardPipeline {
     gl: Gl,
     mesh_color_ambient_program: Rc<Program>,
     mesh_color_ambient_directional_program: Rc<Program>,
@@ -11,7 +11,7 @@ pub struct ForwardPipeline {
     mesh_texture_ambient_directional_program: Rc<Program>,
 }
 
-impl ForwardPipeline {
+impl PhongForwardPipeline {
 
     pub fn new(gl: &Gl) -> Result<Self, Error>
     {
@@ -69,9 +69,9 @@ impl ForwardPipeline {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}
 
-pub struct DeferredPipeline {
+pub struct PhongDeferredPipeline {
     gl: Gl,
-    forward_pipeline: ForwardPipeline,
+    forward_pipeline: PhongForwardPipeline,
     ambient_light_effect: ImageEffect,
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
@@ -84,13 +84,13 @@ pub struct DeferredPipeline {
     mesh_texture_program: Rc<Program>,
 }
 
-impl DeferredPipeline
+impl PhongDeferredPipeline
 {
     pub fn new(gl: &Gl) -> Result<Self, Error>
     {
         let renderer = Self {
             gl: gl.clone(),
-            forward_pipeline: ForwardPipeline::new(gl)?,
+            forward_pipeline: PhongForwardPipeline::new(gl)?,
             mesh_color_program: DeferredMesh::program_color(gl)?,
             mesh_texture_program: DeferredMesh::program_textured(gl)?,
             ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
@@ -303,7 +303,7 @@ impl DeferredPipeline
         CylinderInstances::new(&self.gl, indices, end_points, cylinder_radius)
     }
 
-    pub fn forward_pipeline(&self) -> &ForwardPipeline
+    pub fn forward_pipeline(&self) -> &PhongForwardPipeline
     {
         &self.forward_pipeline
     }
