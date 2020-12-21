@@ -21,6 +21,15 @@ pub use camera::*;
 pub use image_effect::*;
 pub use aabb::*;
 
+pub mod cpu_mesh;
+pub use crate::cpu_mesh::*;
+
+pub mod cpu_material;
+pub use crate::cpu_material::*;
+
+pub mod light;
+pub use crate::light::*;
+
 #[derive(Debug)]
 pub enum Error {
     UnknownShaderType {message: String},
