@@ -9,7 +9,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = DeferredPipeline::new(&gl).unwrap();
+    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -26,7 +26,7 @@ fn main() {
                 positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                 ..Default::default()},
-            &Material {color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
+            &PhongMaterial {color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
                 diffuse_intensity: 0.7,
                 specular_intensity: 0.8,
                 specular_power: 20.0, ..Default::default()}
@@ -128,7 +128,7 @@ fn main() {
     });
 }
 
-fn handle_surface_parameters(event: &Event, surface: &mut Material)
+fn handle_surface_parameters(event: &Event, surface: &mut PhongMaterial)
 {
     match event {
         Event::Key { state, kind } => {
