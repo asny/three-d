@@ -13,9 +13,9 @@ pub use crate::cpu_mesh::*;
 pub mod cpu_material;
 pub use crate::cpu_material::*;
 
-#[cfg(not(feature = "no-renderer"))]
+#[cfg(feature = "phong-renderer")]
 pub mod phong;
-#[cfg(not(feature = "no-renderer"))]
+#[cfg(feature = "phong-renderer")]
 pub use crate::phong::*;
 
 pub mod light;
