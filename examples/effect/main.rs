@@ -14,7 +14,8 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["./examples/assets/suzanne.3d"], move |loaded| {
+    Loader::load(&["./examples/assets/suzanne.3d", "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
+        "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg"], move |loaded| {
         let (meshes, mut materials) = ThreeD::parse(loaded, "./examples/assets/suzanne.3d").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
         let monkey = renderer.new_meshes(&meshes, &materials).unwrap().remove(0);
@@ -22,11 +23,22 @@ fn main() {
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
+        // Fog
         let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
         fog_effect.color = vec3(0.8, 0.8, 0.8);
         let mut fog_enabled = true;
+
+        // FXAA
         let fxaa_effect = effects::FXAAEffect::new(&gl).unwrap();
         let mut fxaa_enabled = true;
+
+        // Skybox
+        let skybox = renderer.forward_pipeline().new_skybox(
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/right.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/left.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/top.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/front.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/back.jpg").unwrap()).unwrap();
 
         // main loop
         let mut time = 0.0;
@@ -80,6 +92,7 @@ fn main() {
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
 
                 RenderTarget::write_to_color(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(&color_texture), || {
+                    skybox.apply(&camera)?;
                     renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
                     if fog_enabled {
                         fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture())?;
@@ -93,6 +106,7 @@ fn main() {
                 }).unwrap();
             } else {
                 renderer.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
+                    skybox.apply(&camera)?;
                     if fog_enabled {
                         fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture())?;
                     }
