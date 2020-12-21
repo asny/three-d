@@ -10,15 +10,12 @@ pub struct CylinderInstances {
     index_pairs: std::collections::HashSet<(usize, usize)>,
     no_edges: u32,
     tube_radius: f32,
-    pub color: Vec4,
-    pub diffuse_intensity: f32,
-    pub specular_intensity: f32,
-    pub specular_power: f32
+    pub material: PhongMaterial
 }
 
 impl CylinderInstances
 {
-    pub(crate) fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32) -> Result<Self, Error>
+    pub(crate) fn new(gl: &Gl, indices: &[u32], positions: &[f32], tube_radius: f32, material: &PhongMaterial) -> Result<Self, Error>
     {
         let program = core::Program::from_source(&gl,
                                                     include_str!("shaders/cylinder.vert"),
@@ -69,8 +66,8 @@ impl CylinderInstances
         let translation_buffer = VertexBuffer::new_with_dynamic_f32(gl, &translation)?;
         let direction_buffer = VertexBuffer::new_with_dynamic_f32(gl, &direction)?;
 
-        Ok(Self { program, translation_buffer, direction_buffer, cylinder_vertex_buffer, cylinder_index_buffer, index_pairs, no_edges, tube_radius,
-            color: vec4(1.0, 0.0, 0.0, 1.0), diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0 })
+        Ok(Self { program, translation_buffer, direction_buffer, cylinder_vertex_buffer, cylinder_index_buffer,
+            index_pairs, no_edges, tube_radius, material: material.clone() })
     }
 
     fn fill_translation_and_direction(index_pairs: &std::collections::HashSet<(usize, usize)>, positions: &[f32]) -> (Vec<f32>, Vec<f32>)
@@ -95,11 +92,12 @@ impl CylinderInstances
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity)?;
-        self.program.add_uniform_float("specular_intensity", &self.specular_intensity)?;
-        self.program.add_uniform_float("specular_power", &self.specular_power)?;
+        self.program.add_uniform_float("diffuse_intensity", &self.material.diffuse_intensity)?;
+        self.program.add_uniform_float("specular_intensity", &self.material.specular_intensity)?;
+        self.program.add_uniform_float("specular_power", &self.material.specular_power)?;
 
-        self.program.add_uniform_vec4("color", &self.color)?;
+        let color = if let ColorSource::Color(c) = self.material.color_source {c} else {vec4(1.0, 0.0, 0.0, 1.0)};
+        self.program.add_uniform_vec4("color", &color)?;
 
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
         self.program.add_uniform_float("tube_radius", &self.tube_radius)?;

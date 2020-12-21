@@ -26,17 +26,15 @@ fn main() {
         cpu_material.specular_power = Some(20.0);
         let model = renderer.new_mesh(&cpu_mesh, &renderer.new_material(&cpu_material).unwrap()).unwrap();
 
-        let mut edges = renderer.new_cylinder_instances(cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007).unwrap();
-        edges.diffuse_intensity = 0.8;
-        edges.specular_intensity = 0.2;
-        edges.specular_power = 5.0;
-        edges.color = vec4(0.7, 0.2, 0.2, 1.0);
-
-        let mut vertices = renderer.new_sphere_instances(&cpu_mesh.positions, 0.015).unwrap();
-        vertices.diffuse_intensity = 0.8;
-        vertices.specular_intensity = 0.2;
-        vertices.specular_power = 5.0;
-        vertices.color = vec4(0.9, 0.2, 0.2, 1.0);
+        let wireframe_material = PhongMaterial {
+            name: "wireframe".to_string(),
+            diffuse_intensity: 0.8,
+            specular_intensity: 0.2,
+            specular_power: 5.0,
+            color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0))
+        };
+        let edges = renderer.new_cylinder_instances(cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007, &wireframe_material).unwrap();
+        let vertices = renderer.new_sphere_instances(&cpu_mesh.positions, 0.015, &wireframe_material).unwrap();
 
         let plane = renderer.new_mesh(
             &CPUMesh {

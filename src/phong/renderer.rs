@@ -294,14 +294,14 @@ impl PhongDeferredPipeline
         Ok(meshes)
     }
 
-    pub fn new_sphere_instances(&self, centers: &[f32], sphere_radius: f32) -> Result<SphereInstances, Error>
+    pub fn new_sphere_instances(&self, centers: &[f32], sphere_radius: f32, material: &PhongMaterial) -> Result<SphereInstances, Error>
     {
-        SphereInstances::new(&self.gl, centers, sphere_radius)
+        SphereInstances::new(&self.gl, centers, sphere_radius, material)
     }
 
-    pub fn new_cylinder_instances(&self, indices: &[u32], end_points: &[f32], cylinder_radius: f32) -> Result<CylinderInstances, Error>
+    pub fn new_cylinder_instances(&self, indices: &[u32], end_points: &[f32], cylinder_radius: f32, material: &PhongMaterial) -> Result<CylinderInstances, Error>
     {
-        CylinderInstances::new(&self.gl, indices, end_points, cylinder_radius)
+        CylinderInstances::new(&self.gl, indices, end_points, cylinder_radius, material)
     }
 
     pub fn forward_pipeline(&self) -> &PhongForwardPipeline

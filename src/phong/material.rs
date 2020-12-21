@@ -1,6 +1,5 @@
 
 use crate::core::*;
-use crate::CPUMaterial;
 use std::rc::Rc;
 
 #[derive(Clone)]

@@ -7,16 +7,13 @@ pub struct SphereInstances {
     ball_index_buffer: ElementBuffer,
     ball_vertex_buffer: VertexBuffer,
     no_vertices: u32,
-    pub color: Vec4,
-    pub diffuse_intensity: f32,
-    pub specular_intensity: f32,
-    pub specular_power: f32,
+    pub material: PhongMaterial,
     pub ball_radius: f32
 }
 
 impl SphereInstances
 {
-    pub(crate) fn new(gl: &Gl, positions: &[f32], ball_radius: f32) -> Result<Self, Error>
+    pub(crate) fn new(gl: &Gl, positions: &[f32], ball_radius: f32, material: &PhongMaterial) -> Result<Self, Error>
     {
         let program = Program::from_source(&gl,
                                                     include_str!("shaders/sphere.vert"),
@@ -43,8 +40,7 @@ impl SphereInstances
         let instance_buffer = VertexBuffer::new_with_dynamic_f32(gl, positions)?;
 
         Ok(SphereInstances { program, instance_buffer, ball_index_buffer, ball_vertex_buffer, no_vertices: positions.len() as u32/3,
-            color: vec4(1.0, 0.0, 0.0, 1.0),
-            diffuse_intensity: 0.5, specular_intensity: 0.2, specular_power: 5.0, ball_radius })
+            material: material.clone(), ball_radius })
     }
 
     pub fn update_positions(&mut self, positions: &[f32])
@@ -54,11 +50,12 @@ impl SphereInstances
 
     pub fn render(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity)?;
-        self.program.add_uniform_float("specular_intensity", &self.specular_intensity)?;
-        self.program.add_uniform_float("specular_power", &self.specular_power)?;
+        self.program.add_uniform_float("diffuse_intensity", &self.material.diffuse_intensity)?;
+        self.program.add_uniform_float("specular_intensity", &self.material.specular_intensity)?;
+        self.program.add_uniform_float("specular_power", &self.material.specular_power)?;
 
-        self.program.add_uniform_vec4("color", &self.color)?;
+        let color = if let ColorSource::Color(c) = self.material.color_source {c} else {vec4(1.0, 0.0, 0.0, 1.0)};
+        self.program.add_uniform_vec4("color", &color)?;
 
         self.program.add_uniform_float("scale", &self.ball_radius)?;
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
