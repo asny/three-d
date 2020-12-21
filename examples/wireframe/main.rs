@@ -12,7 +12,7 @@ fn main() {
     // Renderer
     let scene_center = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
-    let mut renderer = DeferredPipeline::new(&gl).unwrap();
+    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -42,7 +42,7 @@ fn main() {
                 positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                 ..Default::default()},
-            &Material {color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
+            &PhongMaterial {color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
                 diffuse_intensity: 0.2,
                 specular_intensity: 0.4,
                 specular_power: 20.0, ..Default::default()}

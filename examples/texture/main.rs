@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = DeferredPipeline::new(&gl).unwrap();
+    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -25,7 +25,7 @@ fn main() {
         box_cpu_mesh.compute_normals();
         use image::GenericImageView;
         let texture_image = Loader::get_image(loaded, "examples/assets/textures/test_texture.jpg").unwrap();
-        let box_material = Material {
+        let box_material = PhongMaterial {
             color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
                                                                   Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
                                                                   texture_image.width(), texture_image.height(), &texture_image.to_bytes()).unwrap())),
