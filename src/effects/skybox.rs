@@ -33,7 +33,7 @@ impl Skybox
         Ok(Skybox { gl: gl.clone(), program, vertex_buffer, texture })
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn apply(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);

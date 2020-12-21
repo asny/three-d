@@ -21,9 +21,6 @@ pub use crate::phong::*;
 pub mod light;
 pub use crate::light::*;
 
-pub mod objects;
-pub use crate::objects::*;
-
 pub mod effects;
 pub use crate::effects::*;
 

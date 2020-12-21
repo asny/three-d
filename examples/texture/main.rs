@@ -87,10 +87,10 @@ fn main() {
             }).unwrap();
 
             renderer.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
-                skybox.render(&camera)?;
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                 state::cull(&gl, state::CullType::Back);
                 penguin.mesh().render_with_ambient_and_directional(&transformation, &camera, &ambient_light, &directional_light)?;
+                skybox.apply(&camera)?;
                 Ok(())
             }).unwrap();
 
