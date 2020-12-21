@@ -14,9 +14,11 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["examples/assets/PenguinBaseMesh.obj", "examples/assets/PenguinBaseMesh.mtl", "examples/assets/penguin.png", "examples/assets/textures/test_texture.jpg",
-        "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
-        "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg"], move |loaded|
+    Loader::load(&["examples/assets/PenguinBaseMesh.obj", "examples/assets/PenguinBaseMesh.mtl",
+        "examples/assets/penguin.png", "examples/assets/test_texture.jpg",
+        "examples/assets/skybox_evening/back.jpg", "examples/assets/skybox_evening/front.jpg",
+        "examples/assets/skybox_evening/top.jpg", "examples/assets/skybox_evening/left.jpg",
+        "examples/assets/skybox_evening/right.jpg"], move |loaded|
     {
         let mut box_cpu_mesh = CPUMesh {
             positions: cube_positions(),
@@ -24,7 +26,7 @@ fn main() {
         };
         box_cpu_mesh.compute_normals();
         use image::GenericImageView;
-        let texture_image = Loader::get_image(loaded, "examples/assets/textures/test_texture.jpg").unwrap();
+        let texture_image = Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap();
         let box_material = PhongMaterial {
             color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
                                                                   Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
@@ -34,11 +36,11 @@ fn main() {
         let box_mesh = renderer.new_mesh(&box_cpu_mesh, &box_material).unwrap();
 
         let skybox = renderer.forward_pipeline().new_skybox(
-                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/right.jpg").unwrap(),
-                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/left.jpg").unwrap(),
-                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/top.jpg").unwrap(),
-                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/front.jpg").unwrap(),
-                                          &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/back.jpg").unwrap()).unwrap();
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap(),
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
         let penguin = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
