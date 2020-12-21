@@ -14,7 +14,7 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["examples/assets/penguin_PenguinMat.png", "examples/assets/penguin.3d", "examples/assets/textures/test_texture.jpg",
+    Loader::load(&["examples/assets/PenguinBaseMesh.obj", "examples/assets/PenguinBaseMesh.mtl", "examples/assets/penguin.png", "examples/assets/textures/test_texture.jpg",
         "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
         "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg"], move |loaded|
     {
@@ -40,7 +40,7 @@ fn main() {
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/front.jpg").unwrap(),
                                           &Loader::get_image(loaded, "examples/assets/textures/skybox_evening/back.jpg").unwrap()).unwrap();
 
-        let (penguin_cpu_meshes, penguin_cpu_materials) = ThreeD::parse(loaded, "examples/assets/penguin.3d").unwrap();
+        let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
         let penguin = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
