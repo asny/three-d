@@ -2,7 +2,7 @@
 use crate::*;
 use std::rc::Rc;
 
-pub struct Mesh {
+pub struct PhongForwardMesh {
     pub name: String,
     program_color_ambient: Rc<Program>,
     program_color_ambient_directional: Rc<Program>,
@@ -15,7 +15,7 @@ pub struct Mesh {
     pub material: PhongMaterial
 }
 
-impl Mesh
+impl PhongForwardMesh
 {
     pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
@@ -142,22 +142,22 @@ impl Mesh
     }
 }
 
-pub struct DeferredMesh {
-    mesh: Mesh,
+pub struct PhongDeferredMesh {
+    mesh: PhongForwardMesh,
     program_deferred_color: Rc<Program>,
     program_deferred_texture: Rc<Program>
 }
 
-impl DeferredMesh {
+impl PhongDeferredMesh {
     pub fn name(&self) -> &str {
         self.mesh.name()
     }
 
-    pub fn mesh(&self) -> &Mesh {
+    pub fn mesh(&self) -> &PhongForwardMesh {
         &self.mesh
     }
 
-    pub fn mesh_mut(&mut self) -> &mut Mesh {
+    pub fn mesh_mut(&mut self) -> &mut PhongForwardMesh {
         &mut self.mesh
     }
 
@@ -188,7 +188,7 @@ impl DeferredMesh {
                                                              include_str!("shaders/textured_deferred.frag")))?))
     }
 
-    pub(crate) fn new_with_programs(mesh: Mesh, program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Self
+    pub(crate) fn new_with_programs(mesh: PhongForwardMesh, program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Self
     {
         Self { mesh,program_deferred_color, program_deferred_texture }
     }

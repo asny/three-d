@@ -2,6 +2,7 @@
 use crate::*;
 use std::rc::Rc;
 use image::DynamicImage;
+use crate::PhongForwardMesh;
 
 pub struct PhongForwardPipeline {
     gl: Gl,
@@ -17,10 +18,10 @@ impl PhongForwardPipeline {
     {
         Ok(Self {
             gl: gl.clone(),
-            mesh_color_ambient_program: Mesh::program_color_ambient(gl)?,
-            mesh_color_ambient_directional_program: Mesh::program_color_ambient_directional(gl)?,
-            mesh_texture_ambient_program: Mesh::program_texture_ambient(gl)?,
-            mesh_texture_ambient_directional_program: Mesh::program_texture_ambient_directional(gl)?
+            mesh_color_ambient_program: PhongForwardMesh::program_color_ambient(gl)?,
+            mesh_color_ambient_directional_program: PhongForwardMesh::program_color_ambient_directional(gl)?,
+            mesh_texture_ambient_program: PhongForwardMesh::program_texture_ambient(gl)?,
+            mesh_texture_ambient_directional_program: PhongForwardMesh::program_texture_ambient_directional(gl)?
         })
     }
 
@@ -37,16 +38,16 @@ impl PhongForwardPipeline {
         PhongMaterial::new(&self.gl, cpu_material)
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Mesh, Error>
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongForwardMesh, Error>
     {
-        Ok(Mesh::new_with_programs(&self.gl,
+        Ok(PhongForwardMesh::new_with_programs(&self.gl,
                   self.mesh_color_ambient_program.clone(),
                   self.mesh_color_ambient_directional_program.clone(),
                   self.mesh_texture_ambient_program.clone(),
                   self.mesh_texture_ambient_directional_program.clone(), cpu_mesh, material)?)
     }
 
-    pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<Mesh>, Error>
+    pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<PhongForwardMesh>, Error>
     {
         let materials = cpu_materials.iter().map(|m| PhongMaterial::new(&self.gl, m).unwrap()).collect::<Vec<PhongMaterial>>();
         let mut meshes = Vec::new();
@@ -91,8 +92,8 @@ impl PhongDeferredPipeline
         let renderer = Self {
             gl: gl.clone(),
             forward_pipeline: PhongForwardPipeline::new(gl)?,
-            mesh_color_program: DeferredMesh::program_color(gl)?,
-            mesh_texture_program: DeferredMesh::program_textured(gl)?,
+            mesh_color_program: PhongDeferredMesh::program_color(gl)?,
+            mesh_texture_program: PhongDeferredMesh::program_textured(gl)?,
             ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
@@ -272,14 +273,14 @@ impl PhongDeferredPipeline
         self.forward_pipeline.new_material(cpu_material)
     }
 
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<DeferredMesh, Error>
+    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredMesh, Error>
     {
-        Ok(DeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, material)?,
+        Ok(PhongDeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, material)?,
                   self.mesh_color_program.clone(),
                   self.mesh_texture_program.clone()))
     }
 
-    pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<DeferredMesh>, Error>
+    pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<PhongDeferredMesh>, Error>
     {
         let materials = cpu_materials.iter().map(|m| PhongMaterial::new(&self.gl, m).unwrap()).collect::<Vec<PhongMaterial>>();
         let mut meshes = Vec::new();
