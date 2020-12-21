@@ -13,9 +13,9 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["examples/assets/suzanne.3d"], move |loaded|
+    Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
-        let (monkey_cpu_meshes, mut monkey_cpu_materials) = ThreeD::parse(loaded, "examples/assets/suzanne.3d").unwrap();
+        let (monkey_cpu_meshes, mut monkey_cpu_materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
         monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
         monkey_cpu_materials[0].specular_intensity = Some(0.8);
         monkey_cpu_materials[0].specular_power = Some(20.0);

@@ -16,8 +16,9 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["./examples/assets/suzanne.3d"], move |loaded| {
-        let (mut meshes, mut materials)  = ThreeD::parse(loaded, "./examples/assets/suzanne.3d").unwrap();
+    Loader::load(&["./examples/assets/suzanne.obj", "./examples/assets/suzanne.mtl"], move |loaded|
+    {
+        let (mut meshes, mut materials)  = Obj::parse(loaded, "./examples/assets/suzanne.obj").unwrap();
         let cpu_mesh = meshes.remove(0);
         let mut cpu_material = materials.remove(0);
         cpu_material.diffuse_intensity = Some(0.2);

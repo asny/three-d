@@ -14,9 +14,11 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
-    Loader::load(&["./examples/assets/suzanne.3d", "examples/assets/textures/skybox_evening/back.jpg", "examples/assets/textures/skybox_evening/front.jpg",
-        "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg", "examples/assets/textures/skybox_evening/right.jpg"], move |loaded| {
-        let (meshes, mut materials) = ThreeD::parse(loaded, "./examples/assets/suzanne.3d").unwrap();
+    Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl", "examples/assets/textures/skybox_evening/back.jpg",
+        "examples/assets/textures/skybox_evening/front.jpg", "examples/assets/textures/skybox_evening/top.jpg", "examples/assets/textures/skybox_evening/left.jpg",
+        "examples/assets/textures/skybox_evening/right.jpg"], move |loaded|
+    {
+        let (meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
         let monkey = renderer.new_meshes(&meshes, &materials).unwrap().remove(0);
 
