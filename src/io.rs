@@ -15,7 +15,6 @@ pub mod obj;
 
 #[cfg(feature = "obj-io")]
 pub use obj::*;
-use image::GenericImageView;
 
 
 #[derive(Debug)]
@@ -100,6 +99,7 @@ impl Loader {
 
     #[cfg(feature = "image-io")]
     pub fn get_image<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<crate::Image, Error> {
+        use image::GenericImageView;
         let img = image::load_from_memory(Self::get(loaded, path)?)?;
         Ok(crate::Image {bytes: img.to_bytes(), width: img.width(), height: img.height()})
     }
