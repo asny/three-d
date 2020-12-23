@@ -109,12 +109,12 @@ impl DirectionalLight {
         self.light_buffer.update(3, &[1.0]).unwrap();
     }
 
-    pub(crate) fn shadow_map(&self) -> &Texture2D
+    pub fn shadow_map(&self) -> &Texture2D
     {
         &self.shadow_texture
     }
 
-    pub(crate) fn buffer(&self) -> &UniformBuffer
+    pub fn buffer(&self) -> &UniformBuffer
     {
         &self.light_buffer
     }
@@ -160,7 +160,7 @@ impl PointLight {
         self.light_buffer.update(6, &position.to_slice()).unwrap();
     }
 
-    pub(crate) fn buffer(&self) -> &UniformBuffer
+    pub fn buffer(&self) -> &UniformBuffer
     {
         &self.light_buffer
     }
@@ -267,12 +267,12 @@ impl SpotLight {
         self.light_buffer.update(9, &[1.0]).unwrap();
     }
 
-    pub(crate) fn shadow_map(&self) -> &Texture2D
+    pub fn shadow_map(&self) -> &Texture2D
     {
         &self.shadow_texture
     }
 
-    pub(crate) fn buffer(&self) -> &UniformBuffer
+    pub fn buffer(&self) -> &UniformBuffer
     {
         &self.light_buffer
     }
