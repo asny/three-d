@@ -15,6 +15,7 @@ pub mod obj;
 
 #[cfg(feature = "obj-io")]
 pub use obj::*;
+use image::GenericImageView;
 
 
 #[derive(Debug)]
@@ -98,9 +99,9 @@ impl Loader {
     }
 
     #[cfg(feature = "image-io")]
-    pub fn get_image<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<image::DynamicImage, Error> {
+    pub fn get_image<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<crate::Image, Error> {
         let img = image::load_from_memory(Self::get(loaded, path)?)?;
-        Ok(img)
+        Ok(crate::Image {bytes: img.to_bytes(), width: img.width(), height: img.height()})
     }
 
     fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)
@@ -213,8 +214,8 @@ impl Saver {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
-            if let Some((bytes, width, height)) = &cpu_material.texture_image {
-                let number_of_channels = bytes.len() as u32 / (*width * *height);
+            if let Some(ref img) = cpu_material.texture_image {
+                let number_of_channels = img.bytes.len() as u32 / (img.width * img.height);
                 let format = match number_of_channels {
                     1 => Ok(image::ColorType::L8),
                     3 => Ok(image::ColorType::Rgb8),
@@ -222,7 +223,7 @@ impl Saver {
                     _ => Err(Error::FailedToSave {message: format!("Texture image could not be saved")})
                 }?;
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
-                image::save_buffer(tex_path, bytes, *width, *height, format)?;
+                image::save_buffer(tex_path, &img.bytes, img.width, img.height, format)?;
             }
         }
         let bytes = ThreeD::serialize(filename, cpu_meshes, cpu_materials)?;

@@ -36,14 +36,13 @@ fn main() {
         let mut fxaa_enabled = true;
 
         // Skybox
-        use image::{GenericImageView};
         let right = Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap();
-        let skybox = Skybox::new(&gl, right.width(), right.height(),
-                                          &right.to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap().to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap().to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap().to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap().to_bytes()).unwrap();
+        let skybox = Skybox::new(&gl, right.width, right.height,
+                                          &right.bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap().bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap().bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap().bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap().bytes).unwrap();
 
         // main loop
         let mut time = 0.0;

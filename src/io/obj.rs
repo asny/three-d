@@ -1,9 +1,8 @@
 
-use crate::cpu_mesh::CPUMesh;
 use crate::io::*;
 use std::collections::HashMap;
 use std::path::Path;
-use crate::CPUMaterial;
+use crate::{CPUMesh, CPUMaterial};
 
 pub struct Obj {
 
@@ -36,9 +35,7 @@ impl Obj {
                     specular_power: Some(material.specular_coefficient as f32),
                     texture_image: if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
                     {
-                        use image::GenericImageView;
-                        let img = Loader::get_image(loaded, &path)?;
-                        Some((img.to_bytes(), img.width(), img.height()))
+                        Some(Loader::get_image(loaded, &path)?)
                     } else {None}
                 });
             }

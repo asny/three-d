@@ -1,8 +1,14 @@
 
+pub struct Image {
+    pub bytes: Vec<u8>,
+    pub width: u32,
+    pub height: u32
+}
+
 pub struct CPUMaterial {
     pub name: String,
     pub color: Option<(f32, f32, f32, f32)>,
-    pub texture_image: Option<(Vec<u8>, u32, u32)>,
+    pub texture_image: Option<Image>,
     pub diffuse_intensity: Option<f32>,
     pub specular_intensity: Option<f32>,
     pub specular_power: Option<f32>

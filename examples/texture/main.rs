@@ -25,23 +25,22 @@ fn main() {
             ..Default::default()
         };
         box_cpu_mesh.compute_normals();
-        use image::GenericImageView;
         let texture_image = Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap();
         let box_material = PhongMaterial {
             color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
                                                                   Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
-                                                                  texture_image.width(), texture_image.height(), &texture_image.to_bytes()).unwrap())),
+                                                                  texture_image.width, texture_image.height, &texture_image.bytes).unwrap())),
             ..Default::default()
         };
         let box_mesh = renderer.new_mesh(&box_cpu_mesh, &box_material).unwrap();
 
         let right = Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap();
-        let skybox = Skybox::new(&gl, right.width(), right.height(),
-                                          &right.to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap().to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap().to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap().to_bytes(),
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap().to_bytes()).unwrap();
+        let skybox = Skybox::new(&gl, right.width, right.height,
+                                          &right.bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap().bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap().bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap().bytes,
+                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap().bytes).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
         let penguin = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
