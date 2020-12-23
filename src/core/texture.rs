@@ -190,9 +190,9 @@ impl TextureCubeMap
     }
 
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, width: u32, height: u32, data: [&[u8]; 6]) -> Result<Self, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, right: &Image, left: &Image, top: &Image, bottom: &Image, front: &Image, back: &Image) -> Result<Self, Error>
     {
-        let number_of_channels = data[0].len() as i32 / (width as i32 * height as i32);
+        let number_of_channels = right.bytes.len() as u32 / (right.width * right.height);
         let format = match number_of_channels {
             1 => Ok(Format::R8),
             3 => Ok(Format::RGB8),
@@ -200,9 +200,9 @@ impl TextureCubeMap
             _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
         }?;
 
-        let mut texture = Self::new(gl, width as usize, height as usize,
+        let mut texture = Self::new(gl, right.width as usize, right.height as usize,
             min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, format)?;
-        texture.fill_with_u8(data)?;
+        texture.fill_with_u8([&right.bytes, &left.bytes, &top.bytes, &bottom.bytes, &front.bytes, &back.bytes])?;
         Ok(texture)
     }
 

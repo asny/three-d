@@ -11,13 +11,12 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(gl: &Gl, width: u32, height: u32, right: &[u8], left: &[u8], top: &[u8], front: &[u8], back: &[u8]) -> Result<Skybox, Error>
+    pub fn new(gl: &Gl, right: &Image, left: &Image, top: &Image, front: &Image, back: &Image) -> Result<Skybox, Error>
     {
         let texture = TextureCubeMap::new_with_u8(&gl,
                                                   Interpolation::Linear, Interpolation::Linear, None,
                                                   Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
-                                                  width, height,
-                                                  [&right, &left, &top, &top, &front, &back])?;
+                                                  right, left, top, top, front, back)?;
         Self::new_with_texture(gl, texture)
     }
 

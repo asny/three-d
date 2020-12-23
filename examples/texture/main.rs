@@ -33,13 +33,11 @@ fn main() {
         };
         let box_mesh = renderer.new_mesh(&box_cpu_mesh, &box_material).unwrap();
 
-        let right = Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap();
-        let skybox = Skybox::new(&gl, right.width, right.height,
-                                          &right.bytes,
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap().bytes,
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap().bytes,
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap().bytes,
-                                          &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap().bytes).unwrap();
+        let skybox = Skybox::new(&gl, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
+                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap(),
+                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap(),
+                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap(),
+                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
         let penguin = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
