@@ -1,7 +1,6 @@
 
 use crate::*;
 use std::rc::Rc;
-use image::DynamicImage;
 use crate::PhongForwardMesh;
 
 pub struct PhongForwardPipeline {
@@ -59,11 +58,6 @@ impl PhongForwardPipeline {
             meshes.push(self.new_mesh(cpu_mesh, &material)?);
         }
         Ok(meshes)
-    }
-
-    pub fn new_skybox(&self, right: &DynamicImage, left: &DynamicImage, top: &DynamicImage, front: &DynamicImage, back: &DynamicImage) -> Result<Skybox, Error>
-    {
-        Skybox::new(&self.gl, right, left, top, front, back)
     }
 }
 

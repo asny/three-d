@@ -1,7 +1,6 @@
 
 use crate::*;
 use crate::core::Error;
-use image::{DynamicImage, GenericImageView};
 
 pub struct Skybox {
     gl: Gl,
@@ -12,13 +11,13 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(gl: &Gl, right: &DynamicImage, left: &DynamicImage, top: &DynamicImage, front: &DynamicImage, back: &DynamicImage) -> Result<Skybox, Error>
+    pub fn new(gl: &Gl, width: u32, height: u32, right: &[u8], left: &[u8], top: &[u8], front: &[u8], back: &[u8]) -> Result<Skybox, Error>
     {
         let texture = TextureCubeMap::new_with_u8(&gl,
                                                   Interpolation::Linear, Interpolation::Linear, None,
                                                   Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
-                                                  right.width(), right.height(),
-                                                  [&right.to_bytes(), &left.to_bytes(), &top.to_bytes(), &top.to_bytes(), &front.to_bytes(), &back.to_bytes()])?;
+                                                  width, height,
+                                                  [&right, &left, &top, &top, &front, &back])?;
         Self::new_with_texture(gl, texture)
     }
 
