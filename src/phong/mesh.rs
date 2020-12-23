@@ -149,6 +149,14 @@ pub struct PhongDeferredMesh {
 }
 
 impl PhongDeferredMesh {
+
+    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, cpu_material: &PhongMaterial) -> Result<Self, Error>
+    {
+        Ok(Self::new_with_programs(PhongForwardMesh::new(gl, cpu_mesh, cpu_material)?,
+                                Self::program_color(gl)?,
+                                Self::program_textured(gl)?))
+    }
+
     pub fn name(&self) -> &str {
         self.mesh.name()
     }
