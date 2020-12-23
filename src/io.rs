@@ -212,9 +212,9 @@ impl Saver {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
-            if let Some(ref img) = cpu_material.texture_image {
+            if let Some((bytes, width, height)) = &cpu_material.texture_image {
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
-                img.save_with_format(&tex_path, image::ImageFormat::Png)?;
+                image::save_buffer(tex_path, bytes, *width, *height, image::ColorType::Rgb8)?;
             }
         }
         let bytes = ThreeD::serialize(filename, cpu_meshes, cpu_materials)?;

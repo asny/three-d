@@ -2,6 +2,7 @@ use crate::io::*;
 use crate::cpu_mesh::CPUMesh;
 use std::path::Path;
 use crate::CPUMaterial;
+use image::GenericImageView;
 
 pub struct ThreeD {
 
@@ -48,7 +49,8 @@ impl ThreeD {
                 specular_power: material.specular_power,
                 texture_image: if let Some(filename) = material.texture_path {
                     let texture_path = path.as_ref().parent().unwrap_or(&Path::new("./")).join(filename);
-                    Some(Loader::get_image(loaded, &texture_path)?)
+                    let img = Loader::get_image(loaded, &texture_path)?;
+                    Some((img.to_bytes(), img.width(), img.height()))
                 } else {None}
             });
         }

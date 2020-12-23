@@ -35,7 +35,11 @@ impl Obj {
                     specular_intensity: Some(specular_intensity),
                     specular_power: Some(material.specular_coefficient as f32),
                     texture_image: if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
-                        { Some(Loader::get_image(loaded, &path)?) } else {None}
+                    {
+                        use image::GenericImageView;
+                        let img = Loader::get_image(loaded, &path)?;
+                        Some((img.to_bytes(), img.width(), img.height()))
+                    } else {None}
                 });
             }
         }
