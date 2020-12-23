@@ -19,10 +19,9 @@ pub struct PhongMaterial {
 
 impl PhongMaterial {
     pub fn new(gl: &Gl, cpu_material: &CPUMaterial) -> Result<Self, Error> {
-        let color_source = if let Some(ref img) = cpu_material.texture_image {
+        let color_source = if let Some(ref image) = cpu_material.texture_image {
             ColorSource::Texture(Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
-                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
-                                                                  img.width, img.height, &img.bytes)?))
+                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat, image)?))
         }
         else {
             ColorSource::Color(cpu_material.color.map(|(r, g, b, a)| vec4(r, g, b, a)).unwrap_or(vec4(1.0, 1.0, 1.0, 1.0)))

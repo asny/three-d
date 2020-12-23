@@ -25,11 +25,10 @@ fn main() {
             ..Default::default()
         };
         box_cpu_mesh.compute_normals();
-        let texture_image = Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap();
         let box_material = PhongMaterial {
             color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
                                                                   Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
-                                                                  texture_image.width, texture_image.height, &texture_image.bytes).unwrap())),
+                                                                  &Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap()).unwrap())),
             ..Default::default()
         };
         let box_mesh = renderer.new_mesh(&box_cpu_mesh, &box_material).unwrap();

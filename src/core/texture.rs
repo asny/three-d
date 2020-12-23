@@ -1,6 +1,7 @@
 use crate::core::Error;
 use crate::gl::Gl;
 use crate::gl::consts;
+use crate::Image;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Interpolation {
@@ -59,9 +60,9 @@ impl Texture2D
     }
 
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, width: u32, height: u32, data: &[u8]) -> Result<Texture2D, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, image: &Image) -> Result<Texture2D, Error>
     {
-        let number_of_channels = data.len() as i32 / (width as i32 * height as i32);
+        let number_of_channels = image.bytes.len() as u32 / (image.width * image.height);
         let format = match number_of_channels {
             1 => Ok(Format::R8),
             3 => Ok(Format::RGB8),
@@ -69,9 +70,9 @@ impl Texture2D
             _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
         }?;
 
-        let mut texture = Texture2D::new(gl, width as usize, height as usize,
+        let mut texture = Texture2D::new(gl, image.width as usize, image.height as usize,
             min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, format)?;
-        texture.fill_with_u8(data)?;
+        texture.fill_with_u8(&image.bytes)?;
         Ok(texture)
     }
 
