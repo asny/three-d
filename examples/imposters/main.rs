@@ -14,31 +14,6 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
-    Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded|
-    {
-        let (mut meshes, materials) = Obj::parse(loaded, "examples/assets/Tree1.obj").unwrap();
-        let mut out_meshes = Vec::new();
-        for mut cpu_mesh in meshes.drain(..) {
-            println!("{}", cpu_mesh.name );
-            match cpu_mesh.name.as_str() {
-                "tree.001_Mesh.002" => {
-                    println!("mat: {}", cpu_mesh.material_name.as_ref().unwrap() );
-                    cpu_mesh.name = "trunk".to_string();
-                    cpu_mesh.compute_normals();
-                    out_meshes.push(cpu_mesh);
-                },
-                "leaves.001" => {
-                    println!("mat: {}", cpu_mesh.material_name.as_ref().unwrap() );
-                    cpu_mesh.name = "leaves".to_string();
-                    cpu_mesh.compute_normals();
-                    out_meshes.push(cpu_mesh);
-                },
-                _ => {}
-            }
-        }
-        Saver::save_3d_file("./examples/assets/tree.3d", out_meshes, materials).unwrap();
-    });
-
     Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded| {
         let (mut meshes, materials)  = Obj::parse(loaded, "examples/assets/Tree1.obj").unwrap();
         meshes.retain(|mesh| mesh.name == "leaves.001" || mesh.name == "tree.001_Mesh.002");
