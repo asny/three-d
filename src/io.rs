@@ -27,7 +27,8 @@ pub enum Error {
     Obj(wavefront_obj::ParseError),
     #[cfg(not(target_arch = "wasm32"))]
     IO(std::io::Error),
-    FailedToLoad {message: String}
+    FailedToLoad {message: String},
+    FailedToSave {message: String}
 }
 
 #[cfg(feature = "image-io")]
@@ -213,8 +214,15 @@ impl Saver {
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
             if let Some((bytes, width, height)) = &cpu_material.texture_image {
+                let number_of_channels = bytes.len() as u32 / (*width * *height);
+                let format = match number_of_channels {
+                    1 => Ok(image::ColorType::L8),
+                    3 => Ok(image::ColorType::Rgb8),
+                    4 => Ok(image::ColorType::Rgba8),
+                    _ => Err(Error::FailedToSave {message: format!("Texture image could not be saved")})
+                }?;
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
-                image::save_buffer(tex_path, bytes, *width, *height, image::ColorType::Rgb8)?;
+                image::save_buffer(tex_path, bytes, *width, *height, format)?;
             }
         }
         let bytes = ThreeD::serialize(filename, cpu_meshes, cpu_materials)?;
@@ -235,7 +243,7 @@ impl Saver {
             }
         }
 
-        image::save_buffer(path, &pixels_out, width as u32, height as u32, image::ColorType::Rgb8).unwrap();
+        image::save_buffer(path, &pixels_out, width as u32, height as u32, image::ColorType::Rgb8)?;
         Ok(())
     }
 
