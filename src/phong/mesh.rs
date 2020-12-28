@@ -22,10 +22,6 @@ impl PhongForwardMesh
                                 Self::program_texture_ambient_directional(gl)?, cpu_mesh, material)
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
     pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
@@ -34,7 +30,7 @@ impl PhongForwardMesh
         };
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
-        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+        self.gpu_mesh.render(program, &self.material, transformation, camera, None)?;
         Ok(())
     }
 
@@ -49,7 +45,7 @@ impl PhongForwardMesh
         program.add_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
-        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+        self.gpu_mesh.render(program, &self.material, transformation, camera, None)?;
         Ok(())
     }
 
@@ -113,17 +109,13 @@ impl PhongDeferredMesh {
                                 Self::program_textured(gl)?)?)
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
     pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => self.program_deferred_color.as_ref(),
             ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
         };
-        self.gpu_mesh.render(program, &self.material, transformation, camera)
+        self.gpu_mesh.render(program, &self.material, transformation, camera, None)
     }
 
     pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
@@ -149,6 +141,69 @@ impl PhongDeferredMesh {
     }
 }
 
+pub struct PhongDeferredInstancedMesh {
+    pub name: String,
+    program_deferred_color: Rc<Program>,
+    program_deferred_texture: Rc<Program>,
+    gpu_mesh: GPUMesh,
+    instance_count: u32,
+    instance_buffer: VertexBuffer,
+    pub material: PhongMaterial
+}
+
+impl PhongDeferredInstancedMesh
+{
+    pub fn new(gl: &Gl, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    {
+        Self::new_with_programs(gl, positions, cpu_mesh, material,
+                                   Self::program_color(gl)?,
+                                Self::program_textured(gl)?)
+    }
+
+    pub fn update_positions(&mut self, positions: &[f32])
+    {
+        self.instance_count = positions.len() as u32 / 3;
+        self.instance_buffer.fill_with_dynamic_f32(positions);
+    }
+
+    pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = match self.material.color_source {
+            ColorSource::Color(_) => self.program_deferred_color.as_ref(),
+            ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
+        };
+        program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 1)?;
+
+        self.gpu_mesh.render(program, &self.material, transformation, camera, Some(self.instance_count))
+    }
+
+    pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(&gl,
+                                                    include_str!("shaders/mesh_instanced.vert"),
+                                                    &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/colored_deferred.frag")))?))
+    }
+
+    pub(crate) fn program_textured(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(&gl,
+                                                    include_str!("shaders/mesh_instanced.vert"),
+                                                    &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/colored_deferred.frag")))?))
+    }
+
+    pub(crate) fn new_with_programs(gl: &Gl, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial,
+                                    program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Result<Self, Error>
+    {
+        let instance_buffer = VertexBuffer::new_with_dynamic_f32(gl, positions)?;
+        Ok(Self { name: cpu_mesh.name.clone(), instance_count: positions.len() as u32 / 3, instance_buffer, gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
+            material: material.clone(), program_deferred_color, program_deferred_texture })
+    }
+}
+
 struct GPUMesh {
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
@@ -169,7 +224,7 @@ impl GPUMesh {
         Ok(GPUMesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
     }
 
-    fn render(&self, program: &Program, material: &PhongMaterial, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    fn render(&self, program: &Program, material: &PhongMaterial, transformation: &Mat4, camera: &camera::Camera, instances: Option<u32>) -> Result<(), Error>
     {
         program.add_uniform_float("diffuse_intensity", &material.diffuse_intensity)?;
         program.add_uniform_float("specular_intensity", &material.specular_intensity)?;
@@ -197,10 +252,19 @@ impl GPUMesh {
         program.use_attribute_vec3_float(&self.position_buffer, "position")?;
         program.use_attribute_vec3_float(&self.normal_buffer, "normal")?;
 
-        if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(index_buffer);
-        } else {
-            program.draw_arrays(self.position_buffer.count() as u32/3);
+        if let Some(instance_count) = instances {
+            if let Some(ref index_buffer) = self.index_buffer {
+                program.draw_elements_instanced(index_buffer, instance_count);
+            } else {
+                program.draw_arrays_instanced(self.position_buffer.count() as u32/3, instance_count);
+            }
+        }
+        else {
+            if let Some(ref index_buffer) = self.index_buffer {
+                program.draw_elements(index_buffer);
+            } else {
+                program.draw_arrays(self.position_buffer.count() as u32/3);
+            }
         }
         Ok(())
     }

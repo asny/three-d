@@ -34,7 +34,7 @@ fn main() {
             color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0))
         };
         let edges = renderer.new_cylinder_instances(cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007, &wireframe_material).unwrap();
-        let vertices = renderer.new_sphere_instances(&cpu_mesh.positions, 0.015, &wireframe_material).unwrap();
+        let vertices = renderer.new_instanced_mesh(&cpu_mesh.positions, &CPUMesh::sphere(0.015), &wireframe_material).unwrap();
 
         let plane = renderer.new_mesh(
             &CPUMesh {
@@ -60,7 +60,7 @@ fn main() {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.render_geometry(&transformation, camera)?;
             edges.render(&transformation, camera)?;
-            vertices.render(&transformation, camera)?;
+            vertices.render_geometry(&transformation, camera)?;
             Ok(())
         };
         spot_light0.generate_shadow_map(50.0, 512, &render_scene);
@@ -103,7 +103,7 @@ fn main() {
                     state::cull(&gl, state::CullType::Back);
                     model.render_geometry(&transformation, &camera)?;
                     edges.render(&transformation, &camera)?;
-                    vertices.render(&transformation, &camera)?;
+                    vertices.render_geometry(&transformation, &camera)?;
                     plane.render_geometry(&Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();

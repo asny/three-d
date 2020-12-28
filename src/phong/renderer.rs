@@ -1,7 +1,6 @@
 
 use crate::*;
 use std::rc::Rc;
-use crate::PhongForwardMesh;
 
 pub struct PhongForwardPipeline {
     gl: Gl,
@@ -288,9 +287,9 @@ impl PhongDeferredPipeline
         Ok(meshes)
     }
 
-    pub fn new_sphere_instances(&self, centers: &[f32], sphere_radius: f32, material: &PhongMaterial) -> Result<SphereInstances, Error>
+    pub fn new_instanced_mesh(&self, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
     {
-        SphereInstances::new(&self.gl, centers, sphere_radius, material)
+        PhongDeferredInstancedMesh::new(&self.gl, positions, cpu_mesh, material)
     }
 
     pub fn new_cylinder_instances(&self, indices: &[u32], end_points: &[f32], cylinder_radius: f32, material: &PhongMaterial) -> Result<CylinderInstances, Error>
