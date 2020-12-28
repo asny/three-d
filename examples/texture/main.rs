@@ -40,7 +40,8 @@ fn main() {
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
-        let penguin = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
+        let penguin_deferred = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
+        let penguin_forward = renderer.forward_pipeline().new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
@@ -81,14 +82,14 @@ fn main() {
                 box_mesh.render_geometry(&transformation, &camera)?;
                 transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
                 state::cull(&gl, state::CullType::Back);
-                penguin.render_geometry(&transformation, &camera)?;
+                penguin_deferred.render_geometry(&transformation, &camera)?;
                 Ok(())
             }).unwrap();
 
             renderer.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                 state::cull(&gl, state::CullType::Back);
-                penguin.mesh().render_with_ambient_and_directional(&transformation, &camera, &ambient_light, &directional_light)?;
+                penguin_forward.render_with_ambient_and_directional(&transformation, &camera, &ambient_light, &directional_light)?;
                 skybox.apply(&camera)?;
                 Ok(())
             }).unwrap();

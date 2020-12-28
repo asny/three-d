@@ -269,9 +269,9 @@ impl PhongDeferredPipeline
 
     pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredMesh, Error>
     {
-        Ok(PhongDeferredMesh::new_with_programs(self.forward_pipeline.new_mesh(cpu_mesh, material)?,
+        PhongDeferredMesh::new_with_programs(&self.gl, cpu_mesh, material,
                   self.mesh_color_program.clone(),
-                  self.mesh_texture_program.clone()))
+                  self.mesh_texture_program.clone())
     }
 
     pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<PhongDeferredMesh>, Error>
