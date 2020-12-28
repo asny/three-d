@@ -190,9 +190,10 @@ impl PhongDeferredInstancedMesh
     {
         Ok(Rc::new(Program::from_source(&gl,
                                                     include_str!("shaders/mesh_instanced.vert"),
-                                                    &format!("{}\n{}",
+                                                    &format!("{}\n{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
-                                                             include_str!("shaders/colored_deferred.frag")))?))
+                                                             include_str!("shaders/triplanar_mapping.frag"),
+                                                             include_str!("shaders/textured_deferred.frag")))?))
     }
 
     pub(crate) fn new_with_programs(gl: &Gl, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial,
