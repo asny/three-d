@@ -1,5 +1,8 @@
 pub mod fog;
-pub mod fxaa;
+pub use crate::fog::*;
 
-pub use crate::effects::fog::*;
-pub use crate::effects::fxaa::*;
+pub mod fxaa;
+pub use crate::fxaa::*;
+
+pub mod skybox;
+pub use crate::skybox::*;

@@ -6,6 +6,7 @@ pub mod texture;
 pub mod types;
 pub mod camera;
 pub mod image_effect;
+pub mod aabb;
 
 pub use crate::gl::Gl;
 pub use crate::gl::consts;
@@ -18,6 +19,16 @@ pub use texture::*;
 pub use types::*;
 pub use camera::*;
 pub use image_effect::*;
+pub use aabb::*;
+
+pub mod cpu_mesh;
+pub use crate::cpu_mesh::*;
+
+pub mod cpu_material;
+pub use crate::cpu_material::*;
+
+pub mod light;
+pub use crate::light::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -26,23 +37,8 @@ pub enum Error {
     FailedToLinkProgram {message: String},
     FailedToFindAttribute {message: String},
     FailedToFindUniform {message: String},
-    IO(std::io::Error),
     FailedToCreateFramebuffer {message: String},
-    #[cfg(feature = "image-io")]
-    Image(image::ImageError),
     FailedToCreateTexture {message: String},
-    BufferUpdateFailed {message: String}
-}
-
-#[cfg(feature = "image-io")]
-impl From<image::ImageError> for Error {
-    fn from(other: image::ImageError) -> Self {
-        Error::Image(other)
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(other: std::io::Error) -> Self {
-        Error::IO(other)
-    }
+    FailedToUpdateBuffer {message: String},
+    FailedToCreateMesh {message: String}
 }

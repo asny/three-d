@@ -3,13 +3,13 @@ use crate::core::*;
 pub struct Screen {}
 
 impl Screen {
-    pub fn write(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
-                          clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+                          clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
         gl.viewport(x, y, width, height);
         gl.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
         RenderTarget::clear(gl, clear_color, clear_depth);
-        render();
+        render()?;
         Ok(())
     }
 
@@ -36,46 +36,28 @@ impl Screen {
                         consts::DEPTH_COMPONENT, consts::FLOAT, &mut pixels);
         Ok(pixels)
     }
-
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn save_color(path: &str, gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<(), Error>
-    {
-        let pixels = Self::read_color(gl, x, y, width, height)?;
-        let mut pixels_out = vec![0u8; width * height * 3];
-        for row in 0..height {
-            for col in 0..width {
-                for i in 0..3 {
-                    pixels_out[3 * width * (height - row - 1) + 3 * col + i] =
-                        pixels[3 * width * row + 3 * col + i];
-                }
-            }
-        }
-
-        image::save_buffer(&std::path::Path::new(path), &pixels_out, width as u32, height as u32, image::RGB(8))?;
-        Ok(())
-    }
 }
 
 pub struct RenderTarget {}
 
 impl RenderTarget
 {
-    pub fn write_to_color(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
-                          clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_color<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+                          clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
     {
         Self::write(gl, x, y, width, height, clear_color, None, color_texture, None, render)
     }
 
-    pub fn write_to_depth(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
-                          clear_depth: Option<f32>, depth_texture: Option<&Texture2D>, render: &dyn Fn()) -> Result<(), Error>
+    pub fn write_to_depth<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+                          clear_depth: Option<f32>, depth_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
     {
         Self::write(gl, x, y, width, height, None, clear_depth, None, depth_texture, render)
     }
 
-    pub fn write(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
                  clear_color: Option<&Vec4>, clear_depth: Option<f32>,
                  color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
-                 render: &dyn Fn()) -> Result<(), Error>
+                 render: F) -> Result<(), Error>
     {
         gl.viewport(x, y, width, height);
         let id = RenderTarget::new_framebuffer(gl, if color_texture.is_some() {1} else {0})?;
@@ -94,7 +76,7 @@ impl RenderTarget
         }
         RenderTarget::clear(gl, clear_color, clear_depth);
 
-        render();
+        render()?;
 
         gl.delete_framebuffer(Some(&id));
 
@@ -108,28 +90,28 @@ impl RenderTarget
         Ok(())
     }
 
-    pub fn write_to_color_array(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+    pub fn write_to_color_array<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
                                 clear_color: Option<&Vec4>,
                        color_texture_array: Option<&Texture2DArray>,
                                 color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
-                                render: &dyn Fn()) -> Result<(), Error>
+                                render: F) -> Result<(), Error>
     {
         Self::write_array(gl, x, y, width, height, clear_color, None, color_texture_array, None, color_channel_count, color_channel_to_texture_layer, 0, render)
     }
 
-    pub fn write_to_depth_array(gl: &Gl, x: i32, y: i32, width: usize, height: usize, clear_depth: Option<f32>,
+    pub fn write_to_depth_array<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize, clear_depth: Option<f32>,
                        depth_texture_array: Option<&Texture2DArray>, depth_layer: usize,
-                                render: &dyn Fn()) -> Result<(), Error>
+                                render: F) -> Result<(), Error>
     {
         Self::write_array(gl, x, y, width, height,None, clear_depth, None, depth_texture_array, 0, &|i| {i}, depth_layer, render)
     }
 
-    pub fn write_array(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+    pub fn write_array<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
                        clear_color: Option<&Vec4>, clear_depth: Option<f32>,
                        color_texture_array: Option<&Texture2DArray>,
                        depth_texture_array: Option<&Texture2DArray>,
                        color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
-                       depth_layer: usize, render: &dyn Fn()) -> Result<(), Error>
+                       depth_layer: usize, render: F) -> Result<(), Error>
     {
         gl.viewport(x, y, width, height);
         let id = RenderTarget::new_framebuffer(gl, color_channel_count)?;
@@ -150,7 +132,7 @@ impl RenderTarget
         }
         RenderTarget::clear(gl, clear_color, clear_depth);
 
-        render();
+        render()?;
 
         gl.delete_framebuffer(Some(&id));
         if let Some(color_texture) = color_texture_array {

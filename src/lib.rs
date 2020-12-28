@@ -4,22 +4,15 @@ pub mod gl;
 pub mod core;
 pub use crate::core::*;
 
-#[cfg(not(feature = "no-renderer"))]
-pub mod renderer;
-#[cfg(not(feature = "no-renderer"))]
-pub mod light;
-#[cfg(not(feature = "no-renderer"))]
-pub mod objects;
-#[cfg(not(feature = "no-renderer"))]
-pub mod effects;
+pub mod io;
+pub use crate::io::*;
 
-#[cfg(not(feature = "no-renderer"))]
-pub use crate::renderer::*;
-#[cfg(not(feature = "no-renderer"))]
-pub use crate::light::*;
-#[cfg(not(feature = "no-renderer"))]
-pub use crate::objects::*;
-#[cfg(not(feature = "no-renderer"))]
+#[cfg(feature = "phong-renderer")]
+pub mod phong;
+#[cfg(feature = "phong-renderer")]
+pub use crate::phong::*;
+
+pub mod effects;
 pub use crate::effects::*;
 
 #[cfg(any(feature = "glutin-window", feature = "canvas"))]

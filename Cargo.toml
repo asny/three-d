@@ -1,6 +1,6 @@
 [package]
 name = "three-d"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 description = "A renderer which compiles to both desktop (OpenGL) and web (WebAssembly + WebGL)."
@@ -13,12 +13,13 @@ keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 exclude = ["/examples", ".gitignore", "index.html"]
 
 [features]
-default = ["glutin-window", "canvas", "3d-io", "image-io"]
+default = ["glutin-window", "canvas", "3d-io", "obj-io", "image-io", "phong-renderer"]
 glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
 canvas = [] # Default window for web (only available when building for the wasm32 architecture)
 image-io = ["image"] # Additional image functionality, for example loading an image to a texture
-3d-io = ["serde", "bincode"]
-no-renderer = [] # Does not include the deferred renderer, but only core OpenGL/WebGL functionality.
+3d-io = ["serde", "bincode", "image-io"]
+obj-io = ["wavefront_obj", "image-io"]
+phong-renderer = [] # Phong forward and deferred renderer.
 debug = [] # Prints OpenGL debug information (only available when NOT building for the wasm32 architecture)
 
 [dependencies]
@@ -26,7 +27,8 @@ log = "0.4"
 cgmath = "0.17"
 serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
-image = { version = "0.22", optional = true, default-features = false, features = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt"]}
+wavefront_obj = { version = "8.0", optional = true }
+image = { version = "0.23", optional = true, default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"]}
 
 [target.'cfg(not(target_arch = "wasm32"))'.build-dependencies]
 gl_generator = {version = "0.14"}
@@ -39,6 +41,4 @@ js-sys = "0.3"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
-
-[dev-dependencies]
-tri-mesh = "0.5.0"
+gloo-timers = "0.2"

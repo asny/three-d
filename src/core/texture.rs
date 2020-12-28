@@ -1,6 +1,7 @@
 use crate::core::Error;
 use crate::gl::Gl;
 use crate::gl::consts;
+use crate::Image;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Interpolation {
@@ -58,30 +59,10 @@ impl Texture2D
         Ok(Self { gl: gl.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    #[cfg(feature = "image-io")]
-    pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, bytes: &[u8]) -> Result<Texture2D, Error>
-    {
-        use image::GenericImageView;
-        let img = image::load_from_memory(bytes)?;
-        let (width, height) = img.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.raw_pixels())
-    }
-
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn new_from_file(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, path: &str) -> Result<Texture2D, Error>
-    {
-        use image::GenericImageView;
-        let img = image::open(path)?;
-        let (width, height) = img.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, width, height, &img.raw_pixels())
-    }
-
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, width: u32, height: u32, data: &[u8]) -> Result<Texture2D, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, image: &Image) -> Result<Texture2D, Error>
     {
-        let number_of_channels = data.len() as i32 / (width as i32 * height as i32);
+        let number_of_channels = image.bytes.len() as u32 / (image.width * image.height);
         let format = match number_of_channels {
             1 => Ok(Format::R8),
             3 => Ok(Format::RGB8),
@@ -89,9 +70,9 @@ impl Texture2D
             _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
         }?;
 
-        let mut texture = Texture2D::new(gl, width as usize, height as usize,
+        let mut texture = Texture2D::new(gl, image.width as usize, image.height as usize,
             min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, format)?;
-        texture.fill_with_u8(data)?;
+        texture.fill_with_u8(&image.bytes)?;
         Ok(texture)
     }
 
@@ -208,41 +189,10 @@ impl TextureCubeMap
         Ok(Self { gl: gl.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    #[cfg(feature = "image-io")]
-    pub fn new_from_bytes(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping,
-                      back_bytes: &[u8], front_bytes: &[u8], top_bytes: &[u8], left_bytes: &[u8], right_bytes: &[u8]) -> Result<TextureCubeMap, Error>
-    {
-        use image::GenericImageView;
-        let back = image::load_from_memory(back_bytes)?;
-        let front = image::load_from_memory(front_bytes)?;
-        let top = image::load_from_memory(top_bytes)?;
-        let left = image::load_from_memory(left_bytes)?;
-        let right = image::load_from_memory(right_bytes)?;
-        let (width, height) = back.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()])
-    }
-
-    #[cfg(all(not(target_arch = "wasm32"), feature = "image-io"))]
-    pub fn new_from_files(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, path: &str, back_name: &str, front_name: &str, top_name: &str, left_name: &str, right_name: &str) -> Result<TextureCubeMap, Error>
-    {
-        use image::GenericImageView;
-        let back = image::open(format!("{}{}", path, back_name))?;
-        let front = image::open(format!("{}{}", path, front_name))?;
-        let top = image::open(format!("{}{}", path, top_name))?;
-        let left = image::open(format!("{}{}", path, left_name))?;
-        let right = image::open(format!("{}{}", path, right_name))?;
-        let (width, height) = back.dimensions();
-        Self::new_with_u8(gl, min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, width, height, [&right.raw_pixels(), &left.raw_pixels(), &top.raw_pixels(),
-                              &top.raw_pixels(), &front.raw_pixels(), &back.raw_pixels()])
-    }
-
     pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, width: u32, height: u32, data: [&[u8]; 6]) -> Result<Self, Error>
+           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, right: &Image, left: &Image, top: &Image, bottom: &Image, front: &Image, back: &Image) -> Result<Self, Error>
     {
-        let number_of_channels = data[0].len() as i32 / (width as i32 * height as i32);
+        let number_of_channels = right.bytes.len() as u32 / (right.width * right.height);
         let format = match number_of_channels {
             1 => Ok(Format::R8),
             3 => Ok(Format::RGB8),
@@ -250,9 +200,9 @@ impl TextureCubeMap
             _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
         }?;
 
-        let mut texture = Self::new(gl, width as usize, height as usize,
+        let mut texture = Self::new(gl, right.width as usize, right.height as usize,
             min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, format)?;
-        texture.fill_with_u8(data)?;
+        texture.fill_with_u8([&right.bytes, &left.bytes, &top.bytes, &bottom.bytes, &front.bytes, &back.bytes])?;
         Ok(texture)
     }
 
