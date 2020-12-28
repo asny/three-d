@@ -147,23 +147,46 @@ pub struct PhongDeferredInstancedMesh {
     program_deferred_texture: Rc<Program>,
     gpu_mesh: GPUMesh,
     instance_count: u32,
-    instance_buffer: VertexBuffer,
+    instance_buffer1: VertexBuffer,
+    instance_buffer2: VertexBuffer,
+    instance_buffer3: VertexBuffer,
     pub material: PhongMaterial
 }
 
 impl PhongDeferredInstancedMesh
 {
-    pub fn new(gl: &Gl, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
-        Self::new_with_programs(gl, positions, cpu_mesh, material,
+        Self::new_with_programs(gl, transformations, cpu_mesh, material,
                                    Self::program_color(gl)?,
                                 Self::program_textured(gl)?)
     }
 
-    pub fn update_positions(&mut self, positions: &[f32])
+    pub fn update_transformations(&mut self, transformations: &[Mat4])
     {
-        self.instance_count = positions.len() as u32 / 3;
-        self.instance_buffer.fill_with_dynamic_f32(positions);
+        self.instance_count = transformations.len() as u32;
+        let mut row1 = Vec::new();
+        let mut row2 = Vec::new();
+        let mut row3 = Vec::new();
+        for transform in transformations {
+            row1.push(transform.x.x);
+            row1.push(transform.y.x);
+            row1.push(transform.z.x);
+            row1.push(transform.w.x);
+
+            row2.push(transform.x.y);
+            row2.push(transform.y.y);
+            row2.push(transform.z.y);
+            row2.push(transform.w.y);
+
+            row3.push(transform.x.z);
+            row3.push(transform.y.z);
+            row3.push(transform.z.z);
+            row3.push(transform.w.z);
+        }
+        self.instance_buffer1.fill_with_dynamic_f32(&row1);
+        self.instance_buffer2.fill_with_dynamic_f32(&row2);
+        self.instance_buffer3.fill_with_dynamic_f32(&row3);
     }
 
     pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -172,7 +195,9 @@ impl PhongDeferredInstancedMesh
             ColorSource::Color(_) => self.program_deferred_color.as_ref(),
             ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
         };
-        program.use_attribute_vec3_float_divisor(&self.instance_buffer, "translation", 1)?;
+        program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
+        program.use_attribute_vec4_float_divisor(&self.instance_buffer2, "row2", 1)?;
+        program.use_attribute_vec4_float_divisor(&self.instance_buffer3, "row3", 1)?;
 
         self.gpu_mesh.render(program, &self.material, transformation, camera, Some(self.instance_count))
     }
@@ -196,12 +221,16 @@ impl PhongDeferredInstancedMesh
                                                              include_str!("shaders/textured_deferred.frag")))?))
     }
 
-    pub(crate) fn new_with_programs(gl: &Gl, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial,
+    pub(crate) fn new_with_programs(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial,
                                     program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Result<Self, Error>
     {
-        let instance_buffer = VertexBuffer::new_with_dynamic_f32(gl, positions)?;
-        Ok(Self { name: cpu_mesh.name.clone(), instance_count: positions.len() as u32 / 3, instance_buffer, gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
-            material: material.clone(), program_deferred_color, program_deferred_texture })
+        let mut mesh = Self { name: cpu_mesh.name.clone(), instance_count: 0,
+            instance_buffer1: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
+            instance_buffer2: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
+            instance_buffer3: VertexBuffer::new_with_dynamic_f32(gl, &[])?, gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
+            material: material.clone(), program_deferred_color, program_deferred_texture };
+        mesh.update_transformations(transformations);
+        Ok(mesh)
     }
 }
 

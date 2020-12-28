@@ -291,16 +291,11 @@ impl PhongDeferredPipeline
         Ok(meshes)
     }
 
-    pub fn new_instanced_mesh(&self, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
+    pub fn new_instanced_mesh(&self, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
     {
-        PhongDeferredInstancedMesh::new_with_programs(&self.gl, positions, cpu_mesh, material,
+        PhongDeferredInstancedMesh::new_with_programs(&self.gl, transformations, cpu_mesh, material,
                   self.mesh_instanced_color_program.clone(),
                   self.mesh_instanced_texture_program.clone())
-    }
-
-    pub fn new_cylinder_instances(&self, indices: &[u32], end_points: &[f32], cylinder_radius: f32, material: &PhongMaterial) -> Result<CylinderInstances, Error>
-    {
-        CylinderInstances::new(&self.gl, indices, end_points, cylinder_radius, material)
     }
 
     pub fn forward_pipeline(&self) -> &PhongForwardPipeline

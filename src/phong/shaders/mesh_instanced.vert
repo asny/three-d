@@ -18,11 +18,19 @@ out vec3 pos;
 out vec3 nor;
 out vec2 uvs;
 
-in vec3 translation;
+in vec4 row1;
+in vec4 row2;
+in vec4 row3;
 
 void main()
 {
-    vec4 worldPosition = modelMatrix * vec4(position + translation, 1.);
+    mat4 transform;
+    transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
+    transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
+    transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
+    transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
+
+    vec4 worldPosition = modelMatrix * transform * vec4(position, 1.);
     nor = mat3(normalMatrix) * normal;
     pos = worldPosition.xyz;
     uvs = uv_coordinates;
