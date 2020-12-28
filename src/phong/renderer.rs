@@ -76,6 +76,8 @@ pub struct PhongDeferredPipeline {
     geometry_pass_depth_texture: Option<Texture2DArray>,
     mesh_color_program: Rc<Program>,
     mesh_texture_program: Rc<Program>,
+    mesh_instanced_color_program: Rc<Program>,
+    mesh_instanced_texture_program: Rc<Program>,
 }
 
 impl PhongDeferredPipeline
@@ -87,6 +89,8 @@ impl PhongDeferredPipeline
             forward_pipeline: PhongForwardPipeline::new(gl)?,
             mesh_color_program: PhongDeferredMesh::program_color(gl)?,
             mesh_texture_program: PhongDeferredMesh::program_textured(gl)?,
+            mesh_instanced_color_program: PhongDeferredInstancedMesh::program_color(gl)?,
+            mesh_instanced_texture_program: PhongDeferredInstancedMesh::program_textured(gl)?,
             ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
@@ -289,7 +293,9 @@ impl PhongDeferredPipeline
 
     pub fn new_instanced_mesh(&self, positions: &[f32], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
     {
-        PhongDeferredInstancedMesh::new(&self.gl, positions, cpu_mesh, material)
+        PhongDeferredInstancedMesh::new_with_programs(&self.gl, positions, cpu_mesh, material,
+                  self.mesh_instanced_color_program.clone(),
+                  self.mesh_instanced_texture_program.clone())
     }
 
     pub fn new_cylinder_instances(&self, indices: &[u32], end_points: &[f32], cylinder_radius: f32, material: &PhongMaterial) -> Result<CylinderInstances, Error>
