@@ -30,6 +30,35 @@ impl CPUMesh {
         CPUMesh {name: "sphere".to_string(), indices: Some(indices), positions, normals, ..Default::default() }
     }
 
+    pub fn cylinder(radius: f32, length: f32, angle_subdivisions: u32, length_subdivisions: u32) -> Self
+    {
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+        for i in 0..length_subdivisions +1 {
+            let x = i as f32 / length_subdivisions as f32;
+            for j in 0..angle_subdivisions {
+                let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
+
+                positions.push(length * x);
+                positions.push(radius * angle.cos());
+                positions.push(radius * angle.sin());
+            }
+        }
+        for i in 0..length_subdivisions as u32 {
+            for j in 0..angle_subdivisions as u32 {
+                indices.push(i * angle_subdivisions as u32 + j);
+                indices.push(i * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+
+                indices.push(i * angle_subdivisions as u32 + j);
+                indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                indices.push((i+1) * angle_subdivisions as u32 + j);
+            }
+        }
+        let normals = Some(compute_normals_with_indices(&indices, &positions));
+        Self {name: "cylinder".to_string(), positions, indices: Some(indices), normals, ..Default::default()}
+    }
+
     pub fn compute_normals(&mut self) {
         if let Some(ref ind) = self.indices {
             self.normals = Some(compute_normals_with_indices(ind, &self.positions));
