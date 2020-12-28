@@ -224,6 +224,26 @@ impl Program
         Ok(())
     }
 
+    pub fn use_attribute_vec4_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str) -> Result<(), Error>
+    {
+        self.use_attribute_vec3_float_divisor(buffer, attribute_name, 0)?;
+        Ok(())
+    }
+
+    pub fn use_attribute_vec4_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
+    {
+        if buffer.count() > 0 {
+            buffer.bind();
+            let loc = self.location(&attribute_name)?;
+            self.gl.enable_vertex_attrib_array(loc);
+            self.gl.vertex_attrib_pointer(loc, 4, consts::FLOAT, false, 0, 0);
+            self.gl.vertex_attrib_divisor(loc, divisor as u32);
+            self.gl.unbind_buffer(consts::ARRAY_BUFFER);
+            self.gl.unuse_program();
+        }
+        Ok(())
+    }
+
     pub fn draw_arrays(&self, count: u32)
     {
         self.set_used();
