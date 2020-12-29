@@ -92,6 +92,97 @@ impl PhongForwardMesh
     }
 }
 
+pub struct PhongForwardInstancedMesh {
+    pub name: String,
+    program_color_ambient: Rc<Program>,
+    program_color_ambient_directional: Rc<Program>,
+    program_texture_ambient: Rc<Program>,
+    program_texture_ambient_directional: Rc<Program>,
+    gpu_mesh: InstancedGPUMesh,
+    pub material: PhongMaterial
+}
+
+impl PhongForwardInstancedMesh
+{
+    pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    {
+        Self::new_with_programs(gl, transformations, Self::program_color_ambient(gl)?,
+                                Self::program_color_ambient_directional(gl)?,
+                                Self::program_texture_ambient(gl)?,
+                                Self::program_texture_ambient_directional(gl)?, cpu_mesh, material)
+    }
+
+    pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
+    {
+        let program = match self.material.color_source {
+            ColorSource::Color(_) => self.program_color_ambient.as_ref(),
+            ColorSource::Texture(_) => self.program_texture_ambient.as_ref()
+        };
+        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
+        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
+        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+        Ok(())
+    }
+
+    pub fn render_with_ambient_and_directional(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
+    {
+        let program = match self.material.color_source {
+            ColorSource::Color(_) => self.program_color_ambient_directional.as_ref(),
+            ColorSource::Texture(_) => self.program_texture_ambient_directional.as_ref()
+        };
+        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
+        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
+        program.add_uniform_vec3("eyePosition", &camera.position())?;
+        program.use_texture(directional_light.shadow_map(), "shadowMap")?;
+        program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
+        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+        Ok(())
+    }
+
+    pub(crate) fn program_color_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh_instanced.vert"),
+                                                                     &format!("{}\n{}",
+                                                                              &include_str!("shaders/light_shared.frag"),
+                                                                              &include_str!("shaders/colored_forward_ambient.frag")))?))
+    }
+
+    pub(crate) fn program_color_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh_instanced.vert"),
+                                                                     &format!("{}\n{}",
+                                                                              &include_str!("shaders/light_shared.frag"),
+                                                                              &include_str!("shaders/colored_forward_ambient_directional.frag")))?))
+    }
+
+    pub(crate) fn program_texture_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh_instanced.vert"),
+                                                                       &format!("{}\n{}\n{}",
+                                                                                include_str!("shaders/light_shared.frag"),
+                                                                                include_str!("shaders/triplanar_mapping.frag"),
+                                                                                include_str!("shaders/textured_forward_ambient.frag")))?))
+    }
+
+    pub(crate) fn program_texture_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh_instanced.vert"),
+                                                                       &format!("{}\n{}\n{}",
+                                                                                include_str!("shaders/light_shared.frag"),
+                                                                                include_str!("shaders/triplanar_mapping.frag"),
+                                                                                include_str!("shaders/textured_forward_ambient_directional.frag")))?))
+    }
+
+    pub(crate) fn new_with_programs(gl: &Gl, transformations: &[Mat4], program_color_ambient: Rc<Program>, program_color_ambient_directional: Rc<Program>,
+                                    program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
+                   cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    {
+        Ok(Self { name: cpu_mesh.name.clone(), gpu_mesh: InstancedGPUMesh::new(gl, transformations, cpu_mesh)?,
+            program_color_ambient, program_color_ambient_directional, program_texture_ambient,
+            program_texture_ambient_directional, material: material.clone() })
+    }
+}
+
 pub struct PhongDeferredMesh {
     pub name: String,
     program_deferred_color: Rc<Program>,

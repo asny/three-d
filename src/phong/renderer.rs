@@ -8,6 +8,10 @@ pub struct PhongForwardPipeline {
     mesh_color_ambient_directional_program: Rc<Program>,
     mesh_texture_ambient_program: Rc<Program>,
     mesh_texture_ambient_directional_program: Rc<Program>,
+    mesh_instanced_color_ambient_program: Rc<Program>,
+    mesh_instanced_color_ambient_directional_program: Rc<Program>,
+    mesh_instanced_texture_ambient_program: Rc<Program>,
+    mesh_instanced_texture_ambient_directional_program: Rc<Program>,
 }
 
 impl PhongForwardPipeline {
@@ -19,7 +23,11 @@ impl PhongForwardPipeline {
             mesh_color_ambient_program: PhongForwardMesh::program_color_ambient(gl)?,
             mesh_color_ambient_directional_program: PhongForwardMesh::program_color_ambient_directional(gl)?,
             mesh_texture_ambient_program: PhongForwardMesh::program_texture_ambient(gl)?,
-            mesh_texture_ambient_directional_program: PhongForwardMesh::program_texture_ambient_directional(gl)?
+            mesh_texture_ambient_directional_program: PhongForwardMesh::program_texture_ambient_directional(gl)?,
+            mesh_instanced_color_ambient_program: PhongForwardInstancedMesh::program_color_ambient(gl)?,
+            mesh_instanced_color_ambient_directional_program: PhongForwardInstancedMesh::program_color_ambient_directional(gl)?,
+            mesh_instanced_texture_ambient_program: PhongForwardInstancedMesh::program_texture_ambient(gl)?,
+            mesh_instanced_texture_ambient_directional_program: PhongForwardInstancedMesh::program_texture_ambient_directional(gl)?
         })
     }
 
@@ -57,6 +65,15 @@ impl PhongForwardPipeline {
             meshes.push(self.new_mesh(cpu_mesh, &material)?);
         }
         Ok(meshes)
+    }
+
+    pub fn new_instanced_mesh(&self, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongForwardInstancedMesh, Error>
+    {
+        PhongForwardInstancedMesh::new_with_programs(&self.gl, transformations,
+                  self.mesh_instanced_color_ambient_program.clone(),
+                  self.mesh_instanced_color_ambient_directional_program.clone(),
+                  self.mesh_instanced_texture_ambient_program.clone(),
+                  self.mesh_instanced_texture_ambient_directional_program.clone(), cpu_mesh, material)
     }
 }
 
