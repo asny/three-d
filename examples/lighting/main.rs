@@ -83,8 +83,8 @@ fn main() {
                         }
                     }
                 }
-                handle_surface_parameters(&event, &mut plane.mesh_mut().material);
-                handle_surface_parameters(&event, &mut monkey.mesh_mut().material);
+                handle_surface_parameters(&event, &mut plane.material);
+                handle_surface_parameters(&event, &mut monkey.material);
             }
             let c = time.cos() as f32;
             let s = time.sin() as f32;
