@@ -145,11 +145,7 @@ pub struct PhongDeferredInstancedMesh {
     pub name: String,
     program_deferred_color: Rc<Program>,
     program_deferred_texture: Rc<Program>,
-    gpu_mesh: GPUMesh,
-    instance_count: u32,
-    instance_buffer1: VertexBuffer,
-    instance_buffer2: VertexBuffer,
-    instance_buffer3: VertexBuffer,
+    gpu_mesh: InstancedGPUMesh,
     pub material: PhongMaterial
 }
 
@@ -160,6 +156,78 @@ impl PhongDeferredInstancedMesh
         Self::new_with_programs(gl, transformations, cpu_mesh, material,
                                    Self::program_color(gl)?,
                                 Self::program_textured(gl)?)
+    }
+
+    pub fn update_transformations(&mut self, transformations: &[Mat4])
+    {
+        self.gpu_mesh.update_transformations(transformations);
+    }
+
+    pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = match self.material.color_source {
+            ColorSource::Color(_) => self.program_deferred_color.as_ref(),
+            ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
+        };
+
+        self.gpu_mesh.render(program, &self.material, transformation, camera)
+    }
+
+    pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(&gl,
+                                                    include_str!("shaders/mesh_instanced.vert"),
+                                                    &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/colored_deferred.frag")))?))
+    }
+
+    pub(crate) fn program_textured(gl: &Gl) -> Result<Rc<Program>, Error>
+    {
+        Ok(Rc::new(Program::from_source(&gl,
+                                                    include_str!("shaders/mesh_instanced.vert"),
+                                                    &format!("{}\n{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/triplanar_mapping.frag"),
+                                                             include_str!("shaders/textured_deferred.frag")))?))
+    }
+
+    pub(crate) fn new_with_programs(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial,
+                                    program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Result<Self, Error>
+    {
+        Ok(Self { name: cpu_mesh.name.clone(),
+            gpu_mesh: InstancedGPUMesh::new(gl, transformations, cpu_mesh)?,
+            material: material.clone(), program_deferred_color, program_deferred_texture })
+    }
+}
+
+struct InstancedGPUMesh {
+    gpu_mesh: GPUMesh,
+    instance_count: u32,
+    instance_buffer1: VertexBuffer,
+    instance_buffer2: VertexBuffer,
+    instance_buffer3: VertexBuffer,
+}
+
+impl InstancedGPUMesh
+{
+    pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    {
+        let mut mesh = Self { instance_count: 0,
+            instance_buffer1: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
+            instance_buffer2: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
+            instance_buffer3: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
+            gpu_mesh: GPUMesh::new(gl, cpu_mesh)?};
+        mesh.update_transformations(transformations);
+        Ok(mesh)
+    }
+
+    pub fn render(&self, program: &Program, material: &PhongMaterial, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
+        program.use_attribute_vec4_float_divisor(&self.instance_buffer2, "row2", 1)?;
+        program.use_attribute_vec4_float_divisor(&self.instance_buffer3, "row3", 1)?;
+        self.gpu_mesh.render(program, material,transformation, camera, Some(self.instance_count))
     }
 
     pub fn update_transformations(&mut self, transformations: &[Mat4])
@@ -187,50 +255,6 @@ impl PhongDeferredInstancedMesh
         self.instance_buffer1.fill_with_dynamic_f32(&row1);
         self.instance_buffer2.fill_with_dynamic_f32(&row2);
         self.instance_buffer3.fill_with_dynamic_f32(&row3);
-    }
-
-    pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
-        let program = match self.material.color_source {
-            ColorSource::Color(_) => self.program_deferred_color.as_ref(),
-            ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
-        };
-        program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
-        program.use_attribute_vec4_float_divisor(&self.instance_buffer2, "row2", 1)?;
-        program.use_attribute_vec4_float_divisor(&self.instance_buffer3, "row3", 1)?;
-
-        self.gpu_mesh.render(program, &self.material, transformation, camera, Some(self.instance_count))
-    }
-
-    pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
-    {
-        Ok(Rc::new(Program::from_source(&gl,
-                                                    include_str!("shaders/mesh_instanced.vert"),
-                                                    &format!("{}\n{}",
-                                                             include_str!("shaders/deferred_objects_shared.frag"),
-                                                             include_str!("shaders/colored_deferred.frag")))?))
-    }
-
-    pub(crate) fn program_textured(gl: &Gl) -> Result<Rc<Program>, Error>
-    {
-        Ok(Rc::new(Program::from_source(&gl,
-                                                    include_str!("shaders/mesh_instanced.vert"),
-                                                    &format!("{}\n{}\n{}",
-                                                             include_str!("shaders/deferred_objects_shared.frag"),
-                                                             include_str!("shaders/triplanar_mapping.frag"),
-                                                             include_str!("shaders/textured_deferred.frag")))?))
-    }
-
-    pub(crate) fn new_with_programs(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial,
-                                    program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Result<Self, Error>
-    {
-        let mut mesh = Self { name: cpu_mesh.name.clone(), instance_count: 0,
-            instance_buffer1: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
-            instance_buffer2: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
-            instance_buffer3: VertexBuffer::new_with_dynamic_f32(gl, &[])?, gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
-            material: material.clone(), program_deferred_color, program_deferred_texture };
-        mesh.update_transformations(transformations);
-        Ok(mesh)
     }
 }
 
