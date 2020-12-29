@@ -14,23 +14,35 @@ fn main() {
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
-    Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded| {
-        let (mut meshes, materials)  = Obj::parse(loaded, "examples/assets/Tree1.obj").unwrap();
-        meshes.retain(|mesh| mesh.name == "leaves.001" || mesh.name == "tree.001_Mesh.002");
-        for mesh in meshes.iter_mut() {
-            mesh.compute_normals();
-        }
-
+    Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded|
+    {
         // Tree
-        let tree_mesh = renderer.new_meshes(&meshes, &materials).unwrap();
+        let (mut meshes, materials)  = Obj::parse(loaded, "examples/assets/Tree1.obj").unwrap();
+        for mesh in meshes.iter_mut() {
+            if mesh.name == "leaves.001" || mesh.name == "tree.001_Mesh.002" {
+                mesh.compute_normals();
+            }
+        }
+        let tree_cpu_mesh = meshes.iter().find(|m| m.name == "tree.001_Mesh.002").unwrap();
+        let tree_cpu_material = materials.iter().find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
+        let tree_mesh = renderer.new_mesh(tree_cpu_mesh, &PhongMaterial::new(&gl, &tree_cpu_material).unwrap()).unwrap();
+        let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
+        let leaves_cpu_material = materials.iter().find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
+        let leaves_mesh = renderer.forward_pipeline().new_mesh(leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
+
+        // Lights
+        let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
+        let mut directional_light = DirectionalLight::new(&gl, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
         // Imposters
         let mut aabb = AxisAlignedBoundingBox::new();
-        meshes.iter().for_each(|m| aabb.add(&m.compute_aabb()));
+        aabb.add(&tree_cpu_mesh.compute_aabb());
+        aabb.add(&leaves_cpu_mesh.compute_aabb());
         let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
-            for mesh in tree_mesh.iter() {
-                mesh.render_geometry(&Mat4::identity(), camera)?;
-            }
+            tree_mesh.render_geometry(&Mat4::identity(), camera)?;
+            state::cull(&gl, state::CullType::None);
+            state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
+            leaves_mesh.render_with_ambient_and_directional(&Mat4::identity(), camera, &ambient_light, &directional_light)?;
             Ok(())
         }, (aabb.min, aabb.max), 256).unwrap();
 
@@ -60,13 +72,12 @@ fn main() {
                 specular_intensity: 0.0, ..Default::default()}
         ).unwrap();
 
-        // Lights
-        let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
-        let mut directional_light = DirectionalLight::new(&gl, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
+        // Shadows
         directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 500.0, 4096, 4096, &|camera: &Camera| {
-            for mesh in tree_mesh.iter() {
-                mesh.render_geometry(&Mat4::identity(), camera)?;
-            }
+            tree_mesh.render_geometry(&Mat4::identity(), camera)?;
+            state::cull(&gl, state::CullType::None);
+            state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
+            leaves_mesh.render_with_ambient(&Mat4::identity(), camera, &ambient_light)?;
             imposter.render(camera)?;
             Ok(())
         });
@@ -104,11 +115,7 @@ fn main() {
             renderer.geometry_pass(width, height, &||
                 {
                     state::cull(&gl, state::CullType::Back);
-                    for mesh in tree_mesh.iter() {
-                        if mesh.name() == "tree.001_Mesh.002" {
-                            mesh.render_geometry(&Mat4::identity(), &camera)?;
-                        }
-                    }
+                    tree_mesh.render_geometry(&Mat4::identity(), &camera)?;
                     imposter.render(&camera)?;
                     plane.render_geometry(&Mat4::identity(), &camera)?;
                     Ok(())
@@ -120,11 +127,7 @@ fn main() {
 
                 state::cull(&gl, state::CullType::None);
                 state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
-                for mesh in tree_mesh.iter() {
-                    if mesh.name() == "leaves.001" {
-                        mesh.mesh().render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                    }
-                }
+                leaves_mesh.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 Ok(())
             }).unwrap();
 
