@@ -31,7 +31,7 @@ void main()
     transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
 
     vec4 worldPosition = modelMatrix * transform * vec4(position, 1.);
-    nor = mat3(normalMatrix) * normal;
+    nor = mat3(normalMatrix) * mat3(transpose(inverse(transform))) * normal;
     pos = worldPosition.xyz;
     uvs = uv_coordinates;
     gl_Position = camera.viewProjection * worldPosition;
