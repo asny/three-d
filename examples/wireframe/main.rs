@@ -33,8 +33,8 @@ fn main() {
             specular_power: 5.0,
             color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0))
         };
-        let edges = renderer.new_cylinder_instances(cpu_mesh.indices.as_ref().unwrap(), &cpu_mesh.positions, 0.007, &wireframe_material).unwrap();
-        let vertices = renderer.new_instanced_mesh(&cpu_mesh.positions, &CPUMesh::sphere(0.015), &wireframe_material).unwrap();
+        let edges = renderer.new_instanced_mesh(&edge_transformations(&cpu_mesh), &CPUMesh::cylinder(0.007, 1.0, 10, 1), &wireframe_material).unwrap();
+        let vertices = renderer.new_instanced_mesh(&vertex_transformations(&cpu_mesh), &CPUMesh::sphere(0.015), &wireframe_material).unwrap();
 
         let plane = renderer.new_mesh(
             &CPUMesh {
@@ -59,7 +59,7 @@ fn main() {
         let render_scene = |camera: &Camera| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.render_geometry(&transformation, camera)?;
-            edges.render(&transformation, camera)?;
+            edges.render_geometry(&transformation, camera)?;
             vertices.render_geometry(&transformation, camera)?;
             Ok(())
         };
@@ -102,7 +102,7 @@ fn main() {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                     state::cull(&gl, state::CullType::Back);
                     model.render_geometry(&transformation, &camera)?;
-                    edges.render(&transformation, &camera)?;
+                    edges.render_geometry(&transformation, &camera)?;
                     vertices.render_geometry(&transformation, &camera)?;
                     plane.render_geometry(&Mat4::identity(), &camera)?;
                     Ok(())
@@ -119,4 +119,38 @@ fn main() {
                 }
             }).unwrap();
     });
+}
+
+fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4>
+{
+    let mut iter = cpu_mesh.positions.iter();
+    let mut vertex_transformations = Vec::new();
+    while let Some(v) = iter.next() {
+        vertex_transformations.push(Mat4::from_translation(vec3(*v, *iter.next().unwrap(), *iter.next().unwrap())));
+    }
+    vertex_transformations
+}
+
+fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4>
+{
+    let mut edge_transformations = std::collections::HashMap::new();
+    let indices = cpu_mesh.indices.as_ref().unwrap();
+    for f in 0..indices.len()/3 {
+        let mut fun = |i1, i2| {
+            let p1 = vec3(cpu_mesh.positions[i1 * 3], cpu_mesh.positions[i1 * 3 + 1], cpu_mesh.positions[i1 * 3 + 2]);
+            let p2 = vec3(cpu_mesh.positions[i2 * 3], cpu_mesh.positions[i2 * 3 + 1], cpu_mesh.positions[i2 * 3 + 2]);
+            let scale = Mat4::from_nonuniform_scale((p1-p2).magnitude(), 1.0, 1.0);
+            let rotation = rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), (p2-p1).normalize());
+            let translation = Mat4::from_translation(p1);
+            let key = if i1 < i2 {(i1, i2)} else {(i2, i1)};
+            edge_transformations.insert(key, translation * rotation * scale);
+        };
+        let i1 = indices[3*f] as usize;
+        let i2 = indices[3*f+1] as usize;
+        let i3 = indices[3*f+2] as usize;
+        fun(i1, i2);
+        fun(i1, i3);
+        fun(i2, i3);
+    }
+    edge_transformations.drain().map(|(_, v)| v).collect::<Vec<Mat4>>()
 }
