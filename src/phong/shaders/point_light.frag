@@ -8,7 +8,8 @@ layout (location = 0) out vec4 color;
 
 void main()
 {
-    color = vec4(calculate_point_light(light, get_surface()), 1.0);
+    Surface surface = get_surface();
+    color = vec4(calculate_point_light(light, surface), 1.0);
 }
 
 

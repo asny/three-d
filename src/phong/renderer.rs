@@ -181,6 +181,7 @@ impl PhongDeferredPipeline
         if let Some(light) = ambient_light {
             self.ambient_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.ambient_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.ambient_light_effect.program().add_uniform_vec3("ambientLight.color", &light.color())?;
             self.ambient_light_effect.program().add_uniform_float("ambientLight.intensity", &light.intensity())?;
             self.ambient_light_effect.apply();

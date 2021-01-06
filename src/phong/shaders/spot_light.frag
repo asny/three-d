@@ -8,5 +8,6 @@ layout (std140) uniform SpotLightUniform
 
 void main()
 {
-    color = vec4(calculate_spot_light(light, get_surface()), 1.0);
+    Surface surface = get_surface();
+    color = vec4(calculate_spot_light(light, surface), 1.0);
 }
