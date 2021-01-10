@@ -25,7 +25,7 @@ impl Imposter {
 
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
-        let texture = Texture2DArray::new(gl, texture_width, texture_height, NO_VIEW_ANGLES*2,
+        let texture = Texture2DArray::new(gl, texture_width, texture_height, NO_VIEW_ANGLES,
                 Interpolation::Nearest, Interpolation::Nearest, None,
                                                 Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::RGBA8)?;
         let depth_texture = Texture2DArray::new(gl, texture_width, texture_height, NO_VIEW_ANGLES,
@@ -44,7 +44,7 @@ impl Imposter {
             RenderTarget::write_array(gl, 0, 0, texture_width, texture_height,
                               Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
                               Some(&texture), Some(&depth_texture),
-                              2, &|channel| { i + channel * NO_VIEW_ANGLES },
+                              1, &|_| { i },
                               i, || {render(&camera)?; Ok(())})?;
         }
 
