@@ -17,4 +17,7 @@ void main()
     vec4 color0 = texture(tex, vec3(uv, index0));
     vec4 color1 = texture(tex, vec3(uv, index1));
     out_color = mix(color0, color1, frac);
+    if(out_color.a < 0.5) {
+        discard;
+    }
 }

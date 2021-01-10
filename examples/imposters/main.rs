@@ -10,8 +10,8 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let renderer = PhongForwardPipeline::new(&gl).unwrap();
+    let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0,6.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
     Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded|
@@ -25,10 +25,11 @@ fn main() {
         }
         let tree_cpu_mesh = meshes.iter().find(|m| m.name == "tree.001_Mesh.002").unwrap();
         let tree_cpu_material = materials.iter().find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
-        let tree_mesh = renderer.new_mesh(tree_cpu_mesh, &PhongMaterial::new(&gl, &tree_cpu_material).unwrap()).unwrap();
+        let tree_material = PhongMaterial::new(&gl, &tree_cpu_material).unwrap();
+        let tree_mesh = renderer.new_mesh(tree_cpu_mesh, &tree_material).unwrap();
         let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
         let leaves_cpu_material = materials.iter().find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
-        let leaves_mesh = renderer.forward_pipeline().new_mesh(leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
+        let leaves_mesh = renderer.new_mesh(leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
 
         // Lights
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
@@ -38,10 +39,10 @@ fn main() {
         let mut aabb = AxisAlignedBoundingBox::new();
         aabb.add(&tree_cpu_mesh.compute_aabb());
         aabb.add(&leaves_cpu_mesh.compute_aabb());
-        let mut imposter = Imposter::new(&gl, &|camera: &Camera| {
-            tree_mesh.render_geometry(&Mat4::identity(), camera)?;
+        let mut imposter = Imposter::new(&gl, |camera: &Camera| {
+            state::cull(&gl, state::CullType::Back);
+            tree_mesh.render_with_ambient_and_directional(&Mat4::identity(), camera, &ambient_light, &directional_light)?;
             state::cull(&gl, state::CullType::None);
-            state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
             leaves_mesh.render_with_ambient_and_directional(&Mat4::identity(), camera, &ambient_light, &directional_light)?;
             Ok(())
         }, (aabb.min, aabb.max), 256).unwrap();
@@ -55,7 +56,7 @@ fn main() {
                     positions.push(10.0 * x as f32);
                     positions.push(0.0);
                     positions.push(10.0 * y as f32);
-                    angles.push((1.0 + y as f32 / t as f32) * std::f32::consts::PI);
+                    angles.push(0.0);
                 }
             }
         }
@@ -64,7 +65,7 @@ fn main() {
         // Plane
         let plane = renderer.new_mesh(
             &CPUMesh {
-                positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
+                positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                 ..Default::default()},
             &PhongMaterial {color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
@@ -73,12 +74,11 @@ fn main() {
         ).unwrap();
 
         // Shadows
-        directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 500.0, 4096, 4096, &|camera: &Camera| {
-            tree_mesh.render_geometry(&Mat4::identity(), camera)?;
+        directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 50.0, 50.0, 100.0, 512, 512, &|camera: &Camera| {
+            state::cull(&gl, state::CullType::Back);
+            tree_mesh.render_with_ambient(&Mat4::identity(), camera, &ambient_light)?;
             state::cull(&gl, state::CullType::None);
-            state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
             leaves_mesh.render_with_ambient(&Mat4::identity(), camera, &ambient_light)?;
-            imposter.render(camera)?;
             Ok(())
         });
 
@@ -101,33 +101,20 @@ fn main() {
                     Event::MouseWheel {delta} => {
                         camera.zoom(*delta as f32);
                     },
-                    Event::Key { ref state, ref kind } => {
-                        if kind == "R" && *state == State::Pressed
-                        {
-                            renderer.next_debug_type();
-                            println!("{:?}", renderer.debug_type());
-                        }
-                    }
+                    _ => {}
                 }
             }
 
-            // Geometry pass
-            renderer.geometry_pass(width, height, &||
-                {
-                    state::cull(&gl, state::CullType::Back);
-                    tree_mesh.render_geometry(&Mat4::identity(), &camera)?;
-                    imposter.render(&camera)?;
-                    plane.render_geometry(&Mat4::identity(), &camera)?;
-                    Ok(())
-                }).unwrap();
-
-            // Light pass
             Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
-                renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
-
+                state::cull(&gl, state::CullType::Back);
+                plane.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                tree_mesh.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 state::cull(&gl, state::CullType::None);
-                state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
                 leaves_mesh.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+
+                state::cull(&gl, state::CullType::Back);
+                state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
+                imposter.render(&camera)?;
                 Ok(())
             }).unwrap();
 
