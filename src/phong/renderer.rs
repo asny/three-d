@@ -75,6 +75,11 @@ impl PhongForwardPipeline {
                   self.mesh_instanced_texture_ambient_program.clone(),
                   self.mesh_instanced_texture_ambient_directional_program.clone(), cpu_mesh, material)
     }
+
+    pub fn new_sprite(&self, transformations: &[Mat4], material: &PhongMaterial) -> Result<PhongForwardInstancedMesh, Error>
+    {
+        self.new_instanced_mesh(transformations, &CPUMesh::sprite(), material)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -314,6 +319,11 @@ impl PhongDeferredPipeline
         PhongDeferredInstancedMesh::new_with_programs(&self.gl, transformations, cpu_mesh, material,
                   self.mesh_instanced_color_program.clone(),
                   self.mesh_instanced_texture_program.clone())
+    }
+
+    pub fn new_sprite(&self, transformations: &[Mat4], material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
+    {
+        self.new_instanced_mesh(transformations, &CPUMesh::sprite(), material)
     }
 
     pub fn forward_pipeline(&self) -> &PhongForwardPipeline
