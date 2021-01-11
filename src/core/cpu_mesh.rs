@@ -12,6 +12,32 @@ pub struct CPUMesh {
 }
 
 impl CPUMesh {
+    pub fn sprite() -> Self {
+        let indices = vec![
+            0, 1, 2, 2, 3, 0
+        ];
+        let positions = vec![
+            -1.0, -1.0, 0.0,
+            1.0, -1.0, 0.0,
+            1.0, 1.0, 0.0,
+            -1.0, 1.0, 0.0,
+        ];
+        let normals = vec![
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+        ];
+        let uvs = vec![
+            0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0
+        ];
+        CPUMesh {name: "sprite".to_string(), indices: Some(indices), positions, normals: Some(normals), uvs: Some(uvs), ..Default::default() }
+    }
+
+
     pub fn sphere(radius: f32) -> Self {
         let x = radius*0.525731112119133606f32;
         let z = radius*0.850650808352039932f32;

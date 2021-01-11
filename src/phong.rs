@@ -6,7 +6,7 @@ pub mod renderer;
 pub use crate::renderer::*;
 
 pub mod mesh;
-pub mod imposter;
-
 pub use crate::mesh::*;
+
+pub mod imposter;
 pub use crate::imposter::*;
