@@ -7,7 +7,6 @@ pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NO
 
 pub struct PhongDeferredPipeline {
     gl: Gl,
-    forward_pipeline: PhongForwardPipeline,
     ambient_light_effect: ImageEffect,
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
@@ -28,7 +27,6 @@ impl PhongDeferredPipeline
     {
         let renderer = Self {
             gl: gl.clone(),
-            forward_pipeline: PhongForwardPipeline::new(gl)?,
             mesh_color_program: PhongDeferredMesh::program_color(gl)?,
             mesh_texture_program: PhongDeferredMesh::program_textured(gl)?,
             mesh_instanced_color_program: PhongDeferredInstancedMesh::program_color(gl)?,
@@ -163,7 +161,10 @@ impl PhongDeferredPipeline
                        spot_lights: &[&SpotLight], point_lights: &[&PointLight], width: usize, height: usize,
                        forward_pass: F) -> Result<(), Error>
     {
-        Ok(self.forward_pipeline.render_to_screen(width, height, || {
+        Ok(Screen::write(&self.gl, 0, 0, width, height,
+                         Some(&vec4(0.0, 0.0, 0.0, 1.0)),
+                         Some(1.0),
+                         || {
             self.light_pass(camera, ambient_light, directional_lights, spot_lights, point_lights)?;
             forward_pass()?;
             Ok(())
@@ -210,7 +211,7 @@ impl PhongDeferredPipeline
 
     pub fn new_material(&self, cpu_material: &CPUMaterial) -> Result<PhongMaterial, Error>
     {
-        self.forward_pipeline.new_material(cpu_material)
+        PhongMaterial::new(&self.gl, cpu_material)
     }
 
     pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredMesh, Error>
@@ -244,10 +245,5 @@ impl PhongDeferredPipeline
     pub fn new_sprite(&self, transformations: &[Mat4], material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
     {
         self.new_instanced_mesh(transformations, &CPUMesh::sprite(), material)
-    }
-
-    pub fn forward_pipeline(&self) -> &PhongForwardPipeline
-    {
-        &self.forward_pipeline
     }
 }

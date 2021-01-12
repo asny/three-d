@@ -10,7 +10,8 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
+    let forward_pipeline = PhongForwardPipeline::new(&gl).unwrap();
+    let mut deferred_pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -31,7 +32,7 @@ fn main() {
                                                                   &Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap()).unwrap())),
             ..Default::default()
         };
-        let box_mesh = renderer.new_mesh(&box_cpu_mesh, &box_material).unwrap();
+        let box_mesh = deferred_pipeline.new_mesh(&box_cpu_mesh, &box_material).unwrap();
 
         let skybox = Skybox::new(&gl, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap(),
@@ -40,8 +41,8 @@ fn main() {
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
-        let penguin_deferred = renderer.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
-        let penguin_forward = renderer.forward_pipeline().new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
+        let penguin_deferred = deferred_pipeline.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
+        let penguin_forward = forward_pipeline.new_meshes(&penguin_cpu_meshes, &penguin_cpu_materials).unwrap().remove(0);
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
@@ -68,8 +69,8 @@ fn main() {
                     Event::Key { state, kind } => {
                         if kind == "R" && *state == State::Pressed
                         {
-                            renderer.next_debug_type();
-                            println!("{:?}", renderer.debug_type());
+                            deferred_pipeline.next_debug_type();
+                            println!("{:?}", deferred_pipeline.debug_type());
                         }
                     }
                 }
@@ -77,7 +78,7 @@ fn main() {
 
             // draw
             // Geometry pass
-            renderer.geometry_pass(width, height, &|| {
+            deferred_pipeline.geometry_pass(width, height, &|| {
                 let mut transformation = Mat4::identity();
                 box_mesh.render_geometry(&transformation, &camera)?;
                 transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
@@ -86,7 +87,7 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            renderer.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
+            deferred_pipeline.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                 state::cull(&gl, state::CullType::Back);
                 penguin_forward.render_with_ambient_and_directional(&transformation, &camera, &ambient_light, &directional_light)?;
