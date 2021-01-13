@@ -79,13 +79,11 @@ fn main() {
             time += frame_input.elapsed_time;
 
             // draw
-            let render = || {
-                    monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                    Ok(())
-            };
-
             if fog_enabled || fxaa_enabled {
-                renderer.depth_pass(width, height, &render).unwrap();
+                renderer.depth_pass(width, height, &|| {
+                    monkey.render_depth(&Mat4::identity(), &camera)?;
+                    Ok(())
+                }).unwrap();
             }
 
             if fxaa_enabled {
@@ -93,7 +91,7 @@ fn main() {
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
 
                 RenderTarget::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(renderer.depth_texture()), || {
-                    render()?;
+                    monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(&camera)?;
                     if fog_enabled {
                         fog_effect.apply(time as f32, &camera, renderer.depth_texture())?;
@@ -107,7 +105,7 @@ fn main() {
                 }).unwrap();
             } else {
                 renderer.render_to_screen(width, height, || {
-                    render()?;
+                    monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(&camera)?;
                     if fog_enabled {
                         fog_effect.apply(time as f32, &camera, renderer.depth_texture())?;
