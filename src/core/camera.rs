@@ -219,22 +219,31 @@ impl Camera
 
     pub fn pan(&mut self, x: f32, y: f32)
     {
-        let direction = (self.target - self.position).normalize();
+        let mut direction = self.target - self.position;
+        let zoom = direction.magnitude();
+        direction /= zoom;
         let right = direction.cross(self.up);
         let up = right.cross(direction);
-        let delta = (-right * x + up * y) * 0.005;
+        let delta = (-right * x + up * y) * zoom * 0.005;
         self.set_view(self.position + delta, self.target + delta, self.up);
     }
 
     pub fn zoom(&mut self, wheel: f32)
     {
-        let mut position = *self.position();
-        let target = *self.target();
-        let up = *self.up();
-        let mut zoom = (position - target).magnitude();
-        zoom += wheel;
-        zoom = zoom.max(1.0);
-        position = target + (*self.position() - *self.target()).normalize() * zoom;
-        self.set_view(position, target, up);
+        if self.fov == degrees(0.0) {
+            let height = self.height - wheel;
+            let width = height * self.width / self.height;
+            if height > 0.001 && width > 0.001 {
+                self.set_orthographic_projection(width, height, self.z_far - self.z_near);
+            }
+        }
+        else {
+            let mut direction = self.target - self.position;
+            let mut zoom = direction.magnitude();
+            direction /= zoom;
+            zoom += wheel;
+            zoom = zoom.max(1.0);
+            self.set_view(self.target - direction * zoom, self.target, self.up);
+        }
     }
 }
