@@ -96,20 +96,20 @@ fn main() {
             point_light1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
             // Draw
-            let render_scene = |camera: &Camera| {
-                monkey.render_geometry(&Mat4::identity(), camera)?;
+            let render_scene_depth = |camera: &Camera| {
+                monkey.render_depth(&Mat4::identity(), camera)?;
                 Ok(())
             };
             if shadows_enabled {
-                directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene);
-                directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene);
-                spot_light.generate_shadow_map(20.0, 1024, render_scene);
+                directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene_depth);
+                directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene_depth);
+                spot_light.generate_shadow_map(20.0, 1024, render_scene_depth);
             }
 
             // Geometry pass
             renderer.geometry_pass(width, height, &||
                 {
-                    render_scene(&camera)?;
+                    monkey.render_geometry(&Mat4::identity(), &camera)?;
                     plane.render_geometry(&Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();

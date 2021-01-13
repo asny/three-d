@@ -58,9 +58,9 @@ fn main() {
 
         let render_scene = |camera: &Camera| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-            model.render_geometry(&transformation, camera)?;
-            edges.render_geometry(&transformation, camera)?;
-            vertices.render_geometry(&transformation, camera)?;
+            model.render_depth(&transformation, camera)?;
+            edges.render_depth(&transformation, camera)?;
+            vertices.render_depth(&transformation, camera)?;
             Ok(())
         };
         spot_light0.generate_shadow_map(50.0, 512, &render_scene);
@@ -81,7 +81,7 @@ fn main() {
                         },
                         Event::MouseMotion { delta } => {
                             if rotating {
-                                camera.rotate(delta.0 as f32, delta.1 as f32);
+                                camera.rotate_around_up(delta.0 as f32, delta.1 as f32);
                             }
                         },
                         Event::MouseWheel { delta } => {

@@ -76,9 +76,9 @@ fn main() {
         // Shadows
         directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 50.0, 50.0, 100.0, 512, 512, &|camera: &Camera| {
             state::cull(&gl, state::CullType::Back);
-            tree_mesh.render_with_ambient(&Mat4::identity(), camera, &ambient_light)?;
+            tree_mesh.render_depth(&Mat4::identity(), camera)?;
             state::cull(&gl, state::CullType::None);
-            leaves_mesh.render_with_ambient(&Mat4::identity(), camera, &ambient_light)?;
+            leaves_mesh.render_depth(&Mat4::identity(), camera)?;
             Ok(())
         });
 

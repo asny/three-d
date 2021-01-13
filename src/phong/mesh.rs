@@ -124,6 +124,18 @@ impl PhongForwardInstancedMesh
                                 Self::program_texture_ambient_directional(gl)?, cpu_mesh, material)
     }
 
+    pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = match self.material.color_source {
+            ColorSource::Color(_) => self.program_color_ambient.as_ref(),
+            ColorSource::Texture(_) => self.program_texture_ambient.as_ref()
+        };
+        program.add_uniform_vec3("ambientLight.color", &vec3(0.0, 0.0, 0.0))?;
+        program.add_uniform_float("ambientLight.intensity", &0.0)?;
+        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+        Ok(())
+    }
+
     pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
@@ -212,6 +224,11 @@ impl PhongDeferredMesh {
                                 Self::program_textured(gl)?)?)
     }
 
+    pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        self.render_geometry(transformation, camera)
+    }
+
     pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
@@ -264,6 +281,11 @@ impl PhongDeferredInstancedMesh
     pub fn update_transformations(&mut self, transformations: &[Mat4])
     {
         self.gpu_mesh.update_transformations(transformations);
+    }
+
+    pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        self.render_geometry(transformation, camera)
     }
 
     pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
