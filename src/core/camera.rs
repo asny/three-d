@@ -6,6 +6,8 @@ pub struct Camera {
     target: Vec3,
     up: Vec3,
     fov: Degrees,
+    width: f32,
+    height: f32,
     z_near: f32,
     z_far: f32,
     view: Mat4,
@@ -20,7 +22,7 @@ impl Camera
     fn new(gl: &Gl) -> Camera
     {
         Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16, 16, 3, 1]).unwrap(), frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
-            position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
+            width: 1.0, height: 1.0, position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()}
     }
 
@@ -46,6 +48,8 @@ impl Camera
         self.fov = fovy;
         self.z_near = z_near;
         self.z_far = z_far;
+        self.width = aspect;
+        self.height = 1.0;
         self.projection = perspective(fovy, aspect, z_near, z_far);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -57,18 +61,23 @@ impl Camera
         self.fov = degrees(0.0);
         self.z_near = 0.0;
         self.z_far = depth;
+        self.width = width;
+        self.height = height;
         self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, 0.0, depth);
         self.update_screen2ray();
         self.update_matrix_buffer();
         self.update_frustrum();
     }
 
-    pub fn set_size(&mut self, width: f32, height: f32) {
-        if self.fov == degrees(0.0) {
-            self.set_orthographic_projection(width, height, self.z_far);
-        }
-        else {
-            self.set_perspective_projection(self.fov, width as f32 / height as f32, self.z_near, self.z_far);
+    pub fn set_aspect(&mut self, aspect: f32) {
+        if (self.width as f32 / self.height as f32 - aspect).abs() > 0.001
+        {
+            if self.fov == degrees(0.0) {
+                self.set_orthographic_projection(self.height * aspect, self.height, self.z_far);
+            }
+            else {
+                self.set_perspective_projection(self.fov, aspect, self.z_near, self.z_far);
+            }
         }
     }
 
