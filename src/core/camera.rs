@@ -189,9 +189,11 @@ impl Camera
         direction /= zoom;
         let right = direction.cross(self.up);
         let up = right.cross(direction);
-        let mut new_pos = self.position + (-right * x + up * y) * 0.1;
-        new_pos = self.target + (new_pos - self.target).normalize() * zoom;
-        self.set_view(new_pos, self.target, self.up);
+        let new_pos = self.position + (-right * x + up * y) * 0.1;
+        let new_dir = (self.target - new_pos).normalize();
+        if new_dir.dot(self.up).abs() < 0.999 {
+            self.set_view(self.target - new_dir * zoom, self.target, self.up);
+        }
     }
 
     pub fn pan(&mut self, x: f32, y: f32)
