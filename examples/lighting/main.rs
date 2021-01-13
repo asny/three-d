@@ -54,7 +54,7 @@ fn main() {
                     },
                     Event::MouseMotion { delta } => {
                         if rotating {
-                            camera.rotate(delta.0 as f32, delta.1 as f32);
+                            camera.rotate_around_up(delta.0 as f32, delta.1 as f32);
                         }
                     },
                     Event::MouseWheel { delta } => {
