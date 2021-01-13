@@ -76,8 +76,7 @@ impl Camera
     {
         self.position = position;
         self.target = target;
-        let dir = (target - position).normalize();
-        self.up = dir.cross(up.normalize().cross(dir));
+        self.up = up;
         self.view = Mat4::look_at(Point::from_vec(self.position), Point::from_vec(self.target), self.up);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -183,19 +182,25 @@ impl Camera
         self.set_view(*self.position() + change, *self.target() + change, *self.up());
     }
 
-    pub fn rotate(&mut self, xrel: f32, yrel: f32)
+    pub fn rotate(&mut self, x: f32, y: f32)
     {
-        let x = -xrel;
-        let y = yrel;
-        let direction = (*self.target() - *self.position()).normalize();
-        let up_direction = vec3(0., 1., 0.);
-        let right_direction = direction.cross(up_direction);
-        let mut camera_position = *self.position();
-        let target = *self.target();
-        let zoom = (camera_position - target).magnitude();
-        camera_position = camera_position + (right_direction * x + up_direction * y) * 0.1;
-        camera_position = target + (camera_position - target).normalize() * zoom;
-        self.set_view(camera_position, target, up_direction);
+        let mut direction = self.target - self.position;
+        let zoom = direction.magnitude();
+        direction /= zoom;
+        let right = direction.cross(self.up);
+        let up = right.cross(direction);
+        let mut new_pos = self.position + (-right * x + up * y) * 0.1;
+        new_pos = self.target + (new_pos - self.target).normalize() * zoom;
+        self.set_view(new_pos, self.target, self.up);
+    }
+
+    pub fn pan(&mut self, x: f32, y: f32)
+    {
+        let direction = (self.target - self.position).normalize();
+        let right = direction.cross(self.up);
+        let up = right.cross(direction);
+        let delta = (-right * x + up * y) * 0.005;
+        self.set_view(self.position + delta, self.target + delta, self.up);
     }
 
     pub fn zoom(&mut self, wheel: f32)
