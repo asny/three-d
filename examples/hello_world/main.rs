@@ -36,7 +36,7 @@ fn main() {
     window.render_loop(move |frame_input|
     {
         time += frame_input.elapsed_time as f32;
-        camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
+        camera.set_aspect(frame_input.screen_width as f32 / frame_input.screen_height as f32);
 
         Screen::write(&gl, 0, 0, screen_width, screen_height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), || {
             program.use_attribute_vec3_float(&position_buffer, "position")?;

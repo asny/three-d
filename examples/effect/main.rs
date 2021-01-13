@@ -47,7 +47,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
-            camera.set_size(frame_input.screen_width as f32, frame_input.screen_height as f32);
+            camera.set_aspect(frame_input.screen_width as f32 / frame_input.screen_height as f32);
 
             for event in frame_input.events.iter() {
                 match event {
