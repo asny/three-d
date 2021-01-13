@@ -191,6 +191,18 @@ impl Camera
         let up = right.cross(direction);
         let new_pos = self.position + (-right * x + up * y) * 0.1;
         let new_dir = (self.target - new_pos).normalize();
+        self.set_view(self.target - new_dir * zoom, self.target, up);
+    }
+
+    pub fn rotate_around_up(&mut self, x: f32, y: f32)
+    {
+        let mut direction = self.target - self.position;
+        let zoom = direction.magnitude();
+        direction /= zoom;
+        let right = direction.cross(self.up);
+        let up = right.cross(direction);
+        let new_pos = self.position + (-right * x + up * y) * 0.1;
+        let new_dir = (self.target - new_pos).normalize();
         if new_dir.dot(self.up).abs() < 0.999 {
             self.set_view(self.target - new_dir * zoom, self.target, self.up);
         }
