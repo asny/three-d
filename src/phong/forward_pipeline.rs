@@ -4,6 +4,7 @@ use std::rc::Rc;
 
 pub struct PhongForwardPipeline {
     gl: Gl,
+    depth_texture: Option<Texture2D>,
     mesh_color_ambient_program: Rc<Program>,
     mesh_color_ambient_directional_program: Rc<Program>,
     mesh_texture_ambient_program: Rc<Program>,
@@ -20,6 +21,9 @@ impl PhongForwardPipeline {
     {
         Ok(Self {
             gl: gl.clone(),
+            depth_texture: Some(Texture2D::new(gl, 1, 1,
+                    Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge, Format::Depth32F)?),
             mesh_color_ambient_program: PhongForwardMesh::program_color_ambient(gl)?,
             mesh_color_ambient_directional_program: PhongForwardMesh::program_color_ambient_directional(gl)?,
             mesh_texture_ambient_program: PhongForwardMesh::program_texture_ambient(gl)?,
@@ -31,12 +35,31 @@ impl PhongForwardPipeline {
         })
     }
 
+    pub fn depth_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
+    {
+        state::depth_write(&self.gl, true);
+        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
+        state::cull(&self.gl, state::CullType::None);
+        state::blend(&self.gl, state::BlendType::None);
+
+        self.depth_texture = Some(Texture2D::new(&self.gl, width, height,
+                    Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge, Format::Depth32F)?);
+        RenderTarget::write_to_depth(&self.gl,0, 0, width, height,Some(1.0),self.depth_texture.as_ref(), render_scene)?;
+        Ok(())
+    }
+
     pub fn render_to_screen<F: FnOnce() -> Result<(), Error>>(&self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
     {
         Ok(Screen::write(&self.gl, 0, 0, width, height,
                          Some(&vec4(0.0, 0.0, 0.0, 1.0)),
                          Some(1.0),
                          render_scene)?)
+    }
+
+    pub fn depth_texture(&self) -> &Texture2D
+    {
+        &self.depth_texture.as_ref().unwrap()
     }
 
     pub fn new_material(&self, cpu_material: &CPUMaterial) -> Result<PhongMaterial, Error>

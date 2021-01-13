@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
+    let mut renderer = PhongForwardPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -63,11 +63,6 @@ fn main() {
                         camera.zoom(*delta as f32);
                     },
                     Event::Key { state, kind } => {
-                        if kind == "R" && *state == State::Pressed
-                        {
-                            renderer.next_debug_type();
-                            println!("{:?}", renderer.debug_type());
-                        }
                         if kind == "F" && *state == State::Pressed
                         {
                             fog_enabled = !fog_enabled;
@@ -84,20 +79,24 @@ fn main() {
             time += frame_input.elapsed_time;
 
             // draw
-            renderer.geometry_pass(width, height, &|| {
-                monkey.render_geometry(&Mat4::identity(), &camera)?;
-                Ok(())
-            }).unwrap();
+            let render = || {
+                    monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                    Ok(())
+            };
+
+            if fog_enabled || fxaa_enabled {
+                renderer.depth_pass(width, height, &render).unwrap();
+            }
 
             if fxaa_enabled {
                 let color_texture = Texture2D::new(&gl, width, height, Interpolation::Nearest,
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
 
-                RenderTarget::write_to_color(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(&color_texture), || {
+                RenderTarget::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(renderer.depth_texture()), || {
+                    render()?;
                     skybox.apply(&camera)?;
-                    renderer.light_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
                     if fog_enabled {
-                        fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture())?;
+                        fog_effect.apply(time as f32, &camera, renderer.depth_texture())?;
                     }
                     Ok(())
                 }).unwrap();
@@ -107,10 +106,11 @@ fn main() {
                     Ok(())
                 }).unwrap();
             } else {
-                renderer.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
+                renderer.render_to_screen(width, height, || {
+                    render()?;
                     skybox.apply(&camera)?;
                     if fog_enabled {
-                        fog_effect.apply(time as f32, &camera, renderer.geometry_pass_depth_texture())?;
+                        fog_effect.apply(time as f32, &camera, renderer.depth_texture())?;
                     }
                     Ok(())
                 }).unwrap();
