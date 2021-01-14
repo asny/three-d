@@ -36,9 +36,7 @@ fn main() {
         let mut directional_light = DirectionalLight::new(&gl, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
         // Imposters
-        let mut aabb = AxisAlignedBoundingBox::new();
-        aabb.add(&tree_cpu_mesh.compute_aabb());
-        aabb.add(&leaves_cpu_mesh.compute_aabb());
+        let aabb = tree_cpu_mesh.compute_aabb().add(&leaves_cpu_mesh.compute_aabb());
         let mut imposter = Imposter::new(&gl).unwrap();
         imposter.update_texture(|camera: &Camera| {
             state::cull(&gl, state::CullType::Back);

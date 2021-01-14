@@ -38,8 +38,9 @@ impl AxisAlignedBoundingBox {
         }
     }
 
-    pub fn add(&mut self, other: &AxisAlignedBoundingBox) {
+    pub fn add(mut self, other: &AxisAlignedBoundingBox) -> Self {
         self.min = vec3(f32::min(self.min.x, other.min.x), f32::min(self.min.y, other.min.y), f32::min(self.min.z, other.min.z));
         self.max = vec3(f32::max(self.max.x, other.max.x), f32::max(self.max.y, other.max.y), f32::max(self.max.z, other.max.z));
+        self
     }
 }
