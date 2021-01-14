@@ -39,7 +39,8 @@ fn main() {
         let mut aabb = AxisAlignedBoundingBox::new();
         aabb.add(&tree_cpu_mesh.compute_aabb());
         aabb.add(&leaves_cpu_mesh.compute_aabb());
-        let mut imposter = Imposter::new(&gl, |camera: &Camera| {
+        let mut imposter = Imposter::new(&gl).unwrap();
+        imposter.update_texture(|camera: &Camera| {
             state::cull(&gl, state::CullType::Back);
             tree_mesh.render_with_ambient_and_directional(&Mat4::identity(), camera, &ambient_light, &directional_light)?;
             state::cull(&gl, state::CullType::None);
