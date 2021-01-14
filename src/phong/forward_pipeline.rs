@@ -98,9 +98,4 @@ impl PhongForwardPipeline {
                   self.mesh_instanced_texture_ambient_program.clone(),
                   self.mesh_instanced_texture_ambient_directional_program.clone(), cpu_mesh, material)
     }
-
-    pub fn new_sprite(&self, transformations: &[Mat4], material: &PhongMaterial) -> Result<PhongForwardInstancedMesh, Error>
-    {
-        self.new_instanced_mesh(transformations, &CPUMesh::sprite(), material)
-    }
 }

@@ -12,7 +12,7 @@ pub struct CPUMesh {
 }
 
 impl CPUMesh {
-    pub fn sprite() -> Self {
+    pub fn square() -> Self {
         let indices = vec![
             0, 1, 2, 2, 3, 0
         ];
@@ -34,9 +34,32 @@ impl CPUMesh {
             1.0, 1.0,
             0.0, 1.0
         ];
-        CPUMesh {name: "sprite".to_string(), indices: Some(indices), positions, normals: Some(normals), uvs: Some(uvs), ..Default::default() }
+        CPUMesh {name: "square".to_string(), indices: Some(indices), positions, normals: Some(normals), uvs: Some(uvs), ..Default::default() }
     }
 
+    pub fn circle(radius: f32, angle_subdivisions: u32) -> Self {
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+        let mut normals = Vec::new();
+        for j in 0..angle_subdivisions {
+            let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
+
+            positions.push(radius * angle.cos());
+            positions.push(radius * angle.sin());
+            positions.push(0.0);
+
+            normals.push(0.0);
+            normals.push(0.0);
+            normals.push(1.0);
+        }
+
+        for j in 0..angle_subdivisions as u32 {
+            indices.push(0);
+            indices.push(j);
+            indices.push((j+1)%angle_subdivisions as u32);
+        }
+        CPUMesh {name: "circle".to_string(), indices: Some(indices), positions, normals: Some(normals), ..Default::default() }
+    }
 
     pub fn sphere(radius: f32) -> Self {
         let x = radius*0.525731112119133606f32;

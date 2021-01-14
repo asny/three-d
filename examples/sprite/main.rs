@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = PhongForwardPipeline::new(&gl).unwrap();
+    let pipeline = PhongForwardPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -22,7 +22,7 @@ fn main() {
                                                                   &Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap()).unwrap())),
             ..Default::default()
         };
-        let sprite = renderer.new_sprite(&[Mat4::from_translation(vec3(-0.5, 1.0, 0.0))], &sprite_material).unwrap();
+        let sprite = pipeline.new_instanced_mesh(&[Mat4::from_translation(vec3(-0.5, 1.0, 0.0))], &CPUMesh::square(), &sprite_material).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
@@ -52,7 +52,7 @@ fn main() {
             }
 
             // draw
-            renderer.render_to_screen(width, height, || {
+            pipeline.render_to_screen(width, height, || {
                 let transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
                 state::cull(&gl, state::CullType::None);
                 sprite.render_with_ambient_and_directional(&transformation, &camera, &ambient_light, &directional_light)?;

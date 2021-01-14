@@ -241,9 +241,4 @@ impl PhongDeferredPipeline
                   self.mesh_instanced_color_program.clone(),
                   self.mesh_instanced_texture_program.clone())
     }
-
-    pub fn new_sprite(&self, transformations: &[Mat4], material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
-    {
-        self.new_instanced_mesh(transformations, &CPUMesh::sprite(), material)
-    }
 }
