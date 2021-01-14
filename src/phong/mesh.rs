@@ -124,6 +124,11 @@ impl PhongForwardInstancedMesh
                                 Self::program_texture_ambient_directional(gl)?, cpu_mesh, material)
     }
 
+    pub fn update_transformations(&mut self, transformations: &[Mat4])
+    {
+        self.gpu_mesh.update_transformations(transformations);
+    }
+
     pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
