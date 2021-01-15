@@ -20,11 +20,13 @@ fn main() {
     };
 
     //let mut particles = pipeline.new_instanced_mesh(&[], &CPUMesh::circle(1.0, 16), &material).unwrap();
-    let mut particles = Particles::new(&gl, &CPUMesh::circle(1.0, 16), &material).unwrap();
+    let mut particles = Particles::new(&gl, &CPUMesh::circle(1.0, 16), &material, &vec3(0.0, -9.82, 0.0)).unwrap();
+    particles.update(&[ParticleData {start_position: vec3(0.0, 0.0, 0.0), start_velocity: vec3(0.0, 5.0, 0.0) }]);
 
     let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
 
     // main loop
+    let mut time = 0.0;
     let mut rotating = false;
     window.render_loop(move |frame_input|
     {
@@ -46,13 +48,12 @@ fn main() {
                 _ => { }
             }
         }
-
-        particles.update_positions(&[vec3(0.0, 0.0, 0.0)]);
+        time += (frame_input.elapsed_time * 0.001) as f32;
 
         // draw
         pipeline.render_to_screen(width, height, || {
             state::cull(&gl, state::CullType::None);
-            particles.render_with_ambient(&camera, &ambient_light)?;
+            particles.render_with_ambient(time, &camera, &ambient_light)?;
             Ok(())
         }).unwrap();
 
