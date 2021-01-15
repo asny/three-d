@@ -12,7 +12,7 @@ fn main() {
 
     // Renderer
     let pipeline = PhongForwardPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 0.0, 50.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(50.0, 0.0, 50.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let material = PhongMaterial {
@@ -25,7 +25,7 @@ fn main() {
     let mut data = Vec::new();
     let mut rng = rand::thread_rng();
     let variation = 15.0;
-    for _ in 0..10000 {
+    for _ in 0..1000 {
         data.push(ParticleData {
             start_position: vec3(0.0, 0.0, 0.0),
             start_velocity: vec3(variation * rng.gen::<f32>() - 0.5 * variation, 5.0 * rng.gen::<f32>() + 10.0, variation * rng.gen::<f32>() - 0.5 * variation)

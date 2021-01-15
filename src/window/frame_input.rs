@@ -1,7 +1,7 @@
 
 pub struct FrameInput {
     pub events: Vec<Event>,
-    pub elapsed_time: f64,
+    pub elapsed_time: f64, // ms since last frame
     pub screen_width: usize,
     pub screen_height: usize,
     pub window_width: usize,
