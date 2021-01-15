@@ -1,5 +1,6 @@
 
 use three_d::*;
+use rand::prelude::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -11,7 +12,7 @@ fn main() {
 
     // Renderer
     let pipeline = PhongForwardPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 0.0, 50.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let material = PhongMaterial {
@@ -21,7 +22,16 @@ fn main() {
 
     //let mut particles = pipeline.new_instanced_mesh(&[], &CPUMesh::circle(1.0, 16), &material).unwrap();
     let mut particles = Particles::new(&gl, &CPUMesh::circle(1.0, 16), &material, &vec3(0.0, -9.82, 0.0)).unwrap();
-    particles.update(&[ParticleData {start_position: vec3(0.0, 0.0, 0.0), start_velocity: vec3(0.0, 5.0, 0.0) }]);
+    let mut data = Vec::new();
+    let mut rng = rand::thread_rng();
+    let variation = 15.0;
+    for _ in 0..10000 {
+        data.push(ParticleData {
+            start_position: vec3(0.0, 0.0, 0.0),
+            start_velocity: vec3(variation * rng.gen::<f32>() - 0.5 * variation, 5.0 * rng.gen::<f32>() + 10.0, variation * rng.gen::<f32>() - 0.5 * variation)
+        });
+    }
+    particles.update(&data);
 
     let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
 
