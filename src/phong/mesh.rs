@@ -30,7 +30,11 @@ impl PhongForwardMesh
         };
         program.add_uniform_vec3("ambientLight.color", &vec3(0.0, 0.0, 0.0))?;
         program.add_uniform_float("ambientLight.intensity", &0.0)?;
-        self.gpu_mesh.render(program, &self.material, transformation, camera, None)?;
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material, None)?;
         Ok(())
     }
 
@@ -42,7 +46,11 @@ impl PhongForwardMesh
         };
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
-        self.gpu_mesh.render(program, &self.material, transformation, camera, None)?;
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material, None)?;
         Ok(())
     }
 
@@ -55,9 +63,14 @@ impl PhongForwardMesh
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
         program.add_uniform_vec3("eyePosition", &camera.position())?;
+
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
-        self.gpu_mesh.render(program, &self.material, transformation, camera, None)?;
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material, None)?;
         Ok(())
     }
 
@@ -137,7 +150,11 @@ impl PhongForwardInstancedMesh
         };
         program.add_uniform_vec3("ambientLight.color", &vec3(0.0, 0.0, 0.0))?;
         program.add_uniform_float("ambientLight.intensity", &0.0)?;
-        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material)?;
         Ok(())
     }
 
@@ -149,7 +166,11 @@ impl PhongForwardInstancedMesh
         };
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
-        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material)?;
         Ok(())
     }
 
@@ -164,7 +185,11 @@ impl PhongForwardInstancedMesh
         program.add_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
-        self.gpu_mesh.render(program, &self.material, transformation, camera)?;
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material)?;
         Ok(())
     }
 
@@ -240,7 +265,11 @@ impl PhongDeferredMesh {
             ColorSource::Color(_) => self.program_deferred_color.as_ref(),
             ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
         };
-        self.gpu_mesh.render(program, &self.material, transformation, camera, None)
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material, None)
     }
 
     pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
@@ -300,7 +329,10 @@ impl PhongDeferredInstancedMesh
             ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
         };
 
-        self.gpu_mesh.render(program, &self.material, transformation, camera)
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        self.gpu_mesh.render(program, &self.material)
     }
 
     pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
@@ -352,12 +384,12 @@ impl InstancedGPUMesh
         Ok(mesh)
     }
 
-    pub fn render(&self, program: &Program, material: &PhongMaterial, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, program: &Program, material: &PhongMaterial) -> Result<(), Error>
     {
         program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
         program.use_attribute_vec4_float_divisor(&self.instance_buffer2, "row2", 1)?;
         program.use_attribute_vec4_float_divisor(&self.instance_buffer3, "row3", 1)?;
-        self.gpu_mesh.render(program, material,transformation, camera, Some(self.instance_count))
+        self.gpu_mesh.render(program, material,Some(self.instance_count))
     }
 
     pub fn update_transformations(&mut self, transformations: &[Mat4])
@@ -388,7 +420,7 @@ impl InstancedGPUMesh
     }
 }
 
-struct GPUMesh {
+pub(crate) struct GPUMesh {
     position_buffer: VertexBuffer,
     normal_buffer: VertexBuffer,
     index_buffer: Option<ElementBuffer>,
@@ -396,7 +428,7 @@ struct GPUMesh {
 }
 
 impl GPUMesh {
-    fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub(crate) fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = VertexBuffer::new_with_static_f32(gl,
@@ -408,15 +440,11 @@ impl GPUMesh {
         Ok(GPUMesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
     }
 
-    fn render(&self, program: &Program, material: &PhongMaterial, transformation: &Mat4, camera: &camera::Camera, instances: Option<u32>) -> Result<(), Error>
+    pub(crate) fn render(&self, program: &Program, material: &PhongMaterial, instances: Option<u32>) -> Result<(), Error>
     {
         program.add_uniform_float("diffuse_intensity", &material.diffuse_intensity)?;
         program.add_uniform_float("specular_intensity", &material.specular_intensity)?;
         program.add_uniform_float("specular_power", &material.specular_power)?;
-
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
 
         match material.color_source {
             ColorSource::Color(ref color) => {

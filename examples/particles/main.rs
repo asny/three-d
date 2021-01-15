@@ -19,7 +19,8 @@ fn main() {
         ..Default::default()
     };
 
-    let mut particles = pipeline.new_instanced_mesh(&[], &CPUMesh::circle(1.0, 16), &material).unwrap();
+    //let mut particles = pipeline.new_instanced_mesh(&[], &CPUMesh::circle(1.0, 16), &material).unwrap();
+    let mut particles = Particles::new(&gl, &CPUMesh::circle(1.0, 16), &material).unwrap();
 
     let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
 
@@ -46,12 +47,12 @@ fn main() {
             }
         }
 
-        particles.update_transformations(&[Mat4::identity()]);
+        particles.update_positions(&[vec3(0.0, 0.0, 0.0)]);
 
         // draw
         pipeline.render_to_screen(width, height, || {
             state::cull(&gl, state::CullType::None);
-            particles.render_with_ambient(&Mat4::identity(), &camera, &ambient_light)?;
+            particles.render_with_ambient(&camera, &ambient_light)?;
             Ok(())
         }).unwrap();
 
