@@ -8,8 +8,11 @@ pub use crate::forward_pipeline::*;
 pub mod deferred_pipeline;
 pub use crate::deferred_pipeline::*;
 
-pub mod mesh;
-pub use crate::mesh::*;
+pub mod forward_mesh;
+pub use crate::forward_mesh::*;
+
+pub mod deferred_mesh;
+pub use crate::deferred_mesh::*;
 
 pub mod imposter;
 pub use crate::imposter::*;
