@@ -24,6 +24,9 @@ pub use aabb::*;
 pub mod cpu_mesh;
 pub use crate::cpu_mesh::*;
 
+pub mod gpu_mesh;
+pub use crate::gpu_mesh::*;
+
 pub mod cpu_material;
 pub use crate::cpu_material::*;
 
