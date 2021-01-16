@@ -1,6 +1,5 @@
 
 use crate::*;
-use std::rc::Rc;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}
@@ -14,11 +13,7 @@ pub struct PhongDeferredPipeline {
     debug_effect: Option<ImageEffect>,
     debug_type: DebugType,
     geometry_pass_texture: Option<Texture2DArray>,
-    geometry_pass_depth_texture: Option<Texture2DArray>,
-    mesh_color_program: Rc<Program>,
-    mesh_texture_program: Rc<Program>,
-    mesh_instanced_color_program: Rc<Program>,
-    mesh_instanced_texture_program: Rc<Program>,
+    geometry_pass_depth_texture: Option<Texture2DArray>
 }
 
 impl PhongDeferredPipeline
@@ -27,10 +22,6 @@ impl PhongDeferredPipeline
     {
         let renderer = Self {
             gl: gl.clone(),
-            mesh_color_program: PhongDeferredMesh::program_color(gl)?,
-            mesh_texture_program: PhongDeferredMesh::program_textured(gl)?,
-            mesh_instanced_color_program: PhongDeferredInstancedMesh::program_color(gl)?,
-            mesh_instanced_texture_program: PhongDeferredInstancedMesh::program_textured(gl)?,
             ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
@@ -216,9 +207,7 @@ impl PhongDeferredPipeline
 
     pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredMesh, Error>
     {
-        PhongDeferredMesh::new_with_programs(&self.gl, cpu_mesh, material,
-                  self.mesh_color_program.clone(),
-                  self.mesh_texture_program.clone())
+        PhongDeferredMesh::new(&self.gl, cpu_mesh, material)
     }
 
     pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<PhongDeferredMesh>, Error>
@@ -237,8 +226,6 @@ impl PhongDeferredPipeline
 
     pub fn new_instanced_mesh(&self, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
     {
-        PhongDeferredInstancedMesh::new_with_programs(&self.gl, transformations, cpu_mesh, material,
-                  self.mesh_instanced_color_program.clone(),
-                  self.mesh_instanced_texture_program.clone())
+        PhongDeferredInstancedMesh::new(&self.gl, transformations, cpu_mesh, material)
     }
 }
