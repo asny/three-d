@@ -6,7 +6,7 @@ static mut PROGRAM_COLOR_AMBIENT: Option<Program> = None;
 static mut PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<Program> = None;
 static mut PROGRAM_TEXTURE_AMBIENT: Option<Program> = None;
 static mut PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL: Option<Program> = None;
-static mut FORWARD_MESH_COUNT: u32 = 0;
+static mut MESH_COUNT: u32 = 0;
 
 pub struct PhongForwardMesh {
     gl: Gl,
@@ -24,7 +24,7 @@ impl PhongForwardMesh
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
         unsafe {
-            FORWARD_MESH_COUNT += 1;
+            MESH_COUNT += 1;
         }
         Ok(Self {
             gl: gl.clone(),
@@ -127,8 +127,8 @@ impl Drop for PhongForwardMesh {
 
     fn drop(&mut self) {
         unsafe {
-            FORWARD_MESH_COUNT -= 1;
-            if FORWARD_MESH_COUNT == 0 {
+            MESH_COUNT -= 1;
+            if MESH_COUNT == 0 {
                 PROGRAM_COLOR_AMBIENT = None;
                 PROGRAM_COLOR_AMBIENT_DIRECTIONAL = None;
                 PROGRAM_TEXTURE_AMBIENT = None;
