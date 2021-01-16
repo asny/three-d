@@ -93,18 +93,16 @@ impl PhongForwardMesh
     pub(crate) fn program_texture_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
-                                                                       &format!("{}\n{}\n{}",
+                                                                       &format!("{}\n{}",
                                                                                 include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("shaders/triplanar_mapping.frag"),
                                                                                 include_str!("shaders/textured_forward_ambient.frag")))?))
     }
 
     pub(crate) fn program_texture_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
-                                                                       &format!("{}\n{}\n{}",
+                                                                       &format!("{}\n{}",
                                                                                 include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("shaders/triplanar_mapping.frag"),
                                                                                 include_str!("shaders/textured_forward_ambient_directional.frag")))?))
     }
 
@@ -212,18 +210,16 @@ impl PhongForwardInstancedMesh
     pub(crate) fn program_texture_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh_instanced.vert"),
-                                                                       &format!("{}\n{}\n{}",
+                                                                       &format!("{}\n{}",
                                                                                 include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("shaders/triplanar_mapping.frag"),
                                                                                 include_str!("shaders/textured_forward_ambient.frag")))?))
     }
 
     pub(crate) fn program_texture_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
     {
         Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh_instanced.vert"),
-                                                                       &format!("{}\n{}\n{}",
+                                                                       &format!("{}\n{}",
                                                                                 include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("shaders/triplanar_mapping.frag"),
                                                                                 include_str!("shaders/textured_forward_ambient_directional.frag")))?))
     }
 
@@ -283,9 +279,8 @@ impl PhongDeferredMesh {
     pub(crate) fn program_textured(gl: &Gl) -> Result<Rc<Program>, Error>
     {
         Ok(Rc::new(Program::from_source(&gl,include_str!("shaders/mesh.vert"),
-                                                    &format!("{}\n{}\n{}",
+                                                    &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
-                                                             include_str!("shaders/triplanar_mapping.frag"),
                                                              include_str!("shaders/textured_deferred.frag")))?))
     }
 
@@ -348,9 +343,8 @@ impl PhongDeferredInstancedMesh
     {
         Ok(Rc::new(Program::from_source(&gl,
                                                     include_str!("shaders/mesh_instanced.vert"),
-                                                    &format!("{}\n{}\n{}",
+                                                    &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
-                                                             include_str!("shaders/triplanar_mapping.frag"),
                                                              include_str!("shaders/textured_deferred.frag")))?))
     }
 
@@ -451,13 +445,9 @@ impl GPUMesh {
                 program.add_uniform_vec4("color", color)?;
             },
             ColorSource::Texture(ref texture) => {
+                program.use_attribute_vec2_float(self.uv_buffer.as_ref().ok_or(Error::FailedToCreateMesh {message:
+                        "Cannot use a texture as color source without uv coordinates.".to_string()})?, "uv_coordinates")?;
                 program.use_texture(texture.as_ref(),"tex")?;
-                if let Some(ref uv_buffer) = self.uv_buffer {
-                    program.add_uniform_int("use_uvs", &1)?;
-                    program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
-                } else {
-                    program.add_uniform_int("use_uvs", &0)?;
-                }
             }
         }
 
