@@ -10,7 +10,6 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let renderer = PhongForwardPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0,6.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 
@@ -26,10 +25,10 @@ fn main() {
         let tree_cpu_mesh = meshes.iter().find(|m| m.name == "tree.001_Mesh.002").unwrap();
         let tree_cpu_material = materials.iter().find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
         let tree_material = PhongMaterial::new(&gl, &tree_cpu_material).unwrap();
-        let tree_mesh = renderer.new_mesh(tree_cpu_mesh, &tree_material).unwrap();
+        let tree_mesh = PhongForwardMesh::new(&gl, tree_cpu_mesh, &tree_material).unwrap();
         let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
         let leaves_cpu_material = materials.iter().find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
-        let leaves_mesh = renderer.new_mesh(leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
+        let leaves_mesh = PhongForwardMesh::new(&gl, leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
 
         // Lights
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
@@ -62,7 +61,7 @@ fn main() {
         imposter.update_positions(&positions, &angles);
 
         // Plane
-        let plane = renderer.new_mesh(
+        let plane = PhongForwardMesh::new(&gl,
             &CPUMesh {
                 positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),

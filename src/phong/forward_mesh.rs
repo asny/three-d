@@ -32,7 +32,19 @@ impl PhongForwardMesh
             gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
             material: material.clone()
         })
+    }
 
+    pub fn new_meshes(gl: &Gl, cpu_meshes: &Vec<CPUMesh>, materials: &Vec<PhongMaterial>) -> Result<Vec<PhongForwardMesh>, Error>
+    {
+        let mut meshes = Vec::new();
+        for cpu_mesh in cpu_meshes {
+            let material = cpu_mesh.material_name.as_ref().map(|material_name|
+                materials.iter().filter(|m| &m.name == material_name).last()
+                .map(|m| m.clone()).unwrap_or_else(|| PhongMaterial::default()))
+                .unwrap_or_else(|| PhongMaterial::default());
+            meshes.push(Self::new(gl,cpu_mesh, &material)?);
+        }
+        Ok(meshes)
     }
 
     pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
