@@ -2,10 +2,13 @@
 use crate::*;
 use std::rc::Rc;
 
+static mut PROGRAM_COLOR: Option<Program> = None;
+static mut PROGRAM_TEXTURE: Option<Program> = None;
+static mut MESH_COUNT: u32 = 0;
+
 pub struct PhongDeferredMesh {
+    gl: Gl,
     pub name: String,
-    program_deferred_color: Rc<Program>,
-    program_deferred_texture: Rc<Program>,
     gpu_mesh: GPUMesh,
     pub material: PhongMaterial
 }
@@ -14,13 +17,17 @@ impl PhongDeferredMesh {
 
     pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
+        unsafe {MESH_COUNT += 1;}
         if cpu_mesh.normals.is_none() {
             Err(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
-        Ok(Self::new_with_programs(gl, cpu_mesh, material,
-                                   Self::program_color(gl)?,
-                                Self::program_textured(gl)?)?)
+        Ok(Self {
+            gl: gl.clone(),
+            name: cpu_mesh.name.clone(),
+            gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
+            material: material.clone()
+        })
     }
 
     pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -31,31 +38,45 @@ impl PhongDeferredMesh {
     pub fn render_geometry(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
-            ColorSource::Color(_) => self.program_deferred_color.as_ref(),
-            ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
+            ColorSource::Color(_) => {
+                unsafe {
+                    if PROGRAM_COLOR.is_none()
+                    {
+                        PROGRAM_COLOR = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/colored_deferred.frag")))?);
+                    }
+                    PROGRAM_COLOR.as_ref().unwrap()
+                }
+            },
+            ColorSource::Texture(_) => {
+                unsafe {
+                    if PROGRAM_TEXTURE.is_none()
+                    {
+                        PROGRAM_TEXTURE = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                                                             include_str!("shaders/deferred_objects_shared.frag"),
+                                                             include_str!("shaders/textured_deferred.frag")))?);
+                    }
+                    PROGRAM_TEXTURE.as_ref().unwrap()
+                }
+            }
         };
 
         bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
         self.gpu_mesh.render(program, transformation, camera)
     }
+}
 
-    pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
-    {
-        Ok(Rc::new(GPUMesh::create_program(gl, &format!("{}\n{}",
-                                                             include_str!("shaders/deferred_objects_shared.frag"),
-                                                             include_str!("shaders/colored_deferred.frag")))?))
-    }
+impl Drop for PhongDeferredMesh {
 
-    pub(crate) fn program_textured(gl: &Gl) -> Result<Rc<Program>, Error>
-    {
-        Ok(Rc::new(GPUMesh::create_program(gl, &format!("{}\n{}",
-                                                             include_str!("shaders/deferred_objects_shared.frag"),
-                                                             include_str!("shaders/textured_deferred.frag")))?))
-    }
-
-    pub(crate) fn new_with_programs(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial, program_deferred_color: Rc<Program>, program_deferred_texture: Rc<Program>) -> Result<Self, Error>
-    {
-        Ok(Self { name: cpu_mesh.name.clone(), gpu_mesh: GPUMesh::new(gl, cpu_mesh)?, material: material.clone(), program_deferred_color, program_deferred_texture })
+    fn drop(&mut self) {
+        unsafe {
+            MESH_COUNT -= 1;
+            if MESH_COUNT == 0 {
+                PROGRAM_COLOR = None;
+                PROGRAM_TEXTURE = None;
+            }
+        }
     }
 }
 
