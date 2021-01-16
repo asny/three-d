@@ -19,13 +19,19 @@ impl PhongForwardMesh
 {
     pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
+        if cpu_mesh.normals.is_none() {
+            Err(Error::FailedToCreateMesh {message:
+              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
+        }
         unsafe {
             FORWARD_MESH_COUNT += 1;
         }
-        Ok(Self { gl: gl.clone(),
+        Ok(Self {
+            gl: gl.clone(),
             name: cpu_mesh.name.clone(),
             gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
-            material: material.clone() })
+            material: material.clone()
+        })
 
     }
 
@@ -43,11 +49,8 @@ impl PhongForwardMesh
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
 
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material, None)?;
-        Ok(())
+        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        self.gpu_mesh.render(program, transformation, camera)
     }
 
     pub fn render_with_ambient_and_directional(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
@@ -58,16 +61,13 @@ impl PhongForwardMesh
         };
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
-        program.add_uniform_vec3("eyePosition", &camera.position())?;
 
+        program.add_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
 
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material, None)?;
-        Ok(())
+        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        self.gpu_mesh.render(program, transformation, camera)
     }
 
     fn program_color_ambient(gl: &Gl) -> Result<&Program, Error>
@@ -75,8 +75,7 @@ impl PhongForwardMesh
         unsafe {
             if PROGRAM_COLOR_AMBIENT.is_none()
             {
-                PROGRAM_COLOR_AMBIENT = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
-                                                                     &format!("{}\n{}",
+                PROGRAM_COLOR_AMBIENT = Some(GPUMesh::create_program(gl, &format!("{}\n{}",
                                                                               &include_str!("shaders/light_shared.frag"),
                                                                               &include_str!("shaders/colored_forward_ambient.frag")))?);
             }
@@ -89,8 +88,7 @@ impl PhongForwardMesh
         unsafe {
             if PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
             {
-                PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
-                                                                     &format!("{}\n{}",
+                PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(GPUMesh::create_program(gl, &format!("{}\n{}",
                                                                               &include_str!("shaders/light_shared.frag"),
                                                                               &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
             }
@@ -103,8 +101,7 @@ impl PhongForwardMesh
         unsafe {
             if PROGRAM_TEXTURE_AMBIENT.is_none()
             {
-                PROGRAM_TEXTURE_AMBIENT = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
-                                                                       &format!("{}\n{}",
+                PROGRAM_TEXTURE_AMBIENT = Some(GPUMesh::create_program(gl, &format!("{}\n{}",
                                                                                 include_str!("shaders/light_shared.frag"),
                                                                                 include_str!("shaders/textured_forward_ambient.frag")))?);
             }
@@ -117,8 +114,7 @@ impl PhongForwardMesh
         unsafe {
             if PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
             {
-                PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
-                                                                   &format!("{}\n{}",
+                PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(GPUMesh::create_program(gl, &format!("{}\n{}",
                                                                             include_str!("shaders/light_shared.frag"),
                                                                             include_str!("shaders/textured_forward_ambient_directional.frag")))?)
             }
@@ -143,6 +139,7 @@ impl Drop for PhongForwardMesh {
 }
 
 pub struct PhongForwardInstancedMesh {
+    gl: Gl,
     pub name: String,
     program_color_ambient: Rc<Program>,
     program_color_ambient_directional: Rc<Program>,
@@ -156,6 +153,10 @@ impl PhongForwardInstancedMesh
 {
     pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
+        if cpu_mesh.normals.is_none() {
+            Err(Error::FailedToCreateMesh {message:
+              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
+        }
         Self::new_with_programs(gl, transformations, Self::program_color_ambient(gl)?,
                                 Self::program_color_ambient_directional(gl)?,
                                 Self::program_texture_ambient(gl)?,
@@ -169,18 +170,7 @@ impl PhongForwardInstancedMesh
 
     pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        let program = match self.material.color_source {
-            ColorSource::Color(_) => self.program_color_ambient.as_ref(),
-            ColorSource::Texture(_) => self.program_texture_ambient.as_ref()
-        };
-        program.add_uniform_vec3("ambientLight.color", &vec3(0.0, 0.0, 0.0))?;
-        program.add_uniform_float("ambientLight.intensity", &0.0)?;
-
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material)?;
-        Ok(())
+        self.render_with_ambient(transformation, camera, &AmbientLight::new(&self.gl, 0.0, &vec3(0.0, 0.0, 0.0))?)
     }
 
     pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
@@ -192,11 +182,8 @@ impl PhongForwardInstancedMesh
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
 
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material)?;
-        Ok(())
+        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        self.gpu_mesh.render(program, transformation, camera)
     }
 
     pub fn render_with_ambient_and_directional(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
@@ -211,11 +198,8 @@ impl PhongForwardInstancedMesh
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
 
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material)?;
-        Ok(())
+        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        self.gpu_mesh.render(program, transformation, camera)
     }
 
     pub(crate) fn program_color_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
@@ -254,7 +238,7 @@ impl PhongForwardInstancedMesh
                                     program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
                    cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
-        Ok(Self { name: cpu_mesh.name.clone(), gpu_mesh: InstancedGPUMesh::new(gl, transformations, cpu_mesh)?,
+        Ok(Self { gl: gl.clone(), name: cpu_mesh.name.clone(), gpu_mesh: InstancedGPUMesh::new(gl, transformations, cpu_mesh)?,
             program_color_ambient, program_color_ambient_directional, program_texture_ambient,
             program_texture_ambient_directional, material: material.clone() })
     }
@@ -272,6 +256,10 @@ impl PhongDeferredMesh {
 
     pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
+        if cpu_mesh.normals.is_none() {
+            Err(Error::FailedToCreateMesh {message:
+              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
+        }
         Ok(Self::new_with_programs(gl, cpu_mesh, material,
                                    Self::program_color(gl)?,
                                 Self::program_textured(gl)?)?)
@@ -289,10 +277,8 @@ impl PhongDeferredMesh {
             ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
         };
 
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material, None)
+        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        self.gpu_mesh.render(program, transformation, camera)
     }
 
     pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
@@ -329,6 +315,10 @@ impl PhongDeferredInstancedMesh
 {
     pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
+        if cpu_mesh.normals.is_none() {
+            Err(Error::FailedToCreateMesh {message:
+              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
+        }
         Self::new_with_programs(gl, transformations, cpu_mesh, material,
                                    Self::program_color(gl)?,
                                 Self::program_textured(gl)?)
@@ -351,10 +341,8 @@ impl PhongDeferredInstancedMesh
             ColorSource::Texture(_) => self.program_deferred_texture.as_ref()
         };
 
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material)
+        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        self.gpu_mesh.render(program, transformation, camera)
     }
 
     pub(crate) fn program_color(gl: &Gl) -> Result<Rc<Program>, Error>
@@ -385,7 +373,10 @@ impl PhongDeferredInstancedMesh
 }
 
 struct InstancedGPUMesh {
-    gpu_mesh: GPUMesh,
+    position_buffer: VertexBuffer,
+    normal_buffer: Option<VertexBuffer>,
+    index_buffer: Option<ElementBuffer>,
+    uv_buffer: Option<VertexBuffer>,
     instance_count: u32,
     instance_buffer1: VertexBuffer,
     instance_buffer2: VertexBuffer,
@@ -396,21 +387,58 @@ impl InstancedGPUMesh
 {
     pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
+        let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
+        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(gl, normals)?) } else {None};
+        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
+
         let mut mesh = Self { instance_count: 0,
+            position_buffer, normal_buffer, index_buffer, uv_buffer,
             instance_buffer1: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
             instance_buffer2: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
-            instance_buffer3: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
-            gpu_mesh: GPUMesh::new(gl, cpu_mesh)?};
+            instance_buffer3: VertexBuffer::new_with_dynamic_f32(gl, &[])?
+        };
         mesh.update_transformations(transformations);
         Ok(mesh)
     }
 
-    pub fn render(&self, program: &Program, material: &PhongMaterial) -> Result<(), Error>
+    pub fn create_program(gl: &Gl, fragment_shader_source: &str) -> Result<Program, Error>
+    {
+        Program::from_source(gl, include_str!("shaders/mesh.vert"), fragment_shader_source)
+    }
+
+    pub fn has_uvs(&self) -> bool {
+        self.uv_buffer.is_some()
+    }
+
+    pub fn has_normals(&self) -> bool {
+        self.normal_buffer.is_some()
+    }
+
+    pub fn render(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
         program.use_attribute_vec4_float_divisor(&self.instance_buffer2, "row2", 1)?;
         program.use_attribute_vec4_float_divisor(&self.instance_buffer3, "row3", 1)?;
-        self.gpu_mesh.render(program, material,Some(self.instance_count))
+
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+
+        program.use_attribute_vec3_float(&self.position_buffer, "position")?;
+        if let Some(ref uv_buffer) = self.uv_buffer {
+            program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
+        }
+        if let Some(ref normal_buffer) = self.normal_buffer {
+            program.use_attribute_vec3_float(normal_buffer, "normal")?;
+        }
+
+        if let Some(ref index_buffer) = self.index_buffer {
+            program.draw_elements_instanced(index_buffer, self.instance_count);
+        } else {
+            program.draw_arrays_instanced(self.position_buffer.count() as u32/3, self.instance_count);
+        }
+        Ok(())
     }
 
     pub fn update_transformations(&mut self, transformations: &[Mat4])
@@ -441,60 +469,75 @@ impl InstancedGPUMesh
     }
 }
 
-pub(crate) struct GPUMesh {
+pub struct GPUMesh {
     position_buffer: VertexBuffer,
-    normal_buffer: VertexBuffer,
+    normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
 }
 
 impl GPUMesh {
-    pub(crate) fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
-        let normal_buffer = VertexBuffer::new_with_static_f32(gl,
-              cpu_mesh.normals.as_ref().ok_or(Error::FailedToCreateMesh {message:
-              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?)?;
+        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(gl, normals)?) } else {None};
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
 
         Ok(GPUMesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
     }
 
-    pub(crate) fn render(&self, program: &Program, material: &PhongMaterial, instances: Option<u32>) -> Result<(), Error>
+    pub fn create_program(gl: &Gl, fragment_shader_source: &str) -> Result<Program, Error>
     {
-        program.add_uniform_float("diffuse_intensity", &material.diffuse_intensity)?;
-        program.add_uniform_float("specular_intensity", &material.specular_intensity)?;
-        program.add_uniform_float("specular_power", &material.specular_power)?;
+        Program::from_source(gl, include_str!("shaders/mesh.vert"), fragment_shader_source)
+    }
 
-        match material.color_source {
-            ColorSource::Color(ref color) => {
-                program.add_uniform_vec4("color", color)?;
-            },
-            ColorSource::Texture(ref texture) => {
-                program.use_attribute_vec2_float(self.uv_buffer.as_ref().ok_or(Error::FailedToCreateMesh {message:
-                        "Cannot use a texture as color source without uv coordinates.".to_string()})?, "uv_coordinates")?;
-                program.use_texture(texture.as_ref(),"tex")?;
-            }
-        }
+    pub fn has_uvs(&self) -> bool {
+        self.uv_buffer.is_some()
+    }
+
+    pub fn has_normals(&self) -> bool {
+        self.normal_buffer.is_some()
+    }
+
+    pub fn render(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3_float(&self.position_buffer, "position")?;
-        program.use_attribute_vec3_float(&self.normal_buffer, "normal")?;
-
-        if let Some(instance_count) = instances {
-            if let Some(ref index_buffer) = self.index_buffer {
-                program.draw_elements_instanced(index_buffer, instance_count);
-            } else {
-                program.draw_arrays_instanced(self.position_buffer.count() as u32/3, instance_count);
-            }
+        if let Some(ref uv_buffer) = self.uv_buffer {
+            program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
         }
-        else {
-            if let Some(ref index_buffer) = self.index_buffer {
-                program.draw_elements(index_buffer);
-            } else {
-                program.draw_arrays(self.position_buffer.count() as u32/3);
-            }
+        if let Some(ref normal_buffer) = self.normal_buffer {
+            program.use_attribute_vec3_float(normal_buffer, "normal")?;
+        }
+
+        if let Some(ref index_buffer) = self.index_buffer {
+            program.draw_elements(index_buffer);
+        } else {
+            program.draw_arrays(self.position_buffer.count() as u32/3);
         }
         Ok(())
     }
+}
+
+fn bind_material(program: &Program, material: &PhongMaterial, has_uvs: bool) -> Result<(), Error> {
+    program.add_uniform_float("diffuse_intensity", &material.diffuse_intensity)?;
+    program.add_uniform_float("specular_intensity", &material.specular_intensity)?;
+    program.add_uniform_float("specular_power", &material.specular_power)?;
+
+    match material.color_source {
+        ColorSource::Color(ref color) => {
+            program.add_uniform_vec4("color", color)?;
+        },
+        ColorSource::Texture(ref texture) => {
+            if !has_uvs {
+                Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
+            }
+            program.use_texture(texture.as_ref(),"tex")?;
+        }
+    }
+    Ok(())
 }
