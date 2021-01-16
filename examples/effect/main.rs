@@ -19,9 +19,9 @@ fn main() {
         "examples/assets/skybox_evening/top.jpg", "examples/assets/skybox_evening/left.jpg",
         "examples/assets/skybox_evening/right.jpg"], move |loaded|
     {
-        let (meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
+        let (mut meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-        let monkey = renderer.new_meshes(&meshes, &materials).unwrap().remove(0);
+        let monkey = PhongForwardMesh::new(&gl, &meshes.remove(0), &PhongMaterial::new(&gl, &materials.remove(0)).unwrap()).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
