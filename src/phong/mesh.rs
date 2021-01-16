@@ -2,12 +2,15 @@
 use crate::*;
 use std::rc::Rc;
 
+static mut PROGRAM_COLOR_AMBIENT: Option<Program> = None;
+static mut PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<Program> = None;
+static mut PROGRAM_TEXTURE_AMBIENT: Option<Program> = None;
+static mut PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL: Option<Program> = None;
+static mut FORWARD_MESH_COUNT: u32 = 0;
+
 pub struct PhongForwardMesh {
+    gl: Gl,
     pub name: String,
-    program_color_ambient: Rc<Program>,
-    program_color_ambient_directional: Rc<Program>,
-    program_texture_ambient: Rc<Program>,
-    program_texture_ambient_directional: Rc<Program>,
     gpu_mesh: GPUMesh,
     pub material: PhongMaterial
 }
@@ -16,33 +19,26 @@ impl PhongForwardMesh
 {
     pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
-        Self::new_with_programs(gl, Self::program_color_ambient(gl)?,
-                                Self::program_color_ambient_directional(gl)?,
-                                Self::program_texture_ambient(gl)?,
-                                Self::program_texture_ambient_directional(gl)?, cpu_mesh, material)
+        unsafe {
+            FORWARD_MESH_COUNT += 1;
+        }
+        Ok(Self { gl: gl.clone(),
+            name: cpu_mesh.name.clone(),
+            gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
+            material: material.clone() })
+
     }
 
     pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        let program = match self.material.color_source {
-            ColorSource::Color(_) => self.program_color_ambient.as_ref(),
-            ColorSource::Texture(_) => self.program_texture_ambient.as_ref()
-        };
-        program.add_uniform_vec3("ambientLight.color", &vec3(0.0, 0.0, 0.0))?;
-        program.add_uniform_float("ambientLight.intensity", &0.0)?;
-
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
-        self.gpu_mesh.render(program, &self.material, None)?;
-        Ok(())
+        self.render_with_ambient(transformation, camera, &AmbientLight::new(&self.gl, 0.0, &vec3(0.0, 0.0, 0.0))?)
     }
 
     pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
-            ColorSource::Color(_) => self.program_color_ambient.as_ref(),
-            ColorSource::Texture(_) => self.program_texture_ambient.as_ref()
+            ColorSource::Color(_) => Self::program_color_ambient(&self.gl)?,
+            ColorSource::Texture(_) => Self::program_texture_ambient(&self.gl)?
         };
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
@@ -57,8 +53,8 @@ impl PhongForwardMesh
     pub fn render_with_ambient_and_directional(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
-            ColorSource::Color(_) => self.program_color_ambient_directional.as_ref(),
-            ColorSource::Texture(_) => self.program_texture_ambient_directional.as_ref()
+            ColorSource::Color(_) => Self::program_color_ambient_directional(&self.gl)?,
+            ColorSource::Texture(_) => Self::program_texture_ambient_directional(&self.gl)?
         };
         program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
         program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
@@ -74,44 +70,75 @@ impl PhongForwardMesh
         Ok(())
     }
 
-    pub(crate) fn program_color_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
+    fn program_color_ambient(gl: &Gl) -> Result<&Program, Error>
     {
-        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+        unsafe {
+            if PROGRAM_COLOR_AMBIENT.is_none()
+            {
+                PROGRAM_COLOR_AMBIENT = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
                                                                      &format!("{}\n{}",
                                                                               &include_str!("shaders/light_shared.frag"),
-                                                                              &include_str!("shaders/colored_forward_ambient.frag")))?))
+                                                                              &include_str!("shaders/colored_forward_ambient.frag")))?);
+            }
+            Ok(PROGRAM_COLOR_AMBIENT.as_ref().unwrap())
+        }
     }
 
-    pub(crate) fn program_color_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
+    fn program_color_ambient_directional(gl: &Gl) -> Result<&Program, Error>
     {
-        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+        unsafe {
+            if PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
+            {
+                PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
                                                                      &format!("{}\n{}",
                                                                               &include_str!("shaders/light_shared.frag"),
-                                                                              &include_str!("shaders/colored_forward_ambient_directional.frag")))?))
+                                                                              &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
+            }
+            Ok(PROGRAM_COLOR_AMBIENT_DIRECTIONAL.as_ref().unwrap())
+        }
     }
 
-    pub(crate) fn program_texture_ambient(gl: &Gl) -> Result<Rc<Program>, Error>
+    fn program_texture_ambient(gl: &Gl) -> Result<&Program, Error>
     {
-        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+        unsafe {
+            if PROGRAM_TEXTURE_AMBIENT.is_none()
+            {
+                PROGRAM_TEXTURE_AMBIENT = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
                                                                        &format!("{}\n{}",
                                                                                 include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("shaders/textured_forward_ambient.frag")))?))
+                                                                                include_str!("shaders/textured_forward_ambient.frag")))?);
+            }
+            Ok(PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap())
+        }
     }
 
-    pub(crate) fn program_texture_ambient_directional(gl: &Gl) -> Result<Rc<Program>, Error>
+    fn program_texture_ambient_directional(gl: &Gl) -> Result<&Program, Error>
     {
-        Ok(Rc::new(Program::from_source(gl, include_str!("shaders/mesh.vert"),
-                                                                       &format!("{}\n{}",
-                                                                                include_str!("shaders/light_shared.frag"),
-                                                                                include_str!("shaders/textured_forward_ambient_directional.frag")))?))
+        unsafe {
+            if PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
+            {
+                PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(Program::from_source(gl, include_str!("shaders/mesh.vert"),
+                                                                   &format!("{}\n{}",
+                                                                            include_str!("shaders/light_shared.frag"),
+                                                                            include_str!("shaders/textured_forward_ambient_directional.frag")))?)
+            }
+            Ok(PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.as_ref().unwrap())
+        }
     }
+}
 
-    pub(crate) fn new_with_programs(gl: &Gl, program_color_ambient: Rc<Program>, program_color_ambient_directional: Rc<Program>,
-                                    program_texture_ambient: Rc<Program>, program_texture_ambient_directional: Rc<Program>,
-                   cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
-    {
-        Ok(Self { name: cpu_mesh.name.clone(), gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
-            program_color_ambient, program_color_ambient_directional, program_texture_ambient, program_texture_ambient_directional, material: material.clone() })
+impl Drop for PhongForwardMesh {
+
+    fn drop(&mut self) {
+        unsafe {
+            FORWARD_MESH_COUNT -= 1;
+            if FORWARD_MESH_COUNT == 0 {
+                PROGRAM_COLOR_AMBIENT = None;
+                PROGRAM_COLOR_AMBIENT_DIRECTIONAL = None;
+                PROGRAM_TEXTURE_AMBIENT = None;
+                PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = None;
+            }
+        }
     }
 }
 
@@ -471,4 +498,3 @@ impl GPUMesh {
         Ok(())
     }
 }
-

@@ -1,18 +1,9 @@
 
 use crate::*;
-use std::rc::Rc;
 
 pub struct PhongForwardPipeline {
     gl: Gl,
-    depth_texture: Option<Texture2D>,
-    mesh_color_ambient_program: Rc<Program>,
-    mesh_color_ambient_directional_program: Rc<Program>,
-    mesh_texture_ambient_program: Rc<Program>,
-    mesh_texture_ambient_directional_program: Rc<Program>,
-    mesh_instanced_color_ambient_program: Rc<Program>,
-    mesh_instanced_color_ambient_directional_program: Rc<Program>,
-    mesh_instanced_texture_ambient_program: Rc<Program>,
-    mesh_instanced_texture_ambient_directional_program: Rc<Program>,
+    depth_texture: Option<Texture2D>
 }
 
 impl PhongForwardPipeline {
@@ -23,15 +14,7 @@ impl PhongForwardPipeline {
             gl: gl.clone(),
             depth_texture: Some(Texture2D::new(gl, 1, 1,
                     Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
-                    Wrapping::ClampToEdge, Format::Depth32F)?),
-            mesh_color_ambient_program: PhongForwardMesh::program_color_ambient(gl)?,
-            mesh_color_ambient_directional_program: PhongForwardMesh::program_color_ambient_directional(gl)?,
-            mesh_texture_ambient_program: PhongForwardMesh::program_texture_ambient(gl)?,
-            mesh_texture_ambient_directional_program: PhongForwardMesh::program_texture_ambient_directional(gl)?,
-            mesh_instanced_color_ambient_program: PhongForwardInstancedMesh::program_color_ambient(gl)?,
-            mesh_instanced_color_ambient_directional_program: PhongForwardInstancedMesh::program_color_ambient_directional(gl)?,
-            mesh_instanced_texture_ambient_program: PhongForwardInstancedMesh::program_texture_ambient(gl)?,
-            mesh_instanced_texture_ambient_directional_program: PhongForwardInstancedMesh::program_texture_ambient_directional(gl)?
+                    Wrapping::ClampToEdge, Format::Depth32F)?)
         })
     }
 
@@ -69,11 +52,7 @@ impl PhongForwardPipeline {
 
     pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongForwardMesh, Error>
     {
-        Ok(PhongForwardMesh::new_with_programs(&self.gl,
-                  self.mesh_color_ambient_program.clone(),
-                  self.mesh_color_ambient_directional_program.clone(),
-                  self.mesh_texture_ambient_program.clone(),
-                  self.mesh_texture_ambient_directional_program.clone(), cpu_mesh, material)?)
+        Ok(PhongForwardMesh::new(&self.gl, cpu_mesh, material)?)
     }
 
     pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<PhongForwardMesh>, Error>
@@ -92,10 +71,6 @@ impl PhongForwardPipeline {
 
     pub fn new_instanced_mesh(&self, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongForwardInstancedMesh, Error>
     {
-        PhongForwardInstancedMesh::new_with_programs(&self.gl, transformations,
-                  self.mesh_instanced_color_ambient_program.clone(),
-                  self.mesh_instanced_color_ambient_directional_program.clone(),
-                  self.mesh_instanced_texture_ambient_program.clone(),
-                  self.mesh_instanced_texture_ambient_directional_program.clone(), cpu_mesh, material)
+        PhongForwardInstancedMesh::new(&self.gl, transformations, cpu_mesh, material)
     }
 }
