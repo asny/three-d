@@ -9,7 +9,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
+    let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -19,9 +19,9 @@ fn main() {
         monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
         monkey_cpu_materials[0].specular_intensity = Some(0.8);
         monkey_cpu_materials[0].specular_power = Some(20.0);
-        let mut monkey = renderer.new_meshes(&monkey_cpu_meshes, &monkey_cpu_materials).unwrap().remove(0);
+        let mut monkey = PhongDeferredMesh::new(&gl, &monkey_cpu_meshes[0], &PhongMaterial::new(&gl, &monkey_cpu_materials[0]).unwrap()).unwrap();
 
-        let mut plane = renderer.new_mesh(
+        let mut plane = PhongDeferredMesh::new(&gl,
             &CPUMesh {
                 positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
@@ -78,8 +78,8 @@ fn main() {
                         }
                         if kind == "R" && *state == State::Pressed
                         {
-                            renderer.next_debug_type();
-                            println!("{:?}", renderer.debug_type());
+                            pipeline.next_debug_type();
+                            println!("{:?}", pipeline.debug_type());
                         }
                     }
                 }
@@ -107,7 +107,7 @@ fn main() {
             }
 
             // Geometry pass
-            renderer.geometry_pass(width, height, &||
+            pipeline.geometry_pass(width, height, &||
                 {
                     monkey.render_geometry(&Mat4::identity(), &camera)?;
                     plane.render_geometry(&Mat4::identity(), &camera)?;
@@ -115,8 +115,8 @@ fn main() {
                 }).unwrap();
 
             // Light pass
-            renderer.render_to_screen(&camera, None, &[&directional_light0, &directional_light1],
-                                    &[&spot_light], &[&point_light0, &point_light1], width, height).unwrap();
+            pipeline.render_to_screen(&camera, None, &[&directional_light0, &directional_light1],
+                                      &[&spot_light], &[&point_light0, &point_light1], width, height).unwrap();
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {

@@ -9,7 +9,6 @@ fn main() {
     let (width, height) = window.framebuffer_size();
     let gl = window.gl();
 
-    // Renderer
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0,6.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 10000.0);
 

@@ -12,7 +12,7 @@ fn main() {
     // Renderer
     let scene_center = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
-    let mut renderer = PhongDeferredPipeline::new(&gl).unwrap();
+    let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -90,15 +90,15 @@ fn main() {
                         Event::Key { state, kind } => {
                             if kind == "R" && *state == State::Pressed
                             {
-                                renderer.next_debug_type();
-                                println!("{:?}", renderer.debug_type());
+                                pipeline.next_debug_type();
+                                println!("{:?}", pipeline.debug_type());
                             }
                         }
                     }
                 }
 
                 // Geometry pass
-                renderer.geometry_pass(width, height, &|| {
+                pipeline.geometry_pass(width, height, &|| {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                     state::cull(&gl, state::CullType::Back);
                     model.render_geometry(&transformation, &camera)?;
@@ -109,7 +109,7 @@ fn main() {
                 }).unwrap();
 
                 // Light pass
-                renderer.render_to_screen(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[], width, height).unwrap();
+                pipeline.render_to_screen(&camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[], width, height).unwrap();
                 
                 #[cfg(target_arch = "x86_64")]
                 if let Some(ref path) = screenshot_path {

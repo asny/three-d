@@ -27,7 +27,7 @@ impl PhongForwardMesh
         })
     }
 
-    pub fn new_meshes(gl: &Gl, cpu_meshes: &Vec<CPUMesh>, materials: &Vec<PhongMaterial>) -> Result<Vec<PhongForwardMesh>, Error>
+    pub fn new_meshes(gl: &Gl, cpu_meshes: &[CPUMesh], materials: &[PhongMaterial]) -> Result<Vec<Self>, Error>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {

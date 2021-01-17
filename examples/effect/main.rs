@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     // Renderer
-    let mut renderer = PhongForwardPipeline::new(&gl).unwrap();
+    let mut pipeline = PhongForwardPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -19,9 +19,9 @@ fn main() {
         "examples/assets/skybox_evening/top.jpg", "examples/assets/skybox_evening/left.jpg",
         "examples/assets/skybox_evening/right.jpg"], move |loaded|
     {
-        let (mut meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
+        let (meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-        let monkey = PhongForwardMesh::new(&gl, &meshes.remove(0), &PhongMaterial::new(&gl, &materials.remove(0)).unwrap()).unwrap();
+        let monkey = PhongForwardMesh::new(&gl, &meshes[0], &PhongMaterial::new(&gl, &materials[0]).unwrap()).unwrap();
 
         let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
         let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
@@ -80,7 +80,7 @@ fn main() {
 
             // draw
             if fog_enabled || fxaa_enabled {
-                renderer.depth_pass(width, height, &|| {
+                pipeline.depth_pass(width, height, &|| {
                     monkey.render_depth(&Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
@@ -90,11 +90,11 @@ fn main() {
                 let color_texture = Texture2D::new(&gl, width, height, Interpolation::Nearest,
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
 
-                RenderTarget::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(renderer.depth_texture()), || {
+                RenderTarget::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(pipeline.depth_texture()), || {
                     monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(&camera)?;
                     if fog_enabled {
-                        fog_effect.apply(time as f32, &camera, renderer.depth_texture())?;
+                        fog_effect.apply(time as f32, &camera, pipeline.depth_texture())?;
                     }
                     Ok(())
                 }).unwrap();
@@ -104,11 +104,11 @@ fn main() {
                     Ok(())
                 }).unwrap();
             } else {
-                renderer.render_to_screen(width, height, || {
+                pipeline.render_to_screen(width, height, || {
                     monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(&camera)?;
                     if fog_enabled {
-                        fog_effect.apply(time as f32, &camera, renderer.depth_texture())?;
+                        fog_effect.apply(time as f32, &camera, pipeline.depth_texture())?;
                     }
                     Ok(())
                 }).unwrap();
