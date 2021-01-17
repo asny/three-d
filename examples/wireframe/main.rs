@@ -24,7 +24,7 @@ fn main() {
         cpu_material.diffuse_intensity = Some(0.2);
         cpu_material.specular_intensity = Some(0.4);
         cpu_material.specular_power = Some(20.0);
-        let model = renderer.new_mesh(&cpu_mesh, &renderer.new_material(&cpu_material).unwrap()).unwrap();
+        let model = PhongDeferredMesh::new(&gl, &cpu_mesh, &PhongMaterial::new(&gl, &cpu_material).unwrap()).unwrap();
 
         let wireframe_material = PhongMaterial {
             name: "wireframe".to_string(),
@@ -33,10 +33,10 @@ fn main() {
             specular_power: 5.0,
             color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0))
         };
-        let edges = renderer.new_instanced_mesh(&edge_transformations(&cpu_mesh), &CPUMesh::cylinder(0.007, 1.0, 10, 1), &wireframe_material).unwrap();
-        let vertices = renderer.new_instanced_mesh(&vertex_transformations(&cpu_mesh), &CPUMesh::sphere(0.015), &wireframe_material).unwrap();
+        let edges = PhongDeferredInstancedMesh::new(&gl, &edge_transformations(&cpu_mesh), &CPUMesh::cylinder(0.007, 1.0, 10, 1), &wireframe_material).unwrap();
+        let vertices = PhongDeferredInstancedMesh::new(&gl, &vertex_transformations(&cpu_mesh), &CPUMesh::sphere(0.015), &wireframe_material).unwrap();
 
-        let plane = renderer.new_mesh(
+        let plane = PhongDeferredMesh::new(&gl,
             &CPUMesh {
                 positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),

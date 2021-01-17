@@ -199,33 +199,4 @@ impl PhongDeferredPipeline
             };
         self.set_debug_type(debug_type);
     }
-
-    pub fn new_material(&self, cpu_material: &CPUMaterial) -> Result<PhongMaterial, Error>
-    {
-        PhongMaterial::new(&self.gl, cpu_material)
-    }
-
-    pub fn new_mesh(&self, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredMesh, Error>
-    {
-        PhongDeferredMesh::new(&self.gl, cpu_mesh, material)
-    }
-
-    pub fn new_meshes(&self, cpu_meshes: &Vec<CPUMesh>, cpu_materials: &Vec<CPUMaterial>) -> Result<Vec<PhongDeferredMesh>, Error>
-    {
-        let materials = cpu_materials.iter().map(|m| PhongMaterial::new(&self.gl, m).unwrap()).collect::<Vec<PhongMaterial>>();
-        let mut meshes = Vec::new();
-        for cpu_mesh in cpu_meshes {
-            let material = cpu_mesh.material_name.as_ref().map(|material_name|
-                materials.iter().filter(|m| &m.name == material_name).last()
-                .map(|m| m.clone()).unwrap_or_else(|| PhongMaterial::default()))
-                .unwrap_or_else(|| PhongMaterial::default());
-            meshes.push(self.new_mesh(cpu_mesh, &material)?);
-        }
-        Ok(meshes)
-    }
-
-    pub fn new_instanced_mesh(&self, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<PhongDeferredInstancedMesh, Error>
-    {
-        PhongDeferredInstancedMesh::new(&self.gl, transformations, cpu_mesh, material)
-    }
 }
