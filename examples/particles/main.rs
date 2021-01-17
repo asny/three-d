@@ -12,28 +12,31 @@ fn main() {
 
     // Renderer
     let pipeline = PhongForwardPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(50.0, 0.0, 50.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(500.0, 50.0, 0.0), vec3(0.0, 50.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
     let material = PhongMaterial {
-        color_source: ColorSource::Color(vec4(1.0, 0.0, 0.0, 1.0)),
+        color_source: ColorSource::Color(vec4(0.0, 0.0, 0.0, 1.0)),
         ..Default::default()
     };
 
-    //let mut particles = pipeline.new_instanced_mesh(&[], &CPUMesh::circle(1.0, 16), &material).unwrap();
-    let mut particles = Particles::new(&gl, &CPUMesh::circle(1.0, 16), &material, &vec3(0.0, -9.82, 0.0)).unwrap();
+    let rocket_speed = 60.0;
+    let explosion_speed = 50.0;
+    let explosion_time = 5.0;
+
+    let mut particles = Particles::new(&gl, &CPUMesh::circle(0.3, 8), &material, &vec3(0.0, -9.82, 0.0)).unwrap();
     let mut data = Vec::new();
     let mut rng = rand::thread_rng();
-    let variation = 15.0;
-    for _ in 0..1000 {
+    for _ in 0..10000 {
+        let direction = vec3(rng.gen::<f32>() - 0.5, 0.5 * rng.gen::<f32>(), rng.gen::<f32>() - 0.5).normalize();
         data.push(ParticleData {
             start_position: vec3(0.0, 0.0, 0.0),
-            start_velocity: vec3(variation * rng.gen::<f32>() - 0.5 * variation, 5.0 * rng.gen::<f32>() + 10.0, variation * rng.gen::<f32>() - 0.5 * variation)
+            start_velocity: explosion_speed * direction + vec3(0.0, rocket_speed, 0.0)
         });
     }
     particles.update(&data);
 
-    let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
+    let ambient_light = AmbientLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0)).unwrap();
 
     // main loop
     let mut time = 0.0;
@@ -59,6 +62,11 @@ fn main() {
             }
         }
         time += (frame_input.elapsed_time * 0.001) as f32;
+        if time > explosion_time + 1.0 {
+            time = 0.0;
+        }
+
+        particles.material.color_source = ColorSource::Color(vec4((1.0 - time/explosion_time).max(0.0), 0.0, 0.0, 1.0));
 
         // draw
         pipeline.render_to_screen(width, height, || {

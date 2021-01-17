@@ -62,14 +62,13 @@ impl Particles {
             ColorSource::Texture(_) => &self.program_texture_ambient
         };
 
-        program.add_uniform_vec3("ambientColor", &ambient_light.color())?;
-        program.add_uniform_float("ambientIntensity", &ambient_light.intensity())?;
-
+        let ambient = ambient_light.intensity() * ambient_light.color();
         match self.material.color_source {
             ColorSource::Color(ref color) => {
-                program.add_uniform_vec4("color", color)?;
+                program.add_uniform_vec4("color", &vec4(color.x * ambient.x, color.y * ambient.y, color.z * ambient.z, color.w))?;
             },
             ColorSource::Texture(ref texture) => {
+                program.add_uniform_vec3("ambientColor", &ambient)?;
                 program.use_texture(texture.as_ref(),"tex")?;
                 //program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
             }
