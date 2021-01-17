@@ -306,14 +306,10 @@ impl Program
     fn set_used(&self) {
         self.gl.use_program(&self.id);
     }
-
-    pub(crate) fn destroy(&mut self) {
-        self.gl.delete_program(&self.id);
-    }
 }
 
 impl Drop for Program {
     fn drop(&mut self) {
-        self.destroy();
+        self.gl.delete_program(&self.id);
     }
 }
