@@ -55,7 +55,7 @@ impl Particles {
         self.instance_count = data.len() as u32;
     }
 
-    pub fn render_with_ambient(&self, time: f32, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
+    pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, time: f32) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => &self.program_color_ambient,
@@ -74,6 +74,7 @@ impl Particles {
             }
         }
 
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
         program.add_uniform_vec3("acceleration", &self.acceleration)?;
         program.add_uniform_float("time", &time)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");

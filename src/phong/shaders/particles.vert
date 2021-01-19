@@ -1,3 +1,4 @@
+uniform mat4 modelMatrix;
 layout (std140) uniform Camera
 {
     mat4 viewProjection;
@@ -18,5 +19,5 @@ in vec3 start_velocity;
 void main()
 {
     vec3 p = start_position + start_velocity * time + 0.5 * acceleration * time * time;
-    gl_Position = camera.projection * (camera.view * vec4(p, 1.0) + vec4(position, 0.0));
+    gl_Position = camera.projection * (camera.view * modelMatrix * vec4(p, 1.0) + vec4(position, 0.0));
 }
