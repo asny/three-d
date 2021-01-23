@@ -231,11 +231,9 @@ impl Camera
     pub fn zoom(&mut self, wheel: f32)
     {
         if self.fov == degrees(0.0) {
-            let height = self.height - wheel;
+            let height = (self.height - wheel).max(0.001);
             let width = height * self.width / self.height;
-            if height > 0.001 && width > 0.001 {
-                self.set_orthographic_projection(width, height, self.z_far - self.z_near);
-            }
+            self.set_orthographic_projection(width, height, self.z_far - self.z_near);
         }
         else {
             let mut direction = self.target - self.position;

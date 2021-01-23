@@ -43,11 +43,11 @@ fn main() {
                 },
                 Event::MouseMotion {delta} => {
                     if panning {
-                        camera.pan(delta.0 as f32, delta.1 as f32);
+                        camera.pan(0.2 * delta.0 as f32, 0.2 * delta.1 as f32);
                     }
                 },
                 Event::MouseWheel {delta} => {
-                    camera.zoom(*delta as f32);
+                    camera.zoom(0.05 * *delta as f32);
                 },
                 _ => {}
             }
