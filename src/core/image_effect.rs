@@ -41,11 +41,12 @@ impl ImageEffect {
         &self.program
     }
 
-    pub fn apply(&self) {
+    pub fn apply(&self) -> Result<(), Error> {
         state::cull(&self.gl,state::CullType::Back);
 
-        self.program.use_attribute_vec3_float(&self.positions, "position").unwrap();
-        self.program.use_attribute_vec2_float(&self.uvs, "uv_coordinate").unwrap();
+        self.program.use_attribute_vec3_float(&self.positions, "position")?;
+        self.program.use_attribute_vec2_float(&self.uvs, "uv_coordinate")?;
         self.program.draw_arrays(3);
+        Ok(())
     }
 }
