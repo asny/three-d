@@ -50,11 +50,17 @@ fn main() {
         time += elapsed_time;
         if time > explosion_time {
             time = 0.0;
+            let start_position = vec3(20.0 * rng.gen::<f32>() - 10.0, 40.0 + 20.0 * rng.gen::<f32>(), 20.0 * rng.gen::<f32>() - 10.0);
+            let start_direction = vec3(rng.gen::<f32>() - 0.5, 0.2 + 0.8 * rng.gen::<f32>(), rng.gen::<f32>() - 0.5).normalize();
+            let tangent = start_direction.cross(vec3(1.0, 0.0, 0.0));
+            let cotangent = start_direction.cross(tangent);
             let mut data = Vec::new();
             for _ in 0..1000 {
-                let explosion_direction = vec3(rng.gen::<f32>() - 0.5, 0.5 * rng.gen::<f32>(), rng.gen::<f32>() - 0.5).normalize();
+                let explosion_direction = (rng.gen::<f32>() * start_direction
+                    + (rng.gen::<f32>() - 0.5) * tangent
+                    + (rng.gen::<f32>() - 0.5) * cotangent).normalize();
                 data.push(ParticleData {
-                    start_position: vec3(0.0, 50.0, 0.0),
+                    start_position,
                     start_velocity: (rng.gen::<f32>() + 0.5) * explosion_speed * explosion_direction
                 });
             }
