@@ -121,11 +121,6 @@ float calculate_shadow(mat4 shadowMVP, vec3 position)
     return visibility * 0.25;
 }
 
-vec3 calculate_ambient_light(BaseLight ambientLight, Surface surface)
-{
-    return surface.color * ambientLight.color * ambientLight.intensity;
-}
-
 vec3 calculate_directional_light(DirectionalLight directionalLight, Surface surface)
 {
     vec3 light = calculate_light(directionalLight.base, directionalLight.direction, surface);

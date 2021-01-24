@@ -4,36 +4,17 @@ use crate::core::Error;
 
 pub struct AmbientLight
 {
-    color: Vec3,
-    intensity: f32
+    pub color: Vec3,
+    pub intensity: f32
 }
 
-impl AmbientLight
-{
-    pub fn new(_: &Gl, intensity: f32, color: &Vec3) -> Result<AmbientLight, Error>
-    {
-        Ok(AmbientLight { color: *color, intensity })
-    }
-
-    pub fn color(&self) -> Vec3
-    {
-        self.color
-    }
-
-    pub fn set_color(&mut self, color: &Vec3)
-    {
-        self.color = *color;
-    }
-
-    pub fn intensity(&self) -> f32
-    {
-        self.intensity
-    }
-
-    pub fn set_intensity(&mut self, intensity: f32)
-    {
-        self.intensity = intensity;
-    }
+impl Default for AmbientLight {
+    fn default() -> Self {
+        Self {
+            color: vec3(1.0, 1.0, 1.0),
+            intensity: 1.0
+        }
+     }
 }
 
 pub struct DirectionalLight {

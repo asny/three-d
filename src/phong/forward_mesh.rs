@@ -42,7 +42,7 @@ impl PhongForwardMesh
 
     pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.render_with_ambient(transformation, camera, &AmbientLight::new(&self.gl, 0.0, &vec3(0.0, 0.0, 0.0))?)
+        self.render_with_ambient(transformation, camera, &AmbientLight::default())
     }
 
     pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
@@ -52,9 +52,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        PROGRAM_COLOR_AMBIENT = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
-                                                                                      &include_str!("shaders/light_shared.frag"),
-                                                                                      &include_str!("shaders/colored_forward_ambient.frag")))?);
+                        PROGRAM_COLOR_AMBIENT = Some(GPUMesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -63,18 +61,25 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        PROGRAM_TEXTURE_AMBIENT = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
-                                                                                        include_str!("shaders/light_shared.frag"),
-                                                                                        include_str!("shaders/textured_forward_ambient.frag")))?);
+                        PROGRAM_TEXTURE_AMBIENT = Some(GPUMesh::create_program(&self.gl,include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
             }
         };
-        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
-        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
+        program.add_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
 
-        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        match self.material.color_source {
+            ColorSource::Color(ref color) => {
+                program.add_uniform_vec4("surfaceColor", color)?;
+            },
+            ColorSource::Texture(ref texture) => {
+                if !self.gpu_mesh.has_uvs() {
+                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
+                }
+                program.use_texture(texture.as_ref(),"tex")?;
+            }
+        }
         self.gpu_mesh.render(program, transformation, camera)
     }
 
@@ -104,8 +109,7 @@ impl PhongForwardMesh
                 }
             }
         };
-        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
-        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
+        program.add_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
 
         program.add_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
@@ -165,7 +169,7 @@ impl PhongForwardInstancedMesh
 
     pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.render_with_ambient(transformation, camera, &AmbientLight::new(&self.gl, 0.0, &vec3(0.0, 0.0, 0.0))?)
+        self.render_with_ambient(transformation, camera, &AmbientLight::default())
     }
 
     pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
@@ -175,9 +179,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedGPUMesh::create_program(&self.gl, &format!("{}\n{}",
-                                                                                      &include_str!("shaders/light_shared.frag"),
-                                                                                      &include_str!("shaders/colored_forward_ambient.frag")))?);
+                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedGPUMesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -186,18 +188,25 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedGPUMesh::create_program(&self.gl, &format!("{}\n{}",
-                                                                                        include_str!("shaders/light_shared.frag"),
-                                                                                        include_str!("shaders/textured_forward_ambient.frag")))?);
+                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedGPUMesh::create_program(&self.gl, include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
             }
         };
-        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
-        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
+        program.add_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
 
-        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
+        match self.material.color_source {
+            ColorSource::Color(ref color) => {
+                program.add_uniform_vec4("surfaceColor", color)?;
+            },
+            ColorSource::Texture(ref texture) => {
+                if !self.gpu_mesh.has_uvs() {
+                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
+                }
+                program.use_texture(texture.as_ref(),"tex")?;
+            }
+        }
         self.gpu_mesh.render(program, transformation, camera)
     }
 
@@ -227,8 +236,7 @@ impl PhongForwardInstancedMesh
                 }
             }
         };
-        program.add_uniform_vec3("ambientLight.color", &ambient_light.color())?;
-        program.add_uniform_float("ambientLight.intensity", &ambient_light.intensity())?;
+        program.add_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
         program.add_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
@@ -272,7 +280,7 @@ fn bind_material(program: &Program, material: &PhongMaterial, has_uvs: bool) -> 
 
     match material.color_source {
         ColorSource::Color(ref color) => {
-            program.add_uniform_vec4("color", color)?;
+            program.add_uniform_vec4("surfaceColor", color)?;
         },
         ColorSource::Texture(ref texture) => {
             if !has_uvs {

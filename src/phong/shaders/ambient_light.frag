@@ -1,9 +1,10 @@
 
-layout (location = 0) out vec4 color;
+uniform vec3 ambientColor;
 
-uniform BaseLight ambientLight;
+layout (location = 0) out vec4 color;
 
 void main()
 {
-    color = vec4(calculate_ambient_light(ambientLight, get_surface()), 1.0);
+    vec3 surfaceColor = get_surface_color();
+    color = vec4(surfaceColor * ambientColor, 1.0);
 }

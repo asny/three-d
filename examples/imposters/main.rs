@@ -30,7 +30,7 @@ fn main() {
         let leaves_mesh = PhongForwardMesh::new(&gl, leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
 
         // Lights
-        let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
+        let ambient_light = AmbientLight {intensity: 0.2, color: vec3(1.0, 1.0, 1.0)};
         let mut directional_light = DirectionalLight::new(&gl, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
         // Imposters

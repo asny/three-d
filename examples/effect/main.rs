@@ -23,7 +23,7 @@ fn main() {
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
         let monkey = PhongForwardMesh::new(&gl, &meshes[0], &PhongMaterial::new(&gl, &materials[0]).unwrap()).unwrap();
 
-        let ambient_light = AmbientLight::new(&gl, 0.2, &vec3(1.0, 1.0, 1.0)).unwrap();
+        let ambient_light = AmbientLight{ intensity: 0.2, color: vec3(1.0, 1.0, 1.0) };
         let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
         // Fog

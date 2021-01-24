@@ -45,7 +45,7 @@ fn main() {
         let penguin_deferred = PhongDeferredMesh::new_meshes(&gl, &penguin_cpu_meshes, &materials).unwrap().remove(0);
         let penguin_forward = PhongForwardMesh::new_meshes(&gl, &penguin_cpu_meshes, &materials).unwrap().remove(0);
 
-        let ambient_light = AmbientLight::new(&gl, 0.4, &vec3(1.0, 1.0, 1.0)).unwrap();
+        let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
         let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
 
         // main loop
