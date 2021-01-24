@@ -29,7 +29,7 @@ fn main() {
         ..Default::default()
     }, &vec3(0.0, -9.82, 0.0)).unwrap();
 
-    let ambient_light = AmbientLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0)).unwrap();
+    let ambient_light = AmbientLight::default();
 
     // main loop
     let mut rocket_position = vec3(0.0, 0.0, 0.0);
