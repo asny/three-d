@@ -16,12 +16,6 @@ fn main() {
 
     let mut rng = rand::thread_rng();
 
-    let rocket_time = 2.0;
-    let mut rocket = PhongForwardMesh::new(&gl, &CPUMesh::circle(0.5, 16), &PhongMaterial {
-        color_source: ColorSource::Color(vec4(0.9, 0.9, 0.4, 1.0)),
-        ..Default::default()
-    }).unwrap();
-
     let explosion_speed = 12.0;
     let explosion_time = 3.0;
     let mut particles = Particles::new(&gl, &CPUMesh::circle(0.3, 8), &PhongMaterial {
@@ -29,12 +23,8 @@ fn main() {
         ..Default::default()
     }, &vec3(0.0, -9.82, 0.0)).unwrap();
 
-    let ambient_light = AmbientLight::default();
-
     // main loop
-    let mut rocket_position = vec3(0.0, 0.0, 0.0);
-    let mut rocket_velocity = vec3(0.0, 0.0, 0.0);
-    let mut time = rocket_time + explosion_time + 100.0;
+    let mut time = explosion_time + 100.0;
     let mut rotating = false;
     window.render_loop(move |frame_input|
     {
@@ -58,43 +48,26 @@ fn main() {
         }
         let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
         time += elapsed_time;
-        if time > rocket_time + explosion_time {
+        if time > explosion_time {
             time = 0.0;
-            rocket_position = vec3(0.0, 0.0, 0.0);
-            rocket_velocity = vec3(0.0, 40.0 + rng.gen::<f32>() * 20.0, 0.0);
-        }
-
-        if time < rocket_time {
-            let variance = 2.0;
-            rocket_velocity += vec3(variance * rng.gen::<f32>() - 0.5 * variance, variance * rng.gen::<f32>() - 0.5 * variance, variance * rng.gen::<f32>() - 0.5 * variance);
-            rocket_position += elapsed_time * rocket_velocity;
-        }
-
-        if time > rocket_time && time - elapsed_time < rocket_time {
             let mut data = Vec::new();
             for _ in 0..1000 {
                 let explosion_direction = vec3(rng.gen::<f32>() - 0.5, 0.5 * rng.gen::<f32>(), rng.gen::<f32>() - 0.5).normalize();
                 data.push(ParticleData {
-                    start_position: vec3(0.0, 0.0, 0.0),
+                    start_position: vec3(0.0, 50.0, 0.0),
                     start_velocity: (rng.gen::<f32>() + 0.5) * explosion_speed * explosion_direction
                 });
             }
             particles.update(&data);
         }
 
-        let fade = (1.0 - (time - rocket_time)/explosion_time).max(0.0);
+        let fade = (1.0 - time/explosion_time).max(0.0);
         particles.material.color_source = ColorSource::Color(vec4(fade, fade * 0.2, fade * 0.1, 1.0));
-        rocket.material.color_source = ColorSource::Color(vec4(0.1 * rng.gen::<f32>() + 0.7, 0.1 * rng.gen::<f32>() + 0.7, 0.7, 1.0));
 
         // draw
         pipeline.render_to_screen(width, height, || {
-            state::cull(&gl, state::CullType::None);
-            if time < rocket_time {
-                rocket.render_with_ambient(&Mat4::from_translation(rocket_position), &camera, &ambient_light)?;
-            }
-            if time >= rocket_time {
-                particles.render_with_ambient(&Mat4::from_translation(rocket_position), &camera, &ambient_light, time - rocket_time)?;
-            }
+            state::cull(&gl, state::CullType::Back);
+            particles.render_with_ambient(&Mat4::identity(), &camera, &AmbientLight::default(), time)?;
             Ok(())
         }).unwrap();
 
