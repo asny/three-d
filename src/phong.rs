@@ -16,6 +16,3 @@ pub use crate::deferred_mesh::*;
 
 pub mod imposter;
 pub use crate::imposter::*;
-
-pub mod particles;
-pub use crate::particles::*;
