@@ -315,13 +315,6 @@ impl Glstruct {
     pub fn use_program(&self, program: &Program)
     {
         unsafe {
-            let mut current = -1;
-            self.inner.GetIntegerv(consts::CURRENT_PROGRAM, &mut current);
-            if current != 0
-            {
-                println!("{}", current);
-                panic!();
-            }
             self.inner.UseProgram(*program);
         }
     }
