@@ -10,7 +10,6 @@ fn main() {
     let (width, height) = window.framebuffer_size();
     let gl = window.gl();
 
-    let pipeline = PhongForwardPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(0.0, 50.0, 170.0), vec3(0.0, 50.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
 
@@ -18,10 +17,7 @@ fn main() {
 
     let explosion_speed = 12.0;
     let explosion_time = 3.0;
-    let mut particles = Particles::new(&gl, &CPUMesh::circle(0.3, 8), &PhongMaterial {
-        color_source: ColorSource::Color(vec4(0.0, 0.0, 0.0, 1.0)),
-        ..Default::default()
-    }, &vec3(0.0, -9.82, 0.0)).unwrap();
+    let mut particles = Particles::new(&gl, &include_str!("../assets/shaders/particles.frag"), &CPUMesh::circle(0.3, 8), &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
     let mut time = explosion_time + 100.0;
@@ -67,13 +63,12 @@ fn main() {
             particles.update(&data);
         }
 
-        let fade = (1.0 - time/explosion_time).max(0.0);
-        particles.material.color_source = ColorSource::Color(vec4(fade, fade * 0.2, fade * 0.1, 1.0));
-
         Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, || {
             state::cull(&gl, state::CullType::Back);
             state::blend(&gl, state::BlendType::OneOne);
-            particles.render_with_ambient(&Mat4::identity(), &camera, &AmbientLight::default(), time)?;
+            let fade = (1.0 - time/explosion_time).max(0.0);
+            particles.program().add_uniform_vec4("color", &vec4(fade, fade * 0.2, fade * 0.1, 1.0))?;
+            particles.render(&Mat4::identity(), &camera, time)?;
             Ok(())
         }).unwrap();
 
