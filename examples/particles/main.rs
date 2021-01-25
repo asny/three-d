@@ -23,8 +23,6 @@ fn main() {
         ..Default::default()
     }, &vec3(0.0, -9.82, 0.0)).unwrap();
 
-    let effect = ImageEffect::new(&gl, include_str!("../assets/shaders/particles.frag")).unwrap();
-
     // main loop
     let mut time = explosion_time + 100.0;
     let mut rotating = false;
@@ -53,12 +51,12 @@ fn main() {
         if time > explosion_time {
             time = 0.0;
             let start_position = vec3(20.0 * rng.gen::<f32>() - 10.0, 40.0 + 20.0 * rng.gen::<f32>(), 20.0 * rng.gen::<f32>() - 10.0);
-            let start_direction = vec3(rng.gen::<f32>() - 0.5, 0.2 + 0.8 * rng.gen::<f32>(), rng.gen::<f32>() - 0.5).normalize();
+            let start_direction = vec3(rng.gen::<f32>() - 0.5, 0.5 + 0.5 * rng.gen::<f32>(), rng.gen::<f32>() - 0.5).normalize();
             let tangent = start_direction.cross(vec3(1.0, 0.0, 0.0));
             let cotangent = start_direction.cross(tangent);
             let mut data = Vec::new();
             for _ in 0..1000 {
-                let explosion_direction = (rng.gen::<f32>() * start_direction
+                let explosion_direction = ((1.2 * rng.gen::<f32>() - 0.2) * start_direction
                     + (rng.gen::<f32>() - 0.5) * tangent
                     + (rng.gen::<f32>() - 0.5) * cotangent).normalize();
                 data.push(ParticleData {
@@ -72,21 +70,10 @@ fn main() {
         let fade = (1.0 - time/explosion_time).max(0.0);
         particles.material.color_source = ColorSource::Color(vec4(fade, fade * 0.2, fade * 0.1, 1.0));
 
-        // draw
-        let color_texture = Texture2D::new(&gl, width, height, Interpolation::Nearest,
-                                           Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
-        RenderTarget::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), None, || {
+        Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, || {
             state::cull(&gl, state::CullType::Back);
+            state::blend(&gl, state::BlendType::OneOne);
             particles.render_with_ambient(&Mat4::identity(), &camera, &AmbientLight::default(), time)?;
-            Ok(())
-        }).unwrap();
-
-        pipeline.render_to_screen(width, height, || {
-            state::depth_write(&gl,false);
-            state::depth_test(&gl, state::DepthTestType::None);
-            state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
-            effect.program().use_texture(&color_texture, "colorMap")?;
-            effect.apply().unwrap();
             Ok(())
         }).unwrap();
 
