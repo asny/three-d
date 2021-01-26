@@ -31,11 +31,9 @@ impl Skybox
         Ok(Skybox { gl: gl.clone(), program, vertex_buffer, texture })
     }
 
-    pub fn apply(&self, render_states: RenderStates, camera: &camera::Camera) -> Result<(), Error>
+    pub fn apply(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
-        state::cull(&self.gl, state::CullType::Front);
+        let render_states = RenderStates {cull: CullType::Front, depth_write: true, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
         state::blend(&self.gl, state::BlendType::None);
 
         self.program.use_texture(&self.texture, "texture0")?;

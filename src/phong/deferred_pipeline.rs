@@ -55,9 +55,6 @@ impl PhongDeferredPipeline
 
     pub fn geometry_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
     {
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
-        state::cull(&self.gl, state::CullType::None);
         state::blend(&self.gl, state::BlendType::None);
 
         self.geometry_pass_texture = Some(Texture2DArray::new(&self.gl, width, height, 2,

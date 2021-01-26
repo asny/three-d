@@ -42,8 +42,6 @@ impl ImageEffect {
     }
 
     pub fn apply(&self, render_states: RenderStates) -> Result<(), Error> {
-        state::cull(&self.gl,state::CullType::Back);
-
         self.program.use_attribute_vec3_float(&self.positions, "position")?;
         self.program.use_attribute_vec2_float(&self.uvs, "uv_coordinate")?;
         self.program.draw_arrays(render_states, 3);
