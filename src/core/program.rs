@@ -398,11 +398,12 @@ impl Program
             {
                 if let Some(blend_parameters) = blend {
                     gl.enable(consts::BLEND);
-                    gl.blend_func_separate(Self::blend_const_from_enum(blend_parameters.source_rgb_multiplier),
-                                           Self::blend_const_from_enum(blend_parameters.destination_rgb_multiplier),
-                                           Self::blend_const_from_enum(blend_parameters.source_alpha_multiplier),
-                                           Self::blend_const_from_enum(blend_parameters.destination_alpha_multiplier));
-                    //TODO: Blend equation
+                    gl.blend_func_separate(Self::blend_const_from_multiplier(blend_parameters.source_rgb_multiplier),
+                                           Self::blend_const_from_multiplier(blend_parameters.destination_rgb_multiplier),
+                                           Self::blend_const_from_multiplier(blend_parameters.source_alpha_multiplier),
+                                           Self::blend_const_from_multiplier(blend_parameters.destination_alpha_multiplier));
+                    gl.blend_equation_separate(Self::blend_const_from_equation(blend_parameters.rgb_equation),
+                                               Self::blend_const_from_equation(blend_parameters.alpha_equation));
                 } else {
                     gl.disable(consts::BLEND);
                 }
@@ -411,7 +412,7 @@ impl Program
         }
     }
 
-    fn blend_const_from_enum(multiplier: BlendMultiplierType) -> u32 {
+    fn blend_const_from_multiplier(multiplier: BlendMultiplierType) -> u32 {
         match multiplier {
             BlendMultiplierType::Zero => consts::ZERO,
             BlendMultiplierType::One => consts::ONE,
@@ -419,6 +420,16 @@ impl Program
             BlendMultiplierType::OneMinusSrcAlpha => consts::ONE_MINUS_SRC_ALPHA,
             BlendMultiplierType::DstAlpha => consts::DST_ALPHA,
             BlendMultiplierType::OneMinusDstAlpha => consts::ONE_MINUS_DST_ALPHA
+        }
+    }
+
+    fn blend_const_from_equation(equation: BlendEquationType) -> u32 {
+        match equation {
+            BlendEquationType::Add => consts::FUNC_ADD,
+            BlendEquationType::Subtract => consts::FUNC_SUBTRACT,
+            BlendEquationType::ReverseSubtract => consts::FUNC_REVERSE_SUBTRACT,
+            BlendEquationType::Min => consts::MIN,
+            BlendEquationType::Max => consts::MAX,
         }
     }
 

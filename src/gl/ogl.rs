@@ -559,6 +559,18 @@ impl Glstruct {
         }
     }
 
+    pub fn blend_equation(&self, mode: u32) {
+        unsafe {
+            self.inner.BlendEquation(mode);
+        }
+    }
+
+    pub fn blend_equation_separate(&self, mode_rgb: u32, mode_alpha: u32) {
+        unsafe {
+            self.inner.BlendEquationSeparate(mode_rgb, mode_alpha);
+        }
+    }
+
     pub fn cull_face(&self, mode: u32)
     {
         unsafe {
