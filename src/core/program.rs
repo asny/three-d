@@ -343,6 +343,57 @@ impl Program
                 CURRENT_CULL = render_states.cull;
             }
         }
+
+        unsafe {
+            static mut CURRENT_DEPTH_WRITE: bool = true;
+            if render_states.depth_write != CURRENT_DEPTH_WRITE
+            {
+                self.gl.depth_mask(render_states.depth_write);
+                CURRENT_DEPTH_WRITE = render_states.depth_write;
+            }
+        }
+
+        unsafe {
+            static mut CURRENT_DEPTH_TEST: DepthTestType = DepthTestType::None;
+            if render_states.depth_test != CURRENT_DEPTH_TEST
+            {
+                if render_states.depth_test == DepthTestType::None {
+                    self.gl.disable(consts::DEPTH_TEST);
+                }
+                else {
+                    self.gl.enable(consts::DEPTH_TEST);
+                }
+
+                match render_states.depth_test {
+                    DepthTestType::Never => {
+                        self.gl.depth_func(consts::NEVER);
+                    },
+                    DepthTestType::Less => {
+                        self.gl.depth_func(consts::LESS);
+                    },
+                    DepthTestType::Equal => {
+                        self.gl.depth_func(consts::EQUAL);
+                    },
+                    DepthTestType::LessOrEqual => {
+                        self.gl.depth_func(consts::LEQUAL);
+                    },
+                    DepthTestType::Greater => {
+                        self.gl.depth_func(consts::GREATER);
+                    },
+                    DepthTestType::NotEqual => {
+                        self.gl.depth_func(consts::NOTEQUAL);
+                    },
+                    DepthTestType::GreaterOrEqual => {
+                        self.gl.depth_func(consts::GEQUAL);
+                    },
+                    DepthTestType::Always => {
+                        self.gl.depth_func(consts::ALWAYS);
+                    },
+                    DepthTestType::None => {}
+                }
+                CURRENT_DEPTH_TEST = render_states.depth_test;
+            }
+        }
     }
 }
 
