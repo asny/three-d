@@ -45,7 +45,7 @@ fn main() {
             let world_view_projection = camera.get_projection() * camera.get_view() * Mat4::from_angle_y(radians(time * 0.005));
             program.add_uniform_mat4("worldViewProjectionMatrix", &world_view_projection)?;
 
-            program.draw_arrays(3);
+            program.draw_arrays(RenderStates::default(), 3);
             Ok(())
         }).unwrap();
 

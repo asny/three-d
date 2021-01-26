@@ -58,9 +58,10 @@ fn main() {
 
         let render_scene = |camera: &Camera| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-            model.render_depth(&transformation, camera)?;
-            edges.render_depth(&transformation, camera)?;
-            vertices.render_depth(&transformation, camera)?;
+            let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
+            model.render_depth(render_states, &transformation, camera)?;
+            edges.render_depth(render_states, &transformation, camera)?;
+            vertices.render_depth(render_states, &transformation, camera)?;
             Ok(())
         };
         spot_light0.generate_shadow_map(50.0, 512, &render_scene);
@@ -100,11 +101,11 @@ fn main() {
                 // Geometry pass
                 pipeline.geometry_pass(width, height, &|| {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-                    state::cull(&gl, state::CullType::Back);
-                    model.render_geometry(&transformation, &camera)?;
-                    edges.render_geometry(&transformation, &camera)?;
-                    vertices.render_geometry(&transformation, &camera)?;
-                    plane.render_geometry(&Mat4::identity(), &camera)?;
+                    let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
+                    model.render_geometry(render_states, &transformation, &camera)?;
+                    edges.render_geometry(render_states, &transformation, &camera)?;
+                    vertices.render_geometry(render_states, &transformation, &camera)?;
+                    plane.render_geometry(render_states, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 

@@ -22,6 +22,7 @@ fn main() {
         let (meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
         let monkey = PhongForwardMesh::new(&gl, &meshes[0], &PhongMaterial::new(&gl, &materials[0]).unwrap()).unwrap();
+        let monkey_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
 
         let ambient_light = AmbientLight{ intensity: 0.2, color: vec3(1.0, 1.0, 1.0) };
         let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
@@ -81,7 +82,7 @@ fn main() {
             // draw
             if fog_enabled || fxaa_enabled {
                 pipeline.depth_pass(width, height, &|| {
-                    monkey.render_depth(&Mat4::identity(), &camera)?;
+                    monkey.render_depth(monkey_render_states, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
             }
@@ -91,7 +92,7 @@ fn main() {
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
 
                 RenderTarget::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(pipeline.depth_texture()), || {
-                    monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                    monkey.render_with_ambient_and_directional(monkey_render_states, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(&camera)?;
                     if fog_enabled {
                         fog_effect.apply(time as f32, &camera, pipeline.depth_texture())?;
@@ -105,7 +106,7 @@ fn main() {
                 }).unwrap();
             } else {
                 pipeline.render_to_screen(width, height, || {
-                    monkey.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                    monkey.render_with_ambient_and_directional(monkey_render_states, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(&camera)?;
                     if fog_enabled {
                         fog_effect.apply(time as f32, &camera, pipeline.depth_texture())?;

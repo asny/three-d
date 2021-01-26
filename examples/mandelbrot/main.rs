@@ -59,7 +59,7 @@ fn main() {
             program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
             program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
-            program.draw_elements(&index_buffer);
+            program.draw_elements(RenderStates {cull: CullType::Back, ..Default::default()}, &index_buffer);
             Ok(())
         }).unwrap();
 

@@ -64,11 +64,10 @@ fn main() {
         }
 
         Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), || {
-            state::cull(&gl, state::CullType::Back);
             state::blend(&gl, state::BlendType::OneOne);
             let fade = (1.0 - time/explosion_time).max(0.0);
             particles.program().add_uniform_vec4("color", &vec4(fade, fade * 0.2, fade * 0.1, 1.0))?;
-            particles.render(&Mat4::identity(), &camera, time)?;
+            particles.render(RenderStates {cull: CullType::Back, ..Default::default()}, &Mat4::identity(), &camera, time)?;
             Ok(())
         }).unwrap();
 
