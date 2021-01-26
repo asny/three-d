@@ -315,13 +315,6 @@ impl Glstruct {
     pub fn use_program(&self, program: &Program)
     {
         unsafe {
-            let mut current = -1;
-            self.inner.GetIntegerv(consts::CURRENT_PROGRAM, &mut current);
-            if current != 0
-            {
-                println!("{}", current);
-                panic!();
-            }
             self.inner.UseProgram(*program);
         }
     }
@@ -668,6 +661,35 @@ impl Glstruct {
     {
         unsafe {
             self.inner.TexImage3D(target, level as i32, internalformat as i32, width as i32, height as i32, depth as i32, 0, format, data_type, std::ptr::null() as *const consts::types::GLvoid);
+        }
+    }
+
+    pub fn tex_image_3d_with_u16_data(
+        &self,
+        target: u32,
+        level: u32,
+        internalformat: u32,
+        width: u32,
+        height: u32,
+        depth: u32,
+        border: u32,
+        format: u32,
+        data_type: u32,
+        pixels: &[u16],
+    ) {
+        unsafe {
+            self.inner.TexImage3D(
+                target,
+                level as i32,
+                internalformat as i32,
+                width as i32,
+                height as i32,
+                depth as i32,
+                border as i32,
+                format,
+                data_type,
+                pixels.as_ptr() as *const consts::types::GLvoid,
+            );
         }
     }
 
