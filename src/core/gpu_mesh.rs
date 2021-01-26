@@ -32,7 +32,7 @@ impl GPUMesh {
         self.normal_buffer.is_some()
     }
 
-    pub fn render(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, program: &Program, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.add_uniform_mat4("modelMatrix", &transformation)?;
         program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
@@ -47,9 +47,9 @@ impl GPUMesh {
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(index_buffer);
+            program.draw_elements(render_states, index_buffer);
         } else {
-            program.draw_arrays(self.position_buffer.count() as u32/3);
+            program.draw_arrays(render_states, self.position_buffer.count() as u32/3);
         }
         Ok(())
     }
@@ -98,7 +98,7 @@ impl InstancedGPUMesh
         self.normal_buffer.is_some()
     }
 
-    pub fn render(&self, program: &Program, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, program: &Program, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
         program.use_attribute_vec4_float_divisor(&self.instance_buffer2, "row2", 1)?;
@@ -117,9 +117,9 @@ impl InstancedGPUMesh
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements_instanced(index_buffer, self.instance_count);
+            program.draw_elements_instanced(render_states, index_buffer, self.instance_count);
         } else {
-            program.draw_arrays_instanced(self.position_buffer.count() as u32/3, self.instance_count);
+            program.draw_arrays_instanced(render_states, self.position_buffer.count() as u32/3, self.instance_count);
         }
         Ok(())
     }

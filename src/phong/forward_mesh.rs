@@ -40,12 +40,12 @@ impl PhongForwardMesh
         Ok(meshes)
     }
 
-    pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render_depth(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.render_with_ambient(transformation, camera, &AmbientLight::default())
+        self.render_with_ambient(render_states,transformation, camera, &AmbientLight::default())
     }
 
-    pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
+    pub fn render_with_ambient(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {
@@ -80,10 +80,10 @@ impl PhongForwardMesh
                 program.use_texture(texture.as_ref(),"tex")?;
             }
         }
-        self.gpu_mesh.render(program, transformation, camera)
+        self.gpu_mesh.render(program, render_states, transformation, camera)
     }
 
-    pub fn render_with_ambient_and_directional(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
+    pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {
@@ -116,7 +116,7 @@ impl PhongForwardMesh
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
 
         bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
-        self.gpu_mesh.render(program, transformation, camera)
+        self.gpu_mesh.render(program, render_states, transformation, camera)
     }
 }
 
@@ -167,12 +167,12 @@ impl PhongForwardInstancedMesh
         self.gpu_mesh.update_transformations(transformations);
     }
 
-    pub fn render_depth(&self, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render_depth(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.render_with_ambient(transformation, camera, &AmbientLight::default())
+        self.render_with_ambient(render_states, transformation, camera, &AmbientLight::default())
     }
 
-    pub fn render_with_ambient(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
+    pub fn render_with_ambient(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {
@@ -207,10 +207,10 @@ impl PhongForwardInstancedMesh
                 program.use_texture(texture.as_ref(),"tex")?;
             }
         }
-        self.gpu_mesh.render(program, transformation, camera)
+        self.gpu_mesh.render(program, render_states, transformation, camera)
     }
 
-    pub fn render_with_ambient_and_directional(&self, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
+    pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {
@@ -242,7 +242,7 @@ impl PhongForwardInstancedMesh
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
 
         bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
-        self.gpu_mesh.render(program, transformation, camera)
+        self.gpu_mesh.render(program, render_states, transformation, camera)
     }
 }
 

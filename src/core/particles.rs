@@ -55,7 +55,7 @@ impl Particles {
         &self.program
     }
 
-    pub fn render(&self, transformation: &Mat4, camera: &camera::Camera, time: f32) -> Result<(), Error>
+    pub fn render(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera, time: f32) -> Result<(), Error>
     {
         self.program.add_uniform_mat4("modelMatrix", &transformation)?;
         self.program.add_uniform_vec3("acceleration", &self.acceleration)?;
@@ -70,9 +70,9 @@ impl Particles {
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            self.program.draw_elements_instanced(index_buffer, self.instance_count);
+            self.program.draw_elements_instanced(render_states, index_buffer, self.instance_count);
         } else {
-            self.program.draw_arrays_instanced(self.position_buffer.count() as u32/3, self.instance_count);
+            self.program.draw_arrays_instanced(render_states, self.position_buffer.count() as u32/3, self.instance_count);
         }
         Ok(())
     }

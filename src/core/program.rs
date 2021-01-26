@@ -250,8 +250,9 @@ impl Program
         Ok(())
     }
 
-    pub fn draw_arrays(&self, count: u32)
+    pub fn draw_arrays(&self, render_states: RenderStates, count: u32)
     {
+        self.set_states(render_states);
         self.set_used();
         self.gl.draw_arrays(consts::TRIANGLES, 0, count);
         for location in self.vertex_attributes.values() {
@@ -260,8 +261,9 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_arrays_instanced(&self, count: u32, instance_count: u32)
+    pub fn draw_arrays_instanced(&self, render_states: RenderStates, count: u32, instance_count: u32)
     {
+        self.set_states(render_states);
         self.set_used();
         self.gl.draw_arrays_instanced(consts::TRIANGLES, 0, count, instance_count);
         self.gl.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
@@ -271,13 +273,14 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_elements(&self, element_buffer: &buffer::ElementBuffer)
+    pub fn draw_elements(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer)
     {
-        self.draw_subset_of_elements(element_buffer, 0,element_buffer.count() as u32);
+        self.draw_subset_of_elements(render_states, element_buffer, 0,element_buffer.count() as u32);
     }
 
-    pub fn draw_subset_of_elements(&self, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
+    pub fn draw_subset_of_elements(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
     {
+        self.set_states(render_states);
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements(consts::TRIANGLES, count, consts::UNSIGNED_INT, first);
@@ -289,8 +292,9 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_elements_instanced(&self, element_buffer: &buffer::ElementBuffer, count: u32)
+    pub fn draw_elements_instanced(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer, count: u32)
     {
+        self.set_states(render_states);
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements_instanced(consts::TRIANGLES, element_buffer.count() as u32, consts::UNSIGNED_INT, 0, count);
@@ -311,6 +315,34 @@ impl Program
 
     fn set_used(&self) {
         self.gl.use_program(&self.id);
+    }
+
+    fn set_states(&self, render_states: RenderStates) {
+
+        unsafe {
+            static mut CURRENT_CULL: CullType = CullType::None;
+            if render_states.cull != CURRENT_CULL
+            {
+                match render_states.cull {
+                    CullType::None => {
+                        self.gl.disable(consts::CULL_FACE);
+                    },
+                    CullType::Back => {
+                        self.gl.enable(consts::CULL_FACE);
+                        self.gl.cull_face(consts::BACK);
+                    },
+                    CullType::Front => {
+                        self.gl.enable(consts::CULL_FACE);
+                        self.gl.cull_face(consts::FRONT);
+                    },
+                    CullType::FrontAndBack => {
+                        self.gl.enable(consts::CULL_FACE);
+                        self.gl.cull_face(consts::FRONT_AND_BACK);
+                    }
+                }
+                CURRENT_CULL = render_states.cull;
+            }
+        }
     }
 }
 

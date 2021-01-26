@@ -31,7 +31,7 @@ impl Skybox
         Ok(Skybox { gl: gl.clone(), program, vertex_buffer, texture })
     }
 
-    pub fn apply(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn apply(&self, render_states: RenderStates, camera: &camera::Camera) -> Result<(), Error>
     {
         state::depth_write(&self.gl, true);
         state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
@@ -43,7 +43,7 @@ impl Skybox
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position")?;
 
-        self.program.draw_arrays(36);
+        self.program.draw_arrays(render_states, 36);
         state::cull(&self.gl, state::CullType::None);
         Ok(())
     }

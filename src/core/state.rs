@@ -1,6 +1,23 @@
 use crate::gl::consts;
 use crate::gl::Gl;
 
+#[derive(Debug, Copy, Clone)]
+pub struct RenderStates {
+    pub depth_write: bool,
+    pub depth_test: DepthTestType,
+    pub cull: CullType
+}
+
+impl Default for RenderStates {
+    fn default() -> Self {
+        Self {
+            depth_write: true,
+            depth_test: DepthTestType::None,
+            cull: CullType::None
+        }
+     }
+}
+
 #[derive(PartialEq)]
 pub enum BlendType {
     None,
@@ -37,7 +54,7 @@ pub fn blend(gl: &Gl, blend_type: BlendType)
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum CullType {
     None,
     Back,
@@ -73,7 +90,7 @@ pub fn cull(gl: &Gl, cull_type: CullType)
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum DepthTestType {
     None,
     Never,
