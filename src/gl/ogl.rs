@@ -559,6 +559,13 @@ impl Glstruct {
         }
     }
 
+    pub fn blend_func_separate(&self, src_rgb: u32, dst_rgb: u32, src_alpha: u32, dst_alpha: u32)
+    {
+        unsafe {
+            self.inner.BlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
+        }
+    }
+
     pub fn cull_face(&self, mode: u32)
     {
         unsafe {
