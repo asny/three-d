@@ -78,9 +78,6 @@ impl DirectionalLight {
                                                            frustrum_width, frustrum_height, frustrum_depth));
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
 
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
-
         self.shadow_texture = Texture2D::new(&self.gl, texture_width, texture_height,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
@@ -236,9 +233,6 @@ impl SpotLight {
         self.shadow_camera = Some(Camera::new_perspective(&self.gl, position, position + direction, up,
                                                           degrees(cutoff), 1.0, 0.1, frustrum_depth));
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
-
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
 
         self.shadow_texture = Texture2D::new(&self.gl, texture_size, texture_size,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web

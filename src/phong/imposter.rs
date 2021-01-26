@@ -59,11 +59,6 @@ impl Imposter {
                 Interpolation::Nearest, Interpolation::Nearest, None,
                                                       Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::Depth32F)?;
 
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
-        state::cull(&self.gl, state::CullType::None);
-        state::blend(&self.gl, state::BlendType::None);
-
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),

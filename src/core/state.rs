@@ -74,15 +74,3 @@ pub fn blend(gl: &Gl, blend_type: BlendType)
         }
     }
 }
-
-pub fn cull(gl: &Gl, cull_type: CullType)
-{
-}
-
-pub fn depth_test(gl: &Gl, depth_test_type: DepthTestType)
-{
-}
-
-pub fn depth_write(gl: &Gl, enable: bool)
-{
-}

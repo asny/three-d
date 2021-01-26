@@ -42,7 +42,6 @@ impl Skybox
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position")?;
 
         self.program.draw_arrays(render_states, 36);
-        state::cull(&self.gl, state::CullType::None);
         Ok(())
     }
 

@@ -20,11 +20,6 @@ impl PhongForwardPipeline {
 
     pub fn depth_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
     {
-        state::depth_write(&self.gl, true);
-        state::depth_test(&self.gl, state::DepthTestType::LessOrEqual);
-        state::cull(&self.gl, state::CullType::None);
-        state::blend(&self.gl, state::BlendType::None);
-
         self.depth_texture = Some(Texture2D::new(&self.gl, width, height,
                     Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?);
