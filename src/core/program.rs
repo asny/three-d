@@ -403,6 +403,8 @@ impl Program
                                            Self::blend_const_from_enum(blend_parameters.source_alpha_multiplier),
                                            Self::blend_const_from_enum(blend_parameters.destination_alpha_multiplier));
                     //TODO: Blend equation
+                } else {
+                    gl.disable(consts::BLEND);
                 }
                 CURRENT = blend;
             }
