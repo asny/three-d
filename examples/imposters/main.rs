@@ -25,9 +25,12 @@ fn main() {
         let tree_cpu_material = materials.iter().find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
         let tree_material = PhongMaterial::new(&gl, &tree_cpu_material).unwrap();
         let tree_mesh = PhongForwardMesh::new(&gl, tree_cpu_mesh, &tree_material).unwrap();
+        let tree_mesh_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
+
         let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
         let leaves_cpu_material = materials.iter().find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
         let leaves_mesh = PhongForwardMesh::new(&gl, leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
+        let leaves_mesh_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         // Lights
         let ambient_light = AmbientLight {intensity: 0.2, color: vec3(1.0, 1.0, 1.0)};
@@ -37,10 +40,8 @@ fn main() {
         let aabb = tree_cpu_mesh.compute_aabb().add(&leaves_cpu_mesh.compute_aabb());
         let mut imposter = Imposter::new(&gl).unwrap();
         imposter.update_texture(|camera: &Camera| {
-            state::cull(&gl, state::CullType::Back);
-            tree_mesh.render_with_ambient_and_directional(&Mat4::identity(), camera, &ambient_light, &directional_light)?;
-            state::cull(&gl, state::CullType::None);
-            leaves_mesh.render_with_ambient_and_directional(&Mat4::identity(), camera, &ambient_light, &directional_light)?;
+            tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, &Mat4::identity(), camera, &ambient_light, &directional_light)?;
+            leaves_mesh.render_with_ambient_and_directional(leaves_mesh_render_states, &Mat4::identity(), camera, &ambient_light, &directional_light)?;
             Ok(())
         }, (aabb.min, aabb.max), 256).unwrap();
 
@@ -72,10 +73,8 @@ fn main() {
 
         // Shadows
         directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 50.0, 50.0, 100.0, 512, 512, &|camera: &Camera| {
-            state::cull(&gl, state::CullType::Back);
-            tree_mesh.render_depth(&Mat4::identity(), camera)?;
-            state::cull(&gl, state::CullType::None);
-            leaves_mesh.render_depth(&Mat4::identity(), camera)?;
+            tree_mesh.render_depth(tree_mesh_render_states, &Mat4::identity(), camera)?;
+            leaves_mesh.render_depth(leaves_mesh_render_states, &Mat4::identity(), camera)?;
             Ok(())
         });
 
@@ -103,14 +102,10 @@ fn main() {
             }
 
             Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
-                state::cull(&gl, state::CullType::Back);
-                plane.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                tree_mesh.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                state::cull(&gl, state::CullType::None);
-                leaves_mesh.render_with_ambient_and_directional(&Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-
-                state::cull(&gl, state::CullType::Back);
-                state::blend(&gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
+                plane.render_with_ambient_and_directional(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
+                                                          &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                leaves_mesh.render_with_ambient_and_directional(leaves_mesh_render_states, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 imposter.render(&camera)?;
                 Ok(())
             }).unwrap();
