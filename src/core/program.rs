@@ -252,7 +252,7 @@ impl Program
 
     pub fn draw_arrays(&self, render_states: RenderStates, count: u32)
     {
-        self.set_states(render_states);
+        Self::set_states(&self.gl, render_states);
         self.set_used();
         self.gl.draw_arrays(consts::TRIANGLES, 0, count);
         for location in self.vertex_attributes.values() {
@@ -263,7 +263,7 @@ impl Program
 
     pub fn draw_arrays_instanced(&self, render_states: RenderStates, count: u32, instance_count: u32)
     {
-        self.set_states(render_states);
+        Self::set_states(&self.gl, render_states);
         self.set_used();
         self.gl.draw_arrays_instanced(consts::TRIANGLES, 0, count, instance_count);
         self.gl.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
@@ -280,7 +280,7 @@ impl Program
 
     pub fn draw_subset_of_elements(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
     {
-        self.set_states(render_states);
+        Self::set_states(&self.gl, render_states);
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements(consts::TRIANGLES, count, consts::UNSIGNED_INT, first);
@@ -294,7 +294,7 @@ impl Program
 
     pub fn draw_elements_instanced(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer, count: u32)
     {
-        self.set_states(render_states);
+        Self::set_states(&self.gl, render_states);
         self.set_used();
         element_buffer.bind();
         self.gl.draw_elements_instanced(consts::TRIANGLES, element_buffer.count() as u32, consts::UNSIGNED_INT, 0, count);
@@ -317,7 +317,7 @@ impl Program
         self.gl.use_program(&self.id);
     }
 
-    fn set_states(&self, render_states: RenderStates) {
+    fn set_states(gl: &Gl, render_states: RenderStates) {
 
         unsafe {
             static mut CURRENT_CULL: CullType = CullType::None;
@@ -325,73 +325,78 @@ impl Program
             {
                 match render_states.cull {
                     CullType::None => {
-                        self.gl.disable(consts::CULL_FACE);
+                        gl.disable(consts::CULL_FACE);
                     },
                     CullType::Back => {
-                        self.gl.enable(consts::CULL_FACE);
-                        self.gl.cull_face(consts::BACK);
+                        gl.enable(consts::CULL_FACE);
+                        gl.cull_face(consts::BACK);
                     },
                     CullType::Front => {
-                        self.gl.enable(consts::CULL_FACE);
-                        self.gl.cull_face(consts::FRONT);
+                        gl.enable(consts::CULL_FACE);
+                        gl.cull_face(consts::FRONT);
                     },
                     CullType::FrontAndBack => {
-                        self.gl.enable(consts::CULL_FACE);
-                        self.gl.cull_face(consts::FRONT_AND_BACK);
+                        gl.enable(consts::CULL_FACE);
+                        gl.cull_face(consts::FRONT_AND_BACK);
                     }
                 }
                 CURRENT_CULL = render_states.cull;
             }
         }
 
-        unsafe {
-            static mut CURRENT_DEPTH_WRITE: bool = true;
-            if render_states.depth_write != CURRENT_DEPTH_WRITE
-            {
-                self.gl.depth_mask(render_states.depth_write);
-                CURRENT_DEPTH_WRITE = render_states.depth_write;
-            }
-        }
+        Self::set_depth_write(gl, render_states.depth_write);
 
         unsafe {
             static mut CURRENT_DEPTH_TEST: DepthTestType = DepthTestType::None;
             if render_states.depth_test != CURRENT_DEPTH_TEST
             {
                 if render_states.depth_test == DepthTestType::None {
-                    self.gl.disable(consts::DEPTH_TEST);
+                    gl.disable(consts::DEPTH_TEST);
                 }
                 else {
-                    self.gl.enable(consts::DEPTH_TEST);
+                    gl.enable(consts::DEPTH_TEST);
                 }
 
                 match render_states.depth_test {
                     DepthTestType::Never => {
-                        self.gl.depth_func(consts::NEVER);
+                        gl.depth_func(consts::NEVER);
                     },
                     DepthTestType::Less => {
-                        self.gl.depth_func(consts::LESS);
+                        gl.depth_func(consts::LESS);
                     },
                     DepthTestType::Equal => {
-                        self.gl.depth_func(consts::EQUAL);
+                        gl.depth_func(consts::EQUAL);
                     },
                     DepthTestType::LessOrEqual => {
-                        self.gl.depth_func(consts::LEQUAL);
+                        gl.depth_func(consts::LEQUAL);
                     },
                     DepthTestType::Greater => {
-                        self.gl.depth_func(consts::GREATER);
+                        gl.depth_func(consts::GREATER);
                     },
                     DepthTestType::NotEqual => {
-                        self.gl.depth_func(consts::NOTEQUAL);
+                        gl.depth_func(consts::NOTEQUAL);
                     },
                     DepthTestType::GreaterOrEqual => {
-                        self.gl.depth_func(consts::GEQUAL);
+                        gl.depth_func(consts::GEQUAL);
                     },
                     DepthTestType::Always => {
-                        self.gl.depth_func(consts::ALWAYS);
+                        gl.depth_func(consts::ALWAYS);
                     },
                     DepthTestType::None => {}
                 }
                 CURRENT_DEPTH_TEST = render_states.depth_test;
+            }
+        }
+    }
+
+    pub(crate) fn set_depth_write(gl: &Gl, depth_write: bool)
+    {
+        unsafe {
+            static mut CURRENT_DEPTH_WRITE: bool = true;
+            if depth_write != CURRENT_DEPTH_WRITE
+            {
+                gl.depth_mask(depth_write);
+                CURRENT_DEPTH_WRITE = depth_write;
             }
         }
     }
