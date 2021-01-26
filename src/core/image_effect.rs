@@ -1,7 +1,6 @@
 use crate::core::*;
 
 pub struct ImageEffect {
-    gl: Gl,
     program: Program,
     positions: VertexBuffer,
     uvs: VertexBuffer
@@ -34,7 +33,7 @@ impl ImageEffect {
         let positions = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
         let uvs = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
 
-        Ok(Self {gl: gl.clone(), program, positions, uvs})
+        Ok(Self {program, positions, uvs})
     }
 
     pub fn program(&self) -> &Program {

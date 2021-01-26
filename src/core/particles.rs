@@ -6,7 +6,6 @@ pub struct ParticleData {
 }
 
 pub struct Particles {
-    gl: Gl,
     program: program::Program,
     start_position_buffer: VertexBuffer,
     start_velocity_buffer: VertexBuffer,
@@ -24,7 +23,7 @@ impl Particles {
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
 
-        Ok(Self {gl: gl.clone(),
+        Ok(Self {
             program: Program::from_source(gl, include_str!("shaders/particles.vert"), fragment_shader)?,
             position_buffer, index_buffer, uv_buffer,
             start_position_buffer: VertexBuffer::new_with_dynamic_f32(gl, &[])?,
