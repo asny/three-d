@@ -55,8 +55,6 @@ impl PhongDeferredPipeline
 
     pub fn geometry_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
     {
-        state::blend(&self.gl, state::BlendType::None);
-
         self.geometry_pass_texture = Some(Texture2DArray::new(&self.gl, width, height, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?);
@@ -74,8 +72,7 @@ impl PhongDeferredPipeline
     pub fn light_pass(&self, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
                       spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
-        state::blend(&self.gl, state::BlendType::None);
-        let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
+        let mut render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
 
         if self.debug_type != DebugType::NONE {
             self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
@@ -92,7 +89,9 @@ impl PhongDeferredPipeline
             self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
             self.ambient_light_effect.program().add_uniform_vec3("ambientColor", &(light.color * light.intensity))?;
             self.ambient_light_effect.apply(render_states)?;
-            state::blend(&self.gl, state::BlendType::OneOne);
+            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
+                                                            BlendMultiplierType::One,
+                                                            BlendMultiplierType::One));
         }
 
         // Directional light
@@ -104,7 +103,9 @@ impl PhongDeferredPipeline
             self.directional_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLightUniform");
             self.directional_light_effect.apply(render_states)?;
-            state::blend(&self.gl, state::BlendType::OneOne);
+            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
+                                                            BlendMultiplierType::One,
+                                                            BlendMultiplierType::One));
         }
 
         // Spot lights
@@ -116,7 +117,9 @@ impl PhongDeferredPipeline
             self.spot_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLightUniform");
             self.spot_light_effect.apply(render_states)?;
-            state::blend(&self.gl, state::BlendType::OneOne);
+            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
+                                                            BlendMultiplierType::One,
+                                                            BlendMultiplierType::One));
         }
 
         // Point lights
@@ -127,9 +130,10 @@ impl PhongDeferredPipeline
             self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLightUniform");
             self.point_light_effect.apply(render_states)?;
-            state::blend(&self.gl, state::BlendType::OneOne);
+            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
+                                                            BlendMultiplierType::One,
+                                                            BlendMultiplierType::One));
         }
-        state::blend(&self.gl, state::BlendType::None);
 
         Ok(())
     }

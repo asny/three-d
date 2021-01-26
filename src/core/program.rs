@@ -345,6 +345,7 @@ impl Program
         }
 
         Self::set_depth_write(gl, render_states.depth_write);
+        Self::set_blend(gl, render_states.blend);
 
         unsafe {
             static mut CURRENT_DEPTH_TEST: DepthTestType = DepthTestType::None;
@@ -386,6 +387,36 @@ impl Program
                 }
                 CURRENT_DEPTH_TEST = render_states.depth_test;
             }
+        }
+    }
+
+    fn set_blend(gl: &Gl, blend: Option<BlendParameters>)
+    {
+        unsafe {
+            static mut CURRENT: Option<BlendParameters> = None;
+            if blend != CURRENT
+            {
+                if let Some(blend_parameters) = blend {
+                    gl.enable(consts::BLEND);
+                    gl.blend_func_separate(Self::blend_const_from_enum(blend_parameters.source_rgb_multiplier),
+                                           Self::blend_const_from_enum(blend_parameters.destination_rgb_multiplier),
+                                           Self::blend_const_from_enum(blend_parameters.source_alpha_multiplier),
+                                           Self::blend_const_from_enum(blend_parameters.destination_alpha_multiplier));
+                    //TODO: Blend equation
+                }
+                CURRENT = blend;
+            }
+        }
+    }
+
+    fn blend_const_from_enum(multiplier: BlendMultiplierType) -> u32 {
+        match multiplier {
+            BlendMultiplierType::Zero => consts::ZERO,
+            BlendMultiplierType::One => consts::ONE,
+            BlendMultiplierType::SrcAlpha => consts::SRC_ALPHA,
+            BlendMultiplierType::OneMinusSrcAlpha => consts::ONE_MINUS_SRC_ALPHA,
+            BlendMultiplierType::DstAlpha => consts::DST_ALPHA,
+            BlendMultiplierType::OneMinusDstAlpha => consts::ONE_MINUS_DST_ALPHA
         }
     }
 

@@ -94,8 +94,9 @@ impl Imposter {
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        state::blend(&self.gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
-        let render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
+        let render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual,
+            blend: Some(BlendParameters::new(BlendEquationType::Add, BlendMultiplierType::SrcAlpha,
+                                             BlendMultiplierType::OneMinusSrcAlpha)), ..Default::default()};
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 

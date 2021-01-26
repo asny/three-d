@@ -3,7 +3,6 @@ use crate::*;
 use crate::core::Error;
 
 pub struct Skybox {
-    gl: Gl,
     program: program::Program,
     vertex_buffer: VertexBuffer,
     texture: texture::TextureCubeMap
@@ -28,13 +27,12 @@ impl Skybox
 
         let vertex_buffer = VertexBuffer::new_with_static_f32(gl, &get_positions())?;
 
-        Ok(Skybox { gl: gl.clone(), program, vertex_buffer, texture })
+        Ok(Skybox { program, vertex_buffer, texture })
     }
 
     pub fn apply(&self, camera: &camera::Camera) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Front, depth_write: true, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
-        state::blend(&self.gl, state::BlendType::None);
 
         self.program.use_texture(&self.texture, "texture0")?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");

@@ -1,7 +1,6 @@
 use crate::*;
 
 pub struct FXAAEffect {
-    gl: Gl,
     pub color: Vec3,
     pub density: f32,
     pub animation: f32,
@@ -12,13 +11,12 @@ impl FXAAEffect {
 
     pub fn new(gl: &Gl) -> Result<Self, Error>
     {
-        Ok(Self {gl: gl.clone(), color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fxaa.frag"))?})
+        Ok(Self {color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fxaa.frag"))?})
     }
 
     pub fn apply(&self, color_texture: &Texture2D) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Back, depth_write: false, ..Default::default()};
-        state::blend(&self.gl, state::BlendType::None);
 
         self.image_effect.program().use_texture(color_texture, "colorMap")?;
         self.image_effect.program().add_uniform_vec2("resolution", &vec2(color_texture.width as f32, color_texture.height as f32))?;
