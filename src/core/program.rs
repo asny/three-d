@@ -416,10 +416,15 @@ impl Program
         match multiplier {
             BlendMultiplierType::Zero => consts::ZERO,
             BlendMultiplierType::One => consts::ONE,
+            BlendMultiplierType::SrcColor => consts::SRC_COLOR,
+            BlendMultiplierType::OneMinusSrcColor => consts::ONE_MINUS_SRC_COLOR,
+            BlendMultiplierType::DstColor => consts::DST_COLOR,
+            BlendMultiplierType::OneMinusDstColor => consts::ONE_MINUS_DST_COLOR,
             BlendMultiplierType::SrcAlpha => consts::SRC_ALPHA,
             BlendMultiplierType::OneMinusSrcAlpha => consts::ONE_MINUS_SRC_ALPHA,
             BlendMultiplierType::DstAlpha => consts::DST_ALPHA,
-            BlendMultiplierType::OneMinusDstAlpha => consts::ONE_MINUS_DST_ALPHA
+            BlendMultiplierType::OneMinusDstAlpha => consts::ONE_MINUS_DST_ALPHA,
+            BlendMultiplierType::SrcAlphaSaturate => consts::SRC_ALPHA_SATURATE
         }
     }
 

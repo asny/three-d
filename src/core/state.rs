@@ -79,10 +79,15 @@ impl Default for BlendParameters {
 pub enum BlendMultiplierType {
     Zero,
     One,
+    SrcColor,
+    OneMinusSrcColor,
+    DstColor,
+    OneMinusDstColor,
     SrcAlpha,
     OneMinusSrcAlpha,
     DstAlpha,
     OneMinusDstAlpha,
+    SrcAlphaSaturate
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
