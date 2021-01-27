@@ -344,7 +344,7 @@ impl Program
             }
         }
 
-        Self::set_depth_write(gl, render_states.depth_write);
+        Self::set_write_mask(gl, render_states.write_mask);
         Self::set_blend(gl, render_states.blend);
 
         unsafe {
@@ -438,14 +438,20 @@ impl Program
         }
     }
 
-    pub(crate) fn set_depth_write(gl: &Gl, depth_write: bool)
+    pub(crate) fn set_write_mask(gl: &Gl, write_mask: WriteMask)
     {
         unsafe {
-            static mut CURRENT_DEPTH_WRITE: bool = true;
-            if depth_write != CURRENT_DEPTH_WRITE
+            static mut CURRENT_WRITE_MASK: WriteMask = WriteMask {depth: true, red: true, green: true, blue: true, alpha: true};
+            if write_mask != CURRENT_WRITE_MASK
             {
-                gl.depth_mask(depth_write);
-                CURRENT_DEPTH_WRITE = depth_write;
+                if CURRENT_WRITE_MASK.depth != write_mask.depth {
+                    gl.depth_mask(write_mask.depth);
+                }
+                if CURRENT_WRITE_MASK.red != write_mask.red || CURRENT_WRITE_MASK.green != write_mask.green
+                    || CURRENT_WRITE_MASK.blue != write_mask.blue || CURRENT_WRITE_MASK.alpha != write_mask.alpha {
+                    gl.color_mask(write_mask.red, write_mask.green, write_mask.blue, write_mask.alpha);
+                }
+                CURRENT_WRITE_MASK = write_mask;
             }
         }
     }

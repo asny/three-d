@@ -16,7 +16,7 @@ impl FXAAEffect {
 
     pub fn apply(&self, color_texture: &Texture2D) -> Result<(), Error>
     {
-        let render_states = RenderStates {cull: CullType::Back, depth_write: false, ..Default::default()};
+        let render_states = RenderStates {cull: CullType::Back, write_mask: WriteMask {depth: false, ..Default::default()}, ..Default::default()};
 
         self.image_effect.program().use_texture(color_texture, "colorMap")?;
         self.image_effect.program().add_uniform_vec2("resolution", &vec2(color_texture.width as f32, color_texture.height as f32))?;

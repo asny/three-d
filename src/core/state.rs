@@ -1,7 +1,7 @@
 
 #[derive(Debug, Copy, Clone)]
 pub struct RenderStates {
-    pub depth_write: bool,
+    pub write_mask: WriteMask,
     pub depth_test: DepthTestType,
     pub cull: CullType,
     pub blend: Option<BlendParameters>
@@ -10,7 +10,7 @@ pub struct RenderStates {
 impl Default for RenderStates {
     fn default() -> Self {
         Self {
-            depth_write: true,
+            write_mask: WriteMask::default(),
             depth_test: DepthTestType::None,
             cull: CullType::None,
             blend: None
@@ -37,6 +37,27 @@ pub enum DepthTestType {
     NotEqual,
     GreaterOrEqual,
     Always
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct WriteMask {
+    pub red: bool,
+    pub green: bool,
+    pub blue: bool,
+    pub alpha: bool,
+    pub depth: bool
+}
+
+impl Default for WriteMask {
+    fn default() -> Self {
+        Self {
+            red: true,
+            green: true,
+            blue: true,
+            alpha: true,
+            depth: true,
+        }
+     }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]

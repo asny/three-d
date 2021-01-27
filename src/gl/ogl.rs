@@ -585,6 +585,18 @@ impl Glstruct {
         }
     }
 
+    pub fn color_mask(&self, red: bool, green: bool, blue: bool, alpha: bool)
+    {
+        unsafe {
+            self.inner.ColorMask(
+                if red { consts::TRUE } else { consts::FALSE },
+                if green { consts::TRUE } else { consts::FALSE },
+                if blue { consts::TRUE } else { consts::FALSE },
+                if alpha { consts::TRUE } else { consts::FALSE }
+            );
+        }
+    }
+
     pub fn depth_mask(&self, flag: bool)
     {
         unsafe {

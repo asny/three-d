@@ -198,9 +198,9 @@ impl RenderTarget
 
     fn clear(gl: &Gl, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
         if let Some(color) = clear_color {
+            Program::set_write_mask(gl, WriteMask::default());
             if let Some(depth) = clear_depth {
                 gl.clear_color(color.x, color.y, color.z, color.w);
-                Program::set_depth_write(gl, true);
                 gl.clear_depth(depth);
                 gl.clear(consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT);
             }
@@ -209,8 +209,8 @@ impl RenderTarget
                 gl.clear(consts::COLOR_BUFFER_BIT);
             }
         } else if let Some(depth) = clear_depth {
+            Program::set_write_mask(gl, WriteMask::default());
             gl.clear_depth(depth);
-            Program::set_depth_write(gl, true);
             gl.clear(consts::DEPTH_BUFFER_BIT);
         }
     }
