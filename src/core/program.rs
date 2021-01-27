@@ -345,7 +345,7 @@ impl Program
         }
 
         Self::set_color_mask(gl, render_states.color_mask);
-        Self::set_depth(gl, render_states.depth_test, render_states.depth_mask);
+        Self::set_depth(gl, Some(render_states.depth_test), render_states.depth_mask);
         Self::set_blend(gl, render_states.blend);
     }
 
@@ -409,16 +409,17 @@ impl Program
         }
     }
 
-    pub(crate) fn set_depth(gl: &Gl, depth_test: DepthTestType, depth_mask: bool) {
+    pub(crate) fn set_depth(gl: &Gl, depth_test: Option<DepthTestType>, depth_mask: bool) {
         unsafe {
             static mut CURRENT_DEPTH_ENABLE: bool = false;
             static mut CURRENT_DEPTH_MASK: bool = true;
             static mut CURRENT_DEPTH_TEST: DepthTestType = DepthTestType::Less;
 
-            if depth_mask == false && depth_test == DepthTestType::Always {
+            if depth_mask == false && depth_test == Some(DepthTestType::Always) {
                 if CURRENT_DEPTH_ENABLE {
                     gl.disable(consts::DEPTH_TEST);
                     CURRENT_DEPTH_ENABLE = false;
+                    return;
                 }
             }
             else {
@@ -434,9 +435,9 @@ impl Program
                 CURRENT_DEPTH_MASK = depth_mask;
             }
 
-            if depth_test != CURRENT_DEPTH_TEST
+            if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST
             {
-                match depth_test {
+                match depth_test.unwrap() {
                     DepthTestType::Never => {
                         gl.depth_func(consts::NEVER);
                     },
@@ -462,7 +463,7 @@ impl Program
                         gl.depth_func(consts::ALWAYS);
                     }
                 }
-                CURRENT_DEPTH_TEST = depth_test;
+                CURRENT_DEPTH_TEST = depth_test.unwrap();
             }
         }
     }

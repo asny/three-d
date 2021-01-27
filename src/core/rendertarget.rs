@@ -200,7 +200,7 @@ impl RenderTarget
         if let Some(color) = clear_color {
             Program::set_color_mask(gl, ColorMask::default());
             if let Some(depth) = clear_depth {
-                Program::set_depth(gl, DepthTestType::Less, true);
+                Program::set_depth(gl, None, true);
                 gl.clear_color(color.x, color.y, color.z, color.w);
                 gl.clear_depth(depth);
                 gl.clear(consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT);
@@ -210,7 +210,7 @@ impl RenderTarget
                 gl.clear(consts::COLOR_BUFFER_BIT);
             }
         } else if let Some(depth) = clear_depth {
-            Program::set_depth(gl, DepthTestType::Less, true);
+            Program::set_depth(gl, None, true);
             gl.clear_depth(depth);
             gl.clear(consts::DEPTH_BUFFER_BIT);
         }
