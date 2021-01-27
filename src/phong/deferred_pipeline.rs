@@ -138,27 +138,6 @@ impl PhongDeferredPipeline
         Ok(())
     }
 
-    pub fn render_to_screen(&self, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
-                       spot_lights: &[&SpotLight], point_lights: &[&PointLight], width: usize, height: usize) -> Result<(), Error>
-    {
-        Ok(self.render_to_screen_with_forward_pass(camera, ambient_light, directional_lights, spot_lights, point_lights, width, height, || {Ok(())})?)
-    }
-
-    pub fn render_to_screen_with_forward_pass<F: FnOnce() -> Result<(), Error>>(&self, camera: &Camera,
-                       ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
-                       spot_lights: &[&SpotLight], point_lights: &[&PointLight], width: usize, height: usize,
-                       forward_pass: F) -> Result<(), Error>
-    {
-        Ok(Screen::write(&self.gl, 0, 0, width, height,
-                         Some(&vec4(0.0, 0.0, 0.0, 1.0)),
-                         Some(1.0),
-                         || {
-            self.light_pass(camera, ambient_light, directional_lights, spot_lights, point_lights)?;
-            forward_pass()?;
-            Ok(())
-        })?)
-    }
-
     pub fn geometry_pass_texture(&self) -> &Texture2DArray
     {
         &self.geometry_pass_texture.as_ref().unwrap()

@@ -27,14 +27,6 @@ impl PhongForwardPipeline {
         Ok(())
     }
 
-    pub fn render_to_screen<F: FnOnce() -> Result<(), Error>>(&self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
-    {
-        Ok(Screen::write(&self.gl, 0, 0, width, height,
-                         Some(&vec4(0.0, 0.0, 0.0, 1.0)),
-                         Some(1.0),
-                         render_scene)?)
-    }
-
     pub fn depth_texture(&self) -> &Texture2D
     {
         &self.depth_texture.as_ref().unwrap()
