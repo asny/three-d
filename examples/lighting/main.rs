@@ -20,7 +20,7 @@ fn main() {
         monkey_cpu_materials[0].specular_intensity = Some(0.8);
         monkey_cpu_materials[0].specular_power = Some(20.0);
         let mut monkey = PhongDeferredMesh::new(&gl, &monkey_cpu_meshes[0], &PhongMaterial::new(&gl, &monkey_cpu_materials[0]).unwrap()).unwrap();
-        let monkey_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
+        let monkey_render_states = RenderStates {cull: CullType::Back, ..Default::default()};
 
         let mut plane = PhongDeferredMesh::new(&gl,
             &CPUMesh {
@@ -111,7 +111,7 @@ fn main() {
             pipeline.geometry_pass(width, height, &||
                 {
                     monkey.render_geometry(monkey_render_states, &Mat4::identity(), &camera)?;
-                    plane.render_geometry(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
+                    plane.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
                                           &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();

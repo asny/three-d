@@ -344,50 +344,9 @@ impl Program
             }
         }
 
-        Self::set_write_mask(gl, render_states.write_mask);
+        Self::set_color_mask(gl, render_states.color_mask);
+        Self::set_depth(gl, render_states.depth_test, render_states.depth_mask);
         Self::set_blend(gl, render_states.blend);
-
-        unsafe {
-            static mut CURRENT_DEPTH_TEST: DepthTestType = DepthTestType::None;
-            if render_states.depth_test != CURRENT_DEPTH_TEST
-            {
-                if render_states.depth_test == DepthTestType::None {
-                    gl.disable(consts::DEPTH_TEST);
-                }
-                else {
-                    gl.enable(consts::DEPTH_TEST);
-                }
-
-                match render_states.depth_test {
-                    DepthTestType::Never => {
-                        gl.depth_func(consts::NEVER);
-                    },
-                    DepthTestType::Less => {
-                        gl.depth_func(consts::LESS);
-                    },
-                    DepthTestType::Equal => {
-                        gl.depth_func(consts::EQUAL);
-                    },
-                    DepthTestType::LessOrEqual => {
-                        gl.depth_func(consts::LEQUAL);
-                    },
-                    DepthTestType::Greater => {
-                        gl.depth_func(consts::GREATER);
-                    },
-                    DepthTestType::NotEqual => {
-                        gl.depth_func(consts::NOTEQUAL);
-                    },
-                    DepthTestType::GreaterOrEqual => {
-                        gl.depth_func(consts::GEQUAL);
-                    },
-                    DepthTestType::Always => {
-                        gl.depth_func(consts::ALWAYS);
-                    },
-                    DepthTestType::None => {}
-                }
-                CURRENT_DEPTH_TEST = render_states.depth_test;
-            }
-        }
     }
 
     fn set_blend(gl: &Gl, blend: Option<BlendParameters>)
@@ -438,20 +397,72 @@ impl Program
         }
     }
 
-    pub(crate) fn set_write_mask(gl: &Gl, write_mask: WriteMask)
+    pub(crate) fn set_color_mask(gl: &Gl, color_mask: ColorMask)
     {
         unsafe {
-            static mut CURRENT_WRITE_MASK: WriteMask = WriteMask {depth: true, red: true, green: true, blue: true, alpha: true};
-            if write_mask != CURRENT_WRITE_MASK
+            static mut CURRENT_COLOR_MASK: ColorMask = ColorMask {red: true, green: true, blue: true, alpha: true};
+            if color_mask != CURRENT_COLOR_MASK
             {
-                if CURRENT_WRITE_MASK.depth != write_mask.depth {
-                    gl.depth_mask(write_mask.depth);
+                gl.color_mask(color_mask.red, color_mask.green, color_mask.blue, color_mask.alpha);
+                CURRENT_COLOR_MASK = color_mask;
+            }
+        }
+    }
+
+    pub(crate) fn set_depth(gl: &Gl, depth_test: DepthTestType, depth_mask: bool) {
+        unsafe {
+            static mut CURRENT_DEPTH_ENABLE: bool = false;
+            static mut CURRENT_DEPTH_MASK: bool = true;
+            static mut CURRENT_DEPTH_TEST: DepthTestType = DepthTestType::Less;
+
+            if depth_mask == false && depth_test == DepthTestType::Always {
+                if CURRENT_DEPTH_ENABLE {
+                    gl.disable(consts::DEPTH_TEST);
+                    CURRENT_DEPTH_ENABLE = false;
                 }
-                if CURRENT_WRITE_MASK.red != write_mask.red || CURRENT_WRITE_MASK.green != write_mask.green
-                    || CURRENT_WRITE_MASK.blue != write_mask.blue || CURRENT_WRITE_MASK.alpha != write_mask.alpha {
-                    gl.color_mask(write_mask.red, write_mask.green, write_mask.blue, write_mask.alpha);
+            }
+            else {
+                if !CURRENT_DEPTH_ENABLE {
+                    gl.enable(consts::DEPTH_TEST);
+                    CURRENT_DEPTH_ENABLE = true;
                 }
-                CURRENT_WRITE_MASK = write_mask;
+            }
+
+            if depth_mask != CURRENT_DEPTH_MASK
+            {
+                gl.depth_mask(depth_mask);
+                CURRENT_DEPTH_MASK = depth_mask;
+            }
+
+            if depth_test != CURRENT_DEPTH_TEST
+            {
+                match depth_test {
+                    DepthTestType::Never => {
+                        gl.depth_func(consts::NEVER);
+                    },
+                    DepthTestType::Less => {
+                        gl.depth_func(consts::LESS);
+                    },
+                    DepthTestType::Equal => {
+                        gl.depth_func(consts::EQUAL);
+                    },
+                    DepthTestType::LessOrEqual => {
+                        gl.depth_func(consts::LEQUAL);
+                    },
+                    DepthTestType::Greater => {
+                        gl.depth_func(consts::GREATER);
+                    },
+                    DepthTestType::NotEqual => {
+                        gl.depth_func(consts::NOTEQUAL);
+                    },
+                    DepthTestType::GreaterOrEqual => {
+                        gl.depth_func(consts::GEQUAL);
+                    },
+                    DepthTestType::Always => {
+                        gl.depth_func(consts::ALWAYS);
+                    }
+                }
+                CURRENT_DEPTH_TEST = depth_test;
             }
         }
     }

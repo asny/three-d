@@ -81,17 +81,17 @@ fn main() {
             // Geometry pass
             pipeline.geometry_pass(width, height, &|| {
                 let mut transformation = Mat4::identity();
-                box_mesh.render_geometry(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
+                box_mesh.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
                                          &transformation, &camera)?;
                 transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
-                penguin_deferred.render_geometry(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
+                penguin_deferred.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
                                                  &transformation, &camera)?;
                 Ok(())
             }).unwrap();
 
             pipeline.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
-                penguin_forward.render_with_ambient_and_directional(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
+                penguin_forward.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
                                                                     &transformation, &camera, &ambient_light, &directional_light)?;
                 skybox.apply(&camera)?;
                 Ok(())

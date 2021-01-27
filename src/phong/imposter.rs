@@ -94,7 +94,7 @@ impl Imposter {
 
     pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
     {
-        let render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual,
+        let render_states = RenderStates {cull: CullType::Back,
             blend: Some(BlendParameters::new(BlendEquationType::Add, BlendMultiplierType::SrcAlpha,
                                              BlendMultiplierType::OneMinusSrcAlpha)), ..Default::default()};
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
