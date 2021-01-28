@@ -67,7 +67,7 @@ impl DirectionalLight {
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<F: FnOnce(&Camera) -> Result<(), Error>>(&mut self, target: &Vec3,
+    pub fn generate_shadow_map<F: FnOnce(Viewport, &Camera) -> Result<(), Error>>(&mut self, target: &Vec3,
                                   frustrum_width: f32, frustrum_height: f32, frustrum_depth: f32,
                                   texture_width: usize, texture_height: usize, render_scene: F)
     {
@@ -81,9 +81,12 @@ impl DirectionalLight {
         self.shadow_texture = Texture2D::new(&self.gl, texture_width, texture_height,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-        RenderTarget::write_to_depth(&self.gl, 0, 0, texture_width, texture_height, Some(1.0),
+        RenderTarget::write_to_depth(&self.gl, Some(1.0),
             Some(&self.shadow_texture),
-            || {render_scene(self.shadow_camera.as_ref().unwrap())?; Ok(())}).unwrap();
+            || {
+                render_scene(Viewport::new(texture_width, texture_height), self.shadow_camera.as_ref().unwrap())?;
+                Ok(())
+            }).unwrap();
         self.light_buffer.update(3, &[1.0]).unwrap();
     }
 
@@ -223,7 +226,7 @@ impl SpotLight {
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<F: FnOnce(&Camera) -> Result<(), Error>>(&mut self, frustrum_depth: f32, texture_size: usize, render_scene: F)
+    pub fn generate_shadow_map<F: FnOnce(Viewport, &Camera) -> Result<(), Error>>(&mut self, frustrum_depth: f32, texture_size: usize, render_scene: F)
     {
         let position = self.position();
         let direction = self.direction();
@@ -237,8 +240,11 @@ impl SpotLight {
         self.shadow_texture = Texture2D::new(&self.gl, texture_size, texture_size,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-        RenderTarget::write_to_depth(&self.gl, 0, 0, texture_size, texture_size, Some(1.0),
-            Some(&self.shadow_texture), || {render_scene(self.shadow_camera.as_ref().unwrap())?; Ok(())}).unwrap();
+        RenderTarget::write_to_depth(&self.gl, Some(1.0),
+            Some(&self.shadow_texture), || {
+                render_scene(Viewport::new(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
+                Ok(())
+            }).unwrap();
         self.light_buffer.update(9, &[1.0]).unwrap();
     }
 

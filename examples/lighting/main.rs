@@ -6,12 +6,12 @@ fn main() {
 
     let mut window = Window::new_default("Lighting!").unwrap();
     let (width, height) = window.framebuffer_size();
+    let viewport = Viewport::new(width, height);
     let gl = window.gl();
 
-    // Renderer
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+                                                degrees(45.0), window.aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -20,7 +20,6 @@ fn main() {
         monkey_cpu_materials[0].specular_intensity = Some(0.8);
         monkey_cpu_materials[0].specular_power = Some(20.0);
         let mut monkey = PhongDeferredMesh::new(&gl, &monkey_cpu_meshes[0], &PhongMaterial::new(&gl, &monkey_cpu_materials[0]).unwrap()).unwrap();
-        let monkey_render_states = RenderStates {cull: CullType::Back, ..Default::default()};
 
         let mut plane = PhongDeferredMesh::new(&gl,
             &CPUMesh {
@@ -97,8 +96,9 @@ fn main() {
             point_light1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
             // Draw
-            let render_scene_depth = |camera: &Camera| {
-                monkey.render_depth(monkey_render_states, &Mat4::identity(), camera)?;
+            let render_scene_depth = |viewport: Viewport, camera: &Camera| {
+                let render_states = RenderStates {cull: CullType::Back, viewport, ..Default::default()};
+                monkey.render_depth(render_states, &Mat4::identity(), camera)?;
                 Ok(())
             };
             if shadows_enabled {
@@ -110,15 +110,19 @@ fn main() {
             // Geometry pass
             pipeline.geometry_pass(width, height, &||
                 {
-                    monkey.render_geometry(monkey_render_states, &Mat4::identity(), &camera)?;
-                    plane.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                          &Mat4::identity(), &camera)?;
+                    let render_states = RenderStates {cull: CullType::Back, viewport, ..Default::default()};
+                    monkey.render_geometry(render_states, &Mat4::identity(), &camera)?;
+                    plane.render_geometry(render_states, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 
             // Light pass
-            pipeline.render_to_screen(&camera, None, &[&directional_light0, &directional_light1],
-                                      &[&spot_light], &[&point_light0, &point_light1], width, height).unwrap();
+            Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+            {
+                pipeline.light_pass(viewport, &camera, None, &[&directional_light0, &directional_light1],
+                                      &[&spot_light], &[&point_light0, &point_light1])?;
+                Ok(())
+            }).unwrap();
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {

@@ -3,10 +3,8 @@ use crate::core::*;
 pub struct Screen {}
 
 impl Screen {
-    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
-                          clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
+    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
-        gl.viewport(x, y, width, height);
         gl.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
         RenderTarget::clear(gl, clear_color, clear_depth);
         render()?;
@@ -17,7 +15,6 @@ impl Screen {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
     {
-        gl.viewport(x, y, width, height);
         let mut pixels = vec![0u8; width * height * 3];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         gl.read_pixels_with_u8_data(x as u32, y as u32, width as u32, height as u32, consts::RGB,
@@ -29,7 +26,6 @@ impl Screen {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
     {
-        gl.viewport(x, y, width, height);
         let mut pixels = vec![0f32; width * height];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         gl.read_pixels_with_f32_data(x as u32, y as u32, width as u32, height as u32,
@@ -42,24 +38,23 @@ pub struct RenderTarget {}
 
 impl RenderTarget
 {
-    pub fn write_to_color<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+    pub fn write_to_color<F: FnOnce() -> Result<(), Error>>(gl: &Gl,
                           clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
     {
-        Self::write(gl, x, y, width, height, clear_color, None, color_texture, None, render)
+        Self::write(gl, clear_color, None, color_texture, None, render)
     }
 
-    pub fn write_to_depth<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+    pub fn write_to_depth<F: FnOnce() -> Result<(), Error>>(gl: &Gl,
                           clear_depth: Option<f32>, depth_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
     {
-        Self::write(gl, x, y, width, height, None, clear_depth, None, depth_texture, render)
+        Self::write(gl,None, clear_depth, None, depth_texture, render)
     }
 
-    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
+    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl,
                  clear_color: Option<&Vec4>, clear_depth: Option<f32>,
                  color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
                  render: F) -> Result<(), Error>
     {
-        gl.viewport(x, y, width, height);
         let id = RenderTarget::new_framebuffer(gl, if color_texture.is_some() {1} else {0})?;
 
         if let Some(color_texture) = color_texture {

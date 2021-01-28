@@ -318,12 +318,30 @@ impl Program
     }
 
     fn set_states(gl: &Gl, render_states: RenderStates) {
+        Self::set_viewport(gl, render_states.viewport);
+        Self::set_cull(gl, render_states.cull);
+        Self::set_color_mask(gl, render_states.color_mask);
+        Self::set_depth(gl, Some(render_states.depth_test), render_states.depth_mask);
+        Self::set_blend(gl, render_states.blend);
+    }
 
+    fn set_viewport(gl: &Gl, viewport: Viewport) {
+        unsafe {
+            static mut CURRENT_VIEWPORT: Viewport = Viewport {x: 0, y: 0, width: 0, height: 0};
+            if viewport != CURRENT_VIEWPORT
+            {
+                gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+                CURRENT_VIEWPORT = viewport;
+            }
+        }
+    }
+
+    fn set_cull(gl: &Gl, cull: CullType) {
         unsafe {
             static mut CURRENT_CULL: CullType = CullType::None;
-            if render_states.cull != CURRENT_CULL
+            if cull != CURRENT_CULL
             {
-                match render_states.cull {
+                match cull {
                     CullType::None => {
                         gl.disable(consts::CULL_FACE);
                     },
@@ -340,13 +358,9 @@ impl Program
                         gl.cull_face(consts::FRONT_AND_BACK);
                     }
                 }
-                CURRENT_CULL = render_states.cull;
+                CURRENT_CULL = cull;
             }
         }
-
-        Self::set_color_mask(gl, render_states.color_mask);
-        Self::set_depth(gl, Some(render_states.depth_test), render_states.depth_mask);
-        Self::set_blend(gl, render_states.blend);
     }
 
     fn set_blend(gl: &Gl, blend: Option<BlendParameters>)

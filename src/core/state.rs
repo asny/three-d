@@ -4,6 +4,7 @@ pub struct RenderStates {
     pub color_mask: ColorMask,
     pub depth_mask: bool,
     pub depth_test: DepthTestType,
+    pub viewport: Viewport,
     pub cull: CullType,
     pub blend: Option<BlendParameters>
 }
@@ -14,8 +15,38 @@ impl Default for RenderStates {
             color_mask: ColorMask::default(),
             depth_mask: true,
             depth_test: DepthTestType::Less,
+            viewport: Viewport::default(),
             cull: CullType::None,
             blend: None
+        }
+     }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct Viewport {
+    pub x: i32,
+    pub y: i32,
+    pub width: usize,
+    pub height: usize
+}
+
+impl Viewport {
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {x: 0, y: 0, width, height}
+    }
+
+    pub fn aspect(&self) -> f32 {
+        self.width as f32 / self.height as f32
+    }
+}
+
+impl Default for Viewport {
+    fn default() -> Self {
+        Self {
+            x: 0,
+            y: 0,
+            width: 1024,
+            height: 1024
         }
      }
 }

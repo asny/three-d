@@ -69,10 +69,10 @@ impl PhongDeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass(&self, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
+    pub fn light_pass(&self, viewport: Viewport, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
                       spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
-        let mut render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
+        let mut render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, viewport, ..Default::default()};
 
         if self.debug_type != DebugType::NONE {
             self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
