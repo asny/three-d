@@ -8,6 +8,12 @@ pub struct FrameInput {
     pub window_height: usize
 }
 
+impl FrameInput {
+    pub fn aspect(&self) -> f32 {
+        self.screen_width as f32 / self.screen_height as f32
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum State
 {

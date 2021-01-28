@@ -111,6 +111,11 @@ impl Window
         width as f32 / height as f32
     }
 
+    pub fn viewport(&self) -> crate::Viewport {
+        let (w, h) = self.framebuffer_size();
+        crate::Viewport::new(w, h)
+    }
+
     pub fn gl(&self) -> crate::Gl
     {
         self.gl.clone()

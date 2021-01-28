@@ -13,23 +13,33 @@ impl Screen {
 
     // TODO: Possible to change format
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_color(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
+    pub fn read_color(gl: &Gl, viewport: Viewport) -> Result<Vec<u8>, Error>
     {
-        let mut pixels = vec![0u8; width * height * 3];
+        let mut pixels = vec![0u8; viewport.width * viewport.height * 3];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
-        gl.read_pixels_with_u8_data(x as u32, y as u32, width as u32, height as u32, consts::RGB,
-                            consts::UNSIGNED_BYTE, &mut pixels);
+        gl.read_pixels_with_u8_data(viewport.x as u32,
+                                    viewport.y as u32,
+                                    viewport.width as u32,
+                                    viewport.height as u32,
+                                    consts::RGB,
+                                    consts::UNSIGNED_BYTE,
+                                    &mut pixels);
         Ok(pixels)
     }
 
     // TODO: Possible to change format
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth(gl: &Gl, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<f32>, Error>
+    pub fn read_depth(gl: &Gl, viewport: Viewport) -> Result<Vec<f32>, Error>
     {
-        let mut pixels = vec![0f32; width * height];
+        let mut pixels = vec![0f32; viewport.width * viewport.height];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
-        gl.read_pixels_with_f32_data(x as u32, y as u32, width as u32, height as u32,
-                        consts::DEPTH_COMPONENT, consts::FLOAT, &mut pixels);
+        gl.read_pixels_with_f32_data(viewport.x as u32,
+                                     viewport.y as u32,
+                                     viewport.width as u32,
+                                     viewport.height as u32,
+                                     consts::DEPTH_COMPONENT,
+                                     consts::FLOAT,
+                                     &mut pixels);
         Ok(pixels)
     }
 }

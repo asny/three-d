@@ -4,14 +4,13 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new_default("Lighting!").unwrap();
-    let (width, height) = window.framebuffer_size();
-    let viewport = Viewport::new(width, height);
+    let mut window = Window::new("Lighting!", 1024, 512).unwrap();
+    let viewport = window.viewport();
     let gl = window.gl();
 
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.aspect(), 0.1, 1000.0);
+                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -44,7 +43,7 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |frame_input|
         {
-            camera.set_aspect(frame_input.screen_width as f32 / frame_input.screen_height as f32);
+            camera.set_aspect(frame_input.aspect());
 
             time += (0.001 * frame_input.elapsed_time) % 1000.0;
             for event in frame_input.events.iter() {
@@ -73,8 +72,8 @@ fn main() {
                         #[cfg(target_arch = "x86_64")]
                         if kind == "P" && *state == State::Pressed
                         {
-                            let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
-                            Saver::save_pixels("lighting.png", &pixels, width, height).unwrap();
+                            let pixels = Screen::read_color(&gl, viewport).unwrap();
+                            Saver::save_pixels("lighting.png", &pixels, viewport.width, viewport.height).unwrap();
                         }
                         if kind == "R" && *state == State::Pressed
                         {
@@ -108,7 +107,7 @@ fn main() {
             }
 
             // Geometry pass
-            pipeline.geometry_pass(width, height, &||
+            pipeline.geometry_pass(viewport.width, viewport.height, &||
                 {
                     let render_states = RenderStates {cull: CullType::Back, viewport, ..Default::default()};
                     monkey.render_geometry(render_states, &Mat4::identity(), &camera)?;
@@ -126,8 +125,8 @@ fn main() {
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
-                Saver::save_pixels(path, &pixels, width, height).unwrap();
+                let pixels = Screen::read_color(&gl, viewport).unwrap();
+                Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
                 std::process::exit(1);
             }
         }).unwrap();
