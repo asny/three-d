@@ -92,7 +92,7 @@ impl Imposter {
         self.instance_count = positions.len() as u32/3;
     }
 
-    pub fn render(&self, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Back,
             blend: Some(BlendParameters::new(BlendEquationType::Add, BlendMultiplierType::SrcAlpha,
@@ -107,7 +107,7 @@ impl Imposter {
 
         self.program.use_attribute_vec3_float_divisor(&self.center_buffer, "center", 1)?;
         self.program.use_attribute_float_divisor(&self.rotation_buffer, "theta", 1)?;
-        self.program.draw_arrays_instanced(render_states, 6, self.instance_count);
+        self.program.draw_arrays_instanced(render_states, viewport, 6, self.instance_count);
         Ok(())
     }
 }

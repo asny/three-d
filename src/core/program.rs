@@ -262,8 +262,9 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_arrays_instanced(&self, render_states: RenderStates, count: u32, instance_count: u32)
+    pub fn draw_arrays_instanced(&self, render_states: RenderStates, viewport: Viewport, count: u32, instance_count: u32)
     {
+        Self::set_viewport(&self.gl, viewport);
         Self::set_states(&self.gl, render_states);
         self.set_used();
         self.gl.draw_arrays_instanced(consts::TRIANGLES, 0, count, instance_count);
@@ -274,13 +275,14 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_elements(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer)
+    pub fn draw_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &buffer::ElementBuffer)
     {
-        self.draw_subset_of_elements(render_states, element_buffer, 0,element_buffer.count() as u32);
+        self.draw_subset_of_elements(render_states, viewport, element_buffer, 0,element_buffer.count() as u32);
     }
 
-    pub fn draw_subset_of_elements(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
+    pub fn draw_subset_of_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
     {
+        Self::set_viewport(&self.gl, viewport);
         Self::set_states(&self.gl, render_states);
         self.set_used();
         element_buffer.bind();
@@ -293,8 +295,9 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_elements_instanced(&self, render_states: RenderStates, element_buffer: &buffer::ElementBuffer, count: u32)
+    pub fn draw_elements_instanced(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &buffer::ElementBuffer, count: u32)
     {
+        Self::set_viewport(&self.gl, viewport);
         Self::set_states(&self.gl, render_states);
         self.set_used();
         element_buffer.bind();
