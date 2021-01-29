@@ -113,7 +113,7 @@ impl Window
 
     pub fn viewport(&self) -> crate::Viewport {
         let (w, h) = self.framebuffer_size();
-        crate::Viewport::new(w, h)
+        crate::Viewport::new_at_origo(w, h)
     }
 
     pub fn gl(&self) -> crate::Gl

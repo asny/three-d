@@ -84,7 +84,7 @@ impl DirectionalLight {
         RenderTarget::write_to_depth(&self.gl, Some(1.0),
             Some(&self.shadow_texture),
             || {
-                render_scene(Viewport::new(texture_width, texture_height), self.shadow_camera.as_ref().unwrap())?;
+                render_scene(Viewport::new_at_origo(texture_width, texture_height), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
             }).unwrap();
         self.light_buffer.update(3, &[1.0]).unwrap();
@@ -242,7 +242,7 @@ impl SpotLight {
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
         RenderTarget::write_to_depth(&self.gl, Some(1.0),
             Some(&self.shadow_texture), || {
-                render_scene(Viewport::new(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
+                render_scene(Viewport::new_at_origo(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
             }).unwrap();
         self.light_buffer.update(9, &[1.0]).unwrap();

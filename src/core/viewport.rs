@@ -8,7 +8,7 @@ pub struct Viewport {
 }
 
 impl Viewport {
-    pub fn new(width: usize, height: usize) -> Self {
+    pub fn new_at_origo(width: usize, height: usize) -> Self {
         Self {x: 0, y: 0, width, height}
     }
 
