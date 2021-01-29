@@ -32,7 +32,7 @@ impl Skybox
 
     pub fn apply(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error>
     {
-        let render_states = RenderStates {cull: CullType::Front, depth_test: DepthTestType::LessOrEqual, viewport, ..Default::default()};
+        let render_states = RenderStates {cull: CullType::Front, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         self.program.use_texture(&self.texture, "texture0")?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");

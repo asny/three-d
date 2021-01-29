@@ -81,7 +81,7 @@ fn main() {
             // draw
             if fog_enabled || fxaa_enabled {
                 pipeline.depth_pass(viewport.width, viewport.height, &|| {
-                    let render_states = RenderStates {cull: CullType::Back, viewport, ..Default::default()};
+                    let render_states = RenderStates {cull: CullType::Back, ..Default::default()};
                     monkey.render_depth(render_states, viewport, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
@@ -92,7 +92,7 @@ fn main() {
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
 
                 RenderTarget::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(pipeline.depth_texture()), || {
-                    let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, viewport, ..Default::default()};
+                    let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
                     monkey.render_with_ambient_and_directional(render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(viewport, &camera)?;
                     if fog_enabled {
@@ -107,7 +107,7 @@ fn main() {
                 }).unwrap();
             } else {
                 Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &|| {
-                    let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, viewport, ..Default::default()};
+                    let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
                     monkey.render_with_ambient_and_directional(render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                     skybox.apply(viewport, &camera)?;
                     if fog_enabled {

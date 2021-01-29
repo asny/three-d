@@ -16,7 +16,7 @@ impl FogEffect {
 
     pub fn apply(&self, viewport: Viewport, camera: &camera::Camera, depth_texture: &Texture2D, time: f32) -> Result<(), Error>
     {
-        let render_states = RenderStates {cull: CullType::Back, depth_mask: false, viewport,
+        let render_states = RenderStates {cull: CullType::Back, depth_mask: false,
             blend: Some(BlendParameters::new(BlendEquationType::Add,
                                              BlendMultiplierType::SrcAlpha,
                                              BlendMultiplierType::OneMinusSrcAlpha)),
