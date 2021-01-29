@@ -43,7 +43,7 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |frame_input|
         {
-            camera.set_aspect(frame_input.aspect());
+            camera.set_aspect(frame_input.viewport.aspect());
 
             time += (0.001 * frame_input.elapsed_time) % 1000.0;
             for event in frame_input.events.iter() {

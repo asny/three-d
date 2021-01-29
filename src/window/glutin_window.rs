@@ -84,20 +84,13 @@ impl Window
                 accumulated_time = 0.0;
             }
 
-            let (screen_width, screen_height) = self.framebuffer_size();
             let (window_width, window_height) = self.size();
-            let frame_input = frame_input::FrameInput {events, elapsed_time, screen_width, screen_height, window_width, window_height};
+            let frame_input = frame_input::FrameInput {events, elapsed_time, viewport: self.viewport(), window_width, window_height};
             callback(frame_input);
             error = self.gl_window.swap_buffers();
         }
         error?;
         Ok(())
-    }
-
-    fn framebuffer_size(&self) -> (usize, usize)
-    {
-        let t: (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
-        (t.0 as usize, t.1 as usize)
     }
 
     pub fn size(&self) -> (usize, usize)
@@ -107,8 +100,8 @@ impl Window
     }
 
     pub fn viewport(&self) -> crate::Viewport {
-        let (w, h) = self.framebuffer_size();
-        crate::Viewport::new_at_origo(w, h)
+        let (w, h): (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
+        crate::Viewport::new_at_origo(w as usize, h as usize)
     }
 
     pub fn gl(&self) -> crate::Gl

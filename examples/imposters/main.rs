@@ -82,7 +82,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
-            camera.set_aspect(frame_input.aspect());
+            camera.set_aspect(frame_input.viewport.aspect());
 
             for event in frame_input.events.iter() {
                 match event {

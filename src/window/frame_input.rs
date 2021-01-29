@@ -2,16 +2,9 @@
 pub struct FrameInput {
     pub events: Vec<Event>,
     pub elapsed_time: f64, // ms since last frame
-    pub screen_width: usize,
-    pub screen_height: usize,
+    pub viewport: crate::Viewport,
     pub window_width: usize,
     pub window_height: usize
-}
-
-impl FrameInput {
-    pub fn aspect(&self) -> f32 {
-        self.screen_width as f32 / self.screen_height as f32
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
