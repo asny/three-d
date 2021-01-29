@@ -7,11 +7,11 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Particles", 800, 800).unwrap();
-    let (width, height) = window.framebuffer_size();
+    let viewport = window.viewport();
     let gl = window.gl();
 
     let mut camera = Camera::new_perspective(&gl, vec3(0.0, 50.0, 170.0), vec3(0.0, 50.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
 
     let mut rng = rand::thread_rng();
 
@@ -24,7 +24,7 @@ fn main() {
     let mut rotating = false;
     window.render_loop(move |frame_input|
     {
-        camera.set_aspect(frame_input.screen_width as f32 / frame_input.screen_height as f32);
+        camera.set_aspect(frame_input.aspect());
 
         for event in frame_input.events.iter() {
             match event {
@@ -63,20 +63,20 @@ fn main() {
             particles.update(&data);
         }
 
-        Screen::write(&gl, 0, 0, width, height, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), || {
+        Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), || {
             let render_states = RenderStates {cull: CullType::Back,
                 blend: Some(BlendParameters::new(BlendEquationType::Add, BlendMultiplierType::One, BlendMultiplierType::One)),
                 ..Default::default()};
             let fade = (1.0 - time/explosion_time).max(0.0);
             particles.program().add_uniform_vec4("color", &vec4(fade, fade * 0.2, fade * 0.1, 1.0))?;
-            particles.render(render_states, &Mat4::identity(), &camera, time)?;
+            particles.render(render_states, viewport, &Mat4::identity(), &camera, time)?;
             Ok(())
         }).unwrap();
 
         #[cfg(target_arch = "x86_64")]
         if let Some(ref path) = screenshot_path {
-            let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
-            Saver::save_pixels(path, &pixels, width, height).unwrap();
+            let pixels = Screen::read_color(&gl, viewport).unwrap();
+            Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();

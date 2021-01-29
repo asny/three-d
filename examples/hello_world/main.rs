@@ -6,8 +6,7 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Hello, world!", 1024, 512).unwrap();
-    let (width, height) = window.framebuffer_size();
-    let viewport = Viewport::new(width, height);
+    let viewport = window.viewport();
     let gl = window.gl();
 
     // Camera

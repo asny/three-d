@@ -41,7 +41,7 @@ impl Imposter {
         Ok(Imposter {gl: gl.clone(), texture, program, center_buffer, rotation_buffer, positions_buffer, uvs_buffer, instance_count:0 })
     }
 
-    pub fn update_texture<F: Fn(&Camera) -> Result<(), Error>>(&mut self, render: F, aabb: (Vec3, Vec3), max_texture_size: usize) -> Result<(), Error>
+    pub fn update_texture<F: Fn(Viewport, &Camera) -> Result<(), Error>>(&mut self, render: F, aabb: (Vec3, Vec3), max_texture_size: usize) -> Result<(), Error>
     {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -67,7 +67,7 @@ impl Imposter {
                               Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
                               Some(&self.texture), Some(&depth_texture),
                               1, &|_| { i },
-                              i, || {render(&camera)?; Ok(())})?;
+                              i, || {render(Viewport::new_at_origo(texture_width, texture_height), &camera)?; Ok(())})?;
         }
 
         let xmin = center.x - 0.5 * width;

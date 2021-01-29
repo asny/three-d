@@ -6,8 +6,7 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
     
     let mut window = Window::new_default("Wireframe").unwrap();
-    let (width, height) = window.framebuffer_size();
-    let viewport = Viewport::new(width, height);
+    let viewport = window.viewport();
     let gl = window.gl();
 
     // Renderer
@@ -15,7 +14,7 @@ fn main() {
     let scene_radius = 6.0;
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+                                                degrees(45.0), window.aspect(), 0.1, 1000.0);
 
     Loader::load(&["./examples/assets/suzanne.obj", "./examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -59,10 +58,10 @@ fn main() {
 
         let render_scene = |viewport: Viewport, camera: &Camera| {
             let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-            let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, viewport, ..Default::default()};
-            model.render_depth(render_states, &transformation, camera)?;
-            edges.render_depth(render_states, &transformation, camera)?;
-            vertices.render_depth(render_states, &transformation, camera)?;
+            let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
+            model.render_depth(render_states, viewport, &transformation, camera)?;
+            edges.render_depth(render_states, viewport, &transformation, camera)?;
+            vertices.render_depth(render_states, viewport, &transformation, camera)?;
             Ok(())
         };
         spot_light0.generate_shadow_map(50.0, 512, &render_scene);
@@ -74,7 +73,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
             {
-                camera.set_aspect(frame_input.screen_width as f32 / frame_input.screen_height as f32);
+                camera.set_aspect(frame_input.aspect());
 
                 for event in frame_input.events.iter() {
                     match event {
@@ -100,13 +99,13 @@ fn main() {
                 }
 
                 // Geometry pass
-                pipeline.geometry_pass(width, height, &|| {
+                pipeline.geometry_pass(viewport.width, viewport.height, &|| {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-                    let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, viewport, ..Default::default()};
-                    model.render_geometry(render_states, &transformation, &camera)?;
-                    edges.render_geometry(render_states, &transformation, &camera)?;
-                    vertices.render_geometry(render_states, &transformation, &camera)?;
-                    plane.render_geometry(render_states, &Mat4::identity(), &camera)?;
+                    let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
+                    model.render_geometry(render_states, viewport, &transformation, &camera)?;
+                    edges.render_geometry(render_states, viewport, &transformation, &camera)?;
+                    vertices.render_geometry(render_states, viewport, &transformation, &camera)?;
+                    plane.render_geometry(render_states, viewport, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 
@@ -119,8 +118,8 @@ fn main() {
                 
                 #[cfg(target_arch = "x86_64")]
                 if let Some(ref path) = screenshot_path {
-                    let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
-                    Saver::save_pixels(path, &pixels, width, height).unwrap();
+                    let pixels = Screen::read_color(&gl, viewport).unwrap();
+                    Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
                     std::process::exit(1);
                 }
             }).unwrap();

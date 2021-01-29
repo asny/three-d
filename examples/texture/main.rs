@@ -6,13 +6,13 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new_default("Texture").unwrap();
-    let (width, height) = window.framebuffer_size();
+    let viewport = window.viewport();
     let gl = window.gl();
 
     // Renderer
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), width as f32 / height as f32, 0.1, 1000.0);
+                                                degrees(45.0), window.aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/PenguinBaseMesh.obj", "examples/assets/PenguinBaseMesh.mtl",
         "examples/assets/penguin.png", "examples/assets/test_texture.jpg",
@@ -52,7 +52,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
-            camera.set_aspect(frame_input.screen_width as f32 / frame_input.screen_height as f32);
+            camera.set_aspect(frame_input.aspect());
 
             for event in frame_input.events.iter() {
                 match event {
@@ -79,28 +79,30 @@ fn main() {
 
             // draw
             // Geometry pass
-            pipeline.geometry_pass(width, height, &|| {
+            pipeline.geometry_pass(viewport.width, viewport.height, &|| {
                 let mut transformation = Mat4::identity();
                 box_mesh.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                         &transformation, &camera)?;
+                                         viewport, &transformation, &camera)?;
                 transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
                 penguin_deferred.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                                 &transformation, &camera)?;
+                                                 viewport, &transformation, &camera)?;
                 Ok(())
             }).unwrap();
 
-            pipeline.render_to_screen_with_forward_pass(&camera, Some(&ambient_light), &[&directional_light], &[], &[], width, height, || {
+            Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+            {
+                pipeline.light_pass(viewport, &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                 penguin_forward.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
-                                                                    &transformation, &camera, &ambient_light, &directional_light)?;
-                skybox.apply(&camera)?;
+                                                                    viewport, &transformation, &camera, &ambient_light, &directional_light)?;
+                skybox.apply(viewport, &camera)?;
                 Ok(())
             }).unwrap();
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, 0, 0, width, height).unwrap();
-                Saver::save_pixels(path, &pixels, width, height).unwrap();
+                let pixels = Screen::read_color(&gl, viewport).unwrap();
+                Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
                 std::process::exit(1);
             }
         }).unwrap();

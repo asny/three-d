@@ -96,8 +96,8 @@ fn main() {
 
             // Draw
             let render_scene_depth = |viewport: Viewport, camera: &Camera| {
-                let render_states = RenderStates {cull: CullType::Back, viewport, ..Default::default()};
-                monkey.render_depth(render_states, &Mat4::identity(), camera)?;
+                monkey.render_depth(RenderStates {cull: CullType::Back, ..Default::default()},
+                                    viewport, &Mat4::identity(), camera)?;
                 Ok(())
             };
             if shadows_enabled {
@@ -109,9 +109,10 @@ fn main() {
             // Geometry pass
             pipeline.geometry_pass(viewport.width, viewport.height, &||
                 {
-                    let render_states = RenderStates {cull: CullType::Back, viewport, ..Default::default()};
-                    monkey.render_geometry(render_states, &Mat4::identity(), &camera)?;
-                    plane.render_geometry(render_states, &Mat4::identity(), &camera)?;
+                    monkey.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
+                                           viewport, &Mat4::identity(), &camera)?;
+                    plane.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
+                                          viewport, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 
