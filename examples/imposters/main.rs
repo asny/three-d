@@ -10,7 +10,7 @@ fn main() {
     let gl = window.gl();
 
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0,6.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.aspect(), 0.1, 10000.0);
+                                                degrees(45.0), viewport.aspect(), 0.1, 10000.0);
 
     Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded|
     {

@@ -11,7 +11,7 @@ fn main() {
 
     // Renderer
     let mut camera = Camera::new_orthographic(&gl, vec3(0.0, 0.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                4.0, 4.0*window.aspect(), 10.0);
+                                                4.0, 4.0*viewport.aspect(), 10.0);
 
     let indices = vec![
         0, 1, 2, 2, 3, 0

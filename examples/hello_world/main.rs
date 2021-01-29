@@ -11,7 +11,7 @@ fn main() {
 
     // Camera
     let mut camera = Camera::new_perspective(&gl, vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                             degrees(45.0), window.aspect(), 0.1, 10.0);
+                                             degrees(45.0), viewport.aspect(), 0.1, 10.0);
 
     let positions: Vec<f32> = vec![
         0.5, -0.5, 0.0, // bottom right

@@ -14,7 +14,7 @@ fn main() {
     let scene_radius = 6.0;
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.aspect(), 0.1, 1000.0);
+                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
 
     Loader::load(&["./examples/assets/suzanne.obj", "./examples/assets/suzanne.mtl"], move |loaded|
     {

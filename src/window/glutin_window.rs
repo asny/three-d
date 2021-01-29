@@ -94,7 +94,7 @@ impl Window
         Ok(())
     }
 
-    pub fn framebuffer_size(&self) -> (usize, usize)
+    fn framebuffer_size(&self) -> (usize, usize)
     {
         let t: (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
         (t.0 as usize, t.1 as usize)
@@ -104,11 +104,6 @@ impl Window
     {
         let t: (u32, u32) = self.gl_window.get_inner_size().unwrap().into();
         (t.0 as usize, t.1 as usize)
-    }
-
-    pub fn aspect(&self) -> f32 {
-        let (width, height) = self.framebuffer_size();
-        width as f32 / height as f32
     }
 
     pub fn viewport(&self) -> crate::Viewport {

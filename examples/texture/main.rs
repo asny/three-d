@@ -12,7 +12,7 @@ fn main() {
     // Renderer
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.aspect(), 0.1, 1000.0);
+                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/PenguinBaseMesh.obj", "examples/assets/PenguinBaseMesh.mtl",
         "examples/assets/penguin.png", "examples/assets/test_texture.jpg",

@@ -258,14 +258,9 @@ impl Window
                         window().inner_height().unwrap().as_f64().unwrap() as usize)
     }
 
-    pub fn framebuffer_size(&self) -> (usize, usize)
+    fn framebuffer_size(&self) -> (usize, usize)
     {
         (self.canvas.width() as usize, self.canvas.height() as usize)
-    }
-
-    pub fn aspect(&self) -> f32 {
-        let (width, height) = self.framebuffer_size();
-        width as f32 / height as f32
     }
 
     pub fn viewport(&self) -> crate::Viewport {
