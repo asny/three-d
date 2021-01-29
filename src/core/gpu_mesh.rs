@@ -32,7 +32,7 @@ impl GPUMesh {
         self.normal_buffer.is_some()
     }
 
-    pub fn render(&self, program: &Program, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, program: &Program, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.add_uniform_mat4("modelMatrix", &transformation)?;
         program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
@@ -49,7 +49,7 @@ impl GPUMesh {
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements(render_states, index_buffer);
         } else {
-            program.draw_arrays(render_states, self.position_buffer.count() as u32/3);
+            program.draw_arrays(render_states, viewport,self.position_buffer.count() as u32/3);
         }
         Ok(())
     }

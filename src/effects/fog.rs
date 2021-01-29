@@ -30,7 +30,7 @@ impl FogEffect {
         self.image_effect.program().add_uniform_float("time", &(0.001 * time))?;
         self.image_effect.program().add_uniform_vec3("eyePosition", camera.position())?;
 
-        self.image_effect.apply(render_states)?;
+        self.image_effect.apply(render_states, viewport)?;
         Ok(())
     }
 

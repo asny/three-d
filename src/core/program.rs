@@ -250,8 +250,9 @@ impl Program
         Ok(())
     }
 
-    pub fn draw_arrays(&self, render_states: RenderStates, count: u32)
+    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32)
     {
+        Self::set_viewport(&self.gl, viewport);
         Self::set_states(&self.gl, render_states);
         self.set_used();
         self.gl.draw_arrays(consts::TRIANGLES, 0, count);
@@ -318,7 +319,6 @@ impl Program
     }
 
     fn set_states(gl: &Gl, render_states: RenderStates) {
-        Self::set_viewport(gl, render_states.viewport);
         Self::set_cull(gl, render_states.cull);
         Self::set_color_mask(gl, render_states.color_mask);
         Self::set_depth(gl, Some(render_states.depth_test), render_states.depth_mask);

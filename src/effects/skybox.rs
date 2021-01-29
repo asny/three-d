@@ -39,7 +39,7 @@ impl Skybox
 
         self.program.use_attribute_vec3_float(&self.vertex_buffer, "position")?;
 
-        self.program.draw_arrays(render_states, 36);
+        self.program.draw_arrays(render_states, viewport, 36);
         Ok(())
     }
 

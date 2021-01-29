@@ -79,7 +79,7 @@ impl PhongDeferredPipeline
             self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
             self.debug_effect.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
-            self.debug_effect.as_ref().unwrap().apply(render_states)?;
+            self.debug_effect.as_ref().unwrap().apply(render_states, viewport)?;
             return Ok(());
         }
 
@@ -88,7 +88,7 @@ impl PhongDeferredPipeline
             self.ambient_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
             self.ambient_light_effect.program().add_uniform_vec3("ambientColor", &(light.color * light.intensity))?;
-            self.ambient_light_effect.apply(render_states)?;
+            self.ambient_light_effect.apply(render_states, viewport)?;
             render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
                                                             BlendMultiplierType::One,
                                                             BlendMultiplierType::One));
@@ -102,7 +102,7 @@ impl PhongDeferredPipeline
             self.directional_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.directional_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLightUniform");
-            self.directional_light_effect.apply(render_states)?;
+            self.directional_light_effect.apply(render_states, viewport)?;
             render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
                                                             BlendMultiplierType::One,
                                                             BlendMultiplierType::One));
@@ -116,7 +116,7 @@ impl PhongDeferredPipeline
             self.spot_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.spot_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLightUniform");
-            self.spot_light_effect.apply(render_states)?;
+            self.spot_light_effect.apply(render_states, viewport)?;
             render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
                                                             BlendMultiplierType::One,
                                                             BlendMultiplierType::One));
@@ -129,7 +129,7 @@ impl PhongDeferredPipeline
             self.point_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
             self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLightUniform");
-            self.point_light_effect.apply(render_states)?;
+            self.point_light_effect.apply(render_states, viewport)?;
             render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
                                                             BlendMultiplierType::One,
                                                             BlendMultiplierType::One));

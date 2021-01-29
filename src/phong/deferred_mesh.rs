@@ -39,12 +39,12 @@ impl PhongDeferredMesh {
         Ok(meshes)
     }
 
-    pub fn render_depth(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        self.render_geometry(render_states, transformation, camera)
+        self.render_geometry(render_states, viewport, transformation, camera)
     }
 
-    pub fn render_geometry(&self, render_states: RenderStates, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {
@@ -72,7 +72,7 @@ impl PhongDeferredMesh {
         };
 
         bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
-        self.gpu_mesh.render(program, render_states, transformation, camera)
+        self.gpu_mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
 
