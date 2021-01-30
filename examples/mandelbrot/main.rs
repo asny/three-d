@@ -11,7 +11,7 @@ fn main() {
 
     // Renderer
     let mut camera = Camera::new_orthographic(&gl, vec3(0.0, 0.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                4.0, 4.0*viewport.aspect(), 10.0);
+                                                1.2, 1.2*viewport.aspect(), 10.0);
 
     let indices = vec![
         0, 1, 2, 2, 3, 0
@@ -53,7 +53,7 @@ fn main() {
             }
         }
 
-        Screen::write(&gl, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), || {
+        Screen::write(&gl, Some(&vec4(0.0, 1.0, 1.0, 1.0)), Some(1.0), || {
             program.use_attribute_vec3_float(&position_buffer, "position")?;
 
             program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
