@@ -86,9 +86,11 @@ fn main() {
 
         #[cfg(target_arch = "x86_64")]
         if let Some(ref path) = screenshot_path {
-            let pixels = Screen::read_color(&gl, viewport).unwrap();
-            Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
-            std::process::exit(1);
+            if time > explosion_time * 0.5 {
+                let pixels = Screen::read_color(&gl, viewport).unwrap();
+                Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+                std::process::exit(1);
+            }
         }
     }).unwrap();
 }
