@@ -16,7 +16,7 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     let explosion_speed = 12.0;
-    let explosion_time = 3.0;
+    let explosion_time = 5.0;
     let mut particles = Particles::new(&gl, &include_str!("../assets/shaders/particles.frag"), &CPUMesh::square(), &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
@@ -63,9 +63,18 @@ fn main() {
             particles.update(&data);
         }
 
-        Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), || {
+        Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, || {
             let render_states = RenderStates {cull: CullType::Back,
-                blend: Some(BlendParameters::new(BlendEquationType::Add, BlendMultiplierType::One, BlendMultiplierType::One)),
+                blend: Some(BlendParameters {
+                    rgb_equation: BlendEquationType::Add,
+                    alpha_equation: BlendEquationType::Add,
+                    source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+                    source_alpha_multiplier: BlendMultiplierType::SrcAlpha,
+                    destination_rgb_multiplier: BlendMultiplierType::One,
+                    destination_alpha_multiplier:BlendMultiplierType::One
+                }),
+                depth_mask: false,
+                depth_test: DepthTestType::Always,
                 ..Default::default()};
             let fade = (1.0 - time/explosion_time).max(0.0);
             particles.program().add_uniform_vec4("color", &vec4(fade, fade * 0.2, fade * 0.1, 1.0))?;
