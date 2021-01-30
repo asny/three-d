@@ -12,15 +12,16 @@ pub struct CPUMesh {
 }
 
 impl CPUMesh {
-    pub fn square() -> Self {
+    pub fn square(size: f32) -> Self {
         let indices = vec![
             0, 1, 2, 2, 3, 0
         ];
+        let halfsize = 0.5 * size;
         let positions = vec![
-            -1.0, -1.0, 0.0,
-            1.0, -1.0, 0.0,
-            1.0, 1.0, 0.0,
-            -1.0, 1.0, 0.0,
+            -halfsize, -halfsize, 0.0,
+            halfsize, -halfsize, 0.0,
+            halfsize, halfsize, 0.0,
+            -halfsize, halfsize, 0.0,
         ];
         let normals = vec![
             0.0, 0.0, 1.0,

@@ -13,7 +13,7 @@ void main()
         discard;
     }
     else {
-        float f = 1.0 - sqrDist;
-        outColor = vec4(color.rgb, color.a * f*f*f*f);
+        float f = 1.0 - sqrDist*sqrDist;
+        outColor = vec4(color.rgb, color.a * f);
     }
 }

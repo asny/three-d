@@ -6,7 +6,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new("Fireworks", 1280, 1024).unwrap();
+    let mut window = Window::new("Fireworks", 1024, 512).unwrap();
     let viewport = window.viewport();
     let gl = window.gl();
 
@@ -17,7 +17,7 @@ fn main() {
 
     let explosion_speed = 15.0;
     let explosion_time = 3.0;
-    let mut particles = Particles::new(&gl, &include_str!("../assets/shaders/particles.frag"), &CPUMesh::square(), &vec3(0.0, -9.82, 0.0)).unwrap();
+    let mut particles = Particles::new(&gl, &include_str!("../assets/shaders/particles.frag"), &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
     let mut time = explosion_time + 100.0;
@@ -52,7 +52,7 @@ fn main() {
             let cotangent = start_direction.cross(tangent);
             let mut data = Vec::new();
             for _ in 0..300 {
-                let explosion_direction = ((rng.gen::<f32>() - 0.3) * start_direction
+                let explosion_direction = ((rng.gen::<f32>() - 0.5) * start_direction
                     + (rng.gen::<f32>() - 0.5) * tangent
                     + (rng.gen::<f32>() - 0.5) * cotangent).normalize();
                 data.push(ParticleData {
@@ -63,7 +63,7 @@ fn main() {
             particles.update(&data);
         }
 
-        Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, || {
+        Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, || {
             let render_states = RenderStates {cull: CullType::Back,
                 blend: Some(BlendParameters {
                     rgb_equation: BlendEquationType::Add,
