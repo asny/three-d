@@ -10,18 +10,20 @@ fn main() {
     let viewport = window.viewport();
     let gl = window.gl();
 
-    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 20.0, 150.0), vec3(0.0, 20.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 30.0, 150.0), vec3(0.0, 30.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), viewport.aspect(), 0.1, 1000.0);
 
     let mut rng = rand::thread_rng();
 
     let explosion_speed = 15.0;
     let explosion_time = 3.0;
+    let colors = [vec3(1.0, 1.0, 0.7), vec3(1.0, 0.2, 0.1), vec3(0.2, 0.4, 0.2), vec3(0.5, 0.5, 0.8)];
     let mut particles = Particles::new(&gl, &include_str!("../assets/shaders/particles.frag"), &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
     let mut time = explosion_time + 100.0;
     let mut rotating = false;
+    let mut color_index = 0;
     window.render_loop(move |frame_input|
     {
         camera.set_aspect(frame_input.viewport.aspect());
@@ -46,7 +48,8 @@ fn main() {
         time += elapsed_time;
         if time > explosion_time {
             time = 0.0;
-            let start_position = vec3(20.0 * rng.gen::<f32>() - 10.0, 40.0 + 20.0 * rng.gen::<f32>(), 20.0 * rng.gen::<f32>() - 10.0);
+            color_index = (color_index + 1) % colors.len();
+            let start_position = vec3(10.0 * rng.gen::<f32>() - 5.0, 40.0 + 10.0 * rng.gen::<f32>(), 10.0 * rng.gen::<f32>() - 5.0);
             let mut data = Vec::new();
             for _ in 0..300 {
                 let theta = rng.gen::<f32>() * std::f32::consts::PI;
@@ -75,7 +78,8 @@ fn main() {
                 ..Default::default()};
             let f =  time/explosion_time.max(0.0);
             let fade = 1.0 - f*f*f*f;
-            particles.program().add_uniform_vec4("color", &vec4(fade, fade * 0.2, fade * 0.1, 1.0))?;
+            let color = colors[color_index];
+            particles.program().add_uniform_vec4("color", &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0))?;
             particles.render(render_states, viewport, &Mat4::identity(), &camera, time)?;
             Ok(())
         }).unwrap();
