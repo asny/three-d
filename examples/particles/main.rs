@@ -6,17 +6,17 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new("Particles", 800, 800).unwrap();
+    let mut window = Window::new("Particles", 1280, 1024).unwrap();
     let viewport = window.viewport();
     let gl = window.gl();
 
-    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 50.0, 170.0), vec3(0.0, 50.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 20.0, 150.0), vec3(0.0, 20.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), viewport.aspect(), 0.1, 1000.0);
 
     let mut rng = rand::thread_rng();
 
-    let explosion_speed = 12.0;
-    let explosion_time = 5.0;
+    let explosion_speed = 15.0;
+    let explosion_time = 3.0;
     let mut particles = Particles::new(&gl, &include_str!("../assets/shaders/particles.frag"), &CPUMesh::square(), &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
@@ -51,13 +51,13 @@ fn main() {
             let tangent = start_direction.cross(vec3(1.0, 0.0, 0.0));
             let cotangent = start_direction.cross(tangent);
             let mut data = Vec::new();
-            for _ in 0..1000 {
-                let explosion_direction = ((1.2 * rng.gen::<f32>() - 0.2) * start_direction
+            for _ in 0..300 {
+                let explosion_direction = ((rng.gen::<f32>() - 0.3) * start_direction
                     + (rng.gen::<f32>() - 0.5) * tangent
                     + (rng.gen::<f32>() - 0.5) * cotangent).normalize();
                 data.push(ParticleData {
                     start_position,
-                    start_velocity: (rng.gen::<f32>() + 0.5) * explosion_speed * explosion_direction
+                    start_velocity: (rng.gen::<f32>()*0.2 + 0.9) * explosion_speed * explosion_direction
                 });
             }
             particles.update(&data);
@@ -76,7 +76,8 @@ fn main() {
                 depth_mask: false,
                 depth_test: DepthTestType::Always,
                 ..Default::default()};
-            let fade = (1.0 - time/explosion_time).max(0.0);
+            let f =  time/explosion_time.max(0.0);
+            let fade = 1.0 - f*f*f*f;
             particles.program().add_uniform_vec4("color", &vec4(fade, fade * 0.2, fade * 0.1, 1.0))?;
             particles.render(render_states, viewport, &Mat4::identity(), &camera, time)?;
             Ok(())
