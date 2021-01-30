@@ -13,6 +13,6 @@ void main()
         discard;
     }
     else {
-        outColor = vec4(color.rgb, color.a * (1.0 - sqrDist));
+        outColor = vec4(color.rgb, color.a * smoothstep(0.0, 1.0, sqrt(1.0 - sqrDist)));
     }
 }
