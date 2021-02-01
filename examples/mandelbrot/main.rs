@@ -53,13 +53,13 @@ fn main() {
             }
         }
 
-        Screen::write(&gl, Some(&vec4(0.0, 1.0, 1.0, 1.0)), Some(1.0), || {
+        Screen::write(&gl, Some(&vec4(0.0, 1.0, 1.0, 1.0)), None, || {
             program.use_attribute_vec3_float(&position_buffer, "position")?;
 
             program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
             program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
-            program.draw_elements(RenderStates {cull: CullType::Back, ..Default::default()}, viewport, &index_buffer);
+            program.draw_elements(RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()}, viewport, &index_buffer);
             Ok(())
         }).unwrap();
 
