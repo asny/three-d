@@ -17,7 +17,7 @@ fn main() {
 
     let explosion_speed = 15.0;
     let explosion_time = 3.0;
-    let colors = [vec3(1.0, 1.0, 0.7), vec3(1.0, 0.2, 0.1), vec3(0.2, 0.4, 0.2), vec3(0.5, 0.5, 0.8)];
+    let colors = [vec3(1.0, 1.0, 0.7), vec3(1.0, 0.2, 0.1), vec3(0.2, 0.4, 0.2), vec3(0.5, 0.5, 0.8), vec3(0.85, 0.09, 0.51), vec3(0.98, 0.93, 0.15), vec3(0.3, 0.93, 0.15), vec3(0.16, 0.07, 0.87)];
     let mut particles = Particles::new(&gl, &include_str!("../assets/shaders/particles.frag"), &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
