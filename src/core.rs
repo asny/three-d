@@ -1,7 +1,7 @@
 pub mod buffer;
 pub mod program;
 pub mod render_target;
-pub mod state;
+pub mod render_states;
 pub mod texture;
 pub mod math;
 pub mod aabb;
@@ -12,7 +12,7 @@ pub use crate::gl::consts;
 pub use buffer::*;
 pub use program::*;
 pub use render_target::*;
-pub use state::*;
+pub use render_states::*;
 pub use texture::*;
 pub use math::*;
 pub use aabb::*;
