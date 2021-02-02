@@ -1,4 +1,6 @@
-use crate::*;
+use crate::core::*;
+use crate::scene::*;
+use crate::effects::*;
 
 pub struct FogEffect {
     pub color: Vec3,

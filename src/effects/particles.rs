@@ -1,4 +1,5 @@
-use crate::*;
+use crate::core::*;
+use crate::scene::*;
 
 pub struct ParticleData {
     pub start_position: Vec3,

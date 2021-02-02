@@ -1,4 +1,5 @@
-use crate::*;
+use crate::core::*;
+use crate::effects::*;
 
 pub struct FXAAEffect {
     pub color: Vec3,

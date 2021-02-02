@@ -1,5 +1,5 @@
 
-use crate::*;
+use crate::core::*;
 
 pub struct PhongForwardPipeline {
     gl: Gl,

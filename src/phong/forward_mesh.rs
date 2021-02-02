@@ -1,5 +1,7 @@
 
-use crate::*;
+use crate::core::*;
+use crate::scene::*;
+use crate::phong::*;
 
 pub struct PhongForwardMesh {
     gl: Gl,

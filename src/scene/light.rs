@@ -1,6 +1,6 @@
 
-use crate::*;
-use crate::core::Error;
+use crate::core::*;
+use crate::scene::*;
 
 pub struct AmbientLight
 {
