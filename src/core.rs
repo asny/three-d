@@ -4,7 +4,6 @@ pub mod rendertarget;
 pub mod state;
 pub mod texture;
 pub mod types;
-pub mod image_effect;
 pub mod aabb;
 
 pub use crate::gl::Gl;
@@ -16,7 +15,6 @@ pub use rendertarget::*;
 pub use state::*;
 pub use texture::*;
 pub use types::*;
-pub use image_effect::*;
 pub use aabb::*;
 
 pub mod viewport;
