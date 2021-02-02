@@ -31,9 +31,6 @@ pub use crate::gpu_mesh::*;
 pub mod cpu_material;
 pub use crate::cpu_material::*;
 
-pub mod particles;
-pub use crate::particles::*;
-
 #[derive(Debug)]
 pub enum Error {
     UnknownShaderType {message: String},

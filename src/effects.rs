@@ -9,3 +9,6 @@ pub use crate::skybox::*;
 
 pub mod imposter;
 pub use crate::imposter::*;
+
+pub mod particles;
+pub use crate::particles::*;
