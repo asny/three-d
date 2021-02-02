@@ -55,6 +55,7 @@ impl From<wavefront_obj::ParseError> for Error {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl From<std::io::Error> for Error {
     fn from(other: std::io::Error) -> Self {
         Error::IO(other)
