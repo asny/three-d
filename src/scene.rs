@@ -1,4 +1,7 @@
 
+pub mod image_effect;
+pub use image_effect::*;
+
 pub mod light;
 pub use crate::light::*;
 
