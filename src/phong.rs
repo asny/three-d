@@ -13,6 +13,3 @@ pub use crate::forward_mesh::*;
 
 pub mod deferred_mesh;
 pub use crate::deferred_mesh::*;
-
-pub mod imposter;
-pub use crate::imposter::*;

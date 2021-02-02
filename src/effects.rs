@@ -6,3 +6,6 @@ pub use crate::fxaa::*;
 
 pub mod skybox;
 pub use crate::skybox::*;
+
+pub mod imposter;
+pub use crate::imposter::*;
