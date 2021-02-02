@@ -1,4 +1,4 @@
-use crate::core::types::*;
+use crate::core::math::*;
 
 pub struct AxisAlignedBoundingBox {
     pub min: Vec3,

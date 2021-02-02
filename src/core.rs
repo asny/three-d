@@ -3,7 +3,7 @@ pub mod program;
 pub mod render_target;
 pub mod state;
 pub mod texture;
-pub mod types;
+pub mod math;
 pub mod aabb;
 
 pub use crate::gl::Gl;
@@ -14,7 +14,7 @@ pub use program::*;
 pub use render_target::*;
 pub use state::*;
 pub use texture::*;
-pub use types::*;
+pub use math::*;
 pub use aabb::*;
 
 pub mod viewport;
