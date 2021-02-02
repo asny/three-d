@@ -95,7 +95,7 @@ fn main() {
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                 penguin_forward.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
                                                                     viewport, &transformation, &camera, &ambient_light, &directional_light)?;
-                skybox.apply(viewport, &camera)?;
+                skybox.render(viewport, &camera)?;
                 Ok(())
             }).unwrap();
 

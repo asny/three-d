@@ -30,7 +30,7 @@ impl Skybox
         Ok(Skybox { program, vertex_buffer, texture })
     }
 
-    pub fn apply(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Front, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 

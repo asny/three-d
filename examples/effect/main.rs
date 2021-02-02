@@ -94,7 +94,7 @@ fn main() {
                 RenderTarget::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(pipeline.depth_texture()), || {
                     let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
                     monkey.render_with_ambient_and_directional(render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                    skybox.apply(viewport, &camera)?;
+                    skybox.render(viewport, &camera)?;
                     if fog_enabled {
                         fog_effect.apply(viewport, &camera, pipeline.depth_texture(), time as f32)?;
                     }
@@ -109,7 +109,7 @@ fn main() {
                 Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &|| {
                     let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
                     monkey.render_with_ambient_and_directional(render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                    skybox.apply(viewport, &camera)?;
+                    skybox.render(viewport, &camera)?;
                     if fog_enabled {
                         fog_effect.apply(viewport, &camera, pipeline.depth_texture(), time as f32)?;
                     }
