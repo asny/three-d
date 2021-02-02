@@ -1,6 +1,6 @@
 pub mod buffer;
 pub mod program;
-pub mod rendertarget;
+pub mod render_target;
 pub mod state;
 pub mod texture;
 pub mod types;
@@ -11,7 +11,7 @@ pub use crate::gl::consts;
 
 pub use buffer::*;
 pub use program::*;
-pub use rendertarget::*;
+pub use render_target::*;
 pub use state::*;
 pub use texture::*;
 pub use types::*;
