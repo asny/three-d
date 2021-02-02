@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::cell::RefCell;
 use crate::core::*;
+use crate::context::{Gl, consts};
 
 pub struct Program {
     gl: Gl,

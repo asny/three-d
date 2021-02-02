@@ -7,7 +7,6 @@ pub mod math;
 pub mod aabb;
 
 pub use crate::context::Gl;
-pub use crate::context::consts;
 
 pub use buffer::*;
 pub use program::*;

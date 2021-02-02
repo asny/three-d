@@ -1,6 +1,5 @@
 use crate::core::Error;
-use crate::context::Gl;
-use crate::context::consts;
+use crate::context::{Gl, consts};
 use crate::Image;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]

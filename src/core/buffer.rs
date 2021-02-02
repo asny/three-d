@@ -1,6 +1,5 @@
 use crate::core::Error;
-use crate::context::Gl;
-use crate::context::consts;
+use crate::context::{Gl, consts};
 
 pub struct VertexBuffer {
     gl: Gl,
