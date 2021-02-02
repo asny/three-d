@@ -1,6 +1,6 @@
 use crate::core::Error;
-use crate::gl::Gl;
-use crate::gl::consts;
+use crate::context::Gl;
+use crate::context::consts;
 use crate::Image;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -36,7 +36,7 @@ pub trait Texture {
 
 pub struct Texture2D {
     gl: Gl,
-    id: crate::gl::Texture,
+    id: crate::context::Texture,
     pub width: usize,
     pub height: usize,
     format: Format,
@@ -164,7 +164,7 @@ impl Drop for Texture2D
 
 pub struct TextureCubeMap {
     gl: Gl,
-    id: crate::gl::Texture,
+    id: crate::context::Texture,
     pub width: usize,
     pub height: usize,
     format: Format,
@@ -259,7 +259,7 @@ impl Drop for TextureCubeMap
 
 pub struct Texture2DArray {
     gl: Gl,
-    id: crate::gl::Texture,
+    id: crate::context::Texture,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
@@ -322,18 +322,18 @@ impl Drop for Texture2DArray
 
 
 // COMMON FUNCTIONS
-fn generate(gl: &Gl) -> Result<crate::gl::Texture, Error>
+fn generate(gl: &Gl) -> Result<crate::context::Texture, Error>
 {
     gl.create_texture().ok_or_else(|| Error::FailedToCreateTexture {message: "Failed to create texture".to_string()} )
 }
 
-fn bind_at(gl: &Gl, id: &crate::gl::Texture, target: u32, location: u32)
+fn bind_at(gl: &Gl, id: &crate::context::Texture, target: u32, location: u32)
 {
     gl.active_texture(consts::TEXTURE0 + location);
     gl.bind_texture(target, id);
 }
 
-fn set_parameters(gl: &Gl, id: &crate::gl::Texture, target: u32, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>, wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Option<Wrapping>)
+fn set_parameters(gl: &Gl, id: &crate::context::Texture, target: u32, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>, wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Option<Wrapping>)
 {
     gl.bind_texture(target, id);
     match mip_map_filter {

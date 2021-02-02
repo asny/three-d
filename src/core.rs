@@ -6,8 +6,8 @@ pub mod texture;
 pub mod math;
 pub mod aabb;
 
-pub use crate::gl::Gl;
-pub use crate::gl::consts;
+pub use crate::context::Gl;
+pub use crate::context::consts;
 
 pub use buffer::*;
 pub use program::*;

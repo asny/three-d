@@ -185,7 +185,7 @@ impl RenderTarget
         Ok(pixels)
     }*/
 
-    fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<crate::gl::Framebuffer, Error>
+    fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<crate::context::Framebuffer, Error>
     {
         let id = gl.create_framebuffer()
             .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;

@@ -1,5 +1,5 @@
 
-pub mod gl;
+pub mod context;
 
 pub mod core;
 pub use crate::core::*;

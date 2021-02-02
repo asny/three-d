@@ -1,10 +1,10 @@
 use crate::core::Error;
-use crate::gl::Gl;
-use crate::gl::consts;
+use crate::context::Gl;
+use crate::context::consts;
 
 pub struct VertexBuffer {
     gl: Gl,
-    id: crate::gl::Buffer,
+    id: crate::context::Buffer,
     count: usize
 }
 
@@ -66,7 +66,7 @@ impl Drop for VertexBuffer
 
 pub struct ElementBuffer {
     gl: Gl,
-    id: crate::gl::Buffer,
+    id: crate::context::Buffer,
     count: usize
 }
 
@@ -110,7 +110,7 @@ impl Drop for ElementBuffer
 
 pub struct UniformBuffer {
     gl: Gl,
-    id: crate::gl::Buffer,
+    id: crate::context::Buffer,
     offsets: Vec<usize>,
     data: Vec<f32>
 }

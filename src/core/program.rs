@@ -4,10 +4,10 @@ use crate::core::*;
 
 pub struct Program {
     gl: Gl,
-    id: crate::gl::Program,
+    id: crate::context::Program,
     vertex_attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
-    uniforms: HashMap<String, crate::gl::UniformLocation>,
+    uniforms: HashMap<String, crate::context::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>
 }
 
@@ -136,7 +136,7 @@ impl Program
         Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> Result<&crate::gl::UniformLocation, Error>
+    fn get_uniform_location(&self, name: &str) -> Result<&crate::context::UniformLocation, Error>
     {
         self.set_used();
         let loc = self.uniforms.get(name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find uniform {}", name)})?;

@@ -1,7 +1,7 @@
 
 use glutin::*;
 use crate::window::frame_input;
-use crate::gl;
+use crate::context;
 
 #[derive(Debug)]
 pub enum Error {
@@ -50,7 +50,7 @@ impl Window
         unsafe {
             gl_window.make_current()?;
         }
-        let gl = gl::Glstruct::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
+        let gl = context::Glstruct::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
         Ok(Window {gl_window, events_loop, gl})
     }
 
