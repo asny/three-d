@@ -4,6 +4,9 @@ pub mod gl;
 pub mod core;
 pub use crate::core::*;
 
+pub mod scene;
+pub use crate::scene::*;
+
 pub mod io;
 pub use crate::io::*;
 

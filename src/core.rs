@@ -4,7 +4,6 @@ pub mod rendertarget;
 pub mod state;
 pub mod texture;
 pub mod types;
-pub mod camera;
 pub mod image_effect;
 pub mod aabb;
 
@@ -17,7 +16,6 @@ pub use rendertarget::*;
 pub use state::*;
 pub use texture::*;
 pub use types::*;
-pub use camera::*;
 pub use image_effect::*;
 pub use aabb::*;
 
@@ -32,9 +30,6 @@ pub use crate::gpu_mesh::*;
 
 pub mod cpu_material;
 pub use crate::cpu_material::*;
-
-pub mod light;
-pub use crate::light::*;
 
 pub mod particles;
 pub use crate::particles::*;
