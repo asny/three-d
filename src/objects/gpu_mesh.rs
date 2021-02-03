@@ -1,6 +1,5 @@
 
 use crate::core::*;
-use crate::objects::*;
 
 pub struct GPUMesh {
     position_buffer: VertexBuffer,

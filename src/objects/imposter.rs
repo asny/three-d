@@ -1,5 +1,4 @@
 use crate::core::*;
-use crate::objects::*;
 use std::f32::consts::PI;
 
 const NO_VIEW_ANGLES: usize  = 8;

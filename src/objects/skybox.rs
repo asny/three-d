@@ -1,5 +1,4 @@
 use crate::core::*;
-use crate::objects::*;
 
 pub struct Skybox {
     program: program::Program,
