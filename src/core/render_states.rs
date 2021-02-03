@@ -69,19 +69,6 @@ pub struct BlendParameters {
     pub alpha_equation: BlendEquationType
 }
 
-impl BlendParameters {
-    pub fn new(equation: BlendEquationType, source_multiplier: BlendMultiplierType, destination_multiplier: BlendMultiplierType) -> BlendParameters {
-        BlendParameters {
-            source_rgb_multiplier: source_multiplier,
-            source_alpha_multiplier: source_multiplier,
-            destination_rgb_multiplier: destination_multiplier,
-            destination_alpha_multiplier: destination_multiplier,
-            rgb_equation: equation,
-            alpha_equation: equation
-        }
-    }
-}
-
 impl Default for BlendParameters {
     fn default() -> Self {
         Self {

@@ -90,9 +90,14 @@ impl PhongDeferredPipeline
             self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
             self.ambient_light_effect.program().add_uniform_vec3("ambientColor", &(light.color * light.intensity))?;
             self.ambient_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
-                                                            BlendMultiplierType::One,
-                                                            BlendMultiplierType::One));
+            render_states.blend = Some(BlendParameters {
+                source_rgb_multiplier: BlendMultiplierType::One,
+                source_alpha_multiplier: BlendMultiplierType::One,
+                destination_rgb_multiplier: BlendMultiplierType::One,
+                destination_alpha_multiplier: BlendMultiplierType::One,
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add
+            });
         }
 
         // Directional light
@@ -104,9 +109,14 @@ impl PhongDeferredPipeline
             self.directional_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLightUniform");
             self.directional_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
-                                                            BlendMultiplierType::One,
-                                                            BlendMultiplierType::One));
+            render_states.blend = Some(BlendParameters {
+                source_rgb_multiplier: BlendMultiplierType::One,
+                source_alpha_multiplier: BlendMultiplierType::One,
+                destination_rgb_multiplier: BlendMultiplierType::One,
+                destination_alpha_multiplier: BlendMultiplierType::One,
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add
+            });
         }
 
         // Spot lights
@@ -118,9 +128,14 @@ impl PhongDeferredPipeline
             self.spot_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLightUniform");
             self.spot_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
-                                                            BlendMultiplierType::One,
-                                                            BlendMultiplierType::One));
+            render_states.blend = Some(BlendParameters {
+                source_rgb_multiplier: BlendMultiplierType::One,
+                source_alpha_multiplier: BlendMultiplierType::One,
+                destination_rgb_multiplier: BlendMultiplierType::One,
+                destination_alpha_multiplier: BlendMultiplierType::One,
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add
+            });
         }
 
         // Point lights
@@ -131,9 +146,14 @@ impl PhongDeferredPipeline
             self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLightUniform");
             self.point_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::new(BlendEquationType::Add,
-                                                            BlendMultiplierType::One,
-                                                            BlendMultiplierType::One));
+            render_states.blend = Some(BlendParameters {
+                source_rgb_multiplier: BlendMultiplierType::One,
+                source_alpha_multiplier: BlendMultiplierType::One,
+                destination_rgb_multiplier: BlendMultiplierType::One,
+                destination_alpha_multiplier: BlendMultiplierType::One,
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add
+            });
         }
 
         Ok(())

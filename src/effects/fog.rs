@@ -18,9 +18,14 @@ impl FogEffect {
     pub fn apply(&self, viewport: Viewport, camera: &camera::Camera, depth_texture: &Texture2D, time: f32) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Back, depth_mask: false,
-            blend: Some(BlendParameters::new(BlendEquationType::Add,
-                                             BlendMultiplierType::SrcAlpha,
-                                             BlendMultiplierType::OneMinusSrcAlpha)),
+            blend: Some(BlendParameters {
+                source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+                source_alpha_multiplier: BlendMultiplierType::SrcAlpha,
+                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
+                destination_alpha_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add
+            }),
             ..Default::default()};
 
         self.image_effect.program().use_texture(depth_texture, "depthMap")?;
