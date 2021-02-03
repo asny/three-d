@@ -17,7 +17,7 @@ impl Default for AmbientLight {
 }
 
 pub struct DirectionalLight {
-    gl: Gl,
+    gl: Context,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2D,
     shadow_camera: Option<Camera>
@@ -25,7 +25,7 @@ pub struct DirectionalLight {
 
 impl DirectionalLight {
 
-    pub fn new(gl: &Gl, intensity: f32, color: &Vec3, direction: &Vec3) -> Result<DirectionalLight, Error>
+    pub fn new(gl: &Context, intensity: f32, color: &Vec3, direction: &Vec3) -> Result<DirectionalLight, Error>
     {
         let mut light = DirectionalLight {
             gl: gl.clone(),
@@ -106,7 +106,7 @@ pub struct PointLight {
 
 impl PointLight {
 
-    pub fn new(gl: &Gl, intensity: f32, color: &Vec3, position: &Vec3,
+    pub fn new(gl: &Context, intensity: f32, color: &Vec3, position: &Vec3,
                attenuation_constant: f32, attenuation_linear: f32, attenuation_exponential: f32) -> Result<PointLight, Error>
     {
         let mut light = PointLight { light_buffer: UniformBuffer::new(gl, &[3u32, 1, 1, 1, 1, 1, 3, 1])? };
@@ -147,7 +147,7 @@ impl PointLight {
 }
 
 pub struct SpotLight {
-    gl: Gl,
+    gl: Context,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2D,
     shadow_camera: Option<Camera>
@@ -155,7 +155,7 @@ pub struct SpotLight {
 
 impl SpotLight {
 
-    pub fn new(gl: &Gl, intensity: f32, color: &Vec3, position: &Vec3, direction: &Vec3, cutoff: f32,
+    pub fn new(gl: &Context, intensity: f32, color: &Vec3, position: &Vec3, direction: &Vec3, cutoff: f32,
                attenuation_constant: f32, attenuation_linear: f32, attenuation_exponential: f32) -> Result<SpotLight, Error>
     {
         let uniform_sizes = [3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16];

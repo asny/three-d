@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::cell::RefCell;
 use crate::core::*;
-use crate::context::{Gl, consts};
+use crate::context::{Context, consts};
 
 pub struct Program {
-    gl: Gl,
+    gl: Context,
     id: crate::context::Program,
     vertex_attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
@@ -14,7 +14,7 @@ pub struct Program {
 
 impl Program
 {
-    pub fn from_source(gl: &Gl, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
+    pub fn from_source(gl: &Context, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
     {
         let vert_shader = gl.create_shader(consts::VERTEX_SHADER)
             .ok_or(Error::FailedToCreateShader{ shader_type: "Vertex shader".to_string(), message:"Unable to create shader object".to_string() })?;
@@ -322,14 +322,14 @@ impl Program
         self.gl.use_program(&self.id);
     }
 
-    fn set_states(gl: &Gl, render_states: RenderStates) {
+    fn set_states(gl: &Context, render_states: RenderStates) {
         Self::set_cull(gl, render_states.cull);
         Self::set_color_mask(gl, render_states.color_mask);
         Self::set_depth(gl, Some(render_states.depth_test), render_states.depth_mask);
         Self::set_blend(gl, render_states.blend);
     }
 
-    fn set_viewport(gl: &Gl, viewport: Viewport) {
+    fn set_viewport(gl: &Context, viewport: Viewport) {
         unsafe {
             static mut CURRENT_VIEWPORT: Viewport = Viewport {x: 0, y: 0, width: 0, height: 0};
             if viewport != CURRENT_VIEWPORT
@@ -340,7 +340,7 @@ impl Program
         }
     }
 
-    fn set_cull(gl: &Gl, cull: CullType) {
+    fn set_cull(gl: &Context, cull: CullType) {
         unsafe {
             static mut CURRENT_CULL: CullType = CullType::None;
             if cull != CURRENT_CULL
@@ -367,7 +367,7 @@ impl Program
         }
     }
 
-    fn set_blend(gl: &Gl, blend: Option<BlendParameters>)
+    fn set_blend(gl: &Context, blend: Option<BlendParameters>)
     {
         unsafe {
             static mut CURRENT: Option<BlendParameters> = None;
@@ -415,7 +415,7 @@ impl Program
         }
     }
 
-    pub(crate) fn set_color_mask(gl: &Gl, color_mask: ColorMask)
+    pub(crate) fn set_color_mask(gl: &Context, color_mask: ColorMask)
     {
         unsafe {
             static mut CURRENT_COLOR_MASK: ColorMask = ColorMask {red: true, green: true, blue: true, alpha: true};
@@ -427,7 +427,7 @@ impl Program
         }
     }
 
-    pub(crate) fn set_depth(gl: &Gl, depth_test: Option<DepthTestType>, depth_mask: bool) {
+    pub(crate) fn set_depth(gl: &Context, depth_test: Option<DepthTestType>, depth_mask: bool) {
         unsafe {
             static mut CURRENT_DEPTH_ENABLE: bool = false;
             static mut CURRENT_DEPTH_MASK: bool = true;

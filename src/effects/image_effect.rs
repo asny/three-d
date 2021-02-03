@@ -7,7 +7,7 @@ pub struct ImageEffect {
 }
 
 impl ImageEffect {
-    pub fn new(gl: &Gl, fragment_shader: &str) -> Result<Self, Error>
+    pub fn new(gl: &Context, fragment_shader: &str) -> Result<Self, Error>
     {
         let program = program::Program::from_source(&gl,
                                                     "in vec3 position;

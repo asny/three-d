@@ -6,7 +6,7 @@ use crate::effects::*;
 pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}
 
 pub struct PhongDeferredPipeline {
-    gl: Gl,
+    gl: Context,
     ambient_light_effect: ImageEffect,
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
@@ -19,7 +19,7 @@ pub struct PhongDeferredPipeline {
 
 impl PhongDeferredPipeline
 {
-    pub fn new(gl: &Gl) -> Result<Self, Error>
+    pub fn new(gl: &Context) -> Result<Self, Error>
     {
         let renderer = Self {
             gl: gl.clone(),

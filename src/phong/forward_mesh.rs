@@ -4,7 +4,7 @@ use crate::objects::*;
 use crate::phong::*;
 
 pub struct PhongForwardMesh {
-    gl: Gl,
+    gl: Context,
     pub name: String,
     mesh: Mesh,
     pub material: PhongMaterial
@@ -12,7 +12,7 @@ pub struct PhongForwardMesh {
 
 impl PhongForwardMesh
 {
-    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    pub fn new(gl: &Context, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
         if cpu_mesh.normals.is_none() {
             Err(Error::FailedToCreateMesh {message:
@@ -29,7 +29,7 @@ impl PhongForwardMesh
         })
     }
 
-    pub fn new_meshes(gl: &Gl, cpu_meshes: &[CPUMesh], materials: &[PhongMaterial]) -> Result<Vec<Self>, Error>
+    pub fn new_meshes(gl: &Context, cpu_meshes: &[CPUMesh], materials: &[PhongMaterial]) -> Result<Vec<Self>, Error>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {
@@ -138,7 +138,7 @@ impl Drop for PhongForwardMesh {
 }
 
 pub struct PhongForwardInstancedMesh {
-    gl: Gl,
+    gl: Context,
     pub name: String,
     mesh: InstancedMesh,
     pub material: PhongMaterial
@@ -146,7 +146,7 @@ pub struct PhongForwardInstancedMesh {
 
 impl PhongForwardInstancedMesh
 {
-    pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    pub fn new(gl: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
         if cpu_mesh.normals.is_none() {
             Err(Error::FailedToCreateMesh {message:

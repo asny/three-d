@@ -25,7 +25,7 @@ pub struct Window
 {
     gl_window: GlWindow,
     events_loop: EventsLoop,
-    gl: crate::Gl
+    gl: crate::Context
 }
 
 impl Window
@@ -108,7 +108,7 @@ impl Window
         crate::Viewport::new_at_origo(w as usize, h as usize)
     }
 
-    pub fn gl(&self) -> crate::Gl
+    pub fn gl(&self) -> crate::Context
     {
         self.gl.clone()
     }

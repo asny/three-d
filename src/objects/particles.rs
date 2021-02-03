@@ -16,7 +16,7 @@ pub struct Particles {
 }
 
 impl Particles {
-    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self, Error>
+    pub fn new(gl: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
@@ -31,7 +31,7 @@ impl Particles {
         })
     }
 
-    pub fn create_program(gl: &Gl, fragment_shader_source: &str) -> Result<Program, Error>
+    pub fn create_program(gl: &Context, fragment_shader_source: &str) -> Result<Program, Error>
     {
         Program::from_source(gl, include_str!("shaders/particles.vert"), fragment_shader_source)
     }

@@ -10,7 +10,7 @@ pub struct FXAAEffect {
 
 impl FXAAEffect {
 
-    pub fn new(gl: &Gl) -> Result<Self, Error>
+    pub fn new(gl: &Context) -> Result<Self, Error>
     {
         Ok(Self {color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fxaa.frag"))?})
     }

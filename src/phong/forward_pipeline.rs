@@ -2,13 +2,13 @@
 use crate::core::*;
 
 pub struct PhongForwardPipeline {
-    gl: Gl,
+    gl: Context,
     depth_texture: Option<Texture2D>
 }
 
 impl PhongForwardPipeline {
 
-    pub fn new(gl: &Gl) -> Result<Self, Error>
+    pub fn new(gl: &Context) -> Result<Self, Error>
     {
         Ok(Self {
             gl: gl.clone(),

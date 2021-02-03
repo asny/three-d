@@ -16,7 +16,7 @@ pub enum Error {
 
 pub struct Window
 {
-    gl: crate::Gl,
+    gl: crate::Context,
     canvas: web_sys::HtmlCanvasElement,
     window: web_sys::Window,
     maximized: bool
@@ -267,7 +267,7 @@ impl Window
         crate::Viewport::new_at_origo(w, h)
     }
 
-    pub fn gl(&self) -> crate::Gl
+    pub fn gl(&self) -> crate::Context
     {
         self.gl.clone()
     }

@@ -8,7 +8,7 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(gl: &Gl, right: &Image, left: &Image, top: &Image, front: &Image, back: &Image) -> Result<Skybox, Error>
+    pub fn new(gl: &Context, right: &Image, left: &Image, top: &Image, front: &Image, back: &Image) -> Result<Skybox, Error>
     {
         let texture = TextureCubeMap::new_with_u8(&gl,
                                                   Interpolation::Linear, Interpolation::Linear, None,
@@ -17,7 +17,7 @@ impl Skybox
         Self::new_with_texture(gl, texture)
     }
 
-    pub fn new_with_texture(gl: &Gl, texture: texture::TextureCubeMap) -> Result<Skybox, Error>
+    pub fn new_with_texture(gl: &Context, texture: texture::TextureCubeMap) -> Result<Skybox, Error>
     {
         let program = program::Program::from_source(gl,
                                                     include_str!("shaders/skybox.vert"),

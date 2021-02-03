@@ -1,15 +1,15 @@
 use crate::core::Error;
-use crate::context::{Gl, consts};
+use crate::context::{Context, consts};
 
 pub struct VertexBuffer {
-    gl: Gl,
+    gl: Context,
     id: crate::context::Buffer,
     count: usize
 }
 
 impl VertexBuffer
 {
-    pub fn new_with_static_f32(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
+    pub fn new_with_static_f32(gl: &Context, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let mut buffer = VertexBuffer { gl: gl.clone(), id, count: 0 };
@@ -27,7 +27,7 @@ impl VertexBuffer
         self.count = data.len();
     }
 
-    pub fn new_with_dynamic_f32(gl: &Gl, data: &[f32]) -> Result<VertexBuffer, Error>
+    pub fn new_with_dynamic_f32(gl: &Context, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let mut buffer = VertexBuffer { gl: gl.clone(), id, count: 0 };
@@ -64,14 +64,14 @@ impl Drop for VertexBuffer
 }
 
 pub struct ElementBuffer {
-    gl: Gl,
+    gl: Context,
     id: crate::context::Buffer,
     count: usize
 }
 
 impl ElementBuffer
 {
-    pub fn new_with_u32(gl: &Gl, data: &[u32]) -> Result<ElementBuffer, Error>
+    pub fn new_with_u32(gl: &Context, data: &[u32]) -> Result<ElementBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
         let mut buffer = ElementBuffer{ gl: gl.clone(), id, count: 0 };
@@ -108,7 +108,7 @@ impl Drop for ElementBuffer
 }
 
 pub struct UniformBuffer {
-    gl: Gl,
+    gl: Context,
     id: crate::context::Buffer,
     offsets: Vec<usize>,
     data: Vec<f32>
@@ -116,7 +116,7 @@ pub struct UniformBuffer {
 
 impl UniformBuffer
 {
-    pub fn new(gl: &Gl, sizes: &[u32]) -> Result<UniformBuffer, Error>
+    pub fn new(gl: &Context, sizes: &[u32]) -> Result<UniformBuffer, Error>
     {
         let id = gl.create_buffer().unwrap();
 

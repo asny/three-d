@@ -10,7 +10,7 @@ pub struct FogEffect {
 
 impl FogEffect {
 
-    pub fn new(gl: &Gl) -> Result<FogEffect, Error>
+    pub fn new(gl: &Context) -> Result<FogEffect, Error>
     {
         Ok(FogEffect {color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fog.frag"))?})
     }

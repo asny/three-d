@@ -14,7 +14,7 @@ pub struct InstancedMesh {
 
 impl InstancedMesh
 {
-    pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub fn new(gl: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(gl, normals)?) } else {None};
@@ -31,7 +31,7 @@ impl InstancedMesh
         Ok(mesh)
     }
 
-    pub fn create_program(gl: &Gl, fragment_shader_source: &str) -> Result<Program, Error>
+    pub fn create_program(gl: &Context, fragment_shader_source: &str) -> Result<Program, Error>
     {
         Program::from_source(gl, include_str!("shaders/mesh_instanced.vert"), fragment_shader_source)
     }

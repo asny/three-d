@@ -20,10 +20,10 @@ pub struct Glstruct {
     inner: InnerGl,
 }
 
-pub type Gl = std::rc::Rc<Glstruct>;
+pub type Context = std::rc::Rc<Glstruct>;
 
 impl Glstruct {
-    pub fn new(webgl_context: InnerGl) -> Gl
+    pub fn new(webgl_context: InnerGl) -> Context
     {
         std::rc::Rc::new(Glstruct { inner: webgl_context })
     }

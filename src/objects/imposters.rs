@@ -4,7 +4,7 @@ use std::f32::consts::PI;
 const NO_VIEW_ANGLES: usize  = 8;
 
 pub struct Imposters {
-    gl: Gl,
+    gl: Context,
     program: program::Program,
     center_buffer: VertexBuffer,
     rotation_buffer: VertexBuffer,
@@ -15,7 +15,7 @@ pub struct Imposters {
 }
 
 impl Imposters {
-    pub fn new(gl: &Gl) -> Result<Self, Error>
+    pub fn new(gl: &Context) -> Result<Self, Error>
     {
         let uvs = vec![
             0.0, 0.0,

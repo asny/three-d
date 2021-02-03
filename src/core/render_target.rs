@@ -1,10 +1,10 @@
 use crate::core::*;
-use crate::context::{Gl, consts};
+use crate::context::{Context, consts};
 
 pub struct Screen {}
 
 impl Screen {
-    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
+    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
         gl.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
         RenderTarget::clear(gl, clear_color, clear_depth);
@@ -14,7 +14,7 @@ impl Screen {
 
     // TODO: Possible to change format
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_color(gl: &Gl, viewport: Viewport) -> Result<Vec<u8>, Error>
+    pub fn read_color(gl: &Context, viewport: Viewport) -> Result<Vec<u8>, Error>
     {
         let mut pixels = vec![0u8; viewport.width * viewport.height * 3];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
@@ -30,7 +30,7 @@ impl Screen {
 
     // TODO: Possible to change format
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth(gl: &Gl, viewport: Viewport) -> Result<Vec<f32>, Error>
+    pub fn read_depth(gl: &Context, viewport: Viewport) -> Result<Vec<f32>, Error>
     {
         let mut pixels = vec![0f32; viewport.width * viewport.height];
         gl.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
@@ -49,22 +49,22 @@ pub struct RenderTarget {}
 
 impl RenderTarget
 {
-    pub fn write_to_color<F: FnOnce() -> Result<(), Error>>(gl: &Gl,
-                          clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
+    pub fn write_to_color<F: FnOnce() -> Result<(), Error>>(gl: &Context,
+                                                            clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
     {
         Self::write(gl, clear_color, None, color_texture, None, render)
     }
 
-    pub fn write_to_depth<F: FnOnce() -> Result<(), Error>>(gl: &Gl,
-                          clear_depth: Option<f32>, depth_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
+    pub fn write_to_depth<F: FnOnce() -> Result<(), Error>>(gl: &Context,
+                                                            clear_depth: Option<f32>, depth_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
     {
         Self::write(gl,None, clear_depth, None, depth_texture, render)
     }
 
-    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Gl,
-                 clear_color: Option<&Vec4>, clear_depth: Option<f32>,
-                 color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
-                 render: F) -> Result<(), Error>
+    pub fn write<F: FnOnce() -> Result<(), Error>>(gl: &Context,
+                                                   clear_color: Option<&Vec4>, clear_depth: Option<f32>,
+                                                   color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
+                                                   render: F) -> Result<(), Error>
     {
         let id = RenderTarget::new_framebuffer(gl, if color_texture.is_some() {1} else {0})?;
 
@@ -96,28 +96,28 @@ impl RenderTarget
         Ok(())
     }
 
-    pub fn write_to_color_array<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
-                                clear_color: Option<&Vec4>,
-                       color_texture_array: Option<&Texture2DArray>,
-                                color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
-                                render: F) -> Result<(), Error>
+    pub fn write_to_color_array<F: FnOnce() -> Result<(), Error>>(gl: &Context, x: i32, y: i32, width: usize, height: usize,
+                                                                  clear_color: Option<&Vec4>,
+                                                                  color_texture_array: Option<&Texture2DArray>,
+                                                                  color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
+                                                                  render: F) -> Result<(), Error>
     {
         Self::write_array(gl, x, y, width, height, clear_color, None, color_texture_array, None, color_channel_count, color_channel_to_texture_layer, 0, render)
     }
 
-    pub fn write_to_depth_array<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize, clear_depth: Option<f32>,
-                       depth_texture_array: Option<&Texture2DArray>, depth_layer: usize,
-                                render: F) -> Result<(), Error>
+    pub fn write_to_depth_array<F: FnOnce() -> Result<(), Error>>(gl: &Context, x: i32, y: i32, width: usize, height: usize, clear_depth: Option<f32>,
+                                                                  depth_texture_array: Option<&Texture2DArray>, depth_layer: usize,
+                                                                  render: F) -> Result<(), Error>
     {
         Self::write_array(gl, x, y, width, height,None, clear_depth, None, depth_texture_array, 0, &|i| {i}, depth_layer, render)
     }
 
-    pub fn write_array<F: FnOnce() -> Result<(), Error>>(gl: &Gl, x: i32, y: i32, width: usize, height: usize,
-                       clear_color: Option<&Vec4>, clear_depth: Option<f32>,
-                       color_texture_array: Option<&Texture2DArray>,
-                       depth_texture_array: Option<&Texture2DArray>,
-                       color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
-                       depth_layer: usize, render: F) -> Result<(), Error>
+    pub fn write_array<F: FnOnce() -> Result<(), Error>>(gl: &Context, x: i32, y: i32, width: usize, height: usize,
+                                                         clear_color: Option<&Vec4>, clear_depth: Option<f32>,
+                                                         color_texture_array: Option<&Texture2DArray>,
+                                                         depth_texture_array: Option<&Texture2DArray>,
+                                                         color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
+                                                         depth_layer: usize, render: F) -> Result<(), Error>
     {
         gl.viewport(x, y, width, height);
         let id = RenderTarget::new_framebuffer(gl, color_channel_count)?;
@@ -186,7 +186,7 @@ impl RenderTarget
         Ok(pixels)
     }*/
 
-    fn new_framebuffer(gl: &Gl, no_color_channels: usize) -> Result<crate::context::Framebuffer, Error>
+    fn new_framebuffer(gl: &Context, no_color_channels: usize) -> Result<crate::context::Framebuffer, Error>
     {
         let id = gl.create_framebuffer()
             .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
@@ -202,7 +202,7 @@ impl RenderTarget
         Ok(id)
     }
 
-    fn clear(gl: &Gl, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
+    fn clear(gl: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
         if let Some(color) = clear_color {
             Program::set_color_mask(gl, ColorMask::default());
             if let Some(depth) = clear_depth {

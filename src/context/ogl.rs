@@ -26,10 +26,10 @@ pub struct Glstruct {
     inner: InnerGl
 }
 
-pub type Gl = std::rc::Rc<Glstruct>;
+pub type Context = std::rc::Rc<Glstruct>;
 
 impl Glstruct {
-    pub fn load_with<F>(loadfn: F) -> Gl
+    pub fn load_with<F>(loadfn: F) -> Context
         where for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid
     {
         let gl = Glstruct { inner: InnerGl::load_with(loadfn) };

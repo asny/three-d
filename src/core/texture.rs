@@ -1,5 +1,5 @@
 use crate::core::Error;
-use crate::context::{Gl, consts};
+use crate::context::{Context, consts};
 use crate::Image;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -34,7 +34,7 @@ pub trait Texture {
 }
 
 pub struct Texture2D {
-    gl: Gl,
+    gl: Context,
     id: crate::context::Texture,
     pub width: usize,
     pub height: usize,
@@ -44,8 +44,8 @@ pub struct Texture2D {
 
 impl Texture2D
 {
-    pub fn new(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Texture2D, Error>
+    pub fn new(gl: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+               wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Texture2D, Error>
     {
         let id = generate(gl)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
@@ -58,8 +58,8 @@ impl Texture2D
         Ok(Self { gl: gl.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, image: &Image) -> Result<Texture2D, Error>
+    pub fn new_with_u8(gl: &Context, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+                       wrap_s: Wrapping, wrap_t: Wrapping, image: &Image) -> Result<Texture2D, Error>
     {
         let number_of_channels = image.bytes.len() as u32 / (image.width * image.height);
         let format = match number_of_channels {
@@ -162,7 +162,7 @@ impl Drop for Texture2D
 }
 
 pub struct TextureCubeMap {
-    gl: Gl,
+    gl: Context,
     id: crate::context::Texture,
     pub width: usize,
     pub height: usize,
@@ -172,8 +172,8 @@ pub struct TextureCubeMap {
 
 impl TextureCubeMap
 {
-    pub fn new(gl: &Gl, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, format: Format) -> Result<TextureCubeMap, Error>
+    pub fn new(gl: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+               wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, format: Format) -> Result<TextureCubeMap, Error>
     {
         let id = generate(gl)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
@@ -188,8 +188,8 @@ impl TextureCubeMap
         Ok(Self { gl: gl.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    pub fn new_with_u8(gl: &Gl, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, right: &Image, left: &Image, top: &Image, bottom: &Image, front: &Image, back: &Image) -> Result<Self, Error>
+    pub fn new_with_u8(gl: &Context, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+                       wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, right: &Image, left: &Image, top: &Image, bottom: &Image, front: &Image, back: &Image) -> Result<Self, Error>
     {
         let number_of_channels = right.bytes.len() as u32 / (right.width * right.height);
         let format = match number_of_channels {
@@ -257,7 +257,7 @@ impl Drop for TextureCubeMap
 }
 
 pub struct Texture2DArray {
-    gl: Gl,
+    gl: Context,
     id: crate::context::Texture,
     pub width: usize,
     pub height: usize,
@@ -267,8 +267,8 @@ pub struct Texture2DArray {
 
 impl Texture2DArray
 {
-    pub fn new(gl: &Gl, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-           wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
+    pub fn new(gl: &Context, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+               wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
     {
         let id = generate(gl)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, depth);
@@ -321,18 +321,18 @@ impl Drop for Texture2DArray
 
 
 // COMMON FUNCTIONS
-fn generate(gl: &Gl) -> Result<crate::context::Texture, Error>
+fn generate(gl: &Context) -> Result<crate::context::Texture, Error>
 {
     gl.create_texture().ok_or_else(|| Error::FailedToCreateTexture {message: "Failed to create texture".to_string()} )
 }
 
-fn bind_at(gl: &Gl, id: &crate::context::Texture, target: u32, location: u32)
+fn bind_at(gl: &Context, id: &crate::context::Texture, target: u32, location: u32)
 {
     gl.active_texture(consts::TEXTURE0 + location);
     gl.bind_texture(target, id);
 }
 
-fn set_parameters(gl: &Gl, id: &crate::context::Texture, target: u32, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>, wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Option<Wrapping>)
+fn set_parameters(gl: &Context, id: &crate::context::Texture, target: u32, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>, wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Option<Wrapping>)
 {
     gl.bind_texture(target, id);
     match mip_map_filter {

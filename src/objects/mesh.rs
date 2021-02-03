@@ -9,7 +9,7 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub fn new(gl: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(gl, normals)?) } else {None};
@@ -19,7 +19,7 @@ impl Mesh {
         Ok(Mesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
     }
 
-    pub fn create_program(gl: &Gl, fragment_shader_source: &str) -> Result<Program, Error>
+    pub fn create_program(gl: &Context, fragment_shader_source: &str) -> Result<Program, Error>
     {
         Program::from_source(gl, include_str!("shaders/mesh.vert"), fragment_shader_source)
     }
