@@ -1,6 +1,6 @@
 
 use crate::core::*;
-use crate::scene::*;
+use crate::objects::*;
 use crate::phong::*;
 
 pub struct PhongForwardMesh {

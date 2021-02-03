@@ -4,8 +4,8 @@ pub mod context;
 pub mod core;
 pub use crate::core::*;
 
-pub mod scene;
-pub use crate::scene::*;
+pub mod objects;
+pub use crate::objects::*;
 
 pub mod io;
 pub use crate::io::*;

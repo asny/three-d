@@ -1,5 +1,5 @@
 use crate::core::*;
-use crate::scene::*;
+use crate::objects::*;
 
 pub struct Skybox {
     program: program::Program,
