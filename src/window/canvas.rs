@@ -29,7 +29,7 @@ impl Window
         let window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
         let document = window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
         let canvas = document.get_element_by_id("canvas").ok_or(Error::WindowCreationError {message: "Unable to get canvas, is the id different from 'canvas'?".to_string()})?;
-        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
+        let mut canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
 
         let context = canvas
             .get_context("webgl2").map_err(|e| Error::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
@@ -42,10 +42,7 @@ impl Window
             canvas.set_width(width);
             canvas.set_height(height);
         } else {
-            let (w, h) = (window.inner_width().unwrap().as_f64().unwrap() as u32,
-                            window.inner_height().unwrap().as_f64().unwrap() as u32);
-            canvas.set_width(w);
-            canvas.set_height(h);
+            maximize(&window, &mut canvas);
         };
 
         Ok(Window { gl: crate::context::Glstruct::new(context), canvas, window, maximized: size.is_none() })
@@ -78,18 +75,11 @@ impl Window
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
-            let canvas = canvas();
-            let (mut width, mut height) = (canvas.width() as usize, canvas.height() as usize);
+            let mut canvas = canvas();
             if maximized {
-                let (w, h) = (window().inner_width().unwrap().as_f64().unwrap() as usize,
-                            window().inner_height().unwrap().as_f64().unwrap() as usize);
-                if w != width || h != height {
-                    canvas.set_width(w as u32);
-                    canvas.set_height(h as u32);
-                    width = w;
-                    height = h;
-                }
+                maximize(&window(), &mut canvas);
             }
+            let (width, height) = (canvas.width() as usize, canvas.height() as usize);
             let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, viewport: crate::Viewport::new_at_origo(width, height),
                 window_width: width, window_height: height
             };
@@ -294,6 +284,16 @@ fn window() -> web_sys::Window {
 
 fn canvas() -> web_sys::HtmlCanvasElement {
     window().document().expect("no global `window` exists").get_element_by_id("canvas").expect("Canvas").dyn_into::<web_sys::HtmlCanvasElement>().expect("")
+}
+
+fn maximize(window: &web_sys::Window, canvas: &mut web_sys::HtmlCanvasElement) {
+    let (w, h) = (window.inner_width().unwrap().as_f64().unwrap() as u32,
+                    window.inner_height().unwrap().as_f64().unwrap() as u32);
+    let (width, height) = (canvas.width() as u32, canvas.height() as u32);
+    if w != width || h != height {
+        canvas.set_width(w);
+        canvas.set_height(h);
+    }
 }
 
 fn request_animation_frame(f: &Closure<dyn FnMut()>) {
