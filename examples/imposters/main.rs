@@ -5,12 +5,11 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new_default("Imposters!").unwrap();
-    let viewport = window.viewport();
+    let mut window = Window::new("Imposters!", None).unwrap();
     let gl = window.gl();
 
     let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0,6.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), viewport.aspect(), 0.1, 10000.0);
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
 
     Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded|
     {
@@ -103,17 +102,17 @@ fn main() {
 
             Screen::write(&gl, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
                 plane.render_with_ambient_and_directional(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
-                                                          viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                leaves_mesh.render_with_ambient_and_directional(leaves_mesh_render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                imposter.render(viewport, &camera)?;
+                                                          frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                leaves_mesh.render_with_ambient_and_directional(leaves_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                imposter.render(frame_input.viewport, &camera)?;
                 Ok(())
             }).unwrap();
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, viewport).unwrap();
-                Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }
         }).unwrap();

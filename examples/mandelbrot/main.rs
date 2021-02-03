@@ -5,13 +5,12 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new_default("Mandelbrot").unwrap();
-    let viewport = window.viewport();
+    let mut window = Window::new("Mandelbrot", None).unwrap();
     let gl = window.gl();
 
     // Renderer
     let mut camera = Camera::new_orthographic(&gl, vec3(0.0, 0.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                1.2, 1.2*viewport.aspect(), 10.0);
+                                                1.2, 1.2*window.viewport().aspect(), 10.0);
 
     let indices = vec![
         0, 1, 2, 2, 3, 0
@@ -59,14 +58,16 @@ fn main() {
             program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
             program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
-            program.draw_elements(RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()}, viewport, &index_buffer);
+            program.draw_elements(RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()},
+                                  frame_input.viewport,
+                                  &index_buffer);
             Ok(())
         }).unwrap();
 
         #[cfg(target_arch = "x86_64")]
         if let Some(ref path) = screenshot_path {
-            let pixels = Screen::read_color(&gl, viewport).unwrap();
-            Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+            let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+            Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();

@@ -4,13 +4,12 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new("Lighting!", 1024, 512).unwrap();
-    let viewport = window.viewport();
+    let mut window = Window::new("Lighting!", None).unwrap();
     let gl = window.gl();
 
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -72,8 +71,8 @@ fn main() {
                         #[cfg(target_arch = "x86_64")]
                         if kind == "P" && *state == State::Pressed
                         {
-                            let pixels = Screen::read_color(&gl, viewport).unwrap();
-                            Saver::save_pixels("lighting.png", &pixels, viewport.width, viewport.height).unwrap();
+                            let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                            Saver::save_pixels("lighting.png", &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                         }
                         if kind == "R" && *state == State::Pressed
                         {
@@ -107,27 +106,27 @@ fn main() {
             }
 
             // Geometry pass
-            pipeline.geometry_pass(viewport.width, viewport.height, &||
+            pipeline.geometry_pass(frame_input.viewport.width, frame_input.viewport.height, &||
                 {
                     monkey.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                           viewport, &Mat4::identity(), &camera)?;
+                                           frame_input.viewport, &Mat4::identity(), &camera)?;
                     plane.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                          viewport, &Mat4::identity(), &camera)?;
+                                          frame_input.viewport, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 
             // Light pass
             Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
             {
-                pipeline.light_pass(viewport, &camera, None, &[&directional_light0, &directional_light1],
+                pipeline.light_pass(frame_input.viewport, &camera, None, &[&directional_light0, &directional_light1],
                                       &[&spot_light], &[&point_light0, &point_light1])?;
                 Ok(())
             }).unwrap();
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, viewport).unwrap();
-                Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }
         }).unwrap();

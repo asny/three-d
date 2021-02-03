@@ -34,8 +34,7 @@ fn main() {
     window.render_loop(move |frame_input|
     {
         time += frame_input.elapsed_time as f32;
-        let viewport = frame_input.viewport;
-        camera.set_aspect(viewport.aspect());
+        camera.set_aspect(frame_input.viewport.aspect());
 
         Screen::write(&gl, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), || {
             program.use_attribute_vec3_float(&position_buffer, "position")?;
@@ -44,14 +43,14 @@ fn main() {
             let world_view_projection = camera.get_projection() * camera.get_view() * Mat4::from_angle_y(radians(time * 0.005));
             program.add_uniform_mat4("worldViewProjectionMatrix", &world_view_projection)?;
 
-            program.draw_arrays(RenderStates::default(), viewport, 3);
+            program.draw_arrays(RenderStates::default(), frame_input.viewport, 3);
             Ok(())
         }).unwrap();
 
         #[cfg(target_arch = "x86_64")]
         if let Some(ref path) = screenshot_path {
-            let pixels = Screen::read_color(&gl, viewport).unwrap();
-            Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+            let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+            Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
             std::process::exit(1);
         }
     }).unwrap();

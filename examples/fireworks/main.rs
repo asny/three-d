@@ -6,12 +6,11 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new("Fireworks", 1024, 512).unwrap();
-    let viewport = window.viewport();
+    let mut window = Window::new("Fireworks", None).unwrap();
     let gl = window.gl();
 
     let mut camera = Camera::new_perspective(&gl, vec3(0.0, 30.0, 150.0), vec3(0.0, 30.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     let mut rng = rand::thread_rng();
 
@@ -80,15 +79,15 @@ fn main() {
             let fade = 1.0 - f*f*f*f;
             let color = colors[color_index];
             particles.program().add_uniform_vec4("color", &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0))?;
-            particles.render(render_states, viewport, &Mat4::identity(), &camera, time)?;
+            particles.render(render_states, frame_input.viewport, &Mat4::identity(), &camera, time)?;
             Ok(())
         }).unwrap();
 
         #[cfg(target_arch = "x86_64")]
         if let Some(ref path) = screenshot_path {
             if time > explosion_time * 0.5 {
-                let pixels = Screen::read_color(&gl, viewport).unwrap();
-                Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }
         }

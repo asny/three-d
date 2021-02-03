@@ -5,14 +5,13 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new_default("Effect").unwrap();
-    let viewport = window.viewport();
+    let mut window = Window::new("Effect", None).unwrap();
     let gl = window.gl();
 
     // Renderer
     let mut pipeline = PhongForwardPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl",
         "examples/assets/skybox_evening/back.jpg", "examples/assets/skybox_evening/front.jpg",
@@ -80,38 +79,38 @@ fn main() {
 
             // draw
             if fog_enabled || fxaa_enabled {
-                pipeline.depth_pass(viewport.width, viewport.height, &|| {
+                pipeline.depth_pass(frame_input.viewport.width, frame_input.viewport.height, &|| {
                     let render_states = RenderStates {cull: CullType::Back, ..Default::default()};
-                    monkey.render_depth(render_states, viewport, &Mat4::identity(), &camera)?;
+                    monkey.render_depth(render_states, frame_input.viewport, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
             }
 
             if fxaa_enabled {
-                let color_texture = Texture2D::new(&gl, viewport.width, viewport.height, Interpolation::Nearest,
+                let color_texture = Texture2D::new(&gl, frame_input.viewport.width, frame_input.viewport.height, Interpolation::Nearest,
                                                    Interpolation::Nearest, None, Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8).unwrap();
 
                 RenderTarget::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 0.0)), None, Some(&color_texture), Some(pipeline.depth_texture()), || {
                     let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
-                    monkey.render_with_ambient_and_directional(render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                    skybox.render(viewport, &camera)?;
+                    monkey.render_with_ambient_and_directional(render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                    skybox.render(frame_input.viewport, &camera)?;
                     if fog_enabled {
-                        fog_effect.apply(viewport, &camera, pipeline.depth_texture(), time as f32)?;
+                        fog_effect.apply(frame_input.viewport, &camera, pipeline.depth_texture(), time as f32)?;
                     }
                     Ok(())
                 }).unwrap();
 
                 Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &|| {
-                    fxaa_effect.apply(viewport, &color_texture)?;
+                    fxaa_effect.apply(frame_input.viewport, &color_texture)?;
                     Ok(())
                 }).unwrap();
             } else {
                 Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &|| {
                     let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
-                    monkey.render_with_ambient_and_directional(render_states, viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                    skybox.render(viewport, &camera)?;
+                    monkey.render_with_ambient_and_directional(render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
+                    skybox.render(frame_input.viewport, &camera)?;
                     if fog_enabled {
-                        fog_effect.apply(viewport, &camera, pipeline.depth_texture(), time as f32)?;
+                        fog_effect.apply(frame_input.viewport, &camera, pipeline.depth_texture(), time as f32)?;
                     }
                     Ok(())
                 }).unwrap();
@@ -119,8 +118,8 @@ fn main() {
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, viewport).unwrap();
-                Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }
         }).unwrap();

@@ -5,8 +5,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
     
-    let mut window = Window::new_default("Wireframe").unwrap();
-    let viewport = window.viewport();
+    let mut window = Window::new("Wireframe", None).unwrap();
     let gl = window.gl();
 
     // Renderer
@@ -14,7 +13,7 @@ fn main() {
     let scene_radius = 6.0;
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), viewport.aspect(), 0.1, 1000.0);
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     Loader::load(&["./examples/assets/suzanne.obj", "./examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -99,27 +98,27 @@ fn main() {
                 }
 
                 // Geometry pass
-                pipeline.geometry_pass(viewport.width, viewport.height, &|| {
+                pipeline.geometry_pass(frame_input.viewport.width, frame_input.viewport.height, &|| {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                     let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
-                    model.render_geometry(render_states, viewport, &transformation, &camera)?;
-                    edges.render_geometry(render_states, viewport, &transformation, &camera)?;
-                    vertices.render_geometry(render_states, viewport, &transformation, &camera)?;
-                    plane.render_geometry(render_states, viewport, &Mat4::identity(), &camera)?;
+                    model.render_geometry(render_states, frame_input.viewport, &transformation, &camera)?;
+                    edges.render_geometry(render_states, frame_input.viewport, &transformation, &camera)?;
+                    vertices.render_geometry(render_states, frame_input.viewport, &transformation, &camera)?;
+                    plane.render_geometry(render_states, frame_input.viewport, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 
                 // Light pass
                 Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
                 {
-                    pipeline.light_pass(viewport, &camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[])?;
+                    pipeline.light_pass(frame_input.viewport, &camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[])?;
                     Ok(())
                 }).unwrap();
                 
                 #[cfg(target_arch = "x86_64")]
                 if let Some(ref path) = screenshot_path {
-                    let pixels = Screen::read_color(&gl, viewport).unwrap();
-                    Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+                    let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                    Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                     std::process::exit(1);
                 }
             }).unwrap();
