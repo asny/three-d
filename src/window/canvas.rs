@@ -18,17 +18,13 @@ pub struct Window
 {
     gl: crate::Gl,
     canvas: web_sys::HtmlCanvasElement,
-    window: web_sys::Window
+    window: web_sys::Window,
+    maximized: bool
 }
 
 impl Window
 {
-    pub fn new_default(title: &str) -> Result<Window, Error>
-    {
-        Window::new(title, 512, 512)
-    }
-
-    pub fn new(_title: &str, _width: u32, _height: u32) -> Result<Window, Error>
+    pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
     {
         let window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
         let document = window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
@@ -42,10 +38,17 @@ impl Window
         context.get_extension("EXT_color_buffer_float").map_err(|e| Error::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
         context.get_extension("OES_texture_float").map_err(|e| Error::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
 
-        canvas.set_width(canvas.offset_width() as u32);
-        canvas.set_height(canvas.offset_height() as u32);
+        if let Some((width, height)) = size {
+            canvas.set_width(width);
+            canvas.set_height(height);
+        } else {
+            let (w, h) = (window.inner_width().unwrap().as_f64().unwrap() as u32,
+                            window.inner_height().unwrap().as_f64().unwrap() as u32);
+            canvas.set_width(w);
+            canvas.set_height(h);
+        };
 
-        Ok(Window { gl: crate::context::Glstruct::new(context), canvas, window })
+        Ok(Window { gl: crate::context::Glstruct::new(context), canvas, window, maximized: size.is_none() })
     }
 
     pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
@@ -59,6 +62,7 @@ impl Window
         let mut last_time = performance.now();
         let last_position = Rc::new(RefCell::new(None));
         let last_zoom = Rc::new(RefCell::new(None));
+        let maximized = self.maximized;
 
         self.add_mousedown_event_listener(events.clone())?;
         self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
@@ -74,10 +78,21 @@ impl Window
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
-            let (screen_width, screen_height) = (window().inner_width().unwrap().as_f64().unwrap() as usize,
-                        window().inner_height().unwrap().as_f64().unwrap() as usize);
-            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, viewport: crate::Viewport::new_at_origo(screen_width, screen_height),
-                window_width: screen_width, window_height: screen_height};
+            let canvas = canvas();
+            let (mut width, mut height) = (canvas.width() as usize, canvas.height() as usize);
+            if maximized {
+                let (w, h) = (window().inner_width().unwrap().as_f64().unwrap() as usize,
+                            window().inner_height().unwrap().as_f64().unwrap() as usize);
+                if w != width || h != height {
+                    canvas.set_width(w as u32);
+                    canvas.set_height(h as u32);
+                    width = w;
+                    height = h;
+                }
+            }
+            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, viewport: crate::Viewport::new_at_origo(width, height),
+                window_width: width, window_height: height
+            };
             callback(frame_input);
             &(*events).borrow_mut().clear();
 
@@ -254,17 +269,11 @@ impl Window
 
     pub fn size(&self) -> (usize, usize)
     {
-        (window().inner_width().unwrap().as_f64().unwrap() as usize,
-                        window().inner_height().unwrap().as_f64().unwrap() as usize)
-    }
-
-    fn framebuffer_size(&self) -> (usize, usize)
-    {
         (self.canvas.width() as usize, self.canvas.height() as usize)
     }
 
     pub fn viewport(&self) -> crate::Viewport {
-        let (w, h) = self.framebuffer_size();
+        let (w, h) = self.size();
         crate::Viewport::new_at_origo(w, h)
     }
 
@@ -281,6 +290,10 @@ fn map_key_code(code: String) -> String
 
 fn window() -> web_sys::Window {
     web_sys::window().expect("no global `window` exists")
+}
+
+fn canvas() -> web_sys::HtmlCanvasElement {
+    window().document().expect("no global `window` exists").get_element_by_id("canvas").expect("Canvas").dyn_into::<web_sys::HtmlCanvasElement>().expect("")
 }
 
 fn request_animation_frame(f: &Closure<dyn FnMut()>) {

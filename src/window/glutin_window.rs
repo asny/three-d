@@ -30,20 +30,24 @@ pub struct Window
 
 impl Window
 {
-    pub fn new_default(title: &str) -> Result<Window, Error>
+    pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
     {
-        Window::new(title, 1024, 512)
-    }
-
-    pub fn new(title: &str, width: u32, height: u32) -> Result<Window, Error>
-    {
-        let window = WindowBuilder::new()
-            .with_title(title)
-            .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64));
+        let window =
+            if let Some((width, height)) = size {
+                WindowBuilder::new()
+                    .with_title(title)
+                    .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64))
+                    .with_resizable(false)
+            } else {
+                WindowBuilder::new()
+                    .with_title(title)
+                    .with_maximized(true)
+                    .with_resizable(false)
+            };
 
         let events_loop = EventsLoop::new();
 
-        let context = ContextBuilder::new().with_vsync(true);
+        let context = ContextBuilder::new().with_vsync(true).with_srgb(true);
 
         let gl_window = GlWindow::new(window, context, &events_loop)?;
 

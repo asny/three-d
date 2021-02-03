@@ -5,13 +5,12 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new("Hello, world!", 1024, 512).unwrap();
-    let viewport = window.viewport();
+    let mut window = Window::new("Hello, world!", None).unwrap();
     let gl = window.gl();
 
     // Camera
     let mut camera = Camera::new_perspective(&gl, vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                             degrees(45.0), viewport.aspect(), 0.1, 10.0);
+                                             degrees(45.0), window.viewport().aspect(), 0.1, 10.0);
 
     let positions: Vec<f32> = vec![
         0.5, -0.5, 0.0, // bottom right
@@ -35,7 +34,8 @@ fn main() {
     window.render_loop(move |frame_input|
     {
         time += frame_input.elapsed_time as f32;
-        camera.set_aspect(frame_input.viewport.aspect());
+        let viewport = frame_input.viewport;
+        camera.set_aspect(viewport.aspect());
 
         Screen::write(&gl, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), || {
             program.use_attribute_vec3_float(&position_buffer, "position")?;
