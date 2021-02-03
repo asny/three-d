@@ -1,4 +1,7 @@
 
+pub mod image_effect;
+pub use image_effect::*;
+
 pub mod fog;
 pub use crate::fog::*;
 
