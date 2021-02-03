@@ -1,5 +1,7 @@
 
-use three_d::*;
+use three_d::core::*;
+use three_d::window::*;
+use three_d::io::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
