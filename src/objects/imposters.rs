@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 
 const NO_VIEW_ANGLES: usize  = 8;
 
-pub struct Imposter {
+pub struct Imposters {
     gl: Gl,
     program: program::Program,
     center_buffer: VertexBuffer,
@@ -14,7 +14,7 @@ pub struct Imposter {
     texture: Texture2DArray
 }
 
-impl Imposter {
+impl Imposters {
     pub fn new(gl: &Gl) -> Result<Self, Error>
     {
         let uvs = vec![
@@ -38,7 +38,7 @@ impl Imposter {
                 Interpolation::Nearest, Interpolation::Nearest, None,
                                                 Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::RGBA8)?;
 
-        Ok(Imposter {gl: gl.clone(), texture, program, center_buffer, rotation_buffer, positions_buffer, uvs_buffer, instance_count:0 })
+        Ok(Imposters {gl: gl.clone(), texture, program, center_buffer, rotation_buffer, positions_buffer, uvs_buffer, instance_count:0 })
     }
 
     pub fn update_texture<F: Fn(Viewport, &Camera) -> Result<(), Error>>(&mut self, render: F, aabb: (Vec3, Vec3), max_texture_size: usize) -> Result<(), Error>

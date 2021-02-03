@@ -37,8 +37,8 @@ fn main() {
 
         // Imposters
         let aabb = tree_cpu_mesh.compute_aabb().add(&leaves_cpu_mesh.compute_aabb());
-        let mut imposter = Imposter::new(&gl).unwrap();
-        imposter.update_texture(|viewport: Viewport, camera: &Camera| {
+        let mut imposters = Imposters::new(&gl).unwrap();
+        imposters.update_texture(|viewport: Viewport, camera: &Camera| {
             tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, viewport, &Mat4::identity(), camera, &ambient_light, &directional_light)?;
             leaves_mesh.render_with_ambient_and_directional(leaves_mesh_render_states, viewport, &Mat4::identity(), camera, &ambient_light, &directional_light)?;
             Ok(())
@@ -57,7 +57,7 @@ fn main() {
                 }
             }
         }
-        imposter.update_positions(&positions, &angles);
+        imposters.update_positions(&positions, &angles);
 
         // Plane
         let plane = PhongForwardMesh::new(&gl,
@@ -105,7 +105,7 @@ fn main() {
                                                           frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 leaves_mesh.render_with_ambient_and_directional(leaves_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
-                imposter.render(frame_input.viewport, &camera)?;
+                imposters.render(frame_input.viewport, &camera)?;
                 Ok(())
             }).unwrap();
 
