@@ -6,7 +6,7 @@ use crate::phong::*;
 pub struct PhongForwardMesh {
     gl: Gl,
     pub name: String,
-    gpu_mesh: GPUMesh,
+    mesh: Mesh,
     pub material: PhongMaterial
 }
 
@@ -24,7 +24,7 @@ impl PhongForwardMesh
         Ok(Self {
             gl: gl.clone(),
             name: cpu_mesh.name.clone(),
-            gpu_mesh: GPUMesh::new(gl, cpu_mesh)?,
+            mesh: Mesh::new(gl, cpu_mesh)?,
             material: material.clone()
         })
     }
@@ -54,7 +54,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        PROGRAM_COLOR_AMBIENT = Some(GPUMesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
+                        PROGRAM_COLOR_AMBIENT = Some(Mesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -63,7 +63,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        PROGRAM_TEXTURE_AMBIENT = Some(GPUMesh::create_program(&self.gl,include_str!("shaders/textured_forward_ambient.frag"))?);
+                        PROGRAM_TEXTURE_AMBIENT = Some(Mesh::create_program(&self.gl,include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
@@ -76,13 +76,13 @@ impl PhongForwardMesh
                 program.add_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
-                if !self.gpu_mesh.has_uvs() {
+                if !self.mesh.has_uvs() {
                     Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
                 }
                 program.use_texture(texture.as_ref(),"tex")?;
             }
         }
-        self.gpu_mesh.render(program, render_states, viewport,transformation, camera)
+        self.mesh.render(program, render_states, viewport,transformation, camera)
     }
 
     pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
@@ -92,7 +92,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.gl, &format!("{}\n{}",
                                                                                       &include_str!("shaders/light_shared.frag"),
                                                                                       &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
                     }
@@ -103,7 +103,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.gl, &format!("{}\n{}",
                                                                                     include_str!("shaders/light_shared.frag"),
                                                                                     include_str!("shaders/textured_forward_ambient_directional.frag")))?)
                     }
@@ -117,8 +117,8 @@ impl PhongForwardMesh
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
 
-        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
-        self.gpu_mesh.render(program, render_states, viewport, transformation, camera)
+        bind_material(program, &self.material, self.mesh.has_uvs())?;
+        self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
 
@@ -140,7 +140,7 @@ impl Drop for PhongForwardMesh {
 pub struct PhongForwardInstancedMesh {
     gl: Gl,
     pub name: String,
-    gpu_mesh: InstancedGPUMesh,
+    mesh: InstancedMesh,
     pub material: PhongMaterial
 }
 
@@ -152,21 +152,21 @@ impl PhongForwardInstancedMesh
             Err(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
-        let gpu_mesh = InstancedGPUMesh::new(gl, transformations, cpu_mesh)?;
+        let mesh = InstancedMesh::new(gl, transformations, cpu_mesh)?;
         unsafe {
             INSTANCED_MESH_COUNT += 1;
         }
         Ok(Self {
             gl: gl.clone(),
             name: cpu_mesh.name.clone(),
-            gpu_mesh,
+            mesh,
             material: material.clone()
         })
     }
 
     pub fn update_transformations(&mut self, transformations: &[Mat4])
     {
-        self.gpu_mesh.update_transformations(transformations);
+        self.mesh.update_transformations(transformations);
     }
 
     pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -181,7 +181,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedGPUMesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
+                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedMesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -190,7 +190,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedGPUMesh::create_program(&self.gl, include_str!("shaders/textured_forward_ambient.frag"))?);
+                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedMesh::create_program(&self.gl, include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
@@ -203,13 +203,13 @@ impl PhongForwardInstancedMesh
                 program.add_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
-                if !self.gpu_mesh.has_uvs() {
+                if !self.mesh.has_uvs() {
                     Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
                 }
                 program.use_texture(texture.as_ref(),"tex")?;
             }
         }
-        self.gpu_mesh.render(program, render_states, viewport, transformation, camera)
+        self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 
     pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
@@ -219,7 +219,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(InstancedGPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
                                                                                       &include_str!("shaders/light_shared.frag"),
                                                                                       &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
                     }
@@ -230,7 +230,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(InstancedGPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
                                                                                     include_str!("shaders/light_shared.frag"),
                                                                                     include_str!("shaders/textured_forward_ambient_directional.frag")))?)
                     }
@@ -243,8 +243,8 @@ impl PhongForwardInstancedMesh
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
 
-        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
-        self.gpu_mesh.render(program, render_states, viewport, transformation, camera)
+        bind_material(program, &self.material, self.mesh.has_uvs())?;
+        self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
 

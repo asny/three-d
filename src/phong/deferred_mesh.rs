@@ -6,7 +6,7 @@ use crate::phong::*;
 pub struct PhongDeferredMesh {
     gl: Gl,
     pub name: String,
-    gpu_mesh: GPUMesh,
+    mesh: Mesh,
     pub material: PhongMaterial
 }
 
@@ -18,12 +18,12 @@ impl PhongDeferredMesh {
             Err(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
-        let gpu_mesh = GPUMesh::new(gl, cpu_mesh)?;
+        let mesh = Mesh::new(gl, cpu_mesh)?;
         unsafe {MESH_COUNT += 1;}
         Ok(Self {
             gl: gl.clone(),
             name: cpu_mesh.name.clone(),
-            gpu_mesh,
+            mesh,
             material: material.clone()
         })
     }
@@ -53,7 +53,7 @@ impl PhongDeferredMesh {
                 unsafe {
                     if PROGRAM_COLOR.is_none()
                     {
-                        PROGRAM_COLOR = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        PROGRAM_COLOR = Some(Mesh::create_program(&self.gl, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/colored_deferred.frag")))?);
                     }
@@ -64,7 +64,7 @@ impl PhongDeferredMesh {
                 unsafe {
                     if PROGRAM_TEXTURE.is_none()
                     {
-                        PROGRAM_TEXTURE = Some(GPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        PROGRAM_TEXTURE = Some(Mesh::create_program(&self.gl, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/textured_deferred.frag")))?);
                     }
@@ -73,8 +73,8 @@ impl PhongDeferredMesh {
             }
         };
 
-        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
-        self.gpu_mesh.render(program, render_states, viewport, transformation, camera)
+        bind_material(program, &self.material, self.mesh.has_uvs())?;
+        self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
 
@@ -94,7 +94,7 @@ impl Drop for PhongDeferredMesh {
 pub struct PhongDeferredInstancedMesh {
     gl: Gl,
     pub name: String,
-    gpu_mesh: InstancedGPUMesh,
+    mesh: InstancedMesh,
     pub material: PhongMaterial
 }
 
@@ -106,19 +106,19 @@ impl PhongDeferredInstancedMesh
             Err(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
-        let gpu_mesh = InstancedGPUMesh::new(gl, transformations, cpu_mesh)?;
+        let mesh = InstancedMesh::new(gl, transformations, cpu_mesh)?;
         unsafe {INSTANCED_MESH_COUNT += 1;}
         Ok(Self {
             gl: gl.clone(),
             name: cpu_mesh.name.clone(),
-            gpu_mesh,
+            mesh,
             material: material.clone()
         })
     }
 
     pub fn update_transformations(&mut self, transformations: &[Mat4])
     {
-        self.gpu_mesh.update_transformations(transformations);
+        self.mesh.update_transformations(transformations);
     }
 
     pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -133,7 +133,7 @@ impl PhongDeferredInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR = Some(InstancedGPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_COLOR = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/colored_deferred.frag")))?);
                     }
@@ -144,7 +144,7 @@ impl PhongDeferredInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE = Some(InstancedGPUMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_TEXTURE = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/textured_deferred.frag")))?);
                     }
@@ -153,8 +153,8 @@ impl PhongDeferredInstancedMesh
             }
         };
 
-        bind_material(program, &self.material, self.gpu_mesh.has_uvs())?;
-        self.gpu_mesh.render(program, render_states, viewport, transformation, camera)
+        bind_material(program, &self.material, self.mesh.has_uvs())?;
+        self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
 

@@ -1,14 +1,14 @@
 
 use crate::core::*;
 
-pub struct GPUMesh {
+pub struct Mesh {
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
 }
 
-impl GPUMesh {
+impl Mesh {
     pub fn new(gl: &Gl, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
@@ -16,7 +16,7 @@ impl GPUMesh {
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
 
-        Ok(GPUMesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
+        Ok(Mesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
     }
 
     pub fn create_program(gl: &Gl, fragment_shader_source: &str) -> Result<Program, Error>
@@ -55,7 +55,7 @@ impl GPUMesh {
     }
 }
 
-pub struct InstancedGPUMesh {
+pub struct InstancedMesh {
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
@@ -66,7 +66,7 @@ pub struct InstancedGPUMesh {
     instance_buffer3: VertexBuffer,
 }
 
-impl InstancedGPUMesh
+impl InstancedMesh
 {
     pub fn new(gl: &Gl, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {

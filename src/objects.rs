@@ -1,6 +1,6 @@
 
-pub mod gpu_mesh;
-pub use crate::gpu_mesh::*;
+pub mod mesh;
+pub use crate::mesh::*;
 
 pub mod skybox;
 pub use crate::skybox::*;
