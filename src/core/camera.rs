@@ -165,20 +165,20 @@ impl Camera
     }
 
     // false if fully outside, true if inside or intersects
-    pub fn in_frustrum(&self, min: &Vec3, max: &Vec3) -> bool
+    pub fn in_frustum(&self, aabb: &AxisAlignedBoundingBox) -> bool
     {
         // check box outside/inside of frustum
         for i in 0..6
         {
             let mut out = 0;
-            if self.frustrum[i].dot(vec4(min.x, min.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, min.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(min.x, max.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, max.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(min.x, min.y, max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, min.y, max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(min.x, max.y, max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, max.y, max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
             if out == 8 {return false;}
         }
         // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
