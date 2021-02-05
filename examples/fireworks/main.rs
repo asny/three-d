@@ -7,9 +7,9 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Fireworks", None).unwrap();
-    let gl = window.gl();
+    let context = window.gl();
 
-    let mut camera = Camera::new_perspective(&gl, vec3(0.0, 30.0, 150.0), vec3(0.0, 30.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&context, vec3(0.0, 30.0, 150.0), vec3(0.0, 30.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     let mut rng = rand::thread_rng();
@@ -17,8 +17,8 @@ fn main() {
     let explosion_speed = 15.0;
     let explosion_time = 3.0;
     let colors = [vec3(1.0, 1.0, 0.7), vec3(1.0, 0.2, 0.1), vec3(0.2, 0.4, 0.2), vec3(0.5, 0.5, 0.8), vec3(0.85, 0.09, 0.51), vec3(0.98, 0.93, 0.15), vec3(0.3, 0.93, 0.15), vec3(0.16, 0.07, 0.87)];
-    let particles_program = Particles::create_program(&gl, &include_str!("../assets/shaders/particles.frag")).unwrap();
-    let mut particles = Particles::new(&gl, &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
+    let particles_program = Particles::create_program(&context, &include_str!("../assets/shaders/particles.frag")).unwrap();
+    let mut particles = Particles::new(&context, &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
     let mut time = explosion_time + 100.0;
@@ -63,7 +63,7 @@ fn main() {
             particles.update(&data);
         }
 
-        Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, || {
+        Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, || {
             let render_states = RenderStates {cull: CullType::Back,
                 blend: Some(BlendParameters {
                     rgb_equation: BlendEquationType::Add,
@@ -87,7 +87,7 @@ fn main() {
         #[cfg(target_arch = "x86_64")]
         if let Some(ref path) = screenshot_path {
             if time > explosion_time * 0.5 {
-                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }

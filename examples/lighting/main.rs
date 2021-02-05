@@ -5,10 +5,10 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Lighting!", None).unwrap();
-    let gl = window.gl();
+    let context = window.gl();
 
-    let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
+    let mut camera = Camera::new_perspective(&context, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
@@ -17,9 +17,9 @@ fn main() {
         monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
         monkey_cpu_materials[0].specular_intensity = Some(0.8);
         monkey_cpu_materials[0].specular_power = Some(20.0);
-        let mut monkey = PhongDeferredMesh::new(&gl, &monkey_cpu_meshes[0], &PhongMaterial::new(&gl, &monkey_cpu_materials[0]).unwrap()).unwrap();
+        let mut monkey = PhongDeferredMesh::new(&context, &monkey_cpu_meshes[0], &PhongMaterial::new(&context, &monkey_cpu_materials[0]).unwrap()).unwrap();
 
-        let mut plane = PhongDeferredMesh::new(&gl,
+        let mut plane = PhongDeferredMesh::new(&context,
             &CPUMesh {
                 positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
@@ -30,11 +30,11 @@ fn main() {
                 specular_power: 20.0, ..Default::default()}
         ).unwrap();
 
-        let mut directional_light0 = DirectionalLight::new(&gl, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
-        let mut directional_light1 = DirectionalLight::new(&gl, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
-        let mut point_light0 = PointLight::new(&gl, 0.5, &vec3(0.0, 1.0, 0.0), &vec3(0.0, 0.0, 0.0), 0.5, 0.05, 0.005).unwrap();
-        let mut point_light1 = PointLight::new(&gl, 0.5, &vec3(1.0, 0.0, 0.0), &vec3(0.0, 0.0, 0.0), 0.5, 0.05, 0.005).unwrap();
-        let mut spot_light = SpotLight::new(&gl, 0.8, &vec3(0.0, 0.0, 1.0), &vec3(0.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
+        let mut directional_light0 = DirectionalLight::new(&context, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
+        let mut directional_light1 = DirectionalLight::new(&context, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
+        let mut point_light0 = PointLight::new(&context, 0.5, &vec3(0.0, 1.0, 0.0), &vec3(0.0, 0.0, 0.0), 0.5, 0.05, 0.005).unwrap();
+        let mut point_light1 = PointLight::new(&context, 0.5, &vec3(1.0, 0.0, 0.0), &vec3(0.0, 0.0, 0.0), 0.5, 0.05, 0.005).unwrap();
+        let mut spot_light = SpotLight::new(&context, 0.8, &vec3(0.0, 0.0, 1.0), &vec3(0.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
 
         // main loop
         let mut time = 0.0;
@@ -71,7 +71,7 @@ fn main() {
                         #[cfg(target_arch = "x86_64")]
                         if kind == "P" && *state == State::Pressed
                         {
-                            let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                            let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                             Saver::save_pixels("lighting.png", &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                         }
                         if kind == "R" && *state == State::Pressed
@@ -116,7 +116,7 @@ fn main() {
                 }).unwrap();
 
             // Light pass
-            Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+            Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
             {
                 pipeline.light_pass(frame_input.viewport, &camera, None, &[&directional_light0, &directional_light1],
                                       &[&spot_light], &[&point_light0, &point_light1])?;
@@ -125,7 +125,7 @@ fn main() {
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }

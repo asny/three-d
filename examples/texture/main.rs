@@ -6,11 +6,11 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Texture", None).unwrap();
-    let gl = window.gl();
+    let context = window.gl();
 
     // Renderer
-    let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
+    let mut camera = Camera::new_perspective(&context, vec3(4.0, 1.5, 4.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/PenguinBaseMesh.obj", "examples/assets/PenguinBaseMesh.mtl",
@@ -26,26 +26,26 @@ fn main() {
         };
         box_cpu_mesh.compute_normals();
         let box_material = PhongMaterial {
-            color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
+            color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&context, Interpolation::Linear, Interpolation::Linear,
                                                                   Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
                                                                   &Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap()).unwrap())),
             ..Default::default()
         };
-        let box_mesh = PhongDeferredMesh::new(&gl, &box_cpu_mesh, &box_material).unwrap();
+        let box_mesh = PhongDeferredMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
 
-        let skybox = Skybox::new(&gl, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
+        let skybox = Skybox::new(&context, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
-        let materials = penguin_cpu_materials.iter().map(|m| PhongMaterial::new(&gl, m).unwrap()).collect::<Vec<PhongMaterial>>();
-        let penguin_deferred = PhongDeferredMesh::new_meshes(&gl, &penguin_cpu_meshes, &materials).unwrap().remove(0);
-        let penguin_forward = PhongForwardMesh::new_meshes(&gl, &penguin_cpu_meshes, &materials).unwrap().remove(0);
+        let materials = penguin_cpu_materials.iter().map(|m| PhongMaterial::new(&context, m).unwrap()).collect::<Vec<PhongMaterial>>();
+        let penguin_deferred = PhongDeferredMesh::new_meshes(&context, &penguin_cpu_meshes, &materials).unwrap().remove(0);
+        let penguin_forward = PhongForwardMesh::new_meshes(&context, &penguin_cpu_meshes, &materials).unwrap().remove(0);
 
         let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
-        let directional_light = DirectionalLight::new(&gl, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
+        let directional_light = DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
 
         // main loop
         let mut rotating = false;
@@ -88,7 +88,7 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+            Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
             {
                 pipeline.light_pass(frame_input.viewport, &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
@@ -100,7 +100,7 @@ fn main() {
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }

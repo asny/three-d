@@ -6,9 +6,9 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Forest", None).unwrap();
-    let gl = window.gl();
+    let context = window.gl();
 
-    let mut camera = Camera::new_perspective(&gl, vec3(180.0, 40.0, 70.0), vec3(0.0,6.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut camera = Camera::new_perspective(&context, vec3(180.0, 40.0, 70.0), vec3(0.0,6.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
 
     Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded|
@@ -22,22 +22,22 @@ fn main() {
         }
         let tree_cpu_mesh = meshes.iter().find(|m| m.name == "tree.001_Mesh.002").unwrap();
         let tree_cpu_material = materials.iter().find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
-        let tree_material = PhongMaterial::new(&gl, &tree_cpu_material).unwrap();
-        let tree_mesh = PhongForwardMesh::new(&gl, tree_cpu_mesh, &tree_material).unwrap();
+        let tree_material = PhongMaterial::new(&context, &tree_cpu_material).unwrap();
+        let tree_mesh = PhongForwardMesh::new(&context, tree_cpu_mesh, &tree_material).unwrap();
         let tree_mesh_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
 
         let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
         let leaves_cpu_material = materials.iter().find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
-        let leaves_mesh = PhongForwardMesh::new(&gl, leaves_cpu_mesh, &PhongMaterial::new(&gl, &leaves_cpu_material).unwrap()).unwrap();
+        let leaves_mesh = PhongForwardMesh::new(&context, leaves_cpu_mesh, &PhongMaterial::new(&context, &leaves_cpu_material).unwrap()).unwrap();
         let leaves_mesh_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         // Lights
         let ambient_light = AmbientLight {intensity: 0.2, color: vec3(1.0, 1.0, 1.0)};
-        let mut directional_light = DirectionalLight::new(&gl, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
+        let mut directional_light = DirectionalLight::new(&context, 0.9, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
         // Imposters
         let aabb = tree_cpu_mesh.compute_aabb().add(&leaves_cpu_mesh.compute_aabb());
-        let mut imposters = Imposters::new(&gl).unwrap();
+        let mut imposters = Imposters::new(&context).unwrap();
         imposters.update_texture(|viewport: Viewport, camera: &Camera| {
             tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, viewport, &Mat4::identity(), camera, &ambient_light, &directional_light)?;
             leaves_mesh.render_with_ambient_and_directional(leaves_mesh_render_states, viewport, &Mat4::identity(), camera, &ambient_light, &directional_light)?;
@@ -60,7 +60,7 @@ fn main() {
         imposters.update_positions(&positions, &angles);
 
         // Plane
-        let plane = PhongForwardMesh::new(&gl,
+        let plane = PhongForwardMesh::new(&context,
             &CPUMesh {
                 positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
@@ -100,7 +100,7 @@ fn main() {
                 }
             }
 
-            Screen::write(&gl, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
+            Screen::write(&context, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
                 plane.render_with_ambient_and_directional(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
                                                           frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
@@ -111,7 +111,7 @@ fn main() {
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }

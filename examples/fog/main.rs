@@ -6,11 +6,11 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Fog", None).unwrap();
-    let gl = window.gl();
+    let context = window.gl();
 
     // Renderer
-    let mut pipeline = PhongForwardPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+    let mut pipeline = PhongForwardPipeline::new(&context).unwrap();
+    let mut camera = Camera::new_perspective(&context, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl",
@@ -20,18 +20,18 @@ fn main() {
     {
         let (meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-        let monkey = PhongForwardMesh::new(&gl, &meshes[0], &PhongMaterial::new(&gl, &materials[0]).unwrap()).unwrap();
+        let monkey = PhongForwardMesh::new(&context, &meshes[0], &PhongMaterial::new(&context, &materials[0]).unwrap()).unwrap();
 
         let ambient_light = AmbientLight{ intensity: 0.2, color: vec3(1.0, 1.0, 1.0) };
-        let directional_light = DirectionalLight::new(&gl, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
+        let directional_light = DirectionalLight::new(&context, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
         // Fog
-        let mut fog_effect = effects::FogEffect::new(&gl).unwrap();
+        let mut fog_effect = effects::FogEffect::new(&context).unwrap();
         fog_effect.color = vec3(0.8, 0.8, 0.8);
         let mut fog_enabled = true;
 
         // Skybox
-        let skybox = Skybox::new(&gl, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
+        let skybox = Skybox::new(&context, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap(),
                                  &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap(),
@@ -75,7 +75,7 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &|| {
+            Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &|| {
                 let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
                 monkey.render_with_ambient_and_directional(render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 skybox.render(frame_input.viewport, &camera)?;
@@ -87,7 +87,7 @@ fn main() {
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }

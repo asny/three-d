@@ -27,7 +27,7 @@ fn main() {
         let mut statue_transforms_and_aabb = Vec::new();
         for i in 0..8 {
             let angle = i as f32 * 2.0 * std::f32::consts::PI / 8.0;
-            let rotation = Mat4::from_angle_y(radians(0.8 * std::f32::consts::PI-angle));
+            let rotation = Mat4::from_angle_y(radians(0.8 * std::f32::consts::PI - angle));
             let dist = 300.0;
             let translation = Mat4::from_translation(vec3(angle.cos() * dist, (1.2*std::f32::consts::PI - angle).cos() * 21.0 - 33.0, angle.sin() * dist));
             let transform = translation * scale * rotation;
