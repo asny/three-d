@@ -10,15 +10,15 @@ pub struct Obj {
 
 impl Obj {
     pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), Error> {
-        let obj_bytes = Loader::get(loaded, path.as_ref()).unwrap();
+        let obj_bytes = Loader::get(loaded, path.as_ref())?;
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = path.as_ref().parent().unwrap();
 
         // Parse materials
         let mut cpu_materials = Vec::new();
         if let Some(material_library) = obj.material_library {
-            let bytes = Loader::get(loaded, p.join(material_library).to_str().unwrap()).unwrap().to_owned();
-            let materials = wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap()).unwrap().materials;
+            let bytes = Loader::get(loaded, p.join(material_library).to_str().unwrap())?.to_owned();
+            let materials = wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap())?.materials;
 
             for material in materials {
                 let color = if material.color_diffuse.r != material.color_diffuse.g || material.color_diffuse.g != material.color_diffuse.b { material.color_diffuse }
