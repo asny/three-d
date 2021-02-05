@@ -38,7 +38,7 @@ impl PhongMaterial {
 
         match self.color_source {
             ColorSource::Color(ref color) => {
-                program.add_uniform_vec4("color", color)?;
+                program.add_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
                 if !has_uvs {
