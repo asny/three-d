@@ -1,20 +1,32 @@
-pub mod buffer;
-pub mod program;
-pub mod render_target;
-pub mod render_states;
-pub mod texture;
-pub mod math;
-pub mod aabb;
 
 pub use crate::context::Context;
 
-pub use buffer::*;
-pub use program::*;
-pub use render_target::*;
-pub use render_states::*;
-pub use texture::*;
+pub mod math;
 pub use math::*;
+
+pub mod aabb;
 pub use aabb::*;
+
+pub mod render_states;
+pub use render_states::*;
+
+pub mod texture;
+pub use texture::*;
+
+pub mod element_buffer;
+pub use element_buffer::*;
+
+pub mod vertex_buffer;
+pub use vertex_buffer::*;
+
+pub mod uniform_buffer;
+pub use uniform_buffer::*;
+
+pub mod render_target;
+pub use render_target::*;
+
+pub mod program;
+pub use program::*;
 
 pub mod camera;
 pub use camera::*;

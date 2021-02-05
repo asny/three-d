@@ -157,7 +157,7 @@ impl Program
         Ok(())
     }
 
-    pub fn use_uniform_block(&self, buffer: &buffer::UniformBuffer, block_name: &str)
+    pub fn use_uniform_block(&self, buffer: &UniformBuffer, block_name: &str)
     {
         if !self.uniform_blocks.borrow().contains_key(block_name) {
             let mut map = self.uniform_blocks.borrow_mut();
@@ -171,13 +171,13 @@ impl Program
         self.gl.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 
-    pub fn use_attribute_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str) -> Result<(), Error>
+    pub fn use_attribute_float(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
     {
         self.use_attribute_float_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str,  divisor: usize) -> Result<(), Error>
+    pub fn use_attribute_float_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
     {
         if buffer.count() > 0 {
             buffer.bind();
@@ -191,13 +191,13 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec2_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str) -> Result<(), Error>
+    pub fn use_attribute_vec2_float(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
     {
         self.use_attribute_vec2_float_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec2_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
+    pub fn use_attribute_vec2_float_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
     {
         if buffer.count() > 0 {
             buffer.bind();
@@ -211,13 +211,13 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec3_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str) -> Result<(), Error>
+    pub fn use_attribute_vec3_float(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
     {
         self.use_attribute_vec3_float_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec3_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
+    pub fn use_attribute_vec3_float_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
     {
         if buffer.count() > 0 {
             buffer.bind();
@@ -231,13 +231,13 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec4_float(&self, buffer: &buffer::VertexBuffer, attribute_name: &str) -> Result<(), Error>
+    pub fn use_attribute_vec4_float(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
     {
         self.use_attribute_vec3_float_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec4_float_divisor(&self, buffer: &buffer::VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
+    pub fn use_attribute_vec4_float_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
     {
         if buffer.count() > 0 {
             buffer.bind();
@@ -276,12 +276,12 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &buffer::ElementBuffer)
+    pub fn draw_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &ElementBuffer)
     {
         self.draw_subset_of_elements(render_states, viewport, element_buffer, 0,element_buffer.count() as u32);
     }
 
-    pub fn draw_subset_of_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &buffer::ElementBuffer, first: u32, count: u32)
+    pub fn draw_subset_of_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &ElementBuffer, first: u32, count: u32)
     {
         Self::set_viewport(&self.gl, viewport);
         Self::set_states(&self.gl, render_states);
@@ -296,7 +296,7 @@ impl Program
         self.gl.unuse_program();
     }
 
-    pub fn draw_elements_instanced(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &buffer::ElementBuffer, count: u32)
+    pub fn draw_elements_instanced(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &ElementBuffer, count: u32)
     {
         Self::set_viewport(&self.gl, viewport);
         Self::set_states(&self.gl, render_states);
