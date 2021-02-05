@@ -23,15 +23,16 @@ fn main() {
         let (statue_cpu_meshes, statue_cpu_materials) = Obj::parse(loaded, "examples/assets/COLOMBE.obj").unwrap();
         let statue_material = PhongMaterial::new(&gl, &statue_cpu_materials[0]).unwrap();
         let statue = PhongForwardMesh::new(&gl, &statue_cpu_meshes[0], &statue_material).unwrap();
-        let aabb = statue_cpu_meshes[0].compute_aabb();
         let scale = Mat4::from_scale(10.0);
-        let mut statue_transforms = Vec::new();
+        let mut statue_transforms_and_aabb = Vec::new();
         for i in 0..8 {
             let angle = i as f32 * 2.0 * std::f32::consts::PI / 8.0;
             let rotation = Mat4::from_angle_y(radians(0.8 * std::f32::consts::PI-angle));
             let dist = 300.0;
             let translation = Mat4::from_translation(vec3(angle.cos() * dist, (1.2*std::f32::consts::PI - angle).cos() * 21.0 - 33.0, angle.sin() * dist));
-            statue_transforms.push(translation * scale * rotation);
+            let transform = translation * scale * rotation;
+            let aabb = AxisAlignedBoundingBox::new().expand_with_transformation(&statue_cpu_meshes[0].positions, &transform);
+            statue_transforms_and_aabb.push((transform, aabb));
         }
 
         let (fountain_cpu_meshes, fountain_cpu_materials) = Obj::parse(loaded, "examples/assets/pfboy.obj").unwrap();
@@ -42,10 +43,10 @@ fn main() {
         let mut directional_light = DirectionalLight::new(&gl, 1.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0)).unwrap();
 
         directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 2000.0, 1024, 1024, &|viewport: Viewport, camera: &Camera| {
-            for transform in statue_transforms.iter() {
+            for (transform, _aabb) in statue_transforms_and_aabb.iter() {
                 statue.render_depth(RenderStates {cull: CullType::Back, ..Default::default()},
                                     viewport,
-                                    &transform,
+                                    transform,
                                     &camera)?;
             }
 
@@ -92,8 +93,8 @@ fn main() {
             // draw
             Screen::write(&gl, Some(&vec4(0.8, 0.8, 0.7, 1.0)), Some(1.0), ||
             {
-                for transform in statue_transforms.iter() {
-                    if primary_camera.in_frustum(&aabb.clone().transform(transform)) {
+                for (transform, aabb) in statue_transforms_and_aabb.iter() {
+                    if primary_camera.in_frustum(aabb) {
                         statue.render_with_ambient_and_directional(RenderStates { cull: CullType::Back, ..Default::default() },
                                                                    frame_input.viewport,
                                                                    &transform,

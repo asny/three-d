@@ -34,9 +34,16 @@ impl AxisAlignedBoundingBox {
         self
     }
 
-    pub fn transform(mut self, transformation: &Mat4) -> Self {
-        self.min = (transformation * self.min.extend(1.0)).truncate();
-        self.max = (transformation * self.max.extend(1.0)).truncate();
+    pub fn expand_with_transformation(mut self, positions: &[f32], transformation: &Mat4) -> Self {
+        for i in 0..positions.len()/3 {
+            let pos = transformation * vec4(positions[i*3], positions[i*3 + 1], positions[i*3+2], 1.0);
+            self.min.x = f32::min(pos.x, self.min.x);
+            self.max.x = f32::max(pos.x, self.max.x);
+            self.min.y = f32::min(pos.y, self.min.y);
+            self.max.y = f32::max(pos.y, self.max.y);
+            self.min.z = f32::min(pos.z, self.min.z);
+            self.max.z = f32::max(pos.z, self.max.z);
+        }
         self
     }
 
