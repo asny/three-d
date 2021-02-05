@@ -60,8 +60,8 @@ impl Imposters {
                                                       Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::Depth32F)?;
 
         for i in 0..NO_VIEW_ANGLES {
-            let ancontexte = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
-            camera.set_view(center + width * vec3(f32::sin(-ancontexte), 0.0, f32::cos(-ancontexte)),
+            let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
+            camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
                             center, vec3(0.0, 1.0, 0.0));
             RenderTarget::write_array(&self.context, 0, 0, texture_width, texture_height,
                               Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
@@ -85,10 +85,10 @@ impl Imposters {
         Ok(())
     }
 
-    pub fn update_positions(&mut self, positions: &[f32], ancontextes_in_radians: &[f32])
+    pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32])
     {
         self.center_buffer.fill_with_dynamic_f32(positions);
-        self.rotation_buffer.fill_with_dynamic_f32(ancontextes_in_radians);
+        self.rotation_buffer.fill_with_dynamic_f32(angles_in_radians);
         self.instance_count = positions.len() as u32/3;
     }
 
