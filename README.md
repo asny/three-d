@@ -25,15 +25,15 @@ The source code can be found [here](https://github.com/asny/three-d/tree/master/
 Feature | Description | Examples | `[features]`
 :--- |:---| :---: | :---:
 Context | Thin and low-level graphics abstraction layer which maps one-to-one with the OpenGL/WebGL2 graphics APIs. |  |
-Graphics | Modular abstractions of common graphics concepts such as buffer, texture, program, render target, camera and light. | [Triangle](https://github.com/asny/three-d/tree/master/examples/triangle), [Mandelbrot](https://github.com/asny/three-d/tree/master/examples/mandelbrot)
-Mesh | | [Texture](https://github.com/asny/three-d/tree/master/examples/texture)
+Graphics concepts | Modular abstractions of common graphics concepts such as buffer, texture, program and render target. | [Triangle](https://github.com/asny/three-d/tree/master/examples/triangle), [Mandelbrot](https://github.com/asny/three-d/tree/master/examples/mandelbrot)
+Camera | | [All](https://asny.github.io/three-d/)
+Light | | [Lighting](https://github.com/asny/three-d/tree/master/examples/lighting), [Wireframe](https://github.com/asny/three-d/tree/master/examples/wireframe)
+Mesh |  | [Texture](https://github.com/asny/three-d/tree/master/examples/texture)
 Instanced mesh | | [Wireframe](https://github.com/asny/three-d/tree/master/examples/wireframe)
 Skybox |  | [Texture](https://github.com/asny/three-d/tree/master/examples/texture), [Fog](https://github.com/asny/three-d/tree/master/examples/fog)
 Particles | | [Fireworks](https://github.com/asny/three-d/tree/master/examples/fireworks)
 Imposters | | [Forest](https://github.com/asny/three-d/tree/master/examples/forest)
-Image effect | An effect applied to the whole render target, for example fog. | 
-Fog |  | [Fog](https://github.com/asny/three-d/tree/master/examples/fog)
-FXAA | | [FXAA](https://github.com/asny/three-d/tree/master/examples/fxaa)
+Image effect | An effect applied to the whole render target, for example fog or FXAA. | [Fog](https://github.com/asny/three-d/tree/master/examples/fog)
 Phong forward pipeline | Forward pipeline based on the phong reflection model supporting a very limited amount of lights with shadows. Supports colored, transparent, textured and instanced meshes. | [Fog](https://github.com/asny/three-d/tree/master/examples/fog), [Forest](https://github.com/asny/three-d/tree/master/examples/forest), [Texture](https://github.com/asny/three-d/tree/master/examples/texture) | `phong-renderer`
 Phong deferred pipeline | Deferred pipeline based on the phong reflection model supporting a performance-limited amount of directional, point and spot lights with shadows. Supports colored, textured and instanced meshes. | [Lighting](https://github.com/asny/three-d/tree/master/examples/lighting), [Wireframe](https://github.com/asny/three-d/tree/master/examples/wireframe), [Texture](https://github.com/asny/three-d/tree/master/examples/texture) | `phong-renderer`
 Runtime loading | Loading any type of asset runtime on both desktop and web. | [Lighting](https://github.com/asny/three-d/tree/master/examples/lighting), [Forest](https://github.com/asny/three-d/tree/master/examples/forest), [Texture](https://github.com/asny/three-d/tree/master/examples/texture)
@@ -41,7 +41,7 @@ Runtime loading | Loading any type of asset runtime on both desktop and web. | [
 Image parsers | Most image formats are supported (using the [image](https://crates.io/crates/image) crate). | [Texture](https://github.com/asny/three-d/tree/master/examples/texture) | `image-io`
 Window | Default windows for easy setup. Currently [glutin](https://crates.io/crates/glutin) for cross-platform desktop and canvas for web. | [All](https://asny.github.io/three-d/) | `glutin-window` `canvas` 
 
-It is always possible to combine features, for example rendering a particle effect followed by direct calls to the graphics context.
+It is always possible to combine features, for example rendering particles followed by direct calls to the graphics context.
 
 ### Build
 
