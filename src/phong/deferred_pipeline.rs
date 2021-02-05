@@ -1,5 +1,6 @@
 
 use crate::core::*;
+use crate::lights::*;
 use crate::effects::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

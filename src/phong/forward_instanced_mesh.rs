@@ -1,6 +1,7 @@
 
 use crate::core::*;
 use crate::objects::*;
+use crate::lights::*;
 use crate::phong::*;
 
 pub struct PhongForwardInstancedMesh {

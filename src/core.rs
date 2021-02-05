@@ -31,9 +31,6 @@ pub use program::*;
 pub mod camera;
 pub use camera::*;
 
-pub mod light;
-pub use crate::light::*;
-
 pub mod viewport;
 pub use crate::viewport::*;
 
