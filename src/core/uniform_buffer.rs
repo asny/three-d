@@ -2,7 +2,7 @@ use crate::core::Error;
 use crate::context::{Context, consts};
 
 pub struct UniformBuffer {
-    gl: Context,
+    context: Context,
     id: crate::context::Buffer,
     offsets: Vec<usize>,
     data: Vec<f32>
@@ -10,9 +10,9 @@ pub struct UniformBuffer {
 
 impl UniformBuffer
 {
-    pub fn new(gl: &Context, sizes: &[u32]) -> Result<UniformBuffer, Error>
+    pub fn new(context: &Context, sizes: &[u32]) -> Result<UniformBuffer, Error>
     {
-        let id = gl.create_buffer().unwrap();
+        let id = context.create_buffer().unwrap();
 
         let mut offsets = Vec::new();
         let mut length = 0;
@@ -21,12 +21,12 @@ impl UniformBuffer
             offsets.push(length);
             length += *size as usize;
         }
-        Ok(UniformBuffer{ gl: gl.clone(), id, offsets, data: vec![0.0; length as usize] })
+        Ok(UniformBuffer{ context: context.clone(), id, offsets, data: vec![0.0; length as usize] })
     }
 
     pub(crate) fn bind(&self, id: u32)
     {
-        self.gl.bind_buffer_base(consts::UNIFORM_BUFFER, id, &self.id);
+        self.context.bind_buffer_base(consts::UNIFORM_BUFFER, id, &self.id);
     }
 
     pub fn update(&mut self, index: usize, data: &[f32]) -> Result<(), Error>
@@ -38,7 +38,7 @@ impl UniformBuffer
         }
         self.data.splice(offset..offset+length, data.iter().cloned());
         self.send();
-        //TODO: Send to GPU (glBufferSubData)
+        //TODO: Send to GPU (contextBufferSubData)
         Ok(())
     }
 
@@ -61,9 +61,9 @@ impl UniformBuffer
 
     fn send(&self)
     {
-        self.gl.bind_buffer(consts::UNIFORM_BUFFER, &self.id);
-        self.gl.buffer_data_f32(consts::UNIFORM_BUFFER, &self.data, consts::STATIC_DRAW);
-        self.gl.unbind_buffer(consts::UNIFORM_BUFFER);
+        self.context.bind_buffer(consts::UNIFORM_BUFFER, &self.id);
+        self.context.buffer_data_f32(consts::UNIFORM_BUFFER, &self.data, consts::STATIC_DRAW);
+        self.context.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 }
 
@@ -71,7 +71,7 @@ impl Drop for UniformBuffer
 {
     fn drop(&mut self)
     {
-        self.gl.delete_buffer(&self.id);
+        self.context.delete_buffer(&self.id);
     }
 }
 

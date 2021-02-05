@@ -2,7 +2,7 @@
 use crate::core::*;
 
 pub struct DirectionalLight {
-    gl: Context,
+    context: Context,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2D,
     shadow_camera: Option<Camera>
@@ -10,12 +10,12 @@ pub struct DirectionalLight {
 
 impl DirectionalLight {
 
-    pub fn new(gl: &Context, intensity: f32, color: &Vec3, direction: &Vec3) -> Result<DirectionalLight, Error>
+    pub fn new(context: &Context, intensity: f32, color: &Vec3, direction: &Vec3) -> Result<DirectionalLight, Error>
     {
         let mut light = DirectionalLight {
-            gl: gl.clone(),
-            light_buffer: UniformBuffer::new(gl, &[3u32, 1, 3, 1, 16])?,
-            shadow_texture: Texture2D::new(gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?,
+            context: context.clone(),
+            light_buffer: UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
+            shadow_texture: Texture2D::new(context, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?,
             shadow_camera: None};
 
         light.set_intensity(intensity);
@@ -47,7 +47,7 @@ impl DirectionalLight {
     pub fn clear_shadow_map(&mut self)
     {
         self.shadow_camera = None;
-        self.shadow_texture = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
+        self.shadow_texture = Texture2D::new(&self.context, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
@@ -58,14 +58,14 @@ impl DirectionalLight {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 
-        self.shadow_camera = Some(Camera::new_orthographic(&self.gl, target - direction.normalize()*0.5*frustrum_depth, *target, up,
+        self.shadow_camera = Some(Camera::new_orthographic(&self.context, target - direction.normalize()*0.5*frustrum_depth, *target, up,
                                                            frustrum_width, frustrum_height, frustrum_depth));
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
 
-        self.shadow_texture = Texture2D::new(&self.gl, texture_width, texture_height,
+        self.shadow_texture = Texture2D::new(&self.context, texture_width, texture_height,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-        RenderTarget::write_to_depth(&self.gl, Some(1.0),
+        RenderTarget::write_to_depth(&self.context, Some(1.0),
             Some(&self.shadow_texture),
             || {
                 render_scene(Viewport::new_at_origo(texture_width, texture_height), self.shadow_camera.as_ref().unwrap())?;

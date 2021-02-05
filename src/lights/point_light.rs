@@ -7,10 +7,10 @@ pub struct PointLight {
 
 impl PointLight {
 
-    pub fn new(gl: &Context, intensity: f32, color: &Vec3, position: &Vec3,
+    pub fn new(context: &Context, intensity: f32, color: &Vec3, position: &Vec3,
                attenuation_constant: f32, attenuation_linear: f32, attenuation_exponential: f32) -> Result<PointLight, Error>
     {
-        let mut light = PointLight { light_buffer: UniformBuffer::new(gl, &[3u32, 1, 1, 1, 1, 1, 3, 1])? };
+        let mut light = PointLight { light_buffer: UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1])? };
 
         light.set_intensity(intensity);
         light.set_color(color);

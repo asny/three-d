@@ -6,23 +6,23 @@ fn main() {
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let mut window = Window::new("Statues", None).unwrap();
-    let gl = window.gl();
+    let context = window.gl();
 
     // Renderer
-    let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
-    let mut primary_camera = Camera::new_perspective(&gl, vec3(-200.0, 200.0, 100.0), vec3(0.0, 100.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
+    let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
+    let mut primary_camera = Camera::new_perspective(&context, vec3(-200.0, 200.0, 100.0), vec3(0.0, 100.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                     degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
     // Static camera to view frustum culling in effect
-    let mut secondary_camera = Camera::new_perspective(&gl, vec3(-500.0, 700.0, 500.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
+    let mut secondary_camera = Camera::new_perspective(&context, vec3(-500.0, 700.0, 500.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                       degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
 
     Loader::load(&["examples/assets/COLOMBE.obj", "examples/assets/COLOMBE.mtl",
         "examples/assets/COLOMBE.png","examples/assets/pfboy.obj", "examples/assets/pfboy.mtl",
         "examples/assets/pfboy.png"], move |loaded|
     {
         let (statue_cpu_meshes, statue_cpu_materials) = Obj::parse(loaded, "examples/assets/COLOMBE.obj").unwrap();
-        let statue_material = PhongMaterial::new(&gl, &statue_cpu_materials[0]).unwrap();
-        let statue = PhongForwardMesh::new(&gl, &statue_cpu_meshes[0], &statue_material).unwrap();
+        let statue_material = PhongMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
+        let statue = PhongForwardMesh::new(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
         let scale = Mat4::from_scale(10.0);
         let mut statue_transforms_and_aabb = Vec::new();
         for i in 0..8 {
@@ -36,11 +36,11 @@ fn main() {
         }
 
         let (fountain_cpu_meshes, fountain_cpu_materials) = Obj::parse(loaded, "examples/assets/pfboy.obj").unwrap();
-        let materials = fountain_cpu_materials.iter().map(|m| PhongMaterial::new(&gl, m).unwrap()).collect::<Vec<PhongMaterial>>();
-        let fountain = PhongForwardMesh::new_meshes(&gl, &fountain_cpu_meshes, &materials).unwrap().remove(0);
+        let materials = fountain_cpu_materials.iter().map(|m| PhongMaterial::new(&context, m).unwrap()).collect::<Vec<PhongMaterial>>();
+        let fountain = PhongForwardMesh::new_meshes(&context, &fountain_cpu_meshes, &materials).unwrap().remove(0);
 
         let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
-        let mut directional_light = DirectionalLight::new(&gl, 1.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0)).unwrap();
+        let mut directional_light = DirectionalLight::new(&context, 1.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0)).unwrap();
 
         directional_light.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 1000.0, 2000.0, 1024, 1024, &|viewport: Viewport, camera: &Camera| {
             for (transform, _aabb) in statue_transforms_and_aabb.iter() {
@@ -91,7 +91,7 @@ fn main() {
             }
 
             // draw
-            Screen::write(&gl, Some(&vec4(0.8, 0.8, 0.7, 1.0)), Some(1.0), ||
+            Screen::write(&context, Some(&vec4(0.8, 0.8, 0.7, 1.0)), Some(1.0), ||
             {
                 for (transform, aabb) in statue_transforms_and_aabb.iter() {
                     if primary_camera.in_frustum(aabb) {
@@ -115,7 +115,7 @@ fn main() {
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                 std::process::exit(1);
             }

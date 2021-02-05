@@ -5,7 +5,7 @@ use crate::lights::*;
 use crate::phong::*;
 
 pub struct PhongForwardMesh {
-    gl: Context,
+    context: Context,
     pub name: String,
     mesh: Mesh,
     pub material: PhongMaterial
@@ -13,7 +13,7 @@ pub struct PhongForwardMesh {
 
 impl PhongForwardMesh
 {
-    pub fn new(gl: &Context, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
         if cpu_mesh.normals.is_none() {
             Err(Error::FailedToCreateMesh {message:
@@ -23,14 +23,14 @@ impl PhongForwardMesh
             MESH_COUNT += 1;
         }
         Ok(Self {
-            gl: gl.clone(),
+            context: context.clone(),
             name: cpu_mesh.name.clone(),
-            mesh: Mesh::new(gl, cpu_mesh)?,
+            mesh: Mesh::new(context, cpu_mesh)?,
             material: material.clone()
         })
     }
 
-    pub fn new_meshes(gl: &Context, cpu_meshes: &[CPUMesh], materials: &[PhongMaterial]) -> Result<Vec<Self>, Error>
+    pub fn new_meshes(context: &Context, cpu_meshes: &[CPUMesh], materials: &[PhongMaterial]) -> Result<Vec<Self>, Error>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {
@@ -38,7 +38,7 @@ impl PhongForwardMesh
                 materials.iter().filter(|m| &m.name == material_name).last()
                 .map(|m| m.clone()).unwrap_or_else(|| PhongMaterial::default()))
                 .unwrap_or_else(|| PhongMaterial::default());
-            meshes.push(Self::new(gl,cpu_mesh, &material)?);
+            meshes.push(Self::new(context,cpu_mesh, &material)?);
         }
         Ok(meshes)
     }
@@ -55,7 +55,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        PROGRAM_COLOR_AMBIENT = Some(Mesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
+                        PROGRAM_COLOR_AMBIENT = Some(Mesh::create_program(&self.context, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -64,7 +64,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        PROGRAM_TEXTURE_AMBIENT = Some(Mesh::create_program(&self.gl,include_str!("shaders/textured_forward_ambient.frag"))?);
+                        PROGRAM_TEXTURE_AMBIENT = Some(Mesh::create_program(&self.context,include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
@@ -93,7 +93,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.gl, &format!("{}\n{}",
+                        PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.context, &format!("{}\n{}",
                                                                                       &include_str!("shaders/light_shared.frag"),
                                                                                       &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
                     }
@@ -104,7 +104,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.gl, &format!("{}\n{}",
+                        PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.context, &format!("{}\n{}",
                                                                                     include_str!("shaders/light_shared.frag"),
                                                                                     include_str!("shaders/textured_forward_ambient_directional.frag")))?)
                     }

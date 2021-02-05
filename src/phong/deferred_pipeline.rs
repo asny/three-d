@@ -7,7 +7,7 @@ use crate::effects::*;
 pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}
 
 pub struct PhongDeferredPipeline {
-    gl: Context,
+    context: Context,
     ambient_light_effect: ImageEffect,
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
@@ -20,32 +20,32 @@ pub struct PhongDeferredPipeline {
 
 impl PhongDeferredPipeline
 {
-    pub fn new(gl: &Context) -> Result<Self, Error>
+    pub fn new(context: &Context) -> Result<Self, Error>
     {
         let renderer = Self {
-            gl: gl.clone(),
-            ambient_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
+            context: context.clone(),
+            ambient_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
                                                                        &include_str!("shaders/ambient_light.frag")))?,
-            directional_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
+            directional_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
                                                                        &include_str!("shaders/directional_light.frag")))?,
-            point_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
+            point_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
                                                                        &include_str!("shaders/point_light.frag")))?,
-            spot_light_effect: ImageEffect::new(gl, &format!("{}\n{}\n{}",
+            spot_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
                                                                        &include_str!("shaders/spot_light.frag")))?,
             debug_effect: None,
             debug_type: DebugType::NONE,
-            geometry_pass_texture: Some(Texture2DArray::new(gl, 1, 1, 2,
+            geometry_pass_texture: Some(Texture2DArray::new(context, 1, 1, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?),
-            geometry_pass_depth_texture: Some(Texture2DArray::new(gl, 1, 1, 1,
+            geometry_pass_depth_texture: Some(Texture2DArray::new(context, 1, 1, 1,
                     Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?)
         };
@@ -57,13 +57,13 @@ impl PhongDeferredPipeline
 
     pub fn geometry_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
     {
-        self.geometry_pass_texture = Some(Texture2DArray::new(&self.gl, width, height, 2,
+        self.geometry_pass_texture = Some(Texture2DArray::new(&self.context, width, height, 2,
                   Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                   Wrapping::ClampToEdge, Format::RGBA8)?);
-        self.geometry_pass_depth_texture = Some(Texture2DArray::new(&self.gl, width, height, 1,
+        self.geometry_pass_depth_texture = Some(Texture2DArray::new(&self.context, width, height, 1,
                     Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?);
-        RenderTarget::write_array(&self.gl,0, 0, width, height,
+        RenderTarget::write_array(&self.context,0, 0, width, height,
             Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
             self.geometry_pass_texture.as_ref(), self.geometry_pass_depth_texture.as_ref(),
             2, &|channel| {channel},
@@ -178,7 +178,7 @@ impl PhongDeferredPipeline
     {
         self.debug_type = debug_type;
         if self.debug_effect.is_none() {
-            self.debug_effect = Some(ImageEffect::new(&self.gl, include_str!("shaders/debug.frag")).unwrap());
+            self.debug_effect = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
         }
     }
 

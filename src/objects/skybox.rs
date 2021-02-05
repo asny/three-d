@@ -8,22 +8,22 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(gl: &Context, right: &Image, left: &Image, top: &Image, front: &Image, back: &Image) -> Result<Skybox, Error>
+    pub fn new(context: &Context, right: &Image, left: &Image, top: &Image, front: &Image, back: &Image) -> Result<Skybox, Error>
     {
-        let texture = TextureCubeMap::new_with_u8(&gl,
+        let texture = TextureCubeMap::new_with_u8(&context,
                                                   Interpolation::Linear, Interpolation::Linear, None,
                                                   Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
                                                   right, left, top, top, front, back)?;
-        Self::new_with_texture(gl, texture)
+        Self::new_with_texture(context, texture)
     }
 
-    pub fn new_with_texture(gl: &Context, texture: texture::TextureCubeMap) -> Result<Skybox, Error>
+    pub fn new_with_texture(context: &Context, texture: texture::TextureCubeMap) -> Result<Skybox, Error>
     {
-        let program = program::Program::from_source(gl,
+        let program = program::Program::from_source(context,
                                                     include_str!("shaders/skybox.vert"),
                                                     include_str!("shaders/skybox.frag"))?;
 
-        let vertex_buffer = VertexBuffer::new_with_static_f32(gl, &get_positions())?;
+        let vertex_buffer = VertexBuffer::new_with_static_f32(context, &get_positions())?;
 
         Ok(Skybox { program, vertex_buffer, texture })
     }

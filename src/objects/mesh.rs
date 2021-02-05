@@ -9,19 +9,19 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new(gl: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error>
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
-        let position_buffer = VertexBuffer::new_with_static_f32(gl, &cpu_mesh.positions)?;
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(gl, normals)?) } else {None};
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(gl, ind)?) } else {None};
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(gl, uvs)?) } else {None};
+        let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
+        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(context, normals)?) } else {None};
+        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
 
         Ok(Mesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
     }
 
-    pub fn create_program(gl: &Context, fragment_shader_source: &str) -> Result<Program, Error>
+    pub fn create_program(context: &Context, fragment_shader_source: &str) -> Result<Program, Error>
     {
-        Program::from_source(gl, include_str!("shaders/mesh.vert"), fragment_shader_source)
+        Program::from_source(context, include_str!("shaders/mesh.vert"), fragment_shader_source)
     }
 
     pub fn has_uvs(&self) -> bool {

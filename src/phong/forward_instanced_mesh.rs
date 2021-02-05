@@ -5,7 +5,7 @@ use crate::lights::*;
 use crate::phong::*;
 
 pub struct PhongForwardInstancedMesh {
-    gl: Context,
+    context: Context,
     pub name: String,
     mesh: InstancedMesh,
     pub material: PhongMaterial
@@ -13,18 +13,18 @@ pub struct PhongForwardInstancedMesh {
 
 impl PhongForwardInstancedMesh
 {
-    pub fn new(gl: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
         if cpu_mesh.normals.is_none() {
             Err(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
-        let mesh = InstancedMesh::new(gl, transformations, cpu_mesh)?;
+        let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
         unsafe {
             INSTANCED_MESH_COUNT += 1;
         }
         Ok(Self {
-            gl: gl.clone(),
+            context: context.clone(),
             name: cpu_mesh.name.clone(),
             mesh,
             material: material.clone()
@@ -48,7 +48,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedMesh::create_program(&self.gl, include_str!("shaders/colored_forward_ambient.frag"))?);
+                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedMesh::create_program(&self.context, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -57,7 +57,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedMesh::create_program(&self.gl, include_str!("shaders/textured_forward_ambient.frag"))?);
+                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedMesh::create_program(&self.context, include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
@@ -86,7 +86,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
                                                                                       &include_str!("shaders/light_shared.frag"),
                                                                                       &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
                     }
@@ -97,7 +97,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
                                                                                     include_str!("shaders/light_shared.frag"),
                                                                                     include_str!("shaders/textured_forward_ambient_directional.frag")))?)
                     }

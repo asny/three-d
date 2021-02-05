@@ -2,7 +2,7 @@
 use crate::core::*;
 
 pub struct SpotLight {
-    gl: Context,
+    context: Context,
     light_buffer: UniformBuffer,
     shadow_texture: Texture2D,
     shadow_camera: Option<Camera>
@@ -10,14 +10,14 @@ pub struct SpotLight {
 
 impl SpotLight {
 
-    pub fn new(gl: &Context, intensity: f32, color: &Vec3, position: &Vec3, direction: &Vec3, cutoff: f32,
+    pub fn new(context: &Context, intensity: f32, color: &Vec3, position: &Vec3, direction: &Vec3, cutoff: f32,
                attenuation_constant: f32, attenuation_linear: f32, attenuation_exponential: f32) -> Result<SpotLight, Error>
     {
         let uniform_sizes = [3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16];
         let mut light = SpotLight {
-            gl: gl.clone(),
-            light_buffer: UniformBuffer::new(gl, &uniform_sizes)?,
-            shadow_texture: Texture2D::new(gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?,
+            context: context.clone(),
+            light_buffer: UniformBuffer::new(context, &uniform_sizes)?,
+            shadow_texture: Texture2D::new(context, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?,
             shadow_camera: None
         };
         light.set_intensity(intensity);
@@ -76,7 +76,7 @@ impl SpotLight {
     pub fn clear_shadow_map(&mut self)
     {
         self.shadow_camera = None;
-        self.shadow_texture = Texture2D::new(&self.gl, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
+        self.shadow_texture = Texture2D::new(&self.context, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
@@ -87,14 +87,14 @@ impl SpotLight {
         let up = compute_up_direction(direction);
         let cutoff = self.light_buffer.get(7).unwrap()[0];
 
-        self.shadow_camera = Some(Camera::new_perspective(&self.gl, position, position + direction, up,
+        self.shadow_camera = Some(Camera::new_perspective(&self.context, position, position + direction, up,
                                                           degrees(cutoff), 1.0, 0.1, frustrum_depth));
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
 
-        self.shadow_texture = Texture2D::new(&self.gl, texture_size, texture_size,
+        self.shadow_texture = Texture2D::new(&self.context, texture_size, texture_size,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-        RenderTarget::write_to_depth(&self.gl, Some(1.0),
+        RenderTarget::write_to_depth(&self.context, Some(1.0),
             Some(&self.shadow_texture), || {
                 render_scene(Viewport::new_at_origo(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())

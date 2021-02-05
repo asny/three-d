@@ -4,7 +4,7 @@ use crate::objects::*;
 use crate::phong::*;
 
 pub struct PhongDeferredInstancedMesh {
-    gl: Context,
+    context: Context,
     pub name: String,
     mesh: InstancedMesh,
     pub material: PhongMaterial
@@ -12,16 +12,16 @@ pub struct PhongDeferredInstancedMesh {
 
 impl PhongDeferredInstancedMesh
 {
-    pub fn new(gl: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
+    pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
         if cpu_mesh.normals.is_none() {
             Err(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
-        let mesh = InstancedMesh::new(gl, transformations, cpu_mesh)?;
+        let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
         unsafe {INSTANCED_MESH_COUNT += 1;}
         Ok(Self {
-            gl: gl.clone(),
+            context: context.clone(),
             name: cpu_mesh.name.clone(),
             mesh,
             material: material.clone()
@@ -45,7 +45,7 @@ impl PhongDeferredInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_COLOR = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/colored_deferred.frag")))?);
                     }
@@ -56,7 +56,7 @@ impl PhongDeferredInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE = Some(InstancedMesh::create_program(&self.gl, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_TEXTURE = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/textured_deferred.frag")))?);
                     }
