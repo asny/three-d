@@ -64,22 +64,7 @@ impl PhongDeferredInstancedMesh
                 }
             }
         };
-
-        program.add_uniform_float("diffuse_intensity", &self.material.diffuse_intensity)?;
-        program.add_uniform_float("specular_intensity", &self.material.specular_intensity)?;
-        program.add_uniform_float("specular_power", &self.material.specular_power)?;
-
-        match self.material.color_source {
-            ColorSource::Color(ref color) => {
-                program.add_uniform_vec4("color", color)?;
-            },
-            ColorSource::Texture(ref texture) => {
-                if !self.mesh.has_uvs() {
-                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
-                }
-                program.use_texture(texture.as_ref(),"tex")?;
-            }
-        }
+        self.material.bind(program, self.mesh.has_uvs())?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
@@ -100,7 +85,3 @@ impl Drop for PhongDeferredInstancedMesh {
 static mut INSTANCED_PROGRAM_COLOR: Option<Program> = None;
 static mut INSTANCED_PROGRAM_TEXTURE: Option<Program> = None;
 static mut INSTANCED_MESH_COUNT: u32 = 0;
-
-fn bind_material(program: &Program, material: &PhongMaterial, has_uvs: bool) -> Result<(), Error> {
-    Ok(())
-}

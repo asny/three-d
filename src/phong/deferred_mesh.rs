@@ -72,22 +72,7 @@ impl PhongDeferredMesh {
                 }
             }
         };
-
-        program.add_uniform_float("diffuse_intensity", &self.material.diffuse_intensity)?;
-        program.add_uniform_float("specular_intensity", &self.material.specular_intensity)?;
-        program.add_uniform_float("specular_power", &self.material.specular_power)?;
-
-        match self.material.color_source {
-            ColorSource::Color(ref color) => {
-                program.add_uniform_vec4("color", color)?;
-            },
-            ColorSource::Texture(ref texture) => {
-                if !self.mesh.has_uvs() {
-                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
-                }
-                program.use_texture(texture.as_ref(),"tex")?;
-            }
-        }
+        self.material.bind(program, self.mesh.has_uvs())?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
