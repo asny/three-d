@@ -1,5 +1,6 @@
 use crate::core::math::*;
 
+#[derive(Debug, Copy, Clone)]
 pub struct AxisAlignedBoundingBox {
     pub min: Vec3,
     pub max: Vec3
@@ -12,13 +13,7 @@ impl AxisAlignedBoundingBox {
             max: vec3(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY, std::f32::NEG_INFINITY)}
     }
 
-    pub fn new_from_positions(positions: &[f32]) -> Self {
-        let mut aabb = Self::new();
-        aabb.expand(positions);
-        aabb
-    }
-
-    pub fn expand(&mut self, positions: &[f32]) {
+    pub fn expand(mut self, positions: &[f32]) -> Self {
         for i in 0..positions.len() {
             match i%3 {
                 0 => {
@@ -36,6 +31,13 @@ impl AxisAlignedBoundingBox {
                 _ => {unreachable!()}
             };
         }
+        self
+    }
+
+    pub fn transform(mut self, transformation: &Mat4) -> Self {
+        self.min = (transformation * self.min.extend(1.0)).truncate();
+        self.max = (transformation * self.max.extend(1.0)).truncate();
+        self
     }
 
     pub fn add(mut self, other: &AxisAlignedBoundingBox) -> Self {
