@@ -18,9 +18,9 @@ pub struct PhongMaterial {
 }
 
 impl PhongMaterial {
-    pub fn new(gl: &Gl, cpu_material: &CPUMaterial) -> Result<Self, Error> {
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self, Error> {
         let color_source = if let Some(ref image) = cpu_material.texture_image {
-            ColorSource::Texture(Rc::new(texture::Texture2D::new_with_u8(&gl, Interpolation::Linear, Interpolation::Linear,
+            ColorSource::Texture(Rc::new(texture::Texture2D::new_with_u8(&context, Interpolation::Linear, Interpolation::Linear,
                                                                   Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat, image)?))
         }
         else {
@@ -29,6 +29,25 @@ impl PhongMaterial {
         Ok(Self {name: cpu_material.name.clone(), color_source, diffuse_intensity: cpu_material.diffuse_intensity.unwrap_or(0.5),
             specular_intensity: cpu_material.specular_intensity.unwrap_or(0.2),
             specular_power: cpu_material.specular_power.unwrap_or(6.0)})
+    }
+
+    pub(crate) fn bind(&self, program: &Program, has_uvs: bool) -> Result<(), Error> {
+        program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity)?;
+        program.add_uniform_float("specular_intensity", &self.specular_intensity)?;
+        program.add_uniform_float("specular_power", &self.specular_power)?;
+
+        match self.color_source {
+            ColorSource::Color(ref color) => {
+                program.add_uniform_vec4("surfaceColor", color)?;
+            },
+            ColorSource::Texture(ref texture) => {
+                if !has_uvs {
+                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
+                }
+                program.use_texture(texture.as_ref(),"tex")?;
+            }
+        }
+        Ok(())
     }
 }
 

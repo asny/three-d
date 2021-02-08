@@ -1,0 +1,11 @@
+newmtl Material_Texture
+Ns 0.0
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 0
+map_Kd pfboy.png
+
+
+#EOF

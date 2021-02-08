@@ -1,5 +1,5 @@
 
-uniform sampler2DArray depthMap;
+uniform sampler2D depthMap;
 
 uniform mat4 viewProjectionInverse;
 
@@ -135,7 +135,7 @@ vec3 WorldPosFromDepth(float depth, vec2 uv) {
 // factor: 1 == full fog, 0 == no fog
 void main()
 {
-    float depth = texture(depthMap, vec3(uv, 0)).x;
+    float depth = texture(depthMap, uv).x;
     vec3 pos = WorldPosFromDepth(depth, uv);
 
     // Distance

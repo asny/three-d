@@ -6,6 +6,8 @@ pub struct Camera {
     target: Vec3,
     up: Vec3,
     fov: Degrees,
+    width: f32,
+    height: f32,
     z_near: f32,
     z_far: f32,
     view: Mat4,
@@ -17,24 +19,24 @@ pub struct Camera {
 
 impl Camera
 {
-    fn new(gl: &Gl) -> Camera
+    fn new(context: &Context) -> Camera
     {
-        Camera {matrix_buffer: UniformBuffer::new(gl, &vec![16, 16, 16, 3, 1]).unwrap(), frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
-            position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
+        Camera {matrix_buffer: UniformBuffer::new(context, &vec![16, 16, 16, 3, 1]).unwrap(), frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
+            width: 1.0, height: 1.0, position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()}
     }
 
-    pub fn new_orthographic(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
+    pub fn new_orthographic(context: &Context, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
     {
-        let mut camera = Camera::new(gl);
+        let mut camera = Camera::new(context);
         camera.set_view(position, target, up);
         camera.set_orthographic_projection(width, height, depth);
         camera
     }
 
-    pub fn new_perspective(gl: &Gl, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
+    pub fn new_perspective(context: &Context, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
     {
-        let mut camera = Camera::new(gl);
+        let mut camera = Camera::new(context);
         camera.set_view(position, target, up);
         camera.set_perspective_projection(fovy, aspect, z_near, z_far);
         camera
@@ -46,6 +48,8 @@ impl Camera
         self.fov = fovy;
         self.z_near = z_near;
         self.z_far = z_far;
+        self.width = aspect;
+        self.height = 1.0;
         self.projection = perspective(fovy, aspect, z_near, z_far);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -57,18 +61,23 @@ impl Camera
         self.fov = degrees(0.0);
         self.z_near = 0.0;
         self.z_far = depth;
+        self.width = width;
+        self.height = height;
         self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, 0.0, depth);
         self.update_screen2ray();
         self.update_matrix_buffer();
         self.update_frustrum();
     }
 
-    pub fn set_size(&mut self, width: f32, height: f32) {
-        if self.fov == degrees(0.0) {
-            self.set_orthographic_projection(width, height, self.z_far);
-        }
-        else {
-            self.set_perspective_projection(self.fov, width as f32 / height as f32, self.z_near, self.z_far);
+    pub fn set_aspect(&mut self, aspect: f32) {
+        if (self.width as f32 / self.height as f32 - aspect).abs() > 0.001
+        {
+            if self.fov == degrees(0.0) {
+                self.set_orthographic_projection(self.height * aspect, self.height, self.z_far);
+            }
+            else {
+                self.set_perspective_projection(self.fov, aspect, self.z_near, self.z_far);
+            }
         }
     }
 
@@ -76,8 +85,7 @@ impl Camera
     {
         self.position = position;
         self.target = target;
-        let dir = (target - position).normalize();
-        self.up = dir.cross(up.normalize().cross(dir));
+        self.up = up;
         self.view = Mat4::look_at(Point::from_vec(self.position), Point::from_vec(self.target), self.up);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -157,20 +165,20 @@ impl Camera
     }
 
     // false if fully outside, true if inside or intersects
-    pub fn in_frustrum(&self, min: &Vec3, max: &Vec3) -> bool
+    pub fn in_frustum(&self, aabb: &AxisAlignedBoundingBox) -> bool
     {
         // check box outside/inside of frustum
         for i in 0..6
         {
             let mut out = 0;
-            if self.frustrum[i].dot(vec4(min.x, min.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, min.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(min.x, max.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, max.y, min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(min.x, min.y, max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, min.y, max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(min.x, max.y, max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(max.x, max.y, max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
             if out == 8 {return false;}
         }
         // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
@@ -183,30 +191,57 @@ impl Camera
         self.set_view(*self.position() + change, *self.target() + change, *self.up());
     }
 
-    pub fn rotate(&mut self, xrel: f32, yrel: f32)
+    pub fn rotate(&mut self, x: f32, y: f32)
     {
-        let x = -xrel;
-        let y = yrel;
-        let direction = (*self.target() - *self.position()).normalize();
-        let up_direction = vec3(0., 1., 0.);
-        let right_direction = direction.cross(up_direction);
-        let mut camera_position = *self.position();
-        let target = *self.target();
-        let zoom = (camera_position - target).magnitude();
-        camera_position = camera_position + (right_direction * x + up_direction * y) * 0.1;
-        camera_position = target + (camera_position - target).normalize() * zoom;
-        self.set_view(camera_position, target, up_direction);
+        let mut direction = self.target - self.position;
+        let zoom = direction.magnitude();
+        direction /= zoom;
+        let right = direction.cross(self.up);
+        let up = right.cross(direction);
+        let new_pos = self.position + (-right * x + up * y) * 0.1;
+        let new_dir = (self.target - new_pos).normalize();
+        self.set_view(self.target - new_dir * zoom, self.target, up);
+    }
+
+    pub fn rotate_around_up(&mut self, x: f32, y: f32)
+    {
+        let mut direction = self.target - self.position;
+        let zoom = direction.magnitude();
+        direction /= zoom;
+        let right = direction.cross(self.up);
+        let up = right.cross(direction);
+        let new_pos = self.position + (-right * x + up * y) * 0.1;
+        let new_dir = (self.target - new_pos).normalize();
+        if new_dir.dot(self.up).abs() < 0.999 {
+            self.set_view(self.target - new_dir * zoom, self.target, self.up);
+        }
+    }
+
+    pub fn pan(&mut self, x: f32, y: f32)
+    {
+        let mut direction = self.target - self.position;
+        let zoom = direction.magnitude();
+        direction /= zoom;
+        let right = direction.cross(self.up);
+        let up = right.cross(direction);
+        let delta = (-right * x + up * y) * zoom * 0.005;
+        self.set_view(self.position + delta, self.target + delta, self.up);
     }
 
     pub fn zoom(&mut self, wheel: f32)
     {
-        let mut position = *self.position();
-        let target = *self.target();
-        let up = *self.up();
-        let mut zoom = (position - target).magnitude();
-        zoom += wheel;
-        zoom = zoom.max(1.0);
-        position = target + (*self.position() - *self.target()).normalize() * zoom;
-        self.set_view(position, target, up);
+        if self.fov == degrees(0.0) {
+            let height = (self.height - wheel).max(0.001);
+            let width = height * self.width / self.height;
+            self.set_orthographic_projection(width, height, self.z_far - self.z_near);
+        }
+        else {
+            let mut direction = self.target - self.position;
+            let mut zoom = direction.magnitude();
+            direction /= zoom;
+            zoom += wheel;
+            zoom = zoom.max(1.0);
+            self.set_view(self.target - direction * zoom, self.target, self.up);
+        }
     }
 }

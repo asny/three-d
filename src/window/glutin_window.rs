@@ -1,7 +1,7 @@
 
 use glutin::*;
 use crate::window::frame_input;
-use crate::gl;
+use crate::context;
 
 #[derive(Debug)]
 pub enum Error {
@@ -25,32 +25,36 @@ pub struct Window
 {
     gl_window: GlWindow,
     events_loop: EventsLoop,
-    gl: crate::Gl
+    gl: crate::Context
 }
 
 impl Window
 {
-    pub fn new_default(title: &str) -> Result<Window, Error>
+    pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
     {
-        Window::new(title, 1024, 512)
-    }
-
-    pub fn new(title: &str, width: u32, height: u32) -> Result<Window, Error>
-    {
-        let window = WindowBuilder::new()
-            .with_title(title)
-            .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64));
+        let window =
+            if let Some((width, height)) = size {
+                WindowBuilder::new()
+                    .with_title(title)
+                    .with_dimensions(dpi::LogicalSize::new(width as f64, height as f64))
+                    .with_resizable(false)
+            } else {
+                WindowBuilder::new()
+                    .with_title(title)
+                    .with_maximized(true)
+                    .with_resizable(false)
+            };
 
         let events_loop = EventsLoop::new();
 
-        let context = ContextBuilder::new().with_vsync(true);
+        let context = ContextBuilder::new().with_vsync(true).with_srgb(true);
 
         let gl_window = GlWindow::new(window, context, &events_loop)?;
 
         unsafe {
             gl_window.make_current()?;
         }
-        let gl = gl::Glstruct::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
+        let gl = context::Glstruct::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
         Ok(Window {gl_window, events_loop, gl})
     }
 
@@ -84,20 +88,13 @@ impl Window
                 accumulated_time = 0.0;
             }
 
-            let (screen_width, screen_height) = self.framebuffer_size();
             let (window_width, window_height) = self.size();
-            let frame_input = frame_input::FrameInput {events, elapsed_time, screen_width, screen_height, window_width, window_height};
+            let frame_input = frame_input::FrameInput {events, elapsed_time, viewport: self.viewport(), window_width, window_height};
             callback(frame_input);
             error = self.gl_window.swap_buffers();
         }
         error?;
         Ok(())
-    }
-
-    pub fn framebuffer_size(&self) -> (usize, usize)
-    {
-        let t: (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
-        (t.0 as usize, t.1 as usize)
     }
 
     pub fn size(&self) -> (usize, usize)
@@ -106,12 +103,12 @@ impl Window
         (t.0 as usize, t.1 as usize)
     }
 
-    pub fn aspect(&self) -> f32 {
-        let (width, height) = self.framebuffer_size();
-        width as f32 / height as f32
+    pub fn viewport(&self) -> crate::Viewport {
+        let (w, h): (u32, u32) = self.gl_window.get_inner_size().unwrap().to_physical(self.gl_window.get_hidpi_factor()).into();
+        crate::Viewport::new_at_origo(w as usize, h as usize)
     }
 
-    pub fn gl(&self) -> crate::Gl
+    pub fn gl(&self) -> crate::Context
     {
         self.gl.clone()
     }
@@ -159,7 +156,10 @@ impl Window
             },
             Event::DeviceEvent{ event, .. } => match event {
                 DeviceEvent::MouseMotion {delta} => {
-                    return Some(frame_input::Event::MouseMotion {delta: *delta});
+                    if let Some(position) = unsafe {CURSOR_POS}
+                    {
+                        return Some(frame_input::Event::MouseMotion { delta: *delta, position });
+                    }
                 },
                 _ => {}
             }

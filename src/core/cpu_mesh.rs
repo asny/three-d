@@ -12,6 +12,103 @@ pub struct CPUMesh {
 }
 
 impl CPUMesh {
+    pub fn square(size: f32) -> Self {
+        let indices = vec![
+            0, 1, 2, 2, 3, 0
+        ];
+        let halfsize = 0.5 * size;
+        let positions = vec![
+            -halfsize, -halfsize, 0.0,
+            halfsize, -halfsize, 0.0,
+            halfsize, halfsize, 0.0,
+            -halfsize, halfsize, 0.0,
+        ];
+        let normals = vec![
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+        ];
+        let uvs = vec![
+            0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0
+        ];
+        CPUMesh {name: "square".to_string(), indices: Some(indices), positions, normals: Some(normals), uvs: Some(uvs), ..Default::default() }
+    }
+
+    pub fn circle(radius: f32, angle_subdivisions: u32) -> Self {
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+        let mut normals = Vec::new();
+        for j in 0..angle_subdivisions {
+            let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
+
+            positions.push(radius * angle.cos());
+            positions.push(radius * angle.sin());
+            positions.push(0.0);
+
+            normals.push(0.0);
+            normals.push(0.0);
+            normals.push(1.0);
+        }
+
+        for j in 0..angle_subdivisions as u32 {
+            indices.push(0);
+            indices.push(j);
+            indices.push((j+1)%angle_subdivisions as u32);
+        }
+        CPUMesh {name: "circle".to_string(), indices: Some(indices), positions, normals: Some(normals), ..Default::default() }
+    }
+
+    pub fn sphere(radius: f32) -> Self {
+        let x = radius*0.525731112119133606f32;
+        let z = radius*0.850650808352039932f32;
+        let positions = vec!(
+           -x, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0, -z,
+           0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0, -z, -x,
+           z, x, 0.0, -z, x, 0.0, z, -x, 0.0, -z, -x, 0.0
+        );
+        let indices = vec!(
+           0,1,4, 0,4,9, 9,4,5, 4,8,5, 4,1,8,
+           8,1,10, 8,10,3, 5,8,3, 5,3,2, 2,3,7,
+           7,3,10, 7,10,6, 7,6,11, 11,6,0, 0,6,1,
+           6,10,1, 9,11,0, 9,2,11, 9,5,2, 7,11,2
+        );
+        let normals = Some(compute_normals_with_indices(&indices, &positions));
+        CPUMesh {name: "sphere".to_string(), indices: Some(indices), positions, normals, ..Default::default() }
+    }
+
+    pub fn cylinder(radius: f32, length: f32, angle_subdivisions: u32, length_subdivisions: u32) -> Self
+    {
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+        for i in 0..length_subdivisions +1 {
+            let x = i as f32 / length_subdivisions as f32;
+            for j in 0..angle_subdivisions {
+                let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
+
+                positions.push(length * x);
+                positions.push(radius * angle.cos());
+                positions.push(radius * angle.sin());
+            }
+        }
+        for i in 0..length_subdivisions as u32 {
+            for j in 0..angle_subdivisions as u32 {
+                indices.push(i * angle_subdivisions as u32 + j);
+                indices.push(i * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+
+                indices.push(i * angle_subdivisions as u32 + j);
+                indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                indices.push((i+1) * angle_subdivisions as u32 + j);
+            }
+        }
+        let normals = Some(compute_normals_with_indices(&indices, &positions));
+        Self {name: "cylinder".to_string(), positions, indices: Some(indices), normals, ..Default::default()}
+    }
+
     pub fn compute_normals(&mut self) {
         if let Some(ref ind) = self.indices {
             self.normals = Some(compute_normals_with_indices(ind, &self.positions));
@@ -21,7 +118,7 @@ impl CPUMesh {
     }
 
     pub fn compute_aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_from_positions(&self.positions)
+        AxisAlignedBoundingBox::new().expand(&self.positions)
     }
 }
 

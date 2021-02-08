@@ -1,8 +1,14 @@
 
-pub mod gl;
+pub mod context;
 
 pub mod core;
 pub use crate::core::*;
+
+pub mod objects;
+pub use crate::objects::*;
+
+pub mod lights;
+pub use crate::lights::*;
 
 pub mod io;
 pub use crate::io::*;

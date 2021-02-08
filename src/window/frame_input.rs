@@ -1,9 +1,8 @@
 
 pub struct FrameInput {
     pub events: Vec<Event>,
-    pub elapsed_time: f64,
-    pub screen_width: usize,
-    pub screen_height: usize,
+    pub elapsed_time: f64, // ms since last frame
+    pub viewport: crate::Viewport,
     pub window_width: usize,
     pub window_height: usize
 }
@@ -32,6 +31,7 @@ pub enum Event
     },
     MouseMotion {
         delta: (f64, f64),
+        position: (f64, f64)
     },
     MouseWheel {
         delta: f64,

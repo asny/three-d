@@ -1,7 +1,7 @@
-use crate::*;
+use crate::core::*;
+use crate::effects::*;
 
 pub struct FogEffect {
-    gl: Gl,
     pub color: Vec3,
     pub density: f32,
     pub animation: f32,
@@ -10,16 +10,23 @@ pub struct FogEffect {
 
 impl FogEffect {
 
-    pub fn new(gl: &Gl) -> Result<FogEffect, Error>
+    pub fn new(gl: &Context) -> Result<FogEffect, Error>
     {
-        Ok(FogEffect {gl: gl.clone(), color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fog.frag"))?})
+        Ok(FogEffect {color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fog.frag"))?})
     }
 
-    pub fn apply(&self, time: f32, camera: &camera::Camera, depth_texture: &Texture2DArray) -> Result<(), Error>
+    pub fn apply(&self, viewport: Viewport, camera: &camera::Camera, depth_texture: &Texture2D, time: f32) -> Result<(), Error>
     {
-        state::depth_write(&self.gl,false);
-        state::depth_test(&self.gl, state::DepthTestType::None);
-        state::blend(&self.gl, state::BlendType::SrcAlphaOneMinusSrcAlpha);
+        let render_states = RenderStates {cull: CullType::Back, depth_mask: false,
+            blend: Some(BlendParameters {
+                source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+                source_alpha_multiplier: BlendMultiplierType::SrcAlpha,
+                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
+                destination_alpha_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add
+            }),
+            ..Default::default()};
 
         self.image_effect.program().use_texture(depth_texture, "depthMap")?;
         self.image_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
@@ -29,7 +36,7 @@ impl FogEffect {
         self.image_effect.program().add_uniform_float("time", &(0.001 * time))?;
         self.image_effect.program().add_uniform_vec3("eyePosition", camera.position())?;
 
-        self.image_effect.apply();
+        self.image_effect.apply(render_states, viewport)?;
         Ok(())
     }
 
