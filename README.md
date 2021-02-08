@@ -14,7 +14,7 @@ Chrome, Firefox, Edge and Safari (Safari requires enabling the "WebGL 2.0" exper
 
 ### Examples
 
-See [https://asny.github.io/three-d/](https://asny.github.io/three-d/) for live examples.
+See [asny.github.io/three-d/](https://asny.github.io/three-d/) for live examples.
 The source code can be found [here](https://github.com/asny/three-d/tree/master/examples).
 
 ![Statues example](https://asny.github.io/three-d/statues.png)
