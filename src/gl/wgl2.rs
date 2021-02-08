@@ -221,44 +221,7 @@ impl Glstruct {
                                                                                               format,
                                                                                               data_type,
                                                                                               Some(&array)).unwrap();
-    }
 
-    pub fn tex_image_3d_with_u16_data(
-        &self,
-        target: u32,
-        level: u32,
-        internalformat: u32,
-        width: u32,
-        height: u32,
-        depth: u32,
-        border: u32,
-        format: u32,
-        data_type: u32,
-        pixels: &[u16],
-    ) {
-        use wasm_bindgen::JsCast;
-        let memory_buffer = wasm_bindgen::memory()
-            .dyn_into::<js_sys::WebAssembly::Memory>()
-            .unwrap()
-            .buffer();
-        let data_location = pixels.as_ptr() as u32 / 2;
-        let array = js_sys::Uint16Array::new(&memory_buffer)
-            .subarray(data_location, data_location + pixels.len() as u32);
-
-        self.inner
-            .tex_image_3d_with_opt_array_buffer_view(
-                target,
-                level as i32,
-                internalformat as i32,
-                width as i32,
-                height as i32,
-                depth as i32,
-                border as i32,
-                format,
-                data_type,
-                Some(&array),
-            )
-            .unwrap();
     }
 
     pub fn framebuffer_texture_2d(&self, target: u32, attachment: u32, textarget: u32, texture: &Texture, level: u32)

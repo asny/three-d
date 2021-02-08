@@ -27,24 +27,18 @@ impl Program
         gl.attach_shader(&id, &frag_shader);
         let success = gl.link_program(&id);
 
-        if !success {
-            let mut message = "Failed to compile shader program:\n".to_string();
-            if let Some(log) = gl.get_program_info_log(&id) {
-                message = format!("{}\nLink error: {}", message, log);
-            }
-            if let Some(log) = gl.get_shader_info_log(&vert_shader) {
-                message = format!("{}\nVertex shader error: {}", message, log);
-            }
-            if let Some(log) = gl.get_shader_info_log(&frag_shader) {
-                message = format!("{}\nFragment shader error: {}", message, log);
-            }
-            return Err(Error::FailedToLinkProgram { message });
-        }
-
         gl.detach_shader(&id, &vert_shader);
         gl.detach_shader(&id, &frag_shader);
         gl.delete_shader(Some(&vert_shader));
         gl.delete_shader(Some(&frag_shader));
+
+        if !success {
+            let mut message = "Failed to compile shader program:\n".to_string();
+            if let Some(log) = gl.get_program_info_log(&id) {message = format!("{}\nLink error: {}", message, log);}
+            if let Some(log) = gl.get_shader_info_log(&vert_shader) {message = format!("{}\nVertex shader error: {}", message, log);}
+            if let Some(log) = gl.get_shader_info_log(&frag_shader) {message = format!("{}\nFragment shader error: {}", message, log);}
+            return Err(Error::FailedToLinkProgram {message});
+        }
 
         // Init vertex attributes
         let num_attribs = gl.get_program_parameter(&id, consts::ACTIVE_ATTRIBUTES);
