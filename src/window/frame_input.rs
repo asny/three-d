@@ -31,6 +31,7 @@ pub enum Event
     },
     MouseMotion {
         delta: (f64, f64),
+        position: (f64, f64)
     },
     MouseWheel {
         delta: f64,

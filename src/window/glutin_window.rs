@@ -156,7 +156,10 @@ impl Window
             },
             Event::DeviceEvent{ event, .. } => match event {
                 DeviceEvent::MouseMotion {delta} => {
-                    return Some(frame_input::Event::MouseMotion {delta: *delta});
+                    if let Some(position) = unsafe {CURSOR_POS}
+                    {
+                        return Some(frame_input::Event::MouseMotion { delta: *delta, position });
+                    }
                 },
                 _ => {}
             }

@@ -133,7 +133,10 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::MouseMotion {delta: (event.movement_x() as f64, event.movement_y() as f64)});
+                (*events).borrow_mut().push(Event::MouseMotion {
+                    delta: (event.movement_x() as f64, event.movement_y() as f64),
+                    position: (event.offset_x() as f64, event.offset_y() as f64)
+                });
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -203,7 +206,10 @@ impl Window
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
                     if let Some((x,y)) = *last_position.borrow() {
-                        (*events).borrow_mut().push(Event::MouseMotion {delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64)});
+                        (*events).borrow_mut().push(Event::MouseMotion {
+                            delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64),
+                            position: (touch.page_x() as f64, touch.page_y() as f64)
+                        });
                     }
                     *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
                     *last_zoom.borrow_mut() = None;
