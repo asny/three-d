@@ -1,7 +1,6 @@
 
 use three_d::core::*;
 use three_d::window::*;
-use three_d::io::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -51,6 +50,7 @@ fn main() {
 
         #[cfg(target_arch = "x86_64")]
         if let Some(ref path) = screenshot_path {
+            use three_d::io::*;
             let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
             Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
             std::process::exit(1);

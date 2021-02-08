@@ -50,7 +50,7 @@ fn main() {
                     Event::MouseClick { state, button, .. } => {
                         rotating = *button == MouseButton::Left && *state == State::Pressed;
                     },
-                    Event::MouseMotion { delta } => {
+                    Event::MouseMotion { delta, .. } => {
                         if rotating {
                             camera.rotate_around_up(delta.0 as f32, delta.1 as f32);
                         }
