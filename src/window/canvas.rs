@@ -38,6 +38,13 @@ impl Window
         context.get_extension("EXT_color_buffer_float").map_err(|e| Error::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
         context.get_extension("OES_texture_float").map_err(|e| Error::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
 
+        let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
+            event.prevent_default();
+            event.stop_propagation();
+        }) as Box<dyn FnMut(_)>);
+        canvas.set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
+        closure.forget();
+
         if let Some((width, height)) = size {
             canvas.set_width(width);
             canvas.set_height(height);
@@ -96,15 +103,18 @@ impl Window
     fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-            let button = match event.button() {
-                0 => Some(MouseButton::Left),
-                1 => Some(MouseButton::Middle),
-                2 => Some(MouseButton::Right),
-                _ => None
-            };
-            if let Some(b) = button {
-                (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: b, position: (event.offset_x() as f64, event.offset_y() as f64)});
-            };
+            if !event.default_prevented() {
+                let button = match event.button() {
+                    0 => Some(MouseButton::Left),
+                    1 => Some(MouseButton::Middle),
+                    2 => Some(MouseButton::Right),
+                    _ => None
+                };
+                if let Some(b) = button {
+                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: b, position: (event.offset_x() as f64, event.offset_y() as f64) });
+                };
+                event.prevent_default();
+            }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse down event listener. Error code: {:?}", e)})?;
         closure.forget();
@@ -114,15 +124,18 @@ impl Window
     fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-            let button = match event.button() {
-                0 => Some(MouseButton::Left),
-                1 => Some(MouseButton::Middle),
-                2 => Some(MouseButton::Right),
-                _ => None
-            };
-            if let Some(b) = button {
-                (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: b, position: (event.offset_x() as f64, event.offset_y() as f64)});
-            };
+            if !event.default_prevented() {
+                let button = match event.button() {
+                    0 => Some(MouseButton::Left),
+                    1 => Some(MouseButton::Middle),
+                    2 => Some(MouseButton::Right),
+                    _ => None
+                };
+                if let Some(b) = button {
+                    (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: b, position: (event.offset_x() as f64, event.offset_y() as f64) });
+                };
+                event.prevent_default();
+            }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse up event listener. Error code: {:?}", e)})?;
         closure.forget();
@@ -161,22 +174,23 @@ impl Window
     fn add_touchstart_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
-            if event.touches().length() == 1 {
-                let touch = event.touches().item(0).unwrap();
-                (*events).borrow_mut().push(Event::MouseClick {state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64)});
-                *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
-                *last_zoom.borrow_mut() = None;
-            }
-            else if event.touches().length() == 2 {
-                let touch0 = event.touches().item(0).unwrap();
-                let touch1 = event.touches().item(1).unwrap();
-                let zoom = f64::sqrt(f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2) + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2));
-                *last_zoom.borrow_mut() = Some(zoom);
-                *last_position.borrow_mut() = None;
-            }
-            else {
-                *last_zoom.borrow_mut() = None;
-                *last_position.borrow_mut() = None;
+            if !event.default_prevented() {
+                if event.touches().length() == 1 {
+                    let touch = event.touches().item(0).unwrap();
+                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64) });
+                    *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
+                    *last_zoom.borrow_mut() = None;
+                } else if event.touches().length() == 2 {
+                    let touch0 = event.touches().item(0).unwrap();
+                    let touch1 = event.touches().item(1).unwrap();
+                    let zoom = f64::sqrt(f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2) + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2));
+                    *last_zoom.borrow_mut() = Some(zoom);
+                    *last_position.borrow_mut() = None;
+                } else {
+                    *last_zoom.borrow_mut() = None;
+                    *last_position.borrow_mut() = None;
+                }
+                event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref())
@@ -188,10 +202,13 @@ impl Window
     fn add_touchend_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
-            let touch = event.touches().item(0).unwrap();
-            *last_position.borrow_mut() = None;
-            *last_zoom.borrow_mut() = None;
-            (*events).borrow_mut().push(Event::MouseClick {state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64)});
+            if !event.default_prevented() {
+                let touch = event.touches().item(0).unwrap();
+                *last_position.borrow_mut() = None;
+                *last_zoom.borrow_mut() = None;
+                (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64) });
+                event.prevent_default();
+            }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref())
             .map_err(|e| Error::EventListenerError {message: format!("Unable to add touch end event listener. Error code: {:?}", e)})?;
