@@ -16,6 +16,7 @@ fn main() {
     let mut secondary_camera = Camera::new_perspective(&context, vec3(-500.0, 700.0, 500.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                        degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
 
+    // Models from http://texturedmesh.isti.cnr.it/
     Loader::load(&["examples/assets/COLOMBE.obj", "examples/assets/COLOMBE.mtl",
         "examples/assets/COLOMBE.png","examples/assets/pfboy.obj", "examples/assets/pfboy.mtl",
         "examples/assets/pfboy.png"], move |loaded|
