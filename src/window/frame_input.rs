@@ -30,6 +30,7 @@ pub enum Event
         position: (f64, f64)
     },
     MouseMotion {
+        /*Note: The 'delta' variable is not entirely accurate, especially on web. For better accuracy, use the 'position' variable instead.*/
         delta: (f64, f64),
         position: (f64, f64)
     },
