@@ -125,12 +125,15 @@ impl Window
                     }
                 },
                 WindowEvent::MouseWheel {delta, ..} => {
-                    match delta {
-                        MouseScrollDelta::LineDelta(_, y) => {
-                            return Some(frame_input::Event::MouseWheel { delta: *y as f64 });
-                        },
-                        MouseScrollDelta::PixelDelta(logical_position) => {
-                            return Some(frame_input::Event::MouseWheel { delta: logical_position.y });
+                    if let Some(position) = unsafe {CURSOR_POS}
+                    {
+                        match delta {
+                            MouseScrollDelta::LineDelta(_, y) => {
+                                return Some(frame_input::Event::MouseWheel { delta: *y as f64, position });
+                            },
+                            MouseScrollDelta::PixelDelta(logical_position) => {
+                                return Some(frame_input::Event::MouseWheel { delta: logical_position.y, position });
+                            }
                         }
                     }
                 },

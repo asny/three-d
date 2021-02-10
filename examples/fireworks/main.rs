@@ -38,7 +38,7 @@ fn main() {
                         camera.rotate(delta.0 as f32, delta.1 as f32);
                     }
                 },
-                Event::MouseWheel {delta} => {
+                Event::MouseWheel {delta, ..} => {
                     camera.zoom(*delta as f32);
                 },
                 _ => { }

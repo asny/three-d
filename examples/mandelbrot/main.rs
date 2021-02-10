@@ -46,7 +46,7 @@ fn main() {
                         camera.pan(0.2 * delta.0 as f32, 0.2 * delta.1 as f32);
                     }
                 },
-                Event::MouseWheel {delta} => {
+                Event::MouseWheel {delta, ..} => {
                     camera.zoom(0.05 * *delta as f32);
                 },
                 _ => {}

@@ -36,6 +36,7 @@ pub enum Event
     },
     MouseWheel {
         delta: f64,
+        position: (f64, f64)
     },
     Key {
         state: State,
