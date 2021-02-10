@@ -63,7 +63,7 @@ impl Imposters {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
                             center, vec3(0.0, 1.0, 0.0));
-            RenderTarget::write_array(&self.context, 0, 0, texture_width, texture_height,
+            RenderTarget::write_array(&self.context,
                               Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
                               Some(&self.texture), Some(&depth_texture),
                               1, &|_| { i },
