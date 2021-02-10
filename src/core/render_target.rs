@@ -119,7 +119,6 @@ impl RenderTarget
                                                          color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
                                                          depth_layer: usize, render: F) -> Result<(), Error>
     {
-        context.viewport(x, y, width, height);
         let id = RenderTarget::new_framebuffer(context, color_channel_count)?;
 
         if let Some(color_texture) = color_texture_array {
