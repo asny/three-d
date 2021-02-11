@@ -48,14 +48,29 @@ pub struct ColorMask {
     pub alpha: bool
 }
 
-impl Default for ColorMask {
-    fn default() -> Self {
+impl ColorMask {
+    pub fn enabled() -> Self {
         Self {
             red: true,
             green: true,
             blue: true,
             alpha: true,
         }
+    }
+
+    pub fn disabled() -> Self {
+        Self {
+            red: false,
+            green: false,
+            blue: false,
+            alpha: false,
+        }
+    }
+}
+
+impl Default for ColorMask {
+    fn default() -> Self {
+        Self::enabled()
      }
 }
 
