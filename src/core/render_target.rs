@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::context::{Context, consts};
+use crate::ImageEffect;
 
 pub struct Screen {}
 
@@ -9,6 +10,61 @@ impl Screen {
         context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
         RenderTarget::clear(context, clear_color, clear_depth);
         render()?;
+        Ok(())
+    }
+
+    pub fn copy_from(context: &Context, color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>, _filter: Interpolation, viewport: Viewport) -> Result<(), Error>
+    {
+        if color_texture.is_none() && depth_texture.is_none() {
+            Err(Error::FailedToCopyFramebuffer {message: "A copy operation must copy either color or depth or both.".to_owned()})?
+        }
+        /*let id_source = RenderTarget::new_framebuffer(context, if color_texture.is_some() {1} else {0})?;
+
+        let mut source_width = 0;
+        let mut source_height = 0;
+
+        if let Some(source) = color_texture {
+            Program::set_color_mask(context, ColorMask::enabled());
+            source.bind_as_color_target(0);
+            source_width = source.width;
+            source_height = source.height;
+        }
+
+        if let Some(source) = depth_texture {
+            Program::set_depth(context, None, true);
+            source.bind_as_depth_target();
+            source_width = source.width;
+            source_height = source.height;
+        }
+
+        #[cfg(feature = "debug")]
+        {
+            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        }
+
+        context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&id_source));
+        context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
+
+        let mask = if depth_texture.is_some() && color_texture.is_some() {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
+            if depth_texture.is_some() { consts::DEPTH_BUFFER_BIT } else {consts::COLOR_BUFFER_BIT}};
+        context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
+                                 viewport.x as u32, viewport.y as u32, viewport.width as u32, viewport.height as u32,
+                                 mask, filter as u32);
+
+        context.delete_framebuffer(Some(&id_source));*/
+
+        let effect = get_copy_effect(context)?;
+        Self::write(context, None, None, || {
+            if let Some(tex) = color_texture {
+                effect.program().use_texture(tex, "colorMap")?;
+            }
+            if let Some(tex) = depth_texture {
+                effect.program().use_texture(tex, "depthMap")?;
+            }
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always, depth_mask: depth_texture.is_some(),
+                color_mask: if color_texture.is_some() {ColorMask::enabled()} else {ColorMask::disabled()}, ..Default::default()}, viewport)?;
+            Ok(())
+        })?;
         Ok(())
     }
 
@@ -93,6 +149,82 @@ impl RenderTarget
         if let Some(depth_texture) = depth_texture {
             depth_texture.generate_mip_maps();
         }
+        Ok(())
+    }
+
+    pub fn copy_color(context: &Context, source_texture: &Texture2D, target_texture: &Texture2D, filter: Interpolation) -> Result<(), Error>
+    {
+        Self::copy(context, Some((source_texture, target_texture)), None, filter)
+    }
+
+    pub fn copy_depth(context: &Context, source_texture: &Texture2D, target_texture: &Texture2D, filter: Interpolation) -> Result<(), Error>
+    {
+        Self::copy(context, None, Some((source_texture, target_texture)), filter)
+    }
+
+    pub fn copy(context: &Context, color_texture: Option<(&Texture2D, &Texture2D)>, depth_texture: Option<(&Texture2D, &Texture2D)>,
+                filter: Interpolation) -> Result<(), Error>
+    {
+        if color_texture.is_none() && depth_texture.is_none() {
+            Err(Error::FailedToCopyFramebuffer {message: "A copy operation must copy either color or depth or both.".to_owned()})?
+        }
+        let id_source = RenderTarget::new_framebuffer(context, if color_texture.is_some() {1} else {0})?;
+
+        let mut source_width = 0;
+        let mut source_height = 0;
+
+        if let Some((source, _)) = color_texture {
+            Program::set_color_mask(context, ColorMask::enabled());
+            source.bind_as_color_target(0);
+            source_width = source.width;
+            source_height = source.height;
+        }
+
+        if let Some((source, _)) = depth_texture {
+            Program::set_depth(context, None, true);
+            source.bind_as_depth_target();
+            source_width = source.width;
+            source_height = source.height;
+        }
+
+        #[cfg(feature = "debug")]
+        {
+            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        }
+
+        context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&id_source));
+
+        let id_target = RenderTarget::new_framebuffer(context, if color_texture.is_some() {1} else {0})?;
+
+        let mut target_width = 0;
+        let mut target_height = 0;
+
+        if let Some((_, target)) = color_texture {
+            target.bind_as_color_target(0);
+            target_width = target.width;
+            target_height = target.height;
+        }
+
+        if let Some((_, target)) = depth_texture {
+            target.bind_as_depth_target();
+            target_width = target.width;
+            target_height = target.height;
+        }
+
+        #[cfg(feature = "debug")]
+        {
+            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        }
+
+        let mask = if depth_texture.is_some() && color_texture.is_some() {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
+            if depth_texture.is_some() { consts::DEPTH_BUFFER_BIT } else {consts::COLOR_BUFFER_BIT}};
+        context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
+                                 0, 0, target_width as u32, target_height as u32,
+                                 mask, filter as u32);
+
+        context.delete_framebuffer(Some(&id_source));
+        context.delete_framebuffer(Some(&id_target));
+
         Ok(())
     }
 
@@ -203,7 +335,7 @@ impl RenderTarget
 
     fn clear(context: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
         if let Some(color) = clear_color {
-            Program::set_color_mask(context, ColorMask::default());
+            Program::set_color_mask(context, ColorMask::enabled());
             if let Some(depth) = clear_depth {
                 Program::set_depth(context, None, true);
                 context.clear_color(color.x, color.y, color.z, color.w);
@@ -249,4 +381,24 @@ impl RenderTarget
                                  0, 0, target_texture.width as u32, target_texture.height as u32,
                                  consts::DEPTH_BUFFER_BIT, consts::NEAREST);
     }*/
+}
+
+fn get_copy_effect(context: &Context) -> Result<&ImageEffect, Error>
+{
+    unsafe {
+        static mut COPY_EFFECT: Option<ImageEffect> = None;
+        if COPY_EFFECT.is_none() {
+            COPY_EFFECT = Some(ImageEffect::new(context, &"
+                uniform sampler2D colorMap;
+                uniform sampler2D depthMap;
+                in vec2 uv;
+                layout (location = 0) out vec4 color;
+                void main()
+                {
+                    color = texture(colorMap, uv);
+                    gl_FragDepth = texture(depthMap, uv).r;
+                }")?);
+        }
+        Ok(COPY_EFFECT.as_ref().unwrap())
+    }
 }
