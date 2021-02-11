@@ -47,7 +47,7 @@ impl Window
 
         let events_loop = EventsLoop::new();
 
-        let context = ContextBuilder::new().with_vsync(true).with_srgb(true);
+        let context = ContextBuilder::new().with_vsync(true).with_srgb(true).with_multisampling(4);
 
         let gl_window = GlWindow::new(window, context, &events_loop)?;
 
