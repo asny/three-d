@@ -55,7 +55,7 @@ impl Window
         Ok(Window { gl: crate::context::Glstruct::new(context), canvas, window, maximized: size.is_none() })
     }
 
-    pub fn render_loop<F: 'static>(&mut self, mut callback: F) -> Result<(), Error>
+    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
         where F: FnMut(crate::FrameInput)
     {
         let f = Rc::new(RefCell::new(None));
@@ -66,7 +66,6 @@ impl Window
         let mut last_time = performance.now();
         let last_position = Rc::new(RefCell::new(None));
         let last_zoom = Rc::new(RefCell::new(None));
-        let maximized = self.maximized;
 
         self.add_mousedown_event_listener(events.clone())?;
         self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
@@ -82,11 +81,10 @@ impl Window
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
-            let mut canvas = canvas();
-            if maximized {
-                maximize(&window(), &mut canvas);
+            if self.maximized {
+                maximize(&self.window, &self.canvas);
             }
-            let (width, height) = (canvas.width() as usize, canvas.height() as usize);
+            let (width, height) = (self.canvas.width() as usize, self.canvas.height() as usize);
             let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, viewport: crate::Viewport::new_at_origo(width, height),
                 window_width: width, window_height: height
             };
@@ -312,11 +310,7 @@ fn window() -> web_sys::Window {
     web_sys::window().expect("no global `window` exists")
 }
 
-fn canvas() -> web_sys::HtmlCanvasElement {
-    window().document().expect("no global `window` exists").get_element_by_id("canvas").expect("Canvas").dyn_into::<web_sys::HtmlCanvasElement>().expect("")
-}
-
-fn maximize(window: &web_sys::Window, canvas: &mut web_sys::HtmlCanvasElement) {
+fn maximize(window: &web_sys::Window, canvas: &web_sys::HtmlCanvasElement) {
     let (w, h) = (window.inner_width().unwrap().as_f64().unwrap() as u32,
                     window.inner_height().unwrap().as_f64().unwrap() as u32);
     let (width, height) = (canvas.width() as u32, canvas.height() as u32);

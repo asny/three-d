@@ -6,7 +6,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new("Triangle", None).unwrap();
+    let window = Window::new("Triangle", None).unwrap();
     let context = window.gl();
 
     // Camera

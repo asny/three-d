@@ -50,7 +50,7 @@ impl Window
             };
 
         let event_loop = EventLoop::new();
-        let windowed_context = ContextBuilder::new().with_vsync(true).with_srgb(true).build_windowed(window_builder, &event_loop).unwrap();
+        let windowed_context = ContextBuilder::new().with_vsync(true).with_srgb(true).build_windowed(window_builder, &event_loop)?;
         let windowed_context = unsafe { windowed_context.make_current().unwrap() };
         let gl = context::Glstruct::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
         Ok(Window { windowed_context, event_loop, gl})
@@ -88,10 +88,15 @@ impl Window
                             accumulated_time = 0.0;
                         }
 
-                        let (w, h): (u32, u32) = windowed_context.window().inner_size().into();
-                        let (window_width, window_height): (u32, u32) = windowed_context.window().inner_size().to_logical::<f64>(windowed_context.window().scale_factor()).into();
-                        let viewport = crate::Viewport::new_at_origo(w as usize, h as usize);
-                        let frame_input = frame_input::FrameInput {events: events.clone(), elapsed_time, viewport, window_width: window_width as usize, window_height: window_height as usize};
+                        let (physical_width, physical_height): (u32, u32) = windowed_context.window().inner_size().into();
+                        let (width, height): (u32, u32) = windowed_context.window().inner_size().to_logical::<f64>(windowed_context.window().scale_factor()).into();
+                        let frame_input = frame_input::FrameInput {
+                            events: events.clone(),
+                            elapsed_time,
+                            viewport: crate::Viewport::new_at_origo(physical_width as usize, physical_height as usize),
+                            window_width: width as usize,
+                            window_height: height as usize
+                        };
                         events.clear();
                         callback(frame_input);
                         windowed_context.swap_buffers().unwrap();
