@@ -96,30 +96,29 @@ impl RenderTarget
         Ok(())
     }
 
-    pub fn write_to_color_array<F: FnOnce() -> Result<(), Error>>(context: &Context, x: i32, y: i32, width: usize, height: usize,
+    pub fn write_to_color_array<F: FnOnce() -> Result<(), Error>>(context: &Context,
                                                                   clear_color: Option<&Vec4>,
                                                                   color_texture_array: Option<&Texture2DArray>,
                                                                   color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
                                                                   render: F) -> Result<(), Error>
     {
-        Self::write_array(context, x, y, width, height, clear_color, None, color_texture_array, None, color_channel_count, color_channel_to_texture_layer, 0, render)
+        Self::write_array(context, clear_color, None, color_texture_array, None, color_channel_count, color_channel_to_texture_layer, 0, render)
     }
 
-    pub fn write_to_depth_array<F: FnOnce() -> Result<(), Error>>(context: &Context, x: i32, y: i32, width: usize, height: usize, clear_depth: Option<f32>,
+    pub fn write_to_depth_array<F: FnOnce() -> Result<(), Error>>(context: &Context, clear_depth: Option<f32>,
                                                                   depth_texture_array: Option<&Texture2DArray>, depth_layer: usize,
                                                                   render: F) -> Result<(), Error>
     {
-        Self::write_array(context, x, y, width, height,None, clear_depth, None, depth_texture_array, 0, &|i| {i}, depth_layer, render)
+        Self::write_array(context, None, clear_depth, None, depth_texture_array, 0, &|i| {i}, depth_layer, render)
     }
 
-    pub fn write_array<F: FnOnce() -> Result<(), Error>>(context: &Context, x: i32, y: i32, width: usize, height: usize,
+    pub fn write_array<F: FnOnce() -> Result<(), Error>>(context: &Context,
                                                          clear_color: Option<&Vec4>, clear_depth: Option<f32>,
                                                          color_texture_array: Option<&Texture2DArray>,
                                                          depth_texture_array: Option<&Texture2DArray>,
                                                          color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
                                                          depth_layer: usize, render: F) -> Result<(), Error>
     {
-        context.viewport(x, y, width, height);
         let id = RenderTarget::new_framebuffer(context, color_channel_count)?;
 
         if let Some(color_texture) = color_texture_array {
