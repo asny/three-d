@@ -6,7 +6,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let mut window = Window::new("Fireworks", None).unwrap();
+    let window = Window::new("Fireworks", None).unwrap();
     let context = window.gl();
 
     let mut camera = Camera::new_perspective(&context, vec3(0.0, 30.0, 150.0), vec3(0.0, 30.0, 0.0), vec3(0.0, 1.0, 0.0),
