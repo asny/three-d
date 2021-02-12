@@ -122,30 +122,21 @@ impl RenderTarget
                                                    color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
                                                    render: F) -> Result<(), Error>
     {
-        let id = RenderTarget::new_framebuffer(context, if color_texture.is_some() {1} else {0})?;
-
-        if let Some(color_texture) = color_texture {
-            color_texture.bind_as_color_target(0);
-        }
-
-        if let Some(depth_texture) = depth_texture {
-            depth_texture.bind_as_depth_target();
-        }
-
-        #[cfg(feature = "debug")]
-        {
-            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        }
-        RenderTarget::clear(context, clear_color, clear_depth);
-
-        render()?;
-
-        context.delete_framebuffer(Some(&id));
+        RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |_| {
+            if let Some(color_texture) = color_texture {
+                color_texture.bind_as_color_target(0);
+            }
+            if let Some(depth_texture) = depth_texture {
+                depth_texture.bind_as_depth_target();
+            }
+            RenderTarget::clear(context, clear_color, clear_depth);
+            render()?;
+            Ok(())
+        })?;
 
         if let Some(color_texture) = color_texture {
             color_texture.generate_mip_maps();
         }
-
         if let Some(depth_texture) = depth_texture {
             depth_texture.generate_mip_maps();
         }
@@ -168,62 +159,39 @@ impl RenderTarget
         if color_texture.is_none() && depth_texture.is_none() {
             Err(Error::FailedToCopyFramebuffer {message: "A copy operation must copy either color or depth or both.".to_owned()})?
         }
-        let id_source = RenderTarget::new_framebuffer(context, if color_texture.is_some() {1} else {0})?;
 
-        let mut source_width = 0;
-        let mut source_height = 0;
+        RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |id| {
+            if let Some((source, _)) = color_texture {
+                Program::set_color_mask(context, ColorMask::enabled());
+                source.bind_as_color_target(0);
+            }
+            if let Some((source, _)) = depth_texture {
+                Program::set_depth(context, None, true);
+                source.bind_as_depth_target();
+            }
 
-        if let Some((source, _)) = color_texture {
-            Program::set_color_mask(context, ColorMask::enabled());
-            source.bind_as_color_target(0);
-            source_width = source.width;
-            source_height = source.height;
-        }
+            context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(id));
 
-        if let Some((source, _)) = depth_texture {
-            Program::set_depth(context, None, true);
-            source.bind_as_depth_target();
-            source_width = source.width;
-            source_height = source.height;
-        }
+            RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |_| {
+                if let Some((_, target)) = color_texture {
+                    target.bind_as_color_target(0);
+                }
 
-        #[cfg(feature = "debug")]
-        {
-            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        }
+                if let Some((_, target)) = depth_texture {
+                    target.bind_as_depth_target();
+                }
 
-        context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&id_source));
-
-        let id_target = RenderTarget::new_framebuffer(context, if color_texture.is_some() {1} else {0})?;
-
-        let mut target_width = 0;
-        let mut target_height = 0;
-
-        if let Some((_, target)) = color_texture {
-            target.bind_as_color_target(0);
-            target_width = target.width;
-            target_height = target.height;
-        }
-
-        if let Some((_, target)) = depth_texture {
-            target.bind_as_depth_target();
-            target_width = target.width;
-            target_height = target.height;
-        }
-
-        #[cfg(feature = "debug")]
-        {
-            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        }
-
-        let mask = if depth_texture.is_some() && color_texture.is_some() {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
-            if depth_texture.is_some() { consts::DEPTH_BUFFER_BIT } else {consts::COLOR_BUFFER_BIT}};
-        context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
-                                 0, 0, target_width as u32, target_height as u32,
-                                 mask, filter as u32);
-
-        context.delete_framebuffer(Some(&id_source));
-        context.delete_framebuffer(Some(&id_target));
+                let (source_width, source_height) = if let Some((tex, _)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().0.width, depth_texture.as_ref().unwrap().0.height)};
+                let (target_width, target_height) = if let Some((_, tex)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().1.width, depth_texture.as_ref().unwrap().1.height)};
+                let mask = if depth_texture.is_some() && color_texture.is_some() {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
+                    if depth_texture.is_some() { consts::DEPTH_BUFFER_BIT } else {consts::COLOR_BUFFER_BIT}};
+                context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
+                                         0, 0, target_width as u32, target_height as u32,
+                                         mask, filter as u32);
+                Ok(())
+            })?;
+            Ok(())
+        })?;
 
         Ok(())
     }
@@ -251,31 +219,23 @@ impl RenderTarget
                                                          color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
                                                          depth_layer: usize, render: F) -> Result<(), Error>
     {
-        let id = RenderTarget::new_framebuffer(context, color_channel_count)?;
-
-        if let Some(color_texture) = color_texture_array {
-            for channel in 0..color_channel_count {
-                color_texture.bind_as_color_target(color_channel_to_texture_layer(channel), channel);
+        RenderTarget::render(context, color_channel_count, |_| {
+            if let Some(color_texture) = color_texture_array {
+                for channel in 0..color_channel_count {
+                    color_texture.bind_as_color_target(color_channel_to_texture_layer(channel), channel);
+                }
             }
-        }
+            if let Some(depth_texture) = depth_texture_array {
+                depth_texture.bind_as_depth_target(depth_layer);
+            }
+            RenderTarget::clear(context, clear_color, clear_depth);
+            render()?;
+            Ok(())
+        })?;
 
-        if let Some(depth_texture) = depth_texture_array {
-            depth_texture.bind_as_depth_target(depth_layer);
-        }
-
-        #[cfg(feature = "debug")]
-        {
-            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        }
-        RenderTarget::clear(context, clear_color, clear_depth);
-
-        render()?;
-
-        context.delete_framebuffer(Some(&id));
         if let Some(color_texture) = color_texture_array {
             color_texture.generate_mip_maps();
         }
-
         if let Some(depth_texture) = depth_texture_array {
             depth_texture.generate_mip_maps();
         }
@@ -317,7 +277,7 @@ impl RenderTarget
         Ok(pixels)
     }*/
 
-    fn new_framebuffer(context: &Context, no_color_channels: usize) -> Result<crate::context::Framebuffer, Error>
+    fn render<F: FnOnce(&crate::context::Framebuffer) -> Result<(), Error>>(context: &Context, no_color_channels: usize, callback: F) -> Result<(), Error>
     {
         let id = context.create_framebuffer()
             .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
@@ -330,7 +290,16 @@ impl RenderTarget
             }
             context.draw_buffers(&draw_buffers);
         }
-        Ok(id)
+
+        #[cfg(feature = "debug")]
+        {
+            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
+        }
+
+        callback(&id)?;
+
+        context.delete_framebuffer(Some(&id));
+        Ok(())
     }
 
     fn clear(context: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
