@@ -129,6 +129,8 @@ impl RenderTarget
             if let Some(depth_texture) = depth_texture {
                 depth_texture.bind_as_depth_target();
             }
+            #[cfg(feature = "debug")]
+            Self::check(context)?;
             RenderTarget::clear(context, clear_color, clear_depth);
             render()?;
             Ok(())
@@ -171,6 +173,8 @@ impl RenderTarget
             }
 
             context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(id));
+            #[cfg(feature = "debug")]
+            Self::check(context)?;
 
             RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |_| {
                 if let Some((_, target)) = color_texture {
@@ -180,6 +184,8 @@ impl RenderTarget
                 if let Some((_, target)) = depth_texture {
                     target.bind_as_depth_target();
                 }
+                #[cfg(feature = "debug")]
+                Self::check(context)?;
 
                 let (source_width, source_height) = if let Some((tex, _)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().0.width, depth_texture.as_ref().unwrap().0.height)};
                 let (target_width, target_height) = if let Some((_, tex)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().1.width, depth_texture.as_ref().unwrap().1.height)};
@@ -228,6 +234,8 @@ impl RenderTarget
             if let Some(depth_texture) = depth_texture_array {
                 depth_texture.bind_as_depth_target(depth_layer);
             }
+            #[cfg(feature = "debug")]
+            Self::check(context)?;
             RenderTarget::clear(context, clear_color, clear_depth);
             render()?;
             Ok(())
@@ -291,15 +299,15 @@ impl RenderTarget
             context.draw_buffers(&draw_buffers);
         }
 
-        #[cfg(feature = "debug")]
-        {
-            context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))?;
-        }
-
         callback(&id)?;
 
         context.delete_framebuffer(Some(&id));
         Ok(())
+    }
+
+    #[cfg(feature = "debug")]
+    fn check(context: &Context) -> Result<(), Error> {
+        context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))
     }
 
     fn clear(context: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
