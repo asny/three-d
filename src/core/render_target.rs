@@ -145,6 +145,25 @@ impl RenderTarget
         Ok(())
     }
 
+    pub fn read<F: FnOnce() -> Result<(), Error>>(context: &Context, color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
+                                                  render: F) -> Result<(), Error>
+    {
+        RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |id| {
+            if let Some(tex) = color_texture {
+                tex.bind_as_color_target(0);
+            }
+            if let Some(tex) = depth_texture {
+                tex.bind_as_depth_target();
+            }
+            #[cfg(feature = "debug")]
+            Self::check(context)?;
+            context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(id));
+            render()?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
     pub fn copy_color(context: &Context, source_texture: &Texture2D, target_texture: &Texture2D, filter: Interpolation) -> Result<(), Error>
     {
         Self::copy(context, Some((source_texture, target_texture)), None, filter)
@@ -158,31 +177,15 @@ impl RenderTarget
     pub fn copy(context: &Context, color_texture: Option<(&Texture2D, &Texture2D)>, depth_texture: Option<(&Texture2D, &Texture2D)>,
                 filter: Interpolation) -> Result<(), Error>
     {
-        if color_texture.is_none() && depth_texture.is_none() {
-            Err(Error::FailedToCopyFramebuffer {message: "A copy operation must copy either color or depth or both.".to_owned()})?
-        }
-
-        RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |id| {
-            if let Some((source, _)) = color_texture {
-                Program::set_color_mask(context, ColorMask::enabled());
-                source.bind_as_color_target(0);
-            }
-            if let Some((source, _)) = depth_texture {
-                Program::set_depth(context, None, true);
-                source.bind_as_depth_target();
-            }
-
-            context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(id));
-            #[cfg(feature = "debug")]
-            Self::check(context)?;
-
+        let mask = Self::copy_init(context, color_texture.is_some(), depth_texture.is_some())?;
+        RenderTarget::read(context,
+                           color_texture.map(|(tex, _)| tex),
+                           depth_texture.map(|(tex, _)| tex), || {
             RenderTarget::write(context, None, None,
                                 color_texture.map(|(_, tex)| tex),
                                 depth_texture.map(|(_, tex)| tex), || {
                 let (source_width, source_height) = if let Some((tex, _)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().0.width, depth_texture.as_ref().unwrap().0.height)};
                 let (target_width, target_height) = if let Some((_, tex)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().1.width, depth_texture.as_ref().unwrap().1.height)};
-                let mask = if depth_texture.is_some() && color_texture.is_some() {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
-                    if depth_texture.is_some() { consts::DEPTH_BUFFER_BIT } else {consts::COLOR_BUFFER_BIT}};
                 context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
                                          0, 0, target_width as u32, target_height as u32,
                                          mask, filter as u32);
@@ -241,6 +244,58 @@ impl RenderTarget
         Ok(())
     }
 
+    pub fn read_array<F: FnOnce() -> Result<(), Error>>(context: &Context,
+                                                        color_texture_array: Option<&Texture2DArray>,
+                                                        depth_texture_array: Option<&Texture2DArray>,
+                                                        color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
+                                                        depth_layer: usize, render: F) -> Result<(), Error>
+    {
+        RenderTarget::render(context, color_channel_count, |id| {
+            if let Some(color_texture) = color_texture_array {
+                for channel in 0..color_channel_count {
+                    color_texture.bind_as_color_target(color_channel_to_texture_layer(channel), channel);
+                }
+            }
+            if let Some(depth_texture) = depth_texture_array {
+                depth_texture.bind_as_depth_target(depth_layer);
+            }
+            #[cfg(feature = "debug")]
+            Self::check(context)?;
+            context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(id));
+            render()?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn copy_from_array(context: &Context,
+                           color_texture: Option<(&Texture2DArray, &Texture2D)>,
+                           depth_texture: Option<(&Texture2DArray, &Texture2D)>,
+                           color_layer: usize,
+                           depth_layer: usize,
+                           filter: Interpolation) -> Result<(), Error>
+    {
+        let mask = Self::copy_init(context, color_texture.is_some(), depth_texture.is_some())?;
+        RenderTarget::read_array(context,
+                                 color_texture.map(|(tex, _)| tex),
+                                 depth_texture.map(|(tex, _)| tex),
+                                 if color_texture.is_some() {1} else {0},
+                                 &|_| {color_layer}, depth_layer, || {
+                RenderTarget::write(context, None, None,
+                                    color_texture.map(|(_, tex)| tex),
+                                    depth_texture.map(|(_, tex)| tex), || {
+                        let (source_width, source_height) = if let Some((tex, _)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().0.width, depth_texture.as_ref().unwrap().0.height)};
+                        let (target_width, target_height) = if let Some((_, tex)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().1.width, depth_texture.as_ref().unwrap().1.height)};
+                        context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
+                                                 0, 0, target_width as u32, target_height as u32,
+                                                 mask, filter as u32);
+                        Ok(())
+                    })?;
+                Ok(())
+            })?;
+        Ok(())
+    }
+
     // TODO: Read color and depth from rendertarget to cpu
     /*#[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(&self, x: i32, y: i32, width: usize, height: usize) -> Result<Vec<u8>, Error>
@@ -294,6 +349,21 @@ impl RenderTarget
 
         context.delete_framebuffer(Some(&id));
         Ok(())
+    }
+
+    fn copy_init(context: &Context, color_texture_is_some: bool, depth_texture_is_some: bool) -> Result<u32, Error> {
+        if !color_texture_is_some && !depth_texture_is_some {
+            Err(Error::FailedToCopyFramebuffer {message: "A copy operation must copy either color or depth or both.".to_owned()})?;
+        }
+        if color_texture_is_some {
+            Program::set_color_mask(context, ColorMask::enabled());
+        }
+        if depth_texture_is_some {
+            Program::set_depth(context, None, true);
+        }
+        let mask = if depth_texture_is_some && color_texture_is_some {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
+            if depth_texture_is_some { consts::DEPTH_BUFFER_BIT } else {consts::COLOR_BUFFER_BIT}};
+        Ok(mask as u32)
     }
 
     #[cfg(feature = "debug")]
