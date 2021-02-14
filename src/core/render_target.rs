@@ -176,17 +176,9 @@ impl RenderTarget
             #[cfg(feature = "debug")]
             Self::check(context)?;
 
-            RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |_| {
-                if let Some((_, target)) = color_texture {
-                    target.bind_as_color_target(0);
-                }
-
-                if let Some((_, target)) = depth_texture {
-                    target.bind_as_depth_target();
-                }
-                #[cfg(feature = "debug")]
-                Self::check(context)?;
-
+            RenderTarget::write(context, None, None,
+                                color_texture.map(|(_, tex)| tex),
+                                depth_texture.map(|(_, tex)| tex), || {
                 let (source_width, source_height) = if let Some((tex, _)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().0.width, depth_texture.as_ref().unwrap().0.height)};
                 let (target_width, target_height) = if let Some((_, tex)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().1.width, depth_texture.as_ref().unwrap().1.height)};
                 let mask = if depth_texture.is_some() && color_texture.is_some() {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
@@ -198,7 +190,6 @@ impl RenderTarget
             })?;
             Ok(())
         })?;
-
         Ok(())
     }
 
