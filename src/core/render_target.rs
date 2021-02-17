@@ -139,7 +139,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
     pub fn copy_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
         if self.color_texture.is_none() || self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFramebuffer {message: "Cannot copy from depth and color when the render target does not have a color and depth texture.".to_owned()})?;
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
         Program::set_color_mask(&self.context, ColorMask::enabled());
         Program::set_depth(&self.context, None, true);
@@ -157,7 +157,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
     pub fn copy_color_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
         if self.color_texture.is_none() {
-            Err(Error::FailedToCopyFramebuffer {message: "Cannot copy from color when the render target does not have a color texture.".to_owned()})?;
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from color when the render target does not have a color texture.".to_owned()})?;
         }
         Program::set_color_mask(&self.context, ColorMask::enabled());
         self.bind()?;
@@ -174,7 +174,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
     pub fn copy_depth_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
         if self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFramebuffer {message: "Cannot copy from depth when the render target does not have a depth texture.".to_owned()})?;
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth when the render target does not have a depth texture.".to_owned()})?;
         }
         Program::set_depth(&self.context, None, true);
         self.bind()?;
