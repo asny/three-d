@@ -7,9 +7,9 @@ pub struct ImageEffect {
 }
 
 impl ImageEffect {
-    pub fn new(gl: &Context, fragment_shader: &str) -> Result<Self, Error>
+    pub fn new(context: &Context, fragment_shader: &str) -> Result<Self, Error>
     {
-        let program = program::Program::from_source(&gl,
+        let program = program::Program::from_source(&context,
                                                     "in vec3 position;
                                                     in vec2 uv_coordinate;
                                                     out vec2 uv;
@@ -30,8 +30,8 @@ impl ImageEffect {
             2.0, 0.0,
             0.5, 1.5
         ];
-        let positions = VertexBuffer::new_with_static_f32(&gl, &positions).unwrap();
-        let uvs = VertexBuffer::new_with_static_f32(&gl, &uvs).unwrap();
+        let positions = VertexBuffer::new_with_static_f32(&context, &positions).unwrap();
+        let uvs = VertexBuffer::new_with_static_f32(&context, &uvs).unwrap();
 
         Ok(Self {program, positions, uvs})
     }

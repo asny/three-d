@@ -56,7 +56,7 @@ fn main() {
                                                          &Mat4::from_angle_x(degrees(-90.0)),
                                                          &camera)?;
             Ok(())
-        });
+        }).unwrap();
 
         // main loop
         let mut rotating = false;

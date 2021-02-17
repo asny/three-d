@@ -80,7 +80,7 @@ impl SpotLight {
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<F: FnOnce(Viewport, &Camera) -> Result<(), Error>>(&mut self, frustrum_depth: f32, texture_size: usize, render_scene: F)
+    pub fn generate_shadow_map<F: FnOnce(Viewport, &Camera) -> Result<(), Error>>(&mut self, frustrum_depth: f32, texture_size: usize, render_scene: F) -> Result<(), Error>
     {
         let position = self.position();
         let direction = self.direction();
@@ -89,17 +89,17 @@ impl SpotLight {
 
         self.shadow_camera = Some(Camera::new_perspective(&self.context, position, position + direction, up,
                                                           degrees(cutoff), 1.0, 0.1, frustrum_depth));
-        self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
+        self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice())?;
 
         self.shadow_texture = Texture2D::new(&self.context, texture_size, texture_size,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
-                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-        RenderTarget::write_to_depth(&self.context, Some(1.0),
-            Some(&self.shadow_texture), || {
+                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?;
+        RenderTarget::new_depth(&self.context, &self.shadow_texture)?.write( None, Some(1.0), || {
                 render_scene(Viewport::new_at_origo(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
-            }).unwrap();
-        self.light_buffer.update(9, &[1.0]).unwrap();
+            })?;
+        self.light_buffer.update(9, &[1.0])?;
+        Ok(())
     }
 
     pub fn shadow_map(&self) -> &Texture2D

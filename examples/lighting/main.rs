@@ -100,9 +100,9 @@ fn main() {
                 Ok(())
             };
             if shadows_enabled {
-                directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene_depth);
-                directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene_depth);
-                spot_light.generate_shadow_map(20.0, 1024, render_scene_depth);
+                directional_light0.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene_depth).unwrap();
+                directional_light1.generate_shadow_map(&vec3(0.0, 0.0, 0.0), 4.0, 4.0, 20.0, 1024, 1024, render_scene_depth).unwrap();
+                spot_light.generate_shadow_map(20.0, 1024, render_scene_depth).unwrap();
             }
 
             // Geometry pass

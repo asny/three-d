@@ -50,7 +50,7 @@ impl Window
             };
 
         let event_loop = EventLoop::new();
-        let windowed_context = ContextBuilder::new().with_vsync(true).with_srgb(true).build_windowed(window_builder, &event_loop)?;
+        let windowed_context = ContextBuilder::new().with_vsync(true).with_multisampling(4).with_srgb(true).build_windowed(window_builder, &event_loop)?;
         let windowed_context = unsafe { windowed_context.make_current().unwrap() };
         let gl = context::Glstruct::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
         Ok(Window { windowed_context, event_loop, gl})
