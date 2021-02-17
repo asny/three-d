@@ -84,17 +84,38 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
+        if self.color_texture.is_none() || self.depth_texture.is_none() {
+            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to depth and color when the render target does not have a color and depth texture.".to_owned()})?;
+        }
         self.bind()?;
-        clear(&self.context,
-              self.color_texture.and(clear_color),
-              self.depth_texture.and(clear_depth));
+        clear(&self.context, clear_color, clear_depth);
         render()?;
-        if let Some(color_texture) = self.color_texture {
-            color_texture.generate_mip_maps();
+        self.color_texture.unwrap().generate_mip_maps();
+        self.depth_texture.unwrap().generate_mip_maps();
+        Ok(())
+    }
+
+    pub fn write_color<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, render: F) -> Result<(), Error>
+    {
+        if self.color_texture.is_none() {
+            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to color when the render target does not have a color texture.".to_owned()})?;
         }
-        if let Some(depth_texture) = self.depth_texture {
-            depth_texture.generate_mip_maps();
+        self.bind()?;
+        clear(&self.context, clear_color, None);
+        render()?;
+        self.color_texture.unwrap().generate_mip_maps();
+        Ok(())
+    }
+
+    pub fn write_depth<F: FnOnce() -> Result<(), Error>>(&self, clear_depth: Option<f32>, render: F) -> Result<(), Error>
+    {
+        if self.depth_texture.is_none() {
+            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to depth when the render target does not have a depth texture.".to_owned()})?;
         }
+        self.bind()?;
+        clear(&self.context, None, clear_depth);
+        render()?;
+        self.depth_texture.unwrap().generate_mip_maps();
         Ok(())
     }
 
@@ -117,27 +138,51 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn copy_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
-        let color = self.color_texture.is_some() && other.color_texture.is_some();
-        let depth = self.depth_texture.is_some() && other.depth_texture.is_some();
-        if color {
-            Program::set_color_mask(&self.context, ColorMask::enabled());
+        if self.color_texture.is_none() || self.depth_texture.is_none() {
+            Err(Error::FailedToCopyFramebuffer {message: "Cannot copy from depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
-        if depth {
-            Program::set_depth(&self.context, None, true);
-        }
-        let mask = if depth && color {consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT} else {
-            if depth { consts::DEPTH_BUFFER_BIT } else {consts::COLOR_BUFFER_BIT}};
-        let (source_width, source_height) = if let Some(tex) = self.color_texture {(tex.width, tex.height)}
-            else {(self.depth_texture.as_ref().unwrap().width, self.depth_texture.as_ref().unwrap().height)};
-        let (target_width, target_height) = if let Some(tex) = other.color_texture {(tex.width, tex.height)}
-            else {(other.depth_texture.as_ref().unwrap().width, other.depth_texture.as_ref().unwrap().height)};
-
+        Program::set_color_mask(&self.context, ColorMask::enabled());
+        Program::set_depth(&self.context, None, true);
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None, None, || {
-            self.context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
-                                          0, 0, target_width as u32, target_height as u32,
-                                          mask, filter as u32);
+            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
+                                          0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
+                                          consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT, filter as u32);
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn copy_color_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
+    {
+        if self.color_texture.is_none() {
+            Err(Error::FailedToCopyFramebuffer {message: "Cannot copy from color when the render target does not have a color texture.".to_owned()})?;
+        }
+        Program::set_color_mask(&self.context, ColorMask::enabled());
+        self.bind()?;
+        self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
+        other.write_color(None, || {
+            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
+                                          0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
+                                          consts::COLOR_BUFFER_BIT, filter as u32);
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn copy_depth_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
+    {
+        if self.depth_texture.is_none() {
+            Err(Error::FailedToCopyFramebuffer {message: "Cannot copy from depth when the render target does not have a depth texture.".to_owned()})?;
+        }
+        Program::set_depth(&self.context, None, true);
+        self.bind()?;
+        self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
+        other.write_depth(None, || {
+            self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width as u32, self.depth_texture.unwrap().height as u32,
+                                          0, 0, other.depth_texture.unwrap().width as u32, other.depth_texture.unwrap().height as u32,
+                                          consts::DEPTH_BUFFER_BIT, filter as u32);
             Ok(())
         })?;
         Ok(())

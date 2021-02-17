@@ -24,7 +24,7 @@ impl PhongForwardPipeline {
                     Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, Format::Depth32F)?);
         RenderTarget::new_depth(&self.context,self.depth_texture.as_ref().unwrap())?
-            .write(None,Some(1.0), render_scene)?;
+            .write_depth(Some(1.0), render_scene)?;
         Ok(())
     }
 

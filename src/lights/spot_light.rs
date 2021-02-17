@@ -94,7 +94,7 @@ impl SpotLight {
         self.shadow_texture = Texture2D::new(&self.context, texture_size, texture_size,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?;
-        RenderTarget::new_depth(&self.context, &self.shadow_texture)?.write(None, Some(1.0), || {
+        RenderTarget::new_depth(&self.context, &self.shadow_texture)?.write_depth( Some(1.0), || {
                 render_scene(Viewport::new_at_origo(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
             })?;

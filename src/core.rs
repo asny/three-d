@@ -49,6 +49,7 @@ pub enum Error {
     FailedToFindUniform {message: String},
     FailedToCreateFramebuffer {message: String},
     FailedToCopyFramebuffer {message: String},
+    FailedToWriteToRenderTarget {message: String},
     FailedToCreateTexture {message: String},
     FailedToUpdateBuffer {message: String},
     FailedToCreateMesh {message: String}
