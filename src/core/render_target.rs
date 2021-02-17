@@ -136,7 +136,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
+    pub fn copy(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
         if self.color_texture.is_none() || self.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth and color when the render target does not have a color and depth texture.".to_owned()})?;
@@ -154,7 +154,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_color_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
+    pub fn copy_color(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
         if self.color_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from color when the render target does not have a color texture.".to_owned()})?;
@@ -171,7 +171,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_depth_to(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
+    pub fn copy_depth(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
         if self.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth when the render target does not have a depth texture.".to_owned()})?;
@@ -283,7 +283,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_to(&self, other: &RenderTarget, color_layer: usize, depth_layer: usize, filter: Interpolation) -> Result<(), Error>
+    pub fn copy(&self, color_layer: usize, depth_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
     {
         if self.color_texture.is_none() || self.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth and color when the render target does not have a color and depth texture.".to_owned()})?;
@@ -301,7 +301,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_color_to(&self, other: &RenderTarget, color_layer: usize, filter: Interpolation) -> Result<(), Error>
+    pub fn copy_color(&self, color_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
     {
         if self.color_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from color when the render target does not have a color texture.".to_owned()})?;
@@ -318,7 +318,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_depth_to(&self, other: &RenderTarget, depth_layer: usize, filter: Interpolation) -> Result<(), Error>
+    pub fn copy_depth(&self, depth_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
     {
         if self.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth when the render target does not have a depth texture.".to_owned()})?;
