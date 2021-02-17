@@ -63,10 +63,10 @@ fn main() {
             vertices.render_depth(render_states, viewport, &transformation, camera)?;
             Ok(())
         };
-        spot_light0.generate_shadow_map(50.0, 512, &render_scene);
-        spot_light1.generate_shadow_map(50.0, 512, &render_scene);
-        spot_light2.generate_shadow_map(50.0, 512, &render_scene);
-        spot_light3.generate_shadow_map(50.0, 512, &render_scene);
+        spot_light0.generate_shadow_map(50.0, 512, &render_scene).unwrap();
+        spot_light1.generate_shadow_map(50.0, 512, &render_scene).unwrap();
+        spot_light2.generate_shadow_map(50.0, 512, &render_scene).unwrap();
+        spot_light3.generate_shadow_map(50.0, 512, &render_scene).unwrap();
 
         // main loop
         let mut rotating = false;

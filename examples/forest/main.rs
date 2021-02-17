@@ -75,7 +75,7 @@ fn main() {
             tree_mesh.render_depth(tree_mesh_render_states, viewport, &Mat4::identity(), camera)?;
             leaves_mesh.render_depth(leaves_mesh_render_states, viewport, &Mat4::identity(), camera)?;
             Ok(())
-        });
+        }).unwrap();
 
         // main loop
         let mut rotating = false;
