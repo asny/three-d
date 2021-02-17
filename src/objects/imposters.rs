@@ -58,16 +58,14 @@ impl Imposters {
         let depth_texture = Texture2DArray::new(&self.context, texture_width, texture_height, NO_VIEW_ANGLES,
                 Interpolation::Nearest, Interpolation::Nearest, None,
                                                       Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::Depth32F)?;
+        let render_target = RenderTargetArray::new(&self.context,&self.texture, &depth_texture)?;
 
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
                             center, vec3(0.0, 1.0, 0.0));
-            RenderTarget::write_array(&self.context,
-                              Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0),
-                              Some(&self.texture), Some(&depth_texture),
-                              1, &|_| { i },
-                              i, || {render(Viewport::new_at_origo(texture_width, texture_height), &camera)?; Ok(())})?;
+                              render_target.write(Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), &[i],
+                              0, || {render(Viewport::new_at_origo(texture_width, texture_height), &camera)?; Ok(())})?;
         }
 
         let xmin = center.x - 0.5 * width;

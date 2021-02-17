@@ -8,7 +8,7 @@ impl Screen {
     pub fn write<F: FnOnce() -> Result<(), Error>>(context: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
         context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
-        RenderTarget::clear(context, clear_color, clear_depth);
+        clear(context, clear_color, clear_depth);
         render()?;
         Ok(())
     }
@@ -46,14 +46,14 @@ impl Screen {
     }
 }
 
-pub struct RenderTarget2<'a, 'b> {
+pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
     color_texture: Option<&'a Texture2D>,
     depth_texture: Option<&'b Texture2D>,
 }
 
-impl<'a, 'b> RenderTarget2<'a, 'b>
+impl<'a, 'b> RenderTarget<'a, 'b>
 {
     pub fn new(context: &Context, color_texture: &'a Texture2D, depth_texture: &'b Texture2D) -> Result<Self, Error> {
         Self::new_internal(context, Some(color_texture), Some(depth_texture))
@@ -75,7 +75,7 @@ impl<'a, 'b> RenderTarget2<'a, 'b>
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
-        self.bind(consts::DRAW_FRAMEBUFFER);
+        self.bind(consts::DRAW_FRAMEBUFFER)?;
         clear(&self.context,
               self.color_texture.and(clear_color),
               self.depth_texture.and(clear_depth));
@@ -123,7 +123,7 @@ impl<'a, 'b> RenderTarget2<'a, 'b>
         let (target_width, target_height) = if let Some(tex) = other.color_texture {(tex.width, tex.height)}
             else {(other.depth_texture.as_ref().unwrap().width, other.depth_texture.as_ref().unwrap().height)};
 
-        self.bind(consts::READ_FRAMEBUFFER);
+        self.bind(consts::READ_FRAMEBUFFER)?;
         other.write(None, None, || {
             self.context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
                                           0, 0, target_width as u32, target_height as u32,
@@ -133,7 +133,11 @@ impl<'a, 'b> RenderTarget2<'a, 'b>
         Ok(())
     }
 
-    fn bind(&self, target: u32) {
+    pub fn copy_to_array(&self) -> Result<(), Error> {
+        Ok(())
+    }
+
+    fn bind(&self, target: u32) -> Result<(), Error> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
@@ -144,10 +148,11 @@ impl<'a, 'b> RenderTarget2<'a, 'b>
         }
         #[cfg(feature = "debug")]
             check(&self.context)?;
+        Ok(())
     }
 }
 
-impl Drop for RenderTarget2<'_, '_> {
+impl Drop for RenderTarget<'_, '_> {
     fn drop(&mut self) {
         self.context.delete_framebuffer(Some(&self.id));
     }
@@ -183,7 +188,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, color_layers: &[usize], depth_layer: usize, render: F) -> Result<(), Error>
     {
-        self.bind(consts::DRAW_FRAMEBUFFER, color_layers, depth_layer);
+        self.bind(consts::DRAW_FRAMEBUFFER, color_layers, depth_layer)?;
         clear(&self.context,
               self.color_texture.and(clear_color),
               self.depth_texture.and(clear_depth));
@@ -197,7 +202,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_to(&self, other: &RenderTarget2, color_layer: usize, depth_layer: usize, filter: Interpolation) -> Result<(), Error>
+    pub fn copy_to(&self, other: &RenderTarget, color_layer: usize, depth_layer: usize, filter: Interpolation) -> Result<(), Error>
     {
         let color = self.color_texture.is_some() && other.color_texture.is_some();
         let depth = self.depth_texture.is_some() && other.depth_texture.is_some();
@@ -214,7 +219,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         let (target_width, target_height) = if let Some(tex) = other.color_texture {(tex.width, tex.height)}
         else {(other.depth_texture.as_ref().unwrap().width, other.depth_texture.as_ref().unwrap().height)};
 
-        self.bind(consts::READ_FRAMEBUFFER, &[color_layer], depth_layer);
+        self.bind(consts::READ_FRAMEBUFFER, &[color_layer], depth_layer)?;
         other.write(None, None, || {
             self.context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
                                           0, 0, target_width as u32, target_height as u32,
@@ -224,9 +229,10 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    fn bind(&self, target: u32, color_layers: &[usize], depth_layer: usize) {
+    fn bind(&self, target: u32, color_layers: &[usize], depth_layer: usize) -> Result<(), Error> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
+            self.context.draw_buffers(&(0..color_layers.len()).map(|i| consts::COLOR_ATTACHMENT0 + i as u32).collect::<Vec<u32>>());
             for channel in 0..color_layers.len() {
                 color_texture.bind_as_color_target(color_layers[channel], channel);
             }
@@ -236,6 +242,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         }
         #[cfg(feature = "debug")]
             check(&self.context)?;
+        Ok(())
     }
 }
 
@@ -246,7 +253,7 @@ impl Drop for RenderTargetArray<'_, '_> {
 }
 
 
-pub struct RenderTarget {}
+/*pub struct RenderTarget {}
 
 impl RenderTarget
 {
@@ -564,7 +571,7 @@ impl RenderTarget
                                  0, 0, target_texture.width as u32, target_texture.height as u32,
                                  consts::DEPTH_BUFFER_BIT, consts::NEAREST);
     }*/
-}
+}*/
 
 #[cfg(feature = "debug")]
 fn check(context: &Context) -> Result<(), Error> {
