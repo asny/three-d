@@ -53,25 +53,26 @@ impl DirectionalLight {
 
     pub fn generate_shadow_map<F: FnOnce(Viewport, &Camera) -> Result<(), Error>>(&mut self, target: &Vec3,
                                   frustrum_width: f32, frustrum_height: f32, frustrum_depth: f32,
-                                  texture_width: usize, texture_height: usize, render_scene: F)
+                                  texture_width: usize, texture_height: usize, render_scene: F) -> Result<(), Error>
     {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 
         self.shadow_camera = Some(Camera::new_orthographic(&self.context, target - direction.normalize()*0.5*frustrum_depth, *target, up,
                                                            frustrum_width, frustrum_height, frustrum_depth));
-        self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice()).unwrap();
+        self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice())?;
 
         self.shadow_texture = Texture2D::new(&self.context, texture_width, texture_height,
                                                         Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
                                                         Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
-        RenderTarget::new_depth(&self.context,&self.shadow_texture).unwrap()
+        RenderTarget::new_depth(&self.context,&self.shadow_texture)?
             .write(None,Some(1.0),
             || {
                 render_scene(Viewport::new_at_origo(texture_width, texture_height), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
-            }).unwrap();
-        self.light_buffer.update(3, &[1.0]).unwrap();
+            })?;
+        self.light_buffer.update(3, &[1.0])?;
+        Ok(())
     }
 
     pub fn shadow_map(&self) -> &Texture2D
