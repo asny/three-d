@@ -283,6 +283,25 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
+    pub fn copy_to_screen(&self, color_layer: usize, depth_layer: usize, _filter: Interpolation, viewport: Viewport) -> Result<(), Error>
+    {
+        let effect = get_copy_array_effect(&self.context)?;
+        Screen::write(&self.context, None, None,|| {
+            if let Some(tex) = self.color_texture {
+                effect.program().use_texture(tex, "colorMap")?;
+                effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
+            }
+            if let Some(tex) = self.depth_texture {
+                effect.program().use_texture(tex, "depthMap")?;
+                effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
+            }
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always, depth_mask: self.depth_texture.is_some(),
+                color_mask: if self.color_texture.is_some() {ColorMask::enabled()} else {ColorMask::disabled()}, ..Default::default()}, viewport)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
     pub fn copy(&self, color_layer: usize, depth_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
     {
         if self.color_texture.is_none() || self.depth_texture.is_none() {
@@ -406,6 +425,28 @@ fn get_copy_effect(context: &Context) -> Result<&ImageEffect, Error>
                 {
                     color = texture(colorMap, uv);
                     gl_FragDepth = texture(depthMap, uv).r;
+                }")?);
+        }
+        Ok(COPY_EFFECT.as_ref().unwrap())
+    }
+}
+
+fn get_copy_array_effect(context: &Context) -> Result<&ImageEffect, Error>
+{
+    unsafe {
+        static mut COPY_EFFECT: Option<ImageEffect> = None;
+        if COPY_EFFECT.is_none() {
+            COPY_EFFECT = Some(ImageEffect::new(context, &"
+                uniform sampler2DArray colorMap;
+                uniform sampler2DArray depthMap;
+                uniform int colorLayer;
+                uniform int depthLayer;
+                in vec2 uv;
+                layout (location = 0) out vec4 color;
+                void main()
+                {
+                    color = texture(colorMap, vec3(uv, colorLayer));
+                    gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
                 }")?);
         }
         Ok(COPY_EFFECT.as_ref().unwrap())
