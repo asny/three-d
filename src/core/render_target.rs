@@ -119,7 +119,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_to_screen(&self, _filter: Interpolation, viewport: Viewport) -> Result<(), Error>
+    pub fn copy_to_screen(&self, viewport: Viewport) -> Result<(), Error>
     {
         let effect = get_copy_effect(&self.context)?;
         Screen::write(&self.context, None, None,|| {
@@ -283,7 +283,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_to_screen(&self, color_layer: usize, depth_layer: usize, _filter: Interpolation, viewport: Viewport) -> Result<(), Error>
+    pub fn copy_to_screen(&self, color_layer: usize, depth_layer: usize, viewport: Viewport) -> Result<(), Error>
     {
         let effect = get_copy_array_effect(&self.context)?;
         Screen::write(&self.context, None, None,|| {
