@@ -51,7 +51,7 @@ impl PhongDeferredPipeline
         };
 
         renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
-        renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_depth_texture(), "depthMap")?;
+        renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_depth_texture_array(), "depthMap")?;
         Ok(renderer)
     }
 
@@ -76,7 +76,7 @@ impl PhongDeferredPipeline
         if self.debug_type != DebugType::NONE {
             self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.debug_effect.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
             self.debug_effect.as_ref().unwrap().apply(render_states, viewport)?;
             return Ok(());
@@ -85,7 +85,7 @@ impl PhongDeferredPipeline
         // Ambient light
         if let Some(light) = ambient_light {
             self.ambient_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.ambient_light_effect.program().add_uniform_vec3("ambientColor", &(light.color * light.intensity))?;
             self.ambient_light_effect.apply(render_states, viewport)?;
             render_states.blend = Some(BlendParameters {
@@ -101,7 +101,7 @@ impl PhongDeferredPipeline
         // Directional light
         for light in directional_lights {
             self.directional_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.directional_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.directional_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.directional_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
             self.directional_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.directional_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
@@ -120,7 +120,7 @@ impl PhongDeferredPipeline
         // Spot lights
         for light in spot_lights {
             self.spot_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.spot_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.spot_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.spot_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
             self.spot_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.spot_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
@@ -139,7 +139,7 @@ impl PhongDeferredPipeline
         // Point lights
         for light in point_lights {
             self.point_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.point_light_effect.program().use_texture(self.geometry_pass_depth_texture(), "depthMap")?;
+            self.point_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.point_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
             self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLightUniform");
@@ -161,9 +161,21 @@ impl PhongDeferredPipeline
     {
         &self.geometry_pass_texture.as_ref().unwrap()
     }
-    pub fn geometry_pass_depth_texture(&self) -> &Texture2DArray
+    pub fn geometry_pass_depth_texture_array(&self) -> &Texture2DArray
     {
         &self.geometry_pass_depth_texture.as_ref().unwrap()
+    }
+
+    pub fn geometry_pass_depth_texture(&self) -> Texture2D
+    {
+        let depth_array = self.geometry_pass_depth_texture_array();
+        let depth_texture = Texture2D::new(&self.context, depth_array.width, depth_array.height,
+                                           Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+                                           Wrapping::ClampToEdge, Format::Depth32F).unwrap();
+
+        RenderTargetArray::new_depth(&self.context, depth_array).unwrap()
+            .copy_depth(0, &RenderTarget::new_depth(&self.context, &depth_texture).unwrap(), Interpolation::Nearest).unwrap();
+        depth_texture
     }
 
     pub fn debug_type(&self) -> DebugType
