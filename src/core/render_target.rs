@@ -100,16 +100,45 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn copy_to_screen(&self, viewport: Viewport) -> Result<(), Error>
     {
+        if self.color_texture.is_none() || self.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
+        }
         let effect = get_copy_effect(&self.context)?;
         Screen::write(&self.context, None, None,|| {
-            if let Some(tex) = self.color_texture {
-                effect.program().use_texture(tex, "colorMap")?;
-            }
-            if let Some(tex) = self.depth_texture {
-                effect.program().use_texture(tex, "depthMap")?;
-            }
-            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always, depth_mask: self.depth_texture.is_some(),
-                color_mask: if self.color_texture.is_some() {ColorMask::enabled()} else {ColorMask::disabled()}, ..Default::default()}, viewport)?;
+            effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
+            effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
+                ..Default::default()}, viewport)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn copy_color_to_screen(&self, viewport: Viewport) -> Result<(), Error>
+    {
+        if self.color_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
+        }
+        let effect = get_copy_effect(&self.context)?;
+        Screen::write(&self.context, None, None,|| {
+            effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
+                depth_mask: false, ..Default::default()}, viewport)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn copy_depth_to_screen(&self, viewport: Viewport) -> Result<(), Error>
+    {
+        if self.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
+        }
+        let effect = get_copy_effect(&self.context)?;
+        Screen::write(&self.context, None, None,|| {
+            effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
+                color_mask: ColorMask::disabled(), ..Default::default()}, viewport)?;
             Ok(())
         })?;
         Ok(())
@@ -243,18 +272,49 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
 
     pub fn copy_to_screen(&self, color_layer: usize, depth_layer: usize, viewport: Viewport) -> Result<(), Error>
     {
+        if self.color_texture.is_none() || self.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
+        }
         let effect = get_copy_array_effect(&self.context)?;
         Screen::write(&self.context, None, None,|| {
-            if let Some(tex) = self.color_texture {
-                effect.program().use_texture(tex, "colorMap")?;
-                effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
-            }
-            if let Some(tex) = self.depth_texture {
-                effect.program().use_texture(tex, "depthMap")?;
-                effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
-            }
-            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always, depth_mask: self.depth_texture.is_some(),
-                color_mask: if self.color_texture.is_some() {ColorMask::enabled()} else {ColorMask::disabled()}, ..Default::default()}, viewport)?;
+            effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
+            effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
+            effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
+            effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
+                ..Default::default()}, viewport)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn copy_color_to_screen(&self, color_layer: usize, viewport: Viewport) -> Result<(), Error>
+    {
+        if self.color_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
+        }
+        let effect = get_copy_array_effect(&self.context)?;
+        Screen::write(&self.context, None, None,|| {
+            effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
+            effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
+                depth_mask: false, ..Default::default()}, viewport)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn copy_depth_to_screen(&self, depth_layer: usize, viewport: Viewport) -> Result<(), Error>
+    {
+        if self.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
+        }
+        let effect = get_copy_array_effect(&self.context)?;
+        Screen::write(&self.context, None, None,|| {
+            effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
+            effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
+                color_mask: ColorMask::disabled(), ..Default::default()}, viewport)?;
             Ok(())
         })?;
         Ok(())
