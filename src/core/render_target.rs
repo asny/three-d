@@ -84,7 +84,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
-        self.bind(consts::DRAW_FRAMEBUFFER)?;
+        self.bind()?;
         clear(&self.context,
               self.color_texture.and(clear_color),
               self.depth_texture.and(clear_depth));
@@ -132,7 +132,8 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         let (target_width, target_height) = if let Some(tex) = other.color_texture {(tex.width, tex.height)}
             else {(other.depth_texture.as_ref().unwrap().width, other.depth_texture.as_ref().unwrap().height)};
 
-        self.bind(consts::READ_FRAMEBUFFER)?;
+        self.bind()?;
+        self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None, None, || {
             self.context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
                                           0, 0, target_width as u32, target_height as u32,
@@ -142,8 +143,8 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
-    fn bind(&self, target: u32) -> Result<(), Error> {
-        self.context.bind_framebuffer(target, Some(&self.id));
+    fn bind(&self) -> Result<(), Error> {
+        self.context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
             tex.bind_as_color_target(0);
@@ -202,7 +203,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, color_layers: &[usize], depth_layer: usize, render: F) -> Result<(), Error>
     {
-        self.bind(consts::DRAW_FRAMEBUFFER, color_layers, depth_layer)?;
+        self.bind(color_layers, depth_layer)?;
         clear(&self.context,
               self.color_texture.and(clear_color),
               self.depth_texture.and(clear_depth));
@@ -233,7 +234,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         let (target_width, target_height) = if let Some(tex) = other.color_texture {(tex.width, tex.height)}
         else {(other.depth_texture.as_ref().unwrap().width, other.depth_texture.as_ref().unwrap().height)};
 
-        self.bind(consts::READ_FRAMEBUFFER, &[color_layer], depth_layer)?;
+        self.bind(&[color_layer], depth_layer)?;
+        self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None, None, || {
             self.context.blit_framebuffer(0, 0, source_width as u32, source_height as u32,
                                           0, 0, target_width as u32, target_height as u32,
@@ -243,8 +245,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    fn bind(&self, target: u32, color_layers: &[usize], depth_layer: usize) -> Result<(), Error> {
-        self.context.bind_framebuffer(target, Some(&self.id));
+    fn bind(&self, color_layers: &[usize], depth_layer: usize) -> Result<(), Error> {
+        self.context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
             self.context.draw_buffers(&(0..color_layers.len()).map(|i| consts::COLOR_ATTACHMENT0 + i as u32).collect::<Vec<u32>>());
             for channel in 0..color_layers.len() {
@@ -267,9 +269,9 @@ impl Drop for RenderTargetArray<'_, '_> {
 }
 
 
-/*pub struct RenderTarget {}
+/*pub struct RenderTargetOld {}
 
-impl RenderTarget
+impl RenderTargetOld
 {
     pub fn write_to_color<F: FnOnce() -> Result<(), Error>>(context: &Context,
                                                             clear_color: Option<&Vec4>, color_texture: Option<&Texture2D>, render: F) -> Result<(), Error>
@@ -288,7 +290,7 @@ impl RenderTarget
                                                    color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
                                                    render: F) -> Result<(), Error>
     {
-        RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |_| {
+        Self::render(context, if color_texture.is_some() {1} else {0}, |_| {
             if let Some(color_texture) = color_texture {
                 color_texture.bind_as_color_target(0);
             }
@@ -297,7 +299,7 @@ impl RenderTarget
             }
             #[cfg(feature = "debug")]
             Self::check(context)?;
-            RenderTarget::clear(context, clear_color, clear_depth);
+            Self::clear(context, clear_color, clear_depth);
             render()?;
             Ok(())
         })?;
@@ -314,7 +316,7 @@ impl RenderTarget
     pub fn read<F: FnOnce() -> Result<(), Error>>(context: &Context, color_texture: Option<&Texture2D>, depth_texture: Option<&Texture2D>,
                                                   render: F) -> Result<(), Error>
     {
-        RenderTarget::render(context, if color_texture.is_some() {1} else {0}, |id| {
+        Self::render(context, if color_texture.is_some() {1} else {0}, |id| {
             if let Some(tex) = color_texture {
                 tex.bind_as_color_target(0);
             }
@@ -344,10 +346,10 @@ impl RenderTarget
                 filter: Interpolation) -> Result<(), Error>
     {
         let mask = Self::copy_init(context, color_texture.is_some(), depth_texture.is_some())?;
-        RenderTarget::read(context,
+        Self::read(context,
                            color_texture.map(|(tex, _)| tex),
                            depth_texture.map(|(tex, _)| tex), || {
-            RenderTarget::write(context, None, None,
+            Self::write(context, None, None,
                                 color_texture.map(|(_, tex)| tex),
                                 depth_texture.map(|(_, tex)| tex), || {
                 let (source_width, source_height) = if let Some((tex, _)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().0.width, depth_texture.as_ref().unwrap().0.height)};
@@ -385,7 +387,7 @@ impl RenderTarget
                                                          color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
                                                          depth_layer: usize, render: F) -> Result<(), Error>
     {
-        RenderTarget::render(context, color_channel_count, |_| {
+        Self::render(context, color_channel_count, |_| {
             if let Some(color_texture) = color_texture_array {
                 for channel in 0..color_channel_count {
                     color_texture.bind_as_color_target(color_channel_to_texture_layer(channel), channel);
@@ -396,7 +398,7 @@ impl RenderTarget
             }
             #[cfg(feature = "debug")]
             Self::check(context)?;
-            RenderTarget::clear(context, clear_color, clear_depth);
+            Self::clear(context, clear_color, clear_depth);
             render()?;
             Ok(())
         })?;
@@ -416,7 +418,7 @@ impl RenderTarget
                                                         color_channel_count: usize, color_channel_to_texture_layer: &dyn Fn(usize) -> usize,
                                                         depth_layer: usize, render: F) -> Result<(), Error>
     {
-        RenderTarget::render(context, color_channel_count, |id| {
+        Self::render(context, color_channel_count, |id| {
             if let Some(color_texture) = color_texture_array {
                 for channel in 0..color_channel_count {
                     color_texture.bind_as_color_target(color_channel_to_texture_layer(channel), channel);
@@ -442,12 +444,12 @@ impl RenderTarget
                            filter: Interpolation) -> Result<(), Error>
     {
         let mask = Self::copy_init(context, color_texture.is_some(), depth_texture.is_some())?;
-        RenderTarget::read_array(context,
+        Self::read_array(context,
                                  color_texture.map(|(tex, _)| tex),
                                  depth_texture.map(|(tex, _)| tex),
                                  if color_texture.is_some() {1} else {0},
                                  &|_| {color_layer}, depth_layer, || {
-                RenderTarget::write(context, None, None,
+                Self::write(context, None, None,
                                     color_texture.map(|(_, tex)| tex),
                                     depth_texture.map(|(_, tex)| tex), || {
                         let (source_width, source_height) = if let Some((tex, _)) = color_texture {(tex.width, tex.height)} else {(depth_texture.as_ref().unwrap().0.width, depth_texture.as_ref().unwrap().0.height)};
