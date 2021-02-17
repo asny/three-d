@@ -56,21 +56,30 @@ pub struct RenderTarget<'a, 'b> {
 impl<'a, 'b> RenderTarget<'a, 'b>
 {
     pub fn new(context: &Context, color_texture: &'a Texture2D, depth_texture: &'b Texture2D) -> Result<Self, Error> {
-        Self::new_internal(context, Some(color_texture), Some(depth_texture))
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: Some(depth_texture)
+        })
     }
 
     pub fn new_color(context: &Context, color_texture: &'a Texture2D) -> Result<Self, Error> {
-        Self::new_internal(context, Some(color_texture), None)
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: None
+        })
     }
 
     pub fn new_depth(context: &Context, depth_texture: &'b Texture2D) -> Result<Self, Error> {
-        Self::new_internal(context, None, Some(depth_texture))
-    }
-
-    fn new_internal(context: &Context, color_texture: Option<&'a Texture2D>, depth_texture: Option<&'b Texture2D>) -> Result<Self, Error> {
-        let id = context.create_framebuffer()
-            .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
-        Ok(Self {context: context.clone(), id, color_texture, depth_texture})
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: None,
+            depth_texture: Some(depth_texture)
+        })
     }
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
@@ -133,10 +142,6 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_to_array(&self) -> Result<(), Error> {
-        Ok(())
-    }
-
     fn bind(&self, target: u32) -> Result<(), Error> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
@@ -169,21 +174,30 @@ pub struct RenderTargetArray<'a, 'b> {
 impl<'a, 'b> RenderTargetArray<'a, 'b>
 {
     pub fn new(context: &Context, color_texture: &'a Texture2DArray, depth_texture: &'b Texture2DArray) -> Result<Self, Error> {
-        Self::new_internal(context, Some(color_texture), Some(depth_texture))
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: Some(depth_texture)
+        })
     }
 
     pub fn new_color(context: &Context, color_texture: &'a Texture2DArray) -> Result<Self, Error> {
-        Self::new_internal(context, Some(color_texture), None)
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: None
+        })
     }
 
     pub fn new_depth(context: &Context, depth_texture: &'b Texture2DArray) -> Result<Self, Error> {
-        Self::new_internal(context, None, Some(depth_texture))
-    }
-
-    fn new_internal(context: &Context, color_texture: Option<&'a Texture2DArray>, depth_texture: Option<&'b Texture2DArray>) -> Result<Self, Error> {
-        let id = context.create_framebuffer()
-            .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?;
-        Ok(Self {context: context.clone(), id, color_texture, depth_texture})
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: None,
+            depth_texture: Some(depth_texture)
+        })
     }
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, color_layers: &[usize], depth_layer: usize, render: F) -> Result<(), Error>
@@ -572,6 +586,11 @@ impl RenderTarget
                                  consts::DEPTH_BUFFER_BIT, consts::NEAREST);
     }*/
 }*/
+
+fn new_framebuffer(context: &Context) -> Result<crate::context::Framebuffer, Error> {
+    Ok(context.create_framebuffer()
+        .ok_or_else(|| Error::FailedToCreateFramebuffer {message: "Failed to create framebuffer".to_string()} )?)
+}
 
 #[cfg(feature = "debug")]
 fn check(context: &Context) -> Result<(), Error> {
