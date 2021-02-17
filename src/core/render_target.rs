@@ -84,38 +84,17 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
     {
-        if self.color_texture.is_none() || self.depth_texture.is_none() {
-            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to depth and color when the render target does not have a color and depth texture.".to_owned()})?;
-        }
         self.bind()?;
-        clear(&self.context, clear_color, clear_depth);
+        clear(&self.context,
+              self.color_texture.and(clear_color),
+              self.depth_texture.and(clear_depth));
         render()?;
-        self.color_texture.unwrap().generate_mip_maps();
-        self.depth_texture.unwrap().generate_mip_maps();
-        Ok(())
-    }
-
-    pub fn write_color<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, render: F) -> Result<(), Error>
-    {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to color when the render target does not have a color texture.".to_owned()})?;
+        if let Some(color_texture) = self.color_texture {
+            color_texture.generate_mip_maps();
         }
-        self.bind()?;
-        clear(&self.context, clear_color, None);
-        render()?;
-        self.color_texture.unwrap().generate_mip_maps();
-        Ok(())
-    }
-
-    pub fn write_depth<F: FnOnce() -> Result<(), Error>>(&self, clear_depth: Option<f32>, render: F) -> Result<(), Error>
-    {
-        if self.depth_texture.is_none() {
-            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to depth when the render target does not have a depth texture.".to_owned()})?;
+        if let Some(depth_texture) = self.depth_texture {
+            depth_texture.generate_mip_maps();
         }
-        self.bind()?;
-        clear(&self.context, None, clear_depth);
-        render()?;
-        self.depth_texture.unwrap().generate_mip_maps();
         Ok(())
     }
 
@@ -138,8 +117,8 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn copy(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
-        if self.color_texture.is_none() || self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth and color when the render target does not have a color and depth texture.".to_owned()})?;
+        if self.color_texture.is_none() || self.depth_texture.is_none() || other.color_texture.is_none() || other.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
         Program::set_color_mask(&self.context, ColorMask::enabled());
         Program::set_depth(&self.context, None, true);
@@ -156,13 +135,13 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn copy_color(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from color when the render target does not have a color texture.".to_owned()})?;
+        if self.color_texture.is_none() || other.color_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
         }
         Program::set_color_mask(&self.context, ColorMask::enabled());
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write_color(None, || {
+        other.write(None, None, || {
             self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
                                           0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
                                           consts::COLOR_BUFFER_BIT, filter as u32);
@@ -173,13 +152,13 @@ impl<'a, 'b> RenderTarget<'a, 'b>
 
     pub fn copy_depth(&self, other: &Self, filter: Interpolation) -> Result<(), Error>
     {
-        if self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth when the render target does not have a depth texture.".to_owned()})?;
+        if self.depth_texture.is_none() || other.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
         }
         Program::set_depth(&self.context, None, true);
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write_depth(None, || {
+        other.write(None,None, || {
             self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width as u32, self.depth_texture.unwrap().height as u32,
                                           0, 0, other.depth_texture.unwrap().width as u32, other.depth_texture.unwrap().height as u32,
                                           consts::DEPTH_BUFFER_BIT, filter as u32);
@@ -248,38 +227,17 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
 
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, color_layers: &[usize], depth_layer: usize, render: F) -> Result<(), Error>
     {
-        if self.color_texture.is_none() || self.depth_texture.is_none() {
-            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to depth and color when the render target does not have a color and depth texture.".to_owned()})?;
-        }
         self.bind(Some(color_layers), Some(depth_layer))?;
-        clear(&self.context, clear_color, clear_depth);
+        clear(&self.context,
+              self.color_texture.and(clear_color),
+              self.depth_texture.and(clear_depth));
         render()?;
-        self.color_texture.unwrap().generate_mip_maps();
-        self.depth_texture.unwrap().generate_mip_maps();
-        Ok(())
-    }
-
-    pub fn write_color<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, color_layers: &[usize], render: F) -> Result<(), Error>
-    {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to color when the render target does not have a color texture.".to_owned()})?;
+        if let Some(color_texture) = self.color_texture {
+            color_texture.generate_mip_maps();
         }
-        self.bind(Some(color_layers), None)?;
-        clear(&self.context, clear_color, None);
-        render()?;
-        self.color_texture.unwrap().generate_mip_maps();
-        Ok(())
-    }
-
-    pub fn write_depth<F: FnOnce() -> Result<(), Error>>(&self, clear_depth: Option<f32>, depth_layer: usize, render: F) -> Result<(), Error>
-    {
-        if self.depth_texture.is_none() {
-            Err(Error::FailedToWriteToRenderTarget {message: "Cannot write to depth when the render target does not have a depth texture.".to_owned()})?;
+        if let Some(depth_texture) = self.depth_texture {
+            depth_texture.generate_mip_maps();
         }
-        self.bind(None, Some(depth_layer))?;
-        clear(&self.context, None, clear_depth);
-        render()?;
-        self.depth_texture.unwrap().generate_mip_maps();
         Ok(())
     }
 
@@ -304,8 +262,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
 
     pub fn copy(&self, color_layer: usize, depth_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
     {
-        if self.color_texture.is_none() || self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth and color when the render target does not have a color and depth texture.".to_owned()})?;
+        if self.color_texture.is_none() || self.depth_texture.is_none() || other.color_texture.is_none() || other.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
         Program::set_color_mask(&self.context, ColorMask::enabled());
         Program::set_depth(&self.context, None, true);
@@ -322,13 +280,13 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
 
     pub fn copy_color(&self, color_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
     {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from color when the render target does not have a color texture.".to_owned()})?;
+        if self.color_texture.is_none() || other.color_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
         }
         Program::set_color_mask(&self.context, ColorMask::enabled());
         self.bind(Some(&[color_layer]), None)?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write_color(None, || {
+        other.write(None,None, || {
             self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
                                           0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
                                           consts::COLOR_BUFFER_BIT, filter as u32);
@@ -339,13 +297,13 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
 
     pub fn copy_depth(&self, depth_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
     {
-        if self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy from depth when the render target does not have a depth texture.".to_owned()})?;
+        if self.depth_texture.is_none() || other.depth_texture.is_none() {
+            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
         }
         Program::set_depth(&self.context, None, true);
         self.bind(None, Some(depth_layer))?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write_depth(None, || {
+        other.write(None, None, || {
             self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width as u32, self.depth_texture.unwrap().height as u32,
                                           0, 0, other.depth_texture.unwrap().width as u32, other.depth_texture.unwrap().height as u32,
                                           consts::DEPTH_BUFFER_BIT, filter as u32);
