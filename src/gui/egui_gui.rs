@@ -28,6 +28,8 @@ impl GUI {
             }
         };*/
 
+        let pixels_per_point = frame_input.viewport.width / frame_input.window_width;
+
         let input_state = egui::RawInput {
             scroll_delta: egui::Vec2::ZERO,
             screen_size: Default::default(),
@@ -35,7 +37,7 @@ impl GUI {
                 Default::default(),
                 egui::Vec2 {x: frame_input.window_width as f32, y: frame_input.window_height as f32},
             )),
-            pixels_per_point: None,
+            pixels_per_point: Some(pixels_per_point as f32),
             time: None,
             predicted_dt: 1.0 / 60.0,
             modifiers: egui::Modifiers::default(),
@@ -46,42 +48,25 @@ impl GUI {
 
         let (_, shapes) = self.egui_context.end_frame();
         let clipped_meshes = self.egui_context.tessellate(shapes);
-        self.paint_meshes(
-            frame_input.window_width,
-            frame_input.window_height,
-            self.egui_context.pixels_per_point(),
-            clipped_meshes,
-            &self.egui_context.texture(),
-        )?;
-        Ok(())
-    }
 
-    fn paint_meshes(
-        &self,
-        width: usize,
-        height: usize,
-        pixels_per_point: f32,
-        //clear_color: egui::Rgba, // TODO
-        cipped_meshes: Vec<egui::ClippedMesh>,
-        egui_texture: &egui::Texture) -> Result<(), Error>
-    {
-        let texture =
-            Texture2D::new_with_u8(&self.context, Interpolation::Linear, Interpolation::Linear, None,
+        let egui_texture = self.egui_context.texture();
+        let texture = Texture2D::new_with_u8(&self.context, Interpolation::Linear, Interpolation::Linear, None,
                                    Wrapping::ClampToEdge, Wrapping::ClampToEdge,
                                    &Image {bytes: egui_texture.pixels.clone(), width: egui_texture.width as u32, height: egui_texture.height as u32 })?;
 
-        for egui::ClippedMesh(clip_rect, mesh) in cipped_meshes {
-            self.paint_mesh(width, height, pixels_per_point, clip_rect, &mesh, &texture)?;
+        for egui::ClippedMesh(clip_rect, mesh) in clipped_meshes {
+            println!("{:?}", clip_rect);
+            println!("{:?}", mesh);
+            self.paint_mesh(frame_input.window_width, frame_input.window_height, pixels_per_point, clip_rect, &mesh, &texture)?;
         }
         Ok(())
     }
 
-    #[inline(never)] // Easier profiling
     fn paint_mesh(
         &self,
         width: usize,
         height: usize,
-        pixels_per_point: f32,
+        pixels_per_point: usize,
         clip_rect: egui::Rect,
         mesh: &egui::paint::Mesh,
         texture: &Texture2D
@@ -110,10 +95,10 @@ impl GUI {
         let index_buffer = ElementBuffer::new_with_u32(&self.context, &indices)?;
 
         // Transform clip rect to physical pixels:
-        let clip_min_x = pixels_per_point * clip_rect.min.x;
-        let clip_min_y = pixels_per_point * clip_rect.min.y;
-        let clip_max_x = pixels_per_point * clip_rect.max.x;
-        let clip_max_y = pixels_per_point * clip_rect.max.y;
+        let clip_min_x = pixels_per_point as f32 * clip_rect.min.x;
+        let clip_min_y = pixels_per_point as f32 * clip_rect.min.y;
+        let clip_max_x = pixels_per_point as f32 * clip_rect.max.x;
+        let clip_max_y = pixels_per_point as f32 * clip_rect.max.y;
 
         // Make sure clip rect can fit withing an `u32`:
         let clip_min_x = egui::emath::clamp(clip_min_x, 0.0..=width as f32);
