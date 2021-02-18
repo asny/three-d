@@ -9,37 +9,6 @@ pub struct GUI {
 
 impl GUI {
     pub fn new(context: &Context) -> Result<Self, Error> {
-
-        /*if app.warm_up_enabled() {
-            // let warm_up_start = Instant::now();
-            input_state.raw.time = Some(0.0);
-            input_state.raw.screen_rect = Some(Rect::from_min_size(
-                Default::default(),
-                screen_size_in_pixels(&display) / input_state.raw.pixels_per_point.unwrap(),
-            ));
-            ctx.begin_frame(input_state.raw.take());
-            let mut app_output = epi::backend::AppOutput::default();
-            let mut frame = epi::backend::FrameBuilder {
-                info: integration_info(&display, None),
-                tex_allocator: Some(&mut painter),
-                #[cfg(feature = "http")]
-                http: http.clone(),
-                output: &mut app_output,
-                repaint_signal: repaint_signal.clone(),
-            }.build();
-
-            let saved_memory = ctx.memory().clone();
-            ctx.memory().set_everything_is_visible(true);
-            app.update(&ctx, &mut frame);
-            *ctx.memory() = saved_memory; // We don't want to remember that windows were huge.
-            ctx.clear_animations();
-
-            let (egui_output, _shapes) = ctx.end_frame();
-            handle_output(egui_output, &display, clipboard.as_mut());
-            // TODO: handle app_output
-            // eprintln!("Warmed up in {} ms", warm_up_start.elapsed().as_millis())
-        }*/
-
         Ok(GUI {
             egui_context: egui::CtxRef::default(),
             context: context.clone(),
@@ -73,21 +42,6 @@ impl GUI {
             events: vec![],
         };
         self.egui_context.begin_frame(input_state);
-
-        /*let mut app_output = epi::backend::AppOutput::default();
-        let repaint_signal = std::sync::Arc::new(MyRepaintSignal {});
-        let mut frame = epi::backend::FrameBuilder {
-            info: epi::IntegrationInfo {
-                web_info: None,
-                cpu_usage: Some(frame_input.elapsed_time as f32),
-                seconds_since_midnight: None,
-                native_pixels_per_point: Some(1.0),
-            },
-            tex_allocator: None,
-            output: &mut app_output,
-            repaint_signal: repaint_signal.clone(),
-        }.build();
-        self.app.update(&self.egui_context, &mut frame);*/
         callback(&self.egui_context);
 
         let (_, shapes) = self.egui_context.end_frame();
