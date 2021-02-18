@@ -25,3 +25,6 @@ pub use crate::effects::*;
 pub mod window;
 #[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub use window::*;
+
+pub mod gui;
+pub use gui::*;
