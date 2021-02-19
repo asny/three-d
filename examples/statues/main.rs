@@ -9,7 +9,6 @@ fn main() {
     let context = window.gl();
 
     // Renderer
-    let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
     let mut primary_camera = Camera::new_perspective(&context, vec3(-200.0, 200.0, 100.0), vec3(0.0, 100.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                      degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
     // Static camera to view frustum culling in effect
@@ -37,8 +36,8 @@ fn main() {
         }
 
         let (fountain_cpu_meshes, fountain_cpu_materials) = Obj::parse(loaded, "examples/assets/pfboy.obj").unwrap();
-        let materials = fountain_cpu_materials.iter().map(|m| PhongMaterial::new(&context, m).unwrap()).collect::<Vec<PhongMaterial>>();
-        let fountain = PhongForwardMesh::new_meshes(&context, &fountain_cpu_meshes, &materials).unwrap().remove(0);
+        let fountain_material = PhongMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
+        let fountain = PhongForwardMesh::new(&context, &fountain_cpu_meshes[0], &fountain_material).unwrap();
 
         let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
         let mut directional_light = DirectionalLight::new(&context, 1.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0)).unwrap();
@@ -77,11 +76,6 @@ fn main() {
                         }
                     },
                     Event::Key { state, kind } => {
-                        if kind == "R" && *state == State::Pressed
-                        {
-                            pipeline.next_debug_type();
-                            println!("{:?}", pipeline.debug_type());
-                        }
                         if kind == "C" && *state == State::Pressed
                         {
                             is_primary_camera = !is_primary_camera;

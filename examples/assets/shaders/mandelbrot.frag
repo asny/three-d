@@ -1,5 +1,7 @@
 
-in vec2 pos;
+in vec3 nor;
+in vec3 pos;
+in vec2 uvs;
 
 layout (location = 0) out vec4 color;
 
@@ -13,7 +15,7 @@ void main()
     int m = 128;
     vec2 z = vec2(0);
     for(int i = 0; i < m; i++) {
-        z = fun(z, pos);
+        z = fun(z, pos.xy);
         if(length(z) >= 2.0) {
             float t = float(i);
             color = vec4(smoothstep(0.0, 16.0, t) - smoothstep(32.0, float(m), t),

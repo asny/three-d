@@ -1,5 +1,7 @@
 
 use three_d::core::*;
+use three_d::Mesh;
+use three_d::CPUMesh;
 use three_d::window::*;
 
 fn main() {
@@ -16,19 +18,14 @@ fn main() {
     let indices = vec![
         0, 1, 2, 2, 3, 0
     ];
-    let index_buffer = ElementBuffer::new_with_u32(&context, &indices).unwrap();
-
     let positions = vec![
         -2.0, -2.0, 0.0,
         2.0, -2.0, 0.0,
         2.0, 2.0, 0.0,
         -2.0, 2.0, 0.0,
     ];
-    let position_buffer = VertexBuffer::new_with_static_f32(&context, &positions).unwrap();
-
-    let program = Program::from_source(&context,
-                                       include_str!("../assets/shaders/mandelbrot.vert"),
-                                       include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
+    let mesh = Mesh::new(&context, &CPUMesh {indices: Some(indices), positions, ..Default::default() }).unwrap();
+    let program = Mesh::create_program(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
     // main loop
     let mut panning = false;
@@ -54,14 +51,8 @@ fn main() {
         }
 
         Screen::write(&context, Some(&vec4(0.0, 1.0, 1.0, 1.0)), None, || {
-            program.use_attribute_vec3_float(&position_buffer, "position")?;
-
-            program.add_uniform_mat4("modelMatrix", &Mat4::identity())?;
-            program.use_uniform_block(camera.matrix_buffer(), "Camera");
-
-            program.draw_elements(RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()},
-                                  frame_input.viewport,
-                                  &index_buffer);
+            mesh.render(&program, RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()},
+                        frame_input.viewport, &Mat4::identity(), &camera).unwrap();
             Ok(())
         }).unwrap();
 
