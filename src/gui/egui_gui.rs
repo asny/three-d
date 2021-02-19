@@ -101,17 +101,17 @@ impl GUI {
         let clip_max_y = pixels_per_point as f32 * clip_rect.max.y;
 
         // Make sure clip rect can fit withing an `u32`:
-        let clip_min_x = egui::emath::clamp(clip_min_x, 0.0..=width as f32);
-        let clip_min_y = egui::emath::clamp(clip_min_y, 0.0..=height as f32);
-        let clip_max_x = egui::emath::clamp(clip_max_x, clip_min_x..=width as f32);
-        let clip_max_y = egui::emath::clamp(clip_max_y, clip_min_y..=height as f32);
+        let clip_min_x = egui::emath::clamp(clip_min_x, 0.0..=(width * pixels_per_point) as f32);
+        let clip_min_y = egui::emath::clamp(clip_min_y, 0.0..=(height * pixels_per_point) as f32);
+        let clip_max_x = egui::emath::clamp(clip_max_x, clip_min_x..=(width * pixels_per_point) as f32);
+        let clip_max_y = egui::emath::clamp(clip_max_y, clip_min_y..=(height * pixels_per_point) as f32);
 
         let clip_min_x = clip_min_x.round() as i32;
         let clip_min_y = clip_min_y.round() as i32;
         let clip_max_x = clip_max_x.round() as i32;
         let clip_max_y = clip_max_y.round() as i32;
 
-        let viewport = Viewport {x: clip_min_x, y: height as i32 - clip_max_y, width: (clip_max_x - clip_min_x) as usize, height: (clip_max_y - clip_min_y) as usize};
+        let viewport = Viewport {x: clip_min_x, y: (height * pixels_per_point) as i32 - clip_max_y, width: (clip_max_x - clip_min_x) as usize, height: (clip_max_y - clip_min_y) as usize};
 
         let render_states = RenderStates { blend: Some(BlendParameters {
             source_rgb_multiplier: BlendMultiplierType::One,
