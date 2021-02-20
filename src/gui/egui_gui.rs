@@ -64,8 +64,6 @@ impl GUI {
         };
 
         for egui::ClippedMesh(clip_rect, mesh) in clipped_meshes {
-            println!("{:?}", clip_rect);
-            println!("{:?}", mesh);
             self.paint_mesh(frame_input.window_width, frame_input.window_height, pixels_per_point, clip_rect, &mesh, self.texture.as_ref().unwrap())?;
         }
         Ok(())
