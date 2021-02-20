@@ -86,13 +86,12 @@ impl GUI {
         for v in mesh.vertices.iter() {
             positions.push(v.pos.x);
             positions.push(v.pos.y);
-            positions.push(0.0);
             uvs.push(v.uv.x);
             uvs.push(v.uv.y);
-            colors.push(v.color.r() as f32);
-            colors.push(v.color.g() as f32);
-            colors.push(v.color.b() as f32);
-            colors.push(v.color.a() as f32);
+            colors.push(v.color[0] as f32);
+            colors.push(v.color[1] as f32);
+            colors.push(v.color[2] as f32);
+            colors.push(v.color[3] as f32);
         }
         let indices: Vec<u32> = mesh.indices.iter().map(|idx| *idx as u32).collect();
 
@@ -131,7 +130,7 @@ impl GUI {
         self.program.use_texture(texture, "u_sampler")?;
         self.program.add_uniform_vec2("u_screen_size", &vec2(width as f32, height as f32))?;
 
-        self.program.use_attribute_vec3_float(&position_buffer, "a_pos")?;
+        self.program.use_attribute_vec2_float(&position_buffer, "a_pos")?;
         self.program.use_attribute_vec4_float(&color_buffer, "a_srgba")?;
         self.program.use_attribute_vec2_float(&uv_buffer, "a_tc")?;
 
@@ -190,7 +189,7 @@ const FRAGMENT_SHADER_SOURCE: &str = r#"
         /// Multiply vertex color with texture color (in linear space).
         color = v_rgba * texture_rgba;
         // We must gamma-encode again since WebGL doesn't support linear blending in the framebuffer.
-        color = srgba_from_linear(v_rgba * texture_rgba) / 255.0;
+        color = srgba_from_linear(color) / 255.0;
         // WebGL doesn't support linear blending in the framebuffer,
         // so we apply this hack to at least get a bit closer to the desired blending:
         color.a = pow(color.a, 1.6); // Empiric nonsense
