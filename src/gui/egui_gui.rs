@@ -4,7 +4,9 @@ use crate::*;
 pub struct GUI {
     context: Context,
     egui_context: egui::CtxRef,
-    program: Program
+    program: Program,
+    texture_version: u64,
+    texture: Option<Texture2D>
 }
 
 impl GUI {
@@ -12,6 +14,8 @@ impl GUI {
         Ok(GUI {
             egui_context: egui::CtxRef::default(),
             context: context.clone(),
+            texture_version: 0,
+            texture: None,
             program: Program::from_source(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?
         })
     }
@@ -50,14 +54,18 @@ impl GUI {
         let clipped_meshes = self.egui_context.tessellate(shapes);
 
         let egui_texture = self.egui_context.texture();
-        let texture = Texture2D::new_with_u8(&self.context, Interpolation::Linear, Interpolation::Linear, None,
+
+        if self.texture.is_none() || self.texture_version != egui_texture.version {
+            self.texture = Some(Texture2D::new_with_u8(&self.context, Interpolation::Linear, Interpolation::Linear, None,
                                    Wrapping::ClampToEdge, Wrapping::ClampToEdge,
-                                   &Image {bytes: egui_texture.pixels.clone(), width: egui_texture.width as u32, height: egui_texture.height as u32 })?;
+                                   &Image {bytes: egui_texture.pixels.clone(), width: egui_texture.width as u32, height: egui_texture.height as u32 })?);
+            self.texture_version = egui_texture.version;
+        };
 
         for egui::ClippedMesh(clip_rect, mesh) in clipped_meshes {
             println!("{:?}", clip_rect);
             println!("{:?}", mesh);
-            self.paint_mesh(frame_input.window_width, frame_input.window_height, pixels_per_point, clip_rect, &mesh, &texture)?;
+            self.paint_mesh(frame_input.window_width, frame_input.window_height, pixels_per_point, clip_rect, &mesh, self.texture.as_ref().unwrap())?;
         }
         Ok(())
     }
@@ -133,8 +141,65 @@ impl GUI {
     }
 }
 
-
 const VERTEX_SHADER_SOURCE: &str = r#"
+    uniform vec2 u_screen_size;
+    in vec2 a_pos;
+    in vec2 a_tc;
+    in vec4 a_srgba;
+    out vec4 v_rgba;
+    out vec2 v_tc;
+    // 0-1 linear  from  0-255 sRGB
+    vec3 linear_from_srgb(vec3 srgb) {
+        bvec3 cutoff = lessThan(srgb, vec3(10.31475));
+        vec3 lower = srgb / vec3(3294.6);
+        vec3 higher = pow((srgb + vec3(14.025)) / vec3(269.025), vec3(2.4));
+        return mix(higher, lower, vec3(cutoff));
+    }
+    vec4 linear_from_srgba(vec4 srgba) {
+        return vec4(linear_from_srgb(srgba.rgb), srgba.a / 255.0);
+    }
+    void main() {
+        gl_Position = vec4(
+            2.0 * a_pos.x / u_screen_size.x - 1.0,
+            1.0 - 2.0 * a_pos.y / u_screen_size.y,
+            0.0,
+            1.0);
+        // egui encodes vertex colors in gamma spaces, so we must decode the colors here:
+        v_rgba = linear_from_srgba(a_srgba);
+        v_tc = a_tc;
+    }
+"#;
+
+const FRAGMENT_SHADER_SOURCE: &str = r#"
+    uniform sampler2D u_sampler;
+    in vec4 v_rgba;
+    in vec2 v_tc;
+    layout (location = 0) out vec4 color;
+    // 0-255 sRGB  from  0-1 linear
+    vec3 srgb_from_linear(vec3 rgb) {
+        bvec3 cutoff = lessThan(rgb, vec3(0.0031308));
+        vec3 lower = rgb * vec3(3294.6);
+        vec3 higher = vec3(269.025) * pow(rgb, vec3(1.0 / 2.4)) - vec3(14.025);
+        return mix(higher, lower, vec3(cutoff));
+    }
+    vec4 srgba_from_linear(vec4 rgba) {
+        return vec4(srgb_from_linear(rgba.rgb), 255.0 * rgba.a);
+    }
+    void main() {
+        // The texture is set up with `SRGB8_ALPHA8`, so no need to decode here!
+        vec4 texture_rgba = texture(u_sampler, v_tc);
+        /// Multiply vertex color with texture color (in linear space).
+        color = v_rgba * texture_rgba;
+        // We must gamma-encode again since WebGL doesn't support linear blending in the framebuffer.
+        color = srgba_from_linear(v_rgba * texture_rgba) / 255.0;
+        // WebGL doesn't support linear blending in the framebuffer,
+        // so we apply this hack to at least get a bit closer to the desired blending:
+        color.a = pow(color.a, 1.6); // Empiric nonsense
+    }
+"#;
+
+
+/*const VERTEX_SHADER_SOURCE: &str = r#"
     uniform vec2 u_screen_size;
     in vec2 a_pos;
     in vec4 a_srgba; // 0-255 sRGB
@@ -172,9 +237,33 @@ const FRAGMENT_SHADER_SOURCE: &str = r#"
     in vec2 v_tc;
     layout (location = 0) out vec4 f_color;
 
+    // 0-1 linear  from  0-255 sRGB
+    vec3 linear_from_srgb(vec3 srgb) {
+        bvec3 cutoff = lessThan(srgb, vec3(10.31475));
+        vec3 lower = srgb / vec3(3294.6);
+        vec3 higher = pow((srgb + vec3(14.025)) / vec3(269.025), vec3(2.4));
+        return mix(higher, lower, cutoff);
+    }
+
+    vec4 linear_from_srgba(vec4 srgba) {
+        return vec4(linear_from_srgb(srgba.rgb), srgba.a / 255.0);
+    }
+
+    // 0-255 sRGB  from  0-1 linear
+    vec3 srgb_from_linear(vec3 rgb) {
+        bvec3 cutoff = lessThan(rgb, vec3(0.0031308));
+        vec3 lower = rgb * vec3(3294.6);
+        vec3 higher = vec3(269.025) * pow(rgb, vec3(1.0 / 2.4)) - vec3(14.025);
+        return mix(higher, lower, vec3(cutoff));
+    }
+    vec4 srgba_from_linear(vec4 rgba) {
+        return vec4(srgb_from_linear(rgba.rgb), 255.0 * rgba.a);
+    }
+
     void main() {
         // The texture sampler is sRGB aware, and glium already expects linear rgba output
         // so no need for any sRGB conversions here:
-        f_color = v_rgba * texture(u_sampler, v_tc);
+        f_color = v_rgba * linear_from_srgba(texture(u_sampler, v_tc));
+        f_color = srgba_from_linear(f_color);
     }
-"#;
+"#;*/
