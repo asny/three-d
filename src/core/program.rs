@@ -233,7 +233,7 @@ impl Program
 
     pub fn use_attribute_vec4_float(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
     {
-        self.use_attribute_vec3_float_divisor(buffer, attribute_name, 0)?;
+        self.use_attribute_vec4_float_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
