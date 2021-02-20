@@ -1,5 +1,6 @@
 
 use crate::*;
+pub use egui;
 
 pub struct GUI {
     context: Context,
