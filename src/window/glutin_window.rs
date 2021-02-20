@@ -66,16 +66,12 @@ impl Window
         let mut events = Vec::new();
         let mut cursor_pos = None;
         self.event_loop.run(move |event, _, control_flow| {
-                *control_flow = ControlFlow::Wait;
+                *control_flow = ControlFlow::Poll;
                 match event {
                     Event::LoopDestroyed => {
                         return;
                     }
                     Event::MainEventsCleared => {
-                        windowed_context.window().request_redraw();
-                    }
-                    Event::RedrawRequested(_) => {
-
                         let now = std::time::Instant::now();
                         let duration = now.duration_since(last_time);
                         last_time = now;
