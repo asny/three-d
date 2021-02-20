@@ -36,6 +36,19 @@ impl Window
 {
     pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
     {
+        let event_loop = EventLoop::new();
+        let mut wc = Self::new_windowed_context(title, size, true, &event_loop);
+        if wc.is_err() {
+            wc = Self::new_windowed_context(title, size, false, &event_loop);
+        }
+
+        let windowed_context = unsafe { wc?.make_current().unwrap() };
+        let gl = context::Glstruct::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
+        Ok(Window { windowed_context, event_loop, gl})
+    }
+
+    fn new_windowed_context(title: &str, size: Option<(u32, u32)>, multisample: bool, event_loop: &EventLoop<()>) -> Result<WindowedContext<NotCurrent>, Error> {
+
         let window_builder =
             if let Some((width, height)) = size {
                 WindowBuilder::new()
@@ -49,11 +62,14 @@ impl Window
                     .with_resizable(false)
             };
 
-        let event_loop = EventLoop::new();
-        let windowed_context = ContextBuilder::new().with_vsync(true).with_multisampling(4).with_srgb(true).build_windowed(window_builder, &event_loop)?;
-        let windowed_context = unsafe { windowed_context.make_current().unwrap() };
-        let gl = context::Glstruct::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
-        Ok(Window { windowed_context, event_loop, gl})
+        if multisample {
+            Ok(ContextBuilder::new()
+                .with_multisampling(4)
+                .build_windowed(window_builder, event_loop)?)
+        } else {
+            Ok(ContextBuilder::new()
+                .build_windowed(window_builder, event_loop)?)
+        }
     }
 
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
