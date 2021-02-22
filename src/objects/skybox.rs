@@ -8,12 +8,12 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(context: &Context, right: &Image, left: &Image, top: &Image, front: &Image, back: &Image) -> Result<Skybox, Error>
+    pub fn new(context: &Context, right: &mut CPUTexture, left: &CPUTexture, top: &CPUTexture, front: &CPUTexture, back: &CPUTexture) -> Result<Skybox, Error>
     {
-        let texture = TextureCubeMap::new_with_u8(&context,
-                                                  Interpolation::Linear, Interpolation::Linear, None,
-                                                  Wrapping::ClampToEdge, Wrapping::ClampToEdge, Wrapping::ClampToEdge,
-                                                  right, left, top, top, front, back)?;
+        right.wrap_t = Wrapping::ClampToEdge;
+        right.wrap_s = Wrapping::ClampToEdge;
+        right.mip_map_filter = None;
+        let texture = TextureCubeMap::new_with_u8(&context, right, left, top, top, front, back)?;
         Self::new_with_texture(context, texture)
     }
 

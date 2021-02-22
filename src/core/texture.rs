@@ -1,33 +1,6 @@
 use crate::core::Error;
 use crate::context::{Context, consts};
-use crate::Image;
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum Interpolation {
-    Nearest = consts::NEAREST as isize,
-    Linear = consts::LINEAR as isize
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum Wrapping {
-    Repeat = consts::REPEAT as isize,
-    MirroredRepeat = consts::MIRRORED_REPEAT as isize,
-    ClampToEdge = consts::CLAMP_TO_EDGE as isize
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum Format {
-    R8 = consts::R8 as isize,
-    R32F = consts::R32F as isize,
-    RGB8 = consts::RGB8 as isize,
-    RGB32F = consts::RGB32F as isize,
-    RGBA4 = consts::RGBA4 as isize,
-    RGBA8 = consts::RGBA8 as isize,
-    RGBA32F = consts::RGBA32F as isize,
-    Depth16 = consts::DEPTH_COMPONENT16 as isize,
-    Depth24 = consts::DEPTH_COMPONENT24 as isize,
-    Depth32F = consts::DEPTH_COMPONENT32F as isize
-}
+use crate::cpu_texture::*;
 
 pub trait Texture {
     fn bind(&self, location: u32);
@@ -44,6 +17,26 @@ pub struct Texture2D {
 
 impl Texture2D
 {
+    pub fn new_(context: &Context, cpu_texture: &CPUTexture) -> Result<Texture2D, Error>
+    {
+        let id = generate(context)?;
+        let number_of_mip_maps = calculate_number_of_mip_maps(cpu_texture.mip_map_filter, cpu_texture.width, cpu_texture.height, 1);
+        set_parameters(context, &id,consts::TEXTURE_2D,
+                       cpu_texture.min_filter, cpu_texture.mag_filter,
+                       if number_of_mip_maps == 1 {None} else {cpu_texture.mip_map_filter},
+                       cpu_texture.wrap_s, cpu_texture.wrap_t, None);
+        context.tex_storage_2d(consts::TEXTURE_2D,
+                               number_of_mip_maps,
+                               cpu_texture.format as u32,
+                               cpu_texture.width as u32,
+                               cpu_texture.height as u32);
+        let mut texture = Self { context: context.clone(), id, width: cpu_texture.width, height: cpu_texture.height, format: cpu_texture.format, number_of_mip_maps };
+        if let Some(ref bytes) = cpu_texture.bytes {
+            texture.fill_with_u8(bytes)?;
+        }
+        Ok(texture)
+    }
+
     pub fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
                wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Texture2D, Error>
     {
@@ -56,23 +49,6 @@ impl Texture2D
                         width as u32,
                         height as u32);
         Ok(Self { context: context.clone(), id, width, height, format, number_of_mip_maps })
-    }
-
-    pub fn new_with_u8(context: &Context, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-                       wrap_s: Wrapping, wrap_t: Wrapping, image: &Image) -> Result<Texture2D, Error>
-    {
-        let number_of_channels = image.bytes.len() as u32 / (image.width * image.height);
-        let format = match number_of_channels {
-            1 => Ok(Format::R8),
-            3 => Ok(Format::RGB8),
-            4 => Ok(Format::RGBA8),
-            _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
-        }?;
-
-        let mut texture = Texture2D::new(context, image.width as usize, image.height as usize,
-            min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, format)?;
-        texture.fill_with_u8(&image.bytes)?;
-        Ok(texture)
     }
 
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error>
@@ -188,20 +164,18 @@ impl TextureCubeMap
         Ok(Self { context: context.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    pub fn new_with_u8(context: &Context, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-                       wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, right: &Image, left: &Image, top: &Image, bottom: &Image, front: &Image, back: &Image) -> Result<Self, Error>
+    pub fn new_with_u8(context: &Context, right: &CPUTexture, left: &CPUTexture, top: &CPUTexture, bottom: &CPUTexture, front: &CPUTexture, back: &CPUTexture) -> Result<Self, Error>
     {
-        let number_of_channels = right.bytes.len() as u32 / (right.width * right.height);
-        let format = match number_of_channels {
-            1 => Ok(Format::R8),
-            3 => Ok(Format::RGB8),
-            4 => Ok(Format::RGBA8),
-            _ => Err(Error::FailedToCreateTexture {message: format!("Unsupported texture format")})
-        }?;
-
+        let error = || {Error::FailedToCreateTexture { message:"".to_owned() }};
         let mut texture = Self::new(context, right.width as usize, right.height as usize,
-            min_filter, mag_filter, mip_map_filter, wrap_s, wrap_t, wrap_r, format)?;
-        texture.fill_with_u8([&right.bytes, &left.bytes, &top.bytes, &bottom.bytes, &front.bytes, &back.bytes])?;
+                                    right.min_filter, right.mag_filter, right.mip_map_filter, right.wrap_s, right.wrap_t, right.wrap_r, right.format)?;
+
+        texture.fill_with_u8([&right.bytes.as_ref().ok_or_else(error)?,
+            &left.bytes.as_ref().ok_or_else(error)?,
+            &top.bytes.as_ref().ok_or_else(error)?,
+            &bottom.bytes.as_ref().ok_or_else(error)?,
+            &front.bytes.as_ref().ok_or_else(error)?,
+            &back.bytes.as_ref().ok_or_else(error)?])?;
         Ok(texture)
     }
 
