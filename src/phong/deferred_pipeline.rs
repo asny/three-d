@@ -45,8 +45,7 @@ impl PhongDeferredPipeline
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(context, 1, 1, 2,
                                                                        Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                                                                        Wrapping::ClampToEdge, Format::RGBA8)?),
-            geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(context, 1, 1, 1,
-                                                                             Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+            geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(context, 1, 1, 1, Wrapping::ClampToEdge,
                                                                              Wrapping::ClampToEdge, DepthFormat::Depth32F)?)
         };
 
@@ -60,8 +59,7 @@ impl PhongDeferredPipeline
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new(&self.context, width, height, 2,
                                                                          Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
                                                                          Wrapping::ClampToEdge, Format::RGBA8)?);
-        self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(&self.context, width, height, 1,
-                                                                               Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+        self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(&self.context, width, height, 1, Wrapping::ClampToEdge,
                                                                                Wrapping::ClampToEdge, DepthFormat::Depth32F)?);
         RenderTargetArray::new(&self.context, self.geometry_pass_texture.as_ref().unwrap(), self.geometry_pass_depth_texture.as_ref().unwrap())?
             .write(Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), &[0, 1], 0, render_scene)?;

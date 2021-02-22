@@ -56,7 +56,6 @@ impl Imposters {
                                                       Interpolation::Nearest, Interpolation::Nearest, None,
                                                       Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8)?;
         let depth_texture = DepthTargetTexture2DArray::new(&self.context, texture_width, texture_height, NO_VIEW_ANGLES,
-                                                           Interpolation::Nearest, Interpolation::Nearest, None,
                                                            Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?;
         let render_target = RenderTargetArray::new(&self.context,&self.texture, &depth_texture)?;
 

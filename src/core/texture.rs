@@ -337,33 +337,23 @@ pub struct DepthTargetTexture2DArray {
     id: crate::context::Texture,
     width: usize,
     height: usize,
-    depth: usize,
-    number_of_mip_maps: u32
+    depth: usize
 }
 
 impl DepthTargetTexture2DArray
 {
-    pub fn new(context: &Context, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-               wrap_s: Wrapping, wrap_t: Wrapping, format: DepthFormat) -> Result<Self, Error>
+    pub fn new(context: &Context, width: usize, height: usize, depth: usize, wrap_s: Wrapping, wrap_t: Wrapping, format: DepthFormat) -> Result<Self, Error>
     {
         let id = generate(context)?;
-        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, depth);
-        set_parameters(context, &id,consts::TEXTURE_2D_ARRAY, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
+        set_parameters(context, &id,consts::TEXTURE_2D_ARRAY, Interpolation::Nearest, Interpolation::Nearest, None, wrap_s, wrap_t, None);
         context.bind_texture(consts::TEXTURE_2D_ARRAY, &id);
         context.tex_storage_3d(consts::TEXTURE_2D_ARRAY,
-                               number_of_mip_maps,
+                               1,
                                internal_format_from_depth(format),
                                width as u32,
                                height as u32,
                                depth as u32);
-        Ok(Self { context: context.clone(), id, width, height, depth, number_of_mip_maps })
-    }
-
-    pub(crate) fn generate_mip_maps(&self) {
-        if self.number_of_mip_maps > 1 {
-            self.context.bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
-            self.context.generate_mipmap(consts::TEXTURE_2D_ARRAY);
-        }
+        Ok(Self { context: context.clone(), id, width, height, depth })
     }
 
     pub(crate) fn bind_as_depth_target(&self, layer: usize)

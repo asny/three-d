@@ -261,9 +261,6 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         if let Some(color_texture) = self.color_texture {
             color_texture.generate_mip_maps();
         }
-        if let Some(depth_texture) = self.depth_texture {
-            depth_texture.generate_mip_maps();
-        }
         Ok(())
     }
 
