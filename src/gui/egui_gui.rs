@@ -23,30 +23,42 @@ impl GUI {
 
     pub fn render<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &FrameInput, callback: F) -> Result<(), Error> {
 
-        /*TODO:for event in frame_input.events {
+        let pixels_per_point = frame_input.viewport.width / frame_input.window_width;
+
+        let mut egui_events = Vec::new();
+        for event in frame_input.events.iter() {
             match event {
-                glutin::event::Event::WindowEvent { event, .. } => {
-                    input_to_egui(event, clipboard.as_mut(), &mut input_state, control_flow);
-                    display.gl_window().window().request_redraw(); // TODO: ask egui if the events warrants a repaint instead
-                }
+                Event::Key {..} => {
+
+                },
+                Event::MouseClick {state, button, position} => {
+                    egui_events.push(egui::Event::PointerButton {
+                        pos: egui::Pos2 {x: position.0 as f32/pixels_per_point as f32,
+                            y: position.1 as f32/pixels_per_point as f32},
+                        button: match button {
+                            MouseButton::Left => egui::PointerButton::Primary,
+                            MouseButton::Right => egui::PointerButton::Secondary,
+                            MouseButton::Middle => egui::PointerButton::Middle,
+                        },
+                        pressed: *state == State::Pressed,
+                        modifiers: egui::Modifiers::default()
+                    });
+                },
                 _ => (),
             }
-        };*/
-
-        let pixels_per_point = frame_input.viewport.width / frame_input.window_width;
+        };
 
         let input_state = egui::RawInput {
             scroll_delta: egui::Vec2::ZERO,
-            screen_size: Default::default(),
             screen_rect: Some(egui::Rect::from_min_size(
                 Default::default(),
                 egui::Vec2 {x: frame_input.window_width as f32, y: frame_input.window_height as f32},
             )),
             pixels_per_point: Some(pixels_per_point as f32),
             time: None,
-            predicted_dt: 1.0 / 60.0,
             modifiers: egui::Modifiers::default(),
-            events: vec![],
+            events: egui_events,
+            ..Default::default()
         };
         self.egui_context.begin_frame(input_state);
         callback(&self.egui_context);
