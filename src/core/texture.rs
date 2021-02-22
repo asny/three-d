@@ -446,7 +446,8 @@ fn check_f32_format(format: Format) -> Result<(), Error> {
 }
 
 fn check_data_length(width: usize, height: usize, depth: usize, format: Format, length: usize) -> Result<(), Error> {
-    let desired_length = width * height * depth *
+    let expected_pixels = width * height * depth;
+    let actual_pixels = length /
         match format_from(format) {
             consts::RED => 1,
             consts::RGB => 3,
@@ -454,8 +455,8 @@ fn check_data_length(width: usize, height: usize, depth: usize, format: Format, 
             _ => unreachable!()
         };
 
-    if length != desired_length {
-        Err(Error::FailedToCreateTexture {message: format!("Wrong size of data for the texture ({} != {})", length, desired_length)})?;
+    if expected_pixels != actual_pixels {
+        Err(Error::FailedToCreateTexture {message: format!("Wrong size of data for the texture (got {} pixels but expected {} pixels)", actual_pixels, expected_pixels)})?;
     }
     Ok(())
 }
