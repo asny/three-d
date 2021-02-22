@@ -169,8 +169,7 @@ impl PhongDeferredPipeline
     pub fn geometry_pass_depth_texture(&self) -> DepthTargetTexture2D
     {
         let depth_array = self.geometry_pass_depth_texture.as_ref().unwrap();
-        let depth_texture = DepthTargetTexture2D::new(&self.context, depth_array.width, depth_array.height,
-                                           Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+        let depth_texture = DepthTargetTexture2D::new(&self.context, depth_array.width, depth_array.height,Wrapping::ClampToEdge,
                                            Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
 
         RenderTargetArray::new_depth(&self.context, depth_array).unwrap()

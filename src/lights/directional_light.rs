@@ -15,8 +15,7 @@ impl DirectionalLight {
         let mut light = DirectionalLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
-            shadow_texture: DepthTargetTexture2D::new(context, 1, 1, Interpolation::Nearest, Interpolation::Nearest,
-                                                      None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?,
+            shadow_texture: DepthTargetTexture2D::new(context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?,
             shadow_camera: None};
 
         light.set_intensity(intensity);
@@ -48,8 +47,7 @@ impl DirectionalLight {
     pub fn clear_shadow_map(&mut self)
     {
         self.shadow_camera = None;
-        self.shadow_texture = DepthTargetTexture2D::new(&self.context, 1, 1, Interpolation::Nearest, Interpolation::Nearest,
-                                                        None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
+        self.shadow_texture = DepthTargetTexture2D::new(&self.context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
@@ -64,9 +62,7 @@ impl DirectionalLight {
                                                            frustrum_width, frustrum_height, frustrum_depth));
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice())?;
 
-        self.shadow_texture = DepthTargetTexture2D::new(&self.context, texture_width, texture_height,
-                                                        Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
-                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
+        self.shadow_texture = DepthTargetTexture2D::new(&self.context, texture_width, texture_height, Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
         RenderTarget::new_depth(&self.context,&self.shadow_texture)?
             .write(None, Some(1.0),
             || {
