@@ -57,9 +57,18 @@ impl GUI {
         let egui_texture = self.egui_context.texture();
 
         if self.texture.is_none() || self.texture_version != egui_texture.version {
-            self.texture = Some(Texture2D::new_with_u8(&self.context, Interpolation::Linear, Interpolation::Linear, None,
-                                   Wrapping::ClampToEdge, Wrapping::ClampToEdge,
-                                   &Image {bytes: egui_texture.pixels.clone(), width: egui_texture.width as u32, height: egui_texture.height as u32 })?);
+            let mut pixels = Vec::new();
+            for pixel in egui_texture.srgba_pixels() {
+                pixels.push(pixel.r());
+                pixels.push(pixel.g());
+                pixels.push(pixel.b());
+                pixels.push(pixel.a());
+            }
+            self.texture = Some(Texture2D::new_with_u8(&self.context,
+                &CPUTexture {data: pixels,
+                    format: Format::SRGBA8, width: egui_texture.width, height: egui_texture.height,
+                    mip_map_filter: None, wrap_s: Wrapping::ClampToEdge, wrap_t: Wrapping::ClampToEdge,
+                    ..Default::default() })?);
             self.texture_version = egui_texture.version;
         };
 
