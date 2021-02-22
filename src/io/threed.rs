@@ -47,7 +47,7 @@ impl ThreeD {
                 specular_power: material.specular_power,
                 texture_image: if let Some(filename) = material.texture_path {
                     let texture_path = path.as_ref().parent().unwrap_or(&Path::new("./")).join(filename);
-                    Some(Loader::get_image(loaded, &texture_path)?)
+                    Some(Loader::get_texture(loaded, &texture_path)?)
                 } else {None}
             });
         }

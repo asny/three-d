@@ -14,8 +14,8 @@ pub struct PhongDeferredPipeline {
     spot_light_effect: ImageEffect,
     debug_effect: Option<ImageEffect>,
     debug_type: DebugType,
-    geometry_pass_texture: Option<Texture2DArray>,
-    geometry_pass_depth_texture: Option<Texture2DArray>
+    geometry_pass_texture: Option<ColorTargetTexture2DArray>,
+    geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>
 }
 
 impl PhongDeferredPipeline
@@ -42,12 +42,11 @@ impl PhongDeferredPipeline
                                                                        &include_str!("shaders/spot_light.frag")))?,
             debug_effect: None,
             debug_type: DebugType::NONE,
-            geometry_pass_texture: Some(Texture2DArray::new(context, 1, 1, 2,
-                  Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
-                  Wrapping::ClampToEdge, Format::RGBA8)?),
-            geometry_pass_depth_texture: Some(Texture2DArray::new(context, 1, 1, 1,
-                    Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge,
-                    Wrapping::ClampToEdge, Format::Depth32F)?)
+            geometry_pass_texture: Some(ColorTargetTexture2DArray::new(context, 1, 1, 2,
+                                                                       Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+                                                                       Wrapping::ClampToEdge, Format::RGBA8)?),
+            geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(context, 1, 1, 1, Wrapping::ClampToEdge,
+                                                                             Wrapping::ClampToEdge, DepthFormat::Depth32F)?)
         };
 
         renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
@@ -57,12 +56,11 @@ impl PhongDeferredPipeline
 
     pub fn geometry_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
     {
-        self.geometry_pass_texture = Some(Texture2DArray::new(&self.context, width, height, 2,
-                  Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
-                  Wrapping::ClampToEdge, Format::RGBA8)?);
-        self.geometry_pass_depth_texture = Some(Texture2DArray::new(&self.context, width, height, 1,
-                    Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
-                    Wrapping::ClampToEdge, Format::Depth32F)?);
+        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new(&self.context, width, height, 2,
+                                                                         Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
+                                                                         Wrapping::ClampToEdge, Format::RGBA8)?);
+        self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(&self.context, width, height, 1, Wrapping::ClampToEdge,
+                                                                               Wrapping::ClampToEdge, DepthFormat::Depth32F)?);
         RenderTargetArray::new(&self.context, self.geometry_pass_texture.as_ref().unwrap(), self.geometry_pass_depth_texture.as_ref().unwrap())?
             .write(Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), &[0, 1], 0, render_scene)?;
         Ok(())
@@ -157,21 +155,20 @@ impl PhongDeferredPipeline
         Ok(())
     }
 
-    pub fn geometry_pass_texture(&self) -> &Texture2DArray
+    pub fn geometry_pass_texture(&self) -> &dyn Texture
     {
-        &self.geometry_pass_texture.as_ref().unwrap()
+        self.geometry_pass_texture.as_ref().unwrap()
     }
-    pub fn geometry_pass_depth_texture_array(&self) -> &Texture2DArray
+    pub fn geometry_pass_depth_texture_array(&self) -> &dyn Texture
     {
-        &self.geometry_pass_depth_texture.as_ref().unwrap()
+        self.geometry_pass_depth_texture.as_ref().unwrap()
     }
 
-    pub fn geometry_pass_depth_texture(&self) -> Texture2D
+    pub fn geometry_pass_depth_texture(&self) -> DepthTargetTexture2D
     {
-        let depth_array = self.geometry_pass_depth_texture_array();
-        let depth_texture = Texture2D::new(&self.context, depth_array.width, depth_array.height,
-                                           Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
-                                           Wrapping::ClampToEdge, Format::Depth32F).unwrap();
+        let depth_array = self.geometry_pass_depth_texture.as_ref().unwrap();
+        let depth_texture = DepthTargetTexture2D::new(&self.context, depth_array.width(), depth_array.height(),Wrapping::ClampToEdge,
+                                           Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
 
         RenderTargetArray::new_depth(&self.context, depth_array).unwrap()
             .copy_depth(0, &RenderTarget::new_depth(&self.context, &depth_texture).unwrap(), Interpolation::Nearest).unwrap();

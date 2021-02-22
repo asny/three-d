@@ -14,8 +14,8 @@ impl Saver {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
-            if let Some(ref img) = cpu_material.texture_image {
-                let number_of_channels = img.bytes.len() as u32 / (img.width * img.height);
+            if let Some(ref cpu_texture) = cpu_material.texture_image {
+                let number_of_channels = cpu_texture.data.len() / (cpu_texture.width * cpu_texture.height);
                 let format = match number_of_channels {
                     1 => Ok(image::ColorType::L8),
                     3 => Ok(image::ColorType::Rgb8),
@@ -23,7 +23,7 @@ impl Saver {
                     _ => Err(crate::io::Error::FailedToSave {message: format!("Texture image could not be saved")})
                 }?;
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
-                image::save_buffer(tex_path, &img.bytes, img.width, img.height, format)?;
+                image::save_buffer(tex_path,&cpu_texture.data, cpu_texture.width as u32, cpu_texture.height as u32, format)?;
             }
         }
         let bytes = ThreeD::serialize(filename, cpu_meshes, cpu_materials)?;
