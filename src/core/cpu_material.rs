@@ -2,7 +2,7 @@
 pub struct CPUMaterial {
     pub name: String,
     pub color: Option<(f32, f32, f32, f32)>,
-    pub texture_image: Option<crate::core::cpu_texture::CPUTexture>,
+    pub texture_image: Option<crate::core::cpu_texture::CPUTexture<u8>>,
     pub diffuse_intensity: Option<f32>,
     pub specular_intensity: Option<f32>,
     pub specular_power: Option<f32>

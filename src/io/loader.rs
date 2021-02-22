@@ -44,7 +44,7 @@ impl Loader {
     }
 
     #[cfg(feature = "image-io")]
-    pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<crate::CPUTexture, Error> {
+    pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<crate::CPUTexture<u8>, Error> {
         use image::GenericImageView;
         let img = image::load_from_memory(Self::get(loaded, path)?)?;
         let bytes = img.to_bytes();
@@ -56,7 +56,7 @@ impl Loader {
             _ => Err(Error::FailedToLoad {message: format!("Could not determine the pixel format for the texture.")})
         }?;
 
-        Ok(crate::CPUTexture {bytes: Some(bytes), width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
+        Ok(crate::CPUTexture {bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
     }
 
     fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)

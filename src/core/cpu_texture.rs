@@ -28,8 +28,8 @@ pub enum Format {
     Depth32F = consts::DEPTH_COMPONENT32F as isize
 }
 
-pub struct CPUTexture {
-    pub bytes: Option<Vec<u8>>,
+pub struct CPUTexture<T> {
+    pub bytes: Vec<T>,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
@@ -42,10 +42,10 @@ pub struct CPUTexture {
     pub wrap_r: Wrapping
 }
 
-impl Default for CPUTexture {
+impl Default for CPUTexture<u8> {
     fn default() -> Self {
         Self {
-            bytes: None,
+            bytes: [255u8, 255, 0, 255].into(),
             width: 1,
             height: 1,
             depth: 1,

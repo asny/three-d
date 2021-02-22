@@ -17,7 +17,7 @@ pub struct Texture2D {
 
 impl Texture2D
 {
-    pub fn new_(context: &Context, cpu_texture: &CPUTexture) -> Result<Texture2D, Error>
+    pub fn new_with_u8(context: &Context, cpu_texture: &CPUTexture<u8>) -> Result<Texture2D, Error>
     {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(cpu_texture.mip_map_filter, cpu_texture.width, cpu_texture.height, 1);
@@ -31,9 +31,7 @@ impl Texture2D
                                cpu_texture.width as u32,
                                cpu_texture.height as u32);
         let mut texture = Self { context: context.clone(), id, width: cpu_texture.width, height: cpu_texture.height, format: cpu_texture.format, number_of_mip_maps };
-        if let Some(ref bytes) = cpu_texture.bytes {
-            texture.fill_with_u8(bytes)?;
-        }
+        texture.fill_with_u8(&cpu_texture.bytes)?;
         Ok(texture)
     }
 
@@ -164,18 +162,17 @@ impl TextureCubeMap
         Ok(Self { context: context.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    pub fn new_with_u8(context: &Context, right: &CPUTexture, left: &CPUTexture, top: &CPUTexture, bottom: &CPUTexture, front: &CPUTexture, back: &CPUTexture) -> Result<Self, Error>
+    pub fn new_with_u8(context: &Context, right: &CPUTexture<u8>, left: &CPUTexture<u8>, top: &CPUTexture<u8>, bottom: &CPUTexture<u8>, front: &CPUTexture<u8>, back: &CPUTexture<u8>) -> Result<Self, Error>
     {
-        let error = || {Error::FailedToCreateTexture { message:"".to_owned() }};
         let mut texture = Self::new(context, right.width as usize, right.height as usize,
                                     right.min_filter, right.mag_filter, right.mip_map_filter, right.wrap_s, right.wrap_t, right.wrap_r, right.format)?;
 
-        texture.fill_with_u8([&right.bytes.as_ref().ok_or_else(error)?,
-            &left.bytes.as_ref().ok_or_else(error)?,
-            &top.bytes.as_ref().ok_or_else(error)?,
-            &bottom.bytes.as_ref().ok_or_else(error)?,
-            &front.bytes.as_ref().ok_or_else(error)?,
-            &back.bytes.as_ref().ok_or_else(error)?])?;
+        texture.fill_with_u8([&right.bytes,
+            &left.bytes,
+            &top.bytes,
+            &bottom.bytes,
+            &front.bytes,
+            &back.bytes])?;
         Ok(texture)
     }
 

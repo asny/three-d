@@ -8,7 +8,7 @@ pub struct Skybox {
 
 impl Skybox
 {
-    pub fn new(context: &Context, right: &mut CPUTexture, left: &CPUTexture, top: &CPUTexture, front: &CPUTexture, back: &CPUTexture) -> Result<Skybox, Error>
+    pub fn new(context: &Context, right: &mut CPUTexture<u8>, left: &CPUTexture<u8>, top: &CPUTexture<u8>, front: &CPUTexture<u8>, back: &CPUTexture<u8>) -> Result<Skybox, Error>
     {
         right.wrap_t = Wrapping::ClampToEdge;
         right.wrap_s = Wrapping::ClampToEdge;
