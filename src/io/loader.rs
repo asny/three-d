@@ -59,6 +59,24 @@ impl Loader {
         Ok(crate::CPUTexture {data: bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
     }
 
+    #[cfg(feature = "image-io")]
+    pub fn get_cube_texture<P: AsRef<Path>>(loaded: &Loaded, right_path: P, left_path: P,
+                                            top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<crate::CPUTexture<u8>, Error> {
+        let mut right = Self::get_texture(loaded, right_path)?;
+        let left = Self::get_texture(loaded, left_path)?;
+        let top = Self::get_texture(loaded, top_path)?;
+        let bottom = Self::get_texture(loaded, bottom_path)?;
+        let front = Self::get_texture(loaded, front_path)?;
+        let back = Self::get_texture(loaded, back_path)?;
+
+        right.data.extend(left.data);
+        right.data.extend(top.data);
+        right.data.extend(bottom.data);
+        right.data.extend(front.data);
+        right.data.extend(back.data);
+        Ok(right)
+    }
+
     fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),

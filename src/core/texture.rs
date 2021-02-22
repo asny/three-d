@@ -131,28 +131,26 @@ impl TextureCubeMap
         Ok(Self { context: context.clone(), id, width, height, format, number_of_mip_maps })
     }
 
-    pub fn new_with_u8(context: &Context, right: &CPUTexture<u8>, left: &CPUTexture<u8>, top: &CPUTexture<u8>, bottom: &CPUTexture<u8>, front: &CPUTexture<u8>, back: &CPUTexture<u8>) -> Result<Self, Error>
+    pub fn new_with_u8(context: &Context, cpu_texture: &CPUTexture<u8>) -> Result<Self, Error>
     {
-        let mut texture = Self::new(context, right.width as usize, right.height as usize,
-                                    right.min_filter, right.mag_filter, right.mip_map_filter, right.wrap_s, right.wrap_t, right.wrap_r, right.format)?;
-
-        texture.fill_with_u8([&right.data,
-            &left.data,
-            &top.data,
-            &bottom.data,
-            &front.data,
-            &back.data])?;
+        let mut texture = Self::new(context, cpu_texture.width as usize, cpu_texture.height as usize,
+                                    cpu_texture.min_filter, cpu_texture.mag_filter, cpu_texture.mip_map_filter,
+                                    cpu_texture.wrap_s, cpu_texture.wrap_t, cpu_texture.wrap_r, cpu_texture.format)?;
+        texture.fill_with_u8(&cpu_texture.data)?;
         Ok(texture)
     }
 
-    pub fn fill_with_u8(&mut self, data: [&[u8]; 6]) -> Result<(), Error>
+    // data contains 6 images in the following order; right, left, top, bottom, front, back
+    pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error>
     {
-        check_data_length(self.width, self.height, 1, self.format, data[0].len())?;
+        let offset = data.len()/6;
+        check_data_length(self.width, self.height, 1, self.format, offset)?;
         self.context.bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
         for i in 0..6 {
             self.context.tex_sub_image_2d_with_u8_data(consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32, 0, 0, 0,
                                                        self.width as u32, self.height as u32,
-                                                       format_from(self.format), consts::UNSIGNED_BYTE, data[i]);
+                                                       format_from(self.format), consts::UNSIGNED_BYTE,
+                                                       &data[i*offset..(i+1)*offset-1]);
         }
         self.generate_mip_maps();
         Ok(())
