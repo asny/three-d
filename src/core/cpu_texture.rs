@@ -19,7 +19,6 @@ pub enum Format {
     RGB8,
     RGB32F,
     SRGB8,
-    RGBA4,
     RGBA8,
     SRGBA8,
     RGBA32F

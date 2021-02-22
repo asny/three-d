@@ -33,6 +33,7 @@ impl Texture2D
 
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error>
     {
+        check_u8_format(self.format)?;
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
         self.context.bind_texture(consts::TEXTURE_2D, &self.id);
         self.context.tex_sub_image_2d_with_u8_data(consts::TEXTURE_2D, 0, 0, 0,
@@ -44,6 +45,7 @@ impl Texture2D
 
     pub fn fill_with_f32(&mut self, data: &[f32]) -> Result<(), Error>
     {
+        check_f32_format(self.format)?;
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
         self.context.bind_texture(consts::TEXTURE_2D, &self.id);
         self.context.tex_sub_image_2d_with_f32_data(consts::TEXTURE_2D, 0, 0, 0,
@@ -211,6 +213,7 @@ impl TextureCubeMap
     // data contains 6 images in the following order; right, left, top, bottom, front, back
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error>
     {
+        check_u8_format(self.format)?;
         let offset = data.len()/6;
         check_data_length(self.width, self.height, 1, self.format, offset)?;
         self.context.bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
@@ -425,6 +428,22 @@ fn calculate_number_of_mip_maps(mip_map_filter: Option<Interpolation>, width: us
         } else {1}
 }
 
+fn check_u8_format(format: Format) -> Result<(), Error> {
+    if format == Format::R8 || format == Format::RGB8 || format == Format::RGBA8 || format == Format::SRGB8 || format == Format::SRGBA8 {
+        Ok(())
+    } else {
+        Err(Error::FailedToCreateTexture {message: format!("Failed filling texture with format {:?} with u8.", format)})
+    }
+}
+
+fn check_f32_format(format: Format) -> Result<(), Error> {
+    if format == Format::R32F || format == Format::RGB32F || format == Format::RGBA32F {
+        Ok(())
+    } else {
+        Err(Error::FailedToCreateTexture {message: format!("Failed filling texture with format {:?} with f32.", format)})
+    }
+}
+
 fn check_data_length(width: usize, height: usize, depth: usize, format: Format, length: usize) -> Result<(), Error> {
     let desired_length = width * height * depth *
         match format_from(format) {
@@ -442,7 +461,6 @@ fn check_data_length(width: usize, height: usize, depth: usize, format: Format, 
 
 fn internal_format_from(format: Format) -> u32 {
     match format {
-        Format::RGBA4 => consts::RGBA4,
         Format::R8 => consts::R8,
         Format::RGB8 => consts::RGB8,
         Format::RGBA8 => consts::RGBA8,
@@ -469,7 +487,6 @@ fn format_from(format: Format) -> u32 {
         Format::RGB8 => consts::RGB,
         Format::RGB32F => consts::RGB,
         Format::SRGB8 => consts::RGB,
-        Format::RGBA4 => consts::RGBA,
         Format::RGBA8 => consts::RGBA,
         Format::RGBA32F => consts::RGBA,
         Format::SRGBA8 => consts::RGBA,
