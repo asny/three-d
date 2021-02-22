@@ -12,6 +12,7 @@ impl Skybox
     {
         right.wrap_t = Wrapping::ClampToEdge;
         right.wrap_s = Wrapping::ClampToEdge;
+        right.wrap_r = Wrapping::ClampToEdge;
         right.mip_map_filter = None;
         let texture = TextureCubeMap::new_with_u8(&context, right, left, top, top, front, back)?;
         Self::new_with_texture(context, texture)

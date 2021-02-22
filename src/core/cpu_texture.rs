@@ -29,7 +29,7 @@ pub enum Format {
 }
 
 pub struct CPUTexture<T> {
-    pub bytes: Vec<T>,
+    pub data: Vec<T>,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
@@ -45,7 +45,7 @@ pub struct CPUTexture<T> {
 impl Default for CPUTexture<u8> {
     fn default() -> Self {
         Self {
-            bytes: [255u8, 255, 0, 255].into(),
+            data: [255u8, 255, 0, 255].into(),
             width: 1,
             height: 1,
             depth: 1,
