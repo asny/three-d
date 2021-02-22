@@ -49,13 +49,13 @@ impl Screen {
 pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a Texture2D>,
-    depth_texture: Option<&'b Texture2D>,
+    color_texture: Option<&'a ColorTargetTexture2D>,
+    depth_texture: Option<&'b DepthTargetTexture2D>,
 }
 
 impl<'a, 'b> RenderTarget<'a, 'b>
 {
-    pub fn new(context: &Context, color_texture: &'a Texture2D, depth_texture: &'b Texture2D) -> Result<Self, Error> {
+    pub fn new(context: &Context, color_texture: &'a ColorTargetTexture2D, depth_texture: &'b DepthTargetTexture2D) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -64,7 +64,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         })
     }
 
-    pub fn new_color(context: &Context, color_texture: &'a Texture2D) -> Result<Self, Error> {
+    pub fn new_color(context: &Context, color_texture: &'a ColorTargetTexture2D) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -73,7 +73,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         })
     }
 
-    pub fn new_depth(context: &Context, depth_texture: &'b Texture2D) -> Result<Self, Error> {
+    pub fn new_depth(context: &Context, depth_texture: &'b DepthTargetTexture2D) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -221,13 +221,13 @@ impl Drop for RenderTarget<'_, '_> {
 pub struct RenderTargetArray<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a Texture2DArray>,
-    depth_texture: Option<&'b Texture2DArray>,
+    color_texture: Option<&'a ColorTargetTexture2DArray>,
+    depth_texture: Option<&'b DepthTargetTexture2DArray>,
 }
 
 impl<'a, 'b> RenderTargetArray<'a, 'b>
 {
-    pub fn new(context: &Context, color_texture: &'a Texture2DArray, depth_texture: &'b Texture2DArray) -> Result<Self, Error> {
+    pub fn new(context: &Context, color_texture: &'a ColorTargetTexture2DArray, depth_texture: &'b DepthTargetTexture2DArray) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -236,7 +236,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         })
     }
 
-    pub fn new_color(context: &Context, color_texture: &'a Texture2DArray) -> Result<Self, Error> {
+    pub fn new_color(context: &Context, color_texture: &'a ColorTargetTexture2DArray) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -245,7 +245,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         })
     }
 
-    pub fn new_depth(context: &Context, depth_texture: &'b Texture2DArray) -> Result<Self, Error> {
+    pub fn new_depth(context: &Context, depth_texture: &'b DepthTargetTexture2DArray) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,

@@ -16,16 +16,20 @@ pub enum Wrapping {
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
-    R8 = consts::R8 as isize,
-    R32F = consts::R32F as isize,
-    RGB8 = consts::RGB8 as isize,
-    RGB32F = consts::RGB32F as isize,
-    RGBA4 = consts::RGBA4 as isize,
-    RGBA8 = consts::RGBA8 as isize,
-    RGBA32F = consts::RGBA32F as isize,
-    Depth16 = consts::DEPTH_COMPONENT16 as isize,
-    Depth24 = consts::DEPTH_COMPONENT24 as isize,
-    Depth32F = consts::DEPTH_COMPONENT32F as isize
+    R8,
+    R32F,
+    RGB8,
+    RGB32F,
+    RGBA4,
+    RGBA8,
+    RGBA32F
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub enum DepthFormat {
+    Depth16,
+    Depth24,
+    Depth32F
 }
 
 pub struct CPUTexture<T> {

@@ -35,7 +35,7 @@ impl Texture2D
         Ok(texture)
     }
 
-    pub fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+    fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
                wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Texture2D, Error>
     {
         let id = generate(context)?;
@@ -74,18 +74,6 @@ impl Texture2D
             self.context.generate_mipmap(consts::TEXTURE_2D);
         }
     }
-
-    pub(crate) fn bind_as_color_target(&self, channel: usize)
-    {
-        self.context.framebuffer_texture_2d(consts::FRAMEBUFFER,
-                       consts::COLOR_ATTACHMENT0 + channel as u32, consts::TEXTURE_2D, &self.id, 0);
-    }
-
-    pub(crate) fn bind_as_depth_target(&self)
-    {
-        self.context.framebuffer_texture_2d(consts::FRAMEBUFFER,
-                       consts::DEPTH_ATTACHMENT, consts::TEXTURE_2D, &self.id, 0);
-    }
 }
 
 impl Texture for Texture2D
@@ -104,6 +92,108 @@ impl Drop for Texture2D
     }
 }
 
+pub struct ColorTargetTexture2D {
+    context: Context,
+    id: crate::context::Texture,
+    pub width: usize,
+    pub height: usize,
+    number_of_mip_maps: u32
+}
+
+impl ColorTargetTexture2D
+{
+    pub fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+               wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
+    {
+        let id = generate(context)?;
+        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
+        set_parameters(context, &id,consts::TEXTURE_2D, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
+        context.tex_storage_2d(consts::TEXTURE_2D, number_of_mip_maps,
+                               internal_format_from(format), width as u32, height as u32);
+        Ok(Self { context: context.clone(), id, width, height, number_of_mip_maps })
+    }
+
+    pub(crate) fn generate_mip_maps(&self) {
+        if self.number_of_mip_maps > 1 {
+            self.context.bind_texture(consts::TEXTURE_2D, &self.id);
+            self.context.generate_mipmap(consts::TEXTURE_2D);
+        }
+    }
+
+    pub(crate) fn bind_as_color_target(&self, channel: usize)
+    {
+        self.context.framebuffer_texture_2d(consts::FRAMEBUFFER,
+                                            consts::COLOR_ATTACHMENT0 + channel as u32, consts::TEXTURE_2D, &self.id, 0);
+    }
+}
+
+impl Texture for ColorTargetTexture2D
+{
+    fn bind(&self, location: u32)
+    {
+        bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
+    }
+}
+
+impl Drop for ColorTargetTexture2D
+{
+    fn drop(&mut self)
+    {
+        self.context.delete_texture(&self.id);
+    }
+}
+
+pub struct DepthTargetTexture2D {
+    context: Context,
+    id: crate::context::Texture,
+    pub width: usize,
+    pub height: usize,
+    number_of_mip_maps: u32
+}
+
+impl DepthTargetTexture2D
+{
+    pub fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+               wrap_s: Wrapping, wrap_t: Wrapping, format: DepthFormat) -> Result<Self, Error>
+    {
+        let id = generate(context)?;
+        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
+        set_parameters(context, &id,consts::TEXTURE_2D, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
+        context.tex_storage_2d(consts::TEXTURE_2D, number_of_mip_maps,
+                               internal_format_from_depth(format), width as u32, height as u32);
+        Ok(Self { context: context.clone(), id, width, height, number_of_mip_maps })
+    }
+
+    pub(crate) fn generate_mip_maps(&self) {
+        if self.number_of_mip_maps > 1 {
+            self.context.bind_texture(consts::TEXTURE_2D, &self.id);
+            self.context.generate_mipmap(consts::TEXTURE_2D);
+        }
+    }
+
+    pub(crate) fn bind_as_depth_target(&self)
+    {
+        self.context.framebuffer_texture_2d(consts::FRAMEBUFFER,
+                                            consts::DEPTH_ATTACHMENT, consts::TEXTURE_2D, &self.id, 0);
+    }
+}
+
+impl Texture for DepthTargetTexture2D
+{
+    fn bind(&self, location: u32)
+    {
+        bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
+    }
+}
+
+impl Drop for DepthTargetTexture2D
+{
+    fn drop(&mut self)
+    {
+        self.context.delete_texture(&self.id);
+    }
+}
+
 pub struct TextureCubeMap {
     context: Context,
     id: crate::context::Texture,
@@ -115,7 +205,7 @@ pub struct TextureCubeMap {
 
 impl TextureCubeMap
 {
-    pub fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+    fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
                wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, format: Format) -> Result<TextureCubeMap, Error>
     {
         let id = generate(context)?;
@@ -180,7 +270,7 @@ impl Drop for TextureCubeMap
     }
 }
 
-pub struct Texture2DArray {
+pub struct ColorTargetTexture2DArray {
     context: Context,
     id: crate::context::Texture,
     pub width: usize,
@@ -189,7 +279,7 @@ pub struct Texture2DArray {
     number_of_mip_maps: u32
 }
 
-impl Texture2DArray
+impl ColorTargetTexture2DArray
 {
     pub fn new(context: &Context, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
                wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Self, Error>
@@ -219,15 +309,9 @@ impl Texture2DArray
         self.context.framebuffer_texture_layer(consts::DRAW_FRAMEBUFFER,
                       consts::COLOR_ATTACHMENT0 + channel as u32, &self.id, 0, layer as u32);
     }
-
-    pub(crate) fn bind_as_depth_target(&self, layer: usize)
-    {
-        self.context.framebuffer_texture_layer(consts::DRAW_FRAMEBUFFER,
-                       consts::DEPTH_ATTACHMENT, &self.id, 0, layer as u32);
-    }
 }
 
-impl Texture for Texture2DArray
+impl Texture for ColorTargetTexture2DArray
 {
     fn bind(&self, location: u32)
     {
@@ -235,7 +319,7 @@ impl Texture for Texture2DArray
     }
 }
 
-impl Drop for Texture2DArray
+impl Drop for ColorTargetTexture2DArray
 {
     fn drop(&mut self)
     {
@@ -243,6 +327,63 @@ impl Drop for Texture2DArray
     }
 }
 
+
+pub struct DepthTargetTexture2DArray {
+    context: Context,
+    id: crate::context::Texture,
+    pub width: usize,
+    pub height: usize,
+    pub depth: usize,
+    number_of_mip_maps: u32
+}
+
+impl DepthTargetTexture2DArray
+{
+    pub fn new(context: &Context, width: usize, height: usize, depth: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
+               wrap_s: Wrapping, wrap_t: Wrapping, format: DepthFormat) -> Result<Self, Error>
+    {
+        let id = generate(context)?;
+        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, depth);
+        set_parameters(context, &id,consts::TEXTURE_2D_ARRAY, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
+        context.bind_texture(consts::TEXTURE_2D_ARRAY, &id);
+        context.tex_storage_3d(consts::TEXTURE_2D_ARRAY,
+                               number_of_mip_maps,
+                               internal_format_from_depth(format),
+                               width as u32,
+                               height as u32,
+                               depth as u32);
+        Ok(Self { context: context.clone(), id, width, height, depth, number_of_mip_maps })
+    }
+
+    pub(crate) fn generate_mip_maps(&self) {
+        if self.number_of_mip_maps > 1 {
+            self.context.bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
+            self.context.generate_mipmap(consts::TEXTURE_2D_ARRAY);
+        }
+    }
+
+    pub(crate) fn bind_as_depth_target(&self, layer: usize)
+    {
+        self.context.framebuffer_texture_layer(consts::DRAW_FRAMEBUFFER,
+                                               consts::DEPTH_ATTACHMENT, &self.id, 0, layer as u32);
+    }
+}
+
+impl Texture for DepthTargetTexture2DArray
+{
+    fn bind(&self, location: u32)
+    {
+        bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
+    }
+}
+
+impl Drop for DepthTargetTexture2DArray
+{
+    fn drop(&mut self)
+    {
+        self.context.delete_texture(&self.id);
+    }
+}
 
 // COMMON FUNCTIONS
 fn generate(context: &Context) -> Result<crate::context::Texture, Error>
@@ -308,21 +449,32 @@ fn check_data_length(width: usize, height: usize, depth: usize, format: Format, 
 
 fn internal_format_from(format: Format) -> u32 {
     match format {
+        Format::RGBA4 => consts::RGBA4,
         Format::R8 => consts::R8,
         Format::RGB8 => consts::RGB8,
         Format::RGBA8 => consts::RGBA8,
-        _ => format as u32
+        Format::R32F => consts::R32F,
+        Format::RGB32F => consts::RGB32F,
+        Format::RGBA32F => consts::RGBA32F
+    }
+}
+
+fn internal_format_from_depth(format: DepthFormat) -> u32 {
+    match format {
+        DepthFormat::Depth16 => consts::DEPTH_COMPONENT16,
+        DepthFormat::Depth24 => consts::DEPTH_COMPONENT24,
+        DepthFormat::Depth32F => consts::DEPTH_COMPONENT32F
     }
 }
 
 fn format_from(format: Format) -> u32 {
     match format {
         Format::R8 => consts::RED,
-        Format::RGB8 => consts::RGB,
-        Format::RGBA8 => consts::RGBA,
         Format::R32F => consts::RED,
+        Format::RGB8 => consts::RGB,
         Format::RGB32F => consts::RGB,
-        Format::RGBA32F => consts::RGBA,
-        _ => unreachable!()
+        Format::RGBA4 => consts::RGBA,
+        Format::RGBA8 => consts::RGBA,
+        Format::RGBA32F => consts::RGBA
     }
 }
