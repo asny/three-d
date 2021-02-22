@@ -401,7 +401,7 @@ fn set_parameters(context: &Context, id: &crate::context::Texture, target: u32, 
 {
     context.bind_texture(target, id);
     match mip_map_filter {
-        None => context.tex_parameteri(target, consts::TEXTURE_MIN_FILTER, min_filter as i32),
+        None => context.tex_parameteri(target, consts::TEXTURE_MIN_FILTER, interpolation_from(min_filter)),
         Some(Interpolation::Nearest) =>
             if min_filter == Interpolation::Nearest {
                 context.tex_parameteri(target, consts::TEXTURE_MIN_FILTER, consts::NEAREST_MIPMAP_NEAREST as i32);
@@ -415,11 +415,11 @@ fn set_parameters(context: &Context, id: &crate::context::Texture, target: u32, 
                 context.tex_parameteri(target, consts::TEXTURE_MIN_FILTER, consts::LINEAR_MIPMAP_LINEAR as i32)
             }
     }
-    context.tex_parameteri(target, consts::TEXTURE_MAG_FILTER, mag_filter as i32);
-    context.tex_parameteri(target, consts::TEXTURE_WRAP_S, wrap_s as i32);
-    context.tex_parameteri(target, consts::TEXTURE_WRAP_T, wrap_t as i32);
+    context.tex_parameteri(target, consts::TEXTURE_MAG_FILTER, interpolation_from(mag_filter));
+    context.tex_parameteri(target, consts::TEXTURE_WRAP_S, wrapping_from(wrap_s));
+    context.tex_parameteri(target, consts::TEXTURE_WRAP_T, wrapping_from(wrap_t));
     if let Some(r) = wrap_r {
-        context.tex_parameteri(target, consts::TEXTURE_WRAP_R, r as i32);
+        context.tex_parameteri(target, consts::TEXTURE_WRAP_R, wrapping_from(r));
     }
 }
 
@@ -477,4 +477,19 @@ fn format_from(format: Format) -> u32 {
         Format::RGBA8 => consts::RGBA,
         Format::RGBA32F => consts::RGBA
     }
+}
+
+fn wrapping_from(wrapping: Wrapping) -> i32 {
+    (match wrapping {
+        Wrapping::Repeat => consts::REPEAT,
+        Wrapping::MirroredRepeat => consts::MIRRORED_REPEAT,
+        Wrapping::ClampToEdge => consts::CLAMP_TO_EDGE
+    }) as i32
+}
+
+fn interpolation_from(interpolation: Interpolation) -> i32 {
+    (match interpolation {
+        Interpolation::Nearest => consts::NEAREST,
+        Interpolation::Linear => consts::LINEAR
+    }) as i32
 }

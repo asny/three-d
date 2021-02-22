@@ -1,17 +1,15 @@
 
-use crate::context::consts;
-
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Interpolation {
-    Nearest = consts::NEAREST as isize,
-    Linear = consts::LINEAR as isize
+    Nearest,
+    Linear
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Wrapping {
-    Repeat = consts::REPEAT as isize,
-    MirroredRepeat = consts::MIRRORED_REPEAT as isize,
-    ClampToEdge = consts::CLAMP_TO_EDGE as isize
+    Repeat,
+    MirroredRepeat,
+    ClampToEdge
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
