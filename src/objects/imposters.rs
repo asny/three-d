@@ -11,7 +11,7 @@ pub struct Imposters {
     positions_buffer: VertexBuffer,
     uvs_buffer: VertexBuffer,
     instance_count: u32,
-    texture: Texture2DArray
+    texture: ColorTargetTexture2DArray
 }
 
 impl Imposters {
@@ -34,9 +34,9 @@ impl Imposters {
 
         let center_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
         let rotation_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
-        let texture = Texture2DArray::new(context, 1, 1, NO_VIEW_ANGLES,
-                Interpolation::Nearest, Interpolation::Nearest, None,
-                                                Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::RGBA8)?;
+        let texture = ColorTargetTexture2DArray::new(context, 1, 1, NO_VIEW_ANGLES,
+                                                     Interpolation::Nearest, Interpolation::Nearest, None,
+                                                     Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8)?;
 
         Ok(Imposters {context: context.clone(), texture, program, center_buffer, rotation_buffer, positions_buffer, uvs_buffer, instance_count:0 })
     }
@@ -52,12 +52,11 @@ impl Imposters {
 
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
-        self.texture = Texture2DArray::new(&self.context, texture_width, texture_height, NO_VIEW_ANGLES,
-                Interpolation::Nearest, Interpolation::Nearest, None,
-                                                Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::RGBA8)?;
-        let depth_texture = Texture2DArray::new(&self.context, texture_width, texture_height, NO_VIEW_ANGLES,
-                Interpolation::Nearest, Interpolation::Nearest, None,
-                                                      Wrapping::ClampToEdge,Wrapping::ClampToEdge, Format::Depth32F)?;
+        self.texture = ColorTargetTexture2DArray::new(&self.context, texture_width, texture_height, NO_VIEW_ANGLES,
+                                                      Interpolation::Nearest, Interpolation::Nearest, None,
+                                                      Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::RGBA8)?;
+        let depth_texture = DepthTargetTexture2DArray::new(&self.context, texture_width, texture_height, NO_VIEW_ANGLES,
+                                                           Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?;
         let render_target = RenderTargetArray::new(&self.context,&self.texture, &depth_texture)?;
 
         for i in 0..NO_VIEW_ANGLES {

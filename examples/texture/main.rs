@@ -25,19 +25,19 @@ fn main() {
             ..Default::default()
         };
         box_cpu_mesh.compute_normals();
+        let box_texture = Texture2D::new_with_u8(&context, &Loader::get_texture(loaded, "examples/assets/test_texture.jpg").unwrap()).unwrap();
         let box_material = PhongMaterial {
-            color_source: ColorSource::Texture(std::rc::Rc::new(texture::Texture2D::new_with_u8(&context, Interpolation::Linear, Interpolation::Linear,
-                                                                  Some(Interpolation::Linear), Wrapping::Repeat, Wrapping::Repeat,
-                                                                  &Loader::get_image(loaded, "examples/assets/test_texture.jpg").unwrap()).unwrap())),
+            color_source: ColorSource::Texture(std::rc::Rc::new(box_texture)),
             ..Default::default()
         };
         let box_mesh = PhongDeferredMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
 
-        let skybox = Skybox::new(&context, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
+        let skybox = Skybox::new(&context, &mut Loader::get_cube_texture(loaded, "examples/assets/skybox_evening/right.jpg",
+                                                                         "examples/assets/skybox_evening/left.jpg",
+                                                                         "examples/assets/skybox_evening/top.jpg",
+                                                                         "examples/assets/skybox_evening/top.jpg",
+                                                                         "examples/assets/skybox_evening/front.jpg",
+                                                                         "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
         let materials = penguin_cpu_materials.iter().map(|m| PhongMaterial::new(&context, m).unwrap()).collect::<Vec<PhongMaterial>>();

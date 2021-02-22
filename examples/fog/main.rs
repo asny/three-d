@@ -31,11 +31,12 @@ fn main() {
         let mut fog_enabled = true;
 
         // Skybox
-        let skybox = Skybox::new(&context, &Loader::get_image(loaded, "examples/assets/skybox_evening/right.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/left.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/top.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/front.jpg").unwrap(),
-                                 &Loader::get_image(loaded, "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
+        let skybox = Skybox::new(&context, &mut Loader::get_cube_texture(loaded, "examples/assets/skybox_evening/right.jpg",
+                                                                         "examples/assets/skybox_evening/left.jpg",
+                                                                         "examples/assets/skybox_evening/top.jpg",
+                                                                         "examples/assets/skybox_evening/top.jpg",
+                                                                         "examples/assets/skybox_evening/front.jpg",
+                                                                         "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         // main loop
         let mut time = 0.0;

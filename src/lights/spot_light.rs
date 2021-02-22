@@ -4,7 +4,7 @@ use crate::core::*;
 pub struct SpotLight {
     context: Context,
     light_buffer: UniformBuffer,
-    shadow_texture: Texture2D,
+    shadow_texture: DepthTargetTexture2D,
     shadow_camera: Option<Camera>
 }
 
@@ -17,7 +17,7 @@ impl SpotLight {
         let mut light = SpotLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &uniform_sizes)?,
-            shadow_texture: Texture2D::new(context, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?,
+            shadow_texture: DepthTargetTexture2D::new(context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?,
             shadow_camera: None
         };
         light.set_intensity(intensity);
@@ -76,7 +76,7 @@ impl SpotLight {
     pub fn clear_shadow_map(&mut self)
     {
         self.shadow_camera = None;
-        self.shadow_texture = Texture2D::new(&self.context, 1, 1, Interpolation::Nearest, Interpolation::Nearest, None,Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F).unwrap();
+        self.shadow_texture = DepthTargetTexture2D::new(&self.context, 1, 1, Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
@@ -91,9 +91,7 @@ impl SpotLight {
                                                           degrees(cutoff), 1.0, 0.1, frustrum_depth));
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice())?;
 
-        self.shadow_texture = Texture2D::new(&self.context, texture_size, texture_size,
-                                                        Interpolation::Nearest, Interpolation::Nearest, None, // Linear filtering is not working on web
-                                                        Wrapping::ClampToEdge, Wrapping::ClampToEdge, Format::Depth32F)?;
+        self.shadow_texture = DepthTargetTexture2D::new(&self.context, texture_size, texture_size,Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?;
         RenderTarget::new_depth(&self.context, &self.shadow_texture)?.write( None, Some(1.0), || {
                 render_scene(Viewport::new_at_origo(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
@@ -102,7 +100,7 @@ impl SpotLight {
         Ok(())
     }
 
-    pub fn shadow_map(&self) -> &Texture2D
+    pub fn shadow_map(&self) -> &dyn Texture
     {
         &self.shadow_texture
     }
