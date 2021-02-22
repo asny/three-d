@@ -446,9 +446,11 @@ fn internal_format_from(format: Format) -> u32 {
         Format::R8 => consts::R8,
         Format::RGB8 => consts::RGB8,
         Format::RGBA8 => consts::RGBA8,
+        Format::SRGB8 => consts::SRGB8,
+        Format::SRGBA8 => consts::SRGB8_ALPHA8,
         Format::R32F => consts::R32F,
         Format::RGB32F => consts::RGB32F,
-        Format::RGBA32F => consts::RGBA32F
+        Format::RGBA32F => consts::RGBA32F,
     }
 }
 
@@ -466,9 +468,11 @@ fn format_from(format: Format) -> u32 {
         Format::R32F => consts::RED,
         Format::RGB8 => consts::RGB,
         Format::RGB32F => consts::RGB,
+        Format::SRGB8 => consts::RGB,
         Format::RGBA4 => consts::RGBA,
         Format::RGBA8 => consts::RGBA,
-        Format::RGBA32F => consts::RGBA
+        Format::RGBA32F => consts::RGBA,
+        Format::SRGBA8 => consts::RGBA,
     }
 }
 
