@@ -44,6 +44,12 @@ impl GUI {
                         modifiers: egui::Modifiers::default()
                     });
                 },
+                Event::MouseMotion { position, .. } => {
+                    egui_events.push(egui::Event::PointerMoved(
+                        egui::Pos2 {x: position.0 as f32/pixels_per_point as f32,
+                            y: position.1 as f32/pixels_per_point as f32}
+                    ));
+                }
                 _ => (),
             }
         };
