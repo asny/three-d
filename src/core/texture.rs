@@ -4,13 +4,16 @@ use crate::cpu_texture::*;
 
 pub trait Texture {
     fn bind(&self, location: u32);
+    fn width(&self) -> usize;
+    fn height(&self) -> usize;
+    fn depth(&self) -> usize;
 }
 
 pub struct Texture2D {
     context: Context,
     id: crate::context::Texture,
-    pub width: usize,
-    pub height: usize,
+    width: usize,
+    height: usize,
     format: Format,
     number_of_mip_maps: u32
 }
@@ -80,6 +83,9 @@ impl Texture for Texture2D
     {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
+    fn width(&self) -> usize {self.width}
+    fn height(&self) -> usize {self.height}
+    fn depth(&self) -> usize {1}
 }
 
 impl Drop for Texture2D
@@ -93,8 +99,8 @@ impl Drop for Texture2D
 pub struct ColorTargetTexture2D {
     context: Context,
     id: crate::context::Texture,
-    pub width: usize,
-    pub height: usize,
+    width: usize,
+    height: usize,
     number_of_mip_maps: u32
 }
 
@@ -131,6 +137,9 @@ impl Texture for ColorTargetTexture2D
     {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
+    fn width(&self) -> usize {self.width}
+    fn height(&self) -> usize {self.height}
+    fn depth(&self) -> usize {1}
 }
 
 impl Drop for ColorTargetTexture2D
@@ -144,8 +153,8 @@ impl Drop for ColorTargetTexture2D
 pub struct DepthTargetTexture2D {
     context: Context,
     id: crate::context::Texture,
-    pub width: usize,
-    pub height: usize
+    width: usize,
+    height: usize
 }
 
 impl DepthTargetTexture2D
@@ -172,6 +181,9 @@ impl Texture for DepthTargetTexture2D
     {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
+    fn width(&self) -> usize {self.width}
+    fn height(&self) -> usize {self.height}
+    fn depth(&self) -> usize {1}
 }
 
 impl Drop for DepthTargetTexture2D
@@ -185,8 +197,8 @@ impl Drop for DepthTargetTexture2D
 pub struct TextureCubeMap {
     context: Context,
     id: crate::context::Texture,
-    pub width: usize,
-    pub height: usize,
+    width: usize,
+    height: usize,
     format: Format,
     number_of_mip_maps: u32
 }
@@ -246,6 +258,9 @@ impl Texture for TextureCubeMap
     {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
     }
+    fn width(&self) -> usize {self.width}
+    fn height(&self) -> usize {self.height}
+    fn depth(&self) -> usize {1}
 }
 
 impl Drop for TextureCubeMap
@@ -259,9 +274,9 @@ impl Drop for TextureCubeMap
 pub struct ColorTargetTexture2DArray {
     context: Context,
     id: crate::context::Texture,
-    pub width: usize,
-    pub height: usize,
-    pub depth: usize,
+    width: usize,
+    height: usize,
+    depth: usize,
     number_of_mip_maps: u32
 }
 
@@ -303,6 +318,9 @@ impl Texture for ColorTargetTexture2DArray
     {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
+    fn width(&self) -> usize {self.width}
+    fn height(&self) -> usize {self.height}
+    fn depth(&self) -> usize {self.depth}
 }
 
 impl Drop for ColorTargetTexture2DArray
@@ -317,9 +335,9 @@ impl Drop for ColorTargetTexture2DArray
 pub struct DepthTargetTexture2DArray {
     context: Context,
     id: crate::context::Texture,
-    pub width: usize,
-    pub height: usize,
-    pub depth: usize,
+    width: usize,
+    height: usize,
+    depth: usize,
     number_of_mip_maps: u32
 }
 
@@ -361,6 +379,9 @@ impl Texture for DepthTargetTexture2DArray
     {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
+    fn width(&self) -> usize {self.width}
+    fn height(&self) -> usize {self.height}
+    fn depth(&self) -> usize {self.depth}
 }
 
 impl Drop for DepthTargetTexture2DArray

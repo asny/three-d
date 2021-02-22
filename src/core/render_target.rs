@@ -151,8 +151,8 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None, None, || {
-            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
-                                          0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
+            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
+                                          0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT, filter as u32);
             Ok(())
         })?;
@@ -168,8 +168,8 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None, None, || {
-            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
-                                          0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
+            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
+                                          0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::COLOR_BUFFER_BIT, filter as u32);
             Ok(())
         })?;
@@ -185,8 +185,8 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None,None, || {
-            self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width as u32, self.depth_texture.unwrap().height as u32,
-                                          0, 0, other.depth_texture.unwrap().width as u32, other.depth_texture.unwrap().height as u32,
+            self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width() as u32, self.depth_texture.unwrap().height() as u32,
+                                          0, 0, other.depth_texture.unwrap().width() as u32, other.depth_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT, filter as u32);
             Ok(())
         })?;
@@ -327,8 +327,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         self.bind(Some(&[color_layer]), Some(depth_layer))?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None, None, || {
-            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
-                                          0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
+            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
+                                          0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT, filter as u32);
             Ok(())
         })?;
@@ -344,8 +344,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         self.bind(Some(&[color_layer]), None)?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None,None, || {
-            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width as u32, self.color_texture.unwrap().height as u32,
-                                          0, 0, other.color_texture.unwrap().width as u32, other.color_texture.unwrap().height as u32,
+            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
+                                          0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::COLOR_BUFFER_BIT, filter as u32);
             Ok(())
         })?;
@@ -361,8 +361,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         self.bind(None, Some(depth_layer))?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(None, None, || {
-            self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width as u32, self.depth_texture.unwrap().height as u32,
-                                          0, 0, other.depth_texture.unwrap().width as u32, other.depth_texture.unwrap().height as u32,
+            self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width() as u32, self.depth_texture.unwrap().height() as u32,
+                                          0, 0, other.depth_texture.unwrap().width() as u32, other.depth_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT, filter as u32);
             Ok(())
         })?;
