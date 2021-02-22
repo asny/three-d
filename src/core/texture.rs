@@ -19,31 +19,16 @@ impl Texture2D
 {
     pub fn new_with_u8(context: &Context, cpu_texture: &CPUTexture<u8>) -> Result<Texture2D, Error>
     {
-        let mut texture = Self::new(context, cpu_texture.width, cpu_texture.height,
-                                    cpu_texture.min_filter, cpu_texture.mag_filter, cpu_texture.mip_map_filter,
-                                    cpu_texture.wrap_s, cpu_texture.wrap_t, cpu_texture.format)?;
+        let mut texture = Self::new(context, cpu_texture)?;
         texture.fill_with_u8(&cpu_texture.data)?;
         Ok(texture)
     }
 
     pub fn new_with_f32(context: &Context, cpu_texture: &CPUTexture<f32>) -> Result<Texture2D, Error>
     {
-        let mut texture = Self::new(context, cpu_texture.width, cpu_texture.height,
-                                    cpu_texture.min_filter, cpu_texture.mag_filter, cpu_texture.mip_map_filter,
-                                    cpu_texture.wrap_s, cpu_texture.wrap_t, cpu_texture.format)?;
+        let mut texture = Self::new(context, cpu_texture)?;
         texture.fill_with_f32(&cpu_texture.data)?;
         Ok(texture)
-    }
-
-    fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-               wrap_s: Wrapping, wrap_t: Wrapping, format: Format) -> Result<Texture2D, Error>
-    {
-        let id = generate(context)?;
-        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
-        set_parameters(context, &id,consts::TEXTURE_2D, min_filter, mag_filter, if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, None);
-        context.tex_storage_2d(consts::TEXTURE_2D, number_of_mip_maps,
-                               internal_format_from(format), width as u32, height as u32);
-        Ok(Self { context: context.clone(), id, width, height, format, number_of_mip_maps })
     }
 
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error>
@@ -66,6 +51,17 @@ impl Texture2D
                                                     format_from(self.format), consts::FLOAT, data);
         self.generate_mip_maps();
         Ok(())
+    }
+
+    fn new<T>(context: &Context, cpu_texture: &CPUTexture<T>) -> Result<Texture2D, Error>
+    {
+        let id = generate(context)?;
+        let number_of_mip_maps = calculate_number_of_mip_maps(cpu_texture.mip_map_filter, cpu_texture.width, cpu_texture.height, 1);
+        set_parameters(context, &id,consts::TEXTURE_2D, cpu_texture.min_filter, cpu_texture.mag_filter,
+                       if number_of_mip_maps == 1 {None} else {cpu_texture.mip_map_filter}, cpu_texture.wrap_s, cpu_texture.wrap_t, None);
+        context.tex_storage_2d(consts::TEXTURE_2D, number_of_mip_maps,
+                               internal_format_from(cpu_texture.format), cpu_texture.width as u32, cpu_texture.height as u32);
+        Ok(Self { context: context.clone(), id, width: cpu_texture.width, height: cpu_texture.height, format: cpu_texture.format, number_of_mip_maps })
     }
 
     pub(crate) fn generate_mip_maps(&self) {
@@ -205,27 +201,9 @@ pub struct TextureCubeMap {
 
 impl TextureCubeMap
 {
-    fn new(context: &Context, width: usize, height: usize, min_filter: Interpolation, mag_filter: Interpolation, mip_map_filter: Option<Interpolation>,
-               wrap_s: Wrapping, wrap_t: Wrapping, wrap_r: Wrapping, format: Format) -> Result<TextureCubeMap, Error>
-    {
-        let id = generate(context)?;
-        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
-        set_parameters(context, &id,consts::TEXTURE_CUBE_MAP, min_filter, mag_filter,
-                       if number_of_mip_maps == 1 {None} else {mip_map_filter}, wrap_s, wrap_t, Some(wrap_r));
-        context.bind_texture(consts::TEXTURE_CUBE_MAP, &id);
-        context.tex_storage_2d(consts::TEXTURE_CUBE_MAP,
-                               number_of_mip_maps,
-                               internal_format_from(format),
-                               width as u32,
-                               height as u32);
-        Ok(Self { context: context.clone(), id, width, height, format, number_of_mip_maps })
-    }
-
     pub fn new_with_u8(context: &Context, cpu_texture: &CPUTexture<u8>) -> Result<Self, Error>
     {
-        let mut texture = Self::new(context, cpu_texture.width as usize, cpu_texture.height as usize,
-                                    cpu_texture.min_filter, cpu_texture.mag_filter, cpu_texture.mip_map_filter,
-                                    cpu_texture.wrap_s, cpu_texture.wrap_t, cpu_texture.wrap_r, cpu_texture.format)?;
+        let mut texture = Self::new(context, cpu_texture)?;
         texture.fill_with_u8(&cpu_texture.data)?;
         Ok(texture)
     }
@@ -244,6 +222,21 @@ impl TextureCubeMap
         }
         self.generate_mip_maps();
         Ok(())
+    }
+
+    fn new<T>(context: &Context, cpu_texture: &CPUTexture<T>) -> Result<TextureCubeMap, Error>
+    {
+        let id = generate(context)?;
+        let number_of_mip_maps = calculate_number_of_mip_maps(cpu_texture.mip_map_filter, cpu_texture.width, cpu_texture.height, 1);
+        set_parameters(context, &id,consts::TEXTURE_CUBE_MAP, cpu_texture.min_filter, cpu_texture.mag_filter,
+                       if number_of_mip_maps == 1 {None} else {cpu_texture.mip_map_filter}, cpu_texture.wrap_s, cpu_texture.wrap_t, Some(cpu_texture.wrap_r));
+        context.bind_texture(consts::TEXTURE_CUBE_MAP, &id);
+        context.tex_storage_2d(consts::TEXTURE_CUBE_MAP,
+                               number_of_mip_maps,
+                               internal_format_from(cpu_texture.format),
+                               cpu_texture.width as u32,
+                               cpu_texture.height as u32);
+        Ok(Self { context: context.clone(), id, width: cpu_texture.width, height: cpu_texture.height, format: cpu_texture.format, number_of_mip_maps })
     }
 
     pub(crate) fn generate_mip_maps(&self) {
