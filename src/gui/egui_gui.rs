@@ -28,8 +28,17 @@ impl GUI {
         let mut egui_events = Vec::new();
         for event in frame_input.events.iter() {
             match event {
-                Event::Key {..} => {
-
+                Event::Key {kind, state} => {
+                    egui_events.push(egui::Event::Key {
+                        key: translate_to_egui_key_code(kind),
+                        pressed: *state == State::Pressed,
+                        modifiers: egui::Modifiers::default()//TODO
+                    });
+                    if *state == State::Pressed {
+                        if let Some(text) = key_to_text(kind) {
+                            egui_events.push(egui::Event::Text(text));
+                        }
+                    }
                 },
                 Event::MouseClick {state, button, position} => {
                     egui_events.push(egui::Event::PointerButton {
@@ -41,7 +50,7 @@ impl GUI {
                             MouseButton::Middle => egui::PointerButton::Middle,
                         },
                         pressed: *state == State::Pressed,
-                        modifiers: egui::Modifiers::default()
+                        modifiers: egui::Modifiers::default()//TODO
                     });
                 },
                 Event::MouseMotion { position, .. } => {
@@ -55,14 +64,14 @@ impl GUI {
         };
 
         let input_state = egui::RawInput {
-            scroll_delta: egui::Vec2::ZERO,
+            scroll_delta: egui::Vec2::ZERO, //TODO
             screen_rect: Some(egui::Rect::from_min_size(
                 Default::default(),
                 egui::Vec2 {x: frame_input.window_width as f32, y: frame_input.window_height as f32},
             )),
             pixels_per_point: Some(pixels_per_point as f32),
-            time: None,
-            modifiers: egui::Modifiers::default(),
+            time: None,//TODO
+            modifiers: egui::Modifiers::default(), //TODO
             events: egui_events,
             ..Default::default()
         };
@@ -223,72 +232,100 @@ const FRAGMENT_SHADER_SOURCE: &str = r#"
     }
 "#;
 
+fn translate_to_egui_key_code(key: &frame_input::Key) -> egui::Key {
 
-/*const VERTEX_SHADER_SOURCE: &str = r#"
-    uniform vec2 u_screen_size;
-    in vec2 a_pos;
-    in vec4 a_srgba; // 0-255 sRGB
-    in vec2 a_tc;
-    out vec4 v_rgba;
-    out vec2 v_tc;
+    use frame_input::Key::*;
+    use egui::Key;
 
-    // 0-1 linear  from  0-255 sRGB
-    vec3 linear_from_srgb(vec3 srgb) {
-        bvec3 cutoff = lessThan(srgb, vec3(10.31475));
-        vec3 lower = srgb / vec3(3294.6);
-        vec3 higher = pow((srgb + vec3(14.025)) / vec3(269.025), vec3(2.4));
-        return mix(higher, lower, cutoff);
+    match key {
+        ArrowDown => Key::ArrowDown,
+        ArrowLeft => Key::ArrowLeft,
+        ArrowRight => Key::ArrowRight,
+        ArrowUp => Key::ArrowUp,
+
+        Escape => Key::Escape,
+        Tab => Key::Tab,
+        Backspace => Key::Backspace,
+        Enter => Key::Enter,
+        Space => Key::Space,
+
+        Insert => Key::Insert,
+        Delete => Key::Delete,
+        Home => Key::Home,
+        End => Key::End,
+        PageUp => Key::PageUp,
+        PageDown => Key::PageDown,
+
+        Num0 => Key::Num0,
+        Num1 => Key::Num1,
+        Num2 => Key::Num2,
+        Num3 => Key::Num3,
+        Num4 => Key::Num4,
+        Num5 => Key::Num5,
+        Num6 => Key::Num6,
+        Num7 => Key::Num7,
+        Num8 => Key::Num8,
+        Num9 => Key::Num9,
+
+        A => Key::A,
+        B => Key::B,
+        C => Key::C,
+        D => Key::D,
+        E => Key::E,
+        F => Key::F,
+        G => Key::G,
+        H => Key::H,
+        I => Key::I,
+        J => Key::J,
+        K => Key::K,
+        L => Key::L,
+        M => Key::M,
+        N => Key::N,
+        O => Key::O,
+        P => Key::P,
+        Q => Key::Q,
+        R => Key::R,
+        S => Key::S,
+        T => Key::T,
+        U => Key::U,
+        V => Key::V,
+        W => Key::W,
+        X => Key::X,
+        Y => Key::Y,
+        Z => Key::Z
     }
+}
 
-    vec4 linear_from_srgba(vec4 srgba) {
-        return vec4(linear_from_srgb(srgba.rgb), srgba.a / 255.0);
-    }
-
-    void main() {
-        gl_Position = vec4(
-            2.0 * a_pos.x / u_screen_size.x - 1.0,
-            1.0 - 2.0 * a_pos.y / u_screen_size.y,
-            0.0,
-            1.0);
-        // egui encodes vertex colors in gamma spaces, so we must decode the colors here:
-        v_rgba = linear_from_srgba(a_srgba);
-        v_tc = a_tc;
-    }
-"#;
-
-const FRAGMENT_SHADER_SOURCE: &str = r#"
-    uniform sampler2D u_sampler;
-    in vec4 v_rgba;
-    in vec2 v_tc;
-    layout (location = 0) out vec4 f_color;
-
-    // 0-1 linear  from  0-255 sRGB
-    vec3 linear_from_srgb(vec3 srgb) {
-        bvec3 cutoff = lessThan(srgb, vec3(10.31475));
-        vec3 lower = srgb / vec3(3294.6);
-        vec3 higher = pow((srgb + vec3(14.025)) / vec3(269.025), vec3(2.4));
-        return mix(higher, lower, cutoff);
-    }
-
-    vec4 linear_from_srgba(vec4 srgba) {
-        return vec4(linear_from_srgb(srgba.rgb), srgba.a / 255.0);
-    }
-
-    // 0-255 sRGB  from  0-1 linear
-    vec3 srgb_from_linear(vec3 rgb) {
-        bvec3 cutoff = lessThan(rgb, vec3(0.0031308));
-        vec3 lower = rgb * vec3(3294.6);
-        vec3 higher = vec3(269.025) * pow(rgb, vec3(1.0 / 2.4)) - vec3(14.025);
-        return mix(higher, lower, vec3(cutoff));
-    }
-    vec4 srgba_from_linear(vec4 rgba) {
-        return vec4(srgb_from_linear(rgba.rgb), 255.0 * rgba.a);
-    }
-
-    void main() {
-        // The texture sampler is sRGB aware, and glium already expects linear rgba output
-        // so no need for any sRGB conversions here:
-        f_color = v_rgba * linear_from_srgba(texture(u_sampler, v_tc));
-        f_color = srgba_from_linear(f_color);
-    }
-"#;*/
+fn key_to_text(key: &Key) -> Option<String> {
+    use Key::*;
+    Some(match key {
+        Space => " ".to_string(),
+        A => "a".to_string(),
+        B => "b".to_string(),
+        C => "c".to_string(),
+        D => "d".to_string(),
+        E => "e".to_string(),
+        F => "f".to_string(),
+        G => "g".to_string(),
+        H => "h".to_string(),
+        I => "i".to_string(),
+        J => "j".to_string(),
+        K => "k".to_string(),
+        L => "l".to_string(),
+        M => "m".to_string(),
+        N => "n".to_string(),
+        O => "o".to_string(),
+        P => "p".to_string(),
+        Q => "q".to_string(),
+        R => "r".to_string(),
+        S => "s".to_string(),
+        T => "t".to_string(),
+        U => "u".to_string(),
+        V => "v".to_string(),
+        W => "w".to_string(),
+        X => "x".to_string(),
+        Y => "y".to_string(),
+        Z => "z".to_string(),
+        _ => return None
+    })
+}
