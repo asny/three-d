@@ -81,6 +81,7 @@ impl Window
         let mut accumulated_time = 0.0;
         let mut events = Vec::new();
         let mut cursor_pos = None;
+        let mut last_cursor_pos: Option<(f64, f64)> = None;
         let mut modifiers = Modifiers::default();
         self.event_loop.run(move |event, _, control_flow| {
                 *control_flow = ControlFlow::Poll;
@@ -179,18 +180,14 @@ impl Window
                         },
                         WindowEvent::CursorMoved {position, ..} => {
                             let p = position.to_logical(windowed_context.window().scale_factor());
+                            let delta = if let Some(last_pos) = last_cursor_pos {
+                                (p.x - last_pos.0, p.y - last_pos.1)
+                            } else {(0.0, 0.0)};
+                            events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y) });
+                            last_cursor_pos = cursor_pos;
                             cursor_pos = Some((p.x, p.y));
                         },
                         _ => (),
-                    },
-                    Event::DeviceEvent{ event, .. } => match event {
-                        event::DeviceEvent::MouseMotion {delta} => {
-                            if let Some(position) = {cursor_pos}
-                            {
-                                events.push(frame_input::Event::MouseMotion { delta, position });
-                            }
-                        },
-                        _ => {}
                     },
                     _ => (),
                 }
