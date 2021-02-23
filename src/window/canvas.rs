@@ -263,8 +263,10 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind: map_key_code(event.code())});
-                event.prevent_default();
+                if let Some(kind) = translate_key(&event.code()) {
+                    (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind});
+                    event.prevent_default();
+                }
             }
         }) as Box<dyn FnMut(_)>);
         window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key down event listener. Error code: {:?}", e)})?;
@@ -276,8 +278,10 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::Key {state: State::Released, kind: map_key_code(event.code())});
-                event.prevent_default();
+                if let Some(kind) = translate_key(&event.code()) {
+                    (*events).borrow_mut().push(Event::Key { state: State::Released, kind });
+                    event.prevent_default();
+                }
             }
         }) as Box<dyn FnMut(_)>);
         window().add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key up event listener. Error code: {:?}", e)})?;
@@ -301,11 +305,6 @@ impl Window
     }
 }
 
-fn map_key_code(code: String) -> String
-{
-    code.trim_start_matches("Key").to_string()
-}
-
 fn window() -> web_sys::Window {
     web_sys::window().expect("no global `window` exists")
 }
@@ -324,4 +323,68 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
     window()
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
+}
+
+
+pub fn translate_key(key: &str) -> Option<crate::frame_input::Key> {
+    use crate::frame_input::Key::*;
+    Some(match key {
+        "ArrowDown" => ArrowDown,
+        "ArrowLeft" => ArrowLeft,
+        "ArrowRight" => ArrowRight,
+        "ArrowUp" => ArrowUp,
+
+        "Esc" | "Escape" => Escape,
+        "Tab" => Tab,
+        "Backspace" => Backspace,
+        "Enter" => Enter,
+        "Space" => Space,
+
+        "Help" | "Insert" => Insert,
+        "Delete" => Delete,
+        "Home" => Home,
+        "End" => End,
+        "PageUp" => PageUp,
+        "PageDown" => PageDown,
+
+        "0" => Num0,
+        "1" => Num1,
+        "2" => Num2,
+        "3" => Num3,
+        "4" => Num4,
+        "5" => Num5,
+        "6" => Num6,
+        "7" => Num7,
+        "8" => Num8,
+        "9" => Num9,
+
+        "a" | "A" => A,
+        "b" | "B" => B,
+        "c" | "C" => C,
+        "d" | "D" => D,
+        "e" | "E" => E,
+        "f" | "F" => F,
+        "g" | "G" => G,
+        "h" | "H" => H,
+        "i" | "I" => I,
+        "j" | "J" => J,
+        "k" | "K" => K,
+        "l" | "L" => L,
+        "m" | "M" => M,
+        "n" | "N" => N,
+        "o" | "O" => O,
+        "p" | "P" => P,
+        "q" | "Q" => Q,
+        "r" | "R" => R,
+        "s" | "S" => S,
+        "t" | "T" => T,
+        "u" | "U" => U,
+        "v" | "V" => V,
+        "w" | "W" => W,
+        "x" | "X" => X,
+        "y" | "Y" => Y,
+        "z" | "Z" => Z,
+
+        _ => return None,
+    })
 }
