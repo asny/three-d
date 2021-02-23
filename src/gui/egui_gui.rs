@@ -67,7 +67,7 @@ impl GUI {
                 egui::Vec2 {x: frame_input.window_width as f32, y: frame_input.window_height as f32},
             )),
             pixels_per_point: Some(pixels_per_point),
-            time: None,//TODO
+            time: Some(frame_input.accumulated_time * 0.001),
             modifiers: egui::Modifiers::default(), //TODO
             events: egui_events,
             ..Default::default()

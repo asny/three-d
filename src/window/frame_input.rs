@@ -3,6 +3,7 @@
 pub struct FrameInput {
     pub events: Vec<Event>,
     pub elapsed_time: f64, // ms since last frame
+    pub accumulated_time: f64, // ms accumulated time since start
     pub viewport: crate::Viewport,
     pub window_width: usize,
     pub window_height: usize

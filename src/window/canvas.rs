@@ -64,6 +64,7 @@ impl Window
         let events = Rc::new(RefCell::new(Vec::new()));
         let performance = self.window.performance().ok_or(Error::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
         let mut last_time = performance.now();
+        let mut accumulated_time = 0.0;
         let last_position = Rc::new(RefCell::new(None));
         let last_zoom = Rc::new(RefCell::new(None));
         let modifiers = Rc::new(RefCell::new(Modifiers::default()));
@@ -82,11 +83,13 @@ impl Window
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
+            accumulated_time += elapsed_time;
             if self.maximized {
                 maximize(&self.window, &self.canvas);
             }
             let (width, height) = (self.canvas.width() as usize, self.canvas.height() as usize);
-            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, viewport: crate::Viewport::new_at_origo(width, height),
+            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, accumulated_time,
+                viewport: crate::Viewport::new_at_origo(width, height),
                 window_width: width, window_height: height
             };
             callback(frame_input);

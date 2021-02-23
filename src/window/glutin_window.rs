@@ -106,6 +106,7 @@ impl Window
                         let frame_input = frame_input::FrameInput {
                             events: events.clone(),
                             elapsed_time,
+                            accumulated_time,
                             viewport: crate::Viewport::new_at_origo(physical_width as usize, physical_height as usize),
                             window_width: width as usize,
                             window_height: height as usize
