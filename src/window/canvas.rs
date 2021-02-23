@@ -66,16 +66,17 @@ impl Window
         let mut last_time = performance.now();
         let last_position = Rc::new(RefCell::new(None));
         let last_zoom = Rc::new(RefCell::new(None));
+        let modifiers = Rc::new(RefCell::new(Modifiers::default()));
 
-        self.add_mousedown_event_listener(events.clone())?;
+        self.add_mousedown_event_listener(events.clone(), modifiers.clone())?;
         self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
-        self.add_mouseup_event_listener(events.clone())?;
+        self.add_mouseup_event_listener(events.clone(), modifiers.clone())?;
         self.add_touchend_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mousemove_event_listener(events.clone())?;
         self.add_touchmove_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mousewheel_event_listener(events.clone())?;
-        self.add_key_down_event_listener(events.clone())?;
-        self.add_key_up_event_listener(events.clone())?;
+        self.add_key_down_event_listener(events.clone(), modifiers.clone())?;
+        self.add_key_up_event_listener(events.clone(), modifiers.clone())?;
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             let now = performance.now();
@@ -98,7 +99,7 @@ impl Window
         Ok(())
     }
 
-    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -108,9 +109,18 @@ impl Window
                     2 => Some(MouseButton::Right),
                     _ => None
                 };
-                if let Some(b) = button {
-                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: b, position: (event.offset_x() as f64, event.offset_y() as f64) });
+                if let Some(button) = button {
+                    (*events).borrow_mut().push(Event::MouseClick {
+                        state: State::Pressed,
+                        button,
+                        position: (event.offset_x() as f64, event.offset_y() as f64),
+                        modifiers: Modifiers {
+                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
+                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
+                        }
+                    });
                 };
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -119,7 +129,7 @@ impl Window
         Ok(())
     }
 
-    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -129,9 +139,17 @@ impl Window
                     2 => Some(MouseButton::Right),
                     _ => None
                 };
-                if let Some(b) = button {
-                    (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: b, position: (event.offset_x() as f64, event.offset_y() as f64) });
+                if let Some(button) = button {
+                    (*events).borrow_mut().push(Event::MouseClick {
+                        state: State::Released, button,
+                        position: (event.offset_x() as f64, event.offset_y() as f64),
+                        modifiers: Modifiers {
+                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
+                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
+                        }
+                    });
                 };
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -148,6 +166,7 @@ impl Window
                     delta: (event.movement_x() as f64, event.movement_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64)
                 });
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -164,6 +183,7 @@ impl Window
                     delta: 0.02499999912 * event.delta_y() as f64,
                     position: (event.offset_x() as f64, event.offset_y() as f64)
                 });
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -178,7 +198,7 @@ impl Window
             if !event.default_prevented() {
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
-                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64) });
+                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: Modifiers::default() });
                     *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
                     *last_zoom.borrow_mut() = None;
                 } else if event.touches().length() == 2 {
@@ -191,6 +211,7 @@ impl Window
                     *last_zoom.borrow_mut() = None;
                     *last_position.borrow_mut() = None;
                 }
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -207,7 +228,8 @@ impl Window
                 let touch = event.touches().item(0).unwrap();
                 *last_position.borrow_mut() = None;
                 *last_zoom.borrow_mut() = None;
-                (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64) });
+                (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: Modifiers::default() });
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -250,6 +272,7 @@ impl Window
                     *last_zoom.borrow_mut() = None;
                     *last_position.borrow_mut() = None;
                 }
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -259,13 +282,40 @@ impl Window
         Ok(())
     }
 
-    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 if let Some(kind) = translate_key(&event.code()) {
-                    (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind});
+                    (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind,
+                        modifiers: Modifiers {
+                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
+                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
+                        }
+                    });
+                    event.stop_propagation();
                     event.prevent_default();
+                } else {
+                    if event.alt_key() {
+                        modifiers.borrow_mut().alt = State::Pressed;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
+                    if event.ctrl_key() {
+                        modifiers.borrow_mut().ctrl = State::Pressed;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
+                    if event.shift_key() {
+                        modifiers.borrow_mut().shift = State::Pressed;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
+                    if event.ctrl_key() || event.meta_key() {
+                        modifiers.borrow_mut().command = State::Pressed;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
                 }
             }
         }) as Box<dyn FnMut(_)>);
@@ -274,12 +324,18 @@ impl Window
         Ok(())
     }
 
-    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 if let Some(kind) = translate_key(&event.code()) {
-                    (*events).borrow_mut().push(Event::Key { state: State::Released, kind });
+                    (*events).borrow_mut().push(Event::Key { state: State::Released, kind,
+                        modifiers: Modifiers {
+                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
+                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
+                        }
+                    });
+                    event.stop_propagation();
                     event.prevent_default();
                 }
             }

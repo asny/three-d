@@ -26,11 +26,11 @@ impl GUI {
         let mut egui_events = Vec::new();
         for event in frame_input.events.iter() {
             match event {
-                Event::Key {kind, state} => {
+                Event::Key {kind, state, modifiers} => {
                     egui_events.push(egui::Event::Key {
                         key: translate_to_egui_key_code(kind),
                         pressed: *state == State::Pressed,
-                        modifiers: egui::Modifiers::default()//TODO
+                        modifiers: map_modifiers(modifiers)
                     });
                     if *state == State::Pressed {
                         if let Some(text) = key_to_text(kind) {
@@ -38,7 +38,7 @@ impl GUI {
                         }
                     }
                 },
-                Event::MouseClick {state, button, position} => {
+                Event::MouseClick {state, button, position, modifiers} => {
                     egui_events.push(egui::Event::PointerButton {
                         pos: egui::Pos2 {x: position.0 as f32, y: position.1 as f32},
                         button: match button {
@@ -47,7 +47,7 @@ impl GUI {
                             MouseButton::Middle => egui::PointerButton::Middle,
                         },
                         pressed: *state == State::Pressed,
-                        modifiers: egui::Modifiers::default()//TODO
+                        modifiers: map_modifiers(modifiers)
                     });
                 },
                 Event::MouseMotion { position, .. } => {
@@ -325,4 +325,14 @@ fn key_to_text(key: &Key) -> Option<String> {
         Z => "z".to_string(),
         _ => return None
     })
+}
+
+fn map_modifiers(modifiers: &Modifiers) -> egui::Modifiers {
+    egui::Modifiers {
+        alt: modifiers.alt == State::Pressed,
+        ctrl: modifiers.ctrl == State::Pressed,
+        shift: modifiers.shift == State::Pressed,
+        command: modifiers.command == State::Pressed,
+        mac_cmd: cfg!(target_os = "macos") && modifiers.command == State::Pressed,
+    }
 }

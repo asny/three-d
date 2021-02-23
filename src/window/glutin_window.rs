@@ -5,7 +5,7 @@ use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
 use glutin::ContextBuilder;
 use crate::window::frame_input;
-use crate::context;
+use crate::{context, Modifiers};
 
 #[derive(Debug)]
 pub enum Error {
@@ -81,6 +81,7 @@ impl Window
         let mut accumulated_time = 0.0;
         let mut events = Vec::new();
         let mut cursor_pos = None;
+        let mut modifiers = Modifiers::default();
         self.event_loop.run(move |event, _, control_flow| {
                 *control_flow = ControlFlow::Poll;
                 match event {
@@ -117,17 +118,34 @@ impl Window
                         WindowEvent::Resized(physical_size) => {
                             windowed_context.resize(*physical_size);
                         }
-                        WindowEvent::CloseRequested => {
+                        WindowEvent::CloseRequested | WindowEvent::Destroyed => {
                             *control_flow = ControlFlow::Exit
                         },
                         WindowEvent::KeyboardInput {input, ..} => {
                             if let Some(keycode) = input.virtual_keycode {
-                                if keycode == event::VirtualKeyCode::Escape {
+                                use event::VirtualKeyCode;
+                                if keycode == VirtualKeyCode::Escape {
                                     *control_flow = ControlFlow::Exit;
                                 }
                                 let state = if input.state == event::ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
                                 if let Some(kind) = translate_virtual_key_code(keycode) {
-                                    events.push(frame_input::Event::Key {state, kind});
+                                    events.push(frame_input::Event::Key {state, kind, modifiers});
+                                } else {
+                                    if keycode == VirtualKeyCode::LControl || keycode == VirtualKeyCode::RControl {
+                                        modifiers.ctrl = state;
+                                        if !cfg!(target_os = "macos") {
+                                            modifiers.command = state;
+                                        }
+                                    } else if keycode == VirtualKeyCode::LAlt || keycode == VirtualKeyCode::RAlt {
+                                        modifiers.alt = state;
+                                    } else if keycode == VirtualKeyCode::LShift || keycode == VirtualKeyCode::RShift {
+                                        modifiers.shift = state;
+                                    } else if keycode == VirtualKeyCode::LWin || keycode == VirtualKeyCode::RWin {
+                                        if cfg!(target_os = "macos")
+                                        {
+                                            modifiers.command = state;
+                                        }
+                                    }
                                 }
                             }
                         },
@@ -155,7 +173,7 @@ impl Window
                                     _ => None
                                 };
                                 if let Some(b) = button {
-                                    events.push(frame_input::Event::MouseClick { state, button: b, position });
+                                    events.push(frame_input::Event::MouseClick { state, button: b, position, modifiers });
                                 }
                             }
                         },

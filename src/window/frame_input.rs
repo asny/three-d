@@ -1,4 +1,5 @@
 
+#[derive(Clone, Debug)]
 pub struct FrameInput {
     pub events: Vec<Event>,
     pub elapsed_time: f64, // ms since last frame
@@ -7,28 +8,34 @@ pub struct FrameInput {
     pub window_height: usize
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum State
 {
     Pressed,
     Released
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl Default for State {
+    fn default() -> Self {
+        Self::Released
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
     Left,
     Right,
     Middle,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub enum Event
 {
     MouseClick {
         state: State,
         button: MouseButton,
-        position: (f64, f64)
-        //TODO: Add modifiers
+        position: (f64, f64),
+        modifiers: Modifiers
     },
     MouseMotion {
         /*Note: The 'delta' variable is not entirely accurate, especially on web. For better accuracy, use the 'position' variable instead.*/
@@ -42,7 +49,7 @@ pub enum Event
     Key {
         state: State,
         kind: Key,
-        //TODO: Add modifiers
+        modifiers: Modifiers
     },
 }
 
@@ -118,17 +125,13 @@ pub enum Key {
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Modifiers {
     /// Either of the alt keys are down (option ⌥ on Mac).
-    pub alt: bool,
+    pub alt: State,
     /// Either of the control keys are down.
     /// When checking for keyboard shortcuts, consider using [`Self::command`] instead.
-    pub ctrl: bool,
+    pub ctrl: State,
     /// Either of the shift keys are down.
-    pub shift: bool,
-    /// The Mac ⌘ Command key. Should always be set to `false` on other platforms.
-    pub mac_cmd: bool,
+    pub shift: State,
     /// On Windows and Linux, set this to the same value as `ctrl`.
-    /// On Mac, this should be set whenever one of the ⌘ Command keys are down (same as `mac_cmd`).
-    /// This is so that egui can, for instance, select all text by checking for `command + A`
-    /// and it will work on both Mac and Windows.
-    pub command: bool,
+    /// On Mac, this should be set whenever one of the ⌘ Command keys are down.
+    pub command: State,
 }
