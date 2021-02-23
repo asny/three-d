@@ -160,7 +160,8 @@ impl Window
                             }
                         },
                         WindowEvent::CursorMoved {position, ..} => {
-                            cursor_pos = Some((position.x, position.y));
+                            let p = position.to_logical(windowed_context.window().scale_factor());
+                            cursor_pos = Some((p.x, p.y));
                         },
                         _ => (),
                     },

@@ -28,19 +28,16 @@ pub enum Event
         state: State,
         button: MouseButton,
         position: (f64, f64)
-        //TODO: Change to logical pixels
         //TODO: Add modifiers
     },
     MouseMotion {
         /*Note: The 'delta' variable is not entirely accurate, especially on web. For better accuracy, use the 'position' variable instead.*/
         delta: (f64, f64),
         position: (f64, f64)
-        //TODO: Change to logical pixels
     },
     MouseWheel {
         delta: f64,
         position: (f64, f64)
-        //TODO: Change to logical pixels
     },
     Key {
         state: State,
