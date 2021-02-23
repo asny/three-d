@@ -72,7 +72,7 @@ impl Window
         self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mouseup_event_listener(events.clone(), modifiers.clone())?;
         self.add_touchend_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
-        self.add_mousemove_event_listener(events.clone())?;
+        self.add_mousemove_event_listener(events.clone(), last_position.clone())?;
         self.add_touchmove_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mousewheel_event_listener(events.clone())?;
         self.add_key_down_event_listener(events.clone(), modifiers.clone())?;
@@ -158,14 +158,18 @@ impl Window
         Ok(())
     }
 
-    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
+                let delta = if let Some((x, y)) = *last_position.borrow() {
+                    ((event.offset_x() - x) as f64, (event.offset_y() - y) as f64)
+                } else {(0.0, 0.0)};
                 (*events).borrow_mut().push(Event::MouseMotion {
-                    delta: (event.movement_x() as f64, event.movement_y() as f64),
+                    delta,
                     position: (event.offset_x() as f64, event.offset_y() as f64)
                 });
+                *last_position.borrow_mut() = Some((event.offset_x(), event.offset_y()));
                 event.stop_propagation();
                 event.prevent_default();
             }
