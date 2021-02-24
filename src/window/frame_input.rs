@@ -2,11 +2,12 @@
 #[derive(Clone, Debug)]
 pub struct FrameInput {
     pub events: Vec<Event>,
-    pub elapsed_time: f64, // ms since last frame
-    pub accumulated_time: f64, // ms accumulated time since start
-    pub viewport: crate::Viewport,
-    pub window_width: usize,
-    pub window_height: usize
+    pub elapsed_time: f64, // Milliseconds since last frame
+    pub accumulated_time: f64, // Milliseconds accumulated time since start
+    pub viewport: crate::Viewport, // Viewport of the window in physical pixels
+    pub window_width: usize, // Width of the window in logical pixels
+    pub window_height: usize, // Height of the window in logical pixels
+    pub device_pixel_ratio: usize // Number of physical pixels for each logical pixel
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]

@@ -59,14 +59,13 @@ impl GUI {
             }
         };
 
-        let pixels_per_point = (frame_input.viewport.width / frame_input.window_width) as f32;
         let input_state = egui::RawInput {
             scroll_delta: egui::Vec2::ZERO, //TODO
             screen_rect: Some(egui::Rect::from_min_size(
                 Default::default(),
                 egui::Vec2 {x: frame_input.window_width as f32, y: frame_input.window_height as f32},
             )),
-            pixels_per_point: Some(pixels_per_point),
+            pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
             time: Some(frame_input.accumulated_time * 0.001),
             modifiers: egui::Modifiers::default(), //TODO
             events: egui_events,
@@ -97,7 +96,7 @@ impl GUI {
         };
 
         for egui::ClippedMesh(clip_rect, mesh) in clipped_meshes {
-            self.paint_mesh(frame_input.window_width, frame_input.window_height, pixels_per_point, clip_rect, &mesh, self.texture.as_ref().unwrap())?;
+            self.paint_mesh(frame_input.window_width, frame_input.window_height, frame_input.device_pixel_ratio as f32, clip_rect, &mesh, self.texture.as_ref().unwrap())?;
         }
         Ok(())
     }

@@ -26,10 +26,10 @@ impl Window
 {
     pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
     {
-        let window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
-        let document = window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
+        let websys_window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
+        let document = websys_window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
         let canvas = document.get_element_by_id("canvas").ok_or(Error::WindowCreationError {message: "Unable to get canvas, is the id different from 'canvas'?".to_string()})?;
-        let mut canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
+        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
 
         let context = canvas
             .get_context("webgl2").map_err(|e| Error::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
@@ -45,14 +45,9 @@ impl Window
         canvas.set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
         closure.forget();
 
-        if let Some((width, height)) = size {
-            canvas.set_width(width);
-            canvas.set_height(height);
-        } else {
-            maximize(&window, &mut canvas);
-        };
-
-        Ok(Window { gl: crate::context::Glstruct::new(context), canvas, window, maximized: size.is_none() })
+        let window = Window { gl: crate::context::Glstruct::new(context), canvas, window: websys_window, maximized: size.is_none() };
+        window.set_canvas_size(size.unwrap_or(window.inner_size()));
+        Ok(window)
     }
 
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
@@ -85,12 +80,18 @@ impl Window
             last_time = now;
             accumulated_time += elapsed_time;
             if self.maximized {
-                maximize(&self.window, &self.canvas);
+                self.set_canvas_size(self.inner_size());
             }
-            let (width, height) = (self.canvas.width() as usize, self.canvas.height() as usize);
+            let (width, height) = self.get_canvas_size();
+            let device_pixel_ratio = self.pixels_per_point();
+            use log::info;
+            info!("{}", device_pixel_ratio);
+            info!("{}", device_pixel_ratio*width);
+            info!("{}", self.canvas.style().css_text());
             let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, accumulated_time,
-                viewport: crate::Viewport::new_at_origo(width, height),
-                window_width: width, window_height: height
+                viewport: crate::Viewport::new_at_origo(device_pixel_ratio*width, device_pixel_ratio*height),
+                window_width: width, window_height: height,
+                device_pixel_ratio
             };
             callback(frame_input);
             &(*events).borrow_mut().clear();
@@ -100,6 +101,33 @@ impl Window
 
         request_animation_frame(g.borrow().as_ref().unwrap());
         Ok(())
+    }
+
+    fn inner_size(&self) -> (u32, u32) {
+        (self.window.inner_width().unwrap().as_f64().unwrap() as u32,
+         self.window.inner_height().unwrap().as_f64().unwrap() as u32)
+    }
+
+    fn pixels_per_point(&self) -> usize {
+        let pixels_per_point = self.window.device_pixel_ratio() as f32;
+        if pixels_per_point > 0.0 && pixels_per_point.is_finite() {
+            pixels_per_point as usize
+        } else {
+            1
+        }
+    }
+
+    fn get_canvas_size(&self) -> (usize, usize) {
+        let device_pixel_ratio = self.pixels_per_point();
+        (self.canvas.width() as usize/device_pixel_ratio, self.canvas.height() as usize/device_pixel_ratio)
+    }
+
+    fn set_canvas_size(&self, logical_size: (u32, u32)) {
+        let (width, height) = logical_size;
+        self.canvas.style().set_css_text(&format!("width:{}px;height:{}px;", width, height));
+        let device_pixel_ratio = self.pixels_per_point();
+        self.canvas.set_width(device_pixel_ratio as u32*width);
+        self.canvas.set_height(device_pixel_ratio as u32*height);
     }
 
     fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
@@ -370,16 +398,6 @@ impl Window
 
 fn window() -> web_sys::Window {
     web_sys::window().expect("no global `window` exists")
-}
-
-fn maximize(window: &web_sys::Window, canvas: &web_sys::HtmlCanvasElement) {
-    let (w, h) = (window.inner_width().unwrap().as_f64().unwrap() as u32,
-                    window.inner_height().unwrap().as_f64().unwrap() as u32);
-    let (width, height) = (canvas.width() as u32, canvas.height() as u32);
-    if w != width || h != height {
-        canvas.set_width(w);
-        canvas.set_height(h);
-    }
 }
 
 fn request_animation_frame(f: &Closure<dyn FnMut()>) {

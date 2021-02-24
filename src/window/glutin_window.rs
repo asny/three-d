@@ -102,14 +102,16 @@ impl Window
                         }
 
                         let (physical_width, physical_height): (u32, u32) = windowed_context.window().inner_size().into();
-                        let (width, height): (u32, u32) = windowed_context.window().inner_size().to_logical::<f64>(windowed_context.window().scale_factor()).into();
+                        let device_pixel_ratio = windowed_context.window().scale_factor();
+                        let (width, height): (u32, u32) = windowed_context.window().inner_size().to_logical::<f64>(device_pixel_ratio).into();
                         let frame_input = frame_input::FrameInput {
                             events: events.clone(),
                             elapsed_time,
                             accumulated_time,
                             viewport: crate::Viewport::new_at_origo(physical_width as usize, physical_height as usize),
                             window_width: width as usize,
-                            window_height: height as usize
+                            window_height: height as usize,
+                            device_pixel_ratio: device_pixel_ratio as usize
                         };
                         events.clear();
                         callback(frame_input);
