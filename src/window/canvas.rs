@@ -64,6 +64,8 @@ impl Window
         let last_zoom = Rc::new(RefCell::new(None));
         let modifiers = Rc::new(RefCell::new(Modifiers::default()));
 
+        self.add_mouseenter_event_listener(events.clone())?;
+        self.add_mouseleave_event_listener(events.clone())?;
         self.add_mousedown_event_listener(events.clone(), modifiers.clone())?;
         self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
         self.add_mouseup_event_listener(events.clone(), modifiers.clone())?;
@@ -124,6 +126,34 @@ impl Window
         let device_pixel_ratio = self.pixels_per_point();
         self.canvas.set_width(device_pixel_ratio as u32*width);
         self.canvas.set_height(device_pixel_ratio as u32*height);
+    }
+
+    fn add_mouseleave_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            if !event.default_prevented() {
+                events.borrow_mut().push(Event::MouseLeave);
+                event.stop_propagation();
+                event.prevent_default();
+            }
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse leave event listener. Error code: {:?}", e)})?;
+        closure.forget();
+        Ok(())
+    }
+
+    fn add_mouseenter_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            if !event.default_prevented() {
+                events.borrow_mut().push(Event::MouseEnter);
+                event.stop_propagation();
+                event.prevent_default();
+            }
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse enter event listener. Error code: {:?}", e)})?;
+        closure.forget();
+        Ok(())
     }
 
     fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>

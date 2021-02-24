@@ -47,6 +47,8 @@ pub enum Event
         delta: f64,
         position: (f64, f64)
     },
+    MouseEnter,
+    MouseLeave,
     Key {
         state: State,
         kind: Key,

@@ -53,6 +53,9 @@ impl GUI {
                 Event::Text(text) => {
                     egui_events.push(egui::Event::Text(text.clone()));
                 },
+                Event::MouseLeave => {
+                    egui_events.push(egui::Event::PointerGone);
+                }
                 _ => (),
             }
         };

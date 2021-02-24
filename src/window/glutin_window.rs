@@ -196,6 +196,12 @@ impl Window
                                 events.push(frame_input::Event::Text(ch.to_string()));
                             }
                         },
+                        WindowEvent::CursorEntered {..} => {
+                            events.push(frame_input::Event::MouseEnter);
+                        },
+                        WindowEvent::CursorLeft {..}  => {
+                            events.push(frame_input::Event::MouseLeave);
+                        },
                         _ => (),
                     },
                     _ => (),
