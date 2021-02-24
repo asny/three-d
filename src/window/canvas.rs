@@ -317,38 +317,14 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-
+                update_modifiers(modifiers.clone(), &event);
                 let key = event.key();
                 if let Some(kind) = translate_key(&key) {
                     (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind,
-                        modifiers: Modifiers {
-                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
-                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
-                        }
+                        modifiers: modifiers.borrow().clone()
                     });
                     event.stop_propagation();
                     event.prevent_default();
-                } else {
-                    if event.alt_key() {
-                        modifiers.borrow_mut().alt = State::Pressed;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
-                    if event.ctrl_key() {
-                        modifiers.borrow_mut().ctrl = State::Pressed;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
-                    if event.shift_key() {
-                        modifiers.borrow_mut().shift = State::Pressed;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
-                    if event.ctrl_key() || event.meta_key() {
-                        modifiers.borrow_mut().command = State::Pressed;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
                 }
                 if modifiers.borrow().ctrl == State::Released && modifiers.borrow().command == State::Released
                     && !should_ignore_key(&key) {
@@ -356,7 +332,6 @@ impl Window
                     event.stop_propagation();
                     event.prevent_default();
                 }
-
             }
         }) as Box<dyn FnMut(_)>);
         window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key down event listener. Error code: {:?}", e)})?;
@@ -368,6 +343,7 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
+                update_modifiers(modifiers.clone(), &event);
                 if let Some(kind) = translate_key(&event.key()) {
                     (*events).borrow_mut().push(Event::Key {state: State::Released, kind,
                         modifiers: Modifiers {
@@ -377,27 +353,6 @@ impl Window
                     });
                     event.stop_propagation();
                     event.prevent_default();
-                } else {
-                    if event.alt_key() {
-                        modifiers.borrow_mut().alt = State::Released;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
-                    if event.ctrl_key() {
-                        modifiers.borrow_mut().ctrl = State::Released;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
-                    if event.shift_key() {
-                        modifiers.borrow_mut().shift = State::Released;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
-                    if event.ctrl_key() || event.meta_key() {
-                        modifiers.borrow_mut().command = State::Released;
-                        event.stop_propagation();
-                        event.prevent_default();
-                    }
                 }
             }
         }) as Box<dyn FnMut(_)>);
@@ -430,6 +385,22 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
     window()
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
+}
+
+fn update_modifiers(modifiers: Rc<RefCell<Modifiers>>, event: &web_sys::KeyboardEvent)
+{
+    let old = modifiers.borrow().clone();
+    let new = Modifiers {
+        alt: if event.alt_key() {State::Pressed} else {State::Released},
+        ctrl: if event.ctrl_key() {State::Pressed} else {State::Released},
+        shift: if event.shift_key() {State::Pressed} else {State::Released},
+        command: if event.ctrl_key() || event.meta_key() {State::Pressed} else {State::Released},
+    };
+    if old.alt != new.alt || old.ctrl != new.ctrl || old.shift != new.shift || old.command != new.command {
+        event.stop_propagation();
+        event.prevent_default();
+    }
+    *modifiers.borrow_mut() = new;
 }
 
 pub fn translate_key(key: &str) -> Option<crate::frame_input::Key> {
