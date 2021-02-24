@@ -317,7 +317,9 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                if let Some(kind) = translate_key(&event.code()) {
+
+                let key = event.key();
+                if let Some(kind) = translate_key(&key) {
                     (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind,
                         modifiers: Modifiers {
                             ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
@@ -348,6 +350,13 @@ impl Window
                         event.prevent_default();
                     }
                 }
+                if modifiers.borrow().ctrl == State::Released && modifiers.borrow().command == State::Released
+                    && !should_ignore_key(&key) {
+                    (*events).borrow_mut().push(Event::Text(key));
+                    event.stop_propagation();
+                    event.prevent_default();
+                }
+
             }
         }) as Box<dyn FnMut(_)>);
         window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key down event listener. Error code: {:?}", e)})?;
@@ -359,8 +368,8 @@ impl Window
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                if let Some(kind) = translate_key(&event.code()) {
-                    (*events).borrow_mut().push(Event::Key { state: State::Released, kind,
+                if let Some(kind) = translate_key(&event.key()) {
+                    (*events).borrow_mut().push(Event::Key {state: State::Released, kind,
                         modifiers: Modifiers {
                             ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
                             alt: modifiers.borrow().alt, command: modifiers.borrow().command
@@ -368,6 +377,27 @@ impl Window
                     });
                     event.stop_propagation();
                     event.prevent_default();
+                } else {
+                    if event.alt_key() {
+                        modifiers.borrow_mut().alt = State::Released;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
+                    if event.ctrl_key() {
+                        modifiers.borrow_mut().ctrl = State::Released;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
+                    if event.shift_key() {
+                        modifiers.borrow_mut().shift = State::Released;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
+                    if event.ctrl_key() || event.meta_key() {
+                        modifiers.borrow_mut().command = State::Released;
+                        event.stop_propagation();
+                        event.prevent_default();
+                    }
                 }
             }
         }) as Box<dyn FnMut(_)>);
@@ -401,7 +431,6 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
 }
-
 
 pub fn translate_key(key: &str) -> Option<crate::frame_input::Key> {
     use crate::frame_input::Key::*;
@@ -464,4 +493,37 @@ pub fn translate_key(key: &str) -> Option<crate::frame_input::Key> {
 
         _ => return None,
     })
+}
+
+fn should_ignore_key(key: &str) -> bool {
+    let is_function_key = key.starts_with('F') && key.len() > 1;
+    is_function_key
+        || matches!(
+            key,
+            "Alt"
+                | "ArrowDown"
+                | "ArrowLeft"
+                | "ArrowRight"
+                | "ArrowUp"
+                | "Backspace"
+                | "CapsLock"
+                | "ContextMenu"
+                | "Control"
+                | "Delete"
+                | "End"
+                | "Enter"
+                | "Esc"
+                | "Escape"
+                | "Help"
+                | "Home"
+                | "Insert"
+                | "Meta"
+                | "NumLock"
+                | "PageDown"
+                | "PageUp"
+                | "Pause"
+                | "ScrollLock"
+                | "Shift"
+                | "Tab"
+        )
 }

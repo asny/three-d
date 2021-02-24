@@ -30,7 +30,7 @@ pub enum MouseButton {
     Middle,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum Event
 {
     MouseClick {
@@ -52,6 +52,7 @@ pub enum Event
         kind: Key,
         modifiers: Modifiers
     },
+    Text(String)
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]

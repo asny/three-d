@@ -32,11 +32,6 @@ impl GUI {
                         pressed: *state == State::Pressed,
                         modifiers: map_modifiers(modifiers)
                     });
-                    if *state == State::Pressed {
-                        if let Some(text) = key_to_text(kind) {
-                            egui_events.push(egui::Event::Text(text));
-                        }
-                    }
                 },
                 Event::MouseClick {state, button, position, modifiers} => {
                     egui_events.push(egui::Event::PointerButton {
@@ -54,7 +49,10 @@ impl GUI {
                     egui_events.push(egui::Event::PointerMoved(
                         egui::Pos2 {x: position.0 as f32, y: position.1 as f32}
                     ));
-                }
+                },
+                Event::Text(text) => {
+                    egui_events.push(egui::Event::Text(text.clone()));
+                },
                 _ => (),
             }
         };
@@ -290,40 +288,6 @@ fn translate_to_egui_key_code(key: &frame_input::Key) -> egui::Key {
         Y => Key::Y,
         Z => Key::Z
     }
-}
-
-fn key_to_text(key: &Key) -> Option<String> {
-    use Key::*;
-    Some(match key {
-        Space => " ".to_string(),
-        A => "a".to_string(),
-        B => "b".to_string(),
-        C => "c".to_string(),
-        D => "d".to_string(),
-        E => "e".to_string(),
-        F => "f".to_string(),
-        G => "g".to_string(),
-        H => "h".to_string(),
-        I => "i".to_string(),
-        J => "j".to_string(),
-        K => "k".to_string(),
-        L => "l".to_string(),
-        M => "m".to_string(),
-        N => "n".to_string(),
-        O => "o".to_string(),
-        P => "p".to_string(),
-        Q => "q".to_string(),
-        R => "r".to_string(),
-        S => "s".to_string(),
-        T => "t".to_string(),
-        U => "u".to_string(),
-        V => "v".to_string(),
-        W => "w".to_string(),
-        X => "x".to_string(),
-        Y => "y".to_string(),
-        Z => "z".to_string(),
-        _ => return None
-    })
 }
 
 fn map_modifiers(modifiers: &Modifiers) -> egui::Modifiers {

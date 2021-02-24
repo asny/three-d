@@ -5,7 +5,7 @@ use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
 use glutin::ContextBuilder;
 use crate::window::frame_input;
-use crate::{context, Modifiers};
+use crate::{context, Modifiers, State};
 
 #[derive(Debug)]
 pub enum Error {
@@ -188,6 +188,14 @@ impl Window
                             events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y) });
                             cursor_pos = Some((p.x, p.y));
                         },
+                        WindowEvent::ReceivedCharacter(ch) => {
+                            if is_printable_char(*ch)
+                                && modifiers.ctrl != State::Pressed
+                                && modifiers.command != State::Pressed
+                            {
+                                events.push(frame_input::Event::Text(ch.to_string()));
+                            }
+                        },
                         _ => (),
                     },
                     _ => (),
@@ -210,6 +218,14 @@ impl Window
     {
         self.gl.clone()
     }
+}
+
+fn is_printable_char(chr: char) -> bool {
+    let is_in_private_use_area = '\u{e000}' <= chr && chr <= '\u{f8ff}'
+        || '\u{f0000}' <= chr && chr <= '\u{ffffd}'
+        || '\u{100000}' <= chr && chr <= '\u{10fffd}';
+
+    !is_in_private_use_area && !chr.is_ascii_control()
 }
 
 fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<frame_input::Key> {
