@@ -35,7 +35,6 @@ impl Mesh {
     pub fn render(&self, program: &Program, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3_float(&self.position_buffer, "position")?;
@@ -43,6 +42,7 @@ impl Mesh {
             program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
         }
         if let Some(ref normal_buffer) = self.normal_buffer {
+            program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
             program.use_attribute_vec3_float(normal_buffer, "normal")?;
         }
 
