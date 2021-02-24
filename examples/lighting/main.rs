@@ -10,6 +10,8 @@ fn main() {
     let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(&context, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
+    let mut gui = three_d::GUI::new(&context).unwrap();
+    let panel_width: usize = 300;
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -42,7 +44,8 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |frame_input|
         {
-            camera.set_aspect(frame_input.viewport.aspect());
+            let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width * frame_input.device_pixel_ratio, frame_input.viewport.height);
+            camera.set_aspect(viewport_geometry_pass.aspect());
 
             time += (0.001 * frame_input.elapsed_time) % 1000.0;
             for event in frame_input.events.iter() {
@@ -58,28 +61,7 @@ fn main() {
                     Event::MouseWheel { delta, .. } => {
                         camera.zoom(*delta as f32);
                     },
-                    Event::Key { ref state, ref kind, .. } => {
-                        if *kind == Key::T && *state == State::Pressed
-                        {
-                            shadows_enabled = !shadows_enabled;
-                            if !shadows_enabled {
-                                spot_light.clear_shadow_map();
-                                directional_light0.clear_shadow_map();
-                                directional_light1.clear_shadow_map();
-                            }
-                        }
-                        #[cfg(target_arch = "x86_64")]
-                        if *kind == Key::P && *state == State::Pressed
-                        {
-                            let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
-                            Saver::save_pixels("lighting.png", &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                        }
-                        if *kind == Key::R && *state == State::Pressed
-                        {
-                            pipeline.next_debug_type();
-                            println!("{:?}", pipeline.debug_type());
-                        }
-                    }
+                    _ => {}
                 }
             }
             let c = time.cos() as f32;
@@ -104,20 +86,53 @@ fn main() {
             }
 
             // Geometry pass
-            pipeline.geometry_pass(frame_input.viewport.width, frame_input.viewport.height, &||
+            pipeline.geometry_pass(viewport_geometry_pass.width, viewport_geometry_pass.height, &||
                 {
                     monkey.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                           frame_input.viewport, &Mat4::identity(), &camera)?;
+                                           viewport_geometry_pass, &Mat4::identity(), &camera)?;
                     plane.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                          frame_input.viewport, &Mat4::identity(), &camera)?;
+                                          viewport_geometry_pass, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
 
             // Light pass
             Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
             {
-                pipeline.light_pass(frame_input.viewport, &camera, None, &[&directional_light0, &directional_light1],
-                                      &[&spot_light], &[&point_light0, &point_light1])?;
+                let viewport_light_pass = Viewport {x: (panel_width * frame_input.device_pixel_ratio) as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
+                pipeline.light_pass(viewport_light_pass, &camera, None, &[&directional_light0, &directional_light1],
+                                    &[&spot_light], &[&point_light0, &point_light1])?;
+                gui.render(&frame_input, |gui_context| {
+                    use three_d::egui::*;
+                    SidePanel::left("side_panel", (panel_width * frame_input.device_pixel_ratio) as f32).show(gui_context, |ui| {
+                        ui.heading("Debug Panel");
+
+                        ui.label("Surface parameters");
+                        ui.add(Slider::f32(&mut monkey.material.diffuse_intensity, 0.0..=1.0).text("Monkey Diffuse"));
+                        ui.add(Slider::f32(&mut monkey.material.specular_intensity, 0.0..=1.0).text("Monkey Specular"));
+                        ui.add(Slider::f32(&mut monkey.material.specular_power, 2.0..=30.0).text("Monkey Specular Power"));
+                        ui.add(Slider::f32(&mut plane.material.diffuse_intensity, 0.0..=1.0).text("Plane Diffuse"));
+                        ui.add(Slider::f32(&mut plane.material.specular_intensity, 0.0..=1.0).text("Plane Specular"));
+                        ui.add(Slider::f32(&mut plane.material.specular_power, 2.0..=30.0).text("Plane Specular Power"));
+
+                        #[cfg(target_arch = "x86_64")]
+                        if ui.button("Screenshot").clicked() {
+                            let pixels = Screen::read_color(&context, viewport_light_pass).unwrap();
+                            Saver::save_pixels("screenshot.png", &pixels, viewport_light_pass.width, viewport_light_pass.height).unwrap();
+                        }
+
+                        if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
+                            if !shadows_enabled {
+                                spot_light.clear_shadow_map();
+                                directional_light0.clear_shadow_map();
+                                directional_light1.clear_shadow_map();
+                            }
+                        }
+
+                        if ui.button("Debug").clicked() {
+                            pipeline.next_debug_type();
+                        }
+                    });
+                }).unwrap();
                 Ok(())
             }).unwrap();
 
