@@ -84,10 +84,6 @@ impl Window
             }
             let (width, height) = self.get_canvas_size();
             let device_pixel_ratio = self.pixels_per_point();
-            use log::info;
-            info!("{}", device_pixel_ratio);
-            info!("{}", device_pixel_ratio*width);
-            info!("{}", self.canvas.style().css_text());
             let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, accumulated_time,
                 viewport: crate::Viewport::new_at_origo(device_pixel_ratio*width, device_pixel_ratio*height),
                 window_width: width, window_height: height,
