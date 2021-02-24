@@ -58,8 +58,8 @@ fn main() {
                     Event::MouseWheel { delta, .. } => {
                         camera.zoom(*delta as f32);
                     },
-                    Event::Key { ref state, ref kind } => {
-                        if kind == "T" && *state == State::Pressed
+                    Event::Key { ref state, ref kind, .. } => {
+                        if *kind == Key::T && *state == State::Pressed
                         {
                             shadows_enabled = !shadows_enabled;
                             if !shadows_enabled {
@@ -69,20 +69,18 @@ fn main() {
                             }
                         }
                         #[cfg(target_arch = "x86_64")]
-                        if kind == "P" && *state == State::Pressed
+                        if *kind == Key::P && *state == State::Pressed
                         {
                             let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                             Saver::save_pixels("lighting.png", &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
                         }
-                        if kind == "R" && *state == State::Pressed
+                        if *kind == Key::R && *state == State::Pressed
                         {
                             pipeline.next_debug_type();
                             println!("{:?}", pipeline.debug_type());
                         }
                     }
                 }
-                handle_surface_parameters(&event, &mut plane.material);
-                handle_surface_parameters(&event, &mut monkey.material);
             }
             let c = time.cos() as f32;
             let s = time.sin() as f32;
@@ -131,37 +129,4 @@ fn main() {
             }
         }).unwrap();
     });
-}
-
-fn handle_surface_parameters(event: &Event, surface: &mut PhongMaterial)
-{
-    match event {
-        Event::Key { state, kind } => {
-            if kind == "S" && *state == State::Pressed {
-                surface.diffuse_intensity = (surface.diffuse_intensity + 0.1).min(1.0);
-                println!("Diffuse intensity: {}", surface.diffuse_intensity);
-            }
-            if kind == "A" && *state == State::Pressed {
-                surface.diffuse_intensity = (surface.diffuse_intensity - 0.1).max(0.0);
-                println!("Diffuse intensity: {}", surface.diffuse_intensity);
-            }
-            if kind == "F" && *state == State::Pressed {
-                surface.specular_intensity = (surface.specular_intensity + 0.1).min(1.0);
-                println!("Specular intensity: {}", surface.specular_intensity);
-            }
-            if kind == "D" && *state == State::Pressed {
-                surface.specular_intensity = (surface.specular_intensity - 0.1).max(0.0);
-                println!("Specular intensity: {}", surface.specular_intensity);
-            }
-            if kind == "H" && *state == State::Pressed {
-                surface.specular_power = (surface.specular_power + 2.0).min(30.0);
-                println!("Specular power: {}", surface.specular_power);
-            }
-            if kind == "G" && *state == State::Pressed {
-                surface.specular_power = (surface.specular_power - 2.0).max(2.0);
-                println!("Specular power: {}", surface.specular_power);
-            }
-        },
-        _ => {}
-    }
 }
