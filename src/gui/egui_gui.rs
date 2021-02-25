@@ -21,23 +21,23 @@ impl GUI {
         })
     }
 
-    pub fn render<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &FrameInput, callback: F) -> Result<(), Error>
+    pub fn handle_input<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &mut FrameInput, callback: F) -> Result<(), Error>
     {
         let mut scroll_delta = egui::Vec2::ZERO;
         let mut egui_modifiers = egui::Modifiers::default();
         let mut egui_events = Vec::new();
         for event in frame_input.events.iter() {
             match event {
-                Event::Key {kind, state, modifiers} => {
+                Event::Key { kind, state, modifiers } => {
                     egui_events.push(egui::Event::Key {
                         key: translate_to_egui_key_code(kind),
                         pressed: *state == State::Pressed,
                         modifiers: map_modifiers(modifiers)
                     });
                 },
-                Event::MouseClick {state, button, position, modifiers} => {
+                Event::MouseClick { state, button, position, modifiers } => {
                     egui_events.push(egui::Event::PointerButton {
-                        pos: egui::Pos2 {x: position.0 as f32, y: position.1 as f32},
+                        pos: egui::Pos2 { x: position.0 as f32, y: position.1 as f32 },
                         button: match button {
                             MouseButton::Left => egui::PointerButton::Primary,
                             MouseButton::Right => egui::PointerButton::Secondary,
@@ -49,7 +49,7 @@ impl GUI {
                 },
                 Event::MouseMotion { position, .. } => {
                     egui_events.push(egui::Event::PointerMoved(
-                        egui::Pos2 {x: position.0 as f32, y: position.1 as f32}
+                        egui::Pos2 { x: position.0 as f32, y: position.1 as f32 }
                     ));
                 },
                 Event::Text(text) => {
@@ -58,10 +58,10 @@ impl GUI {
                 Event::MouseLeave => {
                     egui_events.push(egui::Event::PointerGone);
                 },
-                Event::MouseWheel {delta, ..} => {
+                Event::MouseWheel { delta, .. } => {
                     scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
                 },
-                Event::ModifiersChange {modifiers} => {
+                Event::ModifiersChange { modifiers } => {
                     egui_modifiers = egui::Modifiers {
                         alt: modifiers.alt == State::Pressed,
                         ctrl: modifiers.ctrl == State::Pressed,
@@ -78,7 +78,7 @@ impl GUI {
             scroll_delta,
             screen_rect: Some(egui::Rect::from_min_size(
                 Default::default(),
-                egui::Vec2 {x: frame_input.window_width as f32, y: frame_input.window_height as f32},
+                egui::Vec2 { x: frame_input.window_width as f32, y: frame_input.window_height as f32 },
             )),
             pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
             time: Some(frame_input.accumulated_time * 0.001),
@@ -88,7 +88,14 @@ impl GUI {
         };
         self.egui_context.begin_frame(input_state);
         callback(&self.egui_context);
+        if self.egui_context.wants_pointer_input() || self.egui_context.wants_keyboard_input() {
+            frame_input.events.clear();
+        }
+        Ok(())
+    }
 
+    pub fn render(&mut self, frame_input: &FrameInput) -> Result<(), Error>
+    {
         let (_, shapes) = self.egui_context.end_frame();
         let clipped_meshes = self.egui_context.tessellate(shapes);
 
