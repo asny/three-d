@@ -241,7 +241,7 @@ impl Window
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
                 (*events).borrow_mut().push(Event::MouseWheel {
-                    delta: 0.02499999912 * event.delta_y() as f64,
+                    delta: (event.delta_x() as f64, event.delta_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64)
                 });
                 event.stop_propagation();
@@ -321,7 +321,7 @@ impl Window
                     let zoom = f64::sqrt(f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2) + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2));
                     if let Some(old_zoom) = *last_zoom.borrow() {
                         (*events).borrow_mut().push(Event::MouseWheel {
-                            delta: old_zoom - zoom,
+                            delta: (0.0, old_zoom - zoom),
                             position: (0.5 * touch0.page_x() as f64 + 0.5 * touch1.page_x() as f64,
                                     0.5 * touch0.page_y() as f64 + 0.5 * touch1.page_y() as f64)
                         });

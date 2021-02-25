@@ -156,11 +156,19 @@ impl Window
                             if let Some(position) = cursor_pos
                             {
                                 match delta {
-                                    event::MouseScrollDelta::LineDelta(_, y) => {
-                                        events.push(frame_input::Event::MouseWheel { delta: *y as f64, position });
-                                    },
-                                    event::MouseScrollDelta::PixelDelta(logical_position) => {
-                                        events.push(frame_input::Event::MouseWheel { delta: logical_position.y, position });
+                                    glutin::event::MouseScrollDelta::LineDelta(x, y) => {
+                                        let line_height = 24.0; // TODO
+                                        events.push(frame_input::Event::MouseWheel {
+                                            delta: ((*x * line_height) as f64, (*y * line_height) as f64),
+                                            position
+                                        });
+                                    }
+                                    glutin::event::MouseScrollDelta::PixelDelta(delta) => {
+                                        let d = delta.to_logical(windowed_context.window().scale_factor());
+                                        events.push(frame_input::Event::MouseWheel {
+                                            delta: (d.x, d.y),
+                                            position
+                                        });
                                     }
                                 }
                             }

@@ -23,6 +23,7 @@ impl GUI {
 
     pub fn render<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &FrameInput, callback: F) -> Result<(), Error>
     {
+        let mut scroll_delta = egui::Vec2::ZERO;
         let mut egui_events = Vec::new();
         for event in frame_input.events.iter() {
             match event {
@@ -55,13 +56,16 @@ impl GUI {
                 },
                 Event::MouseLeave => {
                     egui_events.push(egui::Event::PointerGone);
-                }
+                },
+                Event::MouseWheel {delta, ..} => {
+                    scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
+                },
                 _ => (),
             }
         };
 
         let input_state = egui::RawInput {
-            scroll_delta: egui::Vec2::ZERO, //TODO
+            scroll_delta,
             screen_rect: Some(egui::Rect::from_min_size(
                 Default::default(),
                 egui::Vec2 {x: frame_input.window_width as f32, y: frame_input.window_height as f32},

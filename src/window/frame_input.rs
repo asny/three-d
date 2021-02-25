@@ -44,7 +44,7 @@ pub enum Event
         position: (f64, f64)
     },
     MouseWheel {
-        delta: f64,
+        delta: (f64, f64),
         position: (f64, f64)
     },
     MouseEnter,
