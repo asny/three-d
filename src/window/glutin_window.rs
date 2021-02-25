@@ -77,7 +77,6 @@ impl Window
     {
         let windowed_context = self.windowed_context;
         let mut last_time = std::time::Instant::now();
-        let mut count = 0;
         let mut accumulated_time = 0.0;
         let mut events = Vec::new();
         let mut cursor_pos = None;
@@ -94,12 +93,6 @@ impl Window
                         last_time = now;
                         let elapsed_time = duration.as_secs() as f64 * 1000.0 + duration.subsec_nanos() as f64 * 1e-6;
                         accumulated_time += elapsed_time;
-                        count += 1;
-                        if accumulated_time > 1000.0 {
-                            println!("FPS: {}", count as f64 / (accumulated_time * 0.001));
-                            count = 0;
-                            accumulated_time = 0.0;
-                        }
 
                         let (physical_width, physical_height): (u32, u32) = windowed_context.window().inner_size().into();
                         let device_pixel_ratio = windowed_context.window().scale_factor();
