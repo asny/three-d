@@ -139,14 +139,18 @@ impl Window
                                         if !cfg!(target_os = "macos") {
                                             modifiers.command = state;
                                         }
+                                        events.push(frame_input::Event::ModifiersChange {modifiers});
                                     } else if keycode == VirtualKeyCode::LAlt || keycode == VirtualKeyCode::RAlt {
                                         modifiers.alt = state;
+                                        events.push(frame_input::Event::ModifiersChange {modifiers});
                                     } else if keycode == VirtualKeyCode::LShift || keycode == VirtualKeyCode::RShift {
                                         modifiers.shift = state;
+                                        events.push(frame_input::Event::ModifiersChange {modifiers});
                                     } else if keycode == VirtualKeyCode::LWin || keycode == VirtualKeyCode::RWin {
                                         if cfg!(target_os = "macos")
                                         {
                                             modifiers.command = state;
+                                            events.push(frame_input::Event::ModifiersChange {modifiers});
                                         }
                                     }
                                 }
@@ -160,14 +164,14 @@ impl Window
                                         let line_height = 24.0; // TODO
                                         events.push(frame_input::Event::MouseWheel {
                                             delta: ((*x * line_height) as f64, (*y * line_height) as f64),
-                                            position
+                                            position, modifiers
                                         });
                                     }
                                     glutin::event::MouseScrollDelta::PixelDelta(delta) => {
                                         let d = delta.to_logical(windowed_context.window().scale_factor());
                                         events.push(frame_input::Event::MouseWheel {
                                             delta: (d.x, d.y),
-                                            position
+                                            position, modifiers
                                         });
                                     }
                                 }
@@ -193,7 +197,7 @@ impl Window
                             let delta = if let Some(last_pos) = cursor_pos {
                                 (p.x - last_pos.0, p.y - last_pos.1)
                             } else {(0.0, 0.0)};
-                            events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y) });
+                            events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y), modifiers });
                             cursor_pos = Some((p.x, p.y));
                         },
                         WindowEvent::ReceivedCharacter(ch) => {

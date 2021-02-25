@@ -24,6 +24,7 @@ impl GUI {
     pub fn render<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &FrameInput, callback: F) -> Result<(), Error>
     {
         let mut scroll_delta = egui::Vec2::ZERO;
+        let mut egui_modifiers = egui::Modifiers::default();
         let mut egui_events = Vec::new();
         for event in frame_input.events.iter() {
             match event {
@@ -60,6 +61,15 @@ impl GUI {
                 Event::MouseWheel {delta, ..} => {
                     scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
                 },
+                Event::ModifiersChange {modifiers} => {
+                    egui_modifiers = egui::Modifiers {
+                        alt: modifiers.alt == State::Pressed,
+                        ctrl: modifiers.ctrl == State::Pressed,
+                        shift: modifiers.shift == State::Pressed,
+                        mac_cmd: modifiers.command == State::Pressed,
+                        command: modifiers.command == State::Pressed
+                    }
+                },
                 _ => (),
             }
         };
@@ -72,7 +82,7 @@ impl GUI {
             )),
             pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
             time: Some(frame_input.accumulated_time * 0.001),
-            modifiers: egui::Modifiers::default(), //TODO
+            modifiers: egui_modifiers,
             events: egui_events,
             ..Default::default()
         };

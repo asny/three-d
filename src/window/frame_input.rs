@@ -41,17 +41,22 @@ pub enum Event
     },
     MouseMotion {
         delta: (f64, f64),
-        position: (f64, f64)
+        position: (f64, f64),
+        modifiers: Modifiers
     },
     MouseWheel {
         delta: (f64, f64),
-        position: (f64, f64)
+        position: (f64, f64),
+        modifiers: Modifiers
     },
     MouseEnter,
     MouseLeave,
     Key {
         state: State,
         kind: Key,
+        modifiers: Modifiers
+    },
+    ModifiersChange {
         modifiers: Modifiers
     },
     Text(String)
