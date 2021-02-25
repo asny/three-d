@@ -1,4 +1,14 @@
 
+struct Surface
+{
+    vec3 position;
+    vec3 normal;
+    vec3 color;
+    float diffuse_intensity;
+    float specular_intensity;
+    float specular_power;
+};
+
 uniform sampler2DArray gbuffer;
 uniform sampler2DArray depthMap;
 uniform mat4 viewProjectionInverse;

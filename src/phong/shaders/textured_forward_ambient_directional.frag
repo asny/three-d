@@ -21,6 +21,7 @@ void main()
 {
 	vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
 	vec4 surfaceColor = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
-	Surface surface = Surface(pos, normal, surfaceColor.rgb, diffuse_intensity, specular_intensity, specular_power);
-    outColor = vec4(surfaceColor.rgb * ambientColor + calculate_directional_light(light, surface), surfaceColor.a);
+	vec3 directional_color = calculate_directional_light(light, surfaceColor.rgb, pos, normal,
+		diffuse_intensity, specular_intensity, specular_power);
+    outColor = vec4(surfaceColor.rgb * ambientColor + directional_color, surfaceColor.a);
 }
