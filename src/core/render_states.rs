@@ -88,9 +88,9 @@ impl BlendParameters {
     pub fn transparency() -> Self {
         Self {
             source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-            source_alpha_multiplier: BlendMultiplierType::One,
+            source_alpha_multiplier: BlendMultiplierType::Zero,
             destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-            destination_alpha_multiplier: BlendMultiplierType::Zero,
+            destination_alpha_multiplier: BlendMultiplierType::One,
             rgb_equation: BlendEquationType::Add,
             alpha_equation: BlendEquationType::Add
         }
