@@ -53,7 +53,7 @@ impl PhongDeferredMesh {
                 unsafe {
                     if PROGRAM_COLOR.is_none()
                     {
-                        PROGRAM_COLOR = Some(Mesh::create_program(&self.context, &format!("{}\n{}",
+                        PROGRAM_COLOR = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/colored_deferred.frag")))?);
                     }
@@ -64,7 +64,7 @@ impl PhongDeferredMesh {
                 unsafe {
                     if PROGRAM_TEXTURE.is_none()
                     {
-                        PROGRAM_TEXTURE = Some(Mesh::create_program(&self.context, &format!("{}\n{}",
+                        PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/textured_deferred.frag")))?);
                     }
@@ -72,7 +72,7 @@ impl PhongDeferredMesh {
                 }
             }
         };
-        self.material.bind(program, self.mesh.has_uvs())?;
+        self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
@@ -90,6 +90,6 @@ impl Drop for PhongDeferredMesh {
     }
 }
 
-static mut PROGRAM_COLOR: Option<Program> = None;
-static mut PROGRAM_TEXTURE: Option<Program> = None;
+static mut PROGRAM_COLOR: Option<MeshProgram> = None;
+static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;

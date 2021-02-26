@@ -92,7 +92,7 @@ impl SpotLight {
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice())?;
 
         self.shadow_texture = DepthTargetTexture2D::new(&self.context, texture_size, texture_size,Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?;
-        RenderTarget::new_depth(&self.context, &self.shadow_texture)?.write( None, Some(1.0), || {
+        RenderTarget::new_depth(&self.context, &self.shadow_texture)?.write( &ClearState::depth(1.0), || {
                 render_scene(Viewport::new_at_origo(texture_size, texture_size), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
             })?;

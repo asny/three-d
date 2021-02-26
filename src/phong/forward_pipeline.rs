@@ -22,7 +22,7 @@ impl PhongForwardPipeline {
         self.depth_texture = Some(DepthTargetTexture2D::new(&self.context, width, height,Wrapping::ClampToEdge,
                     Wrapping::ClampToEdge, DepthFormat::Depth32F)?);
         RenderTarget::new_depth(&self.context,self.depth_texture.as_ref().unwrap())?
-            .write(None, Some(1.0), render_scene)?;
+            .write(&ClearState::depth(1.0), render_scene)?;
         Ok(())
     }
 

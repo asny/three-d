@@ -2,13 +2,71 @@ use crate::core::*;
 use crate::context::{Context, consts};
 use crate::ImageEffect;
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct ClearState {
+    pub red: Option<f32>,
+    pub green: Option<f32>,
+    pub blue: Option<f32>,
+    pub alpha: Option<f32>,
+    pub depth: Option<f32>,
+}
+
+impl ClearState {
+    pub fn none() -> Self {
+        Self {
+            red: None,
+            green: None,
+            blue: None,
+            alpha: None,
+            depth: None
+        }
+    }
+
+    pub fn depth(depth: f32) -> Self {
+        Self {
+            red: None,
+            green: None,
+            blue: None,
+            alpha: None,
+            depth: Some(depth)
+        }
+    }
+
+    pub fn color(red: f32, green: f32, blue: f32, alpha: f32) -> Self {
+        Self {
+            red: Some(red),
+            green: Some(green),
+            blue: Some(blue),
+            alpha: Some(alpha),
+            depth: None
+        }
+    }
+
+    pub fn color_and_depth(red: f32, green: f32, blue: f32, alpha: f32, depth: f32) -> Self {
+        Self {
+            red: Some(red),
+            green: Some(green),
+            blue: Some(blue),
+            alpha: Some(alpha),
+            depth: Some(depth)
+        }
+    }
+
+}
+
+impl Default for ClearState {
+    fn default() -> Self {
+        Self::color_and_depth(0.0, 0.0, 0.0, 1.0, 1.0)
+    }
+}
+
 pub struct Screen {}
 
 impl Screen {
-    pub fn write<F: FnOnce() -> Result<(), Error>>(context: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
+    pub fn write<F: FnOnce() -> Result<(), Error>>(context: &Context, clear_state: &ClearState, render: F) -> Result<(), Error>
     {
         context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
-        clear(context, clear_color, clear_depth);
+        clear(context, clear_state);
         render()?;
         Ok(())
     }
@@ -82,12 +140,16 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         })
     }
 
-    pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, render: F) -> Result<(), Error>
+    pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_state: &ClearState, render: F) -> Result<(), Error>
     {
         self.bind()?;
-        clear(&self.context,
-              self.color_texture.and(clear_color),
-              self.depth_texture.and(clear_depth));
+        clear(&self.context, &ClearState {
+            red: self.color_texture.and(clear_state.red),
+            green: self.color_texture.and(clear_state.green),
+            blue: self.color_texture.and(clear_state.blue),
+            alpha: self.color_texture.and(clear_state.alpha),
+            depth: self.depth_texture.and(clear_state.depth)
+        });
         render()?;
         if let Some(color_texture) = self.color_texture {
             color_texture.generate_mip_maps();
@@ -101,7 +163,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
         let effect = get_copy_effect(&self.context)?;
-        Screen::write(&self.context, None, None,|| {
+        Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
@@ -117,7 +179,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
         }
         let effect = get_copy_effect(&self.context)?;
-        Screen::write(&self.context, None, None,|| {
+        Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 depth_mask: false, ..Default::default()}, viewport)?;
@@ -132,7 +194,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
         }
         let effect = get_copy_effect(&self.context)?;
-        Screen::write(&self.context, None, None,|| {
+        Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 color_mask: ColorMask::disabled(), ..Default::default()}, viewport)?;
@@ -150,7 +212,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Program::set_depth(&self.context, None, true);
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write(None, None, || {
+        other.write(&ClearState::none(), || {
             self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
                                           0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT, filter as u32);
@@ -167,7 +229,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Program::set_color_mask(&self.context, ColorMask::enabled());
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write(None, None, || {
+        other.write(&ClearState::none(), || {
             self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
                                           0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::COLOR_BUFFER_BIT, filter as u32);
@@ -184,7 +246,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Program::set_depth(&self.context, None, true);
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write(None,None, || {
+        other.write(&ClearState::none(), || {
             self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width() as u32, self.depth_texture.unwrap().height() as u32,
                                           0, 0, other.depth_texture.unwrap().width() as u32, other.depth_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT, filter as u32);
@@ -251,12 +313,16 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         })
     }
 
-    pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_color: Option<&Vec4>, clear_depth: Option<f32>, color_layers: &[usize], depth_layer: usize, render: F) -> Result<(), Error>
+    pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_state: &ClearState, color_layers: &[usize], depth_layer: usize, render: F) -> Result<(), Error>
     {
         self.bind(Some(color_layers), Some(depth_layer))?;
-        clear(&self.context,
-              self.color_texture.and(clear_color),
-              self.depth_texture.and(clear_depth));
+        clear(&self.context,&ClearState {
+            red: self.color_texture.and(clear_state.red),
+            green: self.color_texture.and(clear_state.green),
+            blue: self.color_texture.and(clear_state.blue),
+            alpha: self.color_texture.and(clear_state.alpha),
+            depth: self.depth_texture.and(clear_state.depth)
+        });
         render()?;
         if let Some(color_texture) = self.color_texture {
             color_texture.generate_mip_maps();
@@ -270,7 +336,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
         let effect = get_copy_array_effect(&self.context)?;
-        Screen::write(&self.context, None, None,|| {
+        Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
@@ -288,7 +354,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
         }
         let effect = get_copy_array_effect(&self.context)?;
-        Screen::write(&self.context, None, None,|| {
+        Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
@@ -304,7 +370,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
         }
         let effect = get_copy_array_effect(&self.context)?;
-        Screen::write(&self.context, None, None,|| {
+        Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
@@ -323,7 +389,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Program::set_depth(&self.context, None, true);
         self.bind(Some(&[color_layer]), Some(depth_layer))?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write(None, None, || {
+        other.write(&ClearState::none(), || {
             self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
                                           0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT | consts::COLOR_BUFFER_BIT, filter as u32);
@@ -340,7 +406,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Program::set_color_mask(&self.context, ColorMask::enabled());
         self.bind(Some(&[color_layer]), None)?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write(None,None, || {
+        other.write(&ClearState::none(), || {
             self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
                                           0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
                                           consts::COLOR_BUFFER_BIT, filter as u32);
@@ -357,7 +423,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Program::set_depth(&self.context, None, true);
         self.bind(None, Some(depth_layer))?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
-        other.write(None, None, || {
+        other.write(&ClearState::none(), || {
             self.context.blit_framebuffer(0, 0, self.depth_texture.unwrap().width() as u32, self.depth_texture.unwrap().height() as u32,
                                           0, 0, other.depth_texture.unwrap().width() as u32, other.depth_texture.unwrap().height() as u32,
                                           consts::DEPTH_BUFFER_BIT, filter as u32);
@@ -403,24 +469,20 @@ fn check(context: &Context) -> Result<(), Error> {
     context.check_framebuffer_status().or_else(|message| Err(Error::FailedToCreateFramebuffer {message}))
 }
 
-fn clear(context: &Context, clear_color: Option<&Vec4>, clear_depth: Option<f32>) {
-    if let Some(color) = clear_color {
-        Program::set_color_mask(context, ColorMask::enabled());
-        if let Some(depth) = clear_depth {
-            Program::set_depth(context, None, true);
-            context.clear_color(color.x, color.y, color.z, color.w);
-            context.clear_depth(depth);
-            context.clear(consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT);
-        }
-        else {
-            context.clear_color(color.x, color.y, color.z, color.w);
-            context.clear(consts::COLOR_BUFFER_BIT);
-        }
-    } else if let Some(depth) = clear_depth {
+fn clear(context: &Context, clear_state: &ClearState) {
+    let clear_color = clear_state.red.is_some() || clear_state.green.is_some() || clear_state.blue.is_some() || clear_state.alpha.is_some();
+    if clear_color {
+        Program::set_color_mask(context, ColorMask {red: clear_state.red.is_some(), green: clear_state.green.is_some(),
+            blue: clear_state.blue.is_some(), alpha: clear_state.alpha.is_some()});
+        context.clear_color(clear_state.red.unwrap_or(0.0), clear_state.green.unwrap_or(0.0),
+                            clear_state.blue.unwrap_or(0.0), clear_state.alpha.unwrap_or(1.0));
+    }
+    if let Some(depth) = clear_state.depth {
         Program::set_depth(context, None, true);
         context.clear_depth(depth);
-        context.clear(consts::DEPTH_BUFFER_BIT);
     }
+    context.clear(if clear_color && clear_state.depth.is_some() { consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT }
+        else { if clear_color { consts::COLOR_BUFFER_BIT } else { consts::DEPTH_BUFFER_BIT } });
 }
 
 fn get_copy_effect(context: &Context) -> Result<&ImageEffect, Error>

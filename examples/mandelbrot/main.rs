@@ -1,6 +1,7 @@
 
 use three_d::core::*;
 use three_d::Mesh;
+use three_d::MeshProgram;
 use three_d::CPUMesh;
 use three_d::window::*;
 
@@ -25,7 +26,7 @@ fn main() {
         -2.0, 2.0, 0.0,
     ];
     let mesh = Mesh::new(&context, &CPUMesh {indices: Some(indices), positions, ..Default::default() }).unwrap();
-    let program = Mesh::create_program(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
+    let program = MeshProgram::new(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
     // main loop
     let mut panning = false;
@@ -50,7 +51,7 @@ fn main() {
             }
         }
 
-        Screen::write(&context, Some(&vec4(0.0, 1.0, 1.0, 1.0)), None, || {
+        Screen::write(&context, &ClearState::color(0.0, 1.0, 1.0, 1.0), || {
             mesh.render(&program, RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()},
                         frame_input.viewport, &Mat4::identity(), &camera).unwrap();
             Ok(())

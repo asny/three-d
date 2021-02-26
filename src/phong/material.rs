@@ -30,7 +30,7 @@ impl PhongMaterial {
             specular_power: cpu_material.specular_power.unwrap_or(6.0)})
     }
 
-    pub(crate) fn bind(&self, program: &Program, has_uvs: bool) -> Result<(), Error> {
+    pub(crate) fn bind(&self, program: &Program) -> Result<(), Error> {
         program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity)?;
         program.add_uniform_float("specular_intensity", &self.specular_intensity)?;
         program.add_uniform_float("specular_power", &self.specular_power)?;
@@ -40,9 +40,6 @@ impl PhongMaterial {
                 program.add_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
-                if !has_uvs {
-                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
-                }
                 program.use_texture(texture.as_ref(),"tex")?;
             }
         }

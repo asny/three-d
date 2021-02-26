@@ -96,7 +96,7 @@ fn main() {
                 }).unwrap();
 
             // Light pass
-            Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+            Screen::write(&context, &ClearState::default(), ||
             {
                 let viewport_light_pass = Viewport {x: (panel_width * frame_input.device_pixel_ratio) as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
                 pipeline.light_pass(viewport_light_pass, &camera, None, &[&directional_light0, &directional_light1],

@@ -37,7 +37,7 @@ fn main() {
         time += frame_input.elapsed_time as f32;
         camera.set_aspect(frame_input.viewport.aspect());
 
-        Screen::write(&context, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), || {
+        Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
             program.use_attribute_vec3_float(&position_buffer, "position")?;
             program.use_attribute_vec3_float(&color_buffer, "color")?;
 

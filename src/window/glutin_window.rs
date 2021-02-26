@@ -65,9 +65,11 @@ impl Window
         if multisample {
             Ok(ContextBuilder::new()
                 .with_multisampling(4)
+                .with_vsync(true)
                 .build_windowed(window_builder, event_loop)?)
         } else {
             Ok(ContextBuilder::new()
+                .with_vsync(true)
                 .build_windowed(window_builder, event_loop)?)
         }
     }

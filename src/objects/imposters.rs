@@ -63,7 +63,7 @@ impl Imposters {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
                             center, vec3(0.0, 1.0, 0.0));
-                              render_target.write(Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), &[i],
+                              render_target.write(&ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0), &[i],
                               0, || {render(Viewport::new_at_origo(texture_width, texture_height), &camera)?; Ok(())})?;
         }
 
@@ -93,14 +93,7 @@ impl Imposters {
     {
         let render_states = RenderStates {
             cull: CullType::Back,
-            blend: Some(BlendParameters {
-                source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-                source_alpha_multiplier: BlendMultiplierType::SrcAlpha,
-                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-                destination_alpha_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-                rgb_equation: BlendEquationType::Add,
-                alpha_equation: BlendEquationType::Add
-            }),
+            blend: Some(BlendParameters::transparency()),
             ..Default::default()
         };
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;

@@ -45,7 +45,7 @@ impl PhongDeferredInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_COLOR = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/colored_deferred.frag")))?);
                     }
@@ -56,7 +56,7 @@ impl PhongDeferredInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
                                                              include_str!("shaders/deferred_objects_shared.frag"),
                                                              include_str!("shaders/textured_deferred.frag")))?);
                     }
@@ -64,7 +64,7 @@ impl PhongDeferredInstancedMesh
                 }
             }
         };
-        self.material.bind(program, self.mesh.has_uvs())?;
+        self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
@@ -82,6 +82,6 @@ impl Drop for PhongDeferredInstancedMesh {
     }
 }
 
-static mut INSTANCED_PROGRAM_COLOR: Option<Program> = None;
-static mut INSTANCED_PROGRAM_TEXTURE: Option<Program> = None;
+static mut INSTANCED_PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
+static mut INSTANCED_PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
 static mut INSTANCED_MESH_COUNT: u32 = 0;

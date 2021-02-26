@@ -88,7 +88,7 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+            Screen::write(&context, &ClearState::default(), ||
             {
                 pipeline.light_pass(frame_input.viewport, &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
                 let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));

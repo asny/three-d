@@ -76,7 +76,7 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), &|| {
+            Screen::write(&context, &ClearState::default(), &|| {
                 let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
                 monkey.render_with_ambient_and_directional(render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 skybox.render(frame_input.viewport, &camera)?;
