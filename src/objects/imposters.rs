@@ -93,14 +93,7 @@ impl Imposters {
     {
         let render_states = RenderStates {
             cull: CullType::Back,
-            blend: Some(BlendParameters {
-                source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-                source_alpha_multiplier: BlendMultiplierType::SrcAlpha,
-                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-                destination_alpha_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-                rgb_equation: BlendEquationType::Add,
-                alpha_equation: BlendEquationType::Add
-            }),
+            blend: Some(BlendParameters::transparency()),
             ..Default::default()
         };
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;

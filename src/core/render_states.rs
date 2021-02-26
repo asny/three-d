@@ -84,16 +84,33 @@ pub struct BlendParameters {
     pub alpha_equation: BlendEquationType
 }
 
-impl Default for BlendParameters {
-    fn default() -> Self {
+impl BlendParameters {
+    pub fn transparency() -> Self {
         Self {
-            source_rgb_multiplier: BlendMultiplierType::One,
+            source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
             source_alpha_multiplier: BlendMultiplierType::One,
-            destination_rgb_multiplier: BlendMultiplierType::Zero,
+            destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
             destination_alpha_multiplier: BlendMultiplierType::Zero,
             rgb_equation: BlendEquationType::Add,
             alpha_equation: BlendEquationType::Add
         }
+    }
+
+    pub fn add() -> Self {
+        Self {
+            source_rgb_multiplier: BlendMultiplierType::One,
+            source_alpha_multiplier: BlendMultiplierType::One,
+            destination_rgb_multiplier: BlendMultiplierType::One,
+            destination_alpha_multiplier: BlendMultiplierType::One,
+            rgb_equation: BlendEquationType::Add,
+            alpha_equation: BlendEquationType::Add
+        }
+    }
+}
+
+impl Default for BlendParameters {
+    fn default() -> Self {
+        Self::transparency()
      }
 }
 
