@@ -1,6 +1,81 @@
 
 use crate::core::*;
 
+pub struct InstancedMeshProgram {
+    program: Program,
+    use_normals: bool,
+    use_uvs: bool,
+}
+
+impl InstancedMeshProgram {
+    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
+        if fragment_shader_source.find("in vec3 pos;").is_none() {
+            Err(Error::FailedToCreateMesh {message: "The fragment shader needs to take the fragment position as input. Please add 'in vec3 pos;'".to_string()})?;
+        }
+        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
+        let vertex_shader_source = &format!("
+                layout (std140) uniform Camera
+                {{
+                    mat4 viewProjection;
+                    mat4 view;
+                    mat4 projection;
+                    vec3 position;
+                    float padding;
+                }} camera;
+
+                uniform mat4 modelMatrix;
+                in vec3 position;
+                out vec3 pos;
+
+                in vec4 row1;
+                in vec4 row2;
+                in vec4 row3;
+
+                {} // Normals in/out
+                {} // UV coordinates in/out
+
+                void main()
+                {{
+                    mat4 transform;
+                    transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
+                    transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
+                    transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
+                    transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
+
+                    vec4 worldPosition = modelMatrix * transform * vec4(position, 1.);
+                    pos = worldPosition.xyz;
+                    gl_Position = camera.viewProjection * worldPosition;
+                    {} // Normal
+                    {} // UV coordinates
+                }}
+            ",
+            if use_normals {
+                "uniform mat4 normalMatrix;
+                in vec3 normal;
+                out vec3 nor;"
+            } else {""},
+            if use_uvs {
+                "in vec2 uv_coordinates;
+                out vec2 uvs;"
+            } else {""},
+            if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
+            if use_uvs { "uvs = uv_coordinates;" } else {""}
+        );
+
+        let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
+        Ok(Self {program, use_normals, use_uvs})
+    }
+}
+
+impl std::ops::Deref for InstancedMeshProgram {
+    type Target = Program;
+
+    fn deref(&self) -> &Program {
+        &self.program
+    }
+}
+
 pub struct InstancedMesh {
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
@@ -31,35 +106,26 @@ impl InstancedMesh
         Ok(mesh)
     }
 
-    pub fn create_program(context: &Context, fragment_shader_source: &str) -> Result<Program, Error>
-    {
-        Program::from_source(context, include_str!("shaders/mesh_instanced.vert"), fragment_shader_source)
-    }
-
-    pub fn has_uvs(&self) -> bool {
-        self.uv_buffer.is_some()
-    }
-
-    pub fn has_normals(&self) -> bool {
-        self.normal_buffer.is_some()
-    }
-
-    pub fn render(&self, program: &Program, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, program: &InstancedMeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
         program.use_attribute_vec4_float_divisor(&self.instance_buffer2, "row2", 1)?;
         program.use_attribute_vec4_float_divisor(&self.instance_buffer3, "row3", 1)?;
 
         program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3_float(&self.position_buffer, "position")?;
-        if let Some(ref uv_buffer) = self.uv_buffer {
-            program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
+        if program.use_uvs {
+            let uv_buffer = self.uv_buffer.as_ref().ok_or(
+                Error::FailedToCreateMesh {message: "The mesh shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
+            program.program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
         }
-        if let Some(ref normal_buffer) = self.normal_buffer {
-            program.use_attribute_vec3_float(normal_buffer, "normal")?;
+        if program.use_normals {
+            let normal_buffer = self.normal_buffer.as_ref().ok_or(
+                Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
+            program.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.program.use_attribute_vec3_float(normal_buffer, "normal")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {

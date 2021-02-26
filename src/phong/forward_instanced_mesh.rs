@@ -48,7 +48,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedMesh::create_program(&self.context, include_str!("shaders/colored_forward_ambient.frag"))?);
+                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -57,7 +57,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedMesh::create_program(&self.context, include_str!("shaders/textured_forward_ambient.frag"))?);
+                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     INSTANCED_PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
@@ -70,9 +70,6 @@ impl PhongForwardInstancedMesh
                 program.add_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
-                if !self.mesh.has_uvs() {
-                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
-                }
                 program.use_texture(texture.as_ref(),"tex")?;
             }
         }
@@ -86,7 +83,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
                                                                                       &include_str!("shaders/light_shared.frag"),
                                                                                       &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
                     }
@@ -97,7 +94,7 @@ impl PhongForwardInstancedMesh
                 unsafe {
                     if INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(InstancedMesh::create_program(&self.context, &format!("{}\n{}",
+                        INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
                                                                                     include_str!("shaders/light_shared.frag"),
                                                                                     include_str!("shaders/textured_forward_ambient_directional.frag")))?)
                     }
@@ -129,8 +126,8 @@ impl Drop for PhongForwardInstancedMesh {
     }
 }
 
-static mut INSTANCED_PROGRAM_COLOR_AMBIENT: Option<Program> = None;
-static mut INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<Program> = None;
-static mut INSTANCED_PROGRAM_TEXTURE_AMBIENT: Option<Program> = None;
-static mut INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL: Option<Program> = None;
+static mut INSTANCED_PROGRAM_COLOR_AMBIENT: Option<InstancedMeshProgram> = None;
+static mut INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<InstancedMeshProgram> = None;
+static mut INSTANCED_PROGRAM_TEXTURE_AMBIENT: Option<InstancedMeshProgram> = None;
+static mut INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL: Option<InstancedMeshProgram> = None;
 static mut INSTANCED_MESH_COUNT: u32 = 0;
