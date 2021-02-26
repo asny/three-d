@@ -9,9 +9,7 @@ pub struct MeshProgram {
 
 impl MeshProgram {
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
-        if fragment_shader_source.find("in vec3 pos;").is_none() {
-            Err(Error::FailedToCreateMesh {message: "The fragment shader needs to take the fragment position as input. Please add 'in vec3 pos;'".to_string()})?;
-        }
+        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let vertex_shader_source = &format!("
@@ -26,20 +24,21 @@ impl MeshProgram {
 
                 uniform mat4 modelMatrix;
                 in vec3 position;
-                out vec3 pos;
 
+                {} // Positions out
                 {} // Normals in/out
                 {} // UV coordinates in/out
 
                 void main()
                 {{
                     vec4 worldPosition = modelMatrix * vec4(position, 1.);
-                    pos = worldPosition.xyz;
                     gl_Position = camera.viewProjection * worldPosition;
+                    {} // Position
                     {} // Normal
                     {} // UV coordinates
                 }}
             ",
+            if use_positions {"out vec3 pos;"} else {""},
             if use_normals {
                 "uniform mat4 normalMatrix;
                 in vec3 normal;
@@ -49,6 +48,7 @@ impl MeshProgram {
                 "in vec2 uv_coordinates;
                 out vec2 uvs;"
             } else {""},
+            if use_positions {"pos = worldPosition.xyz;"} else {""},
             if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
             if use_uvs { "uvs = uv_coordinates;" } else {""}
         );
