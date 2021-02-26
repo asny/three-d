@@ -62,7 +62,7 @@ impl PhongDeferredPipeline
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(&self.context, width, height, 1, Wrapping::ClampToEdge,
                                                                                Wrapping::ClampToEdge, DepthFormat::Depth32F)?);
         RenderTargetArray::new(&self.context, self.geometry_pass_texture.as_ref().unwrap(), self.geometry_pass_depth_texture.as_ref().unwrap())?
-            .write(Some(&vec4(0.0, 0.0, 0.0, 0.0)), Some(1.0), &[0, 1], 0, render_scene)?;
+            .write(&ClearState::default(), &[0, 1], 0, render_scene)?;
         Ok(())
     }
 

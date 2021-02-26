@@ -100,7 +100,7 @@ fn main() {
                 }
             }
 
-            Screen::write(&context, Some(&vec4(0.8, 0.8, 0.8, 1.0)), Some(1.0), &|| {
+            Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), &|| {
                 plane.render_with_ambient_and_directional(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
                                                           frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 tree_mesh.render_with_ambient_and_directional(tree_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;

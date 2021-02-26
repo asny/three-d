@@ -109,7 +109,7 @@ fn main() {
                 }).unwrap();
 
                 // Light pass
-                Screen::write(&gl, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+                Screen::write(&gl, &ClearState::default(), ||
                 {
                     pipeline.light_pass(frame_input.viewport, &camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[])?;
                     Ok(())

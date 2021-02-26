@@ -116,7 +116,7 @@ fn main() {
                 }).unwrap();
 
             // Light pass
-            Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), Some(1.0), ||
+            Screen::write(&context, &ClearState::default(), ||
             {
                 pipeline.light_pass(frame_input.viewport, &camera, None, &[&directional_light0, &directional_light1],
                                       &[&spot_light], &[&point_light0, &point_light1])?;

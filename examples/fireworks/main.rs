@@ -63,7 +63,7 @@ fn main() {
             particles.update(&data);
         }
 
-        Screen::write(&context, Some(&vec4(0.0, 0.0, 0.0, 1.0)), None, || {
+        Screen::write(&context, &ClearState::color(0.0, 0.0, 0.0, 1.0), || {
             let render_states = RenderStates {cull: CullType::Back,
                 blend: Some(BlendParameters {
                     rgb_equation: BlendEquationType::Add,

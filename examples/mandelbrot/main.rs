@@ -51,7 +51,7 @@ fn main() {
             }
         }
 
-        Screen::write(&context, Some(&vec4(0.0, 1.0, 1.0, 1.0)), None, || {
+        Screen::write(&context, &ClearState::color(0.0, 1.0, 1.0, 1.0), || {
             mesh.render(&program, RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()},
                         frame_input.viewport, &Mat4::identity(), &camera).unwrap();
             Ok(())

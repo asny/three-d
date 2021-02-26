@@ -64,7 +64,7 @@ impl DirectionalLight {
 
         self.shadow_texture = DepthTargetTexture2D::new(&self.context, texture_width, texture_height, Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
         RenderTarget::new_depth(&self.context,&self.shadow_texture)?
-            .write(None, Some(1.0),
+            .write(&ClearState::depth(1.0),
             || {
                 render_scene(Viewport::new_at_origo(texture_width, texture_height), self.shadow_camera.as_ref().unwrap())?;
                 Ok(())
