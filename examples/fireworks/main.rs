@@ -69,7 +69,7 @@ fn main() {
                     rgb_equation: BlendEquationType::Add,
                     alpha_equation: BlendEquationType::Add,
                     source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-                    source_alpha_multiplier: BlendMultiplierType::SrcAlpha,
+                    source_alpha_multiplier: BlendMultiplierType::Zero,
                     destination_rgb_multiplier: BlendMultiplierType::One,
                     destination_alpha_multiplier:BlendMultiplierType::One
                 }),
