@@ -6,7 +6,6 @@ uniform float specular_power;
 
 in vec3 nor;
 in vec3 pos;
-in vec2 uvs;
 
 void main()
 {

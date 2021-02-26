@@ -64,7 +64,7 @@ impl PhongDeferredInstancedMesh
                 }
             }
         };
-        self.material.bind(program, self.mesh.has_uvs())?;
+        self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }

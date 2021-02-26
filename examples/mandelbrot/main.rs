@@ -1,6 +1,7 @@
 
 use three_d::core::*;
 use three_d::Mesh;
+use three_d::MeshProgram;
 use three_d::CPUMesh;
 use three_d::window::*;
 
@@ -25,7 +26,7 @@ fn main() {
         -2.0, 2.0, 0.0,
     ];
     let mesh = Mesh::new(&context, &CPUMesh {indices: Some(indices), positions, ..Default::default() }).unwrap();
-    let program = Mesh::create_program(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
+    let program = MeshProgram::new(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
     // main loop
     let mut panning = false;

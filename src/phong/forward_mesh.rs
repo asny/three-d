@@ -55,7 +55,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_COLOR_AMBIENT.is_none()
                     {
-                        PROGRAM_COLOR_AMBIENT = Some(Mesh::create_program(&self.context, include_str!("shaders/colored_forward_ambient.frag"))?);
+                        PROGRAM_COLOR_AMBIENT = Some(MeshProgram::new(&self.context, include_str!("shaders/colored_forward_ambient.frag"))?);
                     }
                     PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
                 }
@@ -64,7 +64,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_TEXTURE_AMBIENT.is_none()
                     {
-                        PROGRAM_TEXTURE_AMBIENT = Some(Mesh::create_program(&self.context,include_str!("shaders/textured_forward_ambient.frag"))?);
+                        PROGRAM_TEXTURE_AMBIENT = Some(MeshProgram::new(&self.context,include_str!("shaders/textured_forward_ambient.frag"))?);
                     }
                     PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
                 }
@@ -77,9 +77,6 @@ impl PhongForwardMesh
                 program.add_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
-                if !self.mesh.has_uvs() {
-                    Err(Error::FailedToCreateMesh {message:"Cannot use a texture as color source without uv coordinates.".to_string()})?;
-                }
                 program.use_texture(texture.as_ref(),"tex")?;
             }
         }
@@ -93,7 +90,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.context, &format!("{}\n{}",
+                        PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
                                                                                       &include_str!("shaders/light_shared.frag"),
                                                                                       &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
                     }
@@ -104,7 +101,7 @@ impl PhongForwardMesh
                 unsafe {
                     if PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
                     {
-                        PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(Mesh::create_program(&self.context, &format!("{}\n{}",
+                        PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
                                                                                     include_str!("shaders/light_shared.frag"),
                                                                                     include_str!("shaders/textured_forward_ambient_directional.frag")))?)
                     }
@@ -117,7 +114,7 @@ impl PhongForwardMesh
         program.add_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
-        self.material.bind(program, self.mesh.has_uvs())?;
+        self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
@@ -137,8 +134,8 @@ impl Drop for PhongForwardMesh {
     }
 }
 
-static mut PROGRAM_COLOR_AMBIENT: Option<Program> = None;
-static mut PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<Program> = None;
-static mut PROGRAM_TEXTURE_AMBIENT: Option<Program> = None;
-static mut PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL: Option<Program> = None;
+static mut PROGRAM_COLOR_AMBIENT: Option<MeshProgram> = None;
+static mut PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<MeshProgram> = None;
+static mut PROGRAM_TEXTURE_AMBIENT: Option<MeshProgram> = None;
+static mut PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;

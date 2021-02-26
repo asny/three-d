@@ -109,7 +109,7 @@ impl PhongForwardInstancedMesh
         program.add_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
-        self.material.bind(program, self.mesh.has_uvs())?;
+        self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 }
