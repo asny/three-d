@@ -39,31 +39,68 @@ fn main() {
         let mut spot_light = SpotLight::new(&context, 0.8, &vec3(0.0, 0.0, 1.0), &vec3(0.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0), 25.0, 0.1, 0.001, 0.0001).unwrap();
 
         // main loop
-        let mut time = 0.0;
         let mut rotating = false;
         let mut shadows_enabled = true;
-        window.render_loop(move |frame_input|
+        window.render_loop(move |mut frame_input|
         {
             let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width * frame_input.device_pixel_ratio, frame_input.viewport.height);
+            let viewport_light_pass = Viewport {x: (panel_width * frame_input.device_pixel_ratio) as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
             camera.set_aspect(viewport_geometry_pass.aspect());
 
-            time += (0.001 * frame_input.elapsed_time) % 1000.0;
+            gui.handle_input(&mut frame_input, |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel", panel_width as f32 * gui_context.pixels_per_point()).show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+
+                    ui.label("Surface parameters");
+                    ui.add(Slider::f32(&mut monkey.material.diffuse_intensity, 0.0..=1.0).text("Monkey Diffuse"));
+                    ui.add(Slider::f32(&mut monkey.material.specular_intensity, 0.0..=1.0).text("Monkey Specular"));
+                    ui.add(Slider::f32(&mut monkey.material.specular_power, 2.0..=30.0).text("Monkey Specular Power"));
+                    ui.add(Slider::f32(&mut plane.material.diffuse_intensity, 0.0..=1.0).text("Plane Diffuse"));
+                    ui.add(Slider::f32(&mut plane.material.specular_intensity, 0.0..=1.0).text("Plane Specular"));
+                    ui.add(Slider::f32(&mut plane.material.specular_power, 2.0..=30.0).text("Plane Specular Power"));
+
+                    #[cfg(target_arch = "x86_64")]
+                    if ui.button("Screenshot").clicked() {
+                        let pixels = Screen::read_color(&context, viewport_light_pass).unwrap();
+                        Saver::save_pixels("screenshot.png", &pixels, viewport_light_pass.width, viewport_light_pass.height).unwrap();
+                    }
+
+                    if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
+                        if !shadows_enabled {
+                            spot_light.clear_shadow_map();
+                            directional_light0.clear_shadow_map();
+                            directional_light1.clear_shadow_map();
+                        }
+                    }
+
+                    if ui.button("Debug").clicked() {
+                        pipeline.next_debug_type();
+                    }
+                });
+            }).unwrap();
+
             for event in frame_input.events.iter() {
                 match event {
-                    Event::MouseClick { state, button, .. } => {
-                        rotating = *button == MouseButton::Left && *state == State::Pressed;
+                    Event::MouseClick { state, button, handled, .. } => {
+                        if !handled {
+                            rotating = *button == MouseButton::Left && *state == State::Pressed;
+                        }
                     },
-                    Event::MouseMotion { delta, .. } => {
-                        if rotating {
+                    Event::MouseMotion { delta, handled, .. } => {
+                        if !handled && rotating {
                             camera.rotate_around_up(delta.0 as f32, delta.1 as f32);
                         }
                     },
-                    Event::MouseWheel { delta, .. } => {
-                        camera.zoom(*delta as f32);
+                    Event::MouseWheel { delta, handled, .. } => {
+                        if !handled {
+                            camera.zoom(delta.1 as f32);
+                        }
                     },
                     _ => {}
                 }
             }
+            let time = 0.001 * frame_input.accumulated_time;
             let c = time.cos() as f32;
             let s = time.sin() as f32;
             directional_light0.set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
@@ -98,41 +135,9 @@ fn main() {
             // Light pass
             Screen::write(&context, &ClearState::default(), ||
             {
-                let viewport_light_pass = Viewport {x: (panel_width * frame_input.device_pixel_ratio) as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
                 pipeline.light_pass(viewport_light_pass, &camera, None, &[&directional_light0, &directional_light1],
                                     &[&spot_light], &[&point_light0, &point_light1])?;
-                gui.render(&frame_input, |gui_context| {
-                    use three_d::egui::*;
-                    SidePanel::left("side_panel", (panel_width * frame_input.device_pixel_ratio) as f32).show(gui_context, |ui| {
-                        ui.heading("Debug Panel");
-
-                        ui.label("Surface parameters");
-                        ui.add(Slider::f32(&mut monkey.material.diffuse_intensity, 0.0..=1.0).text("Monkey Diffuse"));
-                        ui.add(Slider::f32(&mut monkey.material.specular_intensity, 0.0..=1.0).text("Monkey Specular"));
-                        ui.add(Slider::f32(&mut monkey.material.specular_power, 2.0..=30.0).text("Monkey Specular Power"));
-                        ui.add(Slider::f32(&mut plane.material.diffuse_intensity, 0.0..=1.0).text("Plane Diffuse"));
-                        ui.add(Slider::f32(&mut plane.material.specular_intensity, 0.0..=1.0).text("Plane Specular"));
-                        ui.add(Slider::f32(&mut plane.material.specular_power, 2.0..=30.0).text("Plane Specular Power"));
-
-                        #[cfg(target_arch = "x86_64")]
-                        if ui.button("Screenshot").clicked() {
-                            let pixels = Screen::read_color(&context, viewport_light_pass).unwrap();
-                            Saver::save_pixels("screenshot.png", &pixels, viewport_light_pass.width, viewport_light_pass.height).unwrap();
-                        }
-
-                        if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
-                            if !shadows_enabled {
-                                spot_light.clear_shadow_map();
-                                directional_light0.clear_shadow_map();
-                                directional_light1.clear_shadow_map();
-                            }
-                        }
-
-                        if ui.button("Debug").clicked() {
-                            pipeline.next_debug_type();
-                        }
-                    });
-                }).unwrap();
+                gui.render(&frame_input).unwrap();
                 Ok(())
             }).unwrap();
 
