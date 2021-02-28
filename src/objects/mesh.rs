@@ -67,6 +67,7 @@ impl std::ops::Deref for MeshProgram {
 }
 
 pub struct Mesh {
+    context: Context,
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
@@ -80,8 +81,22 @@ impl Mesh {
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(context, normals)?) } else {None};
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
+        unsafe {
+            MESH_COUNT += 1;
+        }
+        Ok(Mesh {context: context.clone(), position_buffer, normal_buffer, index_buffer, uv_buffer})
+    }
 
-        Ok(Mesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
+    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_DEPTH.is_none()
+            {
+                PROGRAM_DEPTH = Some(MeshProgram::new(&self.context, "void main() {}")?);
+            }
+            PROGRAM_DEPTH.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, transformation, camera)
     }
 
     pub fn render(&self, program: &MeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -110,3 +125,18 @@ impl Mesh {
         Ok(())
     }
 }
+
+impl Drop for Mesh {
+
+    fn drop(&mut self) {
+        unsafe {
+            MESH_COUNT -= 1;
+            if MESH_COUNT == 0 {
+                PROGRAM_DEPTH = None;
+            }
+        }
+    }
+}
+
+static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
+static mut MESH_COUNT: u32 = 0;

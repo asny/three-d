@@ -14,28 +14,16 @@ impl PhongDeferredInstancedMesh
 {
     pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
-        if cpu_mesh.normals.is_none() {
-            Err(Error::FailedToCreateMesh {message:
-              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
-        }
         let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
-        unsafe {INSTANCED_MESH_COUNT += 1;}
+        unsafe {
+            INSTANCED_MESH_COUNT += 1;
+        }
         Ok(Self {
             context: context.clone(),
             name: cpu_mesh.name.clone(),
             mesh,
             material: material.clone()
         })
-    }
-
-    pub fn update_transformations(&mut self, transformations: &[Mat4])
-    {
-        self.mesh.update_transformations(transformations);
-    }
-
-    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
-        self.render_geometry(render_states, viewport, transformation, camera)
     }
 
     pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -66,6 +54,14 @@ impl PhongDeferredInstancedMesh
         };
         self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
+    }
+}
+
+impl std::ops::Deref for PhongDeferredInstancedMesh {
+    type Target = InstancedMesh;
+
+    fn deref(&self) -> &InstancedMesh {
+        &self.mesh
     }
 }
 
