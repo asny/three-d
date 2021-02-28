@@ -12,6 +12,7 @@ pub struct PhongDeferredPipeline {
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
     spot_light_effect: ImageEffect,
+    debug_effect: Option<ImageEffect>,
     pub debug_type: DebugType,
     geometry_pass_texture: Option<ColorTargetTexture2DArray>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>
@@ -39,6 +40,7 @@ impl PhongDeferredPipeline
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
                                                                        &include_str!("shaders/spot_light.frag")))?,
+            debug_effect: None,
             debug_type: DebugType::NONE,
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(context, 1, 1, 2,
                                                                        Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
@@ -64,22 +66,20 @@ impl PhongDeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass(&self, viewport: Viewport, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
+    pub fn light_pass(&mut self, viewport: Viewport, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
                       spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
         let mut render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         if self.debug_type != DebugType::NONE {
-            unsafe {
-                if DEBUG_EFFECT.is_none() {
-                    DEBUG_EFFECT = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
-                }
-                DEBUG_EFFECT.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-                DEBUG_EFFECT.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-                DEBUG_EFFECT.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
-                DEBUG_EFFECT.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
-                DEBUG_EFFECT.as_ref().unwrap().apply(render_states, viewport)?;
+            if self.debug_effect.is_none() {
+                self.debug_effect = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
             }
+            self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+            self.debug_effect.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
+            self.debug_effect.as_ref().unwrap().apply(render_states, viewport)?;
             return Ok(());
         }
 
@@ -150,11 +150,3 @@ impl PhongDeferredPipeline
         depth_texture
     }
 }
-
-impl Drop for PhongDeferredPipeline {
-    fn drop(&mut self) {
-        unsafe {DEBUG_EFFECT = None;}
-    }
-}
-
-static mut DEBUG_EFFECT: Option<ImageEffect> = None;
