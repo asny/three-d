@@ -60,11 +60,15 @@ fn main() {
                     ui.add(Slider::f32(&mut plane.material.specular_intensity, 0.0..=1.0).text("Plane Specular"));
                     ui.add(Slider::f32(&mut plane.material.specular_power, 2.0..=30.0).text("Plane Specular Power"));
 
-                    #[cfg(target_arch = "x86_64")]
-                    if ui.button("Screenshot").clicked() {
-                        let pixels = Screen::read_color(&context, viewport_light_pass).unwrap();
-                        Saver::save_pixels("screenshot.png", &pixels, viewport_light_pass.width, viewport_light_pass.height).unwrap();
-                    }
+                    ui.label("Debug options");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::NONE, "None");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::POSITION, "Position");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::NORMAL, "Normal");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::COLOR, "Color");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::DEPTH, "Depth");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::DIFFUSE, "Diffuse");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::SPECULAR, "Specular");
+                    ui.radio_value(&mut pipeline.debug_type, DebugType::POWER, "Power");
 
                     if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
                         if !shadows_enabled {
@@ -74,8 +78,11 @@ fn main() {
                         }
                     }
 
-                    if ui.button("Debug").clicked() {
-                        pipeline.next_debug_type();
+                    ui.label("Other");
+                    #[cfg(target_arch = "x86_64")]
+                    if ui.button("Screenshot").clicked() {
+                        let pixels = Screen::read_color(&context, viewport_light_pass).unwrap();
+                        Saver::save_pixels("screenshot.png", &pixels, viewport_light_pass.width, viewport_light_pass.height).unwrap();
                     }
                 });
             }).unwrap();

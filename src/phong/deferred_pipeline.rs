@@ -12,8 +12,7 @@ pub struct PhongDeferredPipeline {
     directional_light_effect: ImageEffect,
     point_light_effect: ImageEffect,
     spot_light_effect: ImageEffect,
-    debug_effect: Option<ImageEffect>,
-    debug_type: DebugType,
+    pub debug_type: DebugType,
     geometry_pass_texture: Option<ColorTargetTexture2DArray>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>
 }
@@ -40,7 +39,6 @@ impl PhongDeferredPipeline
                                                                        &include_str!("shaders/light_shared.frag"),
                                                                        &include_str!("shaders/deferred_light_shared.frag"),
                                                                        &include_str!("shaders/spot_light.frag")))?,
-            debug_effect: None,
             debug_type: DebugType::NONE,
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(context, 1, 1, 2,
                                                                        Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
@@ -72,11 +70,16 @@ impl PhongDeferredPipeline
         let mut render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         if self.debug_type != DebugType::NONE {
-            self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
-            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
-            self.debug_effect.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
-            self.debug_effect.as_ref().unwrap().apply(render_states, viewport)?;
+            unsafe {
+                if DEBUG_EFFECT.is_none() {
+                    DEBUG_EFFECT = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
+                }
+                DEBUG_EFFECT.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+                DEBUG_EFFECT.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+                DEBUG_EFFECT.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+                DEBUG_EFFECT.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
+                DEBUG_EFFECT.as_ref().unwrap().apply(render_states, viewport)?;
+            }
             return Ok(());
         }
 
@@ -146,33 +149,12 @@ impl PhongDeferredPipeline
             .copy_depth(0, &RenderTarget::new_depth(&self.context, &depth_texture).unwrap(), Interpolation::Nearest).unwrap();
         depth_texture
     }
+}
 
-    pub fn debug_type(&self) -> DebugType
-    {
-        self.debug_type
-    }
-
-    pub fn set_debug_type(&mut self, debug_type: DebugType)
-    {
-        self.debug_type = debug_type;
-        if self.debug_effect.is_none() {
-            self.debug_effect = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
-        }
-    }
-
-    pub fn next_debug_type(&mut self)
-    {
-        let debug_type =
-            match self.debug_type {
-                DebugType::NONE => DebugType::POSITION,
-                DebugType::POSITION => DebugType::NORMAL,
-                DebugType::NORMAL => DebugType::COLOR,
-                DebugType::COLOR => DebugType::DEPTH,
-                DebugType::DEPTH => DebugType::DIFFUSE,
-                DebugType::DIFFUSE => DebugType::SPECULAR,
-                DebugType::SPECULAR => DebugType::POWER,
-                DebugType::POWER => DebugType::NONE,
-            };
-        self.set_debug_type(debug_type);
+impl Drop for PhongDeferredPipeline {
+    fn drop(&mut self) {
+        unsafe {DEBUG_EFFECT = None;}
     }
 }
+
+static mut DEBUG_EFFECT: Option<ImageEffect> = None;
