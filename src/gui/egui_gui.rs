@@ -28,29 +28,35 @@ impl GUI {
         let mut egui_events = Vec::new();
         for event in frame_input.events.iter() {
             match event {
-                Event::Key { kind, state, modifiers } => {
-                    egui_events.push(egui::Event::Key {
-                        key: translate_to_egui_key_code(kind),
-                        pressed: *state == State::Pressed,
-                        modifiers: map_modifiers(modifiers)
-                    });
+                Event::Key { kind, state, modifiers, handled } => {
+                    if !handled {
+                        egui_events.push(egui::Event::Key {
+                            key: translate_to_egui_key_code(kind),
+                            pressed: *state == State::Pressed,
+                            modifiers: map_modifiers(modifiers)
+                        });
+                    }
                 },
-                Event::MouseClick { state, button, position, modifiers } => {
-                    egui_events.push(egui::Event::PointerButton {
-                        pos: egui::Pos2 { x: position.0 as f32, y: position.1 as f32 },
-                        button: match button {
-                            MouseButton::Left => egui::PointerButton::Primary,
-                            MouseButton::Right => egui::PointerButton::Secondary,
-                            MouseButton::Middle => egui::PointerButton::Middle,
-                        },
-                        pressed: *state == State::Pressed,
-                        modifiers: map_modifiers(modifiers)
-                    });
+                Event::MouseClick { state, button, position, modifiers, handled } => {
+                    if !handled {
+                        egui_events.push(egui::Event::PointerButton {
+                            pos: egui::Pos2 { x: position.0 as f32, y: position.1 as f32 },
+                            button: match button {
+                                MouseButton::Left => egui::PointerButton::Primary,
+                                MouseButton::Right => egui::PointerButton::Secondary,
+                                MouseButton::Middle => egui::PointerButton::Middle,
+                            },
+                            pressed: *state == State::Pressed,
+                            modifiers: map_modifiers(modifiers)
+                        });
+                    }
                 },
-                Event::MouseMotion { position, .. } => {
-                    egui_events.push(egui::Event::PointerMoved(
-                        egui::Pos2 { x: position.0 as f32, y: position.1 as f32 }
-                    ));
+                Event::MouseMotion { position, handled, .. } => {
+                    if !handled {
+                        egui_events.push(egui::Event::PointerMoved(
+                            egui::Pos2 { x: position.0 as f32, y: position.1 as f32 }
+                        ));
+                    }
                 },
                 Event::Text(text) => {
                     egui_events.push(egui::Event::Text(text.clone()));
@@ -58,8 +64,10 @@ impl GUI {
                 Event::MouseLeave => {
                     egui_events.push(egui::Event::PointerGone);
                 },
-                Event::MouseWheel { delta, .. } => {
-                    scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
+                Event::MouseWheel { delta, handled, .. } => {
+                    if !handled {
+                        scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
+                    }
                 },
                 Event::ModifiersChange { modifiers } => {
                     egui_modifiers = egui::Modifiers {
@@ -88,8 +96,23 @@ impl GUI {
         };
         self.egui_context.begin_frame(input_state);
         callback(&self.egui_context);
-        if self.egui_context.wants_pointer_input() || self.egui_context.wants_keyboard_input() {
-            frame_input.events.clear();
+
+        for event in frame_input.events.iter_mut() {
+            if self.egui_context.wants_pointer_input() {
+                match event {
+                    Event::MouseClick {ref mut handled, ..} => {*handled = true;},
+                    Event::MouseWheel {ref mut handled, ..} => {*handled = true;},
+                    Event::MouseMotion {ref mut handled, ..} => {*handled = true;},
+                    _ => {}
+                }
+            }
+
+            if self.egui_context.wants_keyboard_input() {
+                match event {
+                    Event::Key {ref mut handled, ..} => {*handled = true;},
+                    _ => {}
+                }
+            }
         }
         Ok(())
     }

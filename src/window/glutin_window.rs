@@ -127,7 +127,7 @@ impl Window
                                 }
                                 let state = if input.state == event::ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
                                 if let Some(kind) = translate_virtual_key_code(keycode) {
-                                    events.push(frame_input::Event::Key {state, kind, modifiers});
+                                    events.push(frame_input::Event::Key {state, kind, modifiers, handled: false});
                                 } else {
                                     if keycode == VirtualKeyCode::LControl || keycode == VirtualKeyCode::RControl {
                                         modifiers.ctrl = state;
@@ -159,14 +159,14 @@ impl Window
                                         let line_height = 24.0; // TODO
                                         events.push(frame_input::Event::MouseWheel {
                                             delta: ((*x * line_height) as f64, (*y * line_height) as f64),
-                                            position, modifiers
+                                            position, modifiers, handled: false
                                         });
                                     }
                                     glutin::event::MouseScrollDelta::PixelDelta(delta) => {
                                         let d = delta.to_logical(windowed_context.window().scale_factor());
                                         events.push(frame_input::Event::MouseWheel {
                                             delta: (d.x, d.y),
-                                            position, modifiers
+                                            position, modifiers, handled: false
                                         });
                                     }
                                 }
@@ -183,7 +183,7 @@ impl Window
                                     _ => None
                                 };
                                 if let Some(b) = button {
-                                    events.push(frame_input::Event::MouseClick { state, button: b, position, modifiers });
+                                    events.push(frame_input::Event::MouseClick { state, button: b, position, modifiers, handled: false });
                                 }
                             }
                         },
@@ -192,7 +192,7 @@ impl Window
                             let delta = if let Some(last_pos) = cursor_pos {
                                 (p.x - last_pos.0, p.y - last_pos.1)
                             } else {(0.0, 0.0)};
-                            events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y), modifiers });
+                            events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y), modifiers, handled: false });
                             cursor_pos = Some((p.x, p.y));
                         },
                         WindowEvent::ReceivedCharacter(ch) => {

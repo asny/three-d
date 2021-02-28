@@ -37,24 +37,28 @@ pub enum Event
         state: State,
         button: MouseButton,
         position: (f64, f64),
-        modifiers: Modifiers
+        modifiers: Modifiers,
+        handled: bool
     },
     MouseMotion {
         delta: (f64, f64),
         position: (f64, f64),
-        modifiers: Modifiers
+        modifiers: Modifiers,
+        handled: bool
     },
     MouseWheel {
         delta: (f64, f64),
         position: (f64, f64),
-        modifiers: Modifiers
+        modifiers: Modifiers,
+        handled: bool
     },
     MouseEnter,
     MouseLeave,
     Key {
         state: State,
         kind: Key,
-        modifiers: Modifiers
+        modifiers: Modifiers,
+        handled: bool
     },
     ModifiersChange {
         modifiers: Modifiers
