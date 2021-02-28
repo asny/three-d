@@ -21,79 +21,9 @@ impl GUI {
         })
     }
 
-    pub fn handle_input<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &mut FrameInput, callback: F) -> Result<(), Error>
+    pub fn update<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &mut FrameInput, callback: F) -> Result<(), Error>
     {
-        let mut scroll_delta = egui::Vec2::ZERO;
-        let mut egui_modifiers = egui::Modifiers::default();
-        let mut egui_events = Vec::new();
-        for event in frame_input.events.iter() {
-            match event {
-                Event::Key { kind, state, modifiers, handled } => {
-                    if !handled {
-                        egui_events.push(egui::Event::Key {
-                            key: translate_to_egui_key_code(kind),
-                            pressed: *state == State::Pressed,
-                            modifiers: map_modifiers(modifiers)
-                        });
-                    }
-                },
-                Event::MouseClick { state, button, position, modifiers, handled } => {
-                    if !handled {
-                        egui_events.push(egui::Event::PointerButton {
-                            pos: egui::Pos2 { x: position.0 as f32, y: position.1 as f32 },
-                            button: match button {
-                                MouseButton::Left => egui::PointerButton::Primary,
-                                MouseButton::Right => egui::PointerButton::Secondary,
-                                MouseButton::Middle => egui::PointerButton::Middle,
-                            },
-                            pressed: *state == State::Pressed,
-                            modifiers: map_modifiers(modifiers)
-                        });
-                    }
-                },
-                Event::MouseMotion { position, handled, .. } => {
-                    if !handled {
-                        egui_events.push(egui::Event::PointerMoved(
-                            egui::Pos2 { x: position.0 as f32, y: position.1 as f32 }
-                        ));
-                    }
-                },
-                Event::Text(text) => {
-                    egui_events.push(egui::Event::Text(text.clone()));
-                },
-                Event::MouseLeave => {
-                    egui_events.push(egui::Event::PointerGone);
-                },
-                Event::MouseWheel { delta, handled, .. } => {
-                    if !handled {
-                        scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
-                    }
-                },
-                Event::ModifiersChange { modifiers } => {
-                    egui_modifiers = egui::Modifiers {
-                        alt: modifiers.alt == State::Pressed,
-                        ctrl: modifiers.ctrl == State::Pressed,
-                        shift: modifiers.shift == State::Pressed,
-                        mac_cmd: modifiers.command == State::Pressed,
-                        command: modifiers.command == State::Pressed
-                    }
-                },
-                _ => (),
-            }
-        };
-
-        let input_state = egui::RawInput {
-            scroll_delta,
-            screen_rect: Some(egui::Rect::from_min_size(
-                Default::default(),
-                egui::Vec2 { x: frame_input.window_width as f32, y: frame_input.window_height as f32 },
-            )),
-            pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
-            time: Some(frame_input.accumulated_time * 0.001),
-            modifiers: egui_modifiers,
-            events: egui_events,
-            ..Default::default()
-        };
+        let input_state = construct_input_state(frame_input);
         self.egui_context.begin_frame(input_state);
         callback(&self.egui_context);
 
@@ -272,6 +202,80 @@ const FRAGMENT_SHADER_SOURCE: &str = r#"
         color.a = pow(color.a, 1.6); // Empiric nonsense
     }
 "#;
+
+fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
+    let mut scroll_delta = egui::Vec2::ZERO;
+    let mut egui_modifiers = egui::Modifiers::default();
+    let mut egui_events = Vec::new();
+    for event in frame_input.events.iter() {
+        match event {
+            Event::Key { kind, state, modifiers, handled } => {
+                if !handled {
+                    egui_events.push(egui::Event::Key {
+                        key: translate_to_egui_key_code(kind),
+                        pressed: *state == State::Pressed,
+                        modifiers: map_modifiers(modifiers)
+                    });
+                }
+            },
+            Event::MouseClick { state, button, position, modifiers, handled } => {
+                if !handled {
+                    egui_events.push(egui::Event::PointerButton {
+                        pos: egui::Pos2 { x: position.0 as f32, y: position.1 as f32 },
+                        button: match button {
+                            MouseButton::Left => egui::PointerButton::Primary,
+                            MouseButton::Right => egui::PointerButton::Secondary,
+                            MouseButton::Middle => egui::PointerButton::Middle,
+                        },
+                        pressed: *state == State::Pressed,
+                        modifiers: map_modifiers(modifiers)
+                    });
+                }
+            },
+            Event::MouseMotion { position, handled, .. } => {
+                if !handled {
+                    egui_events.push(egui::Event::PointerMoved(
+                        egui::Pos2 { x: position.0 as f32, y: position.1 as f32 }
+                    ));
+                }
+            },
+            Event::Text(text) => {
+                egui_events.push(egui::Event::Text(text.clone()));
+            },
+            Event::MouseLeave => {
+                egui_events.push(egui::Event::PointerGone);
+            },
+            Event::MouseWheel { delta, handled, .. } => {
+                if !handled {
+                    scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
+                }
+            },
+            Event::ModifiersChange { modifiers } => {
+                egui_modifiers = egui::Modifiers {
+                    alt: modifiers.alt == State::Pressed,
+                    ctrl: modifiers.ctrl == State::Pressed,
+                    shift: modifiers.shift == State::Pressed,
+                    mac_cmd: modifiers.command == State::Pressed,
+                    command: modifiers.command == State::Pressed
+                }
+            },
+            _ => (),
+        }
+    };
+
+    egui::RawInput {
+        scroll_delta,
+        screen_rect: Some(egui::Rect::from_min_size(
+            Default::default(),
+            egui::Vec2 { x: frame_input.window_width as f32, y: frame_input.window_height as f32 },
+        )),
+        pixels_per_point: Some(frame_input.device_pixel_ratio as f32),
+        time: Some(frame_input.accumulated_time * 0.001),
+        modifiers: egui_modifiers,
+        events: egui_events,
+        ..Default::default()
+    }
+}
 
 fn translate_to_egui_key_code(key: &frame_input::Key) -> egui::Key {
 

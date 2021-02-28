@@ -47,7 +47,7 @@ fn main() {
             let viewport_light_pass = Viewport {x: (panel_width * frame_input.device_pixel_ratio) as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
             camera.set_aspect(viewport_geometry_pass.aspect());
 
-            gui.handle_input(&mut frame_input, |gui_context| {
+            gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel", panel_width as f32 * gui_context.pixels_per_point()).show(gui_context, |ui| {
                     ui.heading("Debug Panel");
@@ -150,3 +150,4 @@ fn main() {
         }).unwrap();
     });
 }
+
