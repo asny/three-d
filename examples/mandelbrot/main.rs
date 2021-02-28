@@ -45,7 +45,7 @@ fn main() {
                     }
                 },
                 Event::MouseWheel {delta, ..} => {
-                    camera.zoom(0.05 * *delta as f32);
+                    camera.zoom(0.05 * delta.1 as f32);
                 },
                 _ => {}
             }

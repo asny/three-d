@@ -75,8 +75,8 @@ fn main() {
                             primary_camera.rotate_around_up(10.0 * delta.0 as f32, 10.0 * delta.1 as f32);
                         }
                     },
-                    Event::Key { state, kind } => {
-                        if kind == "C" && *state == State::Pressed
+                    Event::Key { state, kind, .. } => {
+                        if *kind == Key::C && *state == State::Pressed
                         {
                             is_primary_camera = !is_primary_camera;
                         }

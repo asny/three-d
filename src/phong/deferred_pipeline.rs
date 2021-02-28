@@ -13,7 +13,7 @@ pub struct PhongDeferredPipeline {
     point_light_effect: ImageEffect,
     spot_light_effect: ImageEffect,
     debug_effect: Option<ImageEffect>,
-    debug_type: DebugType,
+    pub debug_type: DebugType,
     geometry_pass_texture: Option<ColorTargetTexture2DArray>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>
 }
@@ -66,12 +66,15 @@ impl PhongDeferredPipeline
         Ok(())
     }
 
-    pub fn light_pass(&self, viewport: Viewport, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
+    pub fn light_pass(&mut self, viewport: Viewport, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
                       spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
         let mut render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         if self.debug_type != DebugType::NONE {
+            if self.debug_effect.is_none() {
+                self.debug_effect = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
+            }
             self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
             self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
@@ -145,34 +148,5 @@ impl PhongDeferredPipeline
         RenderTargetArray::new_depth(&self.context, depth_array).unwrap()
             .copy_depth(0, &RenderTarget::new_depth(&self.context, &depth_texture).unwrap(), Interpolation::Nearest).unwrap();
         depth_texture
-    }
-
-    pub fn debug_type(&self) -> DebugType
-    {
-        self.debug_type
-    }
-
-    pub fn set_debug_type(&mut self, debug_type: DebugType)
-    {
-        self.debug_type = debug_type;
-        if self.debug_effect.is_none() {
-            self.debug_effect = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
-        }
-    }
-
-    pub fn next_debug_type(&mut self)
-    {
-        let debug_type =
-            match self.debug_type {
-                DebugType::NONE => DebugType::POSITION,
-                DebugType::POSITION => DebugType::NORMAL,
-                DebugType::NORMAL => DebugType::COLOR,
-                DebugType::COLOR => DebugType::DEPTH,
-                DebugType::DEPTH => DebugType::DIFFUSE,
-                DebugType::DIFFUSE => DebugType::SPECULAR,
-                DebugType::SPECULAR => DebugType::POWER,
-                DebugType::POWER => DebugType::NONE,
-            };
-        self.set_debug_type(debug_type);
     }
 }

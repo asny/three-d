@@ -5,7 +5,7 @@ use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
 use glutin::ContextBuilder;
 use crate::window::frame_input;
-use crate::context;
+use crate::{context, Modifiers, State};
 
 #[derive(Debug)]
 pub enum Error {
@@ -79,10 +79,10 @@ impl Window
     {
         let windowed_context = self.windowed_context;
         let mut last_time = std::time::Instant::now();
-        let mut count = 0;
         let mut accumulated_time = 0.0;
         let mut events = Vec::new();
         let mut cursor_pos = None;
+        let mut modifiers = Modifiers::default();
         self.event_loop.run(move |event, _, control_flow| {
                 *control_flow = ControlFlow::Poll;
                 match event {
@@ -95,21 +95,18 @@ impl Window
                         last_time = now;
                         let elapsed_time = duration.as_secs() as f64 * 1000.0 + duration.subsec_nanos() as f64 * 1e-6;
                         accumulated_time += elapsed_time;
-                        count += 1;
-                        if accumulated_time > 1000.0 {
-                            println!("FPS: {}", count as f64 / (accumulated_time * 0.001));
-                            count = 0;
-                            accumulated_time = 0.0;
-                        }
 
                         let (physical_width, physical_height): (u32, u32) = windowed_context.window().inner_size().into();
-                        let (width, height): (u32, u32) = windowed_context.window().inner_size().to_logical::<f64>(windowed_context.window().scale_factor()).into();
+                        let device_pixel_ratio = windowed_context.window().scale_factor();
+                        let (width, height): (u32, u32) = windowed_context.window().inner_size().to_logical::<f64>(device_pixel_ratio).into();
                         let frame_input = frame_input::FrameInput {
                             events: events.clone(),
                             elapsed_time,
+                            accumulated_time,
                             viewport: crate::Viewport::new_at_origo(physical_width as usize, physical_height as usize),
                             window_width: width as usize,
-                            window_height: height as usize
+                            window_height: height as usize,
+                            device_pixel_ratio: device_pixel_ratio as usize
                         };
                         events.clear();
                         callback(frame_input);
@@ -119,27 +116,58 @@ impl Window
                         WindowEvent::Resized(physical_size) => {
                             windowed_context.resize(*physical_size);
                         }
-                        WindowEvent::CloseRequested => {
+                        WindowEvent::CloseRequested | WindowEvent::Destroyed => {
                             *control_flow = ControlFlow::Exit
                         },
                         WindowEvent::KeyboardInput {input, ..} => {
                             if let Some(keycode) = input.virtual_keycode {
-                                if keycode == event::VirtualKeyCode::Escape {
+                                use event::VirtualKeyCode;
+                                if keycode == VirtualKeyCode::Escape {
                                     *control_flow = ControlFlow::Exit;
                                 }
                                 let state = if input.state == event::ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
-                                events.push(frame_input::Event::Key {state, kind: format!("{:?}", keycode)});
+                                if let Some(kind) = translate_virtual_key_code(keycode) {
+                                    events.push(frame_input::Event::Key {state, kind, modifiers, handled: false});
+                                } else {
+                                    if keycode == VirtualKeyCode::LControl || keycode == VirtualKeyCode::RControl {
+                                        modifiers.ctrl = state;
+                                        if !cfg!(target_os = "macos") {
+                                            modifiers.command = state;
+                                        }
+                                        events.push(frame_input::Event::ModifiersChange {modifiers});
+                                    } else if keycode == VirtualKeyCode::LAlt || keycode == VirtualKeyCode::RAlt {
+                                        modifiers.alt = state;
+                                        events.push(frame_input::Event::ModifiersChange {modifiers});
+                                    } else if keycode == VirtualKeyCode::LShift || keycode == VirtualKeyCode::RShift {
+                                        modifiers.shift = state;
+                                        events.push(frame_input::Event::ModifiersChange {modifiers});
+                                    } else if keycode == VirtualKeyCode::LWin || keycode == VirtualKeyCode::RWin {
+                                        if cfg!(target_os = "macos")
+                                        {
+                                            modifiers.command = state;
+                                            events.push(frame_input::Event::ModifiersChange {modifiers});
+                                        }
+                                    }
+                                }
                             }
                         },
                         WindowEvent::MouseWheel {delta, ..} => {
                             if let Some(position) = cursor_pos
                             {
                                 match delta {
-                                    event::MouseScrollDelta::LineDelta(_, y) => {
-                                        events.push(frame_input::Event::MouseWheel { delta: *y as f64, position });
-                                    },
-                                    event::MouseScrollDelta::PixelDelta(logical_position) => {
-                                        events.push(frame_input::Event::MouseWheel { delta: logical_position.y, position });
+                                    glutin::event::MouseScrollDelta::LineDelta(x, y) => {
+                                        let line_height = 24.0; // TODO
+                                        events.push(frame_input::Event::MouseWheel {
+                                            delta: ((*x * line_height) as f64, (*y * line_height) as f64),
+                                            position, modifiers, handled: false
+                                        });
+                                    }
+                                    glutin::event::MouseScrollDelta::PixelDelta(delta) => {
+                                        let d = delta.to_logical(windowed_context.window().scale_factor());
+                                        events.push(frame_input::Event::MouseWheel {
+                                            delta: (d.x, d.y),
+                                            position, modifiers, handled: false
+                                        });
                                     }
                                 }
                             }
@@ -155,23 +183,33 @@ impl Window
                                     _ => None
                                 };
                                 if let Some(b) = button {
-                                    events.push(frame_input::Event::MouseClick { state, button: b, position });
+                                    events.push(frame_input::Event::MouseClick { state, button: b, position, modifiers, handled: false });
                                 }
                             }
                         },
                         WindowEvent::CursorMoved {position, ..} => {
-                            cursor_pos = Some((position.x, position.y));
+                            let p = position.to_logical(windowed_context.window().scale_factor());
+                            let delta = if let Some(last_pos) = cursor_pos {
+                                (p.x - last_pos.0, p.y - last_pos.1)
+                            } else {(0.0, 0.0)};
+                            events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y), modifiers, handled: false });
+                            cursor_pos = Some((p.x, p.y));
                         },
-                        _ => (),
-                    },
-                    Event::DeviceEvent{ event, .. } => match event {
-                        event::DeviceEvent::MouseMotion {delta} => {
-                            if let Some(position) = {cursor_pos}
+                        WindowEvent::ReceivedCharacter(ch) => {
+                            if is_printable_char(*ch)
+                                && modifiers.ctrl != State::Pressed
+                                && modifiers.command != State::Pressed
                             {
-                                events.push(frame_input::Event::MouseMotion { delta, position });
+                                events.push(frame_input::Event::Text(ch.to_string()));
                             }
                         },
-                        _ => {}
+                        WindowEvent::CursorEntered {..} => {
+                            events.push(frame_input::Event::MouseEnter);
+                        },
+                        WindowEvent::CursorLeft {..}  => {
+                            events.push(frame_input::Event::MouseLeave);
+                        },
+                        _ => (),
                     },
                     _ => (),
                 }
@@ -193,4 +231,79 @@ impl Window
     {
         self.gl.clone()
     }
+}
+
+fn is_printable_char(chr: char) -> bool {
+    let is_in_private_use_area = '\u{e000}' <= chr && chr <= '\u{f8ff}'
+        || '\u{f0000}' <= chr && chr <= '\u{ffffd}'
+        || '\u{100000}' <= chr && chr <= '\u{10fffd}';
+
+    !is_in_private_use_area && !chr.is_ascii_control()
+}
+
+fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<frame_input::Key> {
+    use event::VirtualKeyCode::*;
+    use frame_input::Key;
+
+    Some(match key {
+        Down => Key::ArrowDown,
+        Left => Key::ArrowLeft,
+        Right => Key::ArrowRight,
+        Up => Key::ArrowUp,
+
+        Escape => Key::Escape,
+        Tab => Key::Tab,
+        Back => Key::Backspace,
+        Return => Key::Enter,
+        Space => Key::Space,
+
+        Insert => Key::Insert,
+        Delete => Key::Delete,
+        Home => Key::Home,
+        End => Key::End,
+        PageUp => Key::PageUp,
+        PageDown => Key::PageDown,
+
+        Key0 | Numpad0 => Key::Num0,
+        Key1 | Numpad1 => Key::Num1,
+        Key2 | Numpad2 => Key::Num2,
+        Key3 | Numpad3 => Key::Num3,
+        Key4 | Numpad4 => Key::Num4,
+        Key5 | Numpad5 => Key::Num5,
+        Key6 | Numpad6 => Key::Num6,
+        Key7 | Numpad7 => Key::Num7,
+        Key8 | Numpad8 => Key::Num8,
+        Key9 | Numpad9 => Key::Num9,
+
+        A => Key::A,
+        B => Key::B,
+        C => Key::C,
+        D => Key::D,
+        E => Key::E,
+        F => Key::F,
+        G => Key::G,
+        H => Key::H,
+        I => Key::I,
+        J => Key::J,
+        K => Key::K,
+        L => Key::L,
+        M => Key::M,
+        N => Key::N,
+        O => Key::O,
+        P => Key::P,
+        Q => Key::Q,
+        R => Key::R,
+        S => Key::S,
+        T => Key::T,
+        U => Key::U,
+        V => Key::V,
+        W => Key::W,
+        X => Key::X,
+        Y => Key::Y,
+        Z => Key::Z,
+
+        _ => {
+            return None;
+        }
+    })
 }

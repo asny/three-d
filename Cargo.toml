@@ -13,9 +13,10 @@ keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 exclude = ["/examples", ".gitignore", "index.html"]
 
 [features]
-default = ["glutin-window", "canvas", "3d-io", "obj-io", "image-io", "phong-renderer"]
+default = ["glutin-window", "canvas", "egui-gui", "3d-io", "obj-io", "image-io", "phong-renderer"]
 glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
 canvas = [] # Default window for web (only available when building for the wasm32 architecture)
+egui-gui = ["egui"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
 image-io = ["image"] # Additional image functionality, for example loading an image to a texture
 3d-io = ["serde", "bincode", "image-io"]
 obj-io = ["wavefront_obj", "image-io"]
@@ -29,6 +30,7 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
 wavefront_obj = { version = "8.0", optional = true }
 image = { version = "0.23", optional = true, default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"]}
+egui = { version = "0.9", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.build-dependencies]
 gl_generator = {version = "0.14"}
@@ -40,7 +42,7 @@ glutin = { version = "0.26", optional = true }
 js-sys = "0.3"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
+web-sys = { version = "0.3", features = ['Document', 'Element', 'Node', 'HtmlElement', 'HtmlCanvasElement', 'Window', 'CssStyleDeclaration', 'Event', 'MouseEvent', 'EventTarget', 'WheelEvent', 'KeyboardEvent', 'TouchEvent', 'TouchList', 'Touch','WebGlBuffer','WebGlFramebuffer', 'WebGl2RenderingContext', 'WebGlProgram', 'WebGlShader', 'WebGlTexture', 'WebGlUniformLocation', 'WebGlVertexArrayObject', 'WebGlActiveInfo', 'WebGlSync', 'Performance','Headers', 'Request', 'RequestInit', 'RequestMode', 'Response'] }
 gloo-timers = "0.2"
 
 [dev-dependencies]

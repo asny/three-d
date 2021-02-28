@@ -26,10 +26,10 @@ impl Window
 {
     pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
     {
-        let window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
-        let document = window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
+        let websys_window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
+        let document = websys_window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
         let canvas = document.get_element_by_id("canvas").ok_or(Error::WindowCreationError {message: "Unable to get canvas, is the id different from 'canvas'?".to_string()})?;
-        let mut canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
+        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
 
         let context = canvas
             .get_context("webgl2").map_err(|e| Error::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
@@ -45,14 +45,9 @@ impl Window
         canvas.set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
         closure.forget();
 
-        if let Some((width, height)) = size {
-            canvas.set_width(width);
-            canvas.set_height(height);
-        } else {
-            maximize(&window, &mut canvas);
-        };
-
-        Ok(Window { gl: crate::context::Glstruct::new(context), canvas, window, maximized: size.is_none() })
+        let window = Window { gl: crate::context::Glstruct::new(context), canvas, window: websys_window, maximized: size.is_none() };
+        window.set_canvas_size(size.unwrap_or(window.inner_size()));
+        Ok(window)
     }
 
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
@@ -64,29 +59,37 @@ impl Window
         let events = Rc::new(RefCell::new(Vec::new()));
         let performance = self.window.performance().ok_or(Error::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
         let mut last_time = performance.now();
+        let mut accumulated_time = 0.0;
         let last_position = Rc::new(RefCell::new(None));
         let last_zoom = Rc::new(RefCell::new(None));
+        let modifiers = Rc::new(RefCell::new(Modifiers::default()));
 
-        self.add_mousedown_event_listener(events.clone())?;
-        self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
-        self.add_mouseup_event_listener(events.clone())?;
-        self.add_touchend_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
-        self.add_mousemove_event_listener(events.clone())?;
-        self.add_touchmove_event_listener(events.clone(), last_position.clone(), last_zoom.clone())?;
-        self.add_mousewheel_event_listener(events.clone())?;
-        self.add_key_down_event_listener(events.clone())?;
-        self.add_key_up_event_listener(events.clone())?;
+        self.add_mouseenter_event_listener(events.clone())?;
+        self.add_mouseleave_event_listener(events.clone())?;
+        self.add_mousedown_event_listener(events.clone(), modifiers.clone())?;
+        self.add_touchstart_event_listener(events.clone(), last_position.clone(), last_zoom.clone(), modifiers.clone())?;
+        self.add_mouseup_event_listener(events.clone(), modifiers.clone())?;
+        self.add_touchend_event_listener(events.clone(), last_position.clone(), last_zoom.clone(), modifiers.clone())?;
+        self.add_mousemove_event_listener(events.clone(), last_position.clone(), modifiers.clone())?;
+        self.add_touchmove_event_listener(events.clone(), last_position.clone(), last_zoom.clone(), modifiers.clone())?;
+        self.add_mousewheel_event_listener(events.clone(), modifiers.clone())?;
+        self.add_key_down_event_listener(events.clone(), modifiers.clone())?;
+        self.add_key_up_event_listener(events.clone(), modifiers.clone())?;
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
+            accumulated_time += elapsed_time;
             if self.maximized {
-                maximize(&self.window, &self.canvas);
+                self.set_canvas_size(self.inner_size());
             }
-            let (width, height) = (self.canvas.width() as usize, self.canvas.height() as usize);
-            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, viewport: crate::Viewport::new_at_origo(width, height),
-                window_width: width, window_height: height
+            let (width, height) = self.get_canvas_size();
+            let device_pixel_ratio = self.pixels_per_point();
+            let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, accumulated_time,
+                viewport: crate::Viewport::new_at_origo(device_pixel_ratio*width, device_pixel_ratio*height),
+                window_width: width, window_height: height,
+                device_pixel_ratio
             };
             callback(frame_input);
             &(*events).borrow_mut().clear();
@@ -98,7 +101,62 @@ impl Window
         Ok(())
     }
 
-    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn inner_size(&self) -> (u32, u32) {
+        (self.window.inner_width().unwrap().as_f64().unwrap() as u32,
+         self.window.inner_height().unwrap().as_f64().unwrap() as u32)
+    }
+
+    fn pixels_per_point(&self) -> usize {
+        let pixels_per_point = self.window.device_pixel_ratio() as f32;
+        if pixels_per_point > 0.0 && pixels_per_point.is_finite() {
+            pixels_per_point as usize
+        } else {
+            1
+        }
+    }
+
+    fn get_canvas_size(&self) -> (usize, usize) {
+        let device_pixel_ratio = self.pixels_per_point();
+        (self.canvas.width() as usize/device_pixel_ratio, self.canvas.height() as usize/device_pixel_ratio)
+    }
+
+    fn set_canvas_size(&self, logical_size: (u32, u32)) {
+        let (width, height) = logical_size;
+        self.canvas.style().set_css_text(&format!("width:{}px;height:{}px;", width, height));
+        let device_pixel_ratio = self.pixels_per_point();
+        self.canvas.set_width(device_pixel_ratio as u32*width);
+        self.canvas.set_height(device_pixel_ratio as u32*height);
+    }
+
+    fn add_mouseleave_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            if !event.default_prevented() {
+                events.borrow_mut().push(Event::MouseLeave);
+                event.stop_propagation();
+                event.prevent_default();
+            }
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse leave event listener. Error code: {:?}", e)})?;
+        closure.forget();
+        Ok(())
+    }
+
+    fn add_mouseenter_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
+            if !event.default_prevented() {
+                events.borrow_mut().push(Event::MouseEnter);
+                event.stop_propagation();
+                event.prevent_default();
+            }
+        }) as Box<dyn FnMut(_)>);
+        self.canvas.add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse enter event listener. Error code: {:?}", e)})?;
+        closure.forget();
+        Ok(())
+    }
+
+    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -108,9 +166,19 @@ impl Window
                     2 => Some(MouseButton::Right),
                     _ => None
                 };
-                if let Some(b) = button {
-                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: b, position: (event.offset_x() as f64, event.offset_y() as f64) });
+                if let Some(button) = button {
+                    (*events).borrow_mut().push(Event::MouseClick {
+                        state: State::Pressed,
+                        button,
+                        position: (event.offset_x() as f64, event.offset_y() as f64),
+                        modifiers: Modifiers {
+                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
+                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
+                        },
+                        handled: false
+                    });
                 };
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -119,7 +187,7 @@ impl Window
         Ok(())
     }
 
-    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -129,9 +197,18 @@ impl Window
                     2 => Some(MouseButton::Right),
                     _ => None
                 };
-                if let Some(b) = button {
-                    (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: b, position: (event.offset_x() as f64, event.offset_y() as f64) });
+                if let Some(button) = button {
+                    (*events).borrow_mut().push(Event::MouseClick {
+                        state: State::Released, button,
+                        position: (event.offset_x() as f64, event.offset_y() as f64),
+                        modifiers: Modifiers {
+                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
+                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
+                        },
+                        handled: false
+                    });
                 };
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -140,14 +217,21 @@ impl Window
         Ok(())
     }
 
-    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
+                let delta = if let Some((x, y)) = *last_position.borrow() {
+                    ((event.offset_x() - x) as f64, (event.offset_y() - y) as f64)
+                } else {(0.0, 0.0)};
                 (*events).borrow_mut().push(Event::MouseMotion {
-                    delta: (event.movement_x() as f64, event.movement_y() as f64),
-                    position: (event.offset_x() as f64, event.offset_y() as f64)
+                    delta,
+                    position: (event.offset_x() as f64, event.offset_y() as f64),
+                    modifiers: *modifiers.borrow(),
+                    handled: false
                 });
+                *last_position.borrow_mut() = Some((event.offset_x(), event.offset_y()));
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -156,14 +240,17 @@ impl Window
         Ok(())
     }
 
-    fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
                 (*events).borrow_mut().push(Event::MouseWheel {
-                    delta: 0.02499999912 * event.delta_y() as f64,
-                    position: (event.offset_x() as f64, event.offset_y() as f64)
+                    delta: (event.delta_x() as f64, event.delta_y() as f64),
+                    position: (event.offset_x() as f64, event.offset_y() as f64),
+                    modifiers: *modifiers.borrow(),
+                    handled: false
                 });
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -172,13 +259,13 @@ impl Window
         Ok(())
     }
 
-    fn add_touchstart_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>) -> Result<(), Error>
+    fn add_touchstart_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
-                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64) });
+                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: *modifiers.borrow(), handled: false });
                     *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
                     *last_zoom.borrow_mut() = None;
                 } else if event.touches().length() == 2 {
@@ -191,6 +278,7 @@ impl Window
                     *last_zoom.borrow_mut() = None;
                     *last_position.borrow_mut() = None;
                 }
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -200,14 +288,15 @@ impl Window
         Ok(())
     }
 
-    fn add_touchend_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>) -> Result<(), Error>
+    fn add_touchend_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let touch = event.touches().item(0).unwrap();
                 *last_position.borrow_mut() = None;
                 *last_zoom.borrow_mut() = None;
-                (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64) });
+                (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: *modifiers.borrow(), handled: false });
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -217,7 +306,7 @@ impl Window
         Ok(())
     }
 
-    fn add_touchmove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>) -> Result<(), Error>
+    fn add_touchmove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
@@ -226,7 +315,9 @@ impl Window
                     if let Some((x,y)) = *last_position.borrow() {
                         (*events).borrow_mut().push(Event::MouseMotion {
                             delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64),
-                            position: (touch.page_x() as f64, touch.page_y() as f64)
+                            position: (touch.page_x() as f64, touch.page_y() as f64),
+                            modifiers: *modifiers.borrow(),
+                            handled: false
                         });
                     }
                     *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
@@ -238,9 +329,11 @@ impl Window
                     let zoom = f64::sqrt(f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2) + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2));
                     if let Some(old_zoom) = *last_zoom.borrow() {
                         (*events).borrow_mut().push(Event::MouseWheel {
-                            delta: old_zoom - zoom,
+                            delta: (0.0, old_zoom - zoom),
                             position: (0.5 * touch0.page_x() as f64 + 0.5 * touch1.page_x() as f64,
-                                    0.5 * touch0.page_y() as f64 + 0.5 * touch1.page_y() as f64)
+                                    0.5 * touch0.page_y() as f64 + 0.5 * touch1.page_y() as f64),
+                            modifiers: *modifiers.borrow(),
+                            handled: false
                         });
                     }
                     *last_zoom.borrow_mut() = Some(zoom);
@@ -250,6 +343,7 @@ impl Window
                     *last_zoom.borrow_mut() = None;
                     *last_position.borrow_mut() = None;
                 }
+                event.stop_propagation();
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
@@ -259,12 +353,30 @@ impl Window
         Ok(())
     }
 
-    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind: map_key_code(event.code())});
-                event.prevent_default();
+                if update_modifiers(modifiers.clone(), &event) {
+                    (*events).borrow_mut().push(Event::ModifiersChange { modifiers: *modifiers.borrow() });
+                    event.stop_propagation();
+                    event.prevent_default();
+                }
+                let key = event.key();
+                if let Some(kind) = translate_key(&key) {
+                    (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind,
+                        modifiers: modifiers.borrow().clone(),
+                        handled: false
+                    });
+                    event.stop_propagation();
+                    event.prevent_default();
+                }
+                if modifiers.borrow().ctrl == State::Released && modifiers.borrow().command == State::Released
+                    && !should_ignore_key(&key) {
+                    (*events).borrow_mut().push(Event::Text(key));
+                    event.stop_propagation();
+                    event.prevent_default();
+                }
             }
         }) as Box<dyn FnMut(_)>);
         window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key down event listener. Error code: {:?}", e)})?;
@@ -272,12 +384,26 @@ impl Window
         Ok(())
     }
 
-    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::Key {state: State::Released, kind: map_key_code(event.code())});
-                event.prevent_default();
+                if update_modifiers(modifiers.clone(), &event) {
+                    (*events).borrow_mut().push(Event::ModifiersChange { modifiers: *modifiers.borrow() });
+                    event.stop_propagation();
+                    event.prevent_default();
+                }
+                if let Some(kind) = translate_key(&event.key()) {
+                    (*events).borrow_mut().push(Event::Key {state: State::Released, kind,
+                        modifiers: Modifiers {
+                            ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
+                            alt: modifiers.borrow().alt, command: modifiers.borrow().command
+                        },
+                        handled: false
+                    });
+                    event.stop_propagation();
+                    event.prevent_default();
+                }
             }
         }) as Box<dyn FnMut(_)>);
         window().add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key up event listener. Error code: {:?}", e)})?;
@@ -301,27 +427,121 @@ impl Window
     }
 }
 
-fn map_key_code(code: String) -> String
-{
-    code.trim_start_matches("Key").to_string()
-}
-
 fn window() -> web_sys::Window {
     web_sys::window().expect("no global `window` exists")
-}
-
-fn maximize(window: &web_sys::Window, canvas: &web_sys::HtmlCanvasElement) {
-    let (w, h) = (window.inner_width().unwrap().as_f64().unwrap() as u32,
-                    window.inner_height().unwrap().as_f64().unwrap() as u32);
-    let (width, height) = (canvas.width() as u32, canvas.height() as u32);
-    if w != width || h != height {
-        canvas.set_width(w);
-        canvas.set_height(h);
-    }
 }
 
 fn request_animation_frame(f: &Closure<dyn FnMut()>) {
     window()
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
+}
+
+fn update_modifiers(modifiers: Rc<RefCell<Modifiers>>, event: &web_sys::KeyboardEvent) -> bool
+{
+    let old = *modifiers.borrow();
+    *modifiers.borrow_mut() = Modifiers {
+        alt: if event.alt_key() {State::Pressed} else {State::Released},
+        ctrl: if event.ctrl_key() {State::Pressed} else {State::Released},
+        shift: if event.shift_key() {State::Pressed} else {State::Released},
+        command: if event.ctrl_key() || event.meta_key() {State::Pressed} else {State::Released},
+    };
+    let new = *modifiers.borrow();
+    old.alt != new.alt || old.ctrl != new.ctrl || old.shift != new.shift || old.command != new.command
+}
+
+pub fn translate_key(key: &str) -> Option<crate::frame_input::Key> {
+    use crate::frame_input::Key::*;
+    Some(match key {
+        "ArrowDown" => ArrowDown,
+        "ArrowLeft" => ArrowLeft,
+        "ArrowRight" => ArrowRight,
+        "ArrowUp" => ArrowUp,
+
+        "Esc" | "Escape" => Escape,
+        "Tab" => Tab,
+        "Backspace" => Backspace,
+        "Enter" => Enter,
+        "Space" => Space,
+
+        "Help" | "Insert" => Insert,
+        "Delete" => Delete,
+        "Home" => Home,
+        "End" => End,
+        "PageUp" => PageUp,
+        "PageDown" => PageDown,
+
+        "0" => Num0,
+        "1" => Num1,
+        "2" => Num2,
+        "3" => Num3,
+        "4" => Num4,
+        "5" => Num5,
+        "6" => Num6,
+        "7" => Num7,
+        "8" => Num8,
+        "9" => Num9,
+
+        "a" | "A" => A,
+        "b" | "B" => B,
+        "c" | "C" => C,
+        "d" | "D" => D,
+        "e" | "E" => E,
+        "f" | "F" => F,
+        "g" | "G" => G,
+        "h" | "H" => H,
+        "i" | "I" => I,
+        "j" | "J" => J,
+        "k" | "K" => K,
+        "l" | "L" => L,
+        "m" | "M" => M,
+        "n" | "N" => N,
+        "o" | "O" => O,
+        "p" | "P" => P,
+        "q" | "Q" => Q,
+        "r" | "R" => R,
+        "s" | "S" => S,
+        "t" | "T" => T,
+        "u" | "U" => U,
+        "v" | "V" => V,
+        "w" | "W" => W,
+        "x" | "X" => X,
+        "y" | "Y" => Y,
+        "z" | "Z" => Z,
+
+        _ => return None,
+    })
+}
+
+fn should_ignore_key(key: &str) -> bool {
+    let is_function_key = key.starts_with('F') && key.len() > 1;
+    is_function_key
+        || matches!(
+            key,
+            "Alt"
+                | "ArrowDown"
+                | "ArrowLeft"
+                | "ArrowRight"
+                | "ArrowUp"
+                | "Backspace"
+                | "CapsLock"
+                | "ContextMenu"
+                | "Control"
+                | "Delete"
+                | "End"
+                | "Enter"
+                | "Esc"
+                | "Escape"
+                | "Help"
+                | "Home"
+                | "Insert"
+                | "Meta"
+                | "NumLock"
+                | "PageDown"
+                | "PageUp"
+                | "Pause"
+                | "ScrollLock"
+                | "Shift"
+                | "Tab"
+        )
 }
