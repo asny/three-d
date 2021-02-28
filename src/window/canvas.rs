@@ -174,7 +174,8 @@ impl Window
                         modifiers: Modifiers {
                             ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
                             alt: modifiers.borrow().alt, command: modifiers.borrow().command
-                        }
+                        },
+                        handled: false
                     });
                 };
                 event.stop_propagation();
@@ -203,7 +204,8 @@ impl Window
                         modifiers: Modifiers {
                             ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
                             alt: modifiers.borrow().alt, command: modifiers.borrow().command
-                        }
+                        },
+                        handled: false
                     });
                 };
                 event.stop_propagation();
@@ -225,7 +227,8 @@ impl Window
                 (*events).borrow_mut().push(Event::MouseMotion {
                     delta,
                     position: (event.offset_x() as f64, event.offset_y() as f64),
-                    modifiers: *modifiers.borrow()
+                    modifiers: *modifiers.borrow(),
+                    handled: false
                 });
                 *last_position.borrow_mut() = Some((event.offset_x(), event.offset_y()));
                 event.stop_propagation();
@@ -244,7 +247,8 @@ impl Window
                 (*events).borrow_mut().push(Event::MouseWheel {
                     delta: (event.delta_x() as f64, event.delta_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64),
-                    modifiers: *modifiers.borrow()
+                    modifiers: *modifiers.borrow(),
+                    handled: false
                 });
                 event.stop_propagation();
                 event.prevent_default();
@@ -261,7 +265,7 @@ impl Window
             if !event.default_prevented() {
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
-                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: *modifiers.borrow() });
+                    (*events).borrow_mut().push(Event::MouseClick { state: State::Pressed, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: *modifiers.borrow(), handled: false });
                     *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
                     *last_zoom.borrow_mut() = None;
                 } else if event.touches().length() == 2 {
@@ -291,7 +295,7 @@ impl Window
                 let touch = event.touches().item(0).unwrap();
                 *last_position.borrow_mut() = None;
                 *last_zoom.borrow_mut() = None;
-                (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: *modifiers.borrow() });
+                (*events).borrow_mut().push(Event::MouseClick { state: State::Released, button: MouseButton::Left, position: (touch.page_x() as f64, touch.page_y() as f64), modifiers: *modifiers.borrow(), handled: false });
                 event.stop_propagation();
                 event.prevent_default();
             }
@@ -312,7 +316,8 @@ impl Window
                         (*events).borrow_mut().push(Event::MouseMotion {
                             delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64),
                             position: (touch.page_x() as f64, touch.page_y() as f64),
-                            modifiers: *modifiers.borrow()
+                            modifiers: *modifiers.borrow(),
+                            handled: false
                         });
                     }
                     *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
@@ -327,7 +332,8 @@ impl Window
                             delta: (0.0, old_zoom - zoom),
                             position: (0.5 * touch0.page_x() as f64 + 0.5 * touch1.page_x() as f64,
                                     0.5 * touch0.page_y() as f64 + 0.5 * touch1.page_y() as f64),
-                            modifiers: *modifiers.borrow()
+                            modifiers: *modifiers.borrow(),
+                            handled: false
                         });
                     }
                     *last_zoom.borrow_mut() = Some(zoom);
@@ -359,7 +365,8 @@ impl Window
                 let key = event.key();
                 if let Some(kind) = translate_key(&key) {
                     (*events).borrow_mut().push(Event::Key {state: State::Pressed, kind,
-                        modifiers: modifiers.borrow().clone()
+                        modifiers: modifiers.borrow().clone(),
+                        handled: false
                     });
                     event.stop_propagation();
                     event.prevent_default();
@@ -391,7 +398,8 @@ impl Window
                         modifiers: Modifiers {
                             ctrl: modifiers.borrow().ctrl, shift: modifiers.borrow().shift,
                             alt: modifiers.borrow().alt, command: modifiers.borrow().command
-                        }
+                        },
+                        handled: false
                     });
                     event.stop_propagation();
                     event.prevent_default();
