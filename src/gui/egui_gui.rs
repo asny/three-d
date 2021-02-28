@@ -5,6 +5,8 @@ pub use egui;
 pub struct GUI {
     context: Context,
     egui_context: egui::CtxRef,
+    width: usize,
+    height: usize,
     program: Program,
     texture_version: u64,
     texture: Option<Texture2D>
@@ -15,6 +17,8 @@ impl GUI {
         Ok(GUI {
             egui_context: egui::CtxRef::default(),
             context: context.clone(),
+            width: 0,
+            height: 0,
             texture_version: 0,
             texture: None,
             program: Program::from_source(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?
@@ -23,6 +27,8 @@ impl GUI {
 
     pub fn update<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &mut FrameInput, callback: F) -> Result<(), Error>
     {
+        self.width = frame_input.window_width;
+        self.height = frame_input.window_height;
         let input_state = construct_input_state(frame_input);
         self.egui_context.begin_frame(input_state);
         callback(&self.egui_context);
@@ -47,7 +53,7 @@ impl GUI {
         Ok(())
     }
 
-    pub fn render(&mut self, frame_input: &FrameInput) -> Result<(), Error>
+    pub fn render(&mut self) -> Result<(), Error>
     {
         let (_, shapes) = self.egui_context.end_frame();
         let clipped_meshes = self.egui_context.tessellate(shapes);
@@ -71,7 +77,7 @@ impl GUI {
         };
 
         for egui::ClippedMesh(clip_rect, mesh) in clipped_meshes {
-            self.paint_mesh(frame_input.window_width, frame_input.window_height, frame_input.device_pixel_ratio as f32, clip_rect, &mesh, self.texture.as_ref().unwrap())?;
+            self.paint_mesh(self.width, self.height, self.egui_context.pixels_per_point(), clip_rect, &mesh, self.texture.as_ref().unwrap())?;
         }
         Ok(())
     }

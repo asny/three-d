@@ -137,7 +137,7 @@ fn main() {
             {
                 pipeline.light_pass(viewport_light_pass, &camera, None, &[&directional_light0, &directional_light1],
                                     &[&spot_light], &[&point_light0, &point_light1])?;
-                gui.render(&frame_input).unwrap();
+                gui.render().unwrap();
                 Ok(())
             }).unwrap();
 
