@@ -11,7 +11,7 @@ fn main() {
     let mut camera = Camera::new_perspective(&context, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
-    let panel_width: usize = 300;
+    let mut panel_width = 0;
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -43,13 +43,13 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |mut frame_input|
         {
-            let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width * frame_input.device_pixel_ratio, frame_input.viewport.height);
-            let viewport_light_pass = Viewport {x: (panel_width * frame_input.device_pixel_ratio) as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
+            let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width, frame_input.viewport.height);
+            let viewport_light_pass = Viewport {x: panel_width as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
             camera.set_aspect(viewport_geometry_pass.aspect());
 
             gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
-                SidePanel::left("side_panel", panel_width as f32 * gui_context.pixels_per_point()).show(gui_context, |ui| {
+                SidePanel::left("side_panel", panel_width as f32).show(gui_context, |ui| {
                     ui.heading("Debug Panel");
 
                     ui.label("Surface parameters");
@@ -85,6 +85,7 @@ fn main() {
                         Saver::save_pixels("screenshot.png", &pixels, viewport_light_pass.width, viewport_light_pass.height).unwrap();
                     }
                 });
+                panel_width = (gui_context.used_size().x * gui_context.pixels_per_point()) as usize;
             }).unwrap();
 
             for event in frame_input.events.iter() {
