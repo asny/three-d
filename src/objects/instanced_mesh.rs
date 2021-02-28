@@ -174,13 +174,13 @@ impl InstancedMesh
         if program.use_uvs {
             let uv_buffer = self.uv_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
-            program.program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
+            program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
         }
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-            program.program.use_attribute_vec3_float(normal_buffer, "normal")?;
+            program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_attribute_vec3_float(normal_buffer, "normal")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
