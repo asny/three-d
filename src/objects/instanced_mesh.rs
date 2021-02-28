@@ -122,6 +122,25 @@ impl InstancedMesh
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_COLOR.is_none()
+            {
+                PROGRAM_COLOR = Some(InstancedMeshProgram::new(&self.context, "
+                    uniform vec4 color;
+                    layout (location = 0) out vec4 outColor;
+                    void main()
+                    {
+                        outColor = color;
+                    }")?);
+            }
+            PROGRAM_COLOR.as_ref().unwrap()
+        };
+        program.add_uniform_vec4("color", color)?;
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
     pub fn render(&self, program: &InstancedMeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.use_attribute_vec4_float_divisor(&self.instance_buffer1, "row1", 1)?;
@@ -187,10 +206,12 @@ impl Drop for InstancedMesh {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
                 PROGRAM_DEPTH = None;
+                PROGRAM_COLOR = None;
             }
         }
     }
 }
 
 static mut PROGRAM_DEPTH: Option<InstancedMeshProgram> = None;
+static mut PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
