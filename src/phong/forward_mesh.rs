@@ -19,13 +19,14 @@ impl PhongForwardMesh
             Err(Error::FailedToCreateMesh {message:
               "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
         }
+        let mesh = Mesh::new(context, cpu_mesh)?;
         unsafe {
             MESH_COUNT += 1;
         }
         Ok(Self {
             context: context.clone(),
             name: cpu_mesh.name.clone(),
-            mesh: Mesh::new(context, cpu_mesh)?,
+            mesh,
             material: material.clone()
         })
     }
@@ -41,11 +42,6 @@ impl PhongForwardMesh
             meshes.push(Self::new(context,cpu_mesh, &material)?);
         }
         Ok(meshes)
-    }
-
-    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
-        self.render_with_ambient(render_states, viewport, transformation, camera, &AmbientLight::default())
     }
 
     pub fn render_with_ambient(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
@@ -116,6 +112,14 @@ impl PhongForwardMesh
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
         self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
+    }
+}
+
+impl std::ops::Deref for PhongForwardMesh {
+    type Target = Mesh;
+
+    fn deref(&self) -> &Mesh {
+        &self.mesh
     }
 }
 

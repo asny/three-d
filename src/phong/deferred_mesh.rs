@@ -41,11 +41,6 @@ impl PhongDeferredMesh {
         Ok(meshes)
     }
 
-    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
-        self.render_geometry(render_states, viewport, transformation, camera)
-    }
-
     pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
@@ -74,6 +69,14 @@ impl PhongDeferredMesh {
         };
         self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
+    }
+}
+
+impl std::ops::Deref for PhongDeferredMesh {
+    type Target = Mesh;
+
+    fn deref(&self) -> &Mesh {
+        &self.mesh
     }
 }
 

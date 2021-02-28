@@ -77,6 +77,7 @@ impl std::ops::Deref for InstancedMeshProgram {
 }
 
 pub struct InstancedMesh {
+    context: Context,
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
@@ -96,14 +97,68 @@ impl InstancedMesh
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
 
-        let mut mesh = Self { instance_count: 0,
+        let mut mesh = Self { context: context.clone(), instance_count: 0,
             position_buffer, normal_buffer, index_buffer, uv_buffer,
             instance_buffer1: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer2: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?
         };
         mesh.update_transformations(transformations);
+        unsafe {
+            MESH_COUNT += 1;
+        }
         Ok(mesh)
+    }
+
+    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_DEPTH.is_none()
+            {
+                PROGRAM_DEPTH = Some(InstancedMeshProgram::new(&self.context, "void main() {}")?);
+            }
+            PROGRAM_DEPTH.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
+    pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_COLOR.is_none()
+            {
+                PROGRAM_COLOR = Some(InstancedMeshProgram::new(&self.context, "
+                    uniform vec4 color;
+                    layout (location = 0) out vec4 outColor;
+                    void main()
+                    {
+                        outColor = color;
+                    }")?);
+            }
+            PROGRAM_COLOR.as_ref().unwrap()
+        };
+        program.add_uniform_vec4("color", color)?;
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
+    pub fn render_with_texture(&self, texture: &dyn Texture, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_TEXTURE.is_none()
+            {
+                PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(&self.context, "
+                    uniform sampler2D tex;
+                    in vec2 uvs;
+                    layout (location = 0) out vec4 outColor;
+                    void main()
+                    {
+                        outColor = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+                    }")?);
+            }
+            PROGRAM_TEXTURE.as_ref().unwrap()
+        };
+        program.use_texture(texture,"tex")?;
+        self.render(program, render_states, viewport, transformation, camera)
     }
 
     pub fn render(&self, program: &InstancedMeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -119,13 +174,13 @@ impl InstancedMesh
         if program.use_uvs {
             let uv_buffer = self.uv_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
-            program.program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
+            program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
         }
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-            program.program.use_attribute_vec3_float(normal_buffer, "normal")?;
+            program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_attribute_vec3_float(normal_buffer, "normal")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
@@ -163,3 +218,22 @@ impl InstancedMesh
         self.instance_buffer3.fill_with_dynamic_f32(&row3);
     }
 }
+
+impl Drop for InstancedMesh {
+
+    fn drop(&mut self) {
+        unsafe {
+            MESH_COUNT -= 1;
+            if MESH_COUNT == 0 {
+                PROGRAM_DEPTH = None;
+                PROGRAM_COLOR = None;
+                PROGRAM_TEXTURE = None;
+            }
+        }
+    }
+}
+
+static mut PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
+static mut PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
+static mut PROGRAM_DEPTH: Option<InstancedMeshProgram> = None;
+static mut MESH_COUNT: u32 = 0;

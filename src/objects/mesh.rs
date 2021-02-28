@@ -67,6 +67,7 @@ impl std::ops::Deref for MeshProgram {
 }
 
 pub struct Mesh {
+    context: Context,
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
@@ -80,33 +81,105 @@ impl Mesh {
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(context, normals)?) } else {None};
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
+        unsafe {
+            MESH_COUNT += 1;
+        }
+        Ok(Mesh {context: context.clone(), position_buffer, normal_buffer, index_buffer, uv_buffer})
+    }
 
-        Ok(Mesh {position_buffer, normal_buffer, index_buffer, uv_buffer})
+    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_DEPTH.is_none()
+            {
+                PROGRAM_DEPTH = Some(MeshProgram::new(&self.context, "void main() {}")?);
+            }
+            PROGRAM_DEPTH.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
+    pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_COLOR.is_none()
+            {
+                PROGRAM_COLOR = Some(MeshProgram::new(&self.context, "
+                    uniform vec4 color;
+                    layout (location = 0) out vec4 outColor;
+                    void main()
+                    {
+                        outColor = color;
+                    }")?);
+            }
+            PROGRAM_COLOR.as_ref().unwrap()
+        };
+        program.add_uniform_vec4("color", color)?;
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
+    pub fn render_with_texture(&self, texture: &dyn Texture, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_TEXTURE.is_none()
+            {
+                PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, "
+                    uniform sampler2D tex;
+                    in vec2 uvs;
+                    layout (location = 0) out vec4 outColor;
+                    void main()
+                    {
+                        outColor = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+                    }")?);
+            }
+            PROGRAM_TEXTURE.as_ref().unwrap()
+        };
+        program.use_texture(texture,"tex")?;
+        self.render(program, render_states, viewport, transformation, camera)
     }
 
     pub fn render(&self, program: &MeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
-        program.program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
-        program.program.use_attribute_vec3_float(&self.position_buffer, "position")?;
+        program.use_attribute_vec3_float(&self.position_buffer, "position")?;
         if program.use_uvs {
             let uv_buffer = self.uv_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
-            program.program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
+            program.use_attribute_vec2_float(uv_buffer, "uv_coordinates")?;
         }
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
-            program.program.use_attribute_vec3_float(normal_buffer, "normal")?;
+            program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_attribute_vec3_float(normal_buffer, "normal")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.program.draw_elements(render_states, viewport,index_buffer);
+            program.draw_elements(render_states, viewport,index_buffer);
         } else {
-            program.program.draw_arrays(render_states, viewport,self.position_buffer.count() as u32/3);
+            program.draw_arrays(render_states, viewport,self.position_buffer.count() as u32/3);
         }
         Ok(())
     }
 }
+
+impl Drop for Mesh {
+
+    fn drop(&mut self) {
+        unsafe {
+            MESH_COUNT -= 1;
+            if MESH_COUNT == 0 {
+                PROGRAM_DEPTH = None;
+                PROGRAM_COLOR = None;
+                PROGRAM_TEXTURE = None;
+            }
+        }
+    }
+}
+
+static mut PROGRAM_COLOR: Option<MeshProgram> = None;
+static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
+static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
+static mut MESH_COUNT: u32 = 0;
