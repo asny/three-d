@@ -85,15 +85,16 @@ fn main() {
                             }
                         },
                         Event::MouseWheel { delta, .. } => {
-                            camera.zoom(*delta as f32);
+                            camera.zoom(delta.1 as f32);
                         },
-                        Event::Key { state, kind } => {
-                            if kind == "R" && *state == State::Pressed
+                        Event::Key { state, kind, .. } => {
+                            if *kind == Key::R && *state == State::Pressed
                             {
                                 pipeline.next_debug_type();
                                 println!("{:?}", pipeline.debug_type());
                             }
-                        }
+                        },
+                        _ => {}
                     }
                 }
 
