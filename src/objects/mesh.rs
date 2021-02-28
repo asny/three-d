@@ -118,6 +118,26 @@ impl Mesh {
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    pub fn render_with_texture(&self, texture: &dyn Texture, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_TEXTURE.is_none()
+            {
+                PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, "
+                    uniform sampler2D tex;
+                    in vec2 uvs;
+                    layout (location = 0) out vec4 outColor;
+                    void main()
+                    {
+                        outColor = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+                    }")?);
+            }
+            PROGRAM_TEXTURE.as_ref().unwrap()
+        };
+        program.use_texture(texture,"tex")?;
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
     pub fn render(&self, program: &MeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.program.add_uniform_mat4("modelMatrix", &transformation)?;
@@ -153,11 +173,13 @@ impl Drop for Mesh {
             if MESH_COUNT == 0 {
                 PROGRAM_DEPTH = None;
                 PROGRAM_COLOR = None;
+                PROGRAM_TEXTURE = None;
             }
         }
     }
 }
 
 static mut PROGRAM_COLOR: Option<MeshProgram> = None;
+static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
