@@ -5,6 +5,11 @@ use std::f32::consts::PI;
 
 const NO_VIEW_ANGLES: usize  = 8;
 
+///
+/// A level-of-detail technique to replace rendering high-poly meshes at a distance.
+/// A mesh is rendered from different angles into a set of textures and the textures are then
+/// rendered continuously instead of the high-poly meshes.
+///
 pub struct Imposters {
     context: Context,
     program: program::Program,

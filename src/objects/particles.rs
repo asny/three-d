@@ -79,6 +79,9 @@ pub struct ParticleData {
     pub start_velocity: Vec3
 }
 
+///
+/// Particle effect with fixed vertex shader and customizable fragment shader (see also [ParticlesProgram](crate::objects::ParticlesProgram)).
+///
 pub struct Particles {
     start_position_buffer: VertexBuffer,
     start_velocity_buffer: VertexBuffer,

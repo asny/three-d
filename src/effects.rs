@@ -1,6 +1,6 @@
 
 //!
-//!
+//! A customizable effect applied to each pixel of a render target, for example fog or anti-aliasing.
 //!
 
 #[doc(hidden)]

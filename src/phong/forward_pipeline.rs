@@ -1,6 +1,12 @@
 
 use crate::core::*;
 
+///
+/// Forward pipeline based on the phong reflection model supporting a very limited amount of lights with shadows.
+/// Supports colored, transparent, textured and instanced meshes.
+///
+/// *NOTE*: Forward rendering does not require a pipeline, so this is only necessary if you want a depth pre-pass.
+///
 pub struct PhongForwardPipeline {
     context: Context,
     depth_texture: Option<DepthTargetTexture2D>

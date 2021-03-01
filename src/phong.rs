@@ -1,4 +1,8 @@
 
+//!
+//! Lighting functionality based on the phong reflection model.
+//!
+
 #[doc(hidden)]
 pub mod material;
 #[doc(inline)]

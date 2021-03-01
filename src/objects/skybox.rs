@@ -1,6 +1,9 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// An illusion of a sky.
+///
 pub struct Skybox {
     program: program::Program,
     vertex_buffer: VertexBuffer,
