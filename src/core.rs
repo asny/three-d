@@ -1,4 +1,9 @@
 
+//!
+//! Modular abstractions of common graphics concepts such as GPU shader program, buffer (vertex buffer, uniform buffer, element buffer),
+//! texture (2D texture, cube texture, ..) and render target.
+//! They are higher level than [context](crate::context) but lower level than other features.
+//!
 
 pub use crate::context::Context;
 

@@ -1,4 +1,9 @@
 
+//!
+//! Loading any type of asset runtime on both desktop and web as well as parsers for .obj
+//! (using the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate), .3d files (a custom format) and
+//! most image formats (using the [image](https://crates.io/crates/image/main.rs) crate).
+//!
 
 #[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
 pub mod loader;

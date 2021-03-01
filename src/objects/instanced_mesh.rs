@@ -1,4 +1,8 @@
 
+//!
+//! Similar to [mesh](crate::mesh), except it is possible to draw many instances of the same triangle mesh efficiently.
+//!
+
 use crate::math::*;
 use crate::core::*;
 

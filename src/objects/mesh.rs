@@ -1,4 +1,9 @@
 
+//!
+//! A triangle mesh object with fixed vertex shader and customizable fragment shader for customizable lighting.
+//! Supports rendering the depth and also with a fixed color and with a texture (ie. no lighting).
+//!
+
 use crate::math::*;
 use crate::core::*;
 
