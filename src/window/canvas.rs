@@ -19,7 +19,7 @@ pub struct Window
     gl: crate::Context,
     canvas: web_sys::HtmlCanvasElement,
     window: web_sys::Window,
-    maximized: bool
+    max_size: Option<(u32, u32)>
 }
 
 impl Window
@@ -45,8 +45,8 @@ impl Window
         canvas.set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
         closure.forget();
 
-        let window = Window { gl: crate::context::Glstruct::new(context), canvas, window: websys_window, maximized: size.is_none() };
-        window.set_canvas_size(size.unwrap_or(window.inner_size()));
+        let window = Window { gl: crate::context::Glstruct::new(context), canvas, window: websys_window, max_size: size };
+        window.set_canvas_size();
         Ok(window)
     }
 
@@ -81,9 +81,7 @@ impl Window
             let elapsed_time = now - last_time;
             last_time = now;
             accumulated_time += elapsed_time;
-            if self.maximized {
-                self.set_canvas_size(self.inner_size());
-            }
+            self.set_canvas_size();
             let (width, height) = self.get_canvas_size();
             let device_pixel_ratio = self.pixels_per_point();
             let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, accumulated_time,
@@ -120,8 +118,11 @@ impl Window
         (self.canvas.width() as usize/device_pixel_ratio, self.canvas.height() as usize/device_pixel_ratio)
     }
 
-    fn set_canvas_size(&self, logical_size: (u32, u32)) {
-        let (width, height) = logical_size;
+    fn set_canvas_size(&self) {
+        let (window_width, window_height) = self.inner_size();
+        let (width, height) = if let Some((w, h)) = self.max_size {
+            (u32::min(w, window_width), u32::min(h, window_height))
+        } else {(window_width, window_height)};
         let mut style = self.canvas.style().css_text();
         let w = format!("width:{}px;", width);
         let h = format!("height:{}px;", height);
@@ -145,8 +146,6 @@ impl Window
         } else {
             style.push_str(&h);
         }
-        use log::info;
-        info!("{}", style);
 
         self.canvas.style().set_css_text(&style);
         let device_pixel_ratio = self.pixels_per_point();
