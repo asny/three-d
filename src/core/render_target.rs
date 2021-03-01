@@ -1,3 +1,4 @@
+use crate::math::*;
 use crate::core::*;
 use crate::context::{Context, consts};
 use crate::ImageEffect;

@@ -26,9 +26,6 @@ pub use program::*;
 pub mod camera;
 pub use camera::*;
 
-pub mod viewport;
-pub use crate::viewport::*;
-
 pub mod cpu_mesh;
 pub use crate::cpu_mesh::*;
 
