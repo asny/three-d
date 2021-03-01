@@ -1,6 +1,7 @@
 # `three-d`
 
 [![](http://meritbadge.herokuapp.com/three-d)](https://crates.io/crates/three-d)
+[![Docs.rs](https://docs.rs/three-d/badge.svg)](https://docs.rs/three-d)
 
 ### What is it?
 
