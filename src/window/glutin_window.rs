@@ -53,10 +53,12 @@ impl Window
             if let Some((width, height)) = size {
                 WindowBuilder::new()
                     .with_title(title)
+                    .with_min_inner_size(dpi::LogicalSize::new(2, 2))
                     .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
                     .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
             } else {
                 WindowBuilder::new()
+                    .with_min_inner_size(dpi::LogicalSize::new(2, 2))
                     .with_title(title)
                     .with_maximized(true)
             };

@@ -120,9 +120,11 @@ impl Window
 
     fn set_canvas_size(&self) {
         let (window_width, window_height) = self.inner_size();
-        let (width, height) = if let Some((w, h)) = self.max_size {
+        let (mut width, mut height) = if let Some((w, h)) = self.max_size {
             (u32::min(w, window_width), u32::min(h, window_height))
         } else {(window_width, window_height)};
+        width = u32::max(width, 2);
+        height = u32::max(height, 2);
         let mut style = self.canvas.style().css_text();
         let w = format!("width:{}px;", width);
         let h = format!("height:{}px;", height);
