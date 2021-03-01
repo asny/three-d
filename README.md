@@ -63,13 +63,7 @@ $ npm install -g http-server
 Start the server and go to http://localhost:8080 in a browser:
 ```console
 $ http-server
-``` 
-
-#### Desktop and Web: 
-Build and run an example on desktop and also generate web output (webassembly, javascript and html files) into the pkg folder:
-```console
-$ ./examples/triangle/run 
-``` 
+```
 
 ### Other
 Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request.
