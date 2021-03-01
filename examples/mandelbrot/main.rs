@@ -53,7 +53,7 @@ fn main() {
         }
 
         Screen::write(&context, &ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-            mesh.render(&program, RenderStates {cull: CullType::Back, write_mask: WriteMask::color(), depth_test: DepthTestType::Always, ..Default::default()},
+            mesh.render(&program, RenderStates {cull: CullType::Back, write_mask: WriteMask::COLOR, depth_test: DepthTestType::Always, ..Default::default()},
                         frame_input.viewport, &Mat4::identity(), &camera).unwrap();
             Ok(())
         }).unwrap();

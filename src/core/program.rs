@@ -419,13 +419,7 @@ impl Program
     pub(crate) fn set_write_mask(context: &Context, write_mask: WriteMask)
     {
         unsafe {
-            static mut CURRENT_COLOR_MASK: WriteMask = WriteMask {
-                red: true,
-                green: true,
-                blue: true,
-                alpha: true,
-                depth: true,
-            };
+            static mut CURRENT_COLOR_MASK: WriteMask = WriteMask::COLOR_AND_DEPTH;
             if write_mask != CURRENT_COLOR_MASK
             {
                 context.color_mask(write_mask.red, write_mask.green, write_mask.blue, write_mask.alpha);

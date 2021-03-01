@@ -19,7 +19,7 @@ impl FogEffect {
 
     pub fn apply(&self, viewport: Viewport, camera: &camera::Camera, depth_texture: &dyn Texture, time: f32) -> Result<(), Error>
     {
-        let render_states = RenderStates {cull: CullType::Back, write_mask: WriteMask::color(),
+        let render_states = RenderStates {cull: CullType::Back, write_mask: WriteMask::COLOR,
             blend: Some(BlendParameters::transparency()),
             ..Default::default()};
 

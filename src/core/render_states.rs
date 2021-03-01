@@ -48,50 +48,42 @@ pub struct WriteMask {
 }
 
 impl WriteMask {
-    pub fn enabled() -> Self {
-        Self {
-            red: true,
-            green: true,
-            blue: true,
-            alpha: true,
-            depth: true,
-        }
-    }
+    pub const COLOR_AND_DEPTH: WriteMask = Self {
+        red: true,
+        green: true,
+        blue: true,
+        alpha: true,
+        depth: true,
+    };
 
-    pub fn color() -> Self {
-        Self {
-            red: true,
-            green: true,
-            blue: true,
-            alpha: true,
-            depth: false,
-        }
-    }
+    pub const COLOR: WriteMask = Self {
+        red: true,
+        green: true,
+        blue: true,
+        alpha: true,
+        depth: false,
+    };
 
-    pub fn depth() -> Self {
-        Self {
-            red: false,
-            green: false,
-            blue: false,
-            alpha: false,
-            depth: true,
-        }
-    }
+    pub const DEPTH: WriteMask = Self {
+        red: false,
+        green: false,
+        blue: false,
+        alpha: false,
+        depth: true,
+    };
 
-    pub fn disabled() -> Self {
-        Self {
-            red: false,
-            green: false,
-            blue: false,
-            alpha: false,
-            depth: false,
-        }
-    }
+    pub const NONE: WriteMask = Self {
+        red: false,
+        green: false,
+        blue: false,
+        alpha: false,
+        depth: false
+    };
 }
 
 impl Default for WriteMask {
     fn default() -> Self {
-        Self::enabled()
+        Self::COLOR_AND_DEPTH
      }
 }
 

@@ -73,7 +73,7 @@ fn main() {
                     destination_rgb_multiplier: BlendMultiplierType::One,
                     destination_alpha_multiplier:BlendMultiplierType::One
                 }),
-                write_mask: WriteMask::color(),
+                write_mask: WriteMask::COLOR,
                 depth_test: DepthTestType::Always,
                 ..Default::default()};
             let f =  time/explosion_time.max(0.0);
