@@ -1,4 +1,5 @@
 
+use three_d::math::*;
 use three_d::core::*;
 use three_d::window::*;
 
