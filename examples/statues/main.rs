@@ -5,7 +5,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let window = Window::new("Statues", None).unwrap();
+    let window = Window::new("Statues", Some((1280, 720))).unwrap();
     let context = window.gl();
 
     // Renderer

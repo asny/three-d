@@ -4,7 +4,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
-    let window = Window::new("Lighting!", None).unwrap();
+    let window = Window::new("Lighting!", Some((1280, 720))).unwrap();
     let context = window.gl();
 
     let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
