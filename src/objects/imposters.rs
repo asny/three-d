@@ -100,7 +100,7 @@ impl Imposters {
     {
         let render_states = RenderStates {
             cull: CullType::Back,
-            blend: Some(BlendParameters::transparency()),
+            blend: Some(BlendParameters::TRANSPARENCY),
             ..Default::default()
         };
         self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;

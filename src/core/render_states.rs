@@ -48,7 +48,7 @@ pub struct WriteMask {
 }
 
 impl WriteMask {
-    pub const COLOR_AND_DEPTH: WriteMask = Self {
+    pub const COLOR_AND_DEPTH: Self = Self {
         red: true,
         green: true,
         blue: true,
@@ -56,7 +56,7 @@ impl WriteMask {
         depth: true,
     };
 
-    pub const COLOR: WriteMask = Self {
+    pub const COLOR: Self = Self {
         red: true,
         green: true,
         blue: true,
@@ -64,7 +64,7 @@ impl WriteMask {
         depth: false,
     };
 
-    pub const DEPTH: WriteMask = Self {
+    pub const DEPTH: Self = Self {
         red: false,
         green: false,
         blue: false,
@@ -72,7 +72,7 @@ impl WriteMask {
         depth: true,
     };
 
-    pub const NONE: WriteMask = Self {
+    pub const NONE: Self = Self {
         red: false,
         green: false,
         blue: false,
@@ -98,32 +98,28 @@ pub struct BlendParameters {
 }
 
 impl BlendParameters {
-    pub fn transparency() -> Self {
-        Self {
-            source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-            source_alpha_multiplier: BlendMultiplierType::Zero,
-            destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-            destination_alpha_multiplier: BlendMultiplierType::One,
-            rgb_equation: BlendEquationType::Add,
-            alpha_equation: BlendEquationType::Add
-        }
-    }
+    pub const TRANSPARENCY: Self = Self {
+        source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+        source_alpha_multiplier: BlendMultiplierType::Zero,
+        destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
+        destination_alpha_multiplier: BlendMultiplierType::One,
+        rgb_equation: BlendEquationType::Add,
+        alpha_equation: BlendEquationType::Add
+    };
 
-    pub fn add() -> Self {
-        Self {
-            source_rgb_multiplier: BlendMultiplierType::One,
-            source_alpha_multiplier: BlendMultiplierType::One,
-            destination_rgb_multiplier: BlendMultiplierType::One,
-            destination_alpha_multiplier: BlendMultiplierType::One,
-            rgb_equation: BlendEquationType::Add,
-            alpha_equation: BlendEquationType::Add
-        }
-    }
+    pub const ADD: Self = Self {
+        source_rgb_multiplier: BlendMultiplierType::One,
+        source_alpha_multiplier: BlendMultiplierType::One,
+        destination_rgb_multiplier: BlendMultiplierType::One,
+        destination_alpha_multiplier: BlendMultiplierType::One,
+        rgb_equation: BlendEquationType::Add,
+        alpha_equation: BlendEquationType::Add
+    };
 }
 
 impl Default for BlendParameters {
     fn default() -> Self {
-        Self::transparency()
+        Self::TRANSPARENCY
      }
 }
 
