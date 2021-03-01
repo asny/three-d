@@ -26,21 +26,21 @@ See [asny.github.io/three-d/](https://asny.github.io/three-d/) for live examples
 Feature | Description | Examples | `[features]`
 :--- |:---| :---: | :---:
 Context | Thin and low-level graphics abstraction layer which maps one-to-one with the OpenGL/WebGL2 graphics APIs. |  |
-Graphics concepts | Modular abstractions of common graphics concepts such as buffer, texture, program and render target. | [Triangle](https://github.com/asny/three-d/tree/master/examples/triangle/main.rs), [Mandelbrot](https://github.com/asny/three-d/tree/master/examples/mandelbrot/main.rs)
-Camera | Orthographic and perspective camera which has functionality for navigation and frustum culling queries.  | [Mandelbrot](https://github.com/asny/three-d/tree/master/examples/mandelbrot/main.rs), [Statues](https://github.com/asny/three-d/tree/master/examples/statues/main.rs), [Fireworks](https://github.com/asny/three-d/tree/master/examples/fireworks/main.rs)
-Light | Light definitions which is put in a uniform buffer. Currently implemented light types are ambient light, directional light, spot light and point light. Directional and spot lights has functionality for shadow mapping. | [Statues](https://github.com/asny/three-d/tree/master/examples/statues/main.rs), [Lighting](https://github.com/asny/three-d/tree/master/examples/lighting/main.rs), [Wireframe](https://github.com/asny/three-d/tree/master/examples/wireframe/main.rs)
-Mesh | A triangle mesh object with fixed vertex shader and customizable fragment shader for customizable lighting. Supports rendering the depth and also with a fixed color and with a texture (ie. no lighting). | [Texture](https://github.com/asny/three-d/tree/master/examples/texture/main.rs), [Statues](https://github.com/asny/three-d/tree/master/examples/statues/main.rs)
-Instanced mesh | Similar to Mesh, except it is possible to draw many instances of the same triangle mesh efficiently. | [Wireframe](https://github.com/asny/three-d/tree/master/examples/wireframe/main.rs), [Fireworks](https://github.com/asny/three-d/tree/master/examples/fireworks/main.rs), [Forest](https://github.com/asny/three-d/tree/master/examples/forest/main.rs)
-Skybox | An illusion of a sky. | [Texture](https://github.com/asny/three-d/tree/master/examples/texture/main.rs), [Fog](https://github.com/asny/three-d/tree/master/examples/fog/main.rs)
-Particles | Particle effect with fixed vertex shader and customizable fragment shader. | [Fireworks](https://github.com/asny/three-d/tree/master/examples/fireworks/main.rs)
-Imposters | A level-of-detail technique to replace rendering high-poly meshes at a distance. A mesh is rendered from different angles into a set of textures and the textures are then rendered continuously instead of the high-poly meshes. | [Forest](https://github.com/asny/three-d/tree/master/examples/forest/main.rs)
-Image effect | A customizable effect applied to each pixel of a render target, for example fog or anti-aliasing. | [Fog](https://github.com/asny/three-d/tree/master/examples/fog/main.rs)
-Phong forward pipeline | Forward pipeline based on the phong reflection model supporting a very limited amount of lights with shadows. Supports colored, transparent, textured and instanced meshes. | [Statues](https://github.com/asny/three-d/tree/master/examples/statues/main.rs), [Fog](https://github.com/asny/three-d/tree/master/examples/fog/main.rs), [Forest](https://github.com/asny/three-d/tree/master/examples/forest/main.rs) | `phong-renderer`
-Phong deferred pipeline | Deferred pipeline based on the phong reflection model supporting a performance-limited amount of directional, point and spot lights with shadows. Supports colored, textured and instanced meshes. | [Lighting](https://github.com/asny/three-d/tree/master/examples/lighting/main.rs), [Wireframe](https://github.com/asny/three-d/tree/master/examples/wireframe/main.rs), [Texture](https://github.com/asny/three-d/tree/master/examples/texture/main.rs) | `phong-renderer`
-Runtime loading | Loading any type of asset runtime on both desktop and web. | [Statues](https://github.com/asny/three-d/tree/master/examples/statues/main.rs), [Forest](https://github.com/asny/three-d/tree/master/examples/forest/main.rs), [Texture](https://github.com/asny/three-d/tree/master/examples/texture/main.rs)
-3D model parsers | Built-in parsers for .obj (using the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate) and .3d files (a custom format). | [Statues](https://github.com/asny/three-d/tree/master/examples/statues/main.rs), [Forest](https://github.com/asny/three-d/tree/master/examples/forest/main.rs), [Texture](https://github.com/asny/three-d/tree/master/examples/texture/main.rs) | `3d-io` `obj-io`
-Image parsers | Most image formats are supported (using the [image](https://crates.io/crates/image/main.rs) crate). | [Texture](https://github.com/asny/three-d/tree/master/examples/texture/main.rs), [Statues](https://github.com/asny/three-d/tree/master/examples/statues/main.rs) | `image-io`
-Window | Default windows for easy setup and event handling. Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop and canvas for web. | [All](https://github.com/asny/three-d/tree/master/examples/) | `glutin-window` `canvas` 
+Graphics concepts | Modular abstractions of common graphics concepts such as buffer, texture, program and render target. | [Triangle], [Mandelbrot]
+Camera | Orthographic and perspective camera which has functionality for navigation and frustum culling queries.  | [Mandelbrot], [Statues], [Fireworks]
+Light | Light definitions which is put in a uniform buffer. Currently implemented light types are ambient light, directional light, spot light and point light. Directional and spot lights has functionality for shadow mapping. | [Statues], [Lighting], [Wireframe]
+Mesh | A triangle mesh object with fixed vertex shader and customizable fragment shader for customizable lighting. Supports rendering the depth and also with a fixed color and with a texture (ie. no lighting). | [Texture], [Statues]
+Instanced mesh | Similar to Mesh, except it is possible to draw many instances of the same triangle mesh efficiently. | [Wireframe], [Fireworks], [Forest]
+Skybox | An illusion of a sky. | [Texture], [Fog]
+Particles | Particle effect with fixed vertex shader and customizable fragment shader. | [Fireworks]
+Imposters | A level-of-detail technique to replace rendering high-poly meshes at a distance. A mesh is rendered from different angles into a set of textures and the textures are then rendered continuously instead of the high-poly meshes. | [Forest]
+Image effect | A customizable effect applied to each pixel of a render target, for example fog or anti-aliasing. | [Fog]
+Phong forward pipeline | Forward pipeline based on the phong reflection model supporting a very limited amount of lights with shadows. Supports colored, transparent, textured and instanced meshes. | [Statues], [Fog], [Forest] | `phong-renderer`
+Phong deferred pipeline | Deferred pipeline based on the phong reflection model supporting a performance-limited amount of directional, point and spot lights with shadows. Supports colored, textured and instanced meshes. | [Lighting], [Wireframe], [Texture] | `phong-renderer`
+Runtime loading | Loading any type of asset runtime on both desktop and web. | [Statues], [Forest], [Texture]
+3D model parsers | Built-in parsers for .obj (using the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate) and .3d files (a custom format). | [Statues], [Forest], [Texture] | `3d-io` `obj-io`
+Image parsers | Most image formats are supported (using the [image](https://crates.io/crates/image/main.rs) crate). | [Texture], [Statues] | `image-io`
+Window | Default windows for easy setup and event handling. Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop and canvas for web. | [All] | `glutin-window` `canvas` 
 
 It is always possible to combine features, for example rendering particles followed by direct calls to the graphics context.
 
@@ -73,3 +73,14 @@ $ ./examples/triangle/run
 
 ### Other
 Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request.
+
+[All]: https://github.com/asny/three-d/tree/0.5/examples/
+[Lighting]: https://github.com/asny/three-d/tree/0.5/examples/lighting/main.rs
+[Texture]: https://github.com/asny/three-d/tree/0.5/examples/texture/main.rs
+[Fog]: https://github.com/asny/three-d/tree/0.5/examples/fog/main.rs
+[Fireworks]: https://github.com/asny/three-d/tree/0.5/examples/fireworks/main.rs
+[Statues]: https://github.com/asny/three-d/tree/0.5/examples/statues/main.rs
+[Forest]: https://github.com/asny/three-d/tree/0.5/examples/forest/main.rs
+[Triangle]: https://github.com/asny/three-d/tree/0.5/examples/triangle/main.rs
+[Mandelbrot]: https://github.com/asny/three-d/tree/0.5/examples/mandelbrot/main.rs
+[Wireframe]: https://github.com/asny/three-d/tree/0.5/examples/wireframe/main.rs
