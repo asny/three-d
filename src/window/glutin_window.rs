@@ -123,9 +123,6 @@ impl Window
                         WindowEvent::KeyboardInput {input, ..} => {
                             if let Some(keycode) = input.virtual_keycode {
                                 use event::VirtualKeyCode;
-                                if keycode == VirtualKeyCode::Escape {
-                                    *control_flow = ControlFlow::Exit;
-                                }
                                 let state = if input.state == event::ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
                                 if let Some(kind) = translate_virtual_key_code(keycode) {
                                     events.push(frame_input::Event::Key {state, kind, modifiers, handled: false});
