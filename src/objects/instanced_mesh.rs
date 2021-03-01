@@ -1,8 +1,4 @@
 
-//!
-//! Similar to [mesh](crate::mesh), except it is possible to draw many instances of the same triangle mesh efficiently.
-//!
-
 use crate::math::*;
 use crate::core::*;
 
@@ -81,6 +77,9 @@ impl std::ops::Deref for InstancedMeshProgram {
     }
 }
 
+///
+/// Similar to [Mesh](crate::Mesh), except it is possible to draw many instances of the same triangle mesh efficiently.
+///
 pub struct InstancedMesh {
     context: Context,
     position_buffer: VertexBuffer,

@@ -1,6 +1,6 @@
 
 use cgmath::{Vector2, Vector3, Vector4, Matrix2, Matrix3, Matrix4, Point3, Deg, Rad};
-pub use cgmath::prelude::*;
+pub(crate) use cgmath::prelude::*;
 pub use cgmath::perspective;
 pub use cgmath::ortho;
 

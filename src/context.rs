@@ -5,15 +5,19 @@
 //!
 
 // GL
+#[doc(hidden)]
 #[cfg(not(target_arch = "wasm32"))]
 pub mod ogl;
 
+#[doc(inline)]
 #[cfg(not(target_arch = "wasm32"))]
 pub use ogl::*;
 
 // WEBGL
+#[doc(hidden)]
 #[cfg(target_arch = "wasm32")]
 pub mod wgl2;
 
+#[doc(inline)]
 #[cfg(target_arch = "wasm32")]
 pub use wgl2::*;

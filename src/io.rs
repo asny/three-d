@@ -5,23 +5,31 @@
 //! most image formats (using the [image](https://crates.io/crates/image/main.rs) crate).
 //!
 
+#[doc(hidden)]
 #[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
 pub mod loader;
+#[doc(inline)]
 #[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
 pub use loader::*;
 
+#[doc(hidden)]
 #[cfg(not(target_arch = "wasm32"))]
 pub mod saver;
+#[doc(inline)]
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
 
+#[doc(hidden)]
 #[cfg(feature = "3d-io")]
 pub mod threed;
+#[doc(inline)]
 #[cfg(feature = "3d-io")]
 pub use threed::*;
 
+#[doc(hidden)]
 #[cfg(feature = "obj-io")]
 pub mod obj;
+#[doc(inline)]
 #[cfg(feature = "obj-io")]
 pub use obj::*;
 
