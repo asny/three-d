@@ -1,6 +1,9 @@
 
 pub mod context;
 
+pub mod math;
+pub use crate::math::*;
+
 pub mod core;
 pub use crate::core::*;
 

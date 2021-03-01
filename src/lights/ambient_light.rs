@@ -1,5 +1,5 @@
 
-use crate::core::*;
+use crate::math::*;
 
 pub struct AmbientLight
 {

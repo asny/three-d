@@ -1,5 +1,5 @@
 
-use crate::core::*;
+use crate::math::*;
 
 #[derive(Default, Debug)]
 pub struct CPUMesh {

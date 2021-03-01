@@ -1,4 +1,4 @@
-use crate::core::math::*;
+use crate::math::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct AxisAlignedBoundingBox {

@@ -1,4 +1,5 @@
 
+use crate::math::*;
 use crate::core::*;
 use crate::objects::*;
 use crate::phong::*;
