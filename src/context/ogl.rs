@@ -26,6 +26,7 @@ pub struct Glstruct {
     inner: InnerGl
 }
 
+/// See [Glstruct](crate::context::Glstruct).
 pub type Context = std::rc::Rc<Glstruct>;
 
 impl Glstruct {
@@ -856,7 +857,7 @@ fn create_whitespace_cstring_with_len(len: usize) -> std::ffi::CString {
     unsafe { std::ffi::CString::from_vec_unchecked(buffer) }
 }
 
-pub fn byte_size_for_type(data_type: u32, count: u32) -> u32
+fn byte_size_for_type(data_type: u32, count: u32) -> u32
 {
     match data_type {
         consts::FLOAT => {

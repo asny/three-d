@@ -5,7 +5,7 @@
 //! They are higher level than [context](crate::context) but lower level than other features.
 //!
 
-#[doc(inline)]
+#[doc(hidden)]
 pub use crate::context::Context;
 
 #[doc(hidden)]
