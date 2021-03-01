@@ -183,7 +183,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
-                depth_mask: false, ..Default::default()}, viewport)?;
+                write_mask: WriteMask::color(), ..Default::default()}, viewport)?;
             Ok(())
         })?;
         Ok(())
@@ -198,7 +198,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
-                color_mask: ColorMask::disabled(), ..Default::default()}, viewport)?;
+                write_mask: WriteMask::disabled(), ..Default::default()}, viewport)?;
             Ok(())
         })?;
         Ok(())
@@ -209,8 +209,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         if self.color_texture.is_none() || self.depth_texture.is_none() || other.color_texture.is_none() || other.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
-        Program::set_color_mask(&self.context, ColorMask::enabled());
-        Program::set_depth(&self.context, None, true);
+        Program::set_write_mask(&self.context, WriteMask::enabled());
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(&ClearState::none(), || {
@@ -227,7 +226,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         if self.color_texture.is_none() || other.color_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
         }
-        Program::set_color_mask(&self.context, ColorMask::enabled());
+        Program::set_write_mask(&self.context, WriteMask::color());
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(&ClearState::none(), || {
@@ -244,7 +243,7 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         if self.depth_texture.is_none() || other.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
         }
-        Program::set_depth(&self.context, None, true);
+        Program::set_write_mask(&self.context, WriteMask::depth());
         self.bind()?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(&ClearState::none(), || {
@@ -359,7 +358,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
-                depth_mask: false, ..Default::default()}, viewport)?;
+                write_mask: WriteMask::color(), ..Default::default()}, viewport)?;
             Ok(())
         })?;
         Ok(())
@@ -375,7 +374,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
-                color_mask: ColorMask::disabled(), ..Default::default()}, viewport)?;
+                write_mask: WriteMask::disabled(), ..Default::default()}, viewport)?;
             Ok(())
         })?;
         Ok(())
@@ -386,8 +385,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         if self.color_texture.is_none() || self.depth_texture.is_none() || other.color_texture.is_none() || other.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
         }
-        Program::set_color_mask(&self.context, ColorMask::enabled());
-        Program::set_depth(&self.context, None, true);
+        Program::set_write_mask(&self.context, WriteMask::enabled());
         self.bind(Some(&[color_layer]), Some(depth_layer))?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(&ClearState::none(), || {
@@ -404,7 +402,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         if self.color_texture.is_none() || other.color_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
         }
-        Program::set_color_mask(&self.context, ColorMask::enabled());
+        Program::set_write_mask(&self.context, WriteMask::color());
         self.bind(Some(&[color_layer]), None)?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(&ClearState::none(), || {
@@ -421,7 +419,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         if self.depth_texture.is_none() || other.depth_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth when the render target does not have a depth texture.".to_owned()})?;
         }
-        Program::set_depth(&self.context, None, true);
+        Program::set_write_mask(&self.context, WriteMask::depth());
         self.bind(None, Some(depth_layer))?;
         self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(&ClearState::none(), || {
@@ -471,15 +469,14 @@ fn check(context: &Context) -> Result<(), Error> {
 }
 
 fn clear(context: &Context, clear_state: &ClearState) {
+    Program::set_write_mask(context, WriteMask {red: clear_state.red.is_some(), green: clear_state.green.is_some(),
+        blue: clear_state.blue.is_some(), alpha: clear_state.alpha.is_some(), depth: clear_state.depth.is_some()});
     let clear_color = clear_state.red.is_some() || clear_state.green.is_some() || clear_state.blue.is_some() || clear_state.alpha.is_some();
     if clear_color {
-        Program::set_color_mask(context, ColorMask {red: clear_state.red.is_some(), green: clear_state.green.is_some(),
-            blue: clear_state.blue.is_some(), alpha: clear_state.alpha.is_some()});
         context.clear_color(clear_state.red.unwrap_or(0.0), clear_state.green.unwrap_or(0.0),
                             clear_state.blue.unwrap_or(0.0), clear_state.alpha.unwrap_or(1.0));
     }
     if let Some(depth) = clear_state.depth {
-        Program::set_depth(context, None, true);
         context.clear_depth(depth);
     }
     context.clear(if clear_color && clear_state.depth.is_some() { consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT }

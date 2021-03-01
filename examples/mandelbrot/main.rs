@@ -1,4 +1,5 @@
 
+use three_d::math::*;
 use three_d::core::*;
 use three_d::Mesh;
 use three_d::MeshProgram;
@@ -52,7 +53,7 @@ fn main() {
         }
 
         Screen::write(&context, &ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-            mesh.render(&program, RenderStates {cull: CullType::Back, depth_mask: false, depth_test: DepthTestType::Always, ..Default::default()},
+            mesh.render(&program, RenderStates {cull: CullType::Back, write_mask: WriteMask::color(), depth_test: DepthTestType::Always, ..Default::default()},
                         frame_input.viewport, &Mat4::identity(), &camera).unwrap();
             Ok(())
         }).unwrap();

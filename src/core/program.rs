@@ -325,8 +325,8 @@ impl Program
 
     fn set_states(context: &Context, render_states: RenderStates) {
         Self::set_cull(context, render_states.cull);
-        Self::set_color_mask(context, render_states.color_mask);
-        Self::set_depth(context, Some(render_states.depth_test), render_states.depth_mask);
+        Self::set_write_mask(context, render_states.write_mask);
+        Self::set_depth(context, Some(render_states.depth_test), render_states.write_mask.depth);
         Self::set_blend(context, render_states.blend);
     }
 
@@ -416,19 +416,26 @@ impl Program
         }
     }
 
-    pub(crate) fn set_color_mask(context: &Context, color_mask: ColorMask)
+    pub(crate) fn set_write_mask(context: &Context, write_mask: WriteMask)
     {
         unsafe {
-            static mut CURRENT_COLOR_MASK: ColorMask = ColorMask {red: true, green: true, blue: true, alpha: true};
-            if color_mask != CURRENT_COLOR_MASK
+            static mut CURRENT_COLOR_MASK: WriteMask = WriteMask {
+                red: true,
+                green: true,
+                blue: true,
+                alpha: true,
+                depth: true,
+            };
+            if write_mask != CURRENT_COLOR_MASK
             {
-                context.color_mask(color_mask.red, color_mask.green, color_mask.blue, color_mask.alpha);
-                CURRENT_COLOR_MASK = color_mask;
+                context.color_mask(write_mask.red, write_mask.green, write_mask.blue, write_mask.alpha);
+                Self::set_depth(context, None, write_mask.depth);
+                CURRENT_COLOR_MASK = write_mask;
             }
         }
     }
 
-    pub(crate) fn set_depth(context: &Context, depth_test: Option<DepthTestType>, depth_mask: bool) {
+    fn set_depth(context: &Context, depth_test: Option<DepthTestType>, depth_mask: bool) {
         unsafe {
             static mut CURRENT_DEPTH_ENABLE: bool = false;
             static mut CURRENT_DEPTH_MASK: bool = true;
