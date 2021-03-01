@@ -122,7 +122,33 @@ impl Window
 
     fn set_canvas_size(&self, logical_size: (u32, u32)) {
         let (width, height) = logical_size;
-        self.canvas.style().set_css_text(&format!("width:{}px;height:{}px;", width, height));
+        let mut style = self.canvas.style().css_text();
+        let w = format!("width:{}px;", width);
+        let h = format!("height:{}px;", height);
+        if let Some(start) = style.find("width") {
+            let mut end = start;
+            for char in style[start..].chars() {
+                end += 1;
+                if char == ';' { break; }
+            }
+            style.replace_range(start..end, &w);
+        } else {
+            style.push_str(&w);
+        }
+        if let Some(start) = style.find("height") {
+            let mut end = start;
+            for char in style[start..].chars() {
+                end += 1;
+                if char == ';' { break; }
+            }
+            style.replace_range(start..end, &h);
+        } else {
+            style.push_str(&h);
+        }
+        use log::info;
+        info!("{}", style);
+
+        self.canvas.style().set_css_text(&style);
         let device_pixel_ratio = self.pixels_per_point();
         self.canvas.set_width(device_pixel_ratio as u32*width);
         self.canvas.set_height(device_pixel_ratio as u32*height);
