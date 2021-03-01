@@ -54,12 +54,11 @@ impl Window
                 WindowBuilder::new()
                     .with_title(title)
                     .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
-                    .with_resizable(false)
+                    .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
             } else {
                 WindowBuilder::new()
                     .with_title(title)
                     .with_maximized(true)
-                    .with_resizable(false)
             };
 
         if multisample {
