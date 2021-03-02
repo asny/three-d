@@ -1,6 +1,8 @@
 
 //!
-//! Default windows for easy setup and event handling. Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop and canvas for web.
+//! Default windows for easy setup and event handling.
+//! Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop
+//! and canvas using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) for web.
 //!
 
 #[doc(hidden)]

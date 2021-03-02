@@ -6,7 +6,7 @@
 ### What is it?
 
 A 3D renderer which enables out-of-the-box build to both desktop (Rust + OpenGL) and web 
-(Rust to WebAssembly using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) + WebGL2 bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate).
+(Rust to WebAssembly + WebGL2).
 This makes it possible to develop a 3D application on desktop and easily deploy it on web!
 
 ### Supported browsers
