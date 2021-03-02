@@ -1,8 +1,8 @@
 
 use crate::math::*;
 use crate::core::*;
-use crate::lights::*;
-use crate::effects::*;
+use crate::light::*;
+use crate::effect::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}

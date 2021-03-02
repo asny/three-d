@@ -15,17 +15,17 @@ pub mod core;
 #[doc(inline)]
 pub use crate::core::*;
 
-pub mod objects;
+pub mod object;
 #[doc(inline)]
-pub use crate::objects::*;
+pub use crate::object::*;
 
-pub mod effects;
+pub mod effect;
 #[doc(inline)]
-pub use crate::effects::*;
+pub use crate::effect::*;
 
-pub mod lights;
+pub mod light;
 #[doc(inline)]
-pub use crate::lights::*;
+pub use crate::light::*;
 
 pub mod io;
 #[doc(hidden)]

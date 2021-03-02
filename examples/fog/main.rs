@@ -26,7 +26,7 @@ fn main() {
         let directional_light = DirectionalLight::new(&context, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();
 
         // Fog
-        let mut fog_effect = effects::FogEffect::new(&context).unwrap();
+        let mut fog_effect = FogEffect::new(&context).unwrap();
         fog_effect.color = vec3(0.8, 0.8, 0.8);
         let mut fog_enabled = true;
 

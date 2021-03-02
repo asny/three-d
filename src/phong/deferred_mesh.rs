@@ -1,7 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
-use crate::objects::*;
+use crate::object::*;
 use crate::phong::*;
 
 pub struct PhongDeferredMesh {
