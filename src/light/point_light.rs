@@ -2,6 +2,9 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// A light which shines from the given position in all directions.
+///
 pub struct PointLight {
     light_buffer: UniformBuffer
 }

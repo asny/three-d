@@ -26,7 +26,13 @@ pub struct Glstruct {
     inner: InnerGl
 }
 
-/// See [Glstruct](crate::context::Glstruct).
+///
+/// Contains the graphics API for almost direct calls to OpenGL/WebGL
+/// (See [Glstruct](crate::context::Glstruct) for a list of available functionality).
+/// Used internally in the higher level features and can safely be ignored unless you want more control.
+///
+/// Calls to this API can be combined with higher level features.
+///
 pub type Context = std::rc::Rc<Glstruct>;
 
 impl Glstruct {

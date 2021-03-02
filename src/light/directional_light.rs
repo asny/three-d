@@ -2,6 +2,10 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// A light which shines in the given direction.
+/// The light will cast shadows if you [generate a shadow map](DirectionalLight::generate_shadow_map).
+///
 pub struct DirectionalLight {
     context: Context,
     light_buffer: UniformBuffer,

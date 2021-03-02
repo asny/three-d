@@ -2,6 +2,10 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// Shader program used for rendering [Particles](Particles).
+/// The fragment shader code can use position (`in vec3 pos;`) normal (`in vec3 nor;`) and uv coordinates (`in vec2 uvs;`).
+///
 pub struct ParticlesProgram {
     program: Program,
     use_normals: bool,
@@ -73,14 +77,20 @@ impl std::ops::Deref for ParticlesProgram {
     }
 }
 
-
+///
+/// Used to define the initial position and velocity of a particle in [Particles](Particles).
+///
 pub struct ParticleData {
     pub start_position: Vec3,
     pub start_velocity: Vec3
 }
 
 ///
-/// Particle effect with fixed vertex shader and customizable fragment shader (see also [ParticlesProgram](crate::objects::ParticlesProgram)).
+/// Particle effect with fixed vertex shader and customizable fragment shader (see also [ParticlesProgram](ParticlesProgram)).
+///
+/// Each particle is initialised with a position and velocity using the [update](Particles::update) function and a global acceleration.
+/// Then when time passes, their position is updated based on
+/// `new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time`
 ///
 pub struct Particles {
     start_position_buffer: VertexBuffer,
@@ -110,6 +120,10 @@ impl Particles {
         })
     }
 
+    ///
+    /// Updates the particles with the given initial data.
+    /// The list contain one entry for each particle.
+    ///
     pub fn update(&mut self, data: &[ParticleData])
     {
         let mut start_position = Vec::new();
@@ -127,6 +141,9 @@ impl Particles {
         self.instance_count = data.len() as u32;
     }
 
+    ///
+    /// Render all defined particles with the given [ParticlesProgram](ParticlesProgram).
+    ///
     pub fn render(&self, program: &ParticlesProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera, time: f32) -> Result<(), Error>
     {
         program.add_uniform_mat4("modelMatrix", &transformation)?;

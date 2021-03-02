@@ -2,6 +2,10 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// A light which shines from the given position and in the given direction.
+/// The light will cast shadows if you [generate a shadow map](SpotLight::generate_shadow_map).
+///
 pub struct SpotLight {
     context: Context,
     light_buffer: UniformBuffer,

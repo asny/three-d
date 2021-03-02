@@ -1,15 +1,32 @@
 
+///
+/// Input from the window to the rendering and whatever else needs it each frame.
+///
 #[derive(Clone, Debug)]
 pub struct FrameInput {
+    /// A list of [events](crate::Event) which has occured since last frame.
     pub events: Vec<Event>,
-    pub elapsed_time: f64, // Milliseconds since last frame
-    pub accumulated_time: f64, // Milliseconds accumulated time since start
-    pub viewport: crate::Viewport, // Viewport of the window in physical pixels
-    pub window_width: usize, // Width of the window in logical pixels
-    pub window_height: usize, // Height of the window in logical pixels
-    pub device_pixel_ratio: usize // Number of physical pixels for each logical pixel
+
+    /// Milliseconds since last frame.
+    pub elapsed_time: f64,
+
+    /// Milliseconds accumulated time since start.
+    pub accumulated_time: f64,
+
+    /// Viewport of the window in physical pixels.
+    pub viewport: crate::Viewport,
+
+    /// Width of the window in logical pixels.
+    pub window_width: usize,
+
+    /// Height of the window in logical pixels.
+    pub window_height: usize,
+
+    /// Number of physical pixels for each logical pixel.
+    pub device_pixel_ratio: usize
 }
 
+/// State of a key or button click.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum State
 {
@@ -23,6 +40,7 @@ impl Default for State {
     }
 }
 
+/// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
     Left,
@@ -30,6 +48,7 @@ pub enum MouseButton {
     Middle,
 }
 
+/// An input event (from mouse, keyboard or similar).
 #[derive(Clone, Debug)]
 pub enum Event
 {
@@ -66,6 +85,7 @@ pub enum Event
     Text(String)
 }
 
+/// Keyboard key input.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum Key {
     ArrowDown,
@@ -135,6 +155,7 @@ pub enum Key {
     Z,
 }
 
+/// State of modifiers (alt, ctrl, shift and command).
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Modifiers {
     /// Either of the alt keys are down (option ⌥ on Mac).

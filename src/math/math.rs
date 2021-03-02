@@ -1,8 +1,9 @@
 
 use cgmath::{Vector2, Vector3, Vector4, Matrix2, Matrix3, Matrix4, Point3, Deg, Rad};
+#[doc(hidden)]
 pub use cgmath::prelude::*;
-pub use cgmath::perspective;
-pub use cgmath::ortho;
+pub(crate) use cgmath::perspective;
+pub(crate) use cgmath::ortho;
 
 pub type Vec2 = Vector2<f32>;
 pub type Vec3 = Vector3<f32>;
@@ -29,7 +30,7 @@ pub fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4
     Vector4::new(x, y, z, w)
 }
 
-pub trait Vec2Ext {
+pub(crate) trait Vec2Ext {
     fn to_slice(&self) -> [f32; 2];
 }
 
@@ -41,7 +42,7 @@ impl Vec2Ext for Vec2 {
     }
 }
 
-pub trait Vec3Ext {
+pub(crate) trait Vec3Ext {
     fn to_slice(&self) -> [f32; 3];
 }
 
@@ -53,7 +54,7 @@ impl Vec3Ext for Vec3 {
     }
 }
 
-pub trait Vec4Ext {
+pub(crate) trait Vec4Ext {
     fn to_slice(&self) -> [f32; 4];
 }
 
@@ -65,7 +66,7 @@ impl Vec4Ext for Vec4 {
     }
 }
 
-pub trait Mat2Ext {
+pub(crate) trait Mat2Ext {
     fn to_slice(&self) -> [f32; 4];
 }
 
@@ -77,7 +78,7 @@ impl Mat2Ext for Mat2 {
     }
 }
 
-pub trait Mat3Ext {
+pub(crate) trait Mat3Ext {
     fn to_slice(&self) -> [f32; 9];
 }
 
@@ -89,7 +90,7 @@ impl Mat3Ext for Mat3 {
     }
 }
 
-pub trait Mat4Ext {
+pub(crate) trait Mat4Ext {
     fn to_slice(&self) -> [f32; 16];
 }
 
@@ -99,11 +100,6 @@ impl Mat4Ext for Mat4 {
     {
         [self.x.x, self.x.y, self.x.z, self.x.w, self.y.x, self.y.y, self.y.z, self.y.w, self.z.x, self.z.y, self.z.z, self.z.w, self.w.x, self.w.y, self.w.z, self.w.w]
     }
-}
-
-pub fn to_slice(mat: &Mat4) -> [f32; 16]
-{
-    [mat.x.x, mat.x.y, mat.x.z, mat.x.w, mat.y.x, mat.y.y, mat.y.z, mat.y.w, mat.z.x, mat.z.y, mat.z.z, mat.z.w, mat.w.x, mat.w.y, mat.w.z, mat.w.w]
 }
 
 pub fn degrees(v: f32) -> Degrees { Deg(v) }

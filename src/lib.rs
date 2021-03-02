@@ -8,7 +8,7 @@
 pub mod context;
 
 pub mod math;
-#[doc(hidden)]
+#[doc(inline)]
 pub use crate::math::*;
 
 pub mod core;
@@ -28,7 +28,7 @@ pub mod light;
 pub use crate::light::*;
 
 pub mod io;
-#[doc(hidden)]
+#[doc(inline)]
 pub use crate::io::*;
 
 #[cfg(feature = "phong-renderer")]
@@ -38,9 +38,9 @@ pub mod phong;
 pub use crate::phong::*;
 
 pub mod window;
-#[doc(hidden)]
+#[doc(inline)]
 pub use window::*;
 
 pub mod gui;
-#[doc(hidden)]
+#[doc(inline)]
 pub use gui::*;

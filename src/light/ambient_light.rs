@@ -1,6 +1,9 @@
 
 use crate::math::*;
 
+///
+/// A light which shines equally on all parts of any surface.
+///
 pub struct AmbientLight
 {
     pub color: Vec3,
