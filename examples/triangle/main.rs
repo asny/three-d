@@ -1,7 +1,5 @@
 
-use three_d::math::*;
-use three_d::core::*;
-use three_d::window::*;
+use three_d::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -19,17 +17,23 @@ fn main() {
         -0.5, -0.5, 0.0,// bottom left
         0.0,  0.5, 0.0 // top
     ];
-    let position_buffer = VertexBuffer::new_with_static_f32(&context, &positions).unwrap();
-    let colors: Vec<f32> = vec![
-        1.0, 0.0, 0.0,   // bottom right
-        0.0, 1.0, 0.0,   // bottom left
-        0.0, 0.0, 1.0    // top
+    let colors: Vec<u8> = vec![
+        255, 0, 0, 255,   // bottom right
+        0, 255, 0, 255,   // bottom left
+        0, 0, 255, 255   // top
     ];
-    let color_buffer = VertexBuffer::new_with_static_f32(&context, &colors).unwrap();
 
-    let program = Program::from_source(&context,
-                                       include_str!("../assets/shaders/color.vert"),
-                                       include_str!("../assets/shaders/color.frag")).unwrap();
+    let cpu_mesh = CPUMesh {
+        positions, colors: Some(colors), ..Default::default()
+    };
+    let mesh = Mesh::new(&context, &cpu_mesh).unwrap();
+    let program = MeshProgram::new(&context, "  in vec4 col;
+                                                out vec4 outColor;
+                                                void main()
+                                                {
+                                                    outColor = col/255.0;
+                                                }
+                                                ").unwrap();
 
     // main loop
     let mut time = 0.0;
@@ -39,13 +43,8 @@ fn main() {
         camera.set_aspect(frame_input.viewport.aspect());
 
         Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
-            program.use_attribute_vec3_float(&position_buffer, "position")?;
-            program.use_attribute_vec3_float(&color_buffer, "color")?;
-
-            let world_view_projection = camera.get_projection() * camera.get_view() * Mat4::from_angle_y(radians(time * 0.005));
-            program.add_uniform_mat4("worldViewProjectionMatrix", &world_view_projection)?;
-
-            program.draw_arrays(RenderStates::default(), frame_input.viewport, 3);
+            let transformation = Mat4::from_angle_y(radians(time * 0.005));
+            mesh.render(&program, RenderStates::default(), frame_input.viewport, &transformation, &camera)?;
             Ok(())
         }).unwrap();
 

@@ -252,6 +252,25 @@ impl Program
         Ok(())
     }
 
+    pub fn use_attribute_vec4_unsigned_byte(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
+    {
+        self.use_attribute_vec4_unsigned_byte_divisor(buffer, attribute_name, 0)?;
+        Ok(())
+    }
+
+    pub fn use_attribute_vec4_unsigned_byte_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
+    {
+        if buffer.count() > 0 {
+            buffer.bind();
+            let loc = self.location(&attribute_name)?;
+            self.context.enable_vertex_attrib_array(loc);
+            self.context.vertex_attrib_pointer(loc, 4, consts::UNSIGNED_BYTE, false, 0, 0);
+            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.unbind_buffer(consts::ARRAY_BUFFER);
+            self.context.unuse_program();
+        }
+        Ok(())
+    }
     pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32)
     {
         Self::set_viewport(&self.context, viewport);

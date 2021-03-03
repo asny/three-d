@@ -33,7 +33,8 @@ impl ThreeD {
                 positions: mesh.positions,
                 indices: mesh.indices,
                 normals: mesh.normals,
-                uvs: mesh.uvs
+                uvs: mesh.uvs,
+                colors: None
             });
         }
 

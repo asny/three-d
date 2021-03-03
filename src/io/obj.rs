@@ -113,7 +113,8 @@ impl Obj {
                     positions,
                     indices: Some(indices),
                     normals: Some(normals),
-                    uvs: Some(uvs)
+                    uvs: Some(uvs),
+                    colors: None
                 });
             }
         }

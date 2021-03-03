@@ -7,6 +7,7 @@ pub struct MeshProgram {
     program: Program,
     use_normals: bool,
     use_uvs: bool,
+    use_colors: bool,
 }
 
 impl MeshProgram {
@@ -14,6 +15,7 @@ impl MeshProgram {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
+        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         let vertex_shader_source = &format!("
                 layout (std140) uniform Camera
                 {{
@@ -30,6 +32,7 @@ impl MeshProgram {
                 {} // Positions out
                 {} // Normals in/out
                 {} // UV coordinates in/out
+                {} // Colors in/out
 
                 void main()
                 {{
@@ -38,6 +41,7 @@ impl MeshProgram {
                     {} // Position
                     {} // Normal
                     {} // UV coordinates
+                    {} // Colors
                 }}
             ",
             if use_positions {"out vec3 pos;"} else {""},
@@ -50,13 +54,18 @@ impl MeshProgram {
                 "in vec2 uv_coordinates;
                 out vec2 uvs;"
             } else {""},
+            if use_colors {
+                "in vec4 color;
+                out vec4 col;"
+            } else {""},
             if use_positions {"pos = worldPosition.xyz;"} else {""},
             if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
-            if use_uvs { "uvs = uv_coordinates;" } else {""}
+            if use_uvs { "uvs = uv_coordinates;" } else {""},
+            if use_colors { "col = color;" } else {""}
         );
 
         let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
-        Ok(Self {program, use_normals, use_uvs})
+        Ok(Self {program, use_normals, use_uvs, use_colors})
     }
 }
 
@@ -78,6 +87,7 @@ pub struct Mesh {
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
+    color_buffer: Option<VertexBuffer>,
 }
 
 impl Mesh {
@@ -87,10 +97,11 @@ impl Mesh {
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(context, normals)?) } else {None};
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
+        let color_buffer = if let Some(ref colors) = cpu_mesh.colors { Some(VertexBuffer::new_with_static_u8(context, colors)?) } else {None};
         unsafe {
             MESH_COUNT += 1;
         }
-        Ok(Mesh {context: context.clone(), position_buffer, normal_buffer, index_buffer, uv_buffer})
+        Ok(Mesh {context: context.clone(), position_buffer, normal_buffer, index_buffer, uv_buffer, color_buffer})
     }
 
     pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
@@ -160,6 +171,11 @@ impl Mesh {
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
             program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
             program.use_attribute_vec3_float(normal_buffer, "normal")?;
+        }
+        if program.use_colors {
+            let color_buffer = self.color_buffer.as_ref().ok_or(
+                Error::FailedToCreateMesh {message: "The mesh shader program needs per vertex colors, but the mesh does not have any.".to_string()})?;
+            program.use_attribute_vec4_unsigned_byte(color_buffer, "color")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {

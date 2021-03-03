@@ -9,6 +9,42 @@ pub struct VertexBuffer {
 
 impl VertexBuffer
 {
+    pub fn new_with_static_u8(context: &Context, data: &[u8]) -> Result<VertexBuffer, Error>
+    {
+        let id = context.create_buffer().unwrap();
+        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0 };
+        if data.len() > 0 {
+            buffer.fill_with_static_u8(data);
+        }
+        Ok(buffer)
+    }
+
+    pub fn fill_with_static_u8(&mut self, data: &[u8])
+    {
+        self.bind();
+        self.context.buffer_data_u8(consts::ARRAY_BUFFER, data, consts::STATIC_DRAW);
+        self.context.unbind_buffer(consts::ARRAY_BUFFER);
+        self.count = data.len();
+    }
+
+    pub fn new_with_dynamic_u8(context: &Context, data: &[u8]) -> Result<VertexBuffer, Error>
+    {
+        let id = context.create_buffer().unwrap();
+        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0 };
+        if data.len() > 0 {
+            buffer.fill_with_dynamic_u8(data);
+        }
+        Ok(buffer)
+    }
+
+    pub fn fill_with_dynamic_u8(&mut self, data: &[u8])
+    {
+        self.bind();
+        self.context.buffer_data_u8(consts::ARRAY_BUFFER, data, consts::DYNAMIC_DRAW);
+        self.context.unbind_buffer(consts::ARRAY_BUFFER);
+        self.count = data.len();
+    }
+
     pub fn new_with_static_f32(context: &Context, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = context.create_buffer().unwrap();

@@ -8,7 +8,8 @@ pub struct CPUMesh {
     pub positions: Vec<f32>,
     pub indices: Option<Vec<u32>>,
     pub normals: Option<Vec<f32>>,
-    pub uvs: Option<Vec<f32>>
+    pub uvs: Option<Vec<f32>>,
+    pub colors: Option<Vec<u8>>
 }
 
 impl CPUMesh {
