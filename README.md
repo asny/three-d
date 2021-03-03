@@ -26,10 +26,10 @@ See [asny.github.io/three-d/](https://asny.github.io/three-d/) for live examples
 Feature | Description | Examples | `[features]`
 :--- |:---| :---: | :---:
 Context | Thin and low-level graphics abstraction layer which maps one-to-one with the OpenGL/WebGL2 graphics APIs. |  |
-Graphics concepts | Modular abstractions of common graphics concepts such as buffer, texture, program and render target. | [Triangle]
+Graphics concepts | Modular abstractions of common graphics concepts such as buffer, texture, program and render target. |
 Camera | Orthographic and perspective camera which has functionality for navigation and frustum culling queries.  | [Mandelbrot], [Statues], [Fireworks]
 Light | Light definitions which is put in a uniform buffer. Currently implemented light types are ambient light, directional light, spot light and point light. Directional and spot lights has functionality for shadow mapping. | [Statues], [Lighting], [Wireframe]
-Mesh | A triangle mesh object with fixed vertex shader and customizable fragment shader for customizable lighting. Supports rendering the depth and also with a fixed color and with a texture (ie. no lighting). | [Mandelbrot], [Texture], [Statues]
+Mesh | A triangle mesh object with fixed vertex shader and customizable fragment shader for customizable lighting. Supports rendering the depth and also with a fixed color and with a texture (ie. no lighting). |  [Triangle], [Mandelbrot]
 Instanced mesh | Similar to Mesh, except it is possible to draw many instances of the same triangle mesh efficiently. | [Wireframe], [Fireworks], [Forest]
 Skybox | An illusion of a sky. | [Texture], [Fog]
 Particles | Particle effect with fixed vertex shader and customizable fragment shader. | [Fireworks]
