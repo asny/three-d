@@ -108,11 +108,11 @@ impl Imposters {
 
         self.program.use_texture(&self.texture, "tex")?;
 
-        self.program.use_attribute_vec3_float(&self.positions_buffer, "position")?;
-        self.program.use_attribute_vec2_float(&self.uvs_buffer, "uv_coordinate")?;
+        self.program.use_attribute_vec3(&self.positions_buffer, "position")?;
+        self.program.use_attribute_vec2(&self.uvs_buffer, "uv_coordinate")?;
 
-        self.program.use_attribute_vec3_float_divisor(&self.center_buffer, "center", 1)?;
-        self.program.use_attribute_float_divisor(&self.rotation_buffer, "theta", 1)?;
+        self.program.use_attribute_vec3_divisor(&self.center_buffer, "center", 1)?;
+        self.program.use_attribute_divisor(&self.rotation_buffer, "theta", 1)?;
         self.program.draw_arrays_instanced(render_states, viewport, 6, self.instance_count);
         Ok(())
     }

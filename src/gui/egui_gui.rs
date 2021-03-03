@@ -143,9 +143,9 @@ impl GUI {
         self.program.use_texture(texture, "u_sampler")?;
         self.program.add_uniform_vec2("u_screen_size", &vec2(width as f32, height as f32))?;
 
-        self.program.use_attribute_vec2_float(&position_buffer, "a_pos")?;
-        self.program.use_attribute_vec4_float(&color_buffer, "a_srgba")?;
-        self.program.use_attribute_vec2_float(&uv_buffer, "a_tc")?;
+        self.program.use_attribute_vec2(&position_buffer, "a_pos")?;
+        self.program.use_attribute_vec4(&color_buffer, "a_srgba")?;
+        self.program.use_attribute_vec2(&uv_buffer, "a_tc")?;
 
         self.program.draw_elements(render_states, viewport, &index_buffer);
         Ok(())

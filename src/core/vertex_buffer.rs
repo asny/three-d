@@ -4,7 +4,8 @@ use crate::context::{Context, consts};
 pub struct VertexBuffer {
     context: Context,
     id: crate::context::Buffer,
-    count: usize
+    count: usize,
+    data_type: u32
 }
 
 impl VertexBuffer
@@ -12,7 +13,7 @@ impl VertexBuffer
     pub fn new_with_static_u8(context: &Context, data: &[u8]) -> Result<VertexBuffer, Error>
     {
         let id = context.create_buffer().unwrap();
-        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0 };
+        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0, data_type: consts::UNSIGNED_BYTE };
         if data.len() > 0 {
             buffer.fill_with_static_u8(data);
         }
@@ -30,7 +31,7 @@ impl VertexBuffer
     pub fn new_with_dynamic_u8(context: &Context, data: &[u8]) -> Result<VertexBuffer, Error>
     {
         let id = context.create_buffer().unwrap();
-        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0 };
+        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0, data_type: consts::UNSIGNED_BYTE };
         if data.len() > 0 {
             buffer.fill_with_dynamic_u8(data);
         }
@@ -48,7 +49,7 @@ impl VertexBuffer
     pub fn new_with_static_f32(context: &Context, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = context.create_buffer().unwrap();
-        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0 };
+        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0, data_type: consts::FLOAT };
         if data.len() > 0 {
             buffer.fill_with_static_f32(data);
         }
@@ -66,7 +67,7 @@ impl VertexBuffer
     pub fn new_with_dynamic_f32(context: &Context, data: &[f32]) -> Result<VertexBuffer, Error>
     {
         let id = context.create_buffer().unwrap();
-        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0 };
+        let mut buffer = VertexBuffer { context: context.clone(), id, count: 0, data_type: consts::FLOAT };
         if data.len() > 0 {
             buffer.fill_with_dynamic_f32(data);
         }
@@ -89,6 +90,8 @@ impl VertexBuffer
     {
         self.context.bind_buffer(consts::ARRAY_BUFFER, &self.id);
     }
+
+    pub(crate) fn data_type(&self) -> u32 { self.data_type }
 }
 
 impl Drop for VertexBuffer
