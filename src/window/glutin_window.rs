@@ -117,7 +117,7 @@ impl Window
                         WindowEvent::Resized(physical_size) => {
                             windowed_context.resize(*physical_size);
                         }
-                        WindowEvent::CloseRequested | WindowEvent::Destroyed => {
+                        WindowEvent::CloseRequested => {
                             *control_flow = ControlFlow::Exit
                         },
                         WindowEvent::KeyboardInput {input, ..} => {
