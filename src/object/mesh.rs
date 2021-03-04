@@ -116,6 +116,25 @@ impl Mesh {
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    pub fn render_color(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_PER_VERTEX_COLOR.is_none()
+            {
+                PROGRAM_PER_VERTEX_COLOR = Some(MeshProgram::new(&self.context,"
+                                                in vec4 col;
+                                                layout (location = 0) out vec4 outColor;
+                                                void main()
+                                                {
+                                                    outColor = col/255.0;
+                                                }
+                                                ")?);
+            }
+            PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
     pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -196,6 +215,7 @@ impl Drop for Mesh {
                 PROGRAM_DEPTH = None;
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
+                PROGRAM_PER_VERTEX_COLOR = None;
             }
         }
     }
@@ -204,4 +224,5 @@ impl Drop for Mesh {
 static mut PROGRAM_COLOR: Option<MeshProgram> = None;
 static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
+static mut PROGRAM_PER_VERTEX_COLOR: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
