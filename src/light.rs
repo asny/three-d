@@ -1,8 +1,8 @@
 
 //!
-//! Light definitions which is put in a uniform buffer.
+//! A collection of light types.
 //! Currently implemented light types are ambient light, directional light, spot light and point light.
-//! Directional and spot lights has functionality for shadow mapping.
+//! Directional and spot lights can cast shadows.
 //!
 
 #[doc(hidden)]

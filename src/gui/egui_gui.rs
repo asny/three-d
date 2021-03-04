@@ -1,4 +1,8 @@
 
+//!
+//! Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
+//!
+
 use crate::*;
 pub use egui;
 

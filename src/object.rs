@@ -1,4 +1,8 @@
 
+//!
+//! A collection of objects that can be rendered, for example a mesh.
+//!
+
 #[doc(hidden)]
 pub mod mesh;
 #[doc(inline)]

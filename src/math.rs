@@ -1,4 +1,8 @@
 
+//!
+//! Math functionality.
+//!
+
 #[doc(hidden)]
 pub mod math;
 #[doc(inline)]

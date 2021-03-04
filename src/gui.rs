@@ -1,4 +1,8 @@
 
+//!
+//! Graphical User Interface support.
+//!
+
 #[doc(hidden)]
 #[cfg(feature = "egui-gui")]
 pub mod egui_gui;
