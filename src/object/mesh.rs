@@ -3,6 +3,10 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
+/// customizable fragment shader for custom lighting. Use this in combination with [render](Mesh::render).
+///
 pub struct MeshProgram {
     program: Program,
     use_normals: bool,
@@ -11,6 +15,10 @@ pub struct MeshProgram {
 }
 
 impl MeshProgram {
+    ///
+    /// Constructs a new shader program for rendering meshes. The fragment shader can use the fragments position by adding `in vec3 pos;`,
+    /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
+    ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -78,8 +86,8 @@ impl std::ops::Deref for MeshProgram {
 }
 
 ///
-/// A triangle mesh object with fixed vertex shader and customizable fragment shader for customizable lighting.
-/// Supports rendering the depth and also with a fixed color and with a texture (ie. no lighting).
+/// A triangle mesh which can be rendered with one of the default render functions or with a custom [MeshProgram](MeshProgram).
+/// See also [PhongForwardMesh](crate::PhongForwardMesh) and [PhongDeferredMesh](crate::PhongDeferredMesh) for rendering a mesh with lighting.
 ///
 pub struct Mesh {
     context: Context,
@@ -91,6 +99,10 @@ pub struct Mesh {
 }
 
 impl Mesh {
+    ///
+    /// Copies the per vertex data defined in the given [CPUMesh](crate::CPUMesh) to the GPU, thereby
+    /// making it possible to render the mesh.
+    ///
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
@@ -104,6 +116,10 @@ impl Mesh {
         Ok(Mesh {context: context.clone(), position_buffer, normal_buffer, index_buffer, uv_buffer, color_buffer})
     }
 
+    ///
+    /// Render only the depth of the mesh into the current depth render target.
+    /// Useful for shadow maps or depth pre-pass.
+    ///
     pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -116,6 +132,12 @@ impl Mesh {
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh.
+    ///
+    /// # Errors
+    /// Will return an error if the mesh has no colors.
+    ///
     pub fn render_color(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -135,6 +157,9 @@ impl Mesh {
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the mesh with the given color.
+    ///
     pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -154,6 +179,12 @@ impl Mesh {
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the mesh with the given texture.
+    ///
+    /// # Errors
+    /// Will return an error if the mesh has no uv coordinates.
+    ///
     pub fn render_with_texture(&self, texture: &dyn Texture, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -174,6 +205,14 @@ impl Mesh {
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the mesh with the given [MeshProgram](MeshProgram).
+    ///
+    /// # Errors
+    /// Will return an error if the mesh shader program requires a certain attribute and the mesh does not have that attribute.
+    /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
+    /// function will return an error.
+    ///
     pub fn render(&self, program: &MeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.add_uniform_mat4("modelMatrix", &transformation)?;
