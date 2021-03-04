@@ -40,9 +40,9 @@ fn main() {
                                                                          "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = Obj::parse(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
-        let materials = penguin_cpu_materials.iter().map(|m| PhongMaterial::new(&context, m).unwrap()).collect::<Vec<PhongMaterial>>();
-        let penguin_deferred = PhongDeferredMesh::new_meshes(&context, &penguin_cpu_meshes, &materials).unwrap().remove(0);
-        let penguin_forward = PhongForwardMesh::new_meshes(&context, &penguin_cpu_meshes, &materials).unwrap().remove(0);
+        let penguin_cpu_material = PhongMaterial::new(&context, &penguin_cpu_materials[0]).unwrap();
+        let penguin_deferred = PhongDeferredMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+        let penguin_forward = PhongForwardMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
 
         let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
         let directional_light = DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();

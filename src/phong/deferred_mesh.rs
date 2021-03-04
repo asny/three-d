@@ -29,19 +29,6 @@ impl PhongDeferredMesh {
         })
     }
 
-    pub fn new_meshes(context: &Context, cpu_meshes: &[CPUMesh], materials: &[PhongMaterial]) -> Result<Vec<Self>, Error>
-    {
-        let mut meshes = Vec::new();
-        for cpu_mesh in cpu_meshes {
-            let material = cpu_mesh.material_name.as_ref().map(|material_name|
-                materials.iter().filter(|m| &m.name == material_name).last()
-                .map(|m| m.clone()).unwrap_or_else(|| PhongMaterial::default()))
-                .unwrap_or_else(|| PhongMaterial::default());
-            meshes.push(Self::new(context,cpu_mesh, &material)?);
-        }
-        Ok(meshes)
-    }
-
     pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
