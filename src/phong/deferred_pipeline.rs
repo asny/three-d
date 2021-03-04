@@ -151,7 +151,8 @@ impl PhongDeferredPipeline
                                            Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();
 
         RenderTargetArray::new_depth(&self.context, depth_array).unwrap()
-            .copy_depth(0, &RenderTarget::new_depth(&self.context, &depth_texture).unwrap(), Interpolation::Nearest).unwrap();
+            .copy_depth(0, &RenderTarget::new_depth(&self.context, &depth_texture).unwrap(),
+                        Viewport::new_at_origo(depth_array.width(), depth_array.height())).unwrap();
         depth_texture
     }
 }
