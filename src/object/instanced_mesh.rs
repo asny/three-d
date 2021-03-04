@@ -2,6 +2,10 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// A shader program used for rendering one or more instances of a [InstancedMesh](InstancedMesh). It has a fixed vertex shader and
+/// customizable fragment shader for custom lighting. Use this in combination with [render](InstancedMesh::render).
+///
 pub struct InstancedMeshProgram {
     program: Program,
     use_normals: bool,
@@ -9,6 +13,10 @@ pub struct InstancedMeshProgram {
 }
 
 impl InstancedMeshProgram {
+    ///
+    /// Constructs a new shader program for rendering instanced meshes. The fragment shader can use the fragments position by adding `in vec3 pos;`,
+    /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
+    ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -78,7 +86,7 @@ impl std::ops::Deref for InstancedMeshProgram {
 }
 
 ///
-/// Similar to [Mesh](crate::Mesh), except it is possible to draw many instances of the same triangle mesh efficiently.
+/// Similar to [Mesh](crate::Mesh), except it is possible to render many instances of the same triangle mesh efficiently.
 ///
 pub struct InstancedMesh {
     context: Context,
@@ -94,6 +102,12 @@ pub struct InstancedMesh {
 
 impl InstancedMesh
 {
+    ///
+    /// Constructs a new InstancedMesh from the given [CPUMesh](crate::CPUMesh). The mesh is rendered
+    /// in as many instances as there are transformation matrices in the transformations parameter.
+    /// Each instance is transformed with the given transformation before it is rendered.
+    /// The transformations can be updated by the [update_transformations](Self::update_transformations) function.
+    ///
     pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self, Error>
     {
         let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
@@ -114,6 +128,10 @@ impl InstancedMesh
         Ok(mesh)
     }
 
+    ///
+    /// Render only the depth of the instanced mesh into the current depth render target.
+    /// Useful for shadow maps or depth pre-pass.
+    ///
     pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -126,6 +144,34 @@ impl InstancedMesh
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the instanced mesh with a color per triangle vertex. The colors are defined when constructing the instanced mesh.
+    ///
+    /// # Errors
+    /// Will return an error if the instanced mesh has no colors.
+    ///
+    pub fn render_color(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    {
+        let program = unsafe {
+            if PROGRAM_PER_VERTEX_COLOR.is_none()
+            {
+                PROGRAM_PER_VERTEX_COLOR = Some(InstancedMeshProgram::new(&self.context,"
+                                                in vec4 col;
+                                                layout (location = 0) out vec4 outColor;
+                                                void main()
+                                                {
+                                                    outColor = col/255.0;
+                                                }
+                                                ")?);
+            }
+            PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, transformation, camera)
+    }
+
+    ///
+    /// Render the instanced mesh with the given color.
+    ///
     pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -145,6 +191,12 @@ impl InstancedMesh
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the instanced mesh with the given texture.
+    ///
+    /// # Errors
+    /// Will return an error if the instanced mesh has no uv coordinates.
+    ///
     pub fn render_with_texture(&self, texture: &dyn Texture, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         let program = unsafe {
@@ -165,6 +217,14 @@ impl InstancedMesh
         self.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the instanced mesh with the given [InstancedMeshProgram](InstancedMeshProgram).
+    ///
+    /// # Errors
+    /// Will return an error if the instanced mesh shader program requires a certain attribute and the instanced mesh does not have that attribute.
+    /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
+    /// function will return an error.
+    ///
     pub fn render(&self, program: &InstancedMeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
         program.use_attribute_vec4_divisor(&self.instance_buffer1, "row1", 1)?;
@@ -195,6 +255,10 @@ impl InstancedMesh
         Ok(())
     }
 
+    ///
+    /// Updates the transformations applied to each mesh instance before they are rendered.
+    /// The mesh is rendered in as many instances as there are transformation matrices.
+    ///
     pub fn update_transformations(&mut self, transformations: &[Mat4])
     {
         self.instance_count = transformations.len() as u32;
@@ -232,6 +296,7 @@ impl Drop for InstancedMesh {
                 PROGRAM_DEPTH = None;
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
+                PROGRAM_PER_VERTEX_COLOR = None;
             }
         }
     }
@@ -240,4 +305,5 @@ impl Drop for InstancedMesh {
 static mut PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<InstancedMeshProgram> = None;
+static mut PROGRAM_PER_VERTEX_COLOR: Option<InstancedMeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
