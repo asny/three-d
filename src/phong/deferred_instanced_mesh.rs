@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 use crate::object::*;
 use crate::phong::*;
 
@@ -27,7 +28,7 @@ impl PhongDeferredInstancedMesh
         })
     }
 
-    pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {

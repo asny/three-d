@@ -1,5 +1,6 @@
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 
 ///
 /// An illusion of a sky.
@@ -33,7 +34,7 @@ impl Skybox
         Ok(Skybox { program, vertex_buffer, texture })
     }
 
-    pub fn render(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Front, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 

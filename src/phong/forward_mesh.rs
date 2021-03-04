@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 use crate::object::*;
 use crate::light::*;
 use crate::phong::*;
@@ -32,7 +33,7 @@ impl PhongForwardMesh
         })
     }
 
-    pub fn render_with_ambient(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight) -> Result<(), Error>
+    pub fn render_with_ambient(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {
@@ -67,7 +68,7 @@ impl PhongForwardMesh
         self.mesh.render(program, render_states, viewport,transformation, camera)
     }
 
-    pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
+    pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
             ColorSource::Color(_) => {

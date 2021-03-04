@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 use crate::light::*;
 use crate::effect::*;
 

@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 
 ///
 /// A light which shines from the given position and in the given direction.

@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 use crate::effect::*;
 
 pub struct FogEffect {
@@ -17,7 +18,7 @@ impl FogEffect {
         Ok(FogEffect {color: vec3(0.8, 0.8, 0.8), density: 0.2, animation: 0.1, image_effect: ImageEffect::new(gl, include_str!("shaders/fog.frag"))?})
     }
 
-    pub fn apply(&self, viewport: Viewport, camera: &camera::Camera, depth_texture: &dyn Texture, time: f32) -> Result<(), Error>
+    pub fn apply(&self, viewport: Viewport, camera: &Camera, depth_texture: &dyn Texture, time: f32) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Back, write_mask: WriteMask::COLOR,
             blend: Some(BlendParameters::TRANSPARENCY),

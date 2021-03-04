@@ -2,6 +2,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 
 ///
 /// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
@@ -120,7 +121,7 @@ impl Mesh {
     /// Render only the depth of the mesh into the current depth render target.
     /// Useful for shadow maps or depth pre-pass.
     ///
-    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
         let program = unsafe {
             if PROGRAM_DEPTH.is_none()

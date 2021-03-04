@@ -1,9 +1,8 @@
 
 use three_d::math::*;
 use three_d::core::*;
-use three_d::Mesh;
-use three_d::MeshProgram;
-use three_d::CPUMesh;
+use three_d::camera::*;
+use three_d::object::*;
 use three_d::window::*;
 
 fn main() {

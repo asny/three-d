@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 
 ///
 /// Shader program used for rendering [Particles](Particles).
@@ -144,7 +145,7 @@ impl Particles {
     ///
     /// Render all defined particles with the given [ParticlesProgram](ParticlesProgram).
     ///
-    pub fn render(&self, program: &ParticlesProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera, time: f32) -> Result<(), Error>
+    pub fn render(&self, program: &ParticlesProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, time: f32) -> Result<(), Error>
     {
         program.add_uniform_mat4("modelMatrix", &transformation)?;
         program.add_uniform_vec3("acceleration", &self.acceleration)?;

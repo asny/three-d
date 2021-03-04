@@ -44,11 +44,6 @@ pub mod program;
 pub use program::*;
 
 #[doc(hidden)]
-pub mod camera;
-#[doc(inline)]
-pub use camera::*;
-
-#[doc(hidden)]
 pub mod cpu_mesh;
 #[doc(inline)]
 pub use crate::cpu_mesh::*;

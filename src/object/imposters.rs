@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::core::*;
+use crate::camera::*;
 use std::f32::consts::PI;
 
 const NO_VIEW_ANGLES: usize  = 8;
@@ -96,7 +97,7 @@ impl Imposters {
         self.instance_count = positions.len() as u32/3;
     }
 
-    pub fn render(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error>
+    pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error>
     {
         let render_states = RenderStates {
             cull: CullType::Back,
