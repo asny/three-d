@@ -2,7 +2,7 @@
 use crate::math::*;
 use crate::core::*;
 
-pub enum CameraType {
+pub enum ProjectionType {
     Orthographic {
         width: f32,
         height: f32,
@@ -17,7 +17,7 @@ pub enum CameraType {
 }
 
 pub struct Camera {
-    cam_type: CameraType,
+    projection_type: ProjectionType,
     position: Vec3,
     target: Vec3,
     up: Vec3,
@@ -49,7 +49,7 @@ impl Camera
     pub fn set_perspective_projection(&mut self, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32)
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
-        self.cam_type = CameraType::Perspective { fovy, aspect, z_near, z_far };
+        self.projection_type = ProjectionType::Perspective { fovy, aspect, z_near, z_far };
         self.projection = perspective(fovy, aspect, z_near, z_far);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -58,7 +58,7 @@ impl Camera
 
     pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32)
     {
-        self.cam_type = CameraType::Orthographic { width, height, depth };
+        self.projection_type = ProjectionType::Orthographic { width, height, depth };
         self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, 0.0, depth);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -66,14 +66,14 @@ impl Camera
     }
 
     pub fn set_aspect(&mut self, value: f32) {
-        match self.cam_type {
-            CameraType::Orthographic {width, height, depth} => {
+        match self.projection_type {
+            ProjectionType::Orthographic {width, height, depth} => {
                 if (width / height - value).abs() > 0.001
                 {
                     self.set_orthographic_projection(height * value, height, depth);
                 }
             },
-            CameraType::Perspective {aspect, fovy, z_near, z_far} => {
+            ProjectionType::Perspective {aspect, fovy, z_near, z_far} => {
                 if (aspect - value).abs() > 0.001
                 {
                     self.set_perspective_projection(fovy, value, z_near, z_far);
@@ -131,8 +131,8 @@ impl Camera
         (self.screen2ray * screen_pos).truncate().normalize()
     }
 
-    pub fn camera_type(&self) -> &CameraType {
-        &self.cam_type
+    pub fn projection_type(&self) -> &ProjectionType {
+        &self.projection_type
     }
 
     pub fn view(&self) -> &Mat4
@@ -167,7 +167,8 @@ impl Camera
 
     fn new(context: &Context) -> Camera
     {
-        Camera {cam_type: CameraType::Orthographic {width: 1.0, height: 1.0, depth: 1.0},
+        Camera {
+            projection_type: ProjectionType::Orthographic {width: 1.0, height: 1.0, depth: 1.0},
             matrix_buffer: UniformBuffer::new(context, &vec![16, 16, 16, 3, 1]).unwrap(),
             frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
             position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),

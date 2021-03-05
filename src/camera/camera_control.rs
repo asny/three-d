@@ -62,14 +62,14 @@ impl CameraControl {
 
     pub fn zoom(&mut self, wheel: f32)
     {
-        match self.camera_type() {
-            CameraType::Orthographic {width, height, depth} => {
+        match self.projection_type() {
+            ProjectionType::Orthographic {width, height, depth} => {
                 let h = (height - wheel).max(0.001);
                 let w = h * width / height;
                 let d = *depth;
                 self.set_orthographic_projection(w, h, d);
             },
-            CameraType::Perspective {..} => {
+            ProjectionType::Perspective {..} => {
                 let position = *self.position();
                 let target = *self.target();
                 let up = *self.up();
