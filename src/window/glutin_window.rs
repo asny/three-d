@@ -4,8 +4,8 @@ use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
 use glutin::ContextBuilder;
-use crate::window::frame_input;
-use crate::{context, Modifiers, State};
+use crate::math::*;
+use crate::frame::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -43,7 +43,7 @@ impl Window
         }
 
         let windowed_context = unsafe { wc?.make_current().unwrap() };
-        let gl = context::Glstruct::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
+        let gl = crate::context::Glstruct::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
         Ok(Window { windowed_context, event_loop, gl})
     }
 
@@ -220,9 +220,9 @@ impl Window
         (t.0 as usize, t.1 as usize)
     }
 
-    pub fn viewport(&self) -> crate::Viewport {
+    pub fn viewport(&self) -> Viewport {
         let (w, h): (u32, u32) = self.windowed_context.window().inner_size().into();
-        crate::Viewport::new_at_origo(w as usize, h as usize)
+        Viewport::new_at_origo(w as usize, h as usize)
     }
 
     pub fn gl(&self) -> crate::Context
@@ -241,7 +241,6 @@ fn is_printable_char(chr: char) -> bool {
 
 fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<frame_input::Key> {
     use event::VirtualKeyCode::*;
-    use frame_input::Key;
 
     Some(match key {
         Down => Key::ArrowDown,

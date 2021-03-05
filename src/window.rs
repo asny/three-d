@@ -6,11 +6,6 @@
 //!
 
 #[doc(hidden)]
-pub mod frame_input;
-#[doc(inline)]
-pub use frame_input::*;
-
-#[doc(hidden)]
 #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
 pub mod glutin_window;
 #[doc(inline)]

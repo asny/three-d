@@ -19,6 +19,10 @@ pub mod camera;
 #[doc(inline)]
 pub use camera::*;
 
+pub mod frame;
+#[doc(inline)]
+pub use frame::*;
+
 pub mod object;
 #[doc(inline)]
 pub use crate::object::*;
