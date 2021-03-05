@@ -24,13 +24,6 @@ pub enum Format {
     RGBA32F
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum DepthFormat {
-    Depth16,
-    Depth24,
-    Depth32F
-}
-
 pub struct CPUTexture<T> {
     pub data: Vec<T>,
     pub width: usize,

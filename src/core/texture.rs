@@ -150,6 +150,13 @@ impl Drop for ColorTargetTexture2D
     }
 }
 
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub enum DepthFormat {
+    Depth16,
+    Depth24,
+    Depth32F
+}
+
 pub struct DepthTargetTexture2D {
     context: Context,
     id: crate::context::Texture,
