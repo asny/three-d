@@ -2,7 +2,13 @@
 use crate::math::*;
 use crate::core::*;
 
+pub enum CameraType {
+    Orthographic,
+    Perspective
+}
+
 pub struct Camera {
+    cam_type: CameraType,
     position: Vec3,
     target: Vec3,
     up: Vec3,
@@ -22,7 +28,7 @@ impl Camera
 {
     fn new(context: &Context) -> Camera
     {
-        Camera {matrix_buffer: UniformBuffer::new(context, &vec![16, 16, 16, 3, 1]).unwrap(), frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
+        Camera {cam_type: CameraType::Orthographic, matrix_buffer: UniformBuffer::new(context, &vec![16, 16, 16, 3, 1]).unwrap(), frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
             width: 1.0, height: 1.0, position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
             view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()}
     }
@@ -46,6 +52,7 @@ impl Camera
     pub fn set_perspective_projection(&mut self, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32)
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
+        self.cam_type = CameraType::Perspective;
         self.fov = fovy;
         self.z_near = z_near;
         self.z_far = z_far;
@@ -59,6 +66,7 @@ impl Camera
 
     pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32)
     {
+        self.cam_type = CameraType::Orthographic;
         self.fov = degrees(0.0);
         self.z_near = 0.0;
         self.z_far = depth;
@@ -73,11 +81,13 @@ impl Camera
     pub fn set_aspect(&mut self, aspect: f32) {
         if (self.width as f32 / self.height as f32 - aspect).abs() > 0.001
         {
-            if self.fov == degrees(0.0) {
-                self.set_orthographic_projection(self.height * aspect, self.height, self.z_far);
-            }
-            else {
-                self.set_perspective_projection(self.fov, aspect, self.z_near, self.z_far);
+            match self.cam_type {
+                CameraType::Orthographic => {
+                    self.set_orthographic_projection(self.height * aspect, self.height, self.z_far);
+                },
+                CameraType::Perspective => {
+                    self.set_perspective_projection(self.fov, aspect, self.z_near, self.z_far);
+                }
             }
         }
     }
@@ -103,10 +113,36 @@ impl Camera
         self.update_frustrum();
     }
 
+    // false if fully outside, true if inside or intersects
+    pub fn in_frustum(&self, aabb: &AxisAlignedBoundingBox) -> bool
+    {
+        // check box outside/inside of frustum
+        for i in 0..6
+        {
+            let mut out = 0;
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
+            if out == 8 {return false;}
+        }
+        // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
+
+        return true;
+    }
+
     pub fn view_direction_at(&self, screen_coordinates: (f64, f64)) -> Vec3
     {
         let screen_pos = vec4(2. * screen_coordinates.0 as f32 - 1., 1. - 2. * screen_coordinates.1 as f32, 0., 1.);
         (self.screen2ray * screen_pos).truncate().normalize()
+    }
+
+    pub fn camera_type(&self) -> &CameraType {
+        &self.cam_type
     }
 
     pub fn get_view(&self) -> &Mat4
@@ -133,6 +169,14 @@ impl Camera
     {
         &self.up
     }
+
+    pub fn width(&self) -> f32 {self.width}
+
+    pub fn height(&self) -> f32 {self.height}
+
+    pub fn z_near(&self) -> f32 {self.z_near}
+
+    pub fn z_far(&self) -> f32 {self.z_far}
 
     pub fn matrix_buffer(&self) -> &UniformBuffer
     {
@@ -163,86 +207,5 @@ impl Camera
          vec4(m.x.w - m.x.y, m.y.w - m.y.y,m.z.w - m.z.y, m.w.w - m.w.y),
          vec4(m.x.w + m.x.z,m.y.w + m.y.z,m.z.w + m.z.z, m.w.w + m.w.z),
          vec4(m.x.w - m.x.z,m.y.w - m.y.z,m.z.w - m.z.z, m.w.w - m.w.z)];
-    }
-
-    // false if fully outside, true if inside or intersects
-    pub fn in_frustum(&self, aabb: &AxisAlignedBoundingBox) -> bool
-    {
-        // check box outside/inside of frustum
-        for i in 0..6
-        {
-            let mut out = 0;
-            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.min.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.min.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(aabb.min.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
-            if self.frustrum[i].dot(vec4(aabb.max.x, aabb.max.y, aabb.max.z, 1.0)) < 0.0 {out += 1};
-            if out == 8 {return false;}
-        }
-        // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
-
-        return true;
-    }
-
-    pub fn translate(&mut self, change: &Vec3)
-    {
-        self.set_view(*self.position() + change, *self.target() + change, *self.up());
-    }
-
-    pub fn rotate(&mut self, x: f32, y: f32)
-    {
-        let mut direction = self.target - self.position;
-        let zoom = direction.magnitude();
-        direction /= zoom;
-        let right = direction.cross(self.up);
-        let up = right.cross(direction);
-        let new_pos = self.position + (-right * x + up * y) * 0.1;
-        let new_dir = (self.target - new_pos).normalize();
-        self.set_view(self.target - new_dir * zoom, self.target, up);
-    }
-
-    pub fn rotate_around_up(&mut self, x: f32, y: f32)
-    {
-        let mut direction = self.target - self.position;
-        let zoom = direction.magnitude();
-        direction /= zoom;
-        let right = direction.cross(self.up);
-        let up = right.cross(direction);
-        let new_pos = self.position + (-right * x + up * y) * 0.1;
-        let new_dir = (self.target - new_pos).normalize();
-        if new_dir.dot(self.up).abs() < 0.999 {
-            self.set_view(self.target - new_dir * zoom, self.target, self.up);
-        }
-    }
-
-    pub fn pan(&mut self, x: f32, y: f32)
-    {
-        let mut direction = self.target - self.position;
-        let zoom = direction.magnitude();
-        direction /= zoom;
-        let right = direction.cross(self.up);
-        let up = right.cross(direction);
-        let delta = (-right * x + up * y) * zoom * 0.005;
-        self.set_view(self.position + delta, self.target + delta, self.up);
-    }
-
-    pub fn zoom(&mut self, wheel: f32)
-    {
-        if self.fov == degrees(0.0) {
-            let height = (self.height - wheel).max(0.001);
-            let width = height * self.width / self.height;
-            self.set_orthographic_projection(width, height, self.z_far - self.z_near);
-        }
-        else {
-            let mut direction = self.target - self.position;
-            let mut zoom = direction.magnitude();
-            direction /= zoom;
-            zoom += wheel;
-            zoom = zoom.max(1.0);
-            self.set_view(self.target - direction * zoom, self.target, self.up);
-        }
     }
 }

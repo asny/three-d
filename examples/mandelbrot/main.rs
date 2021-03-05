@@ -13,8 +13,8 @@ fn main() {
     let context = window.gl();
 
     // Renderer
-    let mut camera = Camera::new_orthographic(&context, vec3(0.0, 0.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                1.2, 1.2*window.viewport().aspect(), 10.0);
+    let mut camera = CameraControl::new(Camera::new_orthographic(&context, vec3(0.0, 0.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                1.2, 1.2*window.viewport().aspect(), 10.0));
 
     let indices = vec![
         0, 1, 2, 2, 3, 0
