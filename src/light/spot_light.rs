@@ -94,7 +94,7 @@ impl SpotLight {
         let cutoff = self.light_buffer.get(7).unwrap()[0];
 
         self.shadow_camera = Some(Camera::new_perspective(&self.context, position, position + direction, up,
-                                                          degrees(cutoff), 1.0, 0.1, frustrum_depth));
+                                                          degrees(cutoff), 1.0, 0.1, frustrum_depth)?);
         self.light_buffer.update(10, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice())?;
 
         self.shadow_texture = DepthTargetTexture2D::new(&self.context, texture_size, texture_size,Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F)?;

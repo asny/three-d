@@ -65,7 +65,7 @@ impl DirectionalLight {
         let up = compute_up_direction(direction);
 
         self.shadow_camera = Some(Camera::new_orthographic(&self.context, target - direction.normalize()*0.5*frustrum_depth, *target, up,
-                                                           frustrum_width, frustrum_height, frustrum_depth));
+                                                           frustrum_width, frustrum_height, frustrum_depth)?);
         self.light_buffer.update(4, &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice())?;
 
         self.shadow_texture = DepthTargetTexture2D::new(&self.context, texture_width, texture_height, Wrapping::ClampToEdge, Wrapping::ClampToEdge, DepthFormat::Depth32F).unwrap();

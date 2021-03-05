@@ -1,6 +1,7 @@
 
 use crate::math::*;
 use crate::camera::*;
+use crate::core::Error;
 
 pub struct CameraControl {
     camera: Camera
@@ -11,15 +12,16 @@ impl CameraControl {
         Self {camera}
     }
 
-    pub fn translate(&mut self, change: &Vec3)
+    pub fn translate(&mut self, change: &Vec3) -> Result<(), Error>
     {
         let position = *self.position();
         let target = *self.target();
         let up = *self.up();
-        self.set_view(position + change, target + change, up);
+        self.set_view(position + change, target + change, up)?;
+        Ok(())
     }
 
-    pub fn rotate(&mut self, x: f32, y: f32)
+    pub fn rotate(&mut self, x: f32, y: f32) -> Result<(), Error>
     {
         let target = *self.target();
         let mut direction = self.target() - self.position();
@@ -29,10 +31,11 @@ impl CameraControl {
         let up = right.cross(direction);
         let new_pos = self.position() + (-right * x + up * y) * 0.1;
         let new_dir = (self.target() - new_pos).normalize();
-        self.set_view(target - new_dir * zoom, target, up);
+        self.set_view(target - new_dir * zoom, target, up)?;
+        Ok(())
     }
 
-    pub fn rotate_around_up(&mut self, x: f32, y: f32)
+    pub fn rotate_around_up(&mut self, x: f32, y: f32) -> Result<(), Error>
     {
         let target = *self.target();
         let up = *self.up();
@@ -43,11 +46,12 @@ impl CameraControl {
         let new_pos = self.position() + (-right * x + right.cross(direction) * y) * 0.1;
         let new_dir = (self.target() - new_pos).normalize();
         if new_dir.dot(up).abs() < 0.999 {
-            self.set_view(target - new_dir * zoom, target, up);
+            self.set_view(target - new_dir * zoom, target, up)?;
         }
+        Ok(())
     }
 
-    pub fn pan(&mut self, x: f32, y: f32)
+    pub fn pan(&mut self, x: f32, y: f32) -> Result<(), Error>
     {
         let position = *self.position();
         let target = *self.target();
@@ -57,17 +61,18 @@ impl CameraControl {
         direction /= zoom;
         let right = direction.cross(up);
         let delta = (-right * x + right.cross(direction) * y) * zoom * 0.005;
-        self.set_view(position + delta, target + delta, up);
+        self.set_view(position + delta, target + delta, up)?;
+        Ok(())
     }
 
-    pub fn zoom(&mut self, wheel: f32)
+    pub fn zoom(&mut self, wheel: f32) -> Result<(), Error>
     {
         match self.projection_type() {
             ProjectionType::Orthographic {width, height, depth} => {
                 let h = (height - wheel).max(0.001);
                 let w = h * width / height;
                 let d = *depth;
-                self.set_orthographic_projection(w, h, d);
+                self.set_orthographic_projection(w, h, d)?;
             },
             ProjectionType::Perspective {..} => {
                 let position = *self.position();
@@ -78,9 +83,10 @@ impl CameraControl {
                 direction /= zoom;
                 zoom += wheel;
                 zoom = zoom.max(1.0);
-                self.set_view(target - direction * zoom, target, up);
+                self.set_view(target - direction * zoom, target, up)?;
             }
         }
+        Ok(())
     }
 }
 

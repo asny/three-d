@@ -30,77 +30,82 @@ pub struct Camera {
 
 impl Camera
 {
-    pub fn new_orthographic(context: &Context, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
+    pub fn new_orthographic(context: &Context, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32)  -> Result<Camera, Error>
     {
         let mut camera = Camera::new(context);
-        camera.set_view(position, target, up);
-        camera.set_orthographic_projection(width, height, depth);
-        camera
+        camera.set_view(position, target, up)?;
+        camera.set_orthographic_projection(width, height, depth)?;
+        Ok(camera)
     }
 
-    pub fn new_perspective(context: &Context, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Camera
+    pub fn new_perspective(context: &Context, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Result<Camera, Error>
     {
         let mut camera = Camera::new(context);
-        camera.set_view(position, target, up);
-        camera.set_perspective_projection(fovy, aspect, z_near, z_far);
-        camera
+        camera.set_view(position, target, up)?;
+        camera.set_perspective_projection(fovy, aspect, z_near, z_far)?;
+        Ok(camera)
     }
 
-    pub fn set_perspective_projection(&mut self, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32)
+    pub fn set_perspective_projection(&mut self, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Result<(), Error>
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
         self.projection_type = ProjectionType::Perspective { fovy, aspect, z_near, z_far };
         self.projection = perspective(fovy, aspect, z_near, z_far);
         self.update_screen2ray();
-        self.update_matrix_buffer();
+        self.update_matrix_buffer()?;
         self.update_frustrum();
+        Ok(())
     }
 
-    pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32)
+    pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32) -> Result<(), Error>
     {
         self.projection_type = ProjectionType::Orthographic { width, height, depth };
         self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, 0.0, depth);
         self.update_screen2ray();
-        self.update_matrix_buffer();
+        self.update_matrix_buffer()?;
         self.update_frustrum();
+        Ok(())
     }
 
-    pub fn set_aspect(&mut self, value: f32) {
+    pub fn set_aspect(&mut self, value: f32) -> Result<(), Error> {
         match self.projection_type {
             ProjectionType::Orthographic {width, height, depth} => {
                 if (width / height - value).abs() > 0.001
                 {
-                    self.set_orthographic_projection(height * value, height, depth);
+                    self.set_orthographic_projection(height * value, height, depth)?;
                 }
             },
             ProjectionType::Perspective {aspect, fovy, z_near, z_far} => {
                 if (aspect - value).abs() > 0.001
                 {
-                    self.set_perspective_projection(fovy, value, z_near, z_far);
+                    self.set_perspective_projection(fovy, value, z_near, z_far)?;
                 }
             }
         }
+        Ok(())
     }
 
-    pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3)
+    pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3) -> Result<(), Error>
     {
         self.position = position;
         self.target = target;
         self.up = up;
         self.view = Mat4::look_at(Point::from_vec(self.position), Point::from_vec(self.target), self.up);
         self.update_screen2ray();
-        self.update_matrix_buffer();
+        self.update_matrix_buffer()?;
         self.update_frustrum();
+        Ok(())
     }
 
-    pub fn mirror_in_xz_plane(&mut self)
+    pub fn mirror_in_xz_plane(&mut self) -> Result<(), Error>
     {
         self.view[1][0] = -self.view[1][0];
         self.view[1][1] = -self.view[1][1];
         self.view[1][2] = -self.view[1][2];
         self.update_screen2ray();
-        self.update_matrix_buffer();
+        self.update_matrix_buffer()?;
         self.update_frustrum();
+        Ok(())
     }
 
     // false if fully outside, true if inside or intersects
@@ -182,12 +187,13 @@ impl Camera
         self.screen2ray = (self.projection * v).invert().unwrap();
     }
 
-    fn update_matrix_buffer(&mut self)
+    fn update_matrix_buffer(&mut self) -> Result<(), Error>
     {
-        self.matrix_buffer.update(0, &(self.projection * self.view).to_slice()).unwrap();
-        self.matrix_buffer.update(1, &self.view.to_slice()).unwrap();
-        self.matrix_buffer.update(2, &self.projection.to_slice()).unwrap();
-        self.matrix_buffer.update(3, &self.position.to_slice()).unwrap();
+        self.matrix_buffer.update(0, &(self.projection * self.view).to_slice())?;
+        self.matrix_buffer.update(1, &self.view.to_slice())?;
+        self.matrix_buffer.update(2, &self.projection.to_slice())?;
+        self.matrix_buffer.update(3, &self.position.to_slice())?;
+        Ok(())
     }
 
     fn update_frustrum(&mut self)
