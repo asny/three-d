@@ -56,7 +56,7 @@ impl Imposters {
         let height = max.y - min.y;
         let center = 0.5 * min + 0.5 * max;
         let mut camera = camera::Camera::new_orthographic(&self.context, center + vec3(0.0, 0.0, -1.0),
-                          center, vec3(0.0, 1.0, 0.0), width, height, 4.0*(width+height));
+                          center, vec3(0.0, 1.0, 0.0), width, height, 4.0*(width+height))?;
 
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
@@ -70,9 +70,9 @@ impl Imposters {
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
             camera.set_view(center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
-                            center, vec3(0.0, 1.0, 0.0));
-                              render_target.write(&ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0), &[i],
-                              0, || {render(Viewport::new_at_origo(texture_width, texture_height), &camera)?; Ok(())})?;
+                            center, vec3(0.0, 1.0, 0.0))?;
+            render_target.write(&ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0), &[i],
+            0, || {render(Viewport::new_at_origo(texture_width, texture_height), &camera)?; Ok(())})?;
         }
 
         let xmin = center.x - 0.5 * width;

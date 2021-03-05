@@ -13,8 +13,8 @@ fn main() {
     let context = window.gl();
 
     // Renderer
-    let mut camera = Camera::new_orthographic(&context, vec3(0.0, 0.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                1.2, 1.2*window.viewport().aspect(), 10.0);
+    let mut camera = CameraControl::new(Camera::new_orthographic(&context, vec3(0.0, 0.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                1.2, 1.2*window.viewport().aspect(), 10.0).unwrap());
 
     let indices = vec![
         0, 1, 2, 2, 3, 0
@@ -32,7 +32,7 @@ fn main() {
     let mut panning = false;
     window.render_loop(move |frame_input|
     {
-        camera.set_aspect(frame_input.viewport.aspect());
+        camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
         for event in frame_input.events.iter() {
             match event {
@@ -41,11 +41,11 @@ fn main() {
                 },
                 Event::MouseMotion {delta, ..} => {
                     if panning {
-                        camera.pan(0.2 * delta.0 as f32, 0.2 * delta.1 as f32);
+                        camera.pan(0.2 * delta.0 as f32, 0.2 * delta.1 as f32).unwrap();
                     }
                 },
                 Event::MouseWheel {delta, ..} => {
-                    camera.zoom(0.05 * delta.1 as f32);
+                    camera.zoom(0.05 * delta.1 as f32).unwrap();
                 },
                 _ => {}
             }

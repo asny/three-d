@@ -8,8 +8,8 @@ fn main() {
     let context = window.gl();
 
     let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
-    let mut camera = Camera::new_perspective(&context, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
+    let mut camera = CameraControl::new(Camera::new_perspective(&context, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0).unwrap());
     let mut gui = three_d::GUI::new(&context).unwrap();
     let mut panel_width = 0;
 
@@ -45,7 +45,7 @@ fn main() {
         {
             let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width, frame_input.viewport.height);
             let viewport_light_pass = Viewport {x: panel_width as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
-            camera.set_aspect(viewport_geometry_pass.aspect());
+            camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
 
             gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
@@ -97,12 +97,12 @@ fn main() {
                     },
                     Event::MouseMotion { delta, handled, .. } => {
                         if !handled && rotating {
-                            camera.rotate_around_up(delta.0 as f32, delta.1 as f32);
+                            camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
                         }
                     },
                     Event::MouseWheel { delta, handled, .. } => {
                         if !handled {
-                            camera.zoom(delta.1 as f32);
+                            camera.zoom(delta.1 as f32).unwrap();
                         }
                     },
                     _ => {}

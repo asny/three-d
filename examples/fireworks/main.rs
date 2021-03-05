@@ -9,8 +9,8 @@ fn main() {
     let window = Window::new("Fireworks", Some((1280, 720))).unwrap();
     let context = window.gl();
 
-    let mut camera = Camera::new_perspective(&context, vec3(0.0, 30.0, 150.0), vec3(0.0, 30.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
+    let mut camera = CameraControl::new(Camera::new_perspective(&context, vec3(0.0, 30.0, 150.0), vec3(0.0, 30.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0).unwrap());
 
     let mut rng = rand::thread_rng();
 
@@ -26,7 +26,7 @@ fn main() {
     let mut color_index = 0;
     window.render_loop(move |frame_input|
     {
-        camera.set_aspect(frame_input.viewport.aspect());
+        camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
         for event in frame_input.events.iter() {
             match event {
@@ -35,11 +35,11 @@ fn main() {
                 },
                 Event::MouseMotion {delta, ..} => {
                     if rotating {
-                        camera.rotate(delta.0 as f32, delta.1 as f32);
+                        camera.rotate(delta.0 as f32, delta.1 as f32).unwrap();
                     }
                 },
                 Event::MouseWheel {delta, ..} => {
-                    camera.zoom(delta.1 as f32);
+                    camera.zoom(delta.1 as f32).unwrap();
                 },
                 _ => { }
             }

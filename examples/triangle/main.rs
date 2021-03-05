@@ -9,7 +9,7 @@ fn main() {
     let context = window.gl();
 
     let mut camera = Camera::new_perspective(&context, vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                             degrees(45.0), window.viewport().aspect(), 0.1, 10.0);
+                                             degrees(45.0), window.viewport().aspect(), 0.1, 10.0).unwrap();
 
     // Create a colored triangle
     let positions: Vec<f32> = vec![
@@ -30,7 +30,7 @@ fn main() {
     // main loop
     window.render_loop(move |frame_input|
     {
-        camera.set_aspect(frame_input.viewport.aspect());
+        camera.set_aspect(frame_input.viewport.aspect()).unwrap();
         Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
             let transformation = Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32));
             mesh.render_color(RenderStates::default(), frame_input.viewport, &transformation, &camera)?;

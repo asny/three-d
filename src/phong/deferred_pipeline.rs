@@ -81,7 +81,7 @@ impl PhongDeferredPipeline
             if self.debug_effect.is_none() {
                 self.debug_effect = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
             }
-            self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.debug_effect.as_ref().unwrap().program().add_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
             self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.debug_effect.as_ref().unwrap().program().add_uniform_int("type", &(self.debug_type as i32))?;
@@ -103,7 +103,7 @@ impl PhongDeferredPipeline
             self.directional_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.directional_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.directional_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
-            self.directional_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.directional_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
             self.directional_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLightUniform");
             self.directional_light_effect.apply(render_states, viewport)?;
@@ -115,7 +115,7 @@ impl PhongDeferredPipeline
             self.spot_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.spot_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.spot_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
-            self.spot_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.spot_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
             self.spot_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
             self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLightUniform");
             self.spot_light_effect.apply(render_states, viewport)?;
@@ -127,7 +127,7 @@ impl PhongDeferredPipeline
             self.point_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
             self.point_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.point_light_effect.program().add_uniform_vec3("eyePosition", &camera.position())?;
-            self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+            self.point_light_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
             self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLightUniform");
             self.point_light_effect.apply(render_states, viewport)?;
             render_states.blend = Some(BlendParameters::ADD);

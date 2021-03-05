@@ -25,7 +25,7 @@ impl FogEffect {
             ..Default::default()};
 
         self.image_effect.program().use_texture(depth_texture, "depthMap")?;
-        self.image_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.get_projection() * camera.get_view()).invert().unwrap())?;
+        self.image_effect.program().add_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
         self.image_effect.program().add_uniform_vec3("fogColor", &self.color)?;
         self.image_effect.program().add_uniform_float("fogDensity", &self.density)?;
         self.image_effect.program().add_uniform_float("animation", &self.animation)?;

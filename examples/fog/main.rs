@@ -10,8 +10,8 @@ fn main() {
 
     // Renderer
     let mut pipeline = PhongForwardPipeline::new(&context).unwrap();
-    let mut camera = Camera::new_perspective(&context, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
+    let mut camera = CameraControl::new(Camera::new_perspective(&context, vec3(4.0, 4.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0).unwrap());
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl",
         "examples/assets/skybox_evening/back.jpg", "examples/assets/skybox_evening/front.jpg",
@@ -43,7 +43,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
-            camera.set_aspect(frame_input.viewport.aspect());
+            camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
@@ -52,11 +52,11 @@ fn main() {
                     },
                     Event::MouseMotion { delta, .. } => {
                         if rotating {
-                            camera.rotate(delta.0 as f32, delta.1 as f32);
+                            camera.rotate(delta.0 as f32, delta.1 as f32).unwrap();
                         }
                     },
                     Event::MouseWheel { delta, .. } => {
-                        camera.zoom(delta.1 as f32);
+                        camera.zoom(delta.1 as f32).unwrap();
                     },
                     Event::Key { state, kind, .. } => {
                         if *kind == Key::F && *state == State::Pressed
