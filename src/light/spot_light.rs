@@ -124,7 +124,7 @@ fn shadow_matrix(camera: &Camera) -> Mat4
                          0.0, 0.5, 0.0, 0.0,
                          0.0, 0.0, 0.5, 0.0,
                          0.5, 0.5, 0.5, 1.0);
-    bias_matrix * camera.get_projection() * camera.get_view()
+    bias_matrix * camera.projection() * camera.view()
 }
 
 fn compute_up_direction(direction: Vec3) -> Vec3

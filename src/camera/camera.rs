@@ -135,12 +135,12 @@ impl Camera
         &self.cam_type
     }
 
-    pub fn get_view(&self) -> &Mat4
+    pub fn view(&self) -> &Mat4
     {
         &self.view
     }
 
-    pub fn get_projection(&self) -> &Mat4
+    pub fn projection(&self) -> &Mat4
     {
         &self.projection
     }
