@@ -3,8 +3,17 @@ use crate::math::*;
 use crate::core::*;
 
 pub enum CameraType {
-    Orthographic,
-    Perspective
+    Orthographic {
+        width: f32,
+        height: f32,
+        depth: f32
+    },
+    Perspective {
+        fovy: Degrees,
+        aspect: f32,
+        z_near: f32,
+        z_far: f32
+    }
 }
 
 pub struct Camera {
@@ -12,11 +21,6 @@ pub struct Camera {
     position: Vec3,
     target: Vec3,
     up: Vec3,
-    fov: Degrees,
-    width: f32,
-    height: f32,
-    z_near: f32,
-    z_far: f32,
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
@@ -26,13 +30,6 @@ pub struct Camera {
 
 impl Camera
 {
-    fn new(context: &Context) -> Camera
-    {
-        Camera {cam_type: CameraType::Orthographic, matrix_buffer: UniformBuffer::new(context, &vec![16, 16, 16, 3, 1]).unwrap(), frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6], fov: degrees(0.0), z_near: 0.0, z_far: 0.0,
-            width: 1.0, height: 1.0, position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
-            view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()}
-    }
-
     pub fn new_orthographic(context: &Context, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32) -> Camera
     {
         let mut camera = Camera::new(context);
@@ -52,12 +49,7 @@ impl Camera
     pub fn set_perspective_projection(&mut self, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32)
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
-        self.cam_type = CameraType::Perspective;
-        self.fov = fovy;
-        self.z_near = z_near;
-        self.z_far = z_far;
-        self.width = aspect;
-        self.height = 1.0;
+        self.cam_type = CameraType::Perspective { fovy, aspect, z_near, z_far };
         self.projection = perspective(fovy, aspect, z_near, z_far);
         self.update_screen2ray();
         self.update_matrix_buffer();
@@ -66,27 +58,25 @@ impl Camera
 
     pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32)
     {
-        self.cam_type = CameraType::Orthographic;
-        self.fov = degrees(0.0);
-        self.z_near = 0.0;
-        self.z_far = depth;
-        self.width = width;
-        self.height = height;
+        self.cam_type = CameraType::Orthographic { width, height, depth };
         self.projection = ortho(-0.5 * width, 0.5 * width, -0.5 * height, 0.5 * height, 0.0, depth);
         self.update_screen2ray();
         self.update_matrix_buffer();
         self.update_frustrum();
     }
 
-    pub fn set_aspect(&mut self, aspect: f32) {
-        if (self.width as f32 / self.height as f32 - aspect).abs() > 0.001
-        {
-            match self.cam_type {
-                CameraType::Orthographic => {
-                    self.set_orthographic_projection(self.height * aspect, self.height, self.z_far);
-                },
-                CameraType::Perspective => {
-                    self.set_perspective_projection(self.fov, aspect, self.z_near, self.z_far);
+    pub fn set_aspect(&mut self, value: f32) {
+        match self.cam_type {
+            CameraType::Orthographic {width, height, depth} => {
+                if (width / height - value).abs() > 0.001
+                {
+                    self.set_orthographic_projection(height * value, height, depth);
+                }
+            },
+            CameraType::Perspective {aspect, fovy, z_near, z_far} => {
+                if (aspect - value).abs() > 0.001
+                {
+                    self.set_perspective_projection(fovy, value, z_near, z_far);
                 }
             }
         }
@@ -170,17 +160,18 @@ impl Camera
         &self.up
     }
 
-    pub fn width(&self) -> f32 {self.width}
-
-    pub fn height(&self) -> f32 {self.height}
-
-    pub fn z_near(&self) -> f32 {self.z_near}
-
-    pub fn z_far(&self) -> f32 {self.z_far}
-
     pub fn matrix_buffer(&self) -> &UniformBuffer
     {
         &self.matrix_buffer
+    }
+
+    fn new(context: &Context) -> Camera
+    {
+        Camera {cam_type: CameraType::Orthographic {width: 1.0, height: 1.0, depth: 1.0},
+            matrix_buffer: UniformBuffer::new(context, &vec![16, 16, 16, 3, 1]).unwrap(),
+            frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
+            position: vec3(0.0, 0.0, 5.0), target: vec3(0.0, 0.0, 0.0), up: vec3(0.0, 1.0, 0.0),
+            view: Mat4::identity(), projection: Mat4::identity(), screen2ray: Mat4::identity()}
     }
 
     fn update_screen2ray(&mut self)
