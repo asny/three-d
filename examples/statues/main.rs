@@ -9,11 +9,11 @@ fn main() {
     let context = window.gl();
 
     // Renderer
-    let mut primary_camera = Camera::new_perspective(&context, vec3(-200.0, 200.0, 100.0), vec3(0.0, 100.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                     degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
+    let mut primary_camera = CameraControl::new(Camera::new_perspective(&context, vec3(-200.0, 200.0, 100.0), vec3(0.0, 100.0, 0.0), vec3(0.0, 1.0, 0.0),
+                                                     degrees(45.0), window.viewport().aspect(), 0.1, 10000.0).unwrap());
     // Static camera to view frustum culling in effect
     let mut secondary_camera = Camera::new_perspective(&context, vec3(-500.0, 700.0, 500.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                                       degrees(45.0), window.viewport().aspect(), 0.1, 10000.0);
+                                                       degrees(45.0), window.viewport().aspect(), 0.1, 10000.0).unwrap();
 
     // Models from http://texturedmesh.isti.cnr.it/
     Loader::load(&["examples/assets/COLOMBE.obj", "examples/assets/COLOMBE.mtl",
@@ -62,8 +62,8 @@ fn main() {
         let mut is_primary_camera = true;
         window.render_loop(move |frame_input|
         {
-            primary_camera.set_aspect(frame_input.viewport.aspect());
-            secondary_camera.set_aspect(frame_input.viewport.aspect());
+            primary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+            secondary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
@@ -72,7 +72,7 @@ fn main() {
                     },
                     Event::MouseMotion {delta, ..} => {
                         if rotating {
-                            primary_camera.rotate_around_up(10.0 * delta.0 as f32, 10.0 * delta.1 as f32);
+                            primary_camera.rotate_around_up(10.0 * delta.0 as f32, 10.0 * delta.1 as f32).unwrap();
                         }
                     },
                     Event::Key { state, kind, .. } => {

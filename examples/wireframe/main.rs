@@ -12,8 +12,8 @@ fn main() {
     let scene_center = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
-    let mut camera = Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
-                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0);
+    let mut camera = CameraControl::new(Camera::new_perspective(&gl, scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(), scene_center, vec3(0.0, 1.0, 0.0),
+                                                degrees(45.0), window.viewport().aspect(), 0.1, 1000.0).unwrap());
 
     Loader::load(&["./examples/assets/suzanne.obj", "./examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -72,7 +72,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
             {
-                camera.set_aspect(frame_input.viewport.aspect());
+                camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
                 for event in frame_input.events.iter() {
                     match event {
@@ -81,11 +81,11 @@ fn main() {
                         },
                         Event::MouseMotion { delta, .. } => {
                             if rotating {
-                                camera.rotate_around_up(delta.0 as f32, delta.1 as f32);
+                                camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
                             }
                         },
                         Event::MouseWheel { delta, .. } => {
-                            camera.zoom(delta.1 as f32);
+                            camera.zoom(delta.1 as f32).unwrap();
                         },
                         _ => {}
                     }
