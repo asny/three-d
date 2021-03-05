@@ -1,5 +1,5 @@
 
 #[doc(hidden)]
-pub mod frame_input;
+pub mod input;
 #[doc(inline)]
-pub use frame_input::*;
+pub use input::*;

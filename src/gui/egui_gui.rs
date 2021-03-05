@@ -287,9 +287,9 @@ fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
     }
 }
 
-fn translate_to_egui_key_code(key: &frame_input::Key) -> egui::Key {
+fn translate_to_egui_key_code(key: &crate::Key) -> egui::Key {
 
-    use frame_input::Key::*;
+    use crate::Key::*;
     use egui::Key;
 
     match key {

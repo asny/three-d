@@ -76,7 +76,7 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
-        where F: FnMut(frame_input::FrameInput)
+        where F: FnMut(FrameInput)
     {
         let windowed_context = self.windowed_context;
         let mut last_time = std::time::Instant::now();
@@ -100,7 +100,7 @@ impl Window
                         let (physical_width, physical_height): (u32, u32) = windowed_context.window().inner_size().into();
                         let device_pixel_ratio = windowed_context.window().scale_factor();
                         let (width, height): (u32, u32) = windowed_context.window().inner_size().to_logical::<f64>(device_pixel_ratio).into();
-                        let frame_input = frame_input::FrameInput {
+                        let frame_input = FrameInput {
                             events: events.clone(),
                             elapsed_time,
                             accumulated_time,
@@ -123,27 +123,27 @@ impl Window
                         WindowEvent::KeyboardInput {input, ..} => {
                             if let Some(keycode) = input.virtual_keycode {
                                 use event::VirtualKeyCode;
-                                let state = if input.state == event::ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
+                                let state = if input.state == event::ElementState::Pressed { crate::State::Pressed} else { crate::State::Released};
                                 if let Some(kind) = translate_virtual_key_code(keycode) {
-                                    events.push(frame_input::Event::Key {state, kind, modifiers, handled: false});
+                                    events.push(crate::Event::Key {state, kind, modifiers, handled: false});
                                 } else {
                                     if keycode == VirtualKeyCode::LControl || keycode == VirtualKeyCode::RControl {
                                         modifiers.ctrl = state;
                                         if !cfg!(target_os = "macos") {
                                             modifiers.command = state;
                                         }
-                                        events.push(frame_input::Event::ModifiersChange {modifiers});
+                                        events.push(crate::Event::ModifiersChange {modifiers});
                                     } else if keycode == VirtualKeyCode::LAlt || keycode == VirtualKeyCode::RAlt {
                                         modifiers.alt = state;
-                                        events.push(frame_input::Event::ModifiersChange {modifiers});
+                                        events.push(crate::Event::ModifiersChange {modifiers});
                                     } else if keycode == VirtualKeyCode::LShift || keycode == VirtualKeyCode::RShift {
                                         modifiers.shift = state;
-                                        events.push(frame_input::Event::ModifiersChange {modifiers});
+                                        events.push(crate::Event::ModifiersChange {modifiers});
                                     } else if keycode == VirtualKeyCode::LWin || keycode == VirtualKeyCode::RWin {
                                         if cfg!(target_os = "macos")
                                         {
                                             modifiers.command = state;
-                                            events.push(frame_input::Event::ModifiersChange {modifiers});
+                                            events.push(crate::Event::ModifiersChange {modifiers});
                                         }
                                     }
                                 }
@@ -155,14 +155,14 @@ impl Window
                                 match delta {
                                     glutin::event::MouseScrollDelta::LineDelta(x, y) => {
                                         let line_height = 24.0; // TODO
-                                        events.push(frame_input::Event::MouseWheel {
+                                        events.push(crate::Event::MouseWheel {
                                             delta: ((*x * line_height) as f64, (*y * line_height) as f64),
                                             position, modifiers, handled: false
                                         });
                                     }
                                     glutin::event::MouseScrollDelta::PixelDelta(delta) => {
                                         let d = delta.to_logical(windowed_context.window().scale_factor());
-                                        events.push(frame_input::Event::MouseWheel {
+                                        events.push(crate::Event::MouseWheel {
                                             delta: (d.x, d.y),
                                             position, modifiers, handled: false
                                         });
@@ -173,15 +173,15 @@ impl Window
                         WindowEvent::MouseInput {state, button, ..} => {
                             if let Some(position) = cursor_pos
                             {
-                                let state = if *state == event::ElementState::Pressed {frame_input::State::Pressed} else {frame_input::State::Released};
+                                let state = if *state == event::ElementState::Pressed { crate::State::Pressed} else { crate::State::Released};
                                 let button = match button {
-                                    event::MouseButton::Left => Some(frame_input::MouseButton::Left),
-                                    event::MouseButton::Middle => Some(frame_input::MouseButton::Middle),
-                                    event::MouseButton::Right => Some(frame_input::MouseButton::Right),
+                                    event::MouseButton::Left => Some(crate::MouseButton::Left),
+                                    event::MouseButton::Middle => Some(crate::MouseButton::Middle),
+                                    event::MouseButton::Right => Some(crate::MouseButton::Right),
                                     _ => None
                                 };
                                 if let Some(b) = button {
-                                    events.push(frame_input::Event::MouseClick { state, button: b, position, modifiers, handled: false });
+                                    events.push(crate::Event::MouseClick { state, button: b, position, modifiers, handled: false });
                                 }
                             }
                         },
@@ -190,7 +190,7 @@ impl Window
                             let delta = if let Some(last_pos) = cursor_pos {
                                 (p.x - last_pos.0, p.y - last_pos.1)
                             } else {(0.0, 0.0)};
-                            events.push(frame_input::Event::MouseMotion { delta, position: (p.x, p.y), modifiers, handled: false });
+                            events.push(crate::Event::MouseMotion { delta, position: (p.x, p.y), modifiers, handled: false });
                             cursor_pos = Some((p.x, p.y));
                         },
                         WindowEvent::ReceivedCharacter(ch) => {
@@ -198,14 +198,14 @@ impl Window
                                 && modifiers.ctrl != State::Pressed
                                 && modifiers.command != State::Pressed
                             {
-                                events.push(frame_input::Event::Text(ch.to_string()));
+                                events.push(crate::Event::Text(ch.to_string()));
                             }
                         },
                         WindowEvent::CursorEntered {..} => {
-                            events.push(frame_input::Event::MouseEnter);
+                            events.push(crate::Event::MouseEnter);
                         },
                         WindowEvent::CursorLeft {..}  => {
-                            events.push(frame_input::Event::MouseLeave);
+                            events.push(crate::Event::MouseLeave);
                         },
                         _ => (),
                     },
@@ -239,7 +239,7 @@ fn is_printable_char(chr: char) -> bool {
     !is_in_private_use_area && !chr.is_ascii_control()
 }
 
-fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<frame_input::Key> {
+fn translate_virtual_key_code(key: event::VirtualKeyCode) -> Option<crate::Key> {
     use event::VirtualKeyCode::*;
 
     Some(match key {

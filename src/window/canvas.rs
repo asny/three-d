@@ -4,7 +4,7 @@ use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::frame_input::*;
+use crate::frame::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -477,8 +477,8 @@ fn update_modifiers(modifiers: Rc<RefCell<Modifiers>>, event: &web_sys::Keyboard
     old.alt != new.alt || old.ctrl != new.ctrl || old.shift != new.shift || old.command != new.command
 }
 
-pub fn translate_key(key: &str) -> Option<crate::frame_input::Key> {
-    use crate::frame_input::Key::*;
+pub fn translate_key(key: &str) -> Option<Key> {
+    use Key::*;
     Some(match key {
         "ArrowDown" => ArrowDown,
         "ArrowLeft" => ArrowLeft,
