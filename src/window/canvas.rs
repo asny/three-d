@@ -51,7 +51,7 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
-        where F: FnMut(crate::FrameInput)
+        where F: FnMut(FrameInput) -> FrameOutput
     {
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();

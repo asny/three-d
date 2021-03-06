@@ -76,7 +76,7 @@ impl Window
     }
 
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
-        where F: FnMut(FrameInput)
+        where F: FnMut(FrameInput) -> FrameOutput
     {
         let windowed_context = self.windowed_context;
         let mut last_time = std::time::Instant::now();
@@ -110,8 +110,13 @@ impl Window
                             device_pixel_ratio: device_pixel_ratio as usize
                         };
                         events.clear();
-                        callback(frame_input);
-                        windowed_context.swap_buffers().unwrap();
+                        let frame_output = callback(frame_input);
+                        if frame_output.exit {
+                            *control_flow = ControlFlow::Exit;
+                        }
+                        if frame_output.swap_buffers {
+                            windowed_context.swap_buffers().unwrap();
+                        }
                     }
                     Event::WindowEvent { ref event, .. } => match event {
                         WindowEvent::Resized(physical_size) => {
