@@ -11,7 +11,6 @@ fn main() {
     let mut camera = CameraControl::new(Camera::new_perspective(&context, vec3(2.0, 2.0, 5.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
                                                 degrees(45.0), window.viewport().aspect(), 0.1, 1000.0).unwrap());
     let mut gui = three_d::GUI::new(&context).unwrap();
-    let mut panel_width = 0;
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
@@ -43,10 +42,7 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |mut frame_input|
         {
-            let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width, frame_input.viewport.height);
-            let viewport_light_pass = Viewport {x: panel_width as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
-            camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
-
+            let mut panel_width = frame_input.viewport.width;
             gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel", panel_width as f32).show(gui_context, |ui| {
@@ -77,16 +73,13 @@ fn main() {
                             directional_light1.clear_shadow_map();
                         }
                     }
-
-                    ui.label("Other");
-                    #[cfg(target_arch = "x86_64")]
-                    if ui.button("Screenshot").clicked() {
-                        let pixels = Screen::read_color(&context, viewport_light_pass).unwrap();
-                        Saver::save_pixels("screenshot.png", &pixels, viewport_light_pass.width, viewport_light_pass.height).unwrap();
-                    }
                 });
                 panel_width = (gui_context.used_size().x * gui_context.pixels_per_point()) as usize;
             }).unwrap();
+
+            let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width, frame_input.viewport.height);
+            let viewport_light_pass = Viewport {x: panel_width as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
+            camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
