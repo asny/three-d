@@ -84,6 +84,7 @@ impl Window
         let mut events = Vec::new();
         let mut cursor_pos = None;
         let mut modifiers = Modifiers::default();
+        let mut first_frame = true;
         self.event_loop.run(move |event, _, control_flow| {
                 *control_flow = ControlFlow::Poll;
                 match event {
@@ -107,14 +108,16 @@ impl Window
                             viewport: crate::Viewport::new_at_origo(physical_width as usize, physical_height as usize),
                             window_width: width as usize,
                             window_height: height as usize,
-                            device_pixel_ratio: device_pixel_ratio as usize
+                            device_pixel_ratio: device_pixel_ratio as usize,
+                            redraw: first_frame
                         };
+                        first_frame = false;
                         events.clear();
                         let frame_output = callback(frame_input);
                         if frame_output.exit {
                             *control_flow = ControlFlow::Exit;
                         }
-                        if frame_output.swap_buffers {
+                        if frame_output.redraw {
                             windowed_context.swap_buffers().unwrap();
                         }
                     }

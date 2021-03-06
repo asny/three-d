@@ -60,6 +60,7 @@ impl Window
         let performance = self.window.performance().ok_or(Error::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
         let mut last_time = performance.now();
         let mut accumulated_time = 0.0;
+        let mut first_frame = true;
         let last_position = Rc::new(RefCell::new(None));
         let last_zoom = Rc::new(RefCell::new(None));
         let modifiers = Rc::new(RefCell::new(Modifiers::default()));
@@ -87,8 +88,9 @@ impl Window
             let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, accumulated_time,
                 viewport: crate::Viewport::new_at_origo(device_pixel_ratio*width, device_pixel_ratio*height),
                 window_width: width, window_height: height,
-                device_pixel_ratio
+                device_pixel_ratio, redraw: first_frame
             };
+            first_frame = false;
             callback(frame_input);
             &(*events).borrow_mut().clear();
 

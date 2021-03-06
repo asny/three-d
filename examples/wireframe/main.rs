@@ -71,28 +71,32 @@ fn main() {
         // main loop
         let mut rotating = false;
         window.render_loop(move |frame_input|
-            {
-                camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+        {
+            let mut frame_output = FrameOutput::new_from_input(&frame_input);
+            camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
-                for event in frame_input.events.iter() {
-                    match event {
-                        Event::MouseClick { state, button, .. } => {
-                            rotating = *button == MouseButton::Left && *state == State::Pressed;
-                        },
-                        Event::MouseMotion { delta, .. } => {
-                            if rotating {
-                                camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
-                            }
-                        },
-                        Event::MouseWheel { delta, .. } => {
-                            camera.zoom(delta.1 as f32).unwrap();
-                        },
-                        _ => {}
-                    }
+            for event in frame_input.events.iter() {
+                match event {
+                    Event::MouseClick { state, button, .. } => {
+                        rotating = *button == MouseButton::Left && *state == State::Pressed;
+                    },
+                    Event::MouseMotion { delta, .. } => {
+                        if rotating {
+                            camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
+                            frame_output.redraw = true;
+                        }
+                    },
+                    Event::MouseWheel { delta, .. } => {
+                        camera.zoom(delta.1 as f32).unwrap();
+                        frame_output.redraw = true;
+                    },
+                    _ => {}
                 }
+            }
 
+            if frame_output.redraw {
                 // Geometry pass
-                pipeline.geometry_pass(frame_input.viewport.width, frame_input.viewport.height, &|| {
+                pipeline.geometry_pass(frame_input.viewport.width, frame_input.viewport.height, || {
                     let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                     let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
                     model.render_geometry(render_states, frame_input.viewport, &transformation, &camera)?;
@@ -108,14 +112,16 @@ fn main() {
                     pipeline.light_pass(frame_input.viewport, &camera, None, &[], &[&spot_light0, &spot_light1, &spot_light2, &spot_light3], &[])?;
                     Ok(())
                 }).unwrap();
-                
-                #[cfg(target_arch = "x86_64")]
-                if let Some(ref path) = screenshot_path {
-                    let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
-                    Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                    std::process::exit(1);
-                }
-            }).unwrap();
+            }
+
+            #[cfg(target_arch = "x86_64")]
+            if let Some(ref path) = screenshot_path {
+                let pixels = Screen::read_color(&gl, frame_input.viewport).unwrap();
+                Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
+                frame_output.exit = true;
+            }
+            frame_output
+        }).unwrap();
     });
 }
 
