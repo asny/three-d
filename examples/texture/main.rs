@@ -51,6 +51,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
+            let mut frame_output = FrameOutput::new_from_input(&frame_input);
             camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
@@ -61,43 +62,47 @@ fn main() {
                     Event::MouseMotion {delta, ..} => {
                         if rotating {
                             camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
+                            frame_output.redraw = true;
                         }
                     },
                     Event::MouseWheel {delta, ..} => {
                         camera.zoom(delta.1 as f32).unwrap();
+                        frame_output.redraw = true;
                     },
                     _ => {}
                 }
             }
 
             // draw
-            // Geometry pass
-            pipeline.geometry_pass(frame_input.viewport.width, frame_input.viewport.height, &|| {
-                let mut transformation = Mat4::identity();
-                box_mesh.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                         frame_input.viewport, &transformation, &camera)?;
-                transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
-                penguin_deferred.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
-                                                 frame_input.viewport, &transformation, &camera)?;
-                Ok(())
-            }).unwrap();
+            if frame_output.redraw {
+                // Geometry pass
+                pipeline.geometry_pass(frame_input.viewport.width, frame_input.viewport.height, || {
+                    let mut transformation = Mat4::identity();
+                    box_mesh.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
+                                             frame_input.viewport, &transformation, &camera)?;
+                    transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
+                    penguin_deferred.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
+                                                     frame_input.viewport, &transformation, &camera)?;
+                    Ok(())
+                }).unwrap();
 
-            Screen::write(&context, &ClearState::default(), ||
-            {
-                pipeline.light_pass(frame_input.viewport, &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
-                let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
-                penguin_forward.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
-                                                                    frame_input.viewport, &transformation, &camera, &ambient_light, &directional_light)?;
-                skybox.render(frame_input.viewport, &camera)?;
-                Ok(())
-            }).unwrap();
+                Screen::write(&context, &ClearState::default(), || {
+                    pipeline.light_pass(frame_input.viewport, &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
+                    let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
+                    penguin_forward.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
+                                                                        frame_input.viewport, &transformation, &camera, &ambient_light, &directional_light)?;
+                    skybox.render(frame_input.viewport, &camera)?;
+                    Ok(())
+                }).unwrap();
+            }
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
                 let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                std::process::exit(1);
+                frame_output.exit = true;
             }
+            frame_output
         }).unwrap();
     });
 }

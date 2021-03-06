@@ -62,6 +62,7 @@ fn main() {
         let mut is_primary_camera = true;
         window.render_loop(move |frame_input|
         {
+            let mut frame_output = FrameOutput::new_from_input(&frame_input);
             primary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
             secondary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
@@ -73,12 +74,14 @@ fn main() {
                     Event::MouseMotion {delta, ..} => {
                         if rotating {
                             primary_camera.rotate_around_up(10.0 * delta.0 as f32, 10.0 * delta.1 as f32).unwrap();
+                            frame_output.redraw = true;
                         }
                     },
                     Event::Key { state, kind, .. } => {
                         if *kind == Key::C && *state == State::Pressed
                         {
                             is_primary_camera = !is_primary_camera;
+                            frame_output.redraw = true;
                         }
                     },
                     _ => {}
@@ -86,34 +89,38 @@ fn main() {
             }
 
             // draw
-            Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0), ||
-            {
-                for (transform, aabb) in statue_transforms_and_aabb.iter() {
-                    if primary_camera.in_frustum(aabb) {
-                        statue.render_with_ambient_and_directional(RenderStates { cull: CullType::Back, ..Default::default() },
-                                                                   frame_input.viewport,
-                                                                   &transform,
-                                                                   if is_primary_camera { &primary_camera } else { &secondary_camera },
-                                                                   &ambient_light,
-                                                                   &directional_light)?;
-                    }
-                }
+            if frame_output.redraw {
+                println!("Render");
+                Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0), ||
+                    {
+                        for (transform, aabb) in statue_transforms_and_aabb.iter() {
+                            if primary_camera.in_frustum(aabb) {
+                                statue.render_with_ambient_and_directional(RenderStates { cull: CullType::Back, ..Default::default() },
+                                                                           frame_input.viewport,
+                                                                           &transform,
+                                                                           if is_primary_camera { &primary_camera } else { &secondary_camera },
+                                                                           &ambient_light,
+                                                                           &directional_light)?;
+                            }
+                        }
 
-                fountain.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
-                                                             frame_input.viewport,
-                                                             &Mat4::from_angle_x(degrees(-90.0)),
-                                                             if is_primary_camera { &primary_camera } else { &secondary_camera },
-                                                             &ambient_light,
-                                                             &directional_light)?;
-                Ok(())
-            }).unwrap();
+                        fountain.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
+                                                                     frame_input.viewport,
+                                                                     &Mat4::from_angle_x(degrees(-90.0)),
+                                                                     if is_primary_camera { &primary_camera } else { &secondary_camera },
+                                                                     &ambient_light,
+                                                                     &directional_light)?;
+                        Ok(())
+                    }).unwrap();
+            }
 
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
                 let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                std::process::exit(1);
+                frame_output.exit = true;
             }
+            frame_output
         }).unwrap();
     });
 }

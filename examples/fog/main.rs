@@ -39,7 +39,6 @@ fn main() {
                                                                          "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
         // main loop
-        let mut time = 0.0;
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
@@ -68,7 +67,6 @@ fn main() {
                     _ => {}
                 }
             }
-            time += frame_input.elapsed_time;
 
             // draw
             pipeline.depth_pass(frame_input.viewport.width, frame_input.viewport.height, &|| {
@@ -82,17 +80,19 @@ fn main() {
                 monkey.render_with_ambient_and_directional(render_states, frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
                 skybox.render(frame_input.viewport, &camera)?;
                 if fog_enabled {
-                    fog_effect.apply(frame_input.viewport, &camera, pipeline.depth_texture(), time as f32)?;
+                    fog_effect.apply(frame_input.viewport, &camera, pipeline.depth_texture(), frame_input.accumulated_time as f32)?;
                 }
                 Ok(())
             }).unwrap();
 
+            let mut frame_output = FrameOutput::default();
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
                 let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                std::process::exit(1);
+                frame_output.exit = true;
             }
+            frame_output
         }).unwrap();
     });
 }

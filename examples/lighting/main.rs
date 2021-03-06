@@ -149,12 +149,14 @@ fn main() {
                 Ok(())
             }).unwrap();
 
+            let mut output = FrameOutput::default();
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
                 let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                std::process::exit(1);
+                output.exit = true;
             }
+            output
         }).unwrap();
     });
 }
