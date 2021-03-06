@@ -230,7 +230,7 @@ impl TextureCubeMap
             self.context.tex_sub_image_2d_with_u8_data(consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32, 0, 0, 0,
                                                        self.width as u32, self.height as u32,
                                                        format_from(self.format), consts::UNSIGNED_BYTE,
-                                                       &data[i*offset..(i+1)*offset-1]);
+                                                       &data[i*offset..(i+1)*offset]);
         }
         self.generate_mip_maps();
         Ok(())
