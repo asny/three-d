@@ -109,7 +109,7 @@ impl Window
                             window_width: width as usize,
                             window_height: height as usize,
                             device_pixel_ratio: device_pixel_ratio as usize,
-                            redraw: first_frame
+                            first_frame: first_frame
                         };
                         first_frame = false;
                         events.clear();

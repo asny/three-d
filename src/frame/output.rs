@@ -8,7 +8,7 @@ pub struct FrameOutput {
 
 impl FrameOutput {
     pub fn new_from_input(input: &FrameInput) -> Self {
-        Self { redraw: input.redraw, ..Default::default()}
+        Self { redraw: input.first_frame, ..Default::default()}
     }
 }
 
