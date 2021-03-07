@@ -29,7 +29,7 @@ impl GUI {
         })
     }
 
-    pub fn update<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &mut FrameInput, callback: F) -> Result<(), Error>
+    pub fn update<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &mut FrameInput, callback: F) -> Result<bool, Error>
     {
         self.width = frame_input.window_width;
         self.height = frame_input.window_height;
@@ -37,6 +37,7 @@ impl GUI {
         self.egui_context.begin_frame(input_state);
         callback(&self.egui_context);
 
+        let mut change = false;
         for event in frame_input.events.iter_mut() {
             if self.egui_context.wants_pointer_input() {
                 match event {
@@ -45,6 +46,7 @@ impl GUI {
                     Event::MouseMotion {ref mut handled, ..} => {*handled = true;},
                     _ => {}
                 }
+                change = true;
             }
 
             if self.egui_context.wants_keyboard_input() {
@@ -52,9 +54,10 @@ impl GUI {
                     Event::Key {ref mut handled, ..} => {*handled = true;},
                     _ => {}
                 }
+                change = true;
             }
         }
-        Ok(())
+        Ok(change)
     }
 
     pub fn render(&mut self) -> Result<(), Error>

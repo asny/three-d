@@ -67,22 +67,25 @@ impl Camera
         Ok(())
     }
 
-    pub fn set_aspect(&mut self, value: f32) -> Result<(), Error> {
+    pub fn set_aspect(&mut self, value: f32) -> Result<bool, Error> {
+        let mut change = false;
         match self.projection_type {
             ProjectionType::Orthographic {width, height, depth} => {
                 if (width / height - value).abs() > 0.001
                 {
                     self.set_orthographic_projection(height * value, height, depth)?;
+                    change = true;
                 }
             },
             ProjectionType::Perspective {aspect, fovy, z_near, z_far} => {
                 if (aspect - value).abs() > 0.001
                 {
                     self.set_perspective_projection(fovy, value, z_near, z_far)?;
+                    change = true;
                 }
             }
         }
-        Ok(())
+        Ok(change)
     }
 
     pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3) -> Result<(), Error>

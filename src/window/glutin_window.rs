@@ -85,6 +85,7 @@ impl Window
         let mut cursor_pos = None;
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
+        let context = self.gl.clone();
         self.event_loop.run(move |event, _, control_flow| {
                 *control_flow = ControlFlow::Poll;
                 match event {
@@ -109,7 +110,7 @@ impl Window
                             window_width: width as usize,
                             window_height: height as usize,
                             device_pixel_ratio: device_pixel_ratio as usize,
-                            redraw: first_frame
+                            first_frame: first_frame
                         };
                         first_frame = false;
                         events.clear();
@@ -117,8 +118,12 @@ impl Window
                         if frame_output.exit {
                             *control_flow = ControlFlow::Exit;
                         }
-                        if frame_output.redraw {
+                        if frame_output.swap_buffers {
                             windowed_context.swap_buffers().unwrap();
+                        }
+                        if let Some(ref path) = frame_output.screenshot {
+                            let pixels = crate::Screen::read_color(&context, crate::Viewport::new_at_origo(physical_width as usize, physical_height as usize)).unwrap();
+                            crate::Saver::save_pixels(path, &pixels, physical_width as usize, physical_height as usize).unwrap();
                         }
                     }
                     Event::WindowEvent { ref event, .. } => match event {

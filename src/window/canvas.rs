@@ -88,7 +88,7 @@ impl Window
             let frame_input = crate::FrameInput {events: (*events).borrow().clone(), elapsed_time, accumulated_time,
                 viewport: crate::Viewport::new_at_origo(device_pixel_ratio*width, device_pixel_ratio*height),
                 window_width: width, window_height: height,
-                device_pixel_ratio, redraw: first_frame
+                device_pixel_ratio, first_frame: first_frame
             };
             first_frame = false;
             callback(frame_input);

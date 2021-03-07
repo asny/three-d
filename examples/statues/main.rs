@@ -3,7 +3,6 @@ use three_d::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let window = Window::new("Statues", Some((1280, 720))).unwrap();
     let context = window.gl();
@@ -62,9 +61,9 @@ fn main() {
         let mut is_primary_camera = true;
         window.render_loop(move |frame_input|
         {
-            let mut frame_output = FrameOutput::new_from_input(&frame_input);
-            primary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
-            secondary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+            let mut redraw = frame_input.first_frame;
+            redraw |= primary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+            redraw |= secondary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
@@ -74,14 +73,14 @@ fn main() {
                     Event::MouseMotion {delta, ..} => {
                         if rotating {
                             primary_camera.rotate_around_up(10.0 * delta.0 as f32, 10.0 * delta.1 as f32).unwrap();
-                            frame_output.redraw = true;
+                            redraw = true;
                         }
                     },
                     Event::Key { state, kind, .. } => {
                         if *kind == Key::C && *state == State::Pressed
                         {
                             is_primary_camera = !is_primary_camera;
-                            frame_output.redraw = true;
+                            redraw = true;
                         }
                     },
                     _ => {}
@@ -89,8 +88,7 @@ fn main() {
             }
 
             // draw
-            if frame_output.redraw {
-                println!("Render");
+            if redraw {
                 Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0), ||
                     {
                         for (transform, aabb) in statue_transforms_and_aabb.iter() {
@@ -114,13 +112,12 @@ fn main() {
                     }).unwrap();
             }
 
-            #[cfg(target_arch = "x86_64")]
-            if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
-                Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                frame_output.exit = true;
+            if args.len() > 1 {
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+            } else {
+                FrameOutput {swap_buffers: redraw, ..Default::default()}
             }
-            frame_output
         }).unwrap();
     });
 }

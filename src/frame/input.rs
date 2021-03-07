@@ -25,7 +25,7 @@ pub struct FrameInput {
     /// Number of physical pixels for each logical pixel.
     pub device_pixel_ratio: usize,
 
-    pub redraw: bool
+    pub first_frame: bool
 }
 
 /// State of a key or button click.

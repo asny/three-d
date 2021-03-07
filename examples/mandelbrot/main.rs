@@ -3,7 +3,6 @@ use three_d::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let window = Window::new("Mandelbrot", Some((1280, 720))).unwrap();
     let context = window.gl();
@@ -28,8 +27,8 @@ fn main() {
     let mut panning = false;
     window.render_loop(move |frame_input|
     {
-        let mut frame_output = FrameOutput::new_from_input(&frame_input);
-        camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+        let mut redraw = frame_input.first_frame;
+        redraw |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
         for event in frame_input.events.iter() {
             match event {
@@ -39,18 +38,18 @@ fn main() {
                 Event::MouseMotion {delta, ..} => {
                     if panning {
                         camera.pan(0.2 * delta.0 as f32, 0.2 * delta.1 as f32).unwrap();
-                        frame_output.redraw = true;
+                        redraw = true;
                     }
                 },
                 Event::MouseWheel {delta, ..} => {
                     camera.zoom(0.05 * delta.1 as f32).unwrap();
-                    frame_output.redraw = true;
+                    redraw = true;
                 },
                 _ => {}
             }
         }
 
-        if frame_output.redraw {
+        if redraw {
             Screen::write(&context, &ClearState::color(0.0, 1.0, 1.0, 1.0), || {
                 mesh.render(&program, RenderStates {cull: CullType::Back, write_mask: WriteMask::COLOR, depth_test: DepthTestType::Always, ..Default::default()},
                             frame_input.viewport, &Mat4::identity(), &camera).unwrap();
@@ -58,13 +57,11 @@ fn main() {
             }).unwrap();
         }
 
-        #[cfg(target_arch = "x86_64")]
-        if let Some(ref path) = screenshot_path {
-            use three_d::io::*;
-            let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
-            Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-            frame_output.exit = true;
+        if args.len() > 1 {
+            // To automatically generate screenshots of the examples, can safely be ignored.
+            FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+        } else {
+            FrameOutput {swap_buffers: redraw, ..Default::default()}
         }
-        frame_output
     }).unwrap();
 }

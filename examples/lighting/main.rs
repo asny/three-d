@@ -2,7 +2,6 @@ use three_d::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let window = Window::new("Lighting!", Some((1280, 720))).unwrap();
     let context = window.gl();
@@ -42,8 +41,9 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |mut frame_input|
         {
+            let mut change = frame_input.first_frame;
             let mut panel_width = frame_input.viewport.width;
-            gui.update(&mut frame_input, |gui_context| {
+            change |= gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel", panel_width as f32).show(gui_context, |ui| {
                     ui.heading("Debug Panel");
@@ -79,23 +79,26 @@ fn main() {
 
             let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width, frame_input.viewport.height);
             let viewport_light_pass = Viewport {x: panel_width as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
-            camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
+            change |= camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
                     Event::MouseClick { state, button, handled, .. } => {
                         if !handled {
                             rotating = *button == MouseButton::Left && *state == State::Pressed;
+                            change = true;
                         }
                     },
                     Event::MouseMotion { delta, handled, .. } => {
                         if !handled && rotating {
                             camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
+                            change = true;
                         }
                     },
                     Event::MouseWheel { delta, handled, .. } => {
                         if !handled {
                             camera.zoom(delta.1 as f32).unwrap();
+                            change = true;
                         }
                     },
                     _ => {}
@@ -124,7 +127,8 @@ fn main() {
             }
 
             // Geometry pass
-            pipeline.geometry_pass(viewport_geometry_pass.width, viewport_geometry_pass.height, &||
+            if change {
+                pipeline.geometry_pass(viewport_geometry_pass.width, viewport_geometry_pass.height, &||
                 {
                     monkey.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
                                            viewport_geometry_pass, &Mat4::identity(), &camera)?;
@@ -132,6 +136,7 @@ fn main() {
                                           viewport_geometry_pass, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
+            }
 
             // Light pass
             Screen::write(&context, &ClearState::default(), ||
@@ -142,14 +147,12 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            let mut output = FrameOutput::default();
-            #[cfg(target_arch = "x86_64")]
-            if let Some(ref path) = screenshot_path {
-                let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
-                Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                output.exit = true;
+            if args.len() > 1 {
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+            } else {
+                FrameOutput::default()
             }
-            output
         }).unwrap();
     });
 }
