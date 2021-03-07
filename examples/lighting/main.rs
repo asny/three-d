@@ -42,8 +42,10 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |mut frame_input|
         {
+            let mut frame_output = FrameOutput::default();
+
             let mut panel_width = frame_input.viewport.width;
-            gui.update(&mut frame_input, |gui_context| {
+            frame_output.redraw |= gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel", panel_width as f32).show(gui_context, |ui| {
                     ui.heading("Debug Panel");
@@ -86,16 +88,19 @@ fn main() {
                     Event::MouseClick { state, button, handled, .. } => {
                         if !handled {
                             rotating = *button == MouseButton::Left && *state == State::Pressed;
+                            frame_output.redraw = true;
                         }
                     },
                     Event::MouseMotion { delta, handled, .. } => {
                         if !handled && rotating {
                             camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
+                            frame_output.redraw = true;
                         }
                     },
                     Event::MouseWheel { delta, handled, .. } => {
                         if !handled {
                             camera.zoom(delta.1 as f32).unwrap();
+                            frame_output.redraw = true;
                         }
                     },
                     _ => {}
@@ -124,7 +129,8 @@ fn main() {
             }
 
             // Geometry pass
-            pipeline.geometry_pass(viewport_geometry_pass.width, viewport_geometry_pass.height, &||
+            if frame_output.redraw {
+                pipeline.geometry_pass(viewport_geometry_pass.width, viewport_geometry_pass.height, &||
                 {
                     monkey.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
                                            viewport_geometry_pass, &Mat4::identity(), &camera)?;
@@ -132,7 +138,9 @@ fn main() {
                                           viewport_geometry_pass, &Mat4::identity(), &camera)?;
                     Ok(())
                 }).unwrap();
+            }
 
+            frame_output.redraw = true; // We always want to do a light pass since the lights are continuously moving.
             // Light pass
             Screen::write(&context, &ClearState::default(), ||
             {
@@ -142,14 +150,13 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            let mut output = FrameOutput::default();
             #[cfg(target_arch = "x86_64")]
             if let Some(ref path) = screenshot_path {
                 let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
                 Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
-                output.exit = true;
+                frame_output.exit = true;
             }
-            output
+            frame_output
         }).unwrap();
     });
 }
