@@ -27,3 +27,8 @@ pub use crate::imposters::*;
 pub mod particles;
 #[doc(inline)]
 pub use crate::particles::*;
+
+#[doc(hidden)]
+pub mod axes;
+#[doc(inline)]
+pub use crate::axes::*;

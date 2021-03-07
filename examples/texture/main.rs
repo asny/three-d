@@ -46,6 +46,7 @@ fn main() {
         let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
         let directional_light = DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();
 
+        let axes = Axes::new(&context, 0.1, 3.0).unwrap();
         // main loop
         let mut rotating = false;
         window.render_loop(move |frame_input|
@@ -90,6 +91,7 @@ fn main() {
                     let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                     penguin_forward.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
                                                                         frame_input.viewport, &transformation, &camera, &ambient_light, &directional_light)?;
+                    axes.render(frame_input.viewport, &Mat4::identity(), &camera)?;
                     skybox.render(frame_input.viewport, &camera)?;
                     Ok(())
                 }).unwrap();
