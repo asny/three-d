@@ -3,7 +3,8 @@ use crate::frame::*;
 #[derive(Clone, Debug)]
 pub struct FrameOutput {
     pub exit: bool,
-    pub redraw: bool
+    pub redraw: bool,
+    pub screenshot: Option<String>
 }
 
 impl FrameOutput {
@@ -16,7 +17,8 @@ impl Default for FrameOutput {
     fn default() -> Self {
         Self {
             exit: false,
-            redraw: true
+            redraw: true,
+            screenshot: None
         }
     }
 }

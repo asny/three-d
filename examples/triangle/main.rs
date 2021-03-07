@@ -3,7 +3,6 @@ use three_d::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let screenshot_path = if args.len() > 1 { Some(args[1].clone()) } else {None};
 
     let window = Window::new("Triangle", Some((1280, 720))).unwrap();
     let context = window.gl();
@@ -38,11 +37,9 @@ fn main() {
         }).unwrap();
 
         let mut frame_output = FrameOutput::default();
-        #[cfg(target_arch = "x86_64")]
-        if let Some(ref path) = screenshot_path {
-            use three_d::io::*;
-            let pixels = Screen::read_color(&context, frame_input.viewport).unwrap();
-            Saver::save_pixels(path, &pixels, frame_input.viewport.width, frame_input.viewport.height).unwrap();
+        // To automatically generate screenshots of the examples, can safely be ignored.
+        if args.len() > 1 {
+            frame_output.screenshot = Some(args[1].clone());
             frame_output.exit = true;
         }
         frame_output
