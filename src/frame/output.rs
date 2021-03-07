@@ -1,23 +1,16 @@
-use crate::frame::*;
 
 #[derive(Clone, Debug)]
 pub struct FrameOutput {
     pub exit: bool,
-    pub redraw: bool,
+    pub swap_buffers: bool,
     pub screenshot: Option<String>
-}
-
-impl FrameOutput {
-    pub fn new_from_input(input: &FrameInput) -> Self {
-        Self { redraw: input.first_frame, ..Default::default()}
-    }
 }
 
 impl Default for FrameOutput {
     fn default() -> Self {
         Self {
             exit: false,
-            redraw: true,
+            swap_buffers: true,
             screenshot: None
         }
     }

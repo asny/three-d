@@ -41,10 +41,9 @@ fn main() {
         let mut shadows_enabled = true;
         window.render_loop(move |mut frame_input|
         {
-            let mut frame_output = FrameOutput::default();
-
+            let mut change = frame_input.first_frame;
             let mut panel_width = frame_input.viewport.width;
-            frame_output.redraw |= gui.update(&mut frame_input, |gui_context| {
+            change |= gui.update(&mut frame_input, |gui_context| {
                 use three_d::egui::*;
                 SidePanel::left("side_panel", panel_width as f32).show(gui_context, |ui| {
                     ui.heading("Debug Panel");
@@ -87,19 +86,19 @@ fn main() {
                     Event::MouseClick { state, button, handled, .. } => {
                         if !handled {
                             rotating = *button == MouseButton::Left && *state == State::Pressed;
-                            frame_output.redraw = true;
+                            change = true;
                         }
                     },
                     Event::MouseMotion { delta, handled, .. } => {
                         if !handled && rotating {
                             camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
-                            frame_output.redraw = true;
+                            change = true;
                         }
                     },
                     Event::MouseWheel { delta, handled, .. } => {
                         if !handled {
                             camera.zoom(delta.1 as f32).unwrap();
-                            frame_output.redraw = true;
+                            change = true;
                         }
                     },
                     _ => {}
@@ -128,7 +127,7 @@ fn main() {
             }
 
             // Geometry pass
-            if frame_output.redraw {
+            if change {
                 pipeline.geometry_pass(viewport_geometry_pass.width, viewport_geometry_pass.height, &||
                 {
                     monkey.render_geometry(RenderStates {cull: CullType::Back, ..Default::default()},
@@ -139,7 +138,6 @@ fn main() {
                 }).unwrap();
             }
 
-            frame_output.redraw = true; // We always want to do a light pass since the lights are continuously moving.
             // Light pass
             Screen::write(&context, &ClearState::default(), ||
             {
@@ -149,12 +147,12 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            // To automatically generate screenshots of the examples, can safely be ignored.
             if args.len() > 1 {
-                frame_output.screenshot = Some(args[1].clone());
-                frame_output.exit = true;
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+            } else {
+                FrameOutput::default()
             }
-            frame_output
         }).unwrap();
     });
 }

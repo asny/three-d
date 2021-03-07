@@ -41,6 +41,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
+            let mut change = frame_input.first_frame;
             camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
@@ -51,15 +52,18 @@ fn main() {
                     Event::MouseMotion { delta, .. } => {
                         if rotating {
                             camera.rotate(delta.0 as f32, delta.1 as f32).unwrap();
+                            change = true;
                         }
                     },
                     Event::MouseWheel { delta, .. } => {
                         camera.zoom(delta.1 as f32).unwrap();
+                        change = true;
                     },
                     Event::Key { state, kind, .. } => {
                         if *kind == Key::F && *state == State::Pressed
                         {
                             fog_enabled = !fog_enabled;
+                            change = true;
                             println!("Fog: {:?}", fog_enabled);
                         }
                     },
@@ -68,11 +72,13 @@ fn main() {
             }
 
             // draw
-            pipeline.depth_pass(frame_input.viewport.width, frame_input.viewport.height, &|| {
-                let render_states = RenderStates {cull: CullType::Back, ..Default::default()};
-                monkey.render_depth(render_states, frame_input.viewport, &Mat4::identity(), &camera)?;
-                Ok(())
-            }).unwrap();
+            if change {
+                pipeline.depth_pass(frame_input.viewport.width, frame_input.viewport.height, &|| {
+                    let render_states = RenderStates {cull: CullType::Back, ..Default::default()};
+                    monkey.render_depth(render_states, frame_input.viewport, &Mat4::identity(), &camera)?;
+                    Ok(())
+                }).unwrap();
+            }
 
             Screen::write(&context, &ClearState::default(), &|| {
                 let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
@@ -84,13 +90,12 @@ fn main() {
                 Ok(())
             }).unwrap();
 
-            let mut frame_output = FrameOutput::default();
-            // To automatically generate screenshots of the examples, can safely be ignored.
             if args.len() > 1 {
-                frame_output.screenshot = Some(args[1].clone());
-                frame_output.exit = true;
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+            } else {
+                FrameOutput::default()
             }
-            frame_output
         }).unwrap();
     });
 }

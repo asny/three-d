@@ -80,7 +80,7 @@ fn main() {
         let mut rotating = false;
         window.render_loop(move |frame_input|
         {
-            let mut frame_output = FrameOutput::new_from_input(&frame_input);
+            let mut redraw = frame_input.first_frame;
             camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
@@ -91,18 +91,18 @@ fn main() {
                     Event::MouseMotion {delta, ..} => {
                         if rotating {
                             camera.rotate_around_up(delta.0 as f32, delta.1 as f32).unwrap();
-                            frame_output.redraw = true;
+                            redraw = true;
                         }
                     },
                     Event::MouseWheel {delta, ..} => {
                         camera.zoom(delta.1 as f32).unwrap();
-                        frame_output.redraw = true;
+                        redraw = true;
                     },
                     _ => {}
                 }
             }
 
-            if frame_output.redraw {
+            if redraw {
                 Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), &|| {
                     plane.render_with_ambient_and_directional(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
                                                               frame_input.viewport, &Mat4::identity(), &camera, &ambient_light, &directional_light)?;
@@ -113,12 +113,12 @@ fn main() {
                 }).unwrap();
             }
 
-            // To automatically generate screenshots of the examples, can safely be ignored.
             if args.len() > 1 {
-                frame_output.screenshot = Some(args[1].clone());
-                frame_output.exit = true;
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+            } else {
+                FrameOutput {swap_buffers: redraw, ..Default::default()}
             }
-            frame_output
         }).unwrap();
     });
 

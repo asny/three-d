@@ -36,12 +36,11 @@ fn main() {
             Ok(())
         }).unwrap();
 
-        let mut frame_output = FrameOutput::default();
-        // To automatically generate screenshots of the examples, can safely be ignored.
         if args.len() > 1 {
-            frame_output.screenshot = Some(args[1].clone());
-            frame_output.exit = true;
+            // To automatically generate screenshots of the examples, can safely be ignored.
+            FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+        } else {
+            FrameOutput::default()
         }
-        frame_output
     }).unwrap();
 }

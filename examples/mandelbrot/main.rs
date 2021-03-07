@@ -27,7 +27,7 @@ fn main() {
     let mut panning = false;
     window.render_loop(move |frame_input|
     {
-        let mut frame_output = FrameOutput::new_from_input(&frame_input);
+        let mut redraw = frame_input.first_frame;
         camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
         for event in frame_input.events.iter() {
@@ -38,18 +38,18 @@ fn main() {
                 Event::MouseMotion {delta, ..} => {
                     if panning {
                         camera.pan(0.2 * delta.0 as f32, 0.2 * delta.1 as f32).unwrap();
-                        frame_output.redraw = true;
+                        redraw = true;
                     }
                 },
                 Event::MouseWheel {delta, ..} => {
                     camera.zoom(0.05 * delta.1 as f32).unwrap();
-                    frame_output.redraw = true;
+                    redraw = true;
                 },
                 _ => {}
             }
         }
 
-        if frame_output.redraw {
+        if redraw {
             Screen::write(&context, &ClearState::color(0.0, 1.0, 1.0, 1.0), || {
                 mesh.render(&program, RenderStates {cull: CullType::Back, write_mask: WriteMask::COLOR, depth_test: DepthTestType::Always, ..Default::default()},
                             frame_input.viewport, &Mat4::identity(), &camera).unwrap();
@@ -57,11 +57,11 @@ fn main() {
             }).unwrap();
         }
 
-        // To automatically generate screenshots of the examples, can safely be ignored.
         if args.len() > 1 {
-            frame_output.screenshot = Some(args[1].clone());
-            frame_output.exit = true;
+            // To automatically generate screenshots of the examples, can safely be ignored.
+            FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+        } else {
+            FrameOutput {swap_buffers: redraw, ..Default::default()}
         }
-        frame_output
     }).unwrap();
 }

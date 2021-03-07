@@ -118,7 +118,7 @@ impl Window
                         if frame_output.exit {
                             *control_flow = ControlFlow::Exit;
                         }
-                        if frame_output.redraw {
+                        if frame_output.swap_buffers {
                             windowed_context.swap_buffers().unwrap();
                         }
                         if let Some(ref path) = frame_output.screenshot {

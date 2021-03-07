@@ -61,7 +61,7 @@ fn main() {
         let mut is_primary_camera = true;
         window.render_loop(move |frame_input|
         {
-            let mut frame_output = FrameOutput::new_from_input(&frame_input);
+            let mut redraw = frame_input.first_frame;
             primary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
             secondary_camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
@@ -73,14 +73,14 @@ fn main() {
                     Event::MouseMotion {delta, ..} => {
                         if rotating {
                             primary_camera.rotate_around_up(10.0 * delta.0 as f32, 10.0 * delta.1 as f32).unwrap();
-                            frame_output.redraw = true;
+                            redraw = true;
                         }
                     },
                     Event::Key { state, kind, .. } => {
                         if *kind == Key::C && *state == State::Pressed
                         {
                             is_primary_camera = !is_primary_camera;
-                            frame_output.redraw = true;
+                            redraw = true;
                         }
                     },
                     _ => {}
@@ -88,8 +88,7 @@ fn main() {
             }
 
             // draw
-            if frame_output.redraw {
-                println!("Render");
+            if redraw {
                 Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0), ||
                     {
                         for (transform, aabb) in statue_transforms_and_aabb.iter() {
@@ -113,12 +112,12 @@ fn main() {
                     }).unwrap();
             }
 
-            // To automatically generate screenshots of the examples, can safely be ignored.
             if args.len() > 1 {
-                frame_output.screenshot = Some(args[1].clone());
-                frame_output.exit = true;
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+            } else {
+                FrameOutput {swap_buffers: redraw, ..Default::default()}
             }
-            frame_output
         }).unwrap();
     });
 }
