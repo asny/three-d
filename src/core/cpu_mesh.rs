@@ -110,6 +110,47 @@ impl CPUMesh {
         Self {name: "cylinder".to_string(), positions, indices: Some(indices), normals, ..Default::default()}
     }
 
+    pub fn cone(radius: f32, length: f32, angle_subdivisions: u32, length_subdivisions: u32) -> Self
+    {
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+        for i in 0..length_subdivisions +1 {
+            let x = i as f32 / length_subdivisions as f32;
+            for j in 0..angle_subdivisions {
+                let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
+
+                positions.push(length * x);
+                positions.push(radius * angle.cos() * (1.0 - x));
+                positions.push(radius * angle.sin() * (1.0 - x));
+            }
+        }
+        for i in 0..length_subdivisions as u32 {
+            for j in 0..angle_subdivisions as u32 {
+                indices.push(i * angle_subdivisions as u32 + j);
+                indices.push(i * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+
+                indices.push(i * angle_subdivisions as u32 + j);
+                indices.push((i+1) * angle_subdivisions as u32 + (j+1)%angle_subdivisions as u32);
+                indices.push((i+1) * angle_subdivisions as u32 + j);
+            }
+        }
+        let normals = Some(compute_normals_with_indices(&indices, &positions));
+        Self {name: "cone".to_string(), positions, indices: Some(indices), normals, ..Default::default()}
+    }
+
+    pub fn arrow(radius: f32, length: f32, angle_subdivisions: u32, length_subdivisions: u32) -> Self {
+        let cylinder_length = length*0.7;
+        let mut arrow = Self::cylinder(radius*0.5, cylinder_length, angle_subdivisions, length_subdivisions);
+        arrow.name = "arrow".to_string();
+        let cone = Self::cone(radius, length - cylinder_length, angle_subdivisions, length_subdivisions);
+        let offset = arrow.indices.as_ref().unwrap().len() as u32;
+        arrow.indices.as_mut().unwrap().extend(cone.indices.as_ref().unwrap().iter().map(|i| i+offset));
+        arrow.positions.extend(cone.positions.iter().map(|x| x + cylinder_length));
+        arrow.normals.as_mut().unwrap().extend(cone.normals.as_ref().unwrap());
+        arrow
+    }
+
     pub fn compute_normals(&mut self) {
         if let Some(ref ind) = self.indices {
             self.normals = Some(compute_normals_with_indices(ind, &self.positions));
