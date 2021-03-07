@@ -81,7 +81,7 @@ fn main() {
         window.render_loop(move |frame_input|
         {
             let mut redraw = frame_input.first_frame;
-            camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+            redraw |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {

@@ -79,7 +79,7 @@ fn main() {
 
             let viewport_geometry_pass = Viewport::new_at_origo(frame_input.viewport.width - panel_width, frame_input.viewport.height);
             let viewport_light_pass = Viewport {x: panel_width as i32, y: 0, width: viewport_geometry_pass.width, height: viewport_geometry_pass.height};
-            camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
+            change |= camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
