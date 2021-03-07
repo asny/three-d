@@ -1,11 +1,11 @@
 
-//!
-//! Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
-//!
-
 use crate::*;
+#[doc(hidden)]
 pub use egui;
 
+///
+/// Integration of [egui](https://crates.io/crates/egui), an immediate mode GUI.
+///
 pub struct GUI {
     context: Context,
     egui_context: egui::CtxRef,
@@ -17,6 +17,9 @@ pub struct GUI {
 }
 
 impl GUI {
+    ///
+    /// Creates a new GUI.
+    ///
     pub fn new(context: &Context) -> Result<Self, Error> {
         Ok(GUI {
             egui_context: egui::CtxRef::default(),
@@ -29,6 +32,11 @@ impl GUI {
         })
     }
 
+    ///
+    /// Initialises a new frame of the GUI and handles events.
+    /// Construct the GUI (Add panels, widgets etc.) using the [egui::CtxRef](egui::CtxRef) in the callback function.
+    /// This function returns whether or not the GUI has changed, ie. if it consumes any events, and therefore needs to be rendered again.
+    ///
     pub fn update<F: FnOnce(&egui::CtxRef)>(&mut self, frame_input: &mut FrameInput, callback: F) -> Result<bool, Error>
     {
         self.width = frame_input.window_width;
@@ -60,6 +68,10 @@ impl GUI {
         Ok(change)
     }
 
+    ///
+    /// Render the GUI defined in the [update](Self::update) function. Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
     pub fn render(&mut self) -> Result<(), Error>
     {
         let (_, shapes) = self.egui_context.end_frame();
