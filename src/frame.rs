@@ -1,4 +1,8 @@
 
+//!
+//! Input/output from/to the window each frame.
+//!
+
 #[doc(hidden)]
 pub mod input;
 #[doc(inline)]

@@ -1,10 +1,17 @@
 
+///
+/// Possible modes of interpolation which determines the texture output between texture pixels.
+///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Interpolation {
     Nearest,
     Linear
 }
 
+///
+/// Possible wrapping modes for a texture which determines how the texture is applied outside of the
+/// [0..1] uv coordinate range.
+///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Wrapping {
     Repeat,
@@ -12,6 +19,9 @@ pub enum Wrapping {
     ClampToEdge
 }
 
+///
+/// Possible formats for pixels in a texture.
+///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
     R8,
