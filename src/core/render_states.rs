@@ -1,9 +1,33 @@
 
+///
+/// A set of render specific states that has to be specified at each render call.
+///
 #[derive(Debug, Copy, Clone)]
 pub struct RenderStates {
+
+    ///
+    /// Defines which channels (red, green, blue, alpha and depth) to write to in a render call.
+    ///
     pub write_mask: WriteMask,
+
+    ///
+    /// Defines the depth test in a render call.
+    /// The depth test determines whether or not a fragment from the current render call should be discarded
+    /// when comparing its depth with the depth of the current fragment.
+    ///
     pub depth_test: DepthTestType,
+
+    ///
+    /// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
+    ///
     pub cull: CullType,
+
+    ///
+    /// Defines which type of blending to use for a render call.
+    /// Blending allows combining each color channel of a render call with the color already in the
+    /// color channels of the render target.
+    /// This is usually used to simulate transparency.
+    ///
     pub blend: Option<BlendParameters>
 }
 
@@ -18,6 +42,9 @@ impl Default for RenderStates {
      }
 }
 
+///
+/// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
+///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum CullType {
     None,
@@ -26,6 +53,11 @@ pub enum CullType {
     FrontAndBack
 }
 
+///
+/// Defines the depth test in a render call.
+/// The depth test determines whether or not a fragment from the current render call should be discarded
+/// when comparing its depth with the depth of the current fragment.
+///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum DepthTestType {
     Never,
@@ -38,6 +70,9 @@ pub enum DepthTestType {
     Always
 }
 
+///
+/// Defines which channels (red, green, blue, alpha and depth) to write to in a render call.
+///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct WriteMask {
     pub red: bool,
@@ -48,6 +83,9 @@ pub struct WriteMask {
 }
 
 impl WriteMask {
+    ///
+    /// Writes to all channels (red, green, blue, alpha and depth).
+    ///
     pub const COLOR_AND_DEPTH: Self = Self {
         red: true,
         green: true,
@@ -56,6 +94,9 @@ impl WriteMask {
         depth: true,
     };
 
+    ///
+    /// Writes to all color channels (red, green, blue and alpha).
+    ///
     pub const COLOR: Self = Self {
         red: true,
         green: true,
@@ -64,6 +105,9 @@ impl WriteMask {
         depth: false,
     };
 
+    ///
+    /// Writes to the depth channel only.
+    ///
     pub const DEPTH: Self = Self {
         red: false,
         green: false,
@@ -72,6 +116,9 @@ impl WriteMask {
         depth: true,
     };
 
+    ///
+    /// Do not write to any channels.
+    ///
     pub const NONE: Self = Self {
         red: false,
         green: false,
@@ -87,6 +134,12 @@ impl Default for WriteMask {
      }
 }
 
+///
+/// Defines which type of blending to use for a render call.
+/// Blending allows combining each color channel of a render call with the color already in the
+/// color channels of the render target.
+/// This is usually used to simulate transparency.
+///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct BlendParameters {
     pub source_rgb_multiplier: BlendMultiplierType,
@@ -98,6 +151,9 @@ pub struct BlendParameters {
 }
 
 impl BlendParameters {
+    ///
+    /// Usual transparency blending parameters.
+    ///
     pub const TRANSPARENCY: Self = Self {
         source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
         source_alpha_multiplier: BlendMultiplierType::Zero,
@@ -107,6 +163,9 @@ impl BlendParameters {
         alpha_equation: BlendEquationType::Add
     };
 
+    ///
+    /// Adds the color of the render target with the output color of the render call.
+    ///
     pub const ADD: Self = Self {
         source_rgb_multiplier: BlendMultiplierType::One,
         source_alpha_multiplier: BlendMultiplierType::One,
