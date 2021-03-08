@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use log::info;
 use std::path::{Path, PathBuf};
 use crate::io::*;
+use crate::definition::*;
 
 pub type Loaded = HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>;
 type RefLoaded = Rc<RefCell<Loaded>>;
@@ -44,24 +45,24 @@ impl Loader {
     }
 
     #[cfg(feature = "image-io")]
-    pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<crate::CPUTexture<u8>, Error> {
+    pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, Error> {
         use image::GenericImageView;
         let img = image::load_from_memory(Self::get(loaded, path)?)?;
         let bytes = img.to_bytes();
         let number_of_channels = bytes.len() / (img.width() * img.height()) as usize;
         let format = match number_of_channels {
-            1 => Ok(crate::Format::R8),
-            3 => Ok(crate::Format::RGB8),
-            4 => Ok(crate::Format::RGBA8),
+            1 => Ok(Format::R8),
+            3 => Ok(Format::RGB8),
+            4 => Ok(Format::RGBA8),
             _ => Err(Error::FailedToLoad {message: format!("Could not determine the pixel format for the texture.")})
         }?;
 
-        Ok(crate::CPUTexture {data: bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
+        Ok(CPUTexture {data: bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
     }
 
     #[cfg(feature = "image-io")]
     pub fn get_cube_texture<P: AsRef<Path>>(loaded: &Loaded, right_path: P, left_path: P,
-                                            top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<crate::CPUTexture<u8>, Error> {
+                                            top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, Error> {
         let mut right = Self::get_texture(loaded, right_path)?;
         let left = Self::get_texture(loaded, left_path)?;
         let top = Self::get_texture(loaded, top_path)?;

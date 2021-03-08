@@ -2,7 +2,7 @@
 use crate::io::*;
 use std::collections::HashMap;
 use std::path::Path;
-use crate::{CPUMesh, CPUMaterial};
+use crate::definition::*;
 
 pub struct Obj {
 

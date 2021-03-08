@@ -1,4 +1,10 @@
 
+//!
+//! Structs for constructing a CPU-side version of a GPU feature (for example a [triangle mesh](crate::Mesh))
+//! before transferring it to the GPU.
+//! Can be constructed manually or loaded via [io](crate::io).
+//!
+
 #[doc(hidden)]
 pub mod cpu_mesh;
 #[doc(inline)]

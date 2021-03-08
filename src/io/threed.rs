@@ -1,6 +1,6 @@
 use crate::io::*;
 use std::path::Path;
-use crate::{CPUMesh, CPUMaterial};
+use crate::definition::*;
 
 pub struct ThreeD {
 

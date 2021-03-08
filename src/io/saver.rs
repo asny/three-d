@@ -1,6 +1,7 @@
 
 use std::path::Path;
 use crate::io::*;
+use crate::definition::*;
 
 pub struct Saver {
 
@@ -9,7 +10,7 @@ pub struct Saver {
 impl Saver {
 
     #[cfg(all(feature = "3d-io", feature = "image-io"))]
-    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: Vec<crate::CPUMesh>, cpu_materials: Vec<crate::CPUMaterial>) -> Result<(), Error>
+    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<(), Error>
     {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
@@ -20,7 +21,7 @@ impl Saver {
                     1 => Ok(image::ColorType::L8),
                     3 => Ok(image::ColorType::Rgb8),
                     4 => Ok(image::ColorType::Rgba8),
-                    _ => Err(crate::io::Error::FailedToSave {message: format!("Texture image could not be saved")})
+                    _ => Err(Error::FailedToSave {message: format!("Texture image could not be saved")})
                 }?;
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
                 image::save_buffer(tex_path,&cpu_texture.data, cpu_texture.width as u32, cpu_texture.height as u32, format)?;
