@@ -1,5 +1,6 @@
 
 use crate::math::*;
+use crate::definition::*;
 use crate::core::*;
 use std::rc::Rc;
 

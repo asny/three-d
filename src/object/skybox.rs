@@ -1,4 +1,5 @@
 use crate::math::*;
+use crate::definition::*;
 use crate::core::*;
 use crate::camera::*;
 

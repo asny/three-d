@@ -11,6 +11,10 @@ pub mod math;
 #[doc(inline)]
 pub use crate::math::*;
 
+pub mod definition;
+#[doc(inline)]
+pub use crate::definition::*;
+
 pub mod core;
 #[doc(inline)]
 pub use crate::core::*;
