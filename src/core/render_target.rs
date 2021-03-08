@@ -4,6 +4,11 @@ use crate::core::*;
 use crate::context::{Context, consts};
 use crate::ImageEffect;
 
+///
+/// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a
+/// [render target](crate::RenderTarget) or the [screen](crate::Screen) and which values they are set to
+/// (the values must be between 0 and 1).
+///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ClearState {
     pub red: Option<f32>,
@@ -14,7 +19,10 @@ pub struct ClearState {
 }
 
 impl ClearState {
-    pub fn none() -> Self {
+    ///
+    /// Nothing will be cleared.
+    ///
+    pub const fn none() -> Self {
         Self {
             red: None,
             green: None,
@@ -24,7 +32,10 @@ impl ClearState {
         }
     }
 
-    pub fn depth(depth: f32) -> Self {
+    ///
+    /// The depth will be cleared to the given value.
+    ///
+    pub const fn depth(depth: f32) -> Self {
         Self {
             red: None,
             green: None,
@@ -34,7 +45,10 @@ impl ClearState {
         }
     }
 
-    pub fn color(red: f32, green: f32, blue: f32, alpha: f32) -> Self {
+    ///
+    /// The color channels (red, green, blue and alpha) will be cleared to the given values.
+    ///
+    pub const fn color(red: f32, green: f32, blue: f32, alpha: f32) -> Self {
         Self {
             red: Some(red),
             green: Some(green),
@@ -44,7 +58,10 @@ impl ClearState {
         }
     }
 
-    pub fn color_and_depth(red: f32, green: f32, blue: f32, alpha: f32, depth: f32) -> Self {
+    ///
+    /// Both the color channels (red, green, blue and alpha) and depth will be cleared to the given values.
+    ///
+    pub const fn color_and_depth(red: f32, green: f32, blue: f32, alpha: f32, depth: f32) -> Self {
         Self {
             red: Some(red),
             green: Some(green),
@@ -62,9 +79,16 @@ impl Default for ClearState {
     }
 }
 
+///
+/// The screen render target which is essential to get something on the screen (see the [write function](Screen::write)).
+///
 pub struct Screen {}
 
 impl Screen {
+    ///
+    /// Call this function and make a render call (for example on some [object](crate::object))
+    /// in the **render** closure to render something to the screen.
+    ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(context: &Context, clear_state: &ClearState, render: F) -> Result<(), Error>
     {
         context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
@@ -73,10 +97,14 @@ impl Screen {
         Ok(())
     }
 
-    // TODO: Possible to change format
+    ///
+    /// Returns the RGB color values from the screen as a list of bytes (one byte for each color channel).
+    /// Only available on desktop.
+    ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>, Error>
     {
+        // TODO: Possible to change format
         let mut pixels = vec![0u8; viewport.width * viewport.height * 3];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(viewport.x as u32,
@@ -89,10 +117,14 @@ impl Screen {
         Ok(pixels)
     }
 
-    // TODO: Possible to change format
+    ///
+    /// Returns the depth values from the screen as a list of 32-bit floats.
+    /// Only available on desktop.
+    ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> Result<Vec<f32>, Error>
     {
+        // TODO: Possible to change format
         let mut pixels = vec![0f32; viewport.width * viewport.height];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_f32_data(viewport.x as u32,
@@ -106,6 +138,10 @@ impl Screen {
     }
 }
 
+///
+/// Use a render target to render into a texture ([color](crate::ColorTargetTexture2D), [depth](DepthTargetTexture2D) or both).
+/// Can be created each time it is needed.
+///
 pub struct RenderTarget<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
@@ -115,6 +151,10 @@ pub struct RenderTarget<'a, 'b> {
 
 impl<'a, 'b> RenderTarget<'a, 'b>
 {
+    ///
+    /// Constructs a new render target that enables rendering into the given
+    /// [color](crate::ColorTargetTexture2D) and [depth](DepthTargetTexture2D) textures.
+    ///
     pub fn new(context: &Context, color_texture: &'a ColorTargetTexture2D, depth_texture: &'b DepthTargetTexture2D) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -124,6 +164,10 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         })
     }
 
+    ///
+    /// Constructs a new render target that enables rendering into the given
+    /// [color](crate::ColorTargetTexture2D) texture.
+    ///
     pub fn new_color(context: &Context, color_texture: &'a ColorTargetTexture2D) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -133,6 +177,9 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         })
     }
 
+    ///
+    /// Constructs a new render target that enables rendering into the given [depth](DepthTargetTexture2D) texture.
+    ///
     pub fn new_depth(context: &Context, depth_texture: &'b DepthTargetTexture2D) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -142,6 +189,10 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         })
     }
 
+    ///
+    /// Renders whatever rendered in the **render** closure into the textures defined at construction.
+    /// Before writing, the textures are cleared based on the given clear state.
+    ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_state: &ClearState, render: F) -> Result<(), Error>
     {
         self.bind()?;
@@ -159,6 +210,13 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
+    ///
+    /// Copies the content of the color and depth textures in this render target to the screen.
+    ///
+    /// # Errors
+    /// Will return an error if this render target is not constructed with both a color and depth
+    /// texture.
+    ///
     pub fn copy_to_screen(&self, viewport: Viewport) -> Result<(), Error>
     {
         if self.color_texture.is_none() || self.depth_texture.is_none() {
@@ -175,6 +233,12 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
+    ///
+    /// Copies the content of the color texture in this render target to the screen.
+    ///
+    /// # Errors
+    /// Will return an error if this render target is not constructed with a color texture.
+    ///
     pub fn copy_color_to_screen(&self, viewport: Viewport) -> Result<(), Error>
     {
         if self.color_texture.is_none() {
@@ -190,6 +254,12 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
+    ///
+    /// Copies the content of the depth texture in this render target to the screen.
+    ///
+    /// # Errors
+    /// Will return an error if this render target is not constructed with a depth texture.
+    ///
     pub fn copy_depth_to_screen(&self, viewport: Viewport) -> Result<(), Error>
     {
         if self.depth_texture.is_none() {
@@ -205,6 +275,13 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
+    ///
+    /// Copies the content of the color and depth textures in this render target to another render target.
+    ///
+    /// # Errors
+    /// Will return an error if this render target is not constructed with both a color and depth
+    /// texture.
+    ///
     pub fn copy(&self, other: &Self, viewport: Viewport) -> Result<(), Error>
     {
         if self.color_texture.is_none() || self.depth_texture.is_none() || other.color_texture.is_none() || other.depth_texture.is_none() {
@@ -221,6 +298,13 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
+    ///
+    /// Copies the content of the color texture in this render target to another render target.
+    ///
+    /// # Errors
+    /// Will return an error if this render target is not constructed with a color
+    /// texture.
+    ///
     pub fn copy_color(&self, other: &Self, viewport: Viewport) -> Result<(), Error>
     {
         if self.color_texture.is_none() || other.color_texture.is_none() {
@@ -236,6 +320,12 @@ impl<'a, 'b> RenderTarget<'a, 'b>
         Ok(())
     }
 
+    ///
+    /// Copies the content of the depth texture in this render target to another render target.
+    ///
+    /// # Errors
+    /// Will return an error if this render target is not constructed with a depth texture.
+    ///
     pub fn copy_depth(&self, other: &Self, viewport: Viewport) -> Result<(), Error>
     {
         if self.depth_texture.is_none() || other.depth_texture.is_none() {
@@ -272,7 +362,10 @@ impl Drop for RenderTarget<'_, '_> {
     }
 }
 
-
+///
+/// Same as [RenderTarget](crate::RenderTarget) except that the render target contains an
+/// array of [color textures](crate::ColorTargetTexture2DArray) and [depth textures](crate::DepthTargetTexture2DArray).
+///
 pub struct RenderTargetArray<'a, 'b> {
     context: Context,
     id: crate::context::Framebuffer,
@@ -282,6 +375,10 @@ pub struct RenderTargetArray<'a, 'b> {
 
 impl<'a, 'b> RenderTargetArray<'a, 'b>
 {
+    ///
+    /// Constructs a new render target array that enables rendering into the given
+    /// [color](crate::ColorTargetTexture2DArray) and [depth](DepthTargetTexture2DArray) array textures.
+    ///
     pub fn new(context: &Context, color_texture: &'a ColorTargetTexture2DArray, depth_texture: &'b DepthTargetTexture2DArray) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -309,6 +406,13 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         })
     }
 
+    ///
+    /// Renders whatever rendered in the **render** closure into the textures defined at construction
+    /// and defined by the input parameters **color_layers** and **depth_layer**.
+    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in **color_layers**.
+    /// The depth is written to the depth texture defined by **depth_layer**.
+    /// Before writing, the textures are cleared based on the given clear state.
+    ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(&self, clear_state: &ClearState, color_layers: &[usize], depth_layer: usize, render: F) -> Result<(), Error>
     {
         self.bind(Some(color_layers), Some(depth_layer))?;
