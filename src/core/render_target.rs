@@ -394,18 +394,17 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_color(&self, color_layer: usize, other: &RenderTarget, filter: Interpolation) -> Result<(), Error>
+    pub fn copy_color(&self, color_layer: usize, other: &RenderTarget) -> Result<(), Error>
     {
         if self.color_texture.is_none() || other.color_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
         }
-        Program::set_write_mask(&self.context, WriteMask::COLOR);
-        self.bind(Some(&[color_layer]), None)?;
-        self.context.bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&self.id));
         other.write(&ClearState::none(), || {
-            self.context.blit_framebuffer(0, 0, self.color_texture.unwrap().width() as u32, self.color_texture.unwrap().height() as u32,
-                                          0, 0, other.color_texture.unwrap().width() as u32, other.color_texture.unwrap().height() as u32,
-                                          consts::COLOR_BUFFER_BIT, filter as u32);
+            let effect = get_copy_array_effect(&self.context)?;
+            effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
+            effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
+            effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
+                write_mask: WriteMask::COLOR, ..Default::default()}, viewport)?;
             Ok(())
         })?;
         Ok(())
