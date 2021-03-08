@@ -1,9 +1,30 @@
 
+///
+/// Output from the rendering to the window each frame.
+///
 #[derive(Clone, Debug)]
 pub struct FrameOutput {
+
+    ///
+    /// Closes the window and stops the renderloop if this is true.
+    /// Only relevant on desktop, ignored on web.
+    ///
     pub exit: bool,
+
+    ///
+    /// Swaps the back and front buffer if this is true.
+    /// Set this to true if something have been rendered this frame and you want to display it.
+    /// Set it to false if nothing have been rendered this frame, for example if nothing has changed,
+    /// and you want to reuse the image from an old frame.
+    /// Currently ignored on web, since it does not use double buffering.
+    ///
     pub swap_buffers: bool,
     pub screenshot: Option<String>
+
+    ///
+    /// Takes a screenshot if this is set to some path and saves it at the given location.
+    /// Only works on desktop, will be ignored on web.
+    ///
 }
 
 impl Default for FrameOutput {

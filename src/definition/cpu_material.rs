@@ -1,5 +1,9 @@
 use crate::definition::*;
 
+///
+/// A CPU-side version of a material (for example [phong material](crate::PhongMaterial).
+/// Can be constructed manually or loaded via [io](crate::io).
+///
 pub struct CPUMaterial {
     pub name: String,
     pub color: Option<(f32, f32, f32, f32)>,

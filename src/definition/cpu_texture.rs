@@ -24,6 +24,10 @@ pub enum Format {
     RGBA32F
 }
 
+///
+/// A CPU-side version of a texture (for example [2D texture](crate::Texture2D).
+/// Can be constructed manually or loaded via [io](crate::io).
+///
 pub struct CPUTexture<T> {
     pub data: Vec<T>,
     pub width: usize,

@@ -1,6 +1,11 @@
 
 use crate::math::*;
 
+///
+/// A CPU-side version of a triangle mesh (for example [Mesh](crate::Mesh)).
+/// Can be constructed manually or loaded via [io](crate::io)
+/// or via the utility functions for generating simple triangle meshes.
+///
 #[derive(Default, Debug)]
 pub struct CPUMesh {
     pub name: String,
@@ -156,6 +161,10 @@ impl CPUMesh {
         arrow
     }
 
+    ///
+    /// Computes the per vertex normals and updates the normals of the mesh.
+    /// It will override the current normals if they already exist.
+    ///
     pub fn compute_normals(&mut self) {
         if let Some(ref ind) = self.indices {
             self.normals = Some(compute_normals_with_indices(ind, &self.positions));
@@ -164,6 +173,9 @@ impl CPUMesh {
         }
     }
 
+    ///
+    /// Computes the axis aligned bounding box of the mesh.
+    ///
     pub fn compute_aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new().expand(&self.positions)
     }
