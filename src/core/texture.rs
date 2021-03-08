@@ -9,6 +9,10 @@ pub trait Texture {
     fn depth(&self) -> usize;
 }
 
+///
+/// A 2D texture, basically an image that is transferred to the GPU.
+/// For a texture that can be rendered into, see [ColorTargetTexture2D](crate::ColorTargetTexture2D).
+///
 pub struct Texture2D {
     context: Context,
     id: crate::context::Texture,
@@ -96,6 +100,9 @@ impl Drop for Texture2D
     }
 }
 
+///
+/// A 2D texture that can be rendered into using a [RenderTarget](crate::RenderTarget).
+///
 pub struct ColorTargetTexture2D {
     context: Context,
     id: crate::context::Texture,
@@ -157,6 +164,9 @@ pub enum DepthFormat {
     Depth32F
 }
 
+///
+/// A 2D texture that can be rendered into using a [RenderTarget](crate::RenderTarget).
+///
 pub struct DepthTargetTexture2D {
     context: Context,
     id: crate::context::Texture,
