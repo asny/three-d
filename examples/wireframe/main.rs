@@ -31,7 +31,7 @@ fn main() {
             specular_power: 5.0,
             color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0))
         };
-        let edges = PhongDeferredInstancedMesh::new(&gl, &edge_transformations(&cpu_mesh), &CPUMesh::cylinder(0.007, 1.0, 10, 1), &wireframe_material).unwrap();
+        let edges = PhongDeferredInstancedMesh::new(&gl, &edge_transformations(&cpu_mesh), &CPUMesh::cylinder(0.007, 1.0, 10), &wireframe_material).unwrap();
         let vertices = PhongDeferredInstancedMesh::new(&gl, &vertex_transformations(&cpu_mesh), &CPUMesh::sphere(0.015), &wireframe_material).unwrap();
 
         let plane = PhongDeferredMesh::new(&gl,
