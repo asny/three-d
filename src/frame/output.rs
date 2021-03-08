@@ -19,12 +19,12 @@ pub struct FrameOutput {
     /// Currently ignored on web, since it does not use double buffering.
     ///
     pub swap_buffers: bool,
-    pub screenshot: Option<String>
 
     ///
     /// Takes a screenshot if this is set to some path and saves it at the given location.
     /// Only works on desktop, will be ignored on web.
     ///
+    pub screenshot: Option<std::path::PathBuf>
 }
 
 impl Default for FrameOutput {

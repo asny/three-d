@@ -85,7 +85,7 @@ fn main() {
 
         if args.len() > 1 && time > explosion_time * 0.5 {
             // To automatically generate screenshots of the examples, can safely be ignored.
-            FrameOutput {screenshot: Some(args[1].clone()), exit: true, ..Default::default()}
+            FrameOutput {screenshot: Some(args[1].clone().into()), exit: true, ..Default::default()}
         } else {
             FrameOutput::default()
         }
