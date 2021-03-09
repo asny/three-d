@@ -2,6 +2,9 @@ use crate::io::*;
 use std::path::Path;
 use crate::definition::*;
 
+///
+/// Functionality for parsing and serializing .3d files which is a custom binary format for `three-d`.
+///
 pub struct ThreeD {
 
 }

@@ -6,14 +6,24 @@ use std::path::{Path, PathBuf};
 use crate::io::*;
 use crate::definition::*;
 
+///
+/// The loaded resources.
+/// Use the [get](crate::Loader::get) function or similar to extract each loaded resource.
+///
 pub type Loaded = HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>;
 type RefLoaded = Rc<RefCell<Loaded>>;
 
+///
+/// Functionality for loading any type of asset runtime on both desktop and web.
+///
 pub struct Loader {
 }
 
 impl Loader {
 
+    ///
+    /// Loads all of the resources in the given paths then calls **on_done** with all of the [loaded resources](crate::Loaded).
+    ///
     pub fn load<F, P: AsRef<Path>>(paths: &[P], on_done: F)
         where F: 'static + FnOnce(&mut Loaded)
     {
@@ -22,6 +32,10 @@ impl Loader {
         }, on_done);
     }
 
+    ///
+    /// Loads all of the resources in the given paths then calls **on_done** with all of the [loaded resources](crate::Loaded).
+    /// Will continuously call **progress_callback** while loading.
+    ///
     pub fn load_with_progress<F, G, P>(paths: &[P], progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),
@@ -37,6 +51,10 @@ impl Loader {
         Self::wait_local(loads.clone(), progress_callback, on_done);
     }
 
+    ///
+    /// Returns the loaded byte array for the resource at the given path.
+    /// The byte array then has to be parsed to whatever type this resource is (image, 3D model etc.).
+    ///
     pub fn get<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<&[u8], IOError> {
         let bytes = loaded.get(path.as_ref()).ok_or(
             IOError::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
@@ -44,6 +62,11 @@ impl Loader {
         Ok(bytes)
     }
 
+    ///
+    /// Parse the loaded image resource at the given path into a [CPUTexture](crate::CPUTexture) using
+    /// the [image](https://crates.io/crates/image/main.rs) crate.
+    /// The CPUTexture can then be used to create a [Texture2D](crate::Texture2D).
+    ///
     #[cfg(feature = "image-io")]
     pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, IOError> {
         use image::GenericImageView;
@@ -60,6 +83,11 @@ impl Loader {
         Ok(CPUTexture {data: bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
     }
 
+    ///
+    /// Parse the 6 loaded image resources at the given paths into a [CPUTexture](crate::CPUTexture) using
+    /// the [image](https://crates.io/crates/image/main.rs) crate.
+    /// The CPUTexture can then be used to create a [TextureCubeMap](crate::TextureCubeMap).
+    ///
     #[cfg(feature = "image-io")]
     pub fn get_cube_texture<P: AsRef<Path>>(loaded: &Loaded, right_path: P, left_path: P,
                                             top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, IOError> {

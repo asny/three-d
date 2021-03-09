@@ -4,6 +4,10 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::definition::*;
 
+///
+/// Functionality for parsing .obj files
+/// (using the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate).
+///
 pub struct Obj {
 
 }

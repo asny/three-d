@@ -1,8 +1,7 @@
 
 //!
-//! Loading any type of asset runtime on both desktop and web as well as parsers for .obj
-//! (using the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate), .3d files (a custom format) and
-//! most image formats (using the [image](https://crates.io/crates/image/main.rs) crate).
+//! Contain a [loader](crate::Loader) for loading any type of asset runtime on both desktop and web
+//! as well as parsers for 3D and image files and a [saver](crate::Saver) for saving.
 //!
 
 #[doc(hidden)]
@@ -33,6 +32,9 @@ pub mod obj;
 #[cfg(feature = "obj-io")]
 pub use obj::*;
 
+///
+/// Error message from the [core](crate::io) module.
+///
 #[derive(Debug)]
 pub enum IOError {
     #[cfg(feature = "image-io")]
