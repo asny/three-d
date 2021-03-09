@@ -1,5 +1,8 @@
 use crate::math::*;
 
+///
+/// A bounding box that aligns with the x, y and z axes.
+///
 #[derive(Debug, Copy, Clone)]
 pub struct AxisAlignedBoundingBox {
     pub min: Vec3,

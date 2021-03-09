@@ -4,6 +4,9 @@ use crate::core::*;
 use crate::camera::*;
 use crate::effect::*;
 
+///
+/// An effect that simulates fog, ie. the entire screen gets hazy white when objects are far away.
+///
 pub struct FogEffect {
     pub color: Vec3,
     pub density: f32,

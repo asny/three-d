@@ -3,6 +3,10 @@ use crate::math::*;
 use crate::core::*;
 use crate::effect::*;
 
+///
+/// A simple anti-aliasing approach which smooths otherwise jagged edges (for example lines) but also
+/// smooths the rest of the image.
+///
 pub struct FXAAEffect {
     pub color: Vec3,
     pub density: f32,

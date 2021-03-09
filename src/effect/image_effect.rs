@@ -1,6 +1,10 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// A customizable 2D effect.
+/// Can for example be used for adding an effect on top of the rendered 3D scene, like [fog](crate::FogEffect).
+///
 pub struct ImageEffect {
     program: Program,
     positions: VertexBuffer,

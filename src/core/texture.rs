@@ -2,6 +2,9 @@ use crate::core::Error;
 use crate::context::{Context, consts};
 use crate::cpu_texture::*;
 
+///
+/// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).
+///
 pub trait Texture {
     fn bind(&self, location: u32);
     fn width(&self) -> usize;
@@ -288,6 +291,9 @@ impl Drop for TextureCubeMap
     }
 }
 
+///
+/// A 2D texture array that can be rendered into using a [RenderTargetArray](crate::RenderTargetArray).
+///
 pub struct ColorTargetTexture2DArray {
     context: Context,
     id: crate::context::Texture,
@@ -348,7 +354,9 @@ impl Drop for ColorTargetTexture2DArray
     }
 }
 
-
+///
+/// A 2D texture array that can be rendered into using a [RenderTargetArray](crate::RenderTargetArray).
+///
 pub struct DepthTargetTexture2DArray {
     context: Context,
     id: crate::context::Texture,
