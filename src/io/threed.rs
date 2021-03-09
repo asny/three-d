@@ -11,7 +11,7 @@ impl Deserialize {
     ///
     pub fn three_d<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
     {
-        let bytes = loaded.get(path.as_ref())?;
+        let bytes = loaded.bytes(path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| Self::deserialize_version1(bytes))?;
 

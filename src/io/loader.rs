@@ -10,7 +10,7 @@ type RefLoaded = Rc<RefCell<HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>>>;
 
 ///
 /// The resources loaded using the [Loader](crate::Loader).
-/// Use the [get](crate::Loaded::get) function to extract the raw byte array for the loaded resource
+/// Use the [bytes](crate::Loaded::bytes) function to extract the raw byte array for the loaded resource
 /// or one of the built-in deserialize methods to both extract and deserialize a loaded resource.
 ///
 pub struct Loaded<'a>  {
@@ -23,7 +23,7 @@ impl<'a> Loaded<'a> {
     /// Returns the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn get<P: AsRef<Path>>(&'a self, path: P) -> Result<&'a [u8], IOError> {
+    pub fn bytes<P: AsRef<Path>>(&'a self, path: P) -> Result<&'a [u8], IOError> {
         let bytes = self.loaded.get(path.as_ref()).ok_or(
             IOError::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
             .map_err(|_| IOError::FailedToLoad {message:format!("Could not load resource: {}", path.as_ref().to_str().unwrap())})?;

@@ -14,7 +14,7 @@ impl Deserialize {
     ///
     pub fn image<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, IOError> {
         use image::GenericImageView;
-        let img = image::load_from_memory(loaded.get(path)?)?;
+        let img = image::load_from_memory(loaded.bytes(path)?)?;
         let bytes = img.to_bytes();
         let number_of_channels = bytes.len() / (img.width() * img.height()) as usize;
         let format = match number_of_channels {
