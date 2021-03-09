@@ -1,7 +1,7 @@
 
 //!
-//! Contain a [loader](crate::Loader) for loading any type of asset runtime on both desktop and web and a [saver](crate::Saver) for saving on desktop only.
-//! It also contain [deserialize](crate::Deserialize) and [serialize](crate::Serialize) functionality for deserializing/serializing the loaded resources to/from 3D models, textures etc.
+//! Contain a [loader](crate::Loader) for loading any type of asset runtime on both desktop and web
+//! and a [saver](crate::Saver) for saving (available on desktop only).
 //!
 
 #[doc(hidden)]
