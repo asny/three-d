@@ -4,6 +4,12 @@ use crate::math::*;
 use crate::core::*;
 use crate::context::{Context, consts};
 
+///
+/// A shader program consisting of a programmable vertex shader followed by a programmable fragment shader.
+/// Functionality includes transferring per vertex data to the vertex shader (see the use_attribute functionality)
+/// and transferring uniform data to both shader stages (see the use_uniform and use_texture functionality)
+/// and execute the shader program (see the draw functionality).
+///
 pub struct Program {
     context: Context,
     id: crate::context::Program,
