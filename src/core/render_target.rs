@@ -1,5 +1,4 @@
 use crate::math::*;
-use crate::definition::*;
 use crate::core::*;
 use crate::context::{Context, consts};
 use crate::ImageEffect;
@@ -498,7 +497,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Ok(())
     }
 
-    pub fn copy_color(&self, color_layer: usize, other: &RenderTarget) -> Result<(), Error>
+    pub fn copy_color(&self, color_layer: usize, other: &RenderTarget, viewport: Viewport) -> Result<(), Error>
     {
         if self.color_texture.is_none() || other.color_texture.is_none() {
             Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy color when the render target does not have a color texture.".to_owned()})?;
