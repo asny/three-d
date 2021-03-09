@@ -52,3 +52,24 @@ impl<'a> Loaded<'a> {
         Ok(right)
     }
 }
+
+impl Saver {
+    ///
+    /// Saves the given RGB pixels as an image.
+    ///
+    pub fn save_pixels<P: AsRef<Path>>(path: P, pixels: &[u8], width: usize, height: usize) -> Result<(), IOError>
+    {
+        let mut pixels_out = vec![0u8; width * height * 3];
+        for row in 0..height {
+            for col in 0..width {
+                for i in 0..3 {
+                    pixels_out[3 * width * (height - row - 1) + 3 * col + i] =
+                        pixels[3 * width * row + 3 * col + i];
+                }
+            }
+        }
+
+        image::save_buffer(path, &pixels_out, width as u32, height as u32, image::ColorType::Rgb8)?;
+        Ok(())
+    }
+}

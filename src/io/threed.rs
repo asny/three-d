@@ -73,8 +73,33 @@ impl<'a> Loaded<'a> {
 }
 
 impl Saver {
+    ///
+    /// Saves the given meshes and materials as a .3d file.
+    ///
+    #[cfg(feature = "image-io")]
+    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<(), IOError>
+    {
+        let dir = path.as_ref().parent().unwrap();
+        let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
+        for cpu_material in cpu_materials.iter() {
+            if let Some(ref cpu_texture) = cpu_material.texture_image {
+                let number_of_channels = cpu_texture.data.len() / (cpu_texture.width * cpu_texture.height);
+                let format = match number_of_channels {
+                    1 => Ok(image::ColorType::L8),
+                    3 => Ok(image::ColorType::Rgb8),
+                    4 => Ok(image::ColorType::Rgba8),
+                    _ => Err(IOError::FailedToSave {message: format!("Texture image could not be saved")})
+                }?;
+                let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
+                image::save_buffer(tex_path,&cpu_texture.data, cpu_texture.width as u32, cpu_texture.height as u32, format)?;
+            }
+        }
+        let bytes = Self::serialize(filename, cpu_meshes, cpu_materials)?;
+        Self::save_file(dir.join(format!("{}.3d", filename)), &bytes)?;
+        Ok(())
+    }
 
-    pub(in crate::io) fn three_d(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
+    fn serialize(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {

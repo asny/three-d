@@ -33,11 +33,9 @@ impl<'a> Loaded<'a> {
 ///
 /// Functionality for loading any type of resource runtime on both desktop and web.
 ///
-pub struct Loader {
-}
+pub struct Loader {}
 
 impl Loader {
-
     ///
     /// Loads all of the resources in the given paths then calls **on_done** with all of the [loaded resources](crate::Loaded).
     ///
