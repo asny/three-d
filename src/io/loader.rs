@@ -5,13 +5,30 @@ use log::info;
 use std::path::{Path, PathBuf};
 use crate::io::*;
 
+type RefLoaded = Rc<RefCell<HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>>>;
+
 ///
 /// The loaded resources.
 /// Use the [get](crate::Loader::get) function to extract the raw byte array for the loaded resource
 /// or one of the [deserialize methods](crate::Deserialize) to both extract and deserialize a loaded resource.
 ///
-pub type Loaded = HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>;
-type RefLoaded = Rc<RefCell<Loaded>>;
+pub struct Loaded<'a>  {
+    loaded: &'a mut HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>
+}
+
+impl<'a> Loaded<'a> {
+
+    ///
+    /// Returns the loaded byte array for the resource at the given path.
+    /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
+    ///
+    pub fn get<P: AsRef<Path>>(&'a self, path: P) -> Result<&'a [u8], IOError> {
+        let bytes = self.loaded.get(path.as_ref()).ok_or(
+            IOError::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
+            .map_err(|_| IOError::FailedToLoad {message:format!("Could not load resource: {}", path.as_ref().to_str().unwrap())})?;
+        Ok(bytes)
+    }
+}
 
 ///
 /// Functionality for loading any type of resource runtime on both desktop and web.
@@ -51,17 +68,6 @@ impl Loader {
         Self::wait_local(loads.clone(), progress_callback, on_done);
     }
 
-    ///
-    /// Returns the loaded byte array for the resource at the given path.
-    /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
-    ///
-    pub fn get<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<&[u8], IOError> {
-        let bytes = loaded.get(path.as_ref()).ok_or(
-            IOError::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
-            .map_err(|_| IOError::FailedToLoad {message:format!("Could not load resource: {}", path.as_ref().to_str().unwrap())})?;
-        Ok(bytes)
-    }
-
     fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)
         where
             G: 'static + Fn(f32),
@@ -88,7 +94,7 @@ impl Loader {
                 Self::wait_local(loads, progress_callback, on_done);
             } else {
                 info!("Loading done.");
-                on_done(&mut loads.borrow_mut());
+                on_done(&mut Loaded{loaded: &mut loads.borrow_mut() });
             }
         });
     }

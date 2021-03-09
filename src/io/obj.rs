@@ -13,14 +13,14 @@ impl Deserialize {
     /// Only available when the `obj-io` feature is enabled.
     ///
     pub fn obj<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
-        let obj_bytes = Loader::get(loaded, path.as_ref())?;
+        let obj_bytes = loaded.get(path.as_ref())?;
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = path.as_ref().parent().unwrap();
 
         // Parse materials
         let mut cpu_materials = Vec::new();
         if let Some(material_library) = obj.material_library {
-            let bytes = Loader::get(loaded, p.join(material_library).to_str().unwrap())?.to_owned();
+            let bytes = loaded.get(p.join(material_library).to_str().unwrap())?.to_owned();
             let materials = wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap())?.materials;
 
             for material in materials {
