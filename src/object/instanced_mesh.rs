@@ -189,7 +189,7 @@ impl InstancedMesh
             }
             PROGRAM_COLOR.as_ref().unwrap()
         };
-        program.add_uniform_vec4("color", color)?;
+        program.use_uniform_vec4("color", color)?;
         self.render(program, render_states, viewport, transformation, camera)
     }
 
@@ -233,7 +233,7 @@ impl InstancedMesh
         program.use_attribute_vec4_divisor(&self.instance_buffer2, "row2", 1)?;
         program.use_attribute_vec4_divisor(&self.instance_buffer3, "row3", 1)?;
 
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
+        program.use_uniform_mat4("modelMatrix", &transformation)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
@@ -245,7 +245,7 @@ impl InstancedMesh
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
 

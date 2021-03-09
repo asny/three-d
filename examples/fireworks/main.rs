@@ -78,7 +78,7 @@ fn main() {
             let f =  time/explosion_time.max(0.0);
             let fade = 1.0 - f*f*f*f;
             let color = colors[color_index];
-            particles_program.add_uniform_vec4("color", &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0))?;
+            particles_program.use_uniform_vec4("color", &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0))?;
             particles.render(&particles_program, render_states, frame_input.viewport, &Mat4::identity(), &camera, time)?;
             Ok(())
         }).unwrap();

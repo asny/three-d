@@ -148,9 +148,9 @@ impl Particles {
     ///
     pub fn render(&self, program: &ParticlesProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, time: f32) -> Result<(), Error>
     {
-        program.add_uniform_mat4("modelMatrix", &transformation)?;
-        program.add_uniform_vec3("acceleration", &self.acceleration)?;
-        program.add_uniform_float("time", &time)?;
+        program.use_uniform_mat4("modelMatrix", &transformation)?;
+        program.use_uniform_vec3("acceleration", &self.acceleration)?;
+        program.use_uniform_float("time", &time)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3_divisor(&self.start_position_buffer, "start_position", 1)?;
@@ -164,7 +164,7 @@ impl Particles {
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The particles shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.add_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
 

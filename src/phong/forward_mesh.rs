@@ -56,11 +56,11 @@ impl PhongForwardMesh
                 }
             }
         };
-        program.add_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
+        program.use_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
 
         match self.material.color_source {
             ColorSource::Color(ref color) => {
-                program.add_uniform_vec4("surfaceColor", color)?;
+                program.use_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
                 program.use_texture(texture.as_ref(),"tex")?;
@@ -95,9 +95,9 @@ impl PhongForwardMesh
                 }
             }
         };
-        program.add_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
+        program.use_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
 
-        program.add_uniform_vec3("eyePosition", &camera.position())?;
+        program.use_uniform_vec3("eyePosition", &camera.position())?;
         program.use_texture(directional_light.shadow_map(), "shadowMap")?;
         program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
         self.material.bind(program)?;

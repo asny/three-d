@@ -160,7 +160,7 @@ impl GUI {
         }), depth_test: DepthTestType::Always, ..Default::default()};
 
         self.program.use_texture(texture, "u_sampler")?;
-        self.program.add_uniform_vec2("u_screen_size", &vec2(width as f32, height as f32))?;
+        self.program.use_uniform_vec2("u_screen_size", &vec2(width as f32, height as f32))?;
 
         self.program.use_attribute_vec2(&position_buffer, "a_pos")?;
         self.program.use_attribute_vec4(&color_buffer, "a_srgba")?;

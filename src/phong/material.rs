@@ -33,13 +33,13 @@ impl PhongMaterial {
     }
 
     pub(crate) fn bind(&self, program: &Program) -> Result<(), Error> {
-        program.add_uniform_float("diffuse_intensity", &self.diffuse_intensity)?;
-        program.add_uniform_float("specular_intensity", &self.specular_intensity)?;
-        program.add_uniform_float("specular_power", &self.specular_power)?;
+        program.use_uniform_float("diffuse_intensity", &self.diffuse_intensity)?;
+        program.use_uniform_float("specular_intensity", &self.specular_intensity)?;
+        program.use_uniform_float("specular_power", &self.specular_power)?;
 
         match self.color_source {
             ColorSource::Color(ref color) => {
-                program.add_uniform_vec4("surfaceColor", color)?;
+                program.use_uniform_vec4("surfaceColor", color)?;
             },
             ColorSource::Texture(ref texture) => {
                 program.use_texture(texture.as_ref(),"tex")?;

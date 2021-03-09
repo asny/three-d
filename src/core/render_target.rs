@@ -438,8 +438,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
             let effect = get_copy_array_effect(&self.context)?;
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
-            effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
+            effect.program().use_uniform_int("colorLayer", &(color_layer as i32))?;
+            effect.program().use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 ..Default::default()}, viewport)?;
             Ok(())
@@ -455,7 +455,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         let effect = get_copy_array_effect(&self.context)?;
         Screen::write(&self.context, &ClearState::none(), || {
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
+            effect.program().use_uniform_int("colorLayer", &(color_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 write_mask: WriteMask::COLOR, ..Default::default()}, viewport)?;
             Ok(())
@@ -471,7 +471,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         Screen::write(&self.context, &ClearState::none(), || {
             let effect = get_copy_array_effect(&self.context)?;
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
+            effect.program().use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 write_mask: WriteMask::DEPTH, ..Default::default()}, viewport)?;
             Ok(())
@@ -488,8 +488,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
             let effect = get_copy_array_effect(&self.context)?;
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
-            effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
+            effect.program().use_uniform_int("colorLayer", &(color_layer as i32))?;
+            effect.program().use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 ..Default::default()}, viewport)?;
             Ok(())
@@ -505,7 +505,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         other.write(&ClearState::none(), || {
             let effect = get_copy_array_effect(&self.context)?;
             effect.program().use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.program().add_uniform_int("colorLayer", &(color_layer as i32))?;
+            effect.program().use_uniform_int("colorLayer", &(color_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 write_mask: WriteMask::COLOR, ..Default::default()}, viewport)?;
             Ok(())
@@ -521,7 +521,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b>
         other.write(&ClearState::none(), || {
             let effect = get_copy_array_effect(&self.context)?;
             effect.program().use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.program().add_uniform_int("depthLayer", &(depth_layer as i32))?;
+            effect.program().use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(RenderStates {cull: CullType::Back, depth_test: DepthTestType::Always,
                 write_mask: WriteMask::DEPTH, ..Default::default()}, viewport)?;
             Ok(())

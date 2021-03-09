@@ -80,7 +80,7 @@ impl Program
             textures: RefCell::new(HashMap::new())})
     }
 
-    pub fn add_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
+    pub fn use_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1i(location, *data);
@@ -88,7 +88,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error>
+    pub fn use_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1f(location, *data);
@@ -96,7 +96,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error>
+    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.context.uniform2fv(location, &mut [data.x, data.y]);
@@ -104,7 +104,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error>
+    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.context.uniform3fv(location, &mut [data.x, data.y, data.z]);
@@ -112,7 +112,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error>
+    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error>
     {
         let location= self.get_uniform_location(name)?;
         self.context.uniform4fv(location, &mut [data.x, data.y, data.z, data.w]);
@@ -120,7 +120,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
+    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.context.uniform_matrix2fv(location, &mut data.to_slice());
@@ -128,7 +128,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
+    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.context.uniform_matrix3fv(location, &mut data.to_slice());
@@ -136,7 +136,7 @@ impl Program
         Ok(())
     }
 
-    pub fn add_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
+    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
     {
         let location = self.get_uniform_location(name)?;
         self.context.uniform_matrix4fv(location, &mut data.to_slice());
@@ -160,7 +160,7 @@ impl Program
         };
         let index = self.textures.borrow().get(texture_name).unwrap().clone();
         texture.bind(index);
-        self.add_uniform_int(texture_name, &(index as i32))?;
+        self.use_uniform_int(texture_name, &(index as i32))?;
         Ok(())
     }
 

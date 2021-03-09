@@ -112,7 +112,7 @@ impl Imposters {
             blend: Some(BlendParameters::TRANSPARENCY),
             ..Default::default()
         };
-        self.program.add_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
+        self.program.use_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
         self.program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         self.program.use_texture(&self.texture, "tex")?;
