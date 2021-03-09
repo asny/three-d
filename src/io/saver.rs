@@ -3,12 +3,18 @@ use std::path::Path;
 use crate::definition::*;
 use crate::io::*;
 
+///
+/// Functionality for saving resources. Only available on desktop at the moment.
+///
 pub struct Saver {
 
 }
 
 impl Saver {
 
+    ///
+    /// Saves the given meshes and materials as a .3d file.
+    ///
     #[cfg(all(feature = "3d-io", feature = "image-io"))]
     pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<(), IOError>
     {
@@ -32,6 +38,9 @@ impl Saver {
         Ok(())
     }
 
+    ///
+    /// Saves the given RGB pixels as an image.
+    ///
     #[cfg(feature = "image-io")]
     pub fn save_pixels<P: AsRef<Path>>(path: P, pixels: &[u8], width: usize, height: usize) -> Result<(), IOError>
     {
@@ -49,6 +58,9 @@ impl Saver {
         Ok(())
     }
 
+    ///
+    /// Save the byte array as a file.
+    ///
     pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> Result<(), IOError>
     {
         let mut file = std::fs::File::create(path)?;
