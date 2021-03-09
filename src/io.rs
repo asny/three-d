@@ -34,7 +34,7 @@ pub mod obj;
 pub use obj::*;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum IOError {
     #[cfg(feature = "image-io")]
     Image(image::ImageError),
     #[cfg(feature = "3d-io")]
@@ -48,29 +48,29 @@ pub enum Error {
 }
 
 #[cfg(feature = "image-io")]
-impl From<image::ImageError> for Error {
+impl From<image::ImageError> for IOError {
     fn from(other: image::ImageError) -> Self {
-        Error::Image(other)
+        IOError::Image(other)
     }
 }
 
 #[cfg(feature = "3d-io")]
-impl From<bincode::Error> for Error {
+impl From<bincode::Error> for IOError {
     fn from(other: bincode::Error) -> Self {
-        Error::Bincode(other)
+        IOError::Bincode(other)
     }
 }
 
 #[cfg(feature = "obj-io")]
-impl From<wavefront_obj::ParseError> for Error {
+impl From<wavefront_obj::ParseError> for IOError {
     fn from(other: wavefront_obj::ParseError) -> Self {
-        Error::Obj(other)
+        IOError::Obj(other)
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-impl From<std::io::Error> for Error {
+impl From<std::io::Error> for IOError {
     fn from(other: std::io::Error) -> Self {
-        Error::IO(other)
+        IOError::IO(other)
     }
 }

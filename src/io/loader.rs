@@ -37,15 +37,15 @@ impl Loader {
         Self::wait_local(loads.clone(), progress_callback, on_done);
     }
 
-    pub fn get<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<&[u8], Error> {
+    pub fn get<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<&[u8], IOError> {
         let bytes = loaded.get(path.as_ref()).ok_or(
-            Error::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
-            .map_err(|_| Error::FailedToLoad {message:format!("Could not load resource: {}", path.as_ref().to_str().unwrap())})?;
+            IOError::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
+            .map_err(|_| IOError::FailedToLoad {message:format!("Could not load resource: {}", path.as_ref().to_str().unwrap())})?;
         Ok(bytes)
     }
 
     #[cfg(feature = "image-io")]
-    pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, Error> {
+    pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, IOError> {
         use image::GenericImageView;
         let img = image::load_from_memory(Self::get(loaded, path)?)?;
         let bytes = img.to_bytes();
@@ -54,7 +54,7 @@ impl Loader {
             1 => Ok(Format::R8),
             3 => Ok(Format::RGB8),
             4 => Ok(Format::RGBA8),
-            _ => Err(Error::FailedToLoad {message: format!("Could not determine the pixel format for the texture.")})
+            _ => Err(IOError::FailedToLoad {message: format!("Could not determine the pixel format for the texture.")})
         }?;
 
         Ok(CPUTexture {data: bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
@@ -62,7 +62,7 @@ impl Loader {
 
     #[cfg(feature = "image-io")]
     pub fn get_cube_texture<P: AsRef<Path>>(loaded: &Loaded, right_path: P, left_path: P,
-                                            top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, Error> {
+                                            top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, IOError> {
         let mut right = Self::get_texture(loaded, right_path)?;
         let left = Self::get_texture(loaded, left_path)?;
         let top = Self::get_texture(loaded, top_path)?;

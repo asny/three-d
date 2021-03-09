@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crate::frame::*;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum WindowError {
     WindowCreationError {message: String},
     ContextError {message: String},
     PerformanceError {message: String},
@@ -24,19 +24,19 @@ pub struct Window
 
 impl Window
 {
-    pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
+    pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError>
     {
-        let websys_window = web_sys::window().ok_or(Error::WindowCreationError {message: "Unable to create web window".to_string()})?;
-        let document = websys_window.document().ok_or(Error::WindowCreationError {message: "Unable to get document".to_string()})?;
-        let canvas = document.get_element_by_id("canvas").ok_or(Error::WindowCreationError {message: "Unable to get canvas, is the id different from 'canvas'?".to_string()})?;
-        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| Error::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
+        let websys_window = web_sys::window().ok_or(WindowError::WindowCreationError {message: "Unable to create web window".to_string()})?;
+        let document = websys_window.document().ok_or(WindowError::WindowCreationError {message: "Unable to get document".to_string()})?;
+        let canvas = document.get_element_by_id("canvas").ok_or(WindowError::WindowCreationError {message: "Unable to get canvas, is the id different from 'canvas'?".to_string()})?;
+        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| WindowError::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
 
         let context = canvas
-            .get_context("webgl2").map_err(|e| Error::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
-            .ok_or(Error::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
-            .dyn_into::<WebGl2RenderingContext>().map_err(|e| Error::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
-        context.get_extension("EXT_color_buffer_float").map_err(|e| Error::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
-        context.get_extension("OES_texture_float").map_err(|e| Error::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
+            .get_context("webgl2").map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
+            .ok_or(WindowError::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
+            .dyn_into::<WebGl2RenderingContext>().map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
+        context.get_extension("EXT_color_buffer_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
+        context.get_extension("OES_texture_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
 
         let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
             event.prevent_default();
@@ -50,14 +50,14 @@ impl Window
         Ok(window)
     }
 
-    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
+    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), WindowError>
         where F: FnMut(FrameInput) -> FrameOutput
     {
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
 
         let events = Rc::new(RefCell::new(Vec::new()));
-        let performance = self.window.performance().ok_or(Error::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
+        let performance = self.window.performance().ok_or(WindowError::PerformanceError {message: "Performance (for timing) is not found on the window.".to_string()})?;
         let mut last_time = performance.now();
         let mut accumulated_time = 0.0;
         let mut first_frame = true;
@@ -157,7 +157,7 @@ impl Window
         self.canvas.set_height(device_pixel_ratio as u32*height);
     }
 
-    fn add_mouseleave_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mouseleave_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -166,12 +166,12 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse leave event listener. Error code: {:?}", e)})?;
+        self.canvas.add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add mouse leave event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_mouseenter_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), Error>
+    fn add_mouseenter_event_listener(&self, events: Rc<RefCell<Vec<Event>>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -180,12 +180,12 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse enter event listener. Error code: {:?}", e)})?;
+        self.canvas.add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add mouse enter event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_mousedown_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -211,12 +211,12 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse down event listener. Error code: {:?}", e)})?;
+        self.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add mouse down event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_mouseup_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -241,12 +241,12 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse up event listener. Error code: {:?}", e)})?;
+        self.canvas.add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add mouse up event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_mousemove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -264,12 +264,12 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add mouse move event listener. Error code: {:?}", e)})?;
+        self.canvas.add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add mouse move event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_mousewheel_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
@@ -283,12 +283,12 @@ impl Window
                 event.prevent_default();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas.add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add wheel event listener. Error code: {:?}", e)})?;
+        self.canvas.add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add wheel event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_touchstart_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_touchstart_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
@@ -312,12 +312,12 @@ impl Window
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref())
-            .map_err(|e| Error::EventListenerError {message: format!("Unable to add touch start event listener. Error code: {:?}", e)})?;
+            .map_err(|e| WindowError::EventListenerError {message: format!("Unable to add touch start event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_touchend_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_touchend_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
@@ -330,12 +330,12 @@ impl Window
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref())
-            .map_err(|e| Error::EventListenerError {message: format!("Unable to add touch end event listener. Error code: {:?}", e)})?;
+            .map_err(|e| WindowError::EventListenerError {message: format!("Unable to add touch end event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_touchmove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_touchmove_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, last_position: Rc<RefCell<Option<(i32, i32)>>>, last_zoom: Rc<RefCell<Option<f64>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
@@ -377,12 +377,12 @@ impl Window
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas.add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())
-            .map_err(|e| Error::EventListenerError {message: format!("Unable to add touch move event listener. Error code: {:?}", e)})?;
+            .map_err(|e| WindowError::EventListenerError {message: format!("Unable to add touch move event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_key_down_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
@@ -408,12 +408,12 @@ impl Window
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key down event listener. Error code: {:?}", e)})?;
+        window().add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add key down event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }
 
-    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), Error>
+    fn add_key_up_event_listener(&self, events: Rc<RefCell<Vec<Event>>>, modifiers: Rc<RefCell<Modifiers>>) -> Result<(), WindowError>
     {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
@@ -435,7 +435,7 @@ impl Window
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        window().add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).map_err(|e| Error::EventListenerError {message: format!("Unable to add key up event listener. Error code: {:?}", e)})?;
+        window().add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).map_err(|e| WindowError::EventListenerError {message: format!("Unable to add key up event listener. Error code: {:?}", e)})?;
         closure.forget();
         Ok(())
     }

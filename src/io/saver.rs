@@ -10,7 +10,7 @@ pub struct Saver {
 impl Saver {
 
     #[cfg(all(feature = "3d-io", feature = "image-io"))]
-    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<(), Error>
+    pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<(), IOError>
     {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
@@ -21,7 +21,7 @@ impl Saver {
                     1 => Ok(image::ColorType::L8),
                     3 => Ok(image::ColorType::Rgb8),
                     4 => Ok(image::ColorType::Rgba8),
-                    _ => Err(Error::FailedToSave {message: format!("Texture image could not be saved")})
+                    _ => Err(IOError::FailedToSave {message: format!("Texture image could not be saved")})
                 }?;
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
                 image::save_buffer(tex_path,&cpu_texture.data, cpu_texture.width as u32, cpu_texture.height as u32, format)?;
@@ -33,7 +33,7 @@ impl Saver {
     }
 
     #[cfg(feature = "image-io")]
-    pub fn save_pixels<P: AsRef<Path>>(path: P, pixels: &[u8], width: usize, height: usize) -> Result<(), Error>
+    pub fn save_pixels<P: AsRef<Path>>(path: P, pixels: &[u8], width: usize, height: usize) -> Result<(), IOError>
     {
         let mut pixels_out = vec![0u8; width * height * 3];
         for row in 0..height {
@@ -49,7 +49,7 @@ impl Saver {
         Ok(())
     }
 
-    pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> Result<(), Error>
+    pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> Result<(), IOError>
     {
         let mut file = std::fs::File::create(path)?;
         use std::io::prelude::*;

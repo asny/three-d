@@ -8,20 +8,20 @@ use crate::math::*;
 use crate::frame::*;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum WindowError {
     WindowCreationError(glutin::CreationError),
     ContextError(glutin::ContextError)
 }
 
-impl From<glutin::CreationError> for Error {
+impl From<glutin::CreationError> for WindowError {
     fn from(other: glutin::CreationError) -> Self {
-        Error::WindowCreationError(other)
+        WindowError::WindowCreationError(other)
     }
 }
 
-impl From<glutin::ContextError> for Error {
+impl From<glutin::ContextError> for WindowError {
     fn from(other: glutin::ContextError) -> Self {
-        Error::ContextError(other)
+        WindowError::ContextError(other)
     }
 }
 
@@ -34,7 +34,7 @@ pub struct Window
 
 impl Window
 {
-    pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, Error>
+    pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError>
     {
         let event_loop = EventLoop::new();
         let mut wc = Self::new_windowed_context(title, size, true, &event_loop);
@@ -47,7 +47,7 @@ impl Window
         Ok(Window { windowed_context, event_loop, gl})
     }
 
-    fn new_windowed_context(title: &str, size: Option<(u32, u32)>, multisample: bool, event_loop: &EventLoop<()>) -> Result<WindowedContext<NotCurrent>, Error> {
+    fn new_windowed_context(title: &str, size: Option<(u32, u32)>, multisample: bool, event_loop: &EventLoop<()>) -> Result<WindowedContext<NotCurrent>, WindowError> {
 
         let window_builder =
             if let Some((width, height)) = size {
@@ -75,7 +75,7 @@ impl Window
         }
     }
 
-    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), Error>
+    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), WindowError>
         where F: FnMut(FrameInput) -> FrameOutput
     {
         let windowed_context = self.windowed_context;

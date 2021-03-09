@@ -7,7 +7,7 @@ pub struct ThreeD {
 }
 
 impl ThreeD {
-    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), Error>
+    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
     {
         let bytes = Loader::get(loaded, path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
@@ -69,7 +69,7 @@ impl ThreeD {
             })
     }
 
-    pub fn serialize(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, Error>
+    pub fn serialize(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {
