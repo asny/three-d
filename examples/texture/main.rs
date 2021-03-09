@@ -24,21 +24,21 @@ fn main() {
             ..Default::default()
         };
         box_cpu_mesh.compute_normals();
-        let box_texture = Texture2D::new_with_u8(&context, &Deserialize::image(loaded, "examples/assets/test_texture.jpg").unwrap()).unwrap();
+        let box_texture = Texture2D::new_with_u8(&context, &loaded.image("examples/assets/test_texture.jpg").unwrap()).unwrap();
         let box_material = PhongMaterial {
             color_source: ColorSource::Texture(std::rc::Rc::new(box_texture)),
             ..Default::default()
         };
         let box_mesh = PhongDeferredMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
 
-        let skybox = Skybox::new(&context, &mut Deserialize::cube_image(loaded, "examples/assets/skybox_evening/right.jpg",
+        let skybox = Skybox::new(&context, &mut loaded.cube_image("examples/assets/skybox_evening/right.jpg",
                                                                          "examples/assets/skybox_evening/left.jpg",
                                                                          "examples/assets/skybox_evening/top.jpg",
                                                                          "examples/assets/skybox_evening/top.jpg",
                                                                          "examples/assets/skybox_evening/front.jpg",
                                                                          "examples/assets/skybox_evening/back.jpg").unwrap()).unwrap();
 
-        let (penguin_cpu_meshes, penguin_cpu_materials) = Deserialize::obj(loaded, "examples/assets/PenguinBaseMesh.obj").unwrap();
+        let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
         let penguin_cpu_material = PhongMaterial::new(&context, &penguin_cpu_materials[0]).unwrap();
         let penguin_deferred = PhongDeferredMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
         let penguin_forward = PhongForwardMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();

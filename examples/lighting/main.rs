@@ -13,7 +13,7 @@ fn main() {
 
     Loader::load(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"], move |loaded|
     {
-        let (monkey_cpu_meshes, mut monkey_cpu_materials) = Deserialize::obj(loaded, "examples/assets/suzanne.obj").unwrap();
+        let (monkey_cpu_meshes, mut monkey_cpu_materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
         monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
         monkey_cpu_materials[0].specular_intensity = Some(0.8);
         monkey_cpu_materials[0].specular_power = Some(20.0);

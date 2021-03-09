@@ -16,7 +16,7 @@ fn main() {
 
     Loader::load(&["./examples/assets/suzanne.obj", "./examples/assets/suzanne.mtl"], move |loaded|
     {
-        let (mut meshes, mut materials)  = Deserialize::obj(loaded, "./examples/assets/suzanne.obj").unwrap();
+        let (mut meshes, mut materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
         let cpu_mesh = meshes.remove(0);
         let mut cpu_material = materials.remove(0);
         cpu_material.diffuse_intensity = Some(0.2);
