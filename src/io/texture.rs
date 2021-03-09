@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::io::*;
 use crate::definition::*;
 
-impl Deserialize {
+impl<'a> Loaded<'a> {
     ///
     /// Deserialize the loaded image resource at the given path into a [CPUTexture](crate::CPUTexture) using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
@@ -12,9 +12,9 @@ impl Deserialize {
     /// # Feature
     /// Only available when the `image-io` feature is enabled.
     ///
-    pub fn image<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, IOError> {
+    pub fn image<P: AsRef<Path>>(&'a self, path: P) -> Result<CPUTexture<u8>, IOError> {
         use image::GenericImageView;
-        let img = image::load_from_memory(loaded.bytes(path)?)?;
+        let img = image::load_from_memory(self.bytes(path)?)?;
         let bytes = img.to_bytes();
         let number_of_channels = bytes.len() / (img.width() * img.height()) as usize;
         let format = match number_of_channels {
@@ -35,14 +35,14 @@ impl Deserialize {
     /// # Feature
     /// Only available when the `image-io` feature is enabled.
     ///
-    pub fn cube_image<P: AsRef<Path>>(loaded: &Loaded, right_path: P, left_path: P,
+    pub fn cube_image<P: AsRef<Path>>(&'a self, right_path: P, left_path: P,
                                       top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, IOError> {
-        let mut right = Self::image(loaded, right_path)?;
-        let left = Self::image(loaded, left_path)?;
-        let top = Self::image(loaded, top_path)?;
-        let bottom = Self::image(loaded, bottom_path)?;
-        let front = Self::image(loaded, front_path)?;
-        let back = Self::image(loaded, back_path)?;
+        let mut right = self.image(right_path)?;
+        let left = self.image(left_path)?;
+        let top = self.image(top_path)?;
+        let bottom = self.image(bottom_path)?;
+        let front = self.image(front_path)?;
+        let back = self.image(back_path)?;
 
         right.data.extend(left.data);
         right.data.extend(top.data);

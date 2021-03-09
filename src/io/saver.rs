@@ -33,7 +33,7 @@ impl Saver {
                 image::save_buffer(tex_path,&cpu_texture.data, cpu_texture.width as u32, cpu_texture.height as u32, format)?;
             }
         }
-        let bytes = Serialize::three_d(filename, cpu_meshes, cpu_materials)?;
+        let bytes = Self::three_d(filename, cpu_meshes, cpu_materials)?;
         Self::save_file(dir.join(format!("{}.3d", filename)), &bytes)?;
         Ok(())
     }

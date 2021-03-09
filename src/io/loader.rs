@@ -4,14 +4,13 @@ use std::cell::RefCell;
 use log::info;
 use std::path::{Path, PathBuf};
 use crate::io::*;
-use crate::definition::*;
 
 type RefLoaded = Rc<RefCell<HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>>>;
 
 ///
 /// The resources loaded using the [Loader](crate::Loader).
 /// Use the [bytes](crate::Loaded::bytes) function to extract the raw byte array for the loaded resource
-/// or one of the built-in deserialize methods to both extract and deserialize a loaded resource.
+/// or one of the other methods to both extract and deserialize a loaded resource.
 ///
 pub struct Loaded<'a>  {
     loaded: &'a mut HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>
@@ -28,35 +27,6 @@ impl<'a> Loaded<'a> {
             IOError::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
             .map_err(|_| IOError::FailedToLoad {message:format!("Could not load resource: {}", path.as_ref().to_str().unwrap())})?;
         Ok(bytes)
-    }
-
-    ///
-    /// Same as [Deserialize::obj](crate::Deserialize::obj).
-    ///
-    pub fn obj<P: AsRef<Path>>(&self, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
-        Deserialize::obj(self, path)
-    }
-
-    ///
-    /// Same as [Deserialize::three_d](crate::Deserialize::three_d).
-    ///
-    pub fn three_d<P: AsRef<Path>>(&self, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
-        Deserialize::three_d(self, path)
-    }
-
-    ///
-    /// Same as [Deserialize::image](crate::Deserialize::image).
-    ///
-    pub fn image<P: AsRef<Path>>(&self, path: P) -> Result<CPUTexture<u8>, IOError> {
-        Deserialize::image(self, path)
-    }
-
-    ///
-    /// Same as [Deserialize::cube_image](crate::Deserialize::cube_image).
-    ///
-    pub fn cube_image<P: AsRef<Path>>(&self, right_path: P, left_path: P,
-                                      top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, IOError> {
-        Deserialize::cube_image(self, right_path, left_path, top_path, bottom_path, front_path, back_path)
     }
 }
 

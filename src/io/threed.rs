@@ -2,16 +2,16 @@ use crate::io::*;
 use std::path::Path;
 use crate::definition::*;
 
-impl Deserialize {
+impl<'a> Loaded<'a> {
     ///
     /// Deserialize a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
     ///
     /// # Feature
     /// Only available when the `3d-io` feature is enabled.
     ///
-    pub fn three_d<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
+    pub fn three_d<P: AsRef<Path>>(&'a self, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
     {
-        let bytes = loaded.bytes(path.as_ref())?;
+        let bytes = self.bytes(path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| Self::deserialize_version1(bytes))?;
 
@@ -50,7 +50,7 @@ impl Deserialize {
                 specular_power: material.specular_power,
                 texture_image: if let Some(filename) = material.texture_path {
                     let texture_path = path.as_ref().parent().unwrap_or(&Path::new("./")).join(filename);
-                    Some(Deserialize::image(loaded, &texture_path)?)
+                    Some(self.image(&texture_path)?)
                 } else { None }
             });
         }
@@ -72,15 +72,9 @@ impl Deserialize {
     }
 }
 
-impl Serialize {
-    ///
-    /// Serialize the meshes and material into a .3d file resource (a custom binary format for `three-d`) which can
-    /// then be saved to disk.
-    ///
-    /// # Feature
-    /// Only available when the `3d-io` feature is enabled.
-    ///
-    pub fn three_d(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
+impl Saver {
+
+    pub(in crate::io) fn three_d(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {

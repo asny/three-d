@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::definition::*;
 
-impl Deserialize {
+impl<'a> Loaded<'a> {
     ///
     /// Deserialize a loaded .obj file resource and .mtl material file resource (if present) into a list of meshes and materials.
     /// It uses the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate.
@@ -12,15 +12,15 @@ impl Deserialize {
     /// # Feature
     /// Only available when the `obj-io` feature is enabled.
     ///
-    pub fn obj<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
-        let obj_bytes = loaded.bytes(path.as_ref())?;
+    pub fn obj<P: AsRef<Path>>(&'a self, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
+        let obj_bytes = self.bytes(path.as_ref())?;
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = path.as_ref().parent().unwrap();
 
         // Parse materials
         let mut cpu_materials = Vec::new();
         if let Some(material_library) = obj.material_library {
-            let bytes = loaded.bytes(p.join(material_library).to_str().unwrap())?.to_owned();
+            let bytes = self.bytes(p.join(material_library).to_str().unwrap())?.to_owned();
             let materials = wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap())?.materials;
 
             for material in materials {
@@ -38,7 +38,7 @@ impl Deserialize {
                     specular_power: Some(material.specular_coefficient as f32),
                     texture_image: if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
                     {
-                        Some(Deserialize::image(loaded, &path)?)
+                        Some(self.image(&path)?)
                     } else {None}
                 });
             }
