@@ -72,6 +72,7 @@ impl<'a> Loaded<'a> {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Saver {
     ///
     /// Saves the given meshes and materials as a .3d file.
