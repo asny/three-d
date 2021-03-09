@@ -8,7 +8,7 @@ use crate::io::*;
 ///
 /// The loaded resources.
 /// Use the [get](crate::Loader::get) function to extract the raw byte array for the loaded resource
-/// or one of the [decoder methods](crate::Decoder) to both extract and decode a loaded resource.
+/// or one of the [deserialize methods](crate::Deserialize) to both extract and deserialize a loaded resource.
 ///
 pub type Loaded = HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>;
 type RefLoaded = Rc<RefCell<Loaded>>;
@@ -53,7 +53,7 @@ impl Loader {
 
     ///
     /// Returns the loaded byte array for the resource at the given path.
-    /// The byte array then has to be decoded to whatever type this resource is (image, 3D model etc.).
+    /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
     pub fn get<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<&[u8], IOError> {
         let bytes = loaded.get(path.as_ref()).ok_or(

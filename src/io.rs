@@ -1,7 +1,7 @@
 
 //!
-//! Contain a [loader](crate::Loader) for loading any type of asset runtime on both desktop and web
-//! as well as [decoder functionality](crate::Decoder) for 3D and image files and a [saver](crate::Saver) for saving.
+//! Contain a [loader](crate::Loader) for loading any type of asset runtime on both desktop and web and a [saver](crate::Saver) for saving on desktop only.
+//! It also contain [deserialize](crate::Deserialize) and [serialize](crate::Serialize) functionality for deserializing/serializing the loaded resources to/from 3D models, textures etc.
 //!
 
 #[doc(hidden)]
@@ -17,10 +17,10 @@ pub mod saver;
 pub use saver::*;
 
 #[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
-pub struct Decoder {}
+pub struct Deserialize {}
 
 #[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
-pub struct Encoder {}
+pub struct Serialize {}
 
 #[doc(hidden)]
 #[cfg(feature = "image-io")]

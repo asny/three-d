@@ -13,7 +13,7 @@ fn main() {
     Loader::load(&["examples/assets/Tree1.obj", "examples/assets/Tree1.mtl", "examples/assets/Tree1Bark.jpg", "examples/assets/Tree1Leave.png"], move |loaded|
     {
         // Tree
-        let (mut meshes, materials)  = Decoder::decode_obj(loaded, "examples/assets/Tree1.obj").unwrap();
+        let (mut meshes, materials)  = Deserialize::obj(loaded, "examples/assets/Tree1.obj").unwrap();
         for mesh in meshes.iter_mut() {
             if mesh.name == "leaves.001" || mesh.name == "tree.001_Mesh.002" {
                 mesh.compute_normals();

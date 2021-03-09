@@ -2,18 +2,18 @@ use crate::io::*;
 use std::path::Path;
 use crate::definition::*;
 
-impl Decoder {
+impl Deserialize {
     ///
-    /// Decodes a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
+    /// Deserialize a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
     ///
-    pub fn decode_three_d<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
+    pub fn three_d<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
     {
         let bytes = Loader::get(loaded, path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
-            .or_else(|_| Self::parse_version1(bytes))?;
+            .or_else(|_| Self::deserialize_version1(bytes))?;
 
         if decoded.meshes.len() == 0 {
-            decoded = Self::parse_version1(bytes)?;
+            decoded = Self::deserialize_version1(bytes)?;
         }
 
         if decoded.magic_number != 61 {
@@ -47,14 +47,14 @@ impl Decoder {
                 specular_power: material.specular_power,
                 texture_image: if let Some(filename) = material.texture_path {
                     let texture_path = path.as_ref().parent().unwrap_or(&Path::new("./")).join(filename);
-                    Some(Decoder::decode_image(loaded, &texture_path)?)
+                    Some(Deserialize::image(loaded, &texture_path)?)
                 } else { None }
             });
         }
         Ok((cpu_meshes, cpu_materials))
     }
 
-    fn parse_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
+    fn deserialize_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
         bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
             magic_number: m.magic_number,
             version: 2,
@@ -69,12 +69,12 @@ impl Decoder {
     }
 }
 
-impl Encoder {
+impl Serialize {
     ///
-    /// Encodes the meshes and material into a .3d file resource (a custom binary format for `three-d`) which can
+    /// Serialize the meshes and material into a .3d file resource (a custom binary format for `three-d`) which can
     /// then be saved to disk.
     ///
-    pub fn encode_three_d(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
+    pub fn three_d(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {

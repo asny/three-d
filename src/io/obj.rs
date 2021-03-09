@@ -4,12 +4,12 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::definition::*;
 
-impl Decoder {
+impl Deserialize {
     ///
-    /// Decodes a loaded .obj file resource and .mtl material file resource (if present) into a list of meshes and materials.
+    /// Deserialize a loaded .obj file resource and .mtl material file resource (if present) into a list of meshes and materials.
     /// It uses the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate.
     ///
-    pub fn decode_obj<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
+    pub fn obj<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
         let obj_bytes = Loader::get(loaded, path.as_ref())?;
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = path.as_ref().parent().unwrap();
@@ -35,7 +35,7 @@ impl Decoder {
                     specular_power: Some(material.specular_coefficient as f32),
                     texture_image: if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
                     {
-                        Some(Decoder::decode_image(loaded, &path)?)
+                        Some(Deserialize::image(loaded, &path)?)
                     } else {None}
                 });
             }
