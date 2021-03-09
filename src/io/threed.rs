@@ -2,15 +2,11 @@ use crate::io::*;
 use std::path::Path;
 use crate::definition::*;
 
-///
-/// Functionality for parsing and serializing .3d files which is a custom binary format for `three-d`.
-///
-pub struct ThreeD {
-
-}
-
-impl ThreeD {
-    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
+impl Decoder {
+    ///
+    /// Decodes a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
+    ///
+    pub fn decode_three_d<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
     {
         let bytes = Loader::get(loaded, path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
@@ -51,8 +47,8 @@ impl ThreeD {
                 specular_power: material.specular_power,
                 texture_image: if let Some(filename) = material.texture_path {
                     let texture_path = path.as_ref().parent().unwrap_or(&Path::new("./")).join(filename);
-                    Some(Loader::get_texture(loaded, &texture_path)?)
-                } else {None}
+                    Some(Decoder::decode_image(loaded, &texture_path)?)
+                } else { None }
             });
         }
         Ok((cpu_meshes, cpu_materials))
@@ -60,19 +56,25 @@ impl ThreeD {
 
     fn parse_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
         bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
-                magic_number: m.magic_number,
-                version: 2,
-                meshes: vec![ThreeDMeshSubMesh {
-                    indices: if m.indices.len() > 0 { Some(m.indices) } else {None},
-                    positions: m.positions,
-                    normals: if m.normals.len() > 0 { Some(m.normals) } else {None},
-                    ..Default::default()
-                }],
-                materials: vec![]
-            })
+            magic_number: m.magic_number,
+            version: 2,
+            meshes: vec![ThreeDMeshSubMesh {
+                indices: if m.indices.len() > 0 { Some(m.indices) } else { None },
+                positions: m.positions,
+                normals: if m.normals.len() > 0 { Some(m.normals) } else { None },
+                ..Default::default()
+            }],
+            materials: vec![]
+        })
     }
+}
 
-    pub fn serialize(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
+impl Encoder {
+    ///
+    /// Encodes the meshes and material into a .3d file resource (a custom binary format for `three-d`) which can
+    /// then be saved to disk.
+    ///
+    pub fn encode_three_d(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
     {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {

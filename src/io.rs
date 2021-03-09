@@ -1,14 +1,12 @@
 
 //!
 //! Contain a [loader](crate::Loader) for loading any type of asset runtime on both desktop and web
-//! as well as parsers for 3D and image files and a [saver](crate::Saver) for saving.
+//! as well as [decoder functionality](crate::Decoder) for 3D and image files and a [saver](crate::Saver) for saving.
 //!
 
 #[doc(hidden)]
-#[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
 pub mod loader;
 #[doc(inline)]
-#[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
 pub use loader::*;
 
 #[doc(hidden)]
@@ -17,6 +15,19 @@ pub mod saver;
 #[doc(inline)]
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
+
+#[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
+pub struct Decoder {}
+
+#[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
+pub struct Encoder {}
+
+#[doc(hidden)]
+#[cfg(feature = "image-io")]
+pub mod texture;
+#[doc(inline)]
+#[cfg(feature = "image-io")]
+pub use texture::*;
 
 #[doc(hidden)]
 #[cfg(feature = "3d-io")]

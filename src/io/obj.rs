@@ -4,16 +4,12 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::definition::*;
 
-///
-/// Functionality for parsing .obj files
-/// (using the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate).
-///
-pub struct Obj {
-
-}
-
-impl Obj {
-    pub fn parse<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
+impl Decoder {
+    ///
+    /// Decodes a loaded .obj file resource and .mtl material file resource (if present) into a list of meshes and materials.
+    /// It uses the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate.
+    ///
+    pub fn decode_obj<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
         let obj_bytes = Loader::get(loaded, path.as_ref())?;
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
         let p = path.as_ref().parent().unwrap();
@@ -39,7 +35,7 @@ impl Obj {
                     specular_power: Some(material.specular_coefficient as f32),
                     texture_image: if let Some(path) = material.uv_map.as_ref().map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
                     {
-                        Some(Loader::get_texture(loaded, &path)?)
+                        Some(Decoder::decode_image(loaded, &path)?)
                     } else {None}
                 });
             }

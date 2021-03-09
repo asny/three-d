@@ -19,7 +19,7 @@ fn main() {
         "examples/assets/COLOMBE.png","examples/assets/pfboy.obj", "examples/assets/pfboy.mtl",
         "examples/assets/pfboy.png"], move |loaded|
     {
-        let (statue_cpu_meshes, statue_cpu_materials) = Obj::parse(loaded, "examples/assets/COLOMBE.obj").unwrap();
+        let (statue_cpu_meshes, statue_cpu_materials) = Decoder::decode_obj(loaded, "examples/assets/COLOMBE.obj").unwrap();
         let statue_material = PhongMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
         let statue = PhongForwardMesh::new(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
         let scale = Mat4::from_scale(10.0);
@@ -34,7 +34,7 @@ fn main() {
             statue_transforms_and_aabb.push((transform, aabb));
         }
 
-        let (fountain_cpu_meshes, fountain_cpu_materials) = Obj::parse(loaded, "examples/assets/pfboy.obj").unwrap();
+        let (fountain_cpu_meshes, fountain_cpu_materials) = Decoder::decode_obj(loaded, "examples/assets/pfboy.obj").unwrap();
         let fountain_material = PhongMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
         let fountain = PhongForwardMesh::new(&context, &fountain_cpu_meshes[0], &fountain_material).unwrap();
 

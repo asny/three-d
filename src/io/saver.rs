@@ -1,7 +1,7 @@
 
 use std::path::Path;
-use crate::io::*;
 use crate::definition::*;
+use crate::io::*;
 
 pub struct Saver {
 
@@ -27,7 +27,7 @@ impl Saver {
                 image::save_buffer(tex_path,&cpu_texture.data, cpu_texture.width as u32, cpu_texture.height as u32, format)?;
             }
         }
-        let bytes = ThreeD::serialize(filename, cpu_meshes, cpu_materials)?;
+        let bytes = Encoder::encode_three_d(filename, cpu_meshes, cpu_materials)?;
         Self::save_file(dir.join(format!("{}.3d", filename)), &bytes)?;
         Ok(())
     }

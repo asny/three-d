@@ -17,7 +17,7 @@ fn main() {
         "examples/assets/skybox_evening/top.jpg", "examples/assets/skybox_evening/left.jpg",
         "examples/assets/skybox_evening/right.jpg"], move |loaded|
     {
-        let (meshes, mut materials) = Obj::parse(loaded, "examples/assets/suzanne.obj").unwrap();
+        let (meshes, mut materials) = Decoder::decode_obj(loaded, "examples/assets/suzanne.obj").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
         let monkey = PhongForwardMesh::new(&context, &meshes[0], &PhongMaterial::new(&context, &materials[0]).unwrap()).unwrap();
 
@@ -30,7 +30,7 @@ fn main() {
         let mut fog_enabled = true;
 
         // Skybox
-        let skybox = Skybox::new(&context, &mut Loader::get_cube_texture(loaded, "examples/assets/skybox_evening/right.jpg",
+        let skybox = Skybox::new(&context, &mut Decoder::decode_cube_image(loaded, "examples/assets/skybox_evening/right.jpg",
                                                                          "examples/assets/skybox_evening/left.jpg",
                                                                          "examples/assets/skybox_evening/top.jpg",
                                                                          "examples/assets/skybox_evening/top.jpg",

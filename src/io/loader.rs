@@ -4,11 +4,11 @@ use std::cell::RefCell;
 use log::info;
 use std::path::{Path, PathBuf};
 use crate::io::*;
-use crate::definition::*;
 
 ///
 /// The loaded resources.
-/// Use the [get](crate::Loader::get) function or similar to extract each loaded resource.
+/// Use the [get](crate::Loader::get) function to extract the raw byte array for the loaded resource
+/// or one of the [decoder methods](crate::Decoder) to both extract and decode a loaded resource.
 ///
 pub type Loaded = HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>;
 type RefLoaded = Rc<RefCell<Loaded>>;
@@ -53,57 +53,13 @@ impl Loader {
 
     ///
     /// Returns the loaded byte array for the resource at the given path.
-    /// The byte array then has to be parsed to whatever type this resource is (image, 3D model etc.).
+    /// The byte array then has to be decoded to whatever type this resource is (image, 3D model etc.).
     ///
     pub fn get<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<&[u8], IOError> {
         let bytes = loaded.get(path.as_ref()).ok_or(
             IOError::FailedToLoad {message:format!("Tried to use a resource which was not loaded: {}", path.as_ref().to_str().unwrap())})?.as_ref()
             .map_err(|_| IOError::FailedToLoad {message:format!("Could not load resource: {}", path.as_ref().to_str().unwrap())})?;
         Ok(bytes)
-    }
-
-    ///
-    /// Parse the loaded image resource at the given path into a [CPUTexture](crate::CPUTexture) using
-    /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [Texture2D](crate::Texture2D).
-    ///
-    #[cfg(feature = "image-io")]
-    pub fn get_texture<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, IOError> {
-        use image::GenericImageView;
-        let img = image::load_from_memory(Self::get(loaded, path)?)?;
-        let bytes = img.to_bytes();
-        let number_of_channels = bytes.len() / (img.width() * img.height()) as usize;
-        let format = match number_of_channels {
-            1 => Ok(Format::R8),
-            3 => Ok(Format::RGB8),
-            4 => Ok(Format::RGBA8),
-            _ => Err(IOError::FailedToLoad {message: format!("Could not determine the pixel format for the texture.")})
-        }?;
-
-        Ok(CPUTexture {data: bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
-    }
-
-    ///
-    /// Parse the 6 loaded image resources at the given paths into a [CPUTexture](crate::CPUTexture) using
-    /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [TextureCubeMap](crate::TextureCubeMap).
-    ///
-    #[cfg(feature = "image-io")]
-    pub fn get_cube_texture<P: AsRef<Path>>(loaded: &Loaded, right_path: P, left_path: P,
-                                            top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, IOError> {
-        let mut right = Self::get_texture(loaded, right_path)?;
-        let left = Self::get_texture(loaded, left_path)?;
-        let top = Self::get_texture(loaded, top_path)?;
-        let bottom = Self::get_texture(loaded, bottom_path)?;
-        let front = Self::get_texture(loaded, front_path)?;
-        let back = Self::get_texture(loaded, back_path)?;
-
-        right.data.extend(left.data);
-        right.data.extend(top.data);
-        right.data.extend(bottom.data);
-        right.data.extend(front.data);
-        right.data.extend(back.data);
-        Ok(right)
     }
 
     fn wait_local<F, G>(loads: RefLoaded, progress_callback: G, on_done: F)
