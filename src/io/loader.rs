@@ -14,7 +14,7 @@ pub type Loaded = HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>;
 type RefLoaded = Rc<RefCell<Loaded>>;
 
 ///
-/// Functionality for loading any type of asset runtime on both desktop and web.
+/// Functionality for loading any type of resource runtime on both desktop and web.
 ///
 pub struct Loader {
 }

@@ -9,6 +9,9 @@ impl Deserialize {
     /// the [image](https://crates.io/crates/image/main.rs) crate.
     /// The CPUTexture can then be used to create a [Texture2D](crate::Texture2D).
     ///
+    /// # Feature
+    /// Only available when the `image-io` feature is enabled.
+    ///
     pub fn image<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<CPUTexture<u8>, IOError> {
         use image::GenericImageView;
         let img = image::load_from_memory(Loader::get(loaded, path)?)?;
@@ -28,6 +31,9 @@ impl Deserialize {
     /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture](crate::CPUTexture) using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
     /// The CPUTexture can then be used to create a [TextureCubeMap](crate::TextureCubeMap).
+    ///
+    /// # Feature
+    /// Only available when the `image-io` feature is enabled.
     ///
     pub fn cube_image<P: AsRef<Path>>(loaded: &Loaded, right_path: P, left_path: P,
                                       top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, IOError> {

@@ -6,6 +6,9 @@ impl Deserialize {
     ///
     /// Deserialize a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
     ///
+    /// # Feature
+    /// Only available when the `3d-io` feature is enabled.
+    ///
     pub fn three_d<P: AsRef<Path>>(loaded: &Loaded, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError>
     {
         let bytes = Loader::get(loaded, path.as_ref())?;
@@ -73,6 +76,9 @@ impl Serialize {
     ///
     /// Serialize the meshes and material into a .3d file resource (a custom binary format for `three-d`) which can
     /// then be saved to disk.
+    ///
+    /// # Feature
+    /// Only available when the `3d-io` feature is enabled.
     ///
     pub fn three_d(filename: &str, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<Vec<u8>, IOError>
     {

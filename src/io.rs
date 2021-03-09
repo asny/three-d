@@ -16,9 +16,15 @@ pub mod saver;
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
 
+///
+/// Contain methods for deserializing loaded resources (using the [Loader](crate::Loader)) into 3D models, textures etc.
+///
 #[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
 pub struct Deserialize {}
 
+///
+/// Contain methods for serializing objects into a byte array that can then be saved.
+///
 #[cfg(any(feature = "3d-io", feature = "obj-io", feature = "image-io"))]
 pub struct Serialize {}
 
