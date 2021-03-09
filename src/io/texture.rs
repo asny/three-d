@@ -58,6 +58,9 @@ impl Saver {
     ///
     /// Saves the given RGB pixels as an image.
     ///
+    /// # Feature
+    /// Only available when the `image-io` feature is enabled.
+    ///
     pub fn save_pixels<P: AsRef<Path>>(path: P, pixels: &[u8], width: usize, height: usize) -> Result<(), IOError>
     {
         let mut pixels_out = vec![0u8; width * height * 3];

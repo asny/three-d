@@ -77,6 +77,9 @@ impl Saver {
     ///
     /// Saves the given meshes and materials as a .3d file.
     ///
+    /// # Feature
+    /// Only available when the `3d-io` and `image-io` features are enabled.
+    ///
     #[cfg(feature = "image-io")]
     pub fn save_3d_file<P: AsRef<Path>>(path: P, cpu_meshes: Vec<CPUMesh>, cpu_materials: Vec<CPUMaterial>) -> Result<(), IOError>
     {
