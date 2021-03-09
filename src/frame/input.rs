@@ -4,7 +4,7 @@
 ///
 #[derive(Clone, Debug)]
 pub struct FrameInput {
-    /// A list of [events](crate::Event) which has occured since last frame.
+    /// A list of [events](crate::Event) which has occurred since last frame.
     pub events: Vec<Event>,
 
     /// Milliseconds since last frame.
@@ -13,7 +13,7 @@ pub struct FrameInput {
     /// Milliseconds accumulated time since start.
     pub accumulated_time: f64,
 
-    /// Viewport of the window in physical pixels.
+    /// Viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
     pub viewport: crate::Viewport,
 
     /// Width of the window in logical pixels.

@@ -43,6 +43,9 @@ pub mod program;
 #[doc(inline)]
 pub use program::*;
 
+///
+/// Error message from the [core](crate::core) module.
+///
 #[derive(Debug)]
 pub enum Error {
     UnknownShaderType {message: String},

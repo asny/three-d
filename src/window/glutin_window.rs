@@ -7,6 +7,9 @@ use glutin::ContextBuilder;
 use crate::math::*;
 use crate::frame::*;
 
+///
+/// Error message from the [window](crate::window) module.
+///
 #[derive(Debug)]
 pub enum WindowError {
     WindowCreationError(glutin::CreationError),
@@ -25,6 +28,9 @@ impl From<glutin::ContextError> for WindowError {
     }
 }
 
+///
+/// Default window and event handler for easy setup.
+///
 pub struct Window
 {
     windowed_context: ContextWrapper<PossiblyCurrent, window::Window>,
@@ -34,6 +40,9 @@ pub struct Window
 
 impl Window
 {
+    ///
+    /// Constructs a new window with the given title and specified maximum size.
+    ///
     pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError>
     {
         let event_loop = EventLoop::new();
@@ -75,6 +84,9 @@ impl Window
         }
     }
 
+    ///
+    /// Start the main render loop which calls the **callback** closure each frame.
+    ///
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), WindowError>
         where F: FnMut(FrameInput) -> FrameOutput
     {
@@ -227,17 +239,26 @@ impl Window
             });
     }
 
+    ///
+    /// Return the current logical size of the window.
+    ///
     pub fn size(&self) -> (usize, usize)
     {
         let t: (u32, u32) = self.windowed_context.window().inner_size().to_logical::<f64>(self.windowed_context.window().scale_factor()).into();
         (t.0 as usize, t.1 as usize)
     }
 
+    ///
+    /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
+    ///
     pub fn viewport(&self) -> Viewport {
         let (w, h): (u32, u32) = self.windowed_context.window().inner_size().into();
         Viewport::new_at_origo(w as usize, h as usize)
     }
 
+    ///
+    /// Returns the graphics context for this window.
+    ///
     pub fn gl(&self) -> crate::Context
     {
         self.gl.clone()
