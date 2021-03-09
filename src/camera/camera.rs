@@ -2,6 +2,9 @@
 use crate::math::*;
 use crate::core::*;
 
+///
+/// Either orthographic or perspective projection.
+///
 pub enum ProjectionType {
     Orthographic {
         width: f32,
@@ -9,13 +12,16 @@ pub enum ProjectionType {
         depth: f32
     },
     Perspective {
-        fovy: Degrees,
+        field_of_view_y: Degrees,
         aspect: f32,
         z_near: f32,
         z_far: f32
     }
 }
 
+///
+/// A camera to view the 3D world.
+///
 pub struct Camera {
     projection_type: ProjectionType,
     position: Vec3,
@@ -30,6 +36,11 @@ pub struct Camera {
 
 impl Camera
 {
+    ///
+    /// New camera which projects the world with an orthographic projection.
+    /// See also [set_view](Self::set_view), [set_perspective_projection](Self::set_perspective_projection) and
+    /// [set_orthographic_projection](Self::set_orthographic_projection).
+    ///
     pub fn new_orthographic(context: &Context, position: Vec3, target: Vec3, up: Vec3, width: f32, height: f32, depth: f32)  -> Result<Camera, Error>
     {
         let mut camera = Camera::new(context);
@@ -38,25 +49,35 @@ impl Camera
         Ok(camera)
     }
 
-    pub fn new_perspective(context: &Context, position: Vec3, target: Vec3, up: Vec3, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Result<Camera, Error>
+    ///
+    /// New camera which projects the world with a perspective projection.
+    ///
+    pub fn new_perspective(context: &Context, position: Vec3, target: Vec3, up: Vec3, field_of_view_y: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Result<Camera, Error>
     {
         let mut camera = Camera::new(context);
         camera.set_view(position, target, up)?;
-        camera.set_perspective_projection(fovy, aspect, z_near, z_far)?;
+        camera.set_perspective_projection(field_of_view_y, aspect, z_near, z_far)?;
         Ok(camera)
     }
 
-    pub fn set_perspective_projection(&mut self, fovy: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Result<(), Error>
+    ///
+    /// Specify the camera to use perspective projection with the given field of view in the y-direction, aspect and near and far plane.
+    ///
+    pub fn set_perspective_projection(&mut self, field_of_view_y: Degrees, aspect: f32, z_near: f32, z_far: f32) -> Result<(), Error>
     {
         if z_near < 0.0 || z_near > z_far { panic!("Wrong perspective camera parameters") };
-        self.projection_type = ProjectionType::Perspective { fovy, aspect, z_near, z_far };
-        self.projection = perspective(fovy, aspect, z_near, z_far);
+        self.projection_type = ProjectionType::Perspective { field_of_view_y, aspect, z_near, z_far };
+        self.projection = perspective(field_of_view_y, aspect, z_near, z_far);
         self.update_screen2ray();
         self.update_matrix_buffer()?;
         self.update_frustrum();
         Ok(())
     }
 
+    ///
+    /// Specify the camera to use orthographic projection with the given width, height and depth.
+    /// The view frustum width is +/- width/2, height is +/- height/2 and depth is 0 to depth.
+    ///
     pub fn set_orthographic_projection(&mut self, width: f32, height: f32, depth: f32) -> Result<(), Error>
     {
         self.projection_type = ProjectionType::Orthographic { width, height, depth };
@@ -67,6 +88,9 @@ impl Camera
         Ok(())
     }
 
+    ///
+    /// Change the current projection to abide to the given aspect ratio.
+    ///
     pub fn set_aspect(&mut self, value: f32) -> Result<bool, Error> {
         let mut change = false;
         match self.projection_type {
@@ -77,10 +101,10 @@ impl Camera
                     change = true;
                 }
             },
-            ProjectionType::Perspective {aspect, fovy, z_near, z_far} => {
+            ProjectionType::Perspective {aspect, field_of_view_y, z_near, z_far} => {
                 if (aspect - value).abs() > 0.001
                 {
-                    self.set_perspective_projection(fovy, value, z_near, z_far)?;
+                    self.set_perspective_projection(field_of_view_y, value, z_near, z_far)?;
                     change = true;
                 }
             }
@@ -88,6 +112,10 @@ impl Camera
         Ok(change)
     }
 
+    ///
+    /// Change the view of the camera.
+    /// The camera is placed at the given position, looking at the given target and with the given up direction.
+    ///
     pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3) -> Result<(), Error>
     {
         self.position = position;
@@ -111,7 +139,10 @@ impl Camera
         Ok(())
     }
 
-    // false if fully outside, true if inside or intersects
+    ///
+    /// Returns whether or not the given bounding box is within the camera frustum.
+    /// It returns false if it is fully outside and true if it is inside or intersects.
+    ///
     pub fn in_frustum(&self, aabb: &AxisAlignedBoundingBox) -> bool
     {
         // check box outside/inside of frustum
@@ -133,6 +164,11 @@ impl Camera
         return true;
     }
 
+    ///
+    /// Returns the view direction at the given screen/image plane coordinates.
+    /// The coordinates must be between 0 and 1, where (0, 0) indicate the top left corner of the screen
+    /// and (1, 1) indicate the bottom right corner.
+    ///
     pub fn view_direction_at(&self, screen_coordinates: (f64, f64)) -> Vec3
     {
         let screen_pos = vec4(2. * screen_coordinates.0 as f32 - 1., 1. - 2. * screen_coordinates.1 as f32, 0., 1.);

@@ -3,6 +3,9 @@ use crate::math::*;
 use crate::camera::*;
 use crate::core::Error;
 
+///
+/// 3D controls for a camera. Use this to add additional control functionality to a [camera](crate::Camera).
+///
 pub struct CameraControl {
     camera: Camera
 }
