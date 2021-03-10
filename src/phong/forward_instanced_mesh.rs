@@ -7,6 +7,9 @@ use crate::object::*;
 use crate::light::*;
 use crate::phong::*;
 
+///
+/// An instanced triangle mesh that adds additional lighting functionality based on the Phong shading model to a [InstancedMesh](crate::InstancedMesh).
+///
 pub struct PhongForwardInstancedMesh {
     context: Context,
     pub name: String,
@@ -30,6 +33,11 @@ impl PhongForwardInstancedMesh
         })
     }
 
+    ///
+    /// Render the instanced triangle mesh shaded with an ambient light.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
     pub fn render_with_ambient(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {
@@ -65,6 +73,11 @@ impl PhongForwardInstancedMesh
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 
+    ///
+    /// Render the triangle mesh shaded with an ambient and a directional light.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
     pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {

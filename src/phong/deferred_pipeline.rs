@@ -6,11 +6,14 @@ use crate::camera::*;
 use crate::light::*;
 use crate::effect::*;
 
+///
+/// Used for debug purposes.
+///
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NONE}
 
 ///
-/// Deferred pipeline based on the phong reflection model supporting a performance-limited
+/// Deferred pipeline based on the Phong reflection model supporting a performance-limited
 /// amount of directional, point and spot lights with shadows. Supports colored, textured and instanced meshes.
 ///
 pub struct PhongDeferredPipeline {
@@ -20,6 +23,9 @@ pub struct PhongDeferredPipeline {
     point_light_effect: ImageEffect,
     spot_light_effect: ImageEffect,
     debug_effect: Option<ImageEffect>,
+    ///
+    /// Set this to visualize the positions, normals etc. for debug purposes.
+    ///
     pub debug_type: DebugType,
     geometry_pass_texture: Option<ColorTargetTexture2DArray>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>
@@ -27,6 +33,9 @@ pub struct PhongDeferredPipeline {
 
 impl PhongDeferredPipeline
 {
+    ///
+    /// Constructor.
+    ///
     pub fn new(context: &Context) -> Result<Self, Error>
     {
         let renderer = Self {
@@ -61,7 +70,14 @@ impl PhongDeferredPipeline
         Ok(renderer)
     }
 
-    pub fn geometry_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render_scene: F) -> Result<(), Error>
+    ///
+    /// Render the geometry and surface material parameters of Phong deferred [meshes](crate::PhongDeferredMesh)
+    /// or [instanced meshes](crate::PhongDeferredInstancedMesh) by calling the *render_geometry* on
+    /// either type of mesh inside the **render** closure.
+    /// This function must not be called in a render target render function, but needs to be followed
+    /// by a call to [light_pass](Self::light_pass) which must be inside a render target render function.
+    ///
+    pub fn geometry_pass<F: FnOnce() -> Result<(), Error>>(&mut self, width: usize, height: usize, render: F) -> Result<(), Error>
     {
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new(&self.context, width, height, 2,
                                                                          Interpolation::Nearest, Interpolation::Nearest, None, Wrapping::ClampToEdge,
@@ -69,10 +85,17 @@ impl PhongDeferredPipeline
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(&self.context, width, height, 1, Wrapping::ClampToEdge,
                                                                                Wrapping::ClampToEdge, DepthFormat::Depth32F)?);
         RenderTargetArray::new(&self.context, self.geometry_pass_texture.as_ref().unwrap(), self.geometry_pass_depth_texture.as_ref().unwrap())?
-            .write(&ClearState::default(), &[0, 1], 0, render_scene)?;
+            .write(&ClearState::default(), &[0, 1], 0, render)?;
         Ok(())
     }
 
+    ///
+    /// Uses the geometry and surface material parameters written in the last [geometry_pass](Self::geometry_pass) call
+    /// and all of the given lights
+    /// to shade the Phong deferred [meshes](crate::PhongDeferredMesh) or [instanced meshes](crate::PhongDeferredInstancedMesh).
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
     pub fn light_pass(&mut self, viewport: Viewport, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
                       spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {

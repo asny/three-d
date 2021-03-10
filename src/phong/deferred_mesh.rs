@@ -6,6 +6,11 @@ use crate::camera::*;
 use crate::object::*;
 use crate::phong::*;
 
+///
+/// A triangle mesh that adds additional lighting functionality based on the Phong shading model
+/// to a [Mesh](crate::Mesh).
+/// Must be used in connection with a [PhongDeferredPipeline](crate::PhongDeferredPipeline).
+///
 pub struct PhongDeferredMesh {
     context: Context,
     pub name: String,
@@ -31,6 +36,10 @@ impl PhongDeferredMesh {
         })
     }
 
+    ///
+    /// Render the geometry and surface material parameters of the mesh.
+    /// Must be called inside the **render** closure given to [render_geometry](crate::PhongDeferredPipeline::geometry_pass).
+    ///
     pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {

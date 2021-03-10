@@ -6,6 +6,11 @@ use crate::camera::*;
 use crate::object::*;
 use crate::phong::*;
 
+///
+/// An instanced triangle mesh that adds additional lighting functionality based on the Phong shading model
+/// to a [InstancedMesh](crate::InstancedMesh).
+/// Must be used in connection with a [PhongDeferredPipeline](crate::PhongDeferredPipeline).
+///
 pub struct PhongDeferredInstancedMesh {
     context: Context,
     pub name: String,
@@ -29,6 +34,10 @@ impl PhongDeferredInstancedMesh
         })
     }
 
+    ///
+    /// Render the geometry and surface material parameters of the instanced mesh.
+    /// Must be called inside the **render** closure given to [render_geometry](crate::PhongDeferredPipeline::geometry_pass).
+    ///
     pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
         let program = match self.material.color_source {
