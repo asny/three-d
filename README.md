@@ -15,8 +15,8 @@ Chrome, Firefox, Edge and Safari (Safari requires enabling the "WebGL 2.0" exper
 
 ### Examples
 
-Several examples covering most features can be found [here](https://github.com/asny/three-d/tree/0.5/examples) and they are live at [asny.github.io/three-d/](https://asny.github.io/three-d/). 
-Take a look at the [triangle example](https://github.com/asny/three-d/blob/0.5/examples/triangle/main.rs) for a gentle introduction.
+Several examples covering most features can be found [here](https://github.com/asny/three-d/tree/0.6/examples) and they are live at [asny.github.io/three-d/](https://asny.github.io/three-d/). 
+Take a look at the [triangle example](https://github.com/asny/three-d/blob/0.6/examples/triangle/main.rs) for a gentle introduction.
 
 ![Statues example](https://asny.github.io/three-d/statues.png)
 ![Lighting example](https://asny.github.io/three-d/lighting.png)
@@ -70,13 +70,13 @@ $ http-server
 ### Other
 Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request.
 
-[All]: https://github.com/asny/three-d/tree/0.5/examples/
-[Lighting]: https://github.com/asny/three-d/tree/0.5/examples/lighting/main.rs
-[Texture]: https://github.com/asny/three-d/tree/0.5/examples/texture/main.rs
-[Fog]: https://github.com/asny/three-d/tree/0.5/examples/fog/main.rs
-[Fireworks]: https://github.com/asny/three-d/tree/0.5/examples/fireworks/main.rs
-[Statues]: https://github.com/asny/three-d/tree/0.5/examples/statues/main.rs
-[Forest]: https://github.com/asny/three-d/tree/0.5/examples/forest/main.rs
-[Triangle]: https://github.com/asny/three-d/tree/0.5/examples/triangle/main.rs
-[Mandelbrot]: https://github.com/asny/three-d/tree/0.5/examples/mandelbrot/main.rs
-[Wireframe]: https://github.com/asny/three-d/tree/0.5/examples/wireframe/main.rs
+[All]: https://github.com/asny/three-d/tree/0.6/examples/
+[Lighting]: https://github.com/asny/three-d/tree/0.6/examples/lighting/main.rs
+[Texture]: https://github.com/asny/three-d/tree/0.6/examples/texture/main.rs
+[Fog]: https://github.com/asny/three-d/tree/0.6/examples/fog/main.rs
+[Fireworks]: https://github.com/asny/three-d/tree/0.6/examples/fireworks/main.rs
+[Statues]: https://github.com/asny/three-d/tree/0.6/examples/statues/main.rs
+[Forest]: https://github.com/asny/three-d/tree/0.6/examples/forest/main.rs
+[Triangle]: https://github.com/asny/three-d/tree/0.6/examples/triangle/main.rs
+[Mandelbrot]: https://github.com/asny/three-d/tree/0.6/examples/mandelbrot/main.rs
+[Wireframe]: https://github.com/asny/three-d/tree/0.6/examples/wireframe/main.rs
