@@ -131,8 +131,10 @@ impl InstancedMesh
     }
 
     ///
-    /// Render only the depth of the instanced mesh into the current depth render target.
-    /// Useful for shadow maps or depth pre-pass.
+    /// Render only the depth of the instanced mesh into the current depth render target which is useful for shadow maps or depth pre-pass.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
     pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
@@ -148,6 +150,9 @@ impl InstancedMesh
 
     ///
     /// Render the instanced mesh with a color per triangle vertex. The colors are defined when constructing the instanced mesh.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
     /// # Errors
     /// Will return an error if the instanced mesh has no colors.
@@ -173,6 +178,9 @@ impl InstancedMesh
 
     ///
     /// Render the instanced mesh with the given color.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
     pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
@@ -195,6 +203,9 @@ impl InstancedMesh
 
     ///
     /// Render the instanced mesh with the given texture.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
     /// # Errors
     /// Will return an error if the instanced mesh has no uv coordinates.
@@ -221,6 +232,9 @@ impl InstancedMesh
 
     ///
     /// Render the instanced mesh with the given [InstancedMeshProgram](InstancedMeshProgram).
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
     /// # Errors
     /// Will return an error if the instanced mesh shader program requires a certain attribute and the instanced mesh does not have that attribute.

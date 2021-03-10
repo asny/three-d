@@ -160,6 +160,10 @@ impl Drop for ColorTargetTexture2D
     }
 }
 
+///
+/// Type of formats for depth render targets ([DepthTargetTexture2D](crate::DepthTargetTexture2D) and
+/// [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray)).
+///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum DepthFormat {
     Depth16,
@@ -214,6 +218,9 @@ impl Drop for DepthTargetTexture2D
     }
 }
 
+///
+/// A texture that covers all 6 sides of a cube.
+///
 pub struct TextureCubeMap {
     context: Context,
     id: crate::context::Texture,

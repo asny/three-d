@@ -119,13 +119,10 @@ impl Mesh {
     }
 
     ///
-    /// Render only the depth of the mesh as viewed by the given [camera](crate::Camera).
-    /// The position, orientation and scale is defined by the transformation.
-    /// Must be called in a depth render target render function,
+    /// Render only the depth of the mesh into the current depth render target which is useful for shadow maps or depth pre-pass.
+    /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The given [viewport](crate::Viewport) defines the part of the depth render target that is affected.
-    /// Define the [render states](crate::RenderStates) to enable additional render options such as blending.
-    /// Useful for shadow maps or depth pre-pass.
+    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
@@ -140,13 +137,10 @@ impl Mesh {
     }
 
     ///
-    /// Render the mesh with a color per triangle vertex as viewed by the given [camera](crate::Camera).
-    /// The colors are defined when constructing the mesh.
-    /// The position, orientation and scale is defined by the transformation.
+    /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The given [viewport](crate::Viewport) defines the part of the render target that is affected.
-    /// Define the [render states](crate::RenderStates) to enable additional render options such as blending.
+    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     /// # Errors
     /// Will return an error if the mesh has no colors.
@@ -171,12 +165,10 @@ impl Mesh {
     }
 
     ///
-    /// Render the mesh with the given color as viewed by the given [camera](crate::Camera).
-    /// The position, orientation and scale is defined by the transformation.
+    /// Render the instanced mesh with the given color.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The given [viewport](crate::Viewport) defines the part of the render target that is affected.
-    /// Define the [render states](crate::RenderStates) to enable additional render options such as blending.
+    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
     {
@@ -198,12 +190,10 @@ impl Mesh {
     }
 
     ///
-    /// Render the mesh with the given texture as viewed by the given [camera](crate::Camera).
-    /// The position, orientation and scale is defined by the transformation.
+    /// Render the mesh with the given texture.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The given [viewport](crate::Viewport) defines the part of the render target that is affected.
-    /// Define the [render states](crate::RenderStates) to enable additional render options such as blending.
+    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
@@ -229,12 +219,10 @@ impl Mesh {
     }
 
     ///
-    /// Render the mesh with the given [MeshProgram](MeshProgram) as viewed by the given [camera](crate::Camera).
-    /// The position, orientation and scale is defined by the transformation.
+    /// Render the mesh with the given [MeshProgram](MeshProgram).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The given [viewport](crate::Viewport) defines the part of the render target that is affected.
-    /// Define the [render states](crate::RenderStates) to enable additional render options such as blending.
+    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     /// # Errors
     /// Will return an error if the mesh shader program requires a certain attribute and the mesh does not have that attribute.

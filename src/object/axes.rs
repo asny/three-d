@@ -24,11 +24,10 @@ impl Axes {
     }
 
     ///
-    /// Render the axes at the position, orientation and scale given by the transformation
-    /// and as viewed by the given camera.
+    /// Render the axes.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The given viewport defines the part of the render target that is affected.
+    /// The transformation can be used to position, orientate and scale the axes.
     ///
     pub fn render(&self, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error> {
         self.x.render_with_color(&vec4(1.0, 0.0, 0.0, 1.0), RenderStates::default(), viewport, transformation, camera)?;

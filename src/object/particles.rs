@@ -145,6 +145,9 @@ impl Particles {
 
     ///
     /// Render all defined particles with the given [ParticlesProgram](ParticlesProgram).
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// The transformation can be used to position, orientate and scale the particles.
     ///
     pub fn render(&self, program: &ParticlesProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, time: f32) -> Result<(), Error>
     {

@@ -7,6 +7,9 @@ use crate::object::*;
 use crate::light::*;
 use crate::phong::*;
 
+///
+/// A triangle mesh that adds additional lighting functionality based on the Phong shading model to a [Mesh](crate::Mesh).
+///
 pub struct PhongForwardMesh {
     context: Context,
     pub name: String,
@@ -34,6 +37,9 @@ impl PhongForwardMesh
         })
     }
 
+    ///
+    /// Render the triangle mesh
+    ///
     pub fn render_with_ambient(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, ambient_light: &AmbientLight) -> Result<(), Error>
     {
         let program = match self.material.color_source {

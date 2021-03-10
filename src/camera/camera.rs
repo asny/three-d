@@ -20,7 +20,7 @@ pub enum ProjectionType {
 }
 
 ///
-/// A camera to view the 3D world.
+/// Used in a render call to define how to view the 3D world.
 ///
 pub struct Camera {
     projection_type: ProjectionType,

@@ -99,11 +99,9 @@ impl Imposters {
     }
 
     ///
-    /// Render the imposters as viewed by the given [camera](crate::Camera).
-    /// The position and rotation of each imposter is defined in the [update_positions](Self::update_positions) function.
+    /// Render the imposters.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The given [viewport](crate::Viewport) defines the part of the render target that is affected.
     ///
     pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error>
     {

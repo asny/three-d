@@ -35,6 +35,11 @@ impl Skybox
         Ok(Skybox { program, vertex_buffer, texture })
     }
 
+    ///
+    /// Render the skybox.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
     pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error>
     {
         let render_states = RenderStates {cull: CullType::Front, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
