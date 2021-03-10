@@ -41,6 +41,7 @@ Phong deferred pipeline | Deferred pipeline based on the phong reflection model 
 Runtime loading | Loading any type of asset runtime on both desktop and web. | [Statues], [Forest], [Texture]
 3D model parsers | Built-in parsers for .obj (using the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate) and .3d files (a custom format). | [Statues], [Forest], [Texture] | `3d-io` `obj-io`
 Image parsers | Most image formats are supported (using the [image](https://crates.io/crates/image/main.rs) crate). | [Texture], [Statues] | `image-io`
+GUI | Immidiate mode GUI support using the [egui](https://crates.io/crates/egui) crate. | [Lighting] | `egui-gui`
 Window | Default windows for easy setup and event handling. Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop and canvas for web. | [All] | `glutin-window` `canvas` 
 
 It is always possible to combine features, for example rendering particles followed by direct calls to the graphics context.
