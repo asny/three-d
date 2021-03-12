@@ -24,11 +24,6 @@ pub mod phong_mesh;
 pub use crate::phong_mesh::*;
 
 #[doc(hidden)]
-pub mod forward_instanced_mesh;
+pub mod phong_instanced_mesh;
 #[doc(inline)]
-pub use crate::forward_instanced_mesh::*;
-
-#[doc(hidden)]
-pub mod deferred_instanced_mesh;
-#[doc(inline)]
-pub use crate::deferred_instanced_mesh::*;
+pub use crate::phong_instanced_mesh::*;
