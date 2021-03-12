@@ -71,8 +71,8 @@ impl PhongDeferredPipeline
     }
 
     ///
-    /// Render the geometry and surface material parameters of Phong deferred [meshes](crate::PhongDeferredMesh)
-    /// or [instanced meshes](crate::PhongDeferredInstancedMesh) by calling the *render_geometry* on
+    /// Render the geometry and surface material parameters of Phong [meshes](crate::PhongMesh)
+    /// or [instanced meshes](crate::PhongInstancedMesh) by calling the *render_geometry* on
     /// either type of mesh inside the **render** closure.
     /// This function must not be called in a render target render function, but needs to be followed
     /// by a call to [light_pass](Self::light_pass) which must be inside a render target render function.
@@ -92,7 +92,7 @@ impl PhongDeferredPipeline
     ///
     /// Uses the geometry and surface material parameters written in the last [geometry_pass](Self::geometry_pass) call
     /// and all of the given lights
-    /// to shade the Phong deferred [meshes](crate::PhongDeferredMesh) or [instanced meshes](crate::PhongDeferredInstancedMesh).
+    /// to shade the Phong [meshes](crate::PhongMesh) or [instanced meshes](crate::PhongInstancedMesh).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///

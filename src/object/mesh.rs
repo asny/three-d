@@ -106,7 +106,7 @@ impl std::ops::Deref for MeshProgram {
 
 ///
 /// A triangle mesh which can be rendered with one of the default render functions or with a custom [MeshProgram](MeshProgram).
-/// See also [PhongForwardMesh](crate::PhongForwardMesh) and [PhongDeferredMesh](crate::PhongDeferredMesh) for rendering a mesh with lighting.
+/// See also [PhongMesh](crate::PhongMesh) for rendering a mesh with lighting.
 ///
 pub struct Mesh {
     context: Context,
