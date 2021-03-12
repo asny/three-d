@@ -21,10 +21,6 @@ impl PhongForwardMesh
 {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
-        if cpu_mesh.normals.is_none() {
-            Err(Error::FailedToCreateMesh {message:
-              "Cannot create a mesh without normals. Consider calling compute_normals on the CPUMesh before creating the mesh.".to_string()})?
-        }
         let mesh = Mesh::new(context, cpu_mesh)?;
         unsafe {
             MESH_COUNT += 1;

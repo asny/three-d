@@ -11,9 +11,9 @@ use crate::camera::*;
 ///
 pub struct MeshProgram {
     program: Program,
-    use_normals: bool,
-    use_uvs: bool,
-    use_colors: bool,
+    pub(in crate::object) use_normals: bool,
+    pub(in crate::object) use_uvs: bool,
+    pub(in crate::object) use_colors: bool
 }
 
 impl MeshProgram {
@@ -22,6 +22,10 @@ impl MeshProgram {
     /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
     ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
+        Self::new_internal(context, fragment_shader_source, false)
+    }
+
+    pub(in crate::object) fn new_internal(context: &Context, fragment_shader_source: &str, instanced: bool) -> Result<Self, Error> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
@@ -39,6 +43,7 @@ impl MeshProgram {
                 uniform mat4 modelMatrix;
                 in vec3 position;
 
+                {} // Instancing
                 {} // Positions out
                 {} // Normals in/out
                 {} // UV coordinates in/out
@@ -46,7 +51,9 @@ impl MeshProgram {
 
                 void main()
                 {{
-                    vec4 worldPosition = modelMatrix * vec4(position, 1.);
+                    mat4 local2World = modelMatrix;
+                    {} // Instancing
+                    vec4 worldPosition = local2World * vec4(position, 1.);
                     gl_Position = camera.viewProjection * worldPosition;
                     {} // Position
                     {} // Normal
@@ -54,6 +61,9 @@ impl MeshProgram {
                     {} // Colors
                 }}
             ",
+            if instanced {"in vec4 row1;
+                in vec4 row2;
+                in vec4 row3;"} else {""},
             if use_positions {"out vec3 pos;"} else {""},
             if use_normals {
                 "uniform mat4 normalMatrix;
@@ -68,6 +78,13 @@ impl MeshProgram {
                 "in vec4 color;
                 out vec4 col;"
             } else {""},
+            if instanced {"
+                    mat4 transform;
+                    transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
+                    transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
+                    transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
+                    transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
+                    local2World *= transform;"} else {""},
             if use_positions {"pos = worldPosition.xyz;"} else {""},
             if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
             if use_uvs { "uvs = uv_coordinates;" } else {""},
@@ -150,14 +167,7 @@ impl Mesh {
         let program = unsafe {
             if PROGRAM_PER_VERTEX_COLOR.is_none()
             {
-                PROGRAM_PER_VERTEX_COLOR = Some(MeshProgram::new(&self.context,"
-                                                in vec4 col;
-                                                layout (location = 0) out vec4 outColor;
-                                                void main()
-                                                {
-                                                    outColor = col/255.0;
-                                                }
-                                                ")?);
+                PROGRAM_PER_VERTEX_COLOR = Some(MeshProgram::new(&self.context,include_str!("shaders/mesh_vertex_color.frag"))?);
             }
             PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
         };
@@ -175,13 +185,7 @@ impl Mesh {
         let program = unsafe {
             if PROGRAM_COLOR.is_none()
             {
-                PROGRAM_COLOR = Some(MeshProgram::new(&self.context, "
-                    uniform vec4 color;
-                    layout (location = 0) out vec4 outColor;
-                    void main()
-                    {
-                        outColor = color;
-                    }")?);
+                PROGRAM_COLOR = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_color.frag"))?);
             }
             PROGRAM_COLOR.as_ref().unwrap()
         };
@@ -203,14 +207,7 @@ impl Mesh {
         let program = unsafe {
             if PROGRAM_TEXTURE.is_none()
             {
-                PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, "
-                    uniform sampler2D tex;
-                    in vec2 uvs;
-                    layout (location = 0) out vec4 outColor;
-                    void main()
-                    {
-                        outColor = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
-                    }")?);
+                PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_texture.frag"))?);
             }
             PROGRAM_TEXTURE.as_ref().unwrap()
         };
