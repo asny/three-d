@@ -3,15 +3,14 @@ use crate::math::*;
 use crate::definition::*;
 use crate::core::*;
 use crate::camera::*;
+use crate::object::mesh::*;
 
 ///
 /// A shader program used for rendering one or more instances of a [InstancedMesh](InstancedMesh). It has a fixed vertex shader and
 /// customizable fragment shader for custom lighting. Use this in combination with [render](InstancedMesh::render).
 ///
 pub struct InstancedMeshProgram {
-    program: Program,
-    use_normals: bool,
-    use_uvs: bool,
+    mesh_program: MeshProgram,
 }
 
 impl InstancedMeshProgram {
@@ -20,62 +19,7 @@ impl InstancedMeshProgram {
     /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
     ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
-        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
-        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
-        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        let vertex_shader_source = &format!("
-                layout (std140) uniform Camera
-                {{
-                    mat4 viewProjection;
-                    mat4 view;
-                    mat4 projection;
-                    vec3 position;
-                    float padding;
-                }} camera;
-
-                uniform mat4 modelMatrix;
-                in vec3 position;
-
-                in vec4 row1;
-                in vec4 row2;
-                in vec4 row3;
-
-                {} // Positions out
-                {} // Normals in/out
-                {} // UV coordinates in/out
-
-                void main()
-                {{
-                    mat4 transform;
-                    transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
-                    transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
-                    transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
-                    transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
-
-                    vec4 worldPosition = modelMatrix * transform * vec4(position, 1.);
-                    gl_Position = camera.viewProjection * worldPosition;
-                    {} // Position
-                    {} // Normal
-                    {} // UV coordinates
-                }}
-            ",
-            if use_positions {"out vec3 pos;"} else {""},
-            if use_normals {
-                "uniform mat4 normalMatrix;
-                in vec3 normal;
-                out vec3 nor;"
-            } else {""},
-            if use_uvs {
-                "in vec2 uv_coordinates;
-                out vec2 uvs;"
-            } else {""},
-            if use_positions {"pos = worldPosition.xyz;"} else {""},
-            if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
-            if use_uvs { "uvs = uv_coordinates;" } else {""}
-        );
-
-        let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
-        Ok(Self {program, use_normals, use_uvs})
+        Ok(Self {mesh_program: MeshProgram::new_internal(context, fragment_shader_source, true)?})
     }
 }
 
@@ -83,7 +27,7 @@ impl std::ops::Deref for InstancedMeshProgram {
     type Target = Program;
 
     fn deref(&self) -> &Program {
-        &self.program
+        &self.mesh_program
     }
 }
 
@@ -162,14 +106,7 @@ impl InstancedMesh
         let program = unsafe {
             if PROGRAM_PER_VERTEX_COLOR.is_none()
             {
-                PROGRAM_PER_VERTEX_COLOR = Some(InstancedMeshProgram::new(&self.context,"
-                                                in vec4 col;
-                                                layout (location = 0) out vec4 outColor;
-                                                void main()
-                                                {
-                                                    outColor = col/255.0;
-                                                }
-                                                ")?);
+                PROGRAM_PER_VERTEX_COLOR = Some(InstancedMeshProgram::new(&self.context,include_str!("shaders/mesh_vertex_color.frag"))?);
             }
             PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
         };
@@ -187,13 +124,7 @@ impl InstancedMesh
         let program = unsafe {
             if PROGRAM_COLOR.is_none()
             {
-                PROGRAM_COLOR = Some(InstancedMeshProgram::new(&self.context, "
-                    uniform vec4 color;
-                    layout (location = 0) out vec4 outColor;
-                    void main()
-                    {
-                        outColor = color;
-                    }")?);
+                PROGRAM_COLOR = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/mesh_color.frag"))?);
             }
             PROGRAM_COLOR.as_ref().unwrap()
         };
@@ -215,14 +146,7 @@ impl InstancedMesh
         let program = unsafe {
             if PROGRAM_TEXTURE.is_none()
             {
-                PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(&self.context, "
-                    uniform sampler2D tex;
-                    in vec2 uvs;
-                    layout (location = 0) out vec4 outColor;
-                    void main()
-                    {
-                        outColor = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
-                    }")?);
+                PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/mesh_texture.frag"))?);
             }
             PROGRAM_TEXTURE.as_ref().unwrap()
         };
@@ -251,12 +175,12 @@ impl InstancedMesh
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
-        if program.use_uvs {
+        if program.mesh_program.use_uvs {
             let uv_buffer = self.uv_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
             program.use_attribute_vec2(uv_buffer, "uv_coordinates")?;
         }
-        if program.use_normals {
+        if program.mesh_program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
             program.use_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
