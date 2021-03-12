@@ -10,14 +10,14 @@ use crate::phong::*;
 ///
 /// A triangle mesh that adds additional lighting functionality based on the Phong shading model to a [Mesh](crate::Mesh).
 ///
-pub struct PhongForwardMesh {
+pub struct PhongMesh {
     context: Context,
     pub name: String,
     mesh: Mesh,
     pub material: PhongMaterial
 }
 
-impl PhongForwardMesh
+impl PhongMesh
 {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh, material: &PhongMaterial) -> Result<Self, Error>
     {
@@ -31,6 +31,40 @@ impl PhongForwardMesh
             mesh,
             material: material.clone()
         })
+    }
+
+    ///
+    /// Render the geometry and surface material parameters of the mesh, ie. the first part of a deferred render pass.
+    /// Must be called inside the **render** closure given to [PhongDeferredPipeline::geometry_pass](crate::PhongDeferredPipeline::geometry_pass).
+    ///
+    pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
+    {
+        let program = match self.material.color_source {
+            ColorSource::Color(_) => {
+                unsafe {
+                    if PROGRAM_COLOR.is_none()
+                    {
+                        PROGRAM_COLOR = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
+                                                                                      include_str!("shaders/deferred_objects_shared.frag"),
+                                                                                      include_str!("shaders/colored_deferred.frag")))?);
+                    }
+                    PROGRAM_COLOR.as_ref().unwrap()
+                }
+            },
+            ColorSource::Texture(_) => {
+                unsafe {
+                    if PROGRAM_TEXTURE.is_none()
+                    {
+                        PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
+                                                                                        include_str!("shaders/deferred_objects_shared.frag"),
+                                                                                        include_str!("shaders/textured_deferred.frag")))?);
+                    }
+                    PROGRAM_TEXTURE.as_ref().unwrap()
+                }
+            }
+        };
+        self.material.bind(program)?;
+        self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 
     ///
@@ -114,7 +148,7 @@ impl PhongForwardMesh
     }
 }
 
-impl std::ops::Deref for PhongForwardMesh {
+impl std::ops::Deref for PhongMesh {
     type Target = Mesh;
 
     fn deref(&self) -> &Mesh {
@@ -122,12 +156,14 @@ impl std::ops::Deref for PhongForwardMesh {
     }
 }
 
-impl Drop for PhongForwardMesh {
+impl Drop for PhongMesh {
 
     fn drop(&mut self) {
         unsafe {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
+                PROGRAM_COLOR = None;
+                PROGRAM_TEXTURE = None;
                 PROGRAM_COLOR_AMBIENT = None;
                 PROGRAM_COLOR_AMBIENT_DIRECTIONAL = None;
                 PROGRAM_TEXTURE_AMBIENT = None;
@@ -137,6 +173,8 @@ impl Drop for PhongForwardMesh {
     }
 }
 
+static mut PROGRAM_COLOR: Option<MeshProgram> = None;
+static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut PROGRAM_COLOR_AMBIENT: Option<MeshProgram> = None;
 static mut PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<MeshProgram> = None;
 static mut PROGRAM_TEXTURE_AMBIENT: Option<MeshProgram> = None;

@@ -22,12 +22,12 @@ fn main() {
         let tree_cpu_mesh = meshes.iter().find(|m| m.name == "tree.001_Mesh.002").unwrap();
         let tree_cpu_material = materials.iter().find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
         let tree_material = PhongMaterial::new(&context, &tree_cpu_material).unwrap();
-        let tree_mesh = PhongForwardMesh::new(&context, tree_cpu_mesh, &tree_material).unwrap();
+        let tree_mesh = PhongMesh::new(&context, tree_cpu_mesh, &tree_material).unwrap();
         let tree_mesh_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
 
         let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
         let leaves_cpu_material = materials.iter().find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap()).unwrap();
-        let leaves_mesh = PhongForwardMesh::new(&context, leaves_cpu_mesh, &PhongMaterial::new(&context, &leaves_cpu_material).unwrap()).unwrap();
+        let leaves_mesh = PhongMesh::new(&context, leaves_cpu_mesh, &PhongMaterial::new(&context, &leaves_cpu_material).unwrap()).unwrap();
         let leaves_mesh_render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         // Lights
@@ -59,7 +59,7 @@ fn main() {
         imposters.update_positions(&positions, &angles);
 
         // Plane
-        let plane = PhongForwardMesh::new(&context,
+        let plane = PhongMesh::new(&context,
             &CPUMesh {
                 positions: vec!(-10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),

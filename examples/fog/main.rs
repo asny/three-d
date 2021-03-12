@@ -19,7 +19,7 @@ fn main() {
     {
         let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
         materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-        let monkey = PhongForwardMesh::new(&context, &meshes[0], &PhongMaterial::new(&context, &materials[0]).unwrap()).unwrap();
+        let monkey = PhongMesh::new(&context, &meshes[0], &PhongMaterial::new(&context, &materials[0]).unwrap()).unwrap();
 
         let ambient_light = AmbientLight{ intensity: 0.2, color: vec3(1.0, 1.0, 1.0) };
         let directional_light = DirectionalLight::new(&context, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0)).unwrap();

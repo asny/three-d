@@ -29,7 +29,7 @@ fn main() {
             color_source: ColorSource::Texture(std::rc::Rc::new(box_texture)),
             ..Default::default()
         };
-        let box_mesh = PhongDeferredMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
+        let box_mesh = PhongMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
 
         let skybox = Skybox::new(&context, &mut loaded.cube_image("examples/assets/skybox_evening/right.jpg",
                                                                          "examples/assets/skybox_evening/left.jpg",
@@ -40,8 +40,8 @@ fn main() {
 
         let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
         let penguin_cpu_material = PhongMaterial::new(&context, &penguin_cpu_materials[0]).unwrap();
-        let penguin_deferred = PhongDeferredMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
-        let penguin_forward = PhongForwardMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+        let penguin_deferred = PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+        let penguin_forward = PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
 
         let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
         let directional_light = DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0)).unwrap();

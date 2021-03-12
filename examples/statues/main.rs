@@ -21,7 +21,7 @@ fn main() {
     {
         let (statue_cpu_meshes, statue_cpu_materials) = loaded.obj("examples/assets/COLOMBE.obj").unwrap();
         let statue_material = PhongMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
-        let statue = PhongForwardMesh::new(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
+        let statue = PhongMesh::new(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
         let scale = Mat4::from_scale(10.0);
         let mut statue_transforms_and_aabb = Vec::new();
         for i in 0..8 {
@@ -36,7 +36,7 @@ fn main() {
 
         let (fountain_cpu_meshes, fountain_cpu_materials) = loaded.obj("examples/assets/pfboy.obj").unwrap();
         let fountain_material = PhongMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
-        let fountain = PhongForwardMesh::new(&context, &fountain_cpu_meshes[0], &fountain_material).unwrap();
+        let fountain = PhongMesh::new(&context, &fountain_cpu_meshes[0], &fountain_material).unwrap();
 
         let ambient_light = AmbientLight {intensity: 0.4, color: vec3(1.0, 1.0, 1.0)};
         let mut directional_light = DirectionalLight::new(&context, 1.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0)).unwrap();

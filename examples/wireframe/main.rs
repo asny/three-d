@@ -22,7 +22,7 @@ fn main() {
         cpu_material.diffuse_intensity = Some(0.2);
         cpu_material.specular_intensity = Some(0.4);
         cpu_material.specular_power = Some(20.0);
-        let model = PhongDeferredMesh::new(&gl, &cpu_mesh, &PhongMaterial::new(&gl, &cpu_material).unwrap()).unwrap();
+        let model = PhongMesh::new(&gl, &cpu_mesh, &PhongMaterial::new(&gl, &cpu_material).unwrap()).unwrap();
 
         let wireframe_material = PhongMaterial {
             name: "wireframe".to_string(),
@@ -34,7 +34,7 @@ fn main() {
         let edges = PhongDeferredInstancedMesh::new(&gl, &edge_transformations(&cpu_mesh), &CPUMesh::cylinder(0.007, 1.0, 10), &wireframe_material).unwrap();
         let vertices = PhongDeferredInstancedMesh::new(&gl, &vertex_transformations(&cpu_mesh), &CPUMesh::sphere(0.015), &wireframe_material).unwrap();
 
-        let plane = PhongDeferredMesh::new(&gl,
+        let plane = PhongMesh::new(&gl,
             &CPUMesh {
                 positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),

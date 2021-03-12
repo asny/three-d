@@ -17,9 +17,9 @@ fn main() {
         monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
         monkey_cpu_materials[0].specular_intensity = Some(0.8);
         monkey_cpu_materials[0].specular_power = Some(20.0);
-        let mut monkey = PhongDeferredMesh::new(&context, &monkey_cpu_meshes[0], &PhongMaterial::new(&context, &monkey_cpu_materials[0]).unwrap()).unwrap();
+        let mut monkey = PhongMesh::new(&context, &monkey_cpu_meshes[0], &PhongMaterial::new(&context, &monkey_cpu_materials[0]).unwrap()).unwrap();
 
-        let mut plane = PhongDeferredMesh::new(&context,
+        let mut plane = PhongMesh::new(&context,
             &CPUMesh {
                 positions: vec!(-10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
