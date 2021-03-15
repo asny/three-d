@@ -156,6 +156,12 @@ impl std::ops::Deref for PhongMesh {
     }
 }
 
+impl std::ops::DerefMut for PhongMesh {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.mesh
+    }
+}
+
 impl Drop for PhongMesh {
 
     fn drop(&mut self) {
