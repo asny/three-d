@@ -52,3 +52,11 @@ impl ImageEffect {
         Ok(())
     }
 }
+
+impl std::ops::Deref for ImageEffect {
+    type Target = Program;
+
+    fn deref(&self) -> &Self::Target {
+        &self.program
+    }
+}
