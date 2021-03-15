@@ -1,4 +1,5 @@
 
+uniform sampler2D shadowMap;
 uniform vec4 surfaceColor;
 uniform float diffuse_intensity;
 uniform float specular_intensity;
@@ -20,6 +21,6 @@ void main()
 {
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
     vec3 directional_color = calculate_directional_light(light, surfaceColor.rgb, pos, normal,
-        diffuse_intensity, specular_intensity, specular_power);
+        diffuse_intensity, specular_intensity, specular_power, shadowMap);
     outColor = vec4(ambientColor * surfaceColor.rgb + directional_color, surfaceColor.a);
 }

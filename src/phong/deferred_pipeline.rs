@@ -5,6 +5,7 @@ use crate::core::*;
 use crate::camera::*;
 use crate::light::*;
 use crate::effect::*;
+use std::collections::HashMap;
 
 ///
 /// Used for debug purposes.
@@ -18,10 +19,7 @@ pub enum DebugType {POSITION, NORMAL, COLOR, DEPTH, DIFFUSE, SPECULAR, POWER, NO
 ///
 pub struct PhongDeferredPipeline {
     context: Context,
-    ambient_light_effect: ImageEffect,
-    directional_light_effect: ImageEffect,
-    point_light_effect: ImageEffect,
-    spot_light_effect: ImageEffect,
+    program_map: HashMap<String, ImageEffect>,
     debug_effect: Option<ImageEffect>,
     ///
     /// Set this to visualize the positions, normals etc. for debug purposes.
@@ -40,22 +38,7 @@ impl PhongDeferredPipeline
     {
         let renderer = Self {
             context: context.clone(),
-            ambient_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("shaders/deferred_light_shared.frag"),
-                                                                       &include_str!("shaders/ambient_light.frag")))?,
-            directional_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("shaders/deferred_light_shared.frag"),
-                                                                       &include_str!("shaders/directional_light.frag")))?,
-            point_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("shaders/deferred_light_shared.frag"),
-                                                                       &include_str!("shaders/point_light.frag")))?,
-            spot_light_effect: ImageEffect::new(context, &format!("{}\n{}\n{}",
-                                                                       &include_str!("shaders/light_shared.frag"),
-                                                                       &include_str!("shaders/deferred_light_shared.frag"),
-                                                                       &include_str!("shaders/spot_light.frag")))?,
+            program_map: HashMap::new(),
             debug_effect: None,
             debug_type: DebugType::NONE,
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(context, 1, 1, 2,
@@ -64,9 +47,6 @@ impl PhongDeferredPipeline
             geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(context, 1, 1, 1, Wrapping::ClampToEdge,
                                                                              Wrapping::ClampToEdge, DepthFormat::Depth32F)?)
         };
-
-        renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_texture(), "gbuffer")?;
-        renderer.ambient_light_effect.program().use_texture(renderer.geometry_pass_depth_texture_array(), "depthMap")?;
         Ok(renderer)
     }
 
@@ -99,7 +79,7 @@ impl PhongDeferredPipeline
     pub fn light_pass(&mut self, viewport: Viewport, camera: &Camera, ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
                       spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
-        let mut render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
+        let render_states = RenderStates {cull: CullType::Back, depth_test: DepthTestType::LessOrEqual, ..Default::default()};
 
         if self.debug_type != DebugType::NONE {
             if self.debug_effect.is_none() {
@@ -113,50 +93,103 @@ impl PhongDeferredPipeline
             return Ok(());
         }
 
+        let key = format!("{},{},{},{}", ambient_light.is_some(), directional_lights.len(), spot_lights.len(), point_lights.len());
+        if !self.program_map.contains_key(&key) {
+
+            let mut dir_uniform = String::new();
+            let mut dir_fun = String::new();
+            for i in 0..directional_lights.len() {
+                dir_uniform.push_str(&format!("
+                uniform sampler2D directionalShadowMap{};
+                layout (std140) uniform DirectionalLightUniform{}
+                {{
+                    DirectionalLight directionalLight{};
+                }};", i, i, i));
+                dir_fun.push_str(&format!("
+                    color.rgb += calculate_directional_light(directionalLight{}, surface.color, surface.position, surface.normal,
+                        surface.diffuse_intensity, surface.specular_intensity, surface.specular_power, directionalShadowMap{});", i, i));
+            }
+            let mut spot_uniform = String::new();
+            let mut spot_fun = String::new();
+            for i in 0..spot_lights.len() {
+                spot_uniform.push_str(&format!("
+                uniform sampler2D spotShadowMap{};
+                layout (std140) uniform SpotLightUniform{}
+                {{
+                    SpotLight spotLight{};
+                }};", i, i, i));
+                spot_fun.push_str(&format!("
+                    color.rgb += calculate_spot_light(spotLight{}, surface.color, surface.position, surface.normal,
+                        surface.diffuse_intensity, surface.specular_intensity, surface.specular_power, spotShadowMap{});", i, i));
+            }
+            let mut point_uniform = String::new();
+            let mut point_fun = String::new();
+            for i in 0..point_lights.len() {
+                point_uniform.push_str(&format!("
+                layout (std140) uniform PointLightUniform{}
+                {{
+                    PointLight pointLight{};
+                }};", i, i));
+                point_fun.push_str(&format!("
+                    color.rgb += calculate_point_light(pointLight{}, surface.color, surface.position, surface.normal,
+                        surface.diffuse_intensity, surface.specular_intensity, surface.specular_power);", i));
+            }
+
+            let fragment_shader = format!("{}\n{}\n{}",
+                                          &include_str!("shaders/light_shared.frag"),
+                                          &include_str!("shaders/deferred_light_shared.frag"),
+                                          &format!("
+                uniform vec3 ambientColor;
+                layout (location = 0) out vec4 color;
+
+                {} // Directional lights
+                {} // Spot lights
+                {} // Point lights
+
+                void main()
+                {{
+                    color = vec4(ambientColor, 1.0);
+                    {} // Surface parameters
+                    {} // Directional lights
+                    {} // Spot lights
+                    {} // Point lights
+                }}
+                ", &dir_uniform, &spot_uniform, &point_uniform,
+                   if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
+                       "Surface surface = get_surface(); color.rgb *= surface.color;"} else {"color.rgb *= get_surface_color();"},
+                   &dir_fun, &spot_fun, &point_fun));
+            self.program_map.insert(key.clone(), ImageEffect::new(&self.context, &fragment_shader)?);
+        };
+        let effect = self.program_map.get(&key).unwrap();
+
         // Ambient light
-        if let Some(light) = ambient_light {
-            self.ambient_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.ambient_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
-            self.ambient_light_effect.program().use_uniform_vec3("ambientColor", &(light.color * light.intensity))?;
-            self.ambient_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::ADD);
-        }
+        let color = ambient_light.map(|light| light.color * light.intensity).unwrap_or(vec3(0.0, 0.0, 0.0));
+        effect.use_uniform_vec3("ambientColor", &color)?;
 
         // Directional light
-        for light in directional_lights {
-            self.directional_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.directional_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
-            self.directional_light_effect.program().use_uniform_vec3("eyePosition", &camera.position())?;
-            self.directional_light_effect.program().use_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
-            self.directional_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
-            self.directional_light_effect.program().use_uniform_block(light.buffer(), "DirectionalLightUniform");
-            self.directional_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::ADD);
+        for i in 0..directional_lights.len() {
+            effect.use_texture(directional_lights[i].shadow_map(), &format!("directionalShadowMap{}", i))?;
+            effect.use_uniform_block(directional_lights[i].buffer(), &format!("DirectionalLightUniform{}", i));
         }
 
-        // Spot lights
-        for light in spot_lights {
-            self.spot_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.spot_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
-            self.spot_light_effect.program().use_uniform_vec3("eyePosition", &camera.position())?;
-            self.spot_light_effect.program().use_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
-            self.spot_light_effect.program().use_texture(light.shadow_map(), "shadowMap")?;
-            self.spot_light_effect.program().use_uniform_block(light.buffer(), "SpotLightUniform");
-            self.spot_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::ADD);
+        // Spot light
+        for i in 0..spot_lights.len() {
+            effect.use_texture(spot_lights[i].shadow_map(), &format!("spotShadowMap{}", i))?;
+            effect.use_uniform_block(spot_lights[i].buffer(), &format!("SpotLightUniform{}", i));
         }
 
-        // Point lights
-        for light in point_lights {
-            self.point_light_effect.program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.point_light_effect.program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
-            self.point_light_effect.program().use_uniform_vec3("eyePosition", &camera.position())?;
-            self.point_light_effect.program().use_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
-            self.point_light_effect.program().use_uniform_block(light.buffer(), "PointLightUniform");
-            self.point_light_effect.apply(render_states, viewport)?;
-            render_states.blend = Some(BlendParameters::ADD);
+        // Point light
+        for i in 0..point_lights.len() {
+            effect.use_uniform_block(point_lights[i].buffer(), &format!("PointLightUniform{}", i));
         }
 
+        effect.use_texture(self.geometry_pass_texture(), "gbuffer")?;
+        effect.use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+        if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
+            effect.use_uniform_vec3("eyePosition", &camera.position())?;
+            effect.use_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
+        }
+        effect.apply(render_states, viewport)?;
         Ok(())
     }
 

@@ -1,6 +1,5 @@
 
 uniform vec3 eyePosition;
-uniform sampler2D shadowMap;
 
 struct BaseLight
 {
@@ -85,7 +84,7 @@ vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 l
     return color / max(1.0, att);
 }
 
-float is_visible(vec4 shadow_coord, vec2 offset)
+float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
 {
     vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
     float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
@@ -93,7 +92,7 @@ float is_visible(vec4 shadow_coord, vec2 offset)
     return uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
-float calculate_shadow(mat4 shadowMVP, vec3 position)
+float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
 {
     if(shadowMVP[3][3] < 0.1) // Shadow disabled
     {
@@ -109,18 +108,18 @@ float calculate_shadow(mat4 shadowMVP, vec3 position)
                                  );
     for (int i=0;i<4;i++)
     {
-        visibility += is_visible(shadow_coord, poissonDisk[i] * 0.001f);
+        visibility += is_visible(shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
 }
 
 vec3 calculate_directional_light(DirectionalLight directionalLight, vec3 surface_color, vec3 position, vec3 normal,
-    float diffuse_intensity, float specular_intensity, float specular_power)
+    float diffuse_intensity, float specular_intensity, float specular_power, sampler2D shadowMap)
 {
     vec3 light = calculate_light(directionalLight.base, directionalLight.direction, position, normal,
         diffuse_intensity, specular_intensity, specular_power);
     if(directionalLight.shadowEnabled > 0.5) {
-        light *= calculate_shadow(directionalLight.shadowMVP, position);
+        light *= calculate_shadow(shadowMap, directionalLight.shadowMVP, position);
     }
     return surface_color * light;
 }
@@ -133,7 +132,7 @@ vec3 calculate_point_light(PointLight pointLight, vec3 surface_color, vec3 posit
 }
 
 vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position, vec3 normal,
-    float diffuse_intensity, float specular_intensity, float specular_power)
+    float diffuse_intensity, float specular_intensity, float specular_power, sampler2D shadowMap)
 {
     vec3 light_direction = normalize(position - spotLight.position);
     float angle = acos(dot(light_direction, normalize(spotLight.direction)));
@@ -144,7 +143,7 @@ vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position
         light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal,
             diffuse_intensity, specular_intensity, specular_power) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
         if(spotLight.shadowEnabled > 0.5) {
-            light *= calculate_shadow(spotLight.shadowMVP, position);
+            light *= calculate_shadow(shadowMap, spotLight.shadowMVP, position);
         }
     }
     return surface_color * light;
