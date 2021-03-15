@@ -30,6 +30,7 @@ fn main() {
                 specular_power: 20.0, ..Default::default()}
         ).unwrap();
 
+        let ambient_light = AmbientLight {color: vec3(1.0, 1.0, 1.0), intensity: 0.2};
         let mut directional_light0 = DirectionalLight::new(&context, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
         let mut directional_light1 = DirectionalLight::new(&context, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0)).unwrap();
         let mut point_light0 = PointLight::new(&context, 0.5, &vec3(0.0, 1.0, 0.0), &vec3(0.0, 0.0, 0.0), 0.5, 0.05, 0.005).unwrap();
@@ -39,6 +40,12 @@ fn main() {
         // main loop
         let mut rotating = false;
         let mut shadows_enabled = true;
+
+        let mut ambient_enabled = true;
+        let mut directional_enabled = true;
+        let mut spot_enabled = true;
+        let mut point_enabled = true;
+
         window.render_loop(move |mut frame_input|
         {
             let mut change = frame_input.first_frame;
@@ -66,6 +73,11 @@ fn main() {
                     ui.radio_value(&mut pipeline.debug_type, DebugType::SPECULAR, "Specular");
                     ui.radio_value(&mut pipeline.debug_type, DebugType::POWER, "Power");
 
+                    ui.label("Light options");
+                    ui.checkbox(&mut ambient_enabled, "Ambient light");
+                    ui.checkbox(&mut directional_enabled, "Directional lights");
+                    ui.checkbox(&mut spot_enabled, "Spot lights");
+                    ui.checkbox(&mut point_enabled, "Point lights");
                     if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
                         if !shadows_enabled {
                             spot_light.clear_shadow_map();
@@ -141,8 +153,11 @@ fn main() {
             // Light pass
             Screen::write(&context, &ClearState::default(), ||
             {
-                pipeline.light_pass(viewport_light_pass, &camera, None, &[&directional_light0, &directional_light1],
-                                    &[&spot_light], &[&point_light0, &point_light1])?;
+                pipeline.light_pass(viewport_light_pass, &camera, if ambient_enabled {Some(&ambient_light)} else {None},
+                                    &if directional_enabled {vec![&directional_light0, &directional_light1]} else {vec![]},
+                                    &if spot_enabled {vec![&spot_light]} else {vec![]},
+                                    &if point_enabled {vec![&point_light0, &point_light1]} else {vec![]}
+                )?;
                 gui.render().unwrap();
                 Ok(())
             }).unwrap();
