@@ -85,10 +85,10 @@ impl PhongDeferredPipeline
             if self.debug_effect.is_none() {
                 self.debug_effect = Some(ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap());
             }
-            self.debug_effect.as_ref().unwrap().program().use_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
-            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_texture(), "gbuffer")?;
-            self.debug_effect.as_ref().unwrap().program().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
-            self.debug_effect.as_ref().unwrap().program().use_uniform_int("type", &(self.debug_type as i32))?;
+            self.debug_effect.as_ref().unwrap().use_uniform_mat4("viewProjectionInverse", &(camera.projection() * camera.view()).invert().unwrap())?;
+            self.debug_effect.as_ref().unwrap().use_texture(self.geometry_pass_texture(), "gbuffer")?;
+            self.debug_effect.as_ref().unwrap().use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+            self.debug_effect.as_ref().unwrap().use_uniform_int("type", &(self.debug_type as i32))?;
             self.debug_effect.as_ref().unwrap().apply(render_states, viewport)?;
             return Ok(());
         }

@@ -41,10 +41,6 @@ impl ImageEffect {
         Ok(Self {program, positions, uvs})
     }
 
-    pub fn program(&self) -> &Program {
-        &self.program
-    }
-
     pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> Result<(), Error> {
         self.program.use_attribute_vec3(&self.positions, "position")?;
         self.program.use_attribute_vec2(&self.uvs, "uv_coordinate")?;
