@@ -1,6 +1,16 @@
 
 uniform vec3 eyePosition;
 
+struct Surface
+{
+    vec3 position;
+    vec3 normal;
+    vec4 color;
+    float diffuse_intensity;
+    float specular_intensity;
+    float specular_power;
+};
+
 struct BaseLight
 {
     vec3 color;

@@ -1,14 +1,4 @@
 
-struct Surface
-{
-    vec3 position;
-    vec3 normal;
-    vec3 color;
-    float diffuse_intensity;
-    float specular_intensity;
-    float specular_power;
-};
-
 uniform sampler2DArray gbuffer;
 uniform sampler2DArray depthMap;
 uniform mat4 viewProjectionInverse;
@@ -32,17 +22,17 @@ float get_surface_depth()
    	return depth;
 }
 
-vec3 get_surface_color()
+vec4 get_surface_color()
 {
     get_surface_depth();
-   	return texture(gbuffer, vec3(uv, 0)).rgb;
+   	return vec4(texture(gbuffer, vec3(uv, 0)).rgb, 1.0);
 }
 
 Surface get_surface()
 {
     float depth = get_surface_depth();
    	vec4 c = texture(gbuffer, vec3(uv, 0));
-    vec3 surface_color = c.rgb;
+    vec4 surface_color = vec4(c.rgb, 1.0);
     vec3 position = WorldPosFromDepth(depth, uv);
     vec4 n = texture(gbuffer, vec3(uv, 1));
     vec3 normal = normalize(n.xyz*2.0 - 1.0);
