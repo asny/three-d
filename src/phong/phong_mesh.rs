@@ -68,7 +68,7 @@ impl PhongMesh
     }
 
     ///
-    /// Render the triangle mesh shaded with the given lights.
+    /// Render the triangle mesh shaded with the given lights based on the Phong shading model.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
