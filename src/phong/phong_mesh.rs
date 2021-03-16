@@ -86,40 +86,13 @@ impl PhongMesh
                 PROGRAMS = Some(std::collections::HashMap::new());
             }
             if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
-                let surface_functionality = format!("
-                    {}
-                    uniform float diffuse_intensity;
-                    uniform float specular_intensity;
-                    uniform float specular_power;
-
-                    in vec3 pos;
-                    in vec3 nor;
-
-                    Surface get_surface()
-                    {{
-                        vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
-                        return Surface(pos, normal, get_surface_color(), diffuse_intensity, specular_intensity, specular_power);
-                    }}",
+                let surface_functionality =
                     match self.material.color_source {
-                        ColorSource::Color(_) => {"
-                            uniform vec4 surfaceColor;
-                            vec4 get_surface_color()
-                            {{
-                                return surfaceColor;
-                            }}"},
-                        ColorSource::Texture(_) => { "
-                            uniform sampler2D tex;
-                            in vec2 uvs;
-                            vec4 get_surface_color()
-                            {{
-                                return texture(tex, vec2(uvs.x, 1.0 - uvs.y));
-                            }}"
-                        }
-                    });
-                let fragment_shader_source = phong_fragment_shader(&surface_functionality,
-                                                                   directional_lights.len(),
-                                                                   spot_lights.len(),
-                                                                   point_lights.len());
+                        ColorSource::Color(_) => { include_str!("shaders/forward_color_surface.frag") },
+                        ColorSource::Texture(_) => { include_str!("shaders/forward_texture_surface.frag") }
+                    };
+                let fragment_shader_source = phong_fragment_shader(&surface_functionality,directional_lights.len(),
+                                                                   spot_lights.len(),point_lights.len());
                 PROGRAMS.as_mut().unwrap().insert(key.clone(), MeshProgram::new(&self.context, &fragment_shader_source)?);
             };
             PROGRAMS.as_ref().unwrap().get(&key).unwrap()
