@@ -72,9 +72,9 @@ impl PhongMesh
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera,
-                       ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
-                       spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
+    pub fn render_with_lighting(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera,
+                                ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
+                                spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
         let surface_functionality = format!("
             {}

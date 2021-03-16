@@ -38,9 +38,9 @@ fn main() {
         let aabb = tree_cpu_mesh.compute_aabb().add(&leaves_cpu_mesh.compute_aabb());
         let mut imposters = Imposters::new(&context).unwrap();
         imposters.update_texture(|viewport: Viewport, camera: &Camera| {
-            tree_mesh.render(tree_mesh_render_states, viewport, &Mat4::identity(), camera,
+            tree_mesh.render_with_lighting(tree_mesh_render_states, viewport, &Mat4::identity(), camera,
                              Some(&ambient_light), &[&directional_light], &[], &[])?;
-            leaves_mesh.render(leaves_mesh_render_states, viewport, &Mat4::identity(), camera,
+            leaves_mesh.render_with_lighting(leaves_mesh_render_states, viewport, &Mat4::identity(), camera,
                                Some(&ambient_light), &[&directional_light], &[], &[])?;
             Ok(())
         }, (aabb.min, aabb.max), 256).unwrap();
@@ -106,11 +106,11 @@ fn main() {
 
             if redraw {
                 Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), &|| {
-                    plane.render(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
+                    plane.render_with_lighting(RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()},
                                  frame_input.viewport, &Mat4::identity(), &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
-                    tree_mesh.render(tree_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera,
+                    tree_mesh.render_with_lighting(tree_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera,
                                      Some(&ambient_light), &[&directional_light], &[], &[])?;
-                    leaves_mesh.render(leaves_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera,
+                    leaves_mesh.render_with_lighting(leaves_mesh_render_states, frame_input.viewport, &Mat4::identity(), &camera,
                                        Some(&ambient_light), &[&directional_light], &[], &[])?;
                     imposters.render(frame_input.viewport, &camera)?;
                     Ok(())

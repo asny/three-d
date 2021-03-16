@@ -93,7 +93,7 @@ fn main() {
                     {
                         for (transform, aabb) in statue_transforms_and_aabb.iter() {
                             if primary_camera.in_frustum(aabb) {
-                                statue.render(RenderStates { cull: CullType::Back, ..Default::default() },
+                                statue.render_with_lighting(RenderStates { cull: CullType::Back, ..Default::default() },
                                                                            frame_input.viewport,
                                                                            &transform,
                                                                            if is_primary_camera { &primary_camera } else { &secondary_camera },
@@ -102,7 +102,7 @@ fn main() {
                             }
                         }
 
-                        fountain.render(RenderStates {cull: CullType::Back, ..Default::default()},
+                        fountain.render_with_lighting(RenderStates {cull: CullType::Back, ..Default::default()},
                                                                      frame_input.viewport,
                                                                      &Mat4::from_angle_x(degrees(-90.0)),
                                                                      if is_primary_camera { &primary_camera } else { &secondary_camera },

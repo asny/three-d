@@ -82,7 +82,7 @@ fn main() {
 
             Screen::write(&context, &ClearState::default(), || {
                 let render_states = RenderStates {depth_test: DepthTestType::LessOrEqual, cull: CullType::Back, ..Default::default()};
-                monkey.render(render_states, frame_input.viewport, &Mat4::identity(), &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
+                monkey.render_with_lighting(render_states, frame_input.viewport, &Mat4::identity(), &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
                 skybox.render(frame_input.viewport, &camera)?;
                 if fog_enabled {
                     fog_effect.apply(frame_input.viewport, &camera, pipeline.depth_texture(), frame_input.accumulated_time as f32)?;
