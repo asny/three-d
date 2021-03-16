@@ -76,41 +76,50 @@ impl PhongMesh
                                 ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
                                 spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
-        let surface_functionality = format!("
-            {}
-            uniform float diffuse_intensity;
-            uniform float specular_intensity;
-            uniform float specular_power;
+        let key = format!("{},{},{}", directional_lights.len(), spot_lights.len(), point_lights.len());
+        let program = unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
+            }
+            if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
+                let surface_functionality = format!("
+                    {}
+                    uniform float diffuse_intensity;
+                    uniform float specular_intensity;
+                    uniform float specular_power;
 
-            in vec3 pos;
-            in vec3 nor;
+                    in vec3 pos;
+                    in vec3 nor;
 
-            Surface get_surface()
-            {{
-	            vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
-                return Surface(pos, normal, get_surface_color(), diffuse_intensity, specular_intensity, specular_power);
-            }}",
-            match self.material.color_source {
-                ColorSource::Color(_) => {"
-                    uniform vec4 surfaceColor;
-                    vec4 get_surface_color()
+                    Surface get_surface()
                     {{
-                        return surfaceColor;
-                    }}"},
-                ColorSource::Texture(_) => { "
-                    uniform sampler2D tex;
-                    in vec2 uvs;
-                    vec4 get_surface_color()
-                    {{
-                        return texture(tex, vec2(uvs.x, 1.0 - uvs.y));
-                    }}"
-                }
-            });
-        let program = get_or_new(&self.context,&surface_functionality,
-                                 ambient_light.is_some(),
-                                 directional_lights.len(),
-                                 spot_lights.len(),
-                                 point_lights.len())?;
+                        vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
+                        return Surface(pos, normal, get_surface_color(), diffuse_intensity, specular_intensity, specular_power);
+                    }}",
+                                                            match self.material.color_source {
+                                                                ColorSource::Color(_) => {"
+                            uniform vec4 surfaceColor;
+                            vec4 get_surface_color()
+                            {{
+                                return surfaceColor;
+                            }}"},
+                                                                ColorSource::Texture(_) => { "
+                            uniform sampler2D tex;
+                            in vec2 uvs;
+                            vec4 get_surface_color()
+                            {{
+                                return texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+                            }}"
+                                                                }
+                                                            });
+                let fragment_shader_source = phong_fragment_shader(&surface_functionality,
+                                                                   directional_lights.len(),
+                                                                   spot_lights.len(),
+                                                                   point_lights.len());
+                PROGRAMS.as_mut().unwrap().insert(key.clone(), crate::MeshProgram::new(&self.context, &fragment_shader_source)?);
+            };
+            PROGRAMS.as_ref().unwrap().get(&key).unwrap()
+        };
 
         crate::phong::bind_lights(program, ambient_light, directional_lights, spot_lights, point_lights)?;
 
@@ -154,6 +163,7 @@ impl Drop for PhongMesh {
             if MESH_COUNT == 0 {
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
+                PROGRAMS = None;
             }
         }
     }
@@ -162,3 +172,4 @@ impl Drop for PhongMesh {
 static mut PROGRAM_COLOR: Option<MeshProgram> = None;
 static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
+static mut PROGRAMS: Option<std::collections::HashMap<String, crate::MeshProgram>> = None;

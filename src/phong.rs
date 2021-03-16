@@ -28,23 +28,6 @@ pub mod phong_instanced_mesh;
 #[doc(inline)]
 pub use crate::phong_instanced_mesh::*;
 
-static mut PROGRAMS: Option<std::collections::HashMap<String, crate::MeshProgram>> = None;
-
-fn get_or_new(context: &Context, surface_functionality: &str, ambient_light: bool, directional_lights: usize, spot_lights: usize, point_lights: usize) -> Result<&'static crate::MeshProgram, Error>
-{
-    let key = format!("{},{},{},{}", ambient_light, directional_lights, spot_lights, point_lights);
-    unsafe {
-        if PROGRAMS.is_none() {
-            PROGRAMS = Some(std::collections::HashMap::new());
-        }
-        if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
-            let fragment_shader_source = phong_fragment_shader(surface_functionality, directional_lights, spot_lights, point_lights);
-            PROGRAMS.as_mut().unwrap().insert(key.clone(), crate::MeshProgram::new(context, &fragment_shader_source)?);
-        };
-        Ok(PROGRAMS.as_ref().unwrap().get(&key).unwrap())
-    }
-}
-
 fn phong_fragment_shader(surface_functionality: &str, directional_lights: usize, spot_lights: usize, point_lights: usize) -> String {
     let mut dir_uniform = String::new();
     let mut dir_fun = String::new();
