@@ -2,9 +2,11 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
+use serde::Serialize;
 use std::cell::RefCell;
 use std::rc::Rc;
 use crate::frame::*;
+use crate::window::WindowSettings;
 
 #[derive(Debug)]
 pub enum WindowError {
@@ -22,17 +24,30 @@ pub struct Window
     max_size: Option<(u32, u32)>
 }
 
+#[derive(Serialize)]
+struct ContextOptions
+{
+    antialias: bool
+}
+
 impl Window
 {
     pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError>
+    {
+        Self::new_with_settings(_title, size, WindowSettings::default())
+    }
+
+    pub fn new_with_settings(_title: &str, size: Option<(u32, u32)>, settings: WindowSettings) -> Result<Window, WindowError>
     {
         let websys_window = web_sys::window().ok_or(WindowError::WindowCreationError {message: "Unable to create web window".to_string()})?;
         let document = websys_window.document().ok_or(WindowError::WindowCreationError {message: "Unable to get document".to_string()})?;
         let canvas = document.get_element_by_id("canvas").ok_or(WindowError::WindowCreationError {message: "Unable to get canvas, is the id different from 'canvas'?".to_string()})?;
         let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().map_err(|e| WindowError::WindowCreationError {message: format!("Unable to convert to HtmlCanvasElement. Error code: {:?}", e)})?;
 
+        let context_options = ContextOptions { antialias: settings.multisamples > 0 };
         let context = canvas
-            .get_context("webgl2").map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
+            .get_context_with_context_options("webgl2", &JsValue::from_serde(&context_options).unwrap())
+            .map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
             .ok_or(WindowError::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
             .dyn_into::<WebGl2RenderingContext>().map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
         context.get_extension("EXT_color_buffer_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
