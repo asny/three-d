@@ -39,111 +39,109 @@ impl PhongInstancedMesh
     ///
     pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
-        let program = match self.material.color_source {
-            ColorSource::Color(_) => {
-                unsafe {
-                    if INSTANCED_PROGRAM_COLOR.is_none()
-                    {
-                        INSTANCED_PROGRAM_COLOR = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
-                                                                                                         include_str!("shaders/deferred_objects_shared.frag"),
-                                                                                                         include_str!("shaders/colored_deferred.frag")))?);
-                    }
-                    INSTANCED_PROGRAM_COLOR.as_ref().unwrap()
-                }
-            },
-            ColorSource::Texture(_) => {
-                unsafe {
-                    if INSTANCED_PROGRAM_TEXTURE.is_none()
-                    {
-                        INSTANCED_PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
-                                                                                                           include_str!("shaders/deferred_objects_shared.frag"),
-                                                                                                           include_str!("shaders/textured_deferred.frag")))?);
-                    }
-                    INSTANCED_PROGRAM_TEXTURE.as_ref().unwrap()
-                }
+        let program = unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
             }
+            let key = match self.material.color_source {
+                ColorSource::Color(_) => {
+                    "ColorDeferred"
+                },
+                ColorSource::Texture(_) => {
+                    "TextureDeferred"
+                }
+            };
+            if !PROGRAMS.as_ref().unwrap().contains_key(key) {
+                PROGRAMS.as_mut().unwrap().insert(key.to_string(), match self.material.color_source {
+                    ColorSource::Color(_) => {
+                        InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
+                                                                 include_str!("shaders/deferred_objects_shared.frag"),
+                                                                 include_str!("shaders/colored_deferred.frag")))?
+                    },
+                    ColorSource::Texture(_) => {
+                        InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
+                                                                 include_str!("shaders/deferred_objects_shared.frag"),
+                                                                 include_str!("shaders/textured_deferred.frag")))?
+                    }
+                });
+            };
+            PROGRAMS.as_ref().unwrap().get(key).unwrap()
         };
         self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
     }
 
     ///
-    /// Render the instanced triangle mesh shaded with an ambient light.
+    /// Render the instanced triangle mesh shaded with the given lights based on the Phong shading model.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render_with_ambient(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, ambient_light: &AmbientLight) -> Result<(), Error>
+    pub fn render_with_lighting(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera,
+                                ambient_light: Option<&AmbientLight>, directional_lights: &[&DirectionalLight],
+                                spot_lights: &[&SpotLight], point_lights: &[&PointLight]) -> Result<(), Error>
     {
-        let program = match self.material.color_source {
-            ColorSource::Color(_) => {
-                unsafe {
-                    if INSTANCED_PROGRAM_COLOR_AMBIENT.is_none()
-                    {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/colored_forward_ambient.frag"))?);
-                    }
-                    INSTANCED_PROGRAM_COLOR_AMBIENT.as_ref().unwrap()
-                }
-            },
-            ColorSource::Texture(_) => {
-                unsafe {
-                    if INSTANCED_PROGRAM_TEXTURE_AMBIENT.is_none()
-                    {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/textured_forward_ambient.frag"))?);
-                    }
-                    INSTANCED_PROGRAM_TEXTURE_AMBIENT.as_ref().unwrap()
-                }
+        let key = format!("{},{},{}", directional_lights.len(), spot_lights.len(), point_lights.len());
+        let program = unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
             }
-        };
-        program.use_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
+            if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
+                let surface_functionality = format!("
+                    {}
+                    uniform float diffuse_intensity;
+                    uniform float specular_intensity;
+                    uniform float specular_power;
 
-        match self.material.color_source {
-            ColorSource::Color(ref color) => {
-                program.use_uniform_vec4("surfaceColor", color)?;
-            },
-            ColorSource::Texture(ref texture) => {
-                program.use_texture(texture.as_ref(),"tex")?;
+                    in vec3 pos;
+                    in vec3 nor;
+
+                    Surface get_surface()
+                    {{
+                        vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
+                        return Surface(pos, normal, get_surface_color(), diffuse_intensity, specular_intensity, specular_power);
+                    }}",
+                                                    match self.material.color_source {
+                                                        ColorSource::Color(_) => {"
+                            uniform vec4 surfaceColor;
+                            vec4 get_surface_color()
+                            {{
+                                return surfaceColor;
+                            }}"},
+                                                        ColorSource::Texture(_) => { "
+                            uniform sampler2D tex;
+                            in vec2 uvs;
+                            vec4 get_surface_color()
+                            {{
+                                return texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+                            }}"
+                                                        }
+                                                    });
+                let fragment_shader_source = phong_fragment_shader(&surface_functionality,
+                                                                   directional_lights.len(),
+                                                                   spot_lights.len(),
+                                                                   point_lights.len());
+                PROGRAMS.as_mut().unwrap().insert(key.clone(), InstancedMeshProgram::new(&self.context, &fragment_shader_source)?);
+            };
+            PROGRAMS.as_ref().unwrap().get(&key).unwrap()
+        };
+
+        crate::phong::bind_lights(program, ambient_light, directional_lights, spot_lights, point_lights)?;
+
+        if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
+            program.use_uniform_vec3("eyePosition", &camera.position())?;
+            self.material.bind(program)?;
+        } else {
+            match self.material.color_source {
+                ColorSource::Color(ref color) => {
+                    program.use_uniform_vec4("surfaceColor", color)?;
+                },
+                ColorSource::Texture(ref texture) => {
+                    program.use_texture(texture.as_ref(),"tex")?;
+                }
             }
         }
-        self.mesh.render(program, render_states, viewport, transformation, camera)
-    }
-
-    ///
-    /// Render the triangle mesh shaded with an ambient and a directional light.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    pub fn render_with_ambient_and_directional(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, ambient_light: &AmbientLight, directional_light: &DirectionalLight) -> Result<(), Error>
-    {
-        let program = match self.material.color_source {
-            ColorSource::Color(_) => {
-                unsafe {
-                    if INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL.is_none()
-                    {
-                        INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
-                                                                                      &include_str!("shaders/light_shared.frag"),
-                                                                                      &include_str!("shaders/colored_forward_ambient_directional.frag")))?);
-                    }
-                    INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL.as_ref().unwrap()
-                }
-            },
-            ColorSource::Texture(_) => {
-                unsafe {
-                    if INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.is_none()
-                    {
-                        INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = Some(InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
-                                                                                    include_str!("shaders/light_shared.frag"),
-                                                                                    include_str!("shaders/textured_forward_ambient_directional.frag")))?)
-                    }
-                    INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL.as_ref().unwrap()
-                }
-            }
-        };
-        program.use_uniform_vec3("ambientColor", &(ambient_light.color * ambient_light.intensity))?;
-        program.use_uniform_vec3("eyePosition", &camera.position())?;
-        program.use_texture(directional_light.shadow_map(), "shadowMap")?;
-        program.use_uniform_block(directional_light.buffer(), "DirectionalLightUniform");
-        self.material.bind(program)?;
-        self.mesh.render(program, render_states, viewport, transformation, camera)
+        self.mesh.render(program, render_states, viewport, transformation, camera)?;
+        Ok(())
     }
 }
 
@@ -167,21 +165,11 @@ impl Drop for PhongInstancedMesh {
         unsafe {
             INSTANCED_MESH_COUNT -= 1;
             if INSTANCED_MESH_COUNT == 0 {
-                INSTANCED_PROGRAM_COLOR = None;
-                INSTANCED_PROGRAM_TEXTURE = None;
-                INSTANCED_PROGRAM_COLOR_AMBIENT = None;
-                INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL = None;
-                INSTANCED_PROGRAM_TEXTURE_AMBIENT = None;
-                INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL = None;
+                PROGRAMS = None;
             }
         }
     }
 }
 
-static mut INSTANCED_PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
-static mut INSTANCED_PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
-static mut INSTANCED_PROGRAM_COLOR_AMBIENT: Option<InstancedMeshProgram> = None;
-static mut INSTANCED_PROGRAM_COLOR_AMBIENT_DIRECTIONAL: Option<InstancedMeshProgram> = None;
-static mut INSTANCED_PROGRAM_TEXTURE_AMBIENT: Option<InstancedMeshProgram> = None;
-static mut INSTANCED_PROGRAM_TEXTURE_AMBIENT_DIRECTIONAL: Option<InstancedMeshProgram> = None;
+static mut PROGRAMS: Option<std::collections::HashMap<String, InstancedMeshProgram>> = None;
 static mut INSTANCED_MESH_COUNT: u32 = 0;

@@ -100,27 +100,27 @@ impl PhongMesh
                         vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
                         return Surface(pos, normal, get_surface_color(), diffuse_intensity, specular_intensity, specular_power);
                     }}",
-                                                            match self.material.color_source {
-                                                                ColorSource::Color(_) => {"
+                    match self.material.color_source {
+                        ColorSource::Color(_) => {"
                             uniform vec4 surfaceColor;
                             vec4 get_surface_color()
                             {{
                                 return surfaceColor;
                             }}"},
-                                                                ColorSource::Texture(_) => { "
+                        ColorSource::Texture(_) => { "
                             uniform sampler2D tex;
                             in vec2 uvs;
                             vec4 get_surface_color()
                             {{
                                 return texture(tex, vec2(uvs.x, 1.0 - uvs.y));
                             }}"
-                                                                }
-                                                            });
+                        }
+                    });
                 let fragment_shader_source = phong_fragment_shader(&surface_functionality,
                                                                    directional_lights.len(),
                                                                    spot_lights.len(),
                                                                    point_lights.len());
-                PROGRAMS.as_mut().unwrap().insert(key.clone(), crate::MeshProgram::new(&self.context, &fragment_shader_source)?);
+                PROGRAMS.as_mut().unwrap().insert(key.clone(), MeshProgram::new(&self.context, &fragment_shader_source)?);
             };
             PROGRAMS.as_ref().unwrap().get(&key).unwrap()
         };
@@ -172,4 +172,4 @@ impl Drop for PhongMesh {
 }
 
 static mut MESH_COUNT: u32 = 0;
-static mut PROGRAMS: Option<std::collections::HashMap<String, crate::MeshProgram>> = None;
+static mut PROGRAMS: Option<std::collections::HashMap<String, MeshProgram>> = None;
