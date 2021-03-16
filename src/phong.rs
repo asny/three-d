@@ -38,11 +38,8 @@ fn get_or_new(context: &Context, surface_functionality: &str, ambient_light: boo
             PROGRAMS = Some(std::collections::HashMap::new());
         }
         if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
-            PROGRAMS.as_mut().unwrap().insert(key.clone(), crate::MeshProgram::new(context,
-                                                                 &phong_fragment_shader(surface_functionality,
-                                                                                        directional_lights,
-                                                                                        spot_lights,
-                                                                                        point_lights))?);
+            let fragment_shader_source = phong_fragment_shader(surface_functionality, directional_lights, spot_lights, point_lights);
+            PROGRAMS.as_mut().unwrap().insert(key.clone(), crate::MeshProgram::new(context, &fragment_shader_source)?);
         };
         Ok(PROGRAMS.as_ref().unwrap().get(&key).unwrap())
     }
