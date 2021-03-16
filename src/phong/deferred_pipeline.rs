@@ -99,7 +99,7 @@ impl PhongDeferredPipeline
                                     ImageEffect::new(
                                         &self.context,
                                         &crate::phong::phong_fragment_shader(
-                                            &include_str!("shaders/deferred_light_shared.frag"),
+                                            &include_str!("shaders/deferred_surface.frag"),
                                             directional_lights.len(),
                                             spot_lights.len(),
                                             point_lights.len()))?);

@@ -56,12 +56,12 @@ impl PhongInstancedMesh
                     ColorSource::Color(_) => {
                         InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
                                                                  include_str!("shaders/deferred_objects_shared.frag"),
-                                                                 include_str!("shaders/colored_deferred.frag")))?
+                                                                 include_str!("shaders/deferred_color.frag")))?
                     },
                     ColorSource::Texture(_) => {
                         InstancedMeshProgram::new(&self.context, &format!("{}\n{}",
                                                                  include_str!("shaders/deferred_objects_shared.frag"),
-                                                                 include_str!("shaders/textured_deferred.frag")))?
+                                                                 include_str!("shaders/deferred_texture.frag")))?
                     }
                 });
             };
