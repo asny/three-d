@@ -39,29 +39,33 @@ impl PhongMesh
     ///
     pub fn render_geometry(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
     {
-        let program = match self.material.color_source {
-            ColorSource::Color(_) => {
-                unsafe {
-                    if PROGRAM_COLOR.is_none()
-                    {
-                        PROGRAM_COLOR = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
-                                                                                      include_str!("shaders/deferred_objects_shared.frag"),
-                                                                                      include_str!("shaders/colored_deferred.frag")))?);
-                    }
-                    PROGRAM_COLOR.as_ref().unwrap()
-                }
-            },
-            ColorSource::Texture(_) => {
-                unsafe {
-                    if PROGRAM_TEXTURE.is_none()
-                    {
-                        PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, &format!("{}\n{}",
-                                                                                        include_str!("shaders/deferred_objects_shared.frag"),
-                                                                                        include_str!("shaders/textured_deferred.frag")))?);
-                    }
-                    PROGRAM_TEXTURE.as_ref().unwrap()
-                }
+        let program = unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
             }
+            let key = match self.material.color_source {
+                ColorSource::Color(_) => {
+                    "ColorDeferred"
+                },
+                ColorSource::Texture(_) => {
+                    "TextureDeferred"
+                }
+            };
+            if !PROGRAMS.as_ref().unwrap().contains_key(key) {
+                PROGRAMS.as_mut().unwrap().insert(key.to_string(), match self.material.color_source {
+                    ColorSource::Color(_) => {
+                        MeshProgram::new(&self.context, &format!("{}\n{}",
+                                                                 include_str!("shaders/deferred_objects_shared.frag"),
+                                                                 include_str!("shaders/colored_deferred.frag")))?
+                    },
+                    ColorSource::Texture(_) => {
+                        MeshProgram::new(&self.context, &format!("{}\n{}",
+                                                                 include_str!("shaders/deferred_objects_shared.frag"),
+                                                                 include_str!("shaders/textured_deferred.frag")))?
+                    }
+                });
+            };
+            PROGRAMS.as_ref().unwrap().get(key).unwrap()
         };
         self.material.bind(program)?;
         self.mesh.render(program, render_states, viewport, transformation, camera)
@@ -161,15 +165,11 @@ impl Drop for PhongMesh {
         unsafe {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
-                PROGRAM_COLOR = None;
-                PROGRAM_TEXTURE = None;
                 PROGRAMS = None;
             }
         }
     }
 }
 
-static mut PROGRAM_COLOR: Option<MeshProgram> = None;
-static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
 static mut PROGRAMS: Option<std::collections::HashMap<String, crate::MeshProgram>> = None;
