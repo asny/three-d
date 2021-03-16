@@ -93,21 +93,21 @@ fn main() {
                     {
                         for (transform, aabb) in statue_transforms_and_aabb.iter() {
                             if primary_camera.in_frustum(aabb) {
-                                statue.render_with_ambient_and_directional(RenderStates { cull: CullType::Back, ..Default::default() },
+                                statue.render(RenderStates { cull: CullType::Back, ..Default::default() },
                                                                            frame_input.viewport,
                                                                            &transform,
                                                                            if is_primary_camera { &primary_camera } else { &secondary_camera },
-                                                                           &ambient_light,
-                                                                           &directional_light)?;
+                                                                           Some(&ambient_light),
+                                                                           &[&directional_light], &[], &[])?;
                             }
                         }
 
-                        fountain.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
+                        fountain.render(RenderStates {cull: CullType::Back, ..Default::default()},
                                                                      frame_input.viewport,
                                                                      &Mat4::from_angle_x(degrees(-90.0)),
                                                                      if is_primary_camera { &primary_camera } else { &secondary_camera },
-                                                                     &ambient_light,
-                                                                     &directional_light)?;
+                                                                    Some(&ambient_light),
+                                                                    &[&directional_light], &[], &[])?;
                         Ok(())
                     }).unwrap();
             }

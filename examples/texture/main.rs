@@ -89,8 +89,9 @@ fn main() {
                 Screen::write(&context, &ClearState::default(), || {
                     pipeline.light_pass(frame_input.viewport, &camera, Some(&ambient_light), &[&directional_light], &[], &[])?;
                     let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
-                    penguin_forward.render_with_ambient_and_directional(RenderStates {cull: CullType::Back, ..Default::default()},
-                                                                        frame_input.viewport, &transformation, &camera, &ambient_light, &directional_light)?;
+                    penguin_forward.render(RenderStates {cull: CullType::Back, ..Default::default()},
+                                           frame_input.viewport, &transformation, &camera,
+                                           Some(&ambient_light), &[&directional_light], &[], &[])?;
                     axes.render(frame_input.viewport, &Mat4::identity(), &camera)?;
                     skybox.render(frame_input.viewport, &camera)?;
                     Ok(())
