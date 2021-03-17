@@ -1,4 +1,3 @@
-
 //!
 //! A collection of light types.
 //! Currently implemented light types are ambient light, directional light, spot light and point light.

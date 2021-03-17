@@ -1,4 +1,3 @@
-
 //!
 //! A 3D renderer which enables out-of-the-box build to both desktop and web with the same code.
 //! See the [README](https://crates.io/crates/three-d) for more information and

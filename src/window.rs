@@ -1,4 +1,3 @@
-
 //!
 //! Default windows for easy setup and event handling.
 //! Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop

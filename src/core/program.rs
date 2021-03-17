@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use std::cell::RefCell;
-use crate::math::*;
+use crate::context::{consts, Context};
 use crate::core::*;
-use crate::context::{Context, consts};
+use crate::math::*;
+use std::cell::RefCell;
+use std::collections::HashMap;
 
 ///
 /// A shader program consisting of a programmable vertex shader followed by a programmable fragment shader.
@@ -16,17 +16,29 @@ pub struct Program {
     vertex_attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
     uniforms: HashMap<String, crate::context::UniformLocation>,
-    uniform_blocks: RefCell<HashMap<String, (u32, u32)>>
+    uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
 }
 
-impl Program
-{
-    pub fn from_source(context: &Context, vertex_shader_source: &str, fragment_shader_source: &str) -> Result<Program, Error>
-    {
-        let vert_shader = context.create_shader(consts::VERTEX_SHADER)
-            .ok_or(Error::FailedToCreateShader{ shader_type: "Vertex shader".to_string(), message:"Unable to create shader object".to_string() })?;
-        let frag_shader = context.create_shader(consts::FRAGMENT_SHADER)
-            .ok_or(Error::FailedToCreateShader{ shader_type: "Fragment shader".to_string(), message:"Unable to create shader object".to_string() })?;
+impl Program {
+    pub fn from_source(
+        context: &Context,
+        vertex_shader_source: &str,
+        fragment_shader_source: &str,
+    ) -> Result<Program, Error> {
+        let vert_shader =
+            context
+                .create_shader(consts::VERTEX_SHADER)
+                .ok_or(Error::FailedToCreateShader {
+                    shader_type: "Vertex shader".to_string(),
+                    message: "Unable to create shader object".to_string(),
+                })?;
+        let frag_shader =
+            context
+                .create_shader(consts::FRAGMENT_SHADER)
+                .ok_or(Error::FailedToCreateShader {
+                    shader_type: "Fragment shader".to_string(),
+                    message: "Unable to create shader object".to_string(),
+                })?;
         context.compile_shader(vertex_shader_source, &vert_shader);
         context.compile_shader(fragment_shader_source, &frag_shader);
 
@@ -76,83 +88,89 @@ impl Program
             }
         }
 
-        Ok(Program { context: context.clone(), id, vertex_attributes, uniforms, uniform_blocks: RefCell::new(HashMap::new()),
-            textures: RefCell::new(HashMap::new())})
+        Ok(Program {
+            context: context.clone(),
+            id,
+            vertex_attributes,
+            uniforms,
+            uniform_blocks: RefCell::new(HashMap::new()),
+            textures: RefCell::new(HashMap::new()),
+        })
     }
 
-    pub fn use_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error>
-    {
+    pub fn use_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1i(location, *data);
         self.context.unuse_program();
         Ok(())
     }
 
-    pub fn use_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error>
-    {
+    pub fn use_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1f(location, *data);
         self.context.unuse_program();
         Ok(())
     }
 
-    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error>
-    {
+    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform2fv(location, &mut [data.x, data.y]);
         self.context.unuse_program();
         Ok(())
     }
 
-    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error>
-    {
+    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
-        self.context.uniform3fv(location, &mut [data.x, data.y, data.z]);
+        self.context
+            .uniform3fv(location, &mut [data.x, data.y, data.z]);
         self.context.unuse_program();
         Ok(())
     }
 
-    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error>
-    {
-        let location= self.get_uniform_location(name)?;
-        self.context.uniform4fv(location, &mut [data.x, data.y, data.z, data.w]);
-        self.context.unuse_program();
-        Ok(())
-    }
-
-    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error>
-    {
+    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
-        self.context.uniform_matrix2fv(location, &mut data.to_slice());
+        self.context
+            .uniform4fv(location, &mut [data.x, data.y, data.z, data.w]);
         self.context.unuse_program();
         Ok(())
     }
 
-    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error>
-    {
+    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
-        self.context.uniform_matrix3fv(location, &mut data.to_slice());
+        self.context
+            .uniform_matrix2fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
 
-    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error>
-    {
+    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
-        self.context.uniform_matrix4fv(location, &mut data.to_slice());
+        self.context
+            .uniform_matrix3fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> Result<&crate::context::UniformLocation, Error>
-    {
+    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error> {
+        let location = self.get_uniform_location(name)?;
+        self.context
+            .uniform_matrix4fv(location, &mut data.to_slice());
+        self.context.unuse_program();
+        Ok(())
+    }
+
+    fn get_uniform_location(&self, name: &str) -> Result<&crate::context::UniformLocation, Error> {
         self.set_used();
-        let loc = self.uniforms.get(name).ok_or_else(|| Error::FailedToFindUniform {message: format!("Failed to find uniform {}", name)})?;
+        let loc = self
+            .uniforms
+            .get(name)
+            .ok_or_else(|| Error::FailedToFindUniform {
+                message: format!("Failed to find uniform {}", name),
+            })?;
         Ok(loc)
     }
 
-    pub fn use_texture(&self, texture: &dyn Texture, texture_name: &str) -> Result<(), Error>
-    {
+    pub fn use_texture(&self, texture: &dyn Texture, texture_name: &str) -> Result<(), Error> {
         if !self.textures.borrow().contains_key(texture_name) {
             let mut map = self.textures.borrow_mut();
             let index = map.len() as u32;
@@ -164,33 +182,42 @@ impl Program
         Ok(())
     }
 
-    pub fn use_uniform_block(&self, buffer: &UniformBuffer, block_name: &str)
-    {
+    pub fn use_uniform_block(&self, buffer: &UniformBuffer, block_name: &str) {
         if !self.uniform_blocks.borrow().contains_key(block_name) {
             let mut map = self.uniform_blocks.borrow_mut();
             let location = self.context.get_uniform_block_index(&self.id, block_name);
             let index = map.len() as u32;
             map.insert(block_name.to_owned(), (location, index));
         };
-        let (location, index) = self.uniform_blocks.borrow().get(block_name).unwrap().clone();
-        self.context.uniform_block_binding(&self.id, location, index);
+        let (location, index) = self
+            .uniform_blocks
+            .borrow()
+            .get(block_name)
+            .unwrap()
+            .clone();
+        self.context
+            .uniform_block_binding(&self.id, location, index);
         buffer.bind(index);
         self.context.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 
-    pub fn use_attribute(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
-    {
+    pub fn use_attribute(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error> {
         self.use_attribute_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
-    {
+    pub fn use_attribute_divisor(
+        &self,
+        buffer: &VertexBuffer,
+        attribute_name: &str,
+        divisor: usize,
+    ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer(loc, 1, buffer.data_type(), false, 0, 0);
+            self.context
+                .vertex_attrib_pointer(loc, 1, buffer.data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -198,19 +225,27 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec2(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
-    {
+    pub fn use_attribute_vec2(
+        &self,
+        buffer: &VertexBuffer,
+        attribute_name: &str,
+    ) -> Result<(), Error> {
         self.use_attribute_vec2_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec2_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
-    {
+    pub fn use_attribute_vec2_divisor(
+        &self,
+        buffer: &VertexBuffer,
+        attribute_name: &str,
+        divisor: usize,
+    ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer(loc, 2, buffer.data_type(), false, 0, 0);
+            self.context
+                .vertex_attrib_pointer(loc, 2, buffer.data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -218,19 +253,27 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec3(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
-    {
+    pub fn use_attribute_vec3(
+        &self,
+        buffer: &VertexBuffer,
+        attribute_name: &str,
+    ) -> Result<(), Error> {
         self.use_attribute_vec3_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec3_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
-    {
+    pub fn use_attribute_vec3_divisor(
+        &self,
+        buffer: &VertexBuffer,
+        attribute_name: &str,
+        divisor: usize,
+    ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer(loc, 3, buffer.data_type(), false, 0, 0);
+            self.context
+                .vertex_attrib_pointer(loc, 3, buffer.data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -238,19 +281,27 @@ impl Program
         Ok(())
     }
 
-    pub fn use_attribute_vec4(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error>
-    {
+    pub fn use_attribute_vec4(
+        &self,
+        buffer: &VertexBuffer,
+        attribute_name: &str,
+    ) -> Result<(), Error> {
         self.use_attribute_vec4_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec4_divisor(&self, buffer: &VertexBuffer, attribute_name: &str, divisor: usize) -> Result<(), Error>
-    {
+    pub fn use_attribute_vec4_divisor(
+        &self,
+        buffer: &VertexBuffer,
+        attribute_name: &str,
+        divisor: usize,
+    ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer(loc, 4, buffer.data_type(), false, 0, 0);
+            self.context
+                .vertex_attrib_pointer(loc, 4, buffer.data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -258,8 +309,7 @@ impl Program
         Ok(())
     }
 
-    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32)
-    {
+    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.set_used();
@@ -270,12 +320,18 @@ impl Program
         self.context.unuse_program();
     }
 
-    pub fn draw_arrays_instanced(&self, render_states: RenderStates, viewport: Viewport, count: u32, instance_count: u32)
-    {
+    pub fn draw_arrays_instanced(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        count: u32,
+        instance_count: u32,
+    ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.set_used();
-        self.context.draw_arrays_instanced(consts::TRIANGLES, 0, count, instance_count);
+        self.context
+            .draw_arrays_instanced(consts::TRIANGLES, 0, count, instance_count);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         for location in self.vertex_attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
@@ -283,18 +339,35 @@ impl Program
         self.context.unuse_program();
     }
 
-    pub fn draw_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &ElementBuffer)
-    {
-        self.draw_subset_of_elements(render_states, viewport, element_buffer, 0,element_buffer.count() as u32);
+    pub fn draw_elements(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        element_buffer: &ElementBuffer,
+    ) {
+        self.draw_subset_of_elements(
+            render_states,
+            viewport,
+            element_buffer,
+            0,
+            element_buffer.count() as u32,
+        );
     }
 
-    pub fn draw_subset_of_elements(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &ElementBuffer, first: u32, count: u32)
-    {
+    pub fn draw_subset_of_elements(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        element_buffer: &ElementBuffer,
+        first: u32,
+        count: u32,
+    ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.set_used();
         element_buffer.bind();
-        self.context.draw_elements(consts::TRIANGLES, count, consts::UNSIGNED_INT, first);
+        self.context
+            .draw_elements(consts::TRIANGLES, count, consts::UNSIGNED_INT, first);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
         for location in self.vertex_attributes.values() {
@@ -303,13 +376,24 @@ impl Program
         self.context.unuse_program();
     }
 
-    pub fn draw_elements_instanced(&self, render_states: RenderStates, viewport: Viewport, element_buffer: &ElementBuffer, count: u32)
-    {
+    pub fn draw_elements_instanced(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        element_buffer: &ElementBuffer,
+        count: u32,
+    ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.set_used();
         element_buffer.bind();
-        self.context.draw_elements_instanced(consts::TRIANGLES, element_buffer.count() as u32, consts::UNSIGNED_INT, 0, count);
+        self.context.draw_elements_instanced(
+            consts::TRIANGLES,
+            element_buffer.count() as u32,
+            consts::UNSIGNED_INT,
+            0,
+            count,
+        );
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         for location in self.vertex_attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
@@ -317,11 +401,17 @@ impl Program
         self.context.unuse_program();
     }
 
-    fn location(&self, name: &str) -> Result<u32, Error>
-    {
+    fn location(&self, name: &str) -> Result<u32, Error> {
         self.set_used();
-        let location = self.vertex_attributes.get(name).ok_or_else(
-            || Error::FailedToFindAttribute {message: format!("The attribute {} is sent to the shader but never used.", name)})?;
+        let location =
+            self.vertex_attributes
+                .get(name)
+                .ok_or_else(|| Error::FailedToFindAttribute {
+                    message: format!(
+                        "The attribute {} is sent to the shader but never used.",
+                        name
+                    ),
+                })?;
         Ok(*location)
     }
 
@@ -332,15 +422,23 @@ impl Program
     fn set_states(context: &Context, render_states: RenderStates) {
         Self::set_cull(context, render_states.cull);
         Self::set_write_mask(context, render_states.write_mask);
-        Self::set_depth(context, Some(render_states.depth_test), render_states.write_mask.depth);
+        Self::set_depth(
+            context,
+            Some(render_states.depth_test),
+            render_states.write_mask.depth,
+        );
         Self::set_blend(context, render_states.blend);
     }
 
     fn set_viewport(context: &Context, viewport: Viewport) {
         unsafe {
-            static mut CURRENT_VIEWPORT: Viewport = Viewport {x: 0, y: 0, width: 0, height: 0};
-            if viewport != CURRENT_VIEWPORT
-            {
+            static mut CURRENT_VIEWPORT: Viewport = Viewport {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+            };
+            if viewport != CURRENT_VIEWPORT {
                 context.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
                 CURRENT_VIEWPORT = viewport;
             }
@@ -350,20 +448,19 @@ impl Program
     fn set_cull(context: &Context, cull: CullType) {
         unsafe {
             static mut CURRENT_CULL: CullType = CullType::None;
-            if cull != CURRENT_CULL
-            {
+            if cull != CURRENT_CULL {
                 match cull {
                     CullType::None => {
                         context.disable(consts::CULL_FACE);
-                    },
+                    }
                     CullType::Back => {
                         context.enable(consts::CULL_FACE);
                         context.cull_face(consts::BACK);
-                    },
+                    }
                     CullType::Front => {
                         context.enable(consts::CULL_FACE);
                         context.cull_face(consts::FRONT);
-                    },
+                    }
                     CullType::FrontAndBack => {
                         context.enable(consts::CULL_FACE);
                         context.cull_face(consts::FRONT_AND_BACK);
@@ -374,20 +471,26 @@ impl Program
         }
     }
 
-    fn set_blend(context: &Context, blend: Option<BlendParameters>)
-    {
+    fn set_blend(context: &Context, blend: Option<BlendParameters>) {
         unsafe {
             static mut CURRENT: Option<BlendParameters> = None;
-            if blend != CURRENT
-            {
+            if blend != CURRENT {
                 if let Some(blend_parameters) = blend {
                     context.enable(consts::BLEND);
-                    context.blend_func_separate(Self::blend_const_from_multiplier(blend_parameters.source_rgb_multiplier),
-                                           Self::blend_const_from_multiplier(blend_parameters.destination_rgb_multiplier),
-                                           Self::blend_const_from_multiplier(blend_parameters.source_alpha_multiplier),
-                                           Self::blend_const_from_multiplier(blend_parameters.destination_alpha_multiplier));
-                    context.blend_equation_separate(Self::blend_const_from_equation(blend_parameters.rgb_equation),
-                                               Self::blend_const_from_equation(blend_parameters.alpha_equation));
+                    context.blend_func_separate(
+                        Self::blend_const_from_multiplier(blend_parameters.source_rgb_multiplier),
+                        Self::blend_const_from_multiplier(
+                            blend_parameters.destination_rgb_multiplier,
+                        ),
+                        Self::blend_const_from_multiplier(blend_parameters.source_alpha_multiplier),
+                        Self::blend_const_from_multiplier(
+                            blend_parameters.destination_alpha_multiplier,
+                        ),
+                    );
+                    context.blend_equation_separate(
+                        Self::blend_const_from_equation(blend_parameters.rgb_equation),
+                        Self::blend_const_from_equation(blend_parameters.alpha_equation),
+                    );
                 } else {
                     context.disable(consts::BLEND);
                 }
@@ -408,7 +511,7 @@ impl Program
             BlendMultiplierType::OneMinusSrcAlpha => consts::ONE_MINUS_SRC_ALPHA,
             BlendMultiplierType::DstAlpha => consts::DST_ALPHA,
             BlendMultiplierType::OneMinusDstAlpha => consts::ONE_MINUS_DST_ALPHA,
-            BlendMultiplierType::SrcAlphaSaturate => consts::SRC_ALPHA_SATURATE
+            BlendMultiplierType::SrcAlphaSaturate => consts::SRC_ALPHA_SATURATE,
         }
     }
 
@@ -422,13 +525,16 @@ impl Program
         }
     }
 
-    pub(crate) fn set_write_mask(context: &Context, write_mask: WriteMask)
-    {
+    pub(crate) fn set_write_mask(context: &Context, write_mask: WriteMask) {
         unsafe {
             static mut CURRENT_COLOR_MASK: WriteMask = WriteMask::COLOR_AND_DEPTH;
-            if write_mask != CURRENT_COLOR_MASK
-            {
-                context.color_mask(write_mask.red, write_mask.green, write_mask.blue, write_mask.alpha);
+            if write_mask != CURRENT_COLOR_MASK {
+                context.color_mask(
+                    write_mask.red,
+                    write_mask.green,
+                    write_mask.blue,
+                    write_mask.alpha,
+                );
                 Self::set_depth(context, None, write_mask.depth);
                 CURRENT_COLOR_MASK = write_mask;
             }
@@ -447,44 +553,41 @@ impl Program
                     CURRENT_DEPTH_ENABLE = false;
                     return;
                 }
-            }
-            else {
+            } else {
                 if !CURRENT_DEPTH_ENABLE {
                     context.enable(consts::DEPTH_TEST);
                     CURRENT_DEPTH_ENABLE = true;
                 }
             }
 
-            if depth_mask != CURRENT_DEPTH_MASK
-            {
+            if depth_mask != CURRENT_DEPTH_MASK {
                 context.depth_mask(depth_mask);
                 CURRENT_DEPTH_MASK = depth_mask;
             }
 
-            if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST
-            {
+            if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST {
                 match depth_test.unwrap() {
                     DepthTestType::Never => {
                         context.depth_func(consts::NEVER);
-                    },
+                    }
                     DepthTestType::Less => {
                         context.depth_func(consts::LESS);
-                    },
+                    }
                     DepthTestType::Equal => {
                         context.depth_func(consts::EQUAL);
-                    },
+                    }
                     DepthTestType::LessOrEqual => {
                         context.depth_func(consts::LEQUAL);
-                    },
+                    }
                     DepthTestType::Greater => {
                         context.depth_func(consts::GREATER);
-                    },
+                    }
                     DepthTestType::NotEqual => {
                         context.depth_func(consts::NOTEQUAL);
-                    },
+                    }
                     DepthTestType::GreaterOrEqual => {
                         context.depth_func(consts::GEQUAL);
-                    },
+                    }
                     DepthTestType::Always => {
                         context.depth_func(consts::ALWAYS);
                     }

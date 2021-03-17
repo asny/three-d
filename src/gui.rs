@@ -1,4 +1,3 @@
-
 //!
 //! Graphical User Interface support.
 //!

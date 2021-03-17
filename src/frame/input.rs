@@ -1,4 +1,3 @@
-
 ///
 /// Input from the window to the rendering (and whatever else needs it) each frame.
 ///
@@ -26,15 +25,14 @@ pub struct FrameInput {
     pub device_pixel_ratio: usize,
 
     /// Whether or not this is the first frame.
-    pub first_frame: bool
+    pub first_frame: bool,
 }
 
 /// State of a key or button click.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
-pub enum State
-{
+pub enum State {
     Pressed,
-    Released
+    Released,
 }
 
 impl Default for State {
@@ -53,26 +51,25 @@ pub enum MouseButton {
 
 /// An input event (from mouse, keyboard or similar).
 #[derive(Clone, Debug)]
-pub enum Event
-{
+pub enum Event {
     MouseClick {
         state: State,
         button: MouseButton,
         position: (f64, f64),
         modifiers: Modifiers,
-        handled: bool
+        handled: bool,
     },
     MouseMotion {
         delta: (f64, f64),
         position: (f64, f64),
         modifiers: Modifiers,
-        handled: bool
+        handled: bool,
     },
     MouseWheel {
         delta: (f64, f64),
         position: (f64, f64),
         modifiers: Modifiers,
-        handled: bool
+        handled: bool,
     },
     MouseEnter,
     MouseLeave,
@@ -80,12 +77,12 @@ pub enum Event
         state: State,
         kind: Key,
         modifiers: Modifiers,
-        handled: bool
+        handled: bool,
     },
     ModifiersChange {
-        modifiers: Modifiers
+        modifiers: Modifiers,
     },
-    Text(String)
+    Text(String),
 }
 
 /// Keyboard key input.

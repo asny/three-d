@@ -1,4 +1,3 @@
-
 use three_d::*;
 
 fn main() {
@@ -11,22 +10,33 @@ fn main() {
     let context = window.gl();
 
     // Create a camera
-    let mut camera = Camera::new_perspective(&context, vec3(0.0, 0.0, 2.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0),
-                                             degrees(45.0), window.viewport().aspect(), 0.1, 10.0).unwrap();
+    let mut camera = Camera::new_perspective(
+        &context,
+        vec3(0.0, 0.0, 2.0),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        window.viewport().aspect(),
+        0.1,
+        10.0,
+    )
+    .unwrap();
 
     // Create a CPU-side mesh consisting of a single colored triangle
     let positions: Vec<f32> = vec![
         0.5, -0.5, 0.0, // bottom right
-        -0.5, -0.5, 0.0,// bottom left
-        0.0,  0.5, 0.0 // top
+        -0.5, -0.5, 0.0, // bottom left
+        0.0, 0.5, 0.0, // top
     ];
     let colors: Vec<u8> = vec![
-        255, 0, 0, 255,   // bottom right
-        0, 255, 0, 255,   // bottom left
-        0, 0, 255, 255   // top
+        255, 0, 0, 255, // bottom right
+        0, 255, 0, 255, // bottom left
+        0, 0, 255, 255, // top
     ];
     let cpu_mesh = CPUMesh {
-        positions, colors: Some(colors), ..Default::default()
+        positions,
+        colors: Some(colors),
+        ..Default::default()
     };
 
     // Construct a mesh, thereby transferring the mesh data to the GPU

@@ -1,10 +1,8 @@
-
 ///
 /// A set of render specific states that has to be specified at each render call.
 ///
 #[derive(Debug, Copy, Clone)]
 pub struct RenderStates {
-
     ///
     /// Defines which channels (red, green, blue, alpha and depth) to write to in a render call.
     ///
@@ -28,7 +26,7 @@ pub struct RenderStates {
     /// color channels of the render target.
     /// This is usually used to simulate transparency.
     ///
-    pub blend: Option<BlendParameters>
+    pub blend: Option<BlendParameters>,
 }
 
 impl Default for RenderStates {
@@ -37,9 +35,9 @@ impl Default for RenderStates {
             write_mask: WriteMask::default(),
             depth_test: DepthTestType::Less,
             cull: CullType::None,
-            blend: None
+            blend: None,
         }
-     }
+    }
 }
 
 ///
@@ -50,7 +48,7 @@ pub enum CullType {
     None,
     Back,
     Front,
-    FrontAndBack
+    FrontAndBack,
 }
 
 ///
@@ -67,7 +65,7 @@ pub enum DepthTestType {
     Greater,
     NotEqual,
     GreaterOrEqual,
-    Always
+    Always,
 }
 
 ///
@@ -79,7 +77,7 @@ pub struct WriteMask {
     pub green: bool,
     pub blue: bool,
     pub alpha: bool,
-    pub depth: bool
+    pub depth: bool,
 }
 
 impl WriteMask {
@@ -124,14 +122,14 @@ impl WriteMask {
         green: false,
         blue: false,
         alpha: false,
-        depth: false
+        depth: false,
     };
 }
 
 impl Default for WriteMask {
     fn default() -> Self {
         Self::COLOR_AND_DEPTH
-     }
+    }
 }
 
 ///
@@ -147,7 +145,7 @@ pub struct BlendParameters {
     pub destination_rgb_multiplier: BlendMultiplierType,
     pub destination_alpha_multiplier: BlendMultiplierType,
     pub rgb_equation: BlendEquationType,
-    pub alpha_equation: BlendEquationType
+    pub alpha_equation: BlendEquationType,
 }
 
 impl BlendParameters {
@@ -160,7 +158,7 @@ impl BlendParameters {
         destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
         destination_alpha_multiplier: BlendMultiplierType::One,
         rgb_equation: BlendEquationType::Add,
-        alpha_equation: BlendEquationType::Add
+        alpha_equation: BlendEquationType::Add,
     };
 
     ///
@@ -172,14 +170,14 @@ impl BlendParameters {
         destination_rgb_multiplier: BlendMultiplierType::One,
         destination_alpha_multiplier: BlendMultiplierType::One,
         rgb_equation: BlendEquationType::Add,
-        alpha_equation: BlendEquationType::Add
+        alpha_equation: BlendEquationType::Add,
     };
 }
 
 impl Default for BlendParameters {
     fn default() -> Self {
         Self::TRANSPARENCY
-     }
+    }
 }
 
 ///
@@ -197,7 +195,7 @@ pub enum BlendMultiplierType {
     OneMinusSrcAlpha,
     DstAlpha,
     OneMinusDstAlpha,
-    SrcAlphaSaturate
+    SrcAlphaSaturate,
 }
 
 ///
@@ -209,5 +207,5 @@ pub enum BlendEquationType {
     Subtract,
     ReverseSubtract,
     Max,
-    Min
+    Min,
 }

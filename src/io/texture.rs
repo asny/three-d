@@ -1,7 +1,6 @@
-
-use std::path::Path;
-use crate::io::*;
 use crate::definition::*;
+use crate::io::*;
+use std::path::Path;
 
 impl<'a> Loaded<'a> {
     ///
@@ -21,10 +20,18 @@ impl<'a> Loaded<'a> {
             1 => Ok(Format::R8),
             3 => Ok(Format::RGB8),
             4 => Ok(Format::RGBA8),
-            _ => Err(IOError::FailedToLoad {message: format!("Could not determine the pixel format for the texture.")})
+            _ => Err(IOError::FailedToLoad {
+                message: format!("Could not determine the pixel format for the texture."),
+            }),
         }?;
 
-        Ok(CPUTexture {data: bytes, width: img.width() as usize, height: img.height() as usize, format, ..Default::default()})
+        Ok(CPUTexture {
+            data: bytes,
+            width: img.width() as usize,
+            height: img.height() as usize,
+            format,
+            ..Default::default()
+        })
     }
 
     ///
@@ -35,8 +42,15 @@ impl<'a> Loaded<'a> {
     /// # Feature
     /// Only available when the `image-io` feature is enabled.
     ///
-    pub fn cube_image<P: AsRef<Path>>(&'a self, right_path: P, left_path: P,
-                                      top_path: P, bottom_path: P, front_path: P, back_path: P) -> Result<CPUTexture<u8>, IOError> {
+    pub fn cube_image<P: AsRef<Path>>(
+        &'a self,
+        right_path: P,
+        left_path: P,
+        top_path: P,
+        bottom_path: P,
+        front_path: P,
+        back_path: P,
+    ) -> Result<CPUTexture<u8>, IOError> {
         let mut right = self.image(right_path)?;
         let left = self.image(left_path)?;
         let top = self.image(top_path)?;
@@ -61,8 +75,12 @@ impl Saver {
     /// # Feature
     /// Only available when the `image-io` feature is enabled.
     ///
-    pub fn save_pixels<P: AsRef<Path>>(path: P, pixels: &[u8], width: usize, height: usize) -> Result<(), IOError>
-    {
+    pub fn save_pixels<P: AsRef<Path>>(
+        path: P,
+        pixels: &[u8],
+        width: usize,
+        height: usize,
+    ) -> Result<(), IOError> {
         let mut pixels_out = vec![0u8; width * height * 3];
         for row in 0..height {
             for col in 0..width {
@@ -73,7 +91,13 @@ impl Saver {
             }
         }
 
-        image::save_buffer(path, &pixels_out, width as u32, height as u32, image::ColorType::Rgb8)?;
+        image::save_buffer(
+            path,
+            &pixels_out,
+            width as u32,
+            height as u32,
+            image::ColorType::Rgb8,
+        )?;
         Ok(())
     }
 }

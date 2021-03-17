@@ -1,10 +1,8 @@
-
 ///
 /// Output from the rendering to the window each frame.
 ///
 #[derive(Clone, Debug)]
 pub struct FrameOutput {
-
     ///
     /// Closes the window and stops the renderloop if this is true.
     /// Only relevant on desktop, ignored on web.
@@ -24,7 +22,7 @@ pub struct FrameOutput {
     /// Takes a screenshot if this is set to some path and saves it at the given location.
     /// Only works on desktop, will be ignored on web.
     ///
-    pub screenshot: Option<std::path::PathBuf>
+    pub screenshot: Option<std::path::PathBuf>,
 }
 
 impl Default for FrameOutput {
@@ -32,7 +30,7 @@ impl Default for FrameOutput {
         Self {
             exit: false,
             swap_buffers: true,
-            screenshot: None
+            screenshot: None,
         }
     }
 }

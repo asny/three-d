@@ -1,8 +1,7 @@
-
-use crate::math::*;
-use crate::definition::*;
-use crate::core::*;
 use crate::camera::*;
+use crate::core::*;
+use crate::definition::*;
+use crate::math::*;
 use crate::object::mesh::*;
 
 ///
@@ -19,7 +18,9 @@ impl InstancedMeshProgram {
     /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
     ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
-        Ok(Self {mesh_program: MeshProgram::new_internal(context, fragment_shader_source, true)?})
+        Ok(Self {
+            mesh_program: MeshProgram::new_internal(context, fragment_shader_source, true)?,
+        })
     }
 }
 
@@ -46,26 +47,45 @@ pub struct InstancedMesh {
     instance_buffer3: VertexBuffer,
 }
 
-impl InstancedMesh
-{
+impl InstancedMesh {
     ///
     /// Constructs a new InstancedMesh from the given [CPUMesh](crate::CPUMesh). The mesh is rendered
     /// in as many instances as there are transformation matrices in the transformations parameter.
     /// Each instance is transformed with the given transformation before it is rendered.
     /// The transformations can be updated by the [update_transformations](Self::update_transformations) function.
     ///
-    pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self, Error>
-    {
+    pub fn new(
+        context: &Context,
+        transformations: &[Mat4],
+        cpu_mesh: &CPUMesh,
+    ) -> Result<Self, Error> {
         let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(context, normals)?) } else {None};
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
+        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
+            Some(VertexBuffer::new_with_static_f32(context, normals)?)
+        } else {
+            None
+        };
+        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
+            Some(ElementBuffer::new_with_u32(context, ind)?)
+        } else {
+            None
+        };
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
+            Some(VertexBuffer::new_with_static_f32(context, uvs)?)
+        } else {
+            None
+        };
 
-        let mut mesh = Self { context: context.clone(), instance_count: 0,
-            position_buffer, normal_buffer, index_buffer, uv_buffer,
+        let mut mesh = Self {
+            context: context.clone(),
+            instance_count: 0,
+            position_buffer,
+            normal_buffer,
+            index_buffer,
+            uv_buffer,
             instance_buffer1: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer2: VertexBuffer::new_with_dynamic_f32(context, &[])?,
-            instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?
+            instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?,
         };
         mesh.update_transformations(transformations);
         unsafe {
@@ -80,11 +100,15 @@ impl InstancedMesh
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
-    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
-    {
+    pub fn render_depth(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_DEPTH.is_none()
-            {
+            if PROGRAM_DEPTH.is_none() {
                 PROGRAM_DEPTH = Some(InstancedMeshProgram::new(&self.context, "void main() {}")?);
             }
             PROGRAM_DEPTH.as_ref().unwrap()
@@ -101,12 +125,19 @@ impl InstancedMesh
     /// # Errors
     /// Will return an error if the instanced mesh has no colors.
     ///
-    pub fn render_color(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render_color(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_PER_VERTEX_COLOR.is_none()
-            {
-                PROGRAM_PER_VERTEX_COLOR = Some(InstancedMeshProgram::new(&self.context,include_str!("shaders/mesh_vertex_color.frag"))?);
+            if PROGRAM_PER_VERTEX_COLOR.is_none() {
+                PROGRAM_PER_VERTEX_COLOR = Some(InstancedMeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_vertex_color.frag"),
+                )?);
             }
             PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
         };
@@ -119,12 +150,20 @@ impl InstancedMesh
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
-    pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render_with_color(
+        &self,
+        color: &Vec4,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_COLOR.is_none()
-            {
-                PROGRAM_COLOR = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/mesh_color.frag"))?);
+            if PROGRAM_COLOR.is_none() {
+                PROGRAM_COLOR = Some(InstancedMeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_color.frag"),
+                )?);
             }
             PROGRAM_COLOR.as_ref().unwrap()
         };
@@ -141,16 +180,24 @@ impl InstancedMesh
     /// # Errors
     /// Will return an error if the instanced mesh has no uv coordinates.
     ///
-    pub fn render_with_texture(&self, texture: &dyn Texture, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render_with_texture(
+        &self,
+        texture: &dyn Texture,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_TEXTURE.is_none()
-            {
-                PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(&self.context, include_str!("shaders/mesh_texture.frag"))?);
+            if PROGRAM_TEXTURE.is_none() {
+                PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_texture.frag"),
+                )?);
             }
             PROGRAM_TEXTURE.as_ref().unwrap()
         };
-        program.use_texture(texture,"tex")?;
+        program.use_texture(texture, "tex")?;
         self.render(program, render_states, viewport, transformation, camera)
     }
 
@@ -165,8 +212,14 @@ impl InstancedMesh
     /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
     /// function will return an error.
     ///
-    pub fn render(&self, program: &InstancedMeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render(
+        &self,
+        program: &InstancedMeshProgram,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         program.use_attribute_vec4_divisor(&self.instance_buffer1, "row1", 1)?;
         program.use_attribute_vec4_divisor(&self.instance_buffer2, "row2", 1)?;
         program.use_attribute_vec4_divisor(&self.instance_buffer3, "row3", 1)?;
@@ -176,21 +229,37 @@ impl InstancedMesh
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
         if program.mesh_program.use_uvs {
-            let uv_buffer = self.uv_buffer.as_ref().ok_or(
-                Error::FailedToCreateMesh {message: "The mesh shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
+            let uv_buffer = self.uv_buffer.as_ref().ok_or(Error::FailedToCreateMesh {
+                message:
+                    "The mesh shader program needs uv coordinates, but the mesh does not have any."
+                        .to_string(),
+            })?;
             program.use_attribute_vec2(uv_buffer, "uv_coordinates")?;
         }
         if program.mesh_program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.use_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_uniform_mat4(
+                "normalMatrix",
+                &transformation.invert().unwrap().transpose(),
+            )?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements_instanced(render_states, viewport,index_buffer, self.instance_count);
+            program.draw_elements_instanced(
+                render_states,
+                viewport,
+                index_buffer,
+                self.instance_count,
+            );
         } else {
-            program.draw_arrays_instanced(render_states, viewport,self.position_buffer.count() as u32/3, self.instance_count);
+            program.draw_arrays_instanced(
+                render_states,
+                viewport,
+                self.position_buffer.count() as u32 / 3,
+                self.instance_count,
+            );
         }
         Ok(())
     }
@@ -199,8 +268,7 @@ impl InstancedMesh
     /// Updates the transformations applied to each mesh instance before they are rendered.
     /// The mesh is rendered in as many instances as there are transformation matrices.
     ///
-    pub fn update_transformations(&mut self, transformations: &[Mat4])
-    {
+    pub fn update_transformations(&mut self, transformations: &[Mat4]) {
         self.instance_count = transformations.len() as u32;
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
@@ -228,7 +296,6 @@ impl InstancedMesh
 }
 
 impl Drop for InstancedMesh {
-
     fn drop(&mut self) {
         unsafe {
             MESH_COUNT -= 1;

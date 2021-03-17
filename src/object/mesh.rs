@@ -1,9 +1,8 @@
-#[doc(hidden)]
-
-use crate::math::*;
-use crate::definition::*;
-use crate::core::*;
 use crate::camera::*;
+use crate::core::*;
+use crate::definition::*;
+#[doc(hidden)]
+use crate::math::*;
 
 ///
 /// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
@@ -13,7 +12,7 @@ pub struct MeshProgram {
     program: Program,
     pub(in crate::object) use_normals: bool,
     pub(in crate::object) use_uvs: bool,
-    pub(in crate::object) use_colors: bool
+    pub(in crate::object) use_colors: bool,
 }
 
 impl MeshProgram {
@@ -25,12 +24,17 @@ impl MeshProgram {
         Self::new_internal(context, fragment_shader_source, false)
     }
 
-    pub(in crate::object) fn new_internal(context: &Context, fragment_shader_source: &str, instanced: bool) -> Result<Self, Error> {
+    pub(in crate::object) fn new_internal(
+        context: &Context,
+        fragment_shader_source: &str,
+        instanced: bool,
+    ) -> Result<Self, Error> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
-        let vertex_shader_source = &format!("
+        let vertex_shader_source = &format!(
+            "
                 layout (std140) uniform Camera
                 {{
                     mat4 viewProjection;
@@ -61,38 +65,65 @@ impl MeshProgram {
                     {} // Colors
                 }}
             ",
-            if instanced {"in vec4 row1;
+            if instanced {
+                "in vec4 row1;
                 in vec4 row2;
-                in vec4 row3;"} else {""},
-            if use_positions {"out vec3 pos;"} else {""},
+                in vec4 row3;"
+            } else {
+                ""
+            },
+            if use_positions { "out vec3 pos;" } else { "" },
             if use_normals {
                 "uniform mat4 normalMatrix;
                 in vec3 normal;
                 out vec3 nor;"
-            } else {""},
+            } else {
+                ""
+            },
             if use_uvs {
                 "in vec2 uv_coordinates;
                 out vec2 uvs;"
-            } else {""},
+            } else {
+                ""
+            },
             if use_colors {
                 "in vec4 color;
                 out vec4 col;"
-            } else {""},
-            if instanced {"
+            } else {
+                ""
+            },
+            if instanced {
+                "
                     mat4 transform;
                     transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
                     transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
                     transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
                     transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
-                    local2World *= transform;"} else {""},
-            if use_positions {"pos = worldPosition.xyz;"} else {""},
-            if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
-            if use_uvs { "uvs = uv_coordinates;" } else {""},
-            if use_colors { "col = color;" } else {""}
+                    local2World *= transform;"
+            } else {
+                ""
+            },
+            if use_positions {
+                "pos = worldPosition.xyz;"
+            } else {
+                ""
+            },
+            if use_normals {
+                "nor = mat3(normalMatrix) * normal;"
+            } else {
+                ""
+            },
+            if use_uvs { "uvs = uv_coordinates;" } else { "" },
+            if use_colors { "col = color;" } else { "" }
         );
 
         let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
-        Ok(Self {program, use_normals, use_uvs, use_colors})
+        Ok(Self {
+            program,
+            use_normals,
+            use_uvs,
+            use_colors,
+        })
     }
 }
 
@@ -122,17 +153,39 @@ impl Mesh {
     /// Copies the per vertex data defined in the given [CPUMesh](crate::CPUMesh) to the GPU, thereby
     /// making it possible to render the mesh.
     ///
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error>
-    {
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
         let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(context, normals)?) } else {None};
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
-        let color_buffer = if let Some(ref colors) = cpu_mesh.colors { Some(VertexBuffer::new_with_static_u8(context, colors)?) } else {None};
+        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
+            Some(VertexBuffer::new_with_static_f32(context, normals)?)
+        } else {
+            None
+        };
+        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
+            Some(ElementBuffer::new_with_u32(context, ind)?)
+        } else {
+            None
+        };
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
+            Some(VertexBuffer::new_with_static_f32(context, uvs)?)
+        } else {
+            None
+        };
+        let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
+            Some(VertexBuffer::new_with_static_u8(context, colors)?)
+        } else {
+            None
+        };
         unsafe {
             MESH_COUNT += 1;
         }
-        Ok(Mesh {context: context.clone(), position_buffer, normal_buffer, index_buffer, uv_buffer, color_buffer})
+        Ok(Mesh {
+            context: context.clone(),
+            position_buffer,
+            normal_buffer,
+            index_buffer,
+            uv_buffer,
+            color_buffer,
+        })
     }
 
     ///
@@ -141,11 +194,15 @@ impl Mesh {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the mesh.
     ///
-    pub fn render_depth(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error>
-    {
+    pub fn render_depth(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_DEPTH.is_none()
-            {
+            if PROGRAM_DEPTH.is_none() {
                 PROGRAM_DEPTH = Some(MeshProgram::new(&self.context, "void main() {}")?);
             }
             PROGRAM_DEPTH.as_ref().unwrap()
@@ -162,12 +219,19 @@ impl Mesh {
     /// # Errors
     /// Will return an error if the mesh has no colors.
     ///
-    pub fn render_color(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render_color(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_PER_VERTEX_COLOR.is_none()
-            {
-                PROGRAM_PER_VERTEX_COLOR = Some(MeshProgram::new(&self.context,include_str!("shaders/mesh_vertex_color.frag"))?);
+            if PROGRAM_PER_VERTEX_COLOR.is_none() {
+                PROGRAM_PER_VERTEX_COLOR = Some(MeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_vertex_color.frag"),
+                )?);
             }
             PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
         };
@@ -180,12 +244,20 @@ impl Mesh {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the mesh.
     ///
-    pub fn render_with_color(&self, color: &Vec4, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render_with_color(
+        &self,
+        color: &Vec4,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_COLOR.is_none()
-            {
-                PROGRAM_COLOR = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_color.frag"))?);
+            if PROGRAM_COLOR.is_none() {
+                PROGRAM_COLOR = Some(MeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_color.frag"),
+                )?);
             }
             PROGRAM_COLOR.as_ref().unwrap()
         };
@@ -202,16 +274,24 @@ impl Mesh {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    pub fn render_with_texture(&self, texture: &dyn Texture, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render_with_texture(
+        &self,
+        texture: &dyn Texture,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
-            if PROGRAM_TEXTURE.is_none()
-            {
-                PROGRAM_TEXTURE = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_texture.frag"))?);
+            if PROGRAM_TEXTURE.is_none() {
+                PROGRAM_TEXTURE = Some(MeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_texture.frag"),
+                )?);
             }
             PROGRAM_TEXTURE.as_ref().unwrap()
         };
-        program.use_texture(texture,"tex")?;
+        program.use_texture(texture, "tex")?;
         self.render(program, render_states, viewport, transformation, camera)
     }
 
@@ -226,21 +306,33 @@ impl Mesh {
     /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
     /// function will return an error.
     ///
-    pub fn render(&self, program: &MeshProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error>
-    {
+    pub fn render(
+        &self,
+        program: &MeshProgram,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
         program.use_uniform_mat4("modelMatrix", &transformation)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
         if program.use_uvs {
-            let uv_buffer = self.uv_buffer.as_ref().ok_or(
-                Error::FailedToCreateMesh {message: "The mesh shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
+            let uv_buffer = self.uv_buffer.as_ref().ok_or(Error::FailedToCreateMesh {
+                message:
+                    "The mesh shader program needs uv coordinates, but the mesh does not have any."
+                        .to_string(),
+            })?;
             program.use_attribute_vec2(uv_buffer, "uv_coordinates")?;
         }
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.use_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_uniform_mat4(
+                "normalMatrix",
+                &transformation.invert().unwrap().transpose(),
+            )?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
         if program.use_colors {
@@ -250,16 +342,19 @@ impl Mesh {
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(render_states, viewport,index_buffer);
+            program.draw_elements(render_states, viewport, index_buffer);
         } else {
-            program.draw_arrays(render_states, viewport,self.position_buffer.count() as u32/3);
+            program.draw_arrays(
+                render_states,
+                viewport,
+                self.position_buffer.count() as u32 / 3,
+            );
         }
         Ok(())
     }
 }
 
 impl Drop for Mesh {
-
     fn drop(&mut self) {
         unsafe {
             MESH_COUNT -= 1;

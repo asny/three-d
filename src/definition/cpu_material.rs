@@ -10,7 +10,7 @@ pub struct CPUMaterial {
     pub texture_image: Option<CPUTexture<u8>>,
     pub diffuse_intensity: Option<f32>,
     pub specular_intensity: Option<f32>,
-    pub specular_power: Option<f32>
+    pub specular_power: Option<f32>,
 }
 
 impl Default for CPUMaterial {
@@ -21,7 +21,7 @@ impl Default for CPUMaterial {
             texture_image: None,
             diffuse_intensity: Some(0.5),
             specular_intensity: Some(0.2),
-            specular_power: Some(6.0)
+            specular_power: Some(6.0),
         }
-     }
+    }
 }

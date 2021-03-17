@@ -1,4 +1,3 @@
-
 ///
 /// Window settings.
 ///

@@ -1,4 +1,3 @@
-
 //!
 //! Thin and low-level graphics abstraction layer which maps one-to-one with the OpenGL graphics API on desktop
 //! and WebGL2 bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate on web.

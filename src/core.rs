@@ -1,4 +1,3 @@
-
 //!
 //! Modular abstractions of common graphics concepts such as GPU shader program, buffer (vertex buffer, uniform buffer, element buffer),
 //! texture (2D texture, cube texture, ..) and render target.
@@ -48,15 +47,38 @@ pub use program::*;
 ///
 #[derive(Debug)]
 pub enum Error {
-    UnknownShaderType {message: String},
-    FailedToCreateShader {shader_type: String, message: String},
-    FailedToLinkProgram {message: String},
-    FailedToFindAttribute {message: String},
-    FailedToFindUniform {message: String},
-    FailedToCreateFramebuffer {message: String},
-    FailedToCopyFromRenderTarget {message: String},
-    FailedToWriteToRenderTarget {message: String},
-    FailedToCreateTexture {message: String},
-    FailedToUpdateBuffer {message: String},
-    FailedToCreateMesh {message: String}
+    UnknownShaderType {
+        message: String,
+    },
+    FailedToCreateShader {
+        shader_type: String,
+        message: String,
+    },
+    FailedToLinkProgram {
+        message: String,
+    },
+    FailedToFindAttribute {
+        message: String,
+    },
+    FailedToFindUniform {
+        message: String,
+    },
+    FailedToCreateFramebuffer {
+        message: String,
+    },
+    FailedToCopyFromRenderTarget {
+        message: String,
+    },
+    FailedToWriteToRenderTarget {
+        message: String,
+    },
+    FailedToCreateTexture {
+        message: String,
+    },
+    FailedToUpdateBuffer {
+        message: String,
+    },
+    FailedToCreateMesh {
+        message: String,
+    },
 }

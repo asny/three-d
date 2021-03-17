@@ -1,22 +1,20 @@
-
-use crate::math::*;
 use crate::camera::*;
 use crate::core::Error;
+use crate::math::*;
 
 ///
 /// 3D controls for a camera. Use this to add additional control functionality to a [camera](crate::Camera).
 ///
 pub struct CameraControl {
-    camera: Camera
+    camera: Camera,
 }
 
 impl CameraControl {
     pub fn new(camera: Camera) -> Self {
-        Self {camera}
+        Self { camera }
     }
 
-    pub fn translate(&mut self, change: &Vec3) -> Result<(), Error>
-    {
+    pub fn translate(&mut self, change: &Vec3) -> Result<(), Error> {
         let position = *self.position();
         let target = *self.target();
         let up = *self.up();
@@ -24,8 +22,7 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn rotate(&mut self, x: f32, y: f32) -> Result<(), Error>
-    {
+    pub fn rotate(&mut self, x: f32, y: f32) -> Result<(), Error> {
         let target = *self.target();
         let mut direction = self.target() - self.position();
         let zoom = direction.magnitude();
@@ -38,8 +35,7 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn rotate_around_up(&mut self, x: f32, y: f32) -> Result<(), Error>
-    {
+    pub fn rotate_around_up(&mut self, x: f32, y: f32) -> Result<(), Error> {
         let target = *self.target();
         let up = *self.up();
         let mut direction = target - self.position();
@@ -54,8 +50,7 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn pan(&mut self, x: f32, y: f32) -> Result<(), Error>
-    {
+    pub fn pan(&mut self, x: f32, y: f32) -> Result<(), Error> {
         let position = *self.position();
         let target = *self.target();
         let up = *self.up();
@@ -68,16 +63,19 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn zoom(&mut self, wheel: f32) -> Result<(), Error>
-    {
+    pub fn zoom(&mut self, wheel: f32) -> Result<(), Error> {
         match self.projection_type() {
-            ProjectionType::Orthographic {width, height, depth} => {
+            ProjectionType::Orthographic {
+                width,
+                height,
+                depth,
+            } => {
                 let h = (height - wheel).max(0.001);
                 let w = h * width / height;
                 let d = *depth;
                 self.set_orthographic_projection(w, h, d)?;
-            },
-            ProjectionType::Perspective {..} => {
+            }
+            ProjectionType::Perspective { .. } => {
                 let position = *self.position();
                 let target = *self.target();
                 let up = *self.up();
@@ -102,7 +100,6 @@ impl std::ops::Deref for CameraControl {
 }
 
 impl std::ops::DerefMut for CameraControl {
-
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.camera
     }

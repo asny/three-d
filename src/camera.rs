@@ -1,4 +1,3 @@
-
 //!
 //! Perspective and orthographic camera.
 //!

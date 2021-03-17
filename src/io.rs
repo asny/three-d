@@ -1,4 +1,3 @@
-
 //!
 //! Contain a [loader](crate::Loader) for loading any type of asset runtime on both desktop and web
 //! and a [saver](crate::Saver) for saving (available on desktop only).
@@ -50,8 +49,12 @@ pub enum IOError {
     Obj(wavefront_obj::ParseError),
     #[cfg(not(target_arch = "wasm32"))]
     IO(std::io::Error),
-    FailedToLoad {message: String},
-    FailedToSave {message: String}
+    FailedToLoad {
+        message: String,
+    },
+    FailedToSave {
+        message: String,
+    },
 }
 
 #[cfg(feature = "image-io")]

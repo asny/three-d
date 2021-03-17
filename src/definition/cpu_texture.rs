@@ -1,11 +1,10 @@
-
 ///
 /// Possible modes of interpolation which determines the texture output between texture pixels.
 ///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Interpolation {
     Nearest,
-    Linear
+    Linear,
 }
 
 ///
@@ -16,7 +15,7 @@ pub enum Interpolation {
 pub enum Wrapping {
     Repeat,
     MirroredRepeat,
-    ClampToEdge
+    ClampToEdge,
 }
 
 ///
@@ -31,7 +30,7 @@ pub enum Format {
     SRGB8,
     RGBA8,
     SRGBA8,
-    RGBA32F
+    RGBA32F,
 }
 
 ///
@@ -49,7 +48,7 @@ pub struct CPUTexture<T> {
     pub mip_map_filter: Option<Interpolation>,
     pub wrap_s: Wrapping,
     pub wrap_t: Wrapping,
-    pub wrap_r: Wrapping
+    pub wrap_r: Wrapping,
 }
 
 impl Default for CPUTexture<u8> {
@@ -65,7 +64,7 @@ impl Default for CPUTexture<u8> {
             mip_map_filter: Some(Interpolation::Linear),
             wrap_s: Wrapping::Repeat,
             wrap_t: Wrapping::Repeat,
-            wrap_r: Wrapping::Repeat
+            wrap_r: Wrapping::Repeat,
         }
     }
 }

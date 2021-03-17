@@ -1,4 +1,3 @@
-
 //!
 //! Structs for constructing a CPU-side version of a GPU feature (for example a [triangle mesh](crate::Mesh))
 //! before transferring it to the GPU.

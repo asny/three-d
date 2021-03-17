@@ -1,4 +1,3 @@
-
 ///
 /// Defines the part of the screen/render target that is rendered to.
 ///
@@ -7,7 +6,7 @@ pub struct Viewport {
     pub x: i32,
     pub y: i32,
     pub width: usize,
-    pub height: usize
+    pub height: usize,
 }
 
 impl Viewport {
@@ -15,7 +14,12 @@ impl Viewport {
     /// New viewport which starts at origo (x and y are both zero).
     ///
     pub fn new_at_origo(width: usize, height: usize) -> Self {
-        Self {x: 0, y: 0, width, height}
+        Self {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        }
     }
 
     ///

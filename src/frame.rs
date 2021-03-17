@@ -1,4 +1,3 @@
-
 //!
 //! Input/output from/to the window each frame.
 //!

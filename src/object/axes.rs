@@ -1,7 +1,7 @@
-use crate::math::*;
-use crate::definition::*;
-use crate::core::*;
 use crate::camera::*;
+use crate::core::*;
+use crate::definition::*;
+use crate::math::*;
 use crate::object::*;
 
 ///
@@ -11,7 +11,7 @@ use crate::object::*;
 pub struct Axes {
     x: Mesh,
     y: Mesh,
-    z: Mesh
+    z: Mesh,
 }
 
 impl Axes {
@@ -29,10 +29,33 @@ impl Axes {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the axes.
     ///
-    pub fn render(&self, viewport: Viewport, transformation: &Mat4, camera: &camera::Camera) -> Result<(), Error> {
-        self.x.render_with_color(&vec4(1.0, 0.0, 0.0, 1.0), RenderStates::default(), viewport, transformation, camera)?;
-        self.y.render_with_color(&vec4(0.0, 1.0, 0.0, 1.0), RenderStates::default(), viewport, &(transformation * Mat4::from_angle_z(degrees(90.0))), camera)?;
-        self.z.render_with_color(&vec4(0.0, 0.0, 1.0, 1.0), RenderStates::default(), viewport, &(transformation * Mat4::from_angle_y(degrees(-90.0))), camera)?;
+    pub fn render(
+        &self,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &camera::Camera,
+    ) -> Result<(), Error> {
+        self.x.render_with_color(
+            &vec4(1.0, 0.0, 0.0, 1.0),
+            RenderStates::default(),
+            viewport,
+            transformation,
+            camera,
+        )?;
+        self.y.render_with_color(
+            &vec4(0.0, 1.0, 0.0, 1.0),
+            RenderStates::default(),
+            viewport,
+            &(transformation * Mat4::from_angle_z(degrees(90.0))),
+            camera,
+        )?;
+        self.z.render_with_color(
+            &vec4(0.0, 0.0, 1.0, 1.0),
+            RenderStates::default(),
+            viewport,
+            &(transformation * Mat4::from_angle_y(degrees(-90.0))),
+            camera,
+        )?;
 
         Ok(())
     }

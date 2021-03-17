@@ -1,8 +1,7 @@
-
-use crate::math::*;
-use crate::definition::*;
-use crate::core::*;
 use crate::camera::*;
+use crate::core::*;
+use crate::definition::*;
+use crate::math::*;
 
 ///
 /// Shader program used for rendering [Particles](Particles).
@@ -67,7 +66,11 @@ impl ParticlesProgram {
         );
 
         let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
-        Ok(Self {program, use_normals, use_uvs})
+        Ok(Self {
+            program,
+            use_normals,
+            use_uvs,
+        })
     }
 }
 
@@ -84,7 +87,7 @@ impl std::ops::Deref for ParticlesProgram {
 ///
 pub struct ParticleData {
     pub start_position: Vec3,
-    pub start_velocity: Vec3
+    pub start_velocity: Vec3,
 }
 
 ///
@@ -102,23 +105,37 @@ pub struct Particles {
     uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     pub acceleration: Vec3,
-    instance_count: u32
+    instance_count: u32,
 }
 
 impl Particles {
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self, Error>
-    {
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self, Error> {
         let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals { Some(VertexBuffer::new_with_static_f32(context, normals)?) } else {None};
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices { Some(ElementBuffer::new_with_u32(context, ind)?) } else {None};
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs { Some(VertexBuffer::new_with_static_f32(context, uvs)?) } else {None};
+        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
+            Some(VertexBuffer::new_with_static_f32(context, normals)?)
+        } else {
+            None
+        };
+        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
+            Some(ElementBuffer::new_with_u32(context, ind)?)
+        } else {
+            None
+        };
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
+            Some(VertexBuffer::new_with_static_f32(context, uvs)?)
+        } else {
+            None
+        };
 
         Ok(Self {
-            position_buffer, index_buffer, normal_buffer, uv_buffer,
+            position_buffer,
+            index_buffer,
+            normal_buffer,
+            uv_buffer,
             start_position_buffer: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             start_velocity_buffer: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             acceleration: *acceleration,
-            instance_count: 0
+            instance_count: 0,
         })
     }
 
@@ -126,8 +143,7 @@ impl Particles {
     /// Updates the particles with the given initial data.
     /// The list contain one entry for each particle.
     ///
-    pub fn update(&mut self, data: &[ParticleData])
-    {
+    pub fn update(&mut self, data: &[ParticleData]) {
         let mut start_position = Vec::new();
         let mut start_velocity = Vec::new();
         for particle in data {
@@ -138,8 +154,10 @@ impl Particles {
             start_velocity.push(particle.start_velocity.y);
             start_velocity.push(particle.start_velocity.z);
         }
-        self.start_position_buffer.fill_with_dynamic_f32(&start_position);
-        self.start_velocity_buffer.fill_with_dynamic_f32(&start_velocity);
+        self.start_position_buffer
+            .fill_with_dynamic_f32(&start_position);
+        self.start_velocity_buffer
+            .fill_with_dynamic_f32(&start_velocity);
         self.instance_count = data.len() as u32;
     }
 
@@ -149,8 +167,15 @@ impl Particles {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the particles.
     ///
-    pub fn render(&self, program: &ParticlesProgram, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera, time: f32) -> Result<(), Error>
-    {
+    pub fn render(
+        &self,
+        program: &ParticlesProgram,
+        render_states: RenderStates,
+        viewport: Viewport,
+        transformation: &Mat4,
+        camera: &Camera,
+        time: f32,
+    ) -> Result<(), Error> {
         program.use_uniform_mat4("modelMatrix", &transformation)?;
         program.use_uniform_vec3("acceleration", &self.acceleration)?;
         program.use_uniform_float("time", &time)?;
@@ -167,14 +192,27 @@ impl Particles {
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::FailedToCreateMesh {message: "The particles shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.use_uniform_mat4("normalMatrix", &transformation.invert().unwrap().transpose())?;
+            program.use_uniform_mat4(
+                "normalMatrix",
+                &transformation.invert().unwrap().transpose(),
+            )?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements_instanced(render_states, viewport,index_buffer, self.instance_count);
+            program.draw_elements_instanced(
+                render_states,
+                viewport,
+                index_buffer,
+                self.instance_count,
+            );
         } else {
-            program.draw_arrays_instanced(render_states, viewport,self.position_buffer.count() as u32/3, self.instance_count);
+            program.draw_arrays_instanced(
+                render_states,
+                viewport,
+                self.position_buffer.count() as u32 / 3,
+                self.instance_count,
+            );
         }
         Ok(())
     }

@@ -1,4 +1,3 @@
-
 //!
 //! Effects applied to each pixel, for example fog or anti-aliasing.
 //!
