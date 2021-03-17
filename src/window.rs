@@ -6,8 +6,10 @@
 //! can be replaced by any other window with similar functionality.
 //!
 
-mod common;
-pub use common::*;
+#[doc(hidden)]
+mod settings;
+#[doc(inline)]
+pub use settings::*;
 
 #[doc(hidden)]
 #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]

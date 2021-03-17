@@ -1,17 +1,19 @@
-/// Render context settings.
+
+///
+/// Window settings.
+///
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct WindowSettings {
     /// Whether VSync is enabled.
     ///
-    /// On WebGL this has no effect since VSync is always on.
+    /// On web this has no effect since VSync is always on.
     pub vsync: bool,
     /// Number of antialiasing samples.
     ///
-    /// On WebGL, this can only be off (0) or on (>0).
+    /// On web, this can only be off (0) or on (>0).
     /// The actual number of samples depends on browser settings.
     pub multisamples: u8,
 }
-
 impl Default for WindowSettings {
     fn default() -> Self {
         Self {
