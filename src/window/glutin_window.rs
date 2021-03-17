@@ -6,6 +6,7 @@ use glutin::window::WindowBuilder;
 use glutin::ContextBuilder;
 use crate::math::*;
 use crate::frame::*;
+use crate::window::WindowSettings;
 
 ///
 /// Error message from the [window](crate::window) module.
@@ -13,7 +14,9 @@ use crate::frame::*;
 #[derive(Debug)]
 pub enum WindowError {
     WindowCreationError(glutin::CreationError),
-    ContextError(glutin::ContextError)
+    ContextError(glutin::ContextError),
+    /// The number of samples must be a power of two.
+    InvalidNumberOfSamples
 }
 
 impl From<glutin::CreationError> for WindowError {
@@ -45,10 +48,19 @@ impl Window
     ///
     pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError>
     {
+        Self::new_with_settings(title, size, WindowSettings::default())
+    }
+
+    ///
+    /// Constructs a new window with the given title, maximum size and settings.
+    ///
+    pub fn new_with_settings(title: &str, size: Option<(u32, u32)>, mut settings: WindowSettings) -> Result<Window, WindowError>
+    {
         let event_loop = EventLoop::new();
-        let mut wc = Self::new_windowed_context(title, size, true, &event_loop);
+        let mut wc = Self::new_windowed_context(title, size, &settings, &event_loop);
         if wc.is_err() {
-            wc = Self::new_windowed_context(title, size, false, &event_loop);
+            settings.multisamples = 0;
+            wc = Self::new_windowed_context(title, size, &settings, &event_loop);
         }
 
         let windowed_context = unsafe { wc?.make_current().unwrap() };
@@ -56,8 +68,11 @@ impl Window
         Ok(Window { windowed_context, event_loop, gl})
     }
 
-    fn new_windowed_context(title: &str, size: Option<(u32, u32)>, multisample: bool, event_loop: &EventLoop<()>) -> Result<WindowedContext<NotCurrent>, WindowError> {
-
+    fn new_windowed_context(title: &str, size: Option<(u32, u32)>, settings: &WindowSettings, event_loop: &EventLoop<()>) -> Result<WindowedContext<NotCurrent>, WindowError>
+    {
+        if !settings.multisamples.is_power_of_two() {
+            return Err(WindowError::InvalidNumberOfSamples);
+        }
         let window_builder =
             if let Some((width, height)) = size {
                 WindowBuilder::new()
@@ -72,16 +87,10 @@ impl Window
                     .with_maximized(true)
             };
 
-        if multisample {
-            Ok(ContextBuilder::new()
-                .with_multisampling(4)
-                .with_vsync(true)
-                .build_windowed(window_builder, event_loop)?)
-        } else {
-            Ok(ContextBuilder::new()
-                .with_vsync(true)
-                .build_windowed(window_builder, event_loop)?)
-        }
+        Ok(ContextBuilder::new()
+            .with_multisampling(settings.multisamples as u16)
+            .with_vsync(settings.vsync)
+            .build_windowed(window_builder, event_loop)?)
     }
 
     ///
