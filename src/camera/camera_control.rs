@@ -25,8 +25,8 @@ pub enum ControlType {
     Rotate {speed: f32},
     RotateAroundUp {speed: f32},
     Pan {speed: f32},
-    ZoomHorizontal {speed: f32},
-    ZoomVertical {speed: f32}
+    ZoomHorizontal {speed: f32, min: f32, max: f32},
+    ZoomVertical {speed: f32, min: f32, max: f32}
 }
 
 ///
@@ -89,11 +89,11 @@ impl CameraControl {
                 ControlType::Pan {speed} => {
                     self.pan(speed * x as f32, speed * y as f32)?;
                 },
-                ControlType::ZoomHorizontal {speed} => {
-                    self.zoom(speed * x as f32)?;
+                ControlType::ZoomHorizontal {speed, min, max} => {
+                    self.zoom(speed * x as f32, *min, *max)?;
                 }
-                ControlType::ZoomVertical {speed} => {
-                    self.zoom(speed * y as f32)?;
+                ControlType::ZoomVertical {speed, min, max} => {
+                    self.zoom(speed * y as f32, *min, *max)?;
                 }
             }
         }
@@ -139,14 +139,14 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn zoom(&mut self, wheel: f32) -> Result<(), Error> {
+    pub fn zoom(&mut self, wheel: f32, min: f32, max: f32) -> Result<(), Error> {
         match self.projection_type() {
             ProjectionType::Orthographic {
                 width,
                 height,
                 depth,
             } => {
-                let h = (height - wheel).max(0.001);
+                let h = (height - wheel).max(min).min(max);
                 let w = h * width / height;
                 let d = *depth;
                 self.set_orthographic_projection(w, h, d)?;
@@ -156,7 +156,7 @@ impl CameraControl {
                 let up = *self.up();
                 let direction = self.view_direction();
                 let mut zoom = wheel + self.distance_to_target();
-                zoom = zoom.max(1.0);
+                zoom = zoom.max(min).min(max);
                 self.set_view(target - direction * zoom, target, up)?;
             }
         }
