@@ -48,10 +48,12 @@ impl CameraControl {
         let mut change = false;
         for event in frame_input.events.iter() {
             match event {
-                Event::MouseClick { state, button, .. } => {
-                    self.left = *button == MouseButton::Left && *state == State::Pressed;
-                    self.middle = *button == MouseButton::Middle && *state == State::Pressed;
-                    self.right = *button == MouseButton::Right && *state == State::Pressed;
+                Event::MouseClick { state, button, handled, .. } => {
+                    if !*handled {
+                        self.left = *button == MouseButton::Left && *state == State::Pressed;
+                        self.middle = *button == MouseButton::Middle && *state == State::Pressed;
+                        self.right = *button == MouseButton::Right && *state == State::Pressed;
+                    }
                 }
                 Event::MouseMotion { delta: (x, y), handled, .. } => {
                     if !*handled {
@@ -146,7 +148,7 @@ impl CameraControl {
                 height,
                 depth,
             } => {
-                let h = (height - wheel).max(min).min(max);
+                let h = (height - wheel * self.distance_to_target()).max(min).min(max);
                 let w = h * width / height;
                 let d = *depth;
                 self.set_orthographic_projection(w, h, d)?;
@@ -155,7 +157,7 @@ impl CameraControl {
                 let target = *self.target();
                 let up = *self.up();
                 let direction = self.view_direction();
-                let mut zoom = wheel + self.distance_to_target();
+                let mut zoom = (wheel + 1.0) * self.distance_to_target();
                 zoom = zoom.max(min).min(max);
                 self.set_view(target - direction * zoom, target, up)?;
             }
