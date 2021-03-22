@@ -273,7 +273,11 @@ impl Camera {
     }
 
     pub fn right_direction(&self) -> Vec3 {
-        (self.target -  self.position).normalize().cross(self.up)
+        self.view_direction().cross(self.up)
+    }
+
+    pub fn distance_to_target(&self) -> f32 {
+        self.target.distance(self.position)
     }
 
     pub fn matrix_buffer(&self) -> &UniformBuffer {
