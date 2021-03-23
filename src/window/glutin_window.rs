@@ -79,7 +79,7 @@ impl Window {
         settings: &WindowSettings,
         event_loop: &EventLoop<()>,
     ) -> Result<WindowedContext<NotCurrent>, WindowError> {
-        if !settings.multisamples.is_power_of_two() {
+        if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
             return Err(WindowError::InvalidNumberOfSamples);
         }
         let window_builder = if let Some((width, height)) = size {
