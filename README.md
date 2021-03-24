@@ -2,6 +2,8 @@
 
 [![](http://meritbadge.herokuapp.com/three-d)](https://crates.io/crates/three-d)
 [![Docs.rs](https://docs.rs/three-d/badge.svg)](https://docs.rs/three-d)
+[![Continuous integration](https://github.com/asny/three-d/actions/workflows/rust.yml/badge.svg)](https://github.com/asny/three-d/actions/workflows/rust.yml)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/asny/three-d/blob/master/LICENSE)
 
 ### What is it?
 
