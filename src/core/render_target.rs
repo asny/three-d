@@ -210,7 +210,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         clear_state: &ClearState,
         render: F,
     ) -> Result<(), Error> {
-        self.bind()?;
+        self.bind(consts::DRAW_FRAMEBUFFER)?;
         clear(
             &self.context,
             &ClearState {
@@ -409,9 +409,57 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(())
     }
 
-    fn bind(&self) -> Result<(), Error> {
+    pub fn read_color_with_u8(&self, viewport: Viewport) -> Result<Vec<u8>, Error> {
+        if self.color_texture.is_none() {
+            Err(Error::FailedToReadFromRenderTarget {
+                message: "Cannot read color when the render target does not have a color texture."
+                    .to_owned(),
+            })?;
+        }
+        let format = self.color_texture.as_ref().unwrap().format();
+        let channels = channel_count_from_format(format);
+        // TODO: Check u8 format
+        let mut pixels = vec![0u8; viewport.width * viewport.height * channels];
+        self.bind(consts::READ_FRAMEBUFFER)?;
+        self.context.read_pixels_with_u8_data(
+            viewport.x as u32,
+            viewport.y as u32,
+            viewport.width as u32,
+            viewport.height as u32,
+            format_from(format),
+            consts::UNSIGNED_BYTE,
+            &mut pixels,
+        );
+        Ok(pixels)
+    }
+
+    pub fn read_color_with_f32(&self, viewport: Viewport) -> Result<Vec<f32>, Error> {
+        if self.color_texture.is_none() {
+            Err(Error::FailedToReadFromRenderTarget {
+                message: "Cannot read color when the render target does not have a color texture."
+                    .to_owned(),
+            })?;
+        }
+        let format = self.color_texture.as_ref().unwrap().format();
+        let channels = channel_count_from_format(format);
+        // TODO: Check f32 format
+        let mut pixels = vec![0f32; viewport.width * viewport.height * channels];
+        self.bind(consts::READ_FRAMEBUFFER)?;
+        self.context.read_pixels_with_f32_data(
+            viewport.x as u32,
+            viewport.y as u32,
+            viewport.width as u32,
+            viewport.height as u32,
+            format_from(format),
+            consts::FLOAT,
+            &mut pixels,
+        );
+        Ok(pixels)
+    }
+
+    fn bind(&self, target: u32) -> Result<(), Error> {
         self.context
-            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
+            .bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
             tex.bind_as_color_target(0);

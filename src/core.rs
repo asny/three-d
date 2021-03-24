@@ -69,6 +69,9 @@ pub enum Error {
     FailedToCopyFromRenderTarget {
         message: String,
     },
+    FailedToReadFromRenderTarget {
+        message: String,
+    },
     FailedToWriteToRenderTarget {
         message: String,
     },

@@ -162,6 +162,7 @@ pub struct ColorTargetTexture2D {
     width: usize,
     height: usize,
     number_of_mip_maps: u32,
+    format: Format,
 }
 
 impl ColorTargetTexture2D {
@@ -206,7 +207,12 @@ impl ColorTargetTexture2D {
             width,
             height,
             number_of_mip_maps,
+            format
         })
+    }
+
+    pub fn format(&self) -> Format {
+        self.format
     }
 
     pub(crate) fn generate_mip_maps(&self) {
@@ -799,7 +805,20 @@ fn internal_format_from_depth(format: DepthFormat) -> u32 {
     }
 }
 
-fn format_from(format: Format) -> u32 {
+pub(super) fn channel_count_from_format(format: Format) -> usize {
+    match format {
+        Format::R8 => 1,
+        Format::R32F => 1,
+        Format::RGB8 => 3,
+        Format::RGB32F => 3,
+        Format::SRGB8 => 3,
+        Format::RGBA8 => 4,
+        Format::RGBA32F => 4,
+        Format::SRGBA8 => 4,
+    }
+}
+
+pub(super) fn format_from(format: Format) -> u32 {
     match format {
         Format::R8 => consts::RED,
         Format::R32F => consts::RED,
