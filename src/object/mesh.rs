@@ -3,6 +3,7 @@ use crate::core::*;
 use crate::definition::*;
 #[doc(hidden)]
 use crate::math::*;
+use crate::Pickable;
 
 ///
 /// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
@@ -146,6 +147,20 @@ pub struct Mesh {
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
     color_buffer: Option<VertexBuffer>,
+}
+
+impl Pickable for Mesh {
+    fn pick(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAM_PICK.is_none() {
+                PROGRAM_PICK = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_pick.frag"))?);
+            }
+            PROGRAM_PICK.as_ref().unwrap()
+        };
+        program.use_uniform_float("maxDistance", &camera.distance_to_target());
+        self.render(program, render_states, viewport, transformation, camera)?;
+        Ok(())
+    }
 }
 
 impl Mesh {
@@ -360,6 +375,7 @@ impl Drop for Mesh {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
                 PROGRAM_DEPTH = None;
+                PROGRAM_PICK = None;
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
                 PROGRAM_PER_VERTEX_COLOR = None;
@@ -371,5 +387,6 @@ impl Drop for Mesh {
 static mut PROGRAM_COLOR: Option<MeshProgram> = None;
 static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
+static mut PROGRAM_PICK: Option<MeshProgram> = None;
 static mut PROGRAM_PER_VERTEX_COLOR: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
