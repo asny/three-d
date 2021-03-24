@@ -16,11 +16,6 @@ pub struct RenderStates {
     pub depth_test: DepthTestType,
 
     ///
-    /// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
-    ///
-    pub cull: CullType,
-
-    ///
     /// Defines which type of blending to use for a render call.
     /// Blending allows combining each color channel of a render call with the color already in the
     /// color channels of the render target.
@@ -34,7 +29,6 @@ impl Default for RenderStates {
         Self {
             write_mask: WriteMask::default(),
             depth_test: DepthTestType::Less,
-            cull: CullType::None,
             blend: None,
         }
     }

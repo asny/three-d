@@ -245,7 +245,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     ..Default::default()
                 },
@@ -274,7 +273,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::COLOR,
                     ..Default::default()
@@ -304,7 +302,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::DEPTH,
                     ..Default::default()
@@ -337,7 +334,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     ..Default::default()
                 },
@@ -367,7 +363,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::COLOR,
                     ..Default::default()
@@ -397,7 +392,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::DEPTH,
                     ..Default::default()
@@ -581,7 +575,6 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     ..Default::default()
                 },
@@ -609,7 +602,6 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::COLOR,
                     ..Default::default()
@@ -638,7 +630,6 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::DEPTH,
                     ..Default::default()
@@ -672,7 +663,6 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     ..Default::default()
                 },
@@ -701,7 +691,6 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::COLOR,
                     ..Default::default()
@@ -731,7 +720,6 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
             effect.apply(
                 RenderStates {
-                    cull: CullType::Back,
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::DEPTH,
                     ..Default::default()

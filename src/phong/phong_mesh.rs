@@ -42,7 +42,6 @@ impl PhongMesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -80,7 +79,7 @@ impl PhongMesh {
         };
         self.material.bind(program)?;
         self.mesh
-            .render(program, render_states, viewport, transformation, camera)
+            .render(program, render_states, viewport, camera)
     }
 
     ///
@@ -92,7 +91,6 @@ impl PhongMesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
@@ -154,7 +152,7 @@ impl PhongMesh {
             }
         }
         self.mesh
-            .render(program, render_states, viewport, transformation, camera)?;
+            .render(program, render_states, viewport, camera)?;
         Ok(())
     }
 }

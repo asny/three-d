@@ -16,10 +16,13 @@ pub struct Axes {
 
 impl Axes {
     pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self, Error> {
+        let x = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        let mut y = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        let mut z = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        y.transformation = Mat4::from_angle_z(degrees(90.0));
+        z.transformation = Mat4::from_angle_y(degrees(-90.0));
         Ok(Self {
-            x: Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?,
-            y: Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?,
-            z: Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?,
+            x, y, z,
         })
     }
 
@@ -32,28 +35,24 @@ impl Axes {
     pub fn render(
         &self,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         self.x.render_with_color(
             &vec4(1.0, 0.0, 0.0, 1.0),
             RenderStates::default(),
             viewport,
-            transformation,
             camera,
         )?;
         self.y.render_with_color(
             &vec4(0.0, 1.0, 0.0, 1.0),
             RenderStates::default(),
             viewport,
-            &(transformation * Mat4::from_angle_z(degrees(90.0))),
             camera,
         )?;
         self.z.render_with_color(
             &vec4(0.0, 0.0, 1.0, 1.0),
             RenderStates::default(),
             viewport,
-            &(transformation * Mat4::from_angle_y(degrees(-90.0))),
             camera,
         )?;
 

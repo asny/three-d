@@ -147,18 +147,25 @@ pub struct Mesh {
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
     color_buffer: Option<VertexBuffer>,
+    pub cull: CullType,
+    pub transformation: Mat4
 }
 
 impl Pickable for Mesh {
-    fn pick(&self, render_states: RenderStates, viewport: Viewport, transformation: &Mat4, camera: &Camera) -> Result<(), Error> {
+    fn pick(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_PICK.is_none() {
                 PROGRAM_PICK = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_pick.frag"))?);
             }
             PROGRAM_PICK.as_ref().unwrap()
         };
-        program.use_uniform_float("maxDistance", &camera.distance_to_target());
-        self.render(program, render_states, viewport, transformation, camera)?;
+        program.use_uniform_float("maxDistance", &camera.distance_to_target())?;
+        let render_states = RenderStates {
+            write_mask: WriteMask {red: true, depth: true, ..WriteMask::NONE},
+            depth_test: DepthTestType::Less,
+            ..Default::default()
+        };
+        self.render(program, render_states, viewport, camera)?;
         Ok(())
     }
 }
@@ -200,6 +207,8 @@ impl Mesh {
             index_buffer,
             uv_buffer,
             color_buffer,
+            transformation: Mat4::identity(),
+            cull: CullType::None
         })
     }
 
@@ -213,7 +222,6 @@ impl Mesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -222,7 +230,7 @@ impl Mesh {
             }
             PROGRAM_DEPTH.as_ref().unwrap()
         };
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -238,7 +246,6 @@ impl Mesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -250,7 +257,7 @@ impl Mesh {
             }
             PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
         };
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -264,7 +271,6 @@ impl Mesh {
         color: &Vec4,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -277,7 +283,7 @@ impl Mesh {
             PROGRAM_COLOR.as_ref().unwrap()
         };
         program.use_uniform_vec4("color", color)?;
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -294,7 +300,6 @@ impl Mesh {
         texture: &dyn Texture,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -307,7 +312,7 @@ impl Mesh {
             PROGRAM_TEXTURE.as_ref().unwrap()
         };
         program.use_texture(texture, "tex")?;
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -326,10 +331,9 @@ impl Mesh {
         program: &MeshProgram,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
-        program.use_uniform_mat4("modelMatrix", &transformation)?;
+        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
@@ -346,7 +350,7 @@ impl Mesh {
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
             program.use_uniform_mat4(
                 "normalMatrix",
-                &transformation.invert().unwrap().transpose(),
+                &self.transformation.invert().unwrap().transpose(),
             )?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
@@ -357,10 +361,11 @@ impl Mesh {
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(render_states, viewport, index_buffer);
+            program.draw_elements(render_states, self.cull, viewport, index_buffer);
         } else {
             program.draw_arrays(
                 render_states,
+                self.cull,
                 viewport,
                 self.position_buffer.count() as u32 / 3,
             );

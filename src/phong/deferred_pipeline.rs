@@ -132,7 +132,6 @@ impl PhongDeferredPipeline {
         point_lights: &[&PointLight],
     ) -> Result<(), Error> {
         let render_states = RenderStates {
-            cull: CullType::Back,
             depth_test: DepthTestType::LessOrEqual,
             ..Default::default()
         };

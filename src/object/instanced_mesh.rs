@@ -45,6 +45,8 @@ pub struct InstancedMesh {
     instance_buffer1: VertexBuffer,
     instance_buffer2: VertexBuffer,
     instance_buffer3: VertexBuffer,
+    pub cull: CullType,
+    pub transformation: Mat4
 }
 
 impl InstancedMesh {
@@ -86,6 +88,8 @@ impl InstancedMesh {
             instance_buffer1: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer2: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?,
+            cull: CullType::None,
+            transformation: Mat4::identity()
         };
         mesh.update_transformations(transformations);
         unsafe {
@@ -104,7 +108,6 @@ impl InstancedMesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -113,7 +116,7 @@ impl InstancedMesh {
             }
             PROGRAM_DEPTH.as_ref().unwrap()
         };
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -129,7 +132,6 @@ impl InstancedMesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -141,7 +143,7 @@ impl InstancedMesh {
             }
             PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
         };
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -155,7 +157,6 @@ impl InstancedMesh {
         color: &Vec4,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -168,7 +169,7 @@ impl InstancedMesh {
             PROGRAM_COLOR.as_ref().unwrap()
         };
         program.use_uniform_vec4("color", color)?;
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -185,7 +186,6 @@ impl InstancedMesh {
         texture: &dyn Texture,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -198,7 +198,7 @@ impl InstancedMesh {
             PROGRAM_TEXTURE.as_ref().unwrap()
         };
         program.use_texture(texture, "tex")?;
-        self.render(program, render_states, viewport, transformation, camera)
+        self.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -217,14 +217,13 @@ impl InstancedMesh {
         program: &InstancedMeshProgram,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &camera::Camera,
     ) -> Result<(), Error> {
         program.use_attribute_vec4_divisor(&self.instance_buffer1, "row1", 1)?;
         program.use_attribute_vec4_divisor(&self.instance_buffer2, "row2", 1)?;
         program.use_attribute_vec4_divisor(&self.instance_buffer3, "row3", 1)?;
 
-        program.use_uniform_mat4("modelMatrix", &transformation)?;
+        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
@@ -241,7 +240,7 @@ impl InstancedMesh {
                 Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
             program.use_uniform_mat4(
                 "normalMatrix",
-                &transformation.invert().unwrap().transpose(),
+                &self.transformation.invert().unwrap().transpose(),
             )?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
@@ -249,6 +248,7 @@ impl InstancedMesh {
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements_instanced(
                 render_states,
+                self.cull,
                 viewport,
                 index_buffer,
                 self.instance_count,
@@ -256,6 +256,7 @@ impl InstancedMesh {
         } else {
             program.draw_arrays_instanced(
                 render_states,
+                self.cull,
                 viewport,
                 self.position_buffer.count() as u32 / 3,
                 self.instance_count,

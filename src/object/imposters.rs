@@ -152,7 +152,6 @@ impl Imposters {
     ///
     pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
-            cull: CullType::Back,
             blend: Some(BlendParameters::TRANSPARENCY),
             ..Default::default()
         };
@@ -173,7 +172,7 @@ impl Imposters {
         self.program
             .use_attribute_divisor(&self.rotation_buffer, "theta", 1)?;
         self.program
-            .draw_arrays_instanced(render_states, viewport, 6, self.instance_count);
+            .draw_arrays_instanced(render_states, CullType::Back, viewport, 6, self.instance_count);
         Ok(())
     }
 }

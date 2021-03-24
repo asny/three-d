@@ -202,6 +202,7 @@ impl Particles {
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements_instanced(
                 render_states,
+                CullType::None,
                 viewport,
                 index_buffer,
                 self.instance_count,
@@ -209,6 +210,7 @@ impl Particles {
         } else {
             program.draw_arrays_instanced(
                 render_states,
+                CullType::None,
                 viewport,
                 self.position_buffer.count() as u32 / 3,
                 self.instance_count,
