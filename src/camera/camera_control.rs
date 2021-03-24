@@ -1,5 +1,5 @@
 use crate::camera::*;
-use crate::core::Error;
+use crate::core::*;
 use crate::math::*;
 use crate::frame::*;
 
@@ -134,10 +134,10 @@ impl CameraControl {
     }
 
     pub fn pan(&mut self, x: f32, y: f32) -> Result<(), Error> {
-        let direction = self.view_direction();
         let right = self.right_direction();
-        let delta = -right * x + right.cross(direction) * y;
-        self.translate(&delta)?;
+        let up = right.cross(self.view_direction());
+        let delta = -right * x + up * y;
+        self.translate(&(delta*self.distance_to_target()))?;
         Ok(())
     }
 
