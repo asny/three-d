@@ -15,11 +15,33 @@ pub enum WindowError {
     EventListenerError { message: String },
 }
 
+struct FrameRenderer {
+    pub render_loop_closure: Rc<RefCell<Option<Closure<dyn FnMut()>>>>,
+    pub render_requested: bool,
+}
+
+impl FrameRenderer {
+    pub fn new() -> Self {
+        Self {
+            render_loop_closure: Rc::new(RefCell::new(None)),
+            render_requested: false,
+        }
+    }
+
+    fn render_frame(&mut self) {
+        if !self.render_requested {
+            self.render_requested = true;
+            request_animation_frame(self.render_loop_closure.borrow().as_ref().unwrap());
+        }
+    }
+}
+
 pub struct Window {
     gl: crate::Context,
     canvas: web_sys::HtmlCanvasElement,
     window: web_sys::Window,
     max_size: Option<(u32, u32)>,
+    frame_renderer: Rc<RefCell<FrameRenderer>>,
 }
 
 #[derive(Serialize)]
@@ -83,6 +105,7 @@ impl Window {
             canvas,
             window: websys_window,
             max_size: size,
+            frame_renderer: Rc::new(RefCell::new(FrameRenderer::new())),
         };
         window.set_canvas_size();
         Ok(window)
@@ -92,8 +115,7 @@ impl Window {
     where
         F: FnMut(FrameInput) -> FrameOutput,
     {
-        let f = Rc::new(RefCell::new(None));
-        let g = f.clone();
+        let g = self.frame_renderer.borrow().render_loop_closure.clone();
 
         let events = Rc::new(RefCell::new(Vec::new()));
         let performance = self
@@ -109,38 +131,65 @@ impl Window {
         let last_zoom = Rc::new(RefCell::new(None));
         let modifiers = Rc::new(RefCell::new(Modifiers::default()));
 
-        self.add_mouseenter_event_listener(events.clone())?;
-        self.add_mouseleave_event_listener(events.clone())?;
-        self.add_mousedown_event_listener(events.clone(), modifiers.clone())?;
+        self.add_resize_event_listener(self.frame_renderer.clone())?;
+        self.add_mouseenter_event_listener(events.clone(), self.frame_renderer.clone())?;
+        self.add_mouseleave_event_listener(events.clone(), self.frame_renderer.clone())?;
+        self.add_mousedown_event_listener(
+            events.clone(),
+            self.frame_renderer.clone(),
+            modifiers.clone(),
+        )?;
         self.add_touchstart_event_listener(
             events.clone(),
+            self.frame_renderer.clone(),
             last_position.clone(),
             last_zoom.clone(),
             modifiers.clone(),
         )?;
-        self.add_mouseup_event_listener(events.clone(), modifiers.clone())?;
+        self.add_mouseup_event_listener(
+            events.clone(),
+            self.frame_renderer.clone(),
+            modifiers.clone(),
+        )?;
         self.add_touchend_event_listener(
             events.clone(),
+            self.frame_renderer.clone(),
             last_position.clone(),
             last_zoom.clone(),
             modifiers.clone(),
         )?;
         self.add_mousemove_event_listener(
             events.clone(),
+            self.frame_renderer.clone(),
             last_position.clone(),
             modifiers.clone(),
         )?;
         self.add_touchmove_event_listener(
             events.clone(),
+            self.frame_renderer.clone(),
             last_position.clone(),
             last_zoom.clone(),
             modifiers.clone(),
         )?;
-        self.add_mousewheel_event_listener(events.clone(), modifiers.clone())?;
-        self.add_key_down_event_listener(events.clone(), modifiers.clone())?;
-        self.add_key_up_event_listener(events.clone(), modifiers.clone())?;
+        self.add_mousewheel_event_listener(
+            events.clone(),
+            self.frame_renderer.clone(),
+            modifiers.clone(),
+        )?;
+        self.add_key_down_event_listener(
+            events.clone(),
+            self.frame_renderer.clone(),
+            modifiers.clone(),
+        )?;
+        self.add_key_up_event_listener(
+            events.clone(),
+            self.frame_renderer.clone(),
+            modifiers.clone(),
+        )?;
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+            self.frame_renderer.borrow_mut().render_requested = false;
+
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
@@ -162,10 +211,12 @@ impl Window {
                 first_frame: first_frame,
             };
             first_frame = false;
-            callback(frame_input);
+            let frame_output = callback(frame_input);
             &(*events).borrow_mut().clear();
 
-            request_animation_frame(f.borrow().as_ref().unwrap());
+            if !frame_output.wait_next_event {
+                self.frame_renderer.borrow_mut().render_frame();
+            }
         }) as Box<dyn FnMut()>));
 
         request_animation_frame(g.borrow().as_ref().unwrap());
@@ -239,15 +290,36 @@ impl Window {
         self.canvas.set_height(device_pixel_ratio as u32 * height);
     }
 
+    fn add_resize_event_listener(
+        &self,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
+    ) -> Result<(), WindowError> {
+        let closure = Closure::wrap(Box::new(move || {
+            frame_renderer.borrow_mut().render_frame();
+        }) as Box<dyn FnMut()>);
+        self.window
+            .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
+            .map_err(|e| WindowError::EventListenerError {
+                message: format!(
+                    "Unable to add mouse leave event listener. Error code: {:?}",
+                    e
+                ),
+            })?;
+        closure.forget();
+        Ok(())
+    }
+
     fn add_mouseleave_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 events.borrow_mut().push(Event::MouseLeave);
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -265,12 +337,14 @@ impl Window {
     fn add_mouseenter_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 events.borrow_mut().push(Event::MouseEnter);
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -288,6 +362,7 @@ impl Window {
     fn add_mousedown_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         modifiers: Rc<RefCell<Modifiers>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
@@ -314,6 +389,7 @@ impl Window {
                 };
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -331,6 +407,7 @@ impl Window {
     fn add_mouseup_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         modifiers: Rc<RefCell<Modifiers>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
@@ -357,6 +434,7 @@ impl Window {
                 };
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -371,6 +449,7 @@ impl Window {
     fn add_mousemove_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         last_position: Rc<RefCell<Option<(i32, i32)>>>,
         modifiers: Rc<RefCell<Modifiers>>,
     ) -> Result<(), WindowError> {
@@ -390,6 +469,7 @@ impl Window {
                 *last_position.borrow_mut() = Some((event.offset_x(), event.offset_y()));
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -407,6 +487,7 @@ impl Window {
     fn add_mousewheel_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         modifiers: Rc<RefCell<Modifiers>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
@@ -419,6 +500,7 @@ impl Window {
                 });
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -433,6 +515,7 @@ impl Window {
     fn add_touchstart_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         last_position: Rc<RefCell<Option<(i32, i32)>>>,
         last_zoom: Rc<RefCell<Option<f64>>>,
         modifiers: Rc<RefCell<Modifiers>>,
@@ -465,6 +548,7 @@ impl Window {
                 }
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -482,6 +566,7 @@ impl Window {
     fn add_touchend_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         last_position: Rc<RefCell<Option<(i32, i32)>>>,
         last_zoom: Rc<RefCell<Option<f64>>>,
         modifiers: Rc<RefCell<Modifiers>>,
@@ -500,6 +585,7 @@ impl Window {
                 });
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -517,6 +603,7 @@ impl Window {
     fn add_touchmove_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         last_position: Rc<RefCell<Option<(i32, i32)>>>,
         last_zoom: Rc<RefCell<Option<f64>>>,
         modifiers: Rc<RefCell<Modifiers>>,
@@ -561,6 +648,7 @@ impl Window {
                 }
                 event.stop_propagation();
                 event.prevent_default();
+                frame_renderer.borrow_mut().render_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas
@@ -578,6 +666,7 @@ impl Window {
     fn add_key_down_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         modifiers: Rc<RefCell<Modifiers>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
@@ -607,6 +696,7 @@ impl Window {
                     (*events).borrow_mut().push(Event::Text(key));
                     event.stop_propagation();
                     event.prevent_default();
+                    frame_renderer.borrow_mut().render_frame();
                 }
             }
         }) as Box<dyn FnMut(_)>);
@@ -622,6 +712,7 @@ impl Window {
     fn add_key_up_event_listener(
         &self,
         events: Rc<RefCell<Vec<Event>>>,
+        frame_renderer: Rc<RefCell<FrameRenderer>>,
         modifiers: Rc<RefCell<Modifiers>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
@@ -647,6 +738,7 @@ impl Window {
                     });
                     event.stop_propagation();
                     event.prevent_default();
+                    frame_renderer.borrow_mut().render_frame();
                 }
             }
         }) as Box<dyn FnMut(_)>);

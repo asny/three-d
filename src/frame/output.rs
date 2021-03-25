@@ -26,7 +26,6 @@ pub struct FrameOutput {
 
     ///
     /// Whether to stop the render loop until next event.
-    /// Only works on desktop, will be ignored on web.
     ///
     pub wait_next_event: bool,
 }
