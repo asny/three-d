@@ -99,7 +99,8 @@ impl PhongInstancedMesh {
         point_lights: &[&PointLight],
     ) -> Result<(), Error> {
         let key = format!(
-            "{},{},{}",
+            "{},{},{},{}",
+            self.material.color_source,
             directional_lights.len(),
             spot_lights.len(),
             point_lights.len()

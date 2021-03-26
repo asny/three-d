@@ -12,6 +12,19 @@ pub enum ColorSource {
     Texture(Rc<Texture2D>),
 }
 
+impl std::fmt::Display for ColorSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ColorSource::Color(_) => {
+                write!(f, "Color")
+            }
+            ColorSource::Texture(_) => {
+                write!(f, "Texture")
+            }
+        }
+    }
+}
+
 ///
 /// A material used for shading an object based on the Phong shading model.
 ///
