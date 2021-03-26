@@ -117,12 +117,14 @@ impl Window {
         let mut first_frame = true;
         let context = self.gl.clone();
         self.event_loop.run(move |event, _, control_flow| {
-            *control_flow = ControlFlow::Poll;
             match event {
                 Event::LoopDestroyed => {
                     return;
                 }
                 Event::MainEventsCleared => {
+                    windowed_context.window().request_redraw();
+                }
+                Event::RedrawRequested(_) => {
                     let now = std::time::Instant::now();
                     let duration = now.duration_since(last_time);
                     last_time = now;
@@ -159,6 +161,12 @@ impl Window {
                     }
                     if frame_output.swap_buffers {
                         windowed_context.swap_buffers().unwrap();
+                    }
+                    if frame_output.wait_next_event {
+                        *control_flow = ControlFlow::Wait;
+                    } else {
+                        *control_flow = ControlFlow::Poll;
+                        windowed_context.window().request_redraw();
                     }
                     if let Some(ref path) = frame_output.screenshot {
                         let pixels = crate::Screen::read_color(

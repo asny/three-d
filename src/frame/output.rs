@@ -23,6 +23,11 @@ pub struct FrameOutput {
     /// Only works on desktop, will be ignored on web.
     ///
     pub screenshot: Option<std::path::PathBuf>,
+
+    ///
+    /// Whether to stop the render loop until next event.
+    ///
+    pub wait_next_event: bool,
 }
 
 impl Default for FrameOutput {
@@ -31,6 +36,7 @@ impl Default for FrameOutput {
             exit: false,
             swap_buffers: true,
             screenshot: None,
+            wait_next_event: false,
         }
     }
 }

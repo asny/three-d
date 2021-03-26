@@ -254,6 +254,7 @@ fn main() {
                     } else {
                         FrameOutput {
                             swap_buffers: redraw,
+                            wait_next_event: true,
                             ..Default::default()
                         }
                     }
