@@ -164,10 +164,7 @@ fn main() {
                             ..Default::default()
                         }
                     } else {
-                        FrameOutput {
-                            wait_next_event: true,
-                            ..Default::default()
-                        }
+                        FrameOutput::default()
                     }
                 })
                 .unwrap();

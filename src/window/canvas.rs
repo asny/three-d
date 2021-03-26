@@ -301,7 +301,7 @@ impl Window {
             .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
-                    "Unable to add mouse leave event listener. Error code: {:?}",
+                    "Unable to add resize event listener. Error code: {:?}",
                     e
                 ),
             })?;
