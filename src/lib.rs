@@ -4,9 +4,6 @@
 //! the [examples](https://github.com/asny/three-d/tree/0.6/examples) for how to use it.
 //!
 
-pub mod picking;
-pub use picking::*;
-
 pub mod context;
 
 pub mod math;
