@@ -152,7 +152,10 @@ pub struct Mesh {
 }
 
 impl Pickable for Mesh {
-    fn pick(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
+    fn pick(&self,
+            render_states: RenderStates,
+            viewport: Viewport,
+            camera: &Camera) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_PICK.is_none() {
                 PROGRAM_PICK = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_pick.frag"))?);
@@ -160,11 +163,6 @@ impl Pickable for Mesh {
             PROGRAM_PICK.as_ref().unwrap()
         };
         program.use_uniform_float("maxDistance", &camera.distance_to_target())?;
-        let render_states = RenderStates {
-            write_mask: WriteMask {red: true, depth: true, ..WriteMask::NONE},
-            depth_test: DepthTestType::Less,
-            ..Default::default()
-        };
         self.render(program, render_states, viewport, camera)?;
         Ok(())
     }
