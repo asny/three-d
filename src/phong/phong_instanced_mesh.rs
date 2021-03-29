@@ -79,8 +79,7 @@ impl PhongInstancedMesh {
             PROGRAMS.as_ref().unwrap().get(key).unwrap()
         };
         self.material.bind(program)?;
-        self.mesh
-            .render(program, render_states, viewport, camera)
+        self.mesh.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -153,8 +152,7 @@ impl PhongInstancedMesh {
                 }
             }
         }
-        self.mesh
-            .render(program, render_states, viewport, camera)?;
+        self.mesh.render(program, render_states, viewport, camera)?;
         Ok(())
     }
 }

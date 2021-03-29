@@ -309,7 +309,13 @@ impl Program {
         Ok(())
     }
 
-    pub fn draw_arrays(&self, render_states: RenderStates, cull: CullType, viewport: Viewport, count: u32) {
+    pub fn draw_arrays(
+        &self,
+        render_states: RenderStates,
+        cull: CullType,
+        viewport: Viewport,
+        count: u32,
+    ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_cull(&self.context, cull);
         Self::set_states(&self.context, render_states);

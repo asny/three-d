@@ -148,17 +148,22 @@ pub struct Mesh {
     uv_buffer: Option<VertexBuffer>,
     color_buffer: Option<VertexBuffer>,
     pub cull: CullType,
-    pub transformation: Mat4
+    pub transformation: Mat4,
 }
 
 impl Pickable for Mesh {
-    fn pick(&self,
-            render_states: RenderStates,
-            viewport: Viewport,
-            camera: &Camera) -> Result<(), Error> {
+    fn pick(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_PICK.is_none() {
-                PROGRAM_PICK = Some(MeshProgram::new(&self.context, include_str!("shaders/mesh_pick.frag"))?);
+                PROGRAM_PICK = Some(MeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_pick.frag"),
+                )?);
             }
             PROGRAM_PICK.as_ref().unwrap()
         };
@@ -206,7 +211,7 @@ impl Mesh {
             uv_buffer,
             color_buffer,
             transformation: Mat4::identity(),
-            cull: CullType::None
+            cull: CullType::None,
         })
     }
 

@@ -2,7 +2,7 @@ use crate::context::{consts, Context};
 use crate::core::Error;
 use crate::cpu_texture::*;
 
-pub use crate::cpu_texture::{Format,Wrapping,Interpolation};
+pub use crate::cpu_texture::{Format, Interpolation, Wrapping};
 
 ///
 /// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).
@@ -207,7 +207,7 @@ impl ColorTargetTexture2D {
             width,
             height,
             number_of_mip_maps,
-            format
+            format,
         })
     }
 

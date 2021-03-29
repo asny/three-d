@@ -171,8 +171,13 @@ impl Imposters {
             .use_attribute_vec3_divisor(&self.center_buffer, "center", 1)?;
         self.program
             .use_attribute_divisor(&self.rotation_buffer, "theta", 1)?;
-        self.program
-            .draw_arrays_instanced(render_states, CullType::Back, viewport, 6, self.instance_count);
+        self.program.draw_arrays_instanced(
+            render_states,
+            CullType::Back,
+            viewport,
+            6,
+            self.instance_count,
+        );
         Ok(())
     }
 }

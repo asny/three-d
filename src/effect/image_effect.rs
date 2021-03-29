@@ -43,7 +43,8 @@ impl ImageEffect {
             .use_attribute_vec3(&self.positions, "position")?;
         self.program
             .use_attribute_vec2(&self.uvs, "uv_coordinate")?;
-        self.program.draw_arrays(render_states, CullType::Back, viewport, 3);
+        self.program
+            .draw_arrays(render_states, CullType::Back, viewport, 3);
         Ok(())
     }
 }

@@ -59,7 +59,8 @@ impl Skybox {
         self.program
             .use_attribute_vec3(&self.vertex_buffer, "position")?;
 
-        self.program.draw_arrays(render_states, CullType::Front, viewport, 36);
+        self.program
+            .draw_arrays(render_states, CullType::Front, viewport, 36);
         Ok(())
     }
 

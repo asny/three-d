@@ -452,8 +452,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     fn bind(&self, target: u32) -> Result<(), Error> {
-        self.context
-            .bind_framebuffer(target, Some(&self.id));
+        self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
             tex.bind_as_color_target(0);

@@ -46,7 +46,7 @@ pub struct InstancedMesh {
     instance_buffer2: VertexBuffer,
     instance_buffer3: VertexBuffer,
     pub cull: CullType,
-    pub transformation: Mat4
+    pub transformation: Mat4,
 }
 
 impl InstancedMesh {
@@ -89,7 +89,7 @@ impl InstancedMesh {
             instance_buffer2: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             cull: CullType::None,
-            transformation: Mat4::identity()
+            transformation: Mat4::identity(),
         };
         mesh.update_transformations(transformations);
         unsafe {
