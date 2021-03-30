@@ -16,6 +16,12 @@ pub struct PhongMesh {
     pub material: PhongMaterial,
 }
 
+impl Pickable for PhongMesh {
+    fn pick(&self, render_states: RenderStates, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
+        self.mesh.pick(render_states, viewport, camera)
+    }
+}
+
 impl PhongMesh {
     pub fn new(
         context: &Context,
