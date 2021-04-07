@@ -696,7 +696,7 @@ impl Window {
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        window()
+        self.window
             .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key down event listener. Error code: {:?}", e),
@@ -738,7 +738,7 @@ impl Window {
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        window()
+        self.window
             .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key up event listener. Error code: {:?}", e),
@@ -761,12 +761,9 @@ impl Window {
     }
 }
 
-fn window() -> web_sys::Window {
-    web_sys::window().expect("no global `window` exists")
-}
-
 fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    window()
+    web_sys::window()
+        .expect("no global `window` exists")
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
 }
