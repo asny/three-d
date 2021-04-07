@@ -95,8 +95,8 @@ impl GUI {
             self.texture_version = egui_texture.version;
         };
 
-        for egui::ClippedMesh(clip_rect, mesh) in clipped_meshes {
-            self.paint_mesh(self.width, self.height, self.egui_context.pixels_per_point(), clip_rect, &mesh, self.texture.as_ref().unwrap())?;
+        for egui::ClippedMesh(_, mesh) in clipped_meshes {
+            self.paint_mesh(self.width, self.height, self.egui_context.pixels_per_point(), &mesh, self.texture.as_ref().unwrap())?;
         }
         Ok(())
     }
@@ -106,7 +106,6 @@ impl GUI {
         width: usize,
         height: usize,
         pixels_per_point: f32,
-        clip_rect: egui::Rect,
         mesh: &egui::paint::Mesh,
         texture: &Texture2D
     ) -> Result<(), Error> {
@@ -132,25 +131,10 @@ impl GUI {
         let color_buffer = VertexBuffer::new_with_static_f32(&self.context, &colors)?;
         let index_buffer = ElementBuffer::new_with_u32(&self.context, &indices)?;
 
-        // Transform clip rect to physical pixels:
-        let clip_min_x = pixels_per_point * clip_rect.min.x;
-        let clip_min_y = pixels_per_point * clip_rect.min.y;
-        let clip_max_x = pixels_per_point * clip_rect.max.x;
-        let clip_max_y = pixels_per_point * clip_rect.max.y;
-
-        // Make sure clip rect can fit withing an `u32`:
-        let clip_min_x = egui::emath::clamp(clip_min_x, 0.0..=(width as f32 * pixels_per_point));
-        let clip_min_y = egui::emath::clamp(clip_min_y, 0.0..=(height as f32 * pixels_per_point));
-        let clip_max_x = egui::emath::clamp(clip_max_x, clip_min_x..=(width as f32 * pixels_per_point));
-        let clip_max_y = egui::emath::clamp(clip_max_y, clip_min_y..=(height as f32 * pixels_per_point));
-
-        let clip_min_x = clip_min_x.round() as i32;
-        let clip_min_y = clip_min_y.round() as i32;
-        let clip_max_x = clip_max_x.round() as i32;
-        let clip_max_y = clip_max_y.round() as i32;
-
-        let viewport = Viewport {x: clip_min_x, y: (height * pixels_per_point as usize) as i32 - clip_max_y, width: (clip_max_x - clip_min_x) as usize, height: (clip_max_y - clip_min_y) as usize};
-
+        let viewport = Viewport::new_at_origo(
+            width * pixels_per_point as usize,
+            height * pixels_per_point as usize,
+        );
         let render_states = RenderStates { blend: Some(BlendParameters {
             source_rgb_multiplier: BlendMultiplierType::One,
             destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
