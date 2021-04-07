@@ -67,12 +67,11 @@ impl Window {
             .ok_or(WindowError::WindowCreationError {
                 message: "Unable to get document".to_string(),
             })?;
-        let canvas =
-            document
-                .get_element_by_id("canvas")
-                .ok_or(WindowError::WindowCreationError {
-                    message: "Unable to get canvas, is the id different from 'canvas'?".to_string(),
-                })?;
+        let canvas = document.get_elements_by_tag_name("canvas").item(0).ok_or(
+            WindowError::WindowCreationError {
+                message: "Unable to find a canvas on the document.".to_string(),
+            },
+        )?;
         let canvas: web_sys::HtmlCanvasElement = canvas
             .dyn_into::<web_sys::HtmlCanvasElement>()
             .map_err(|e| WindowError::WindowCreationError {
