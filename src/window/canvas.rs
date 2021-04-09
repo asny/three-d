@@ -711,9 +711,13 @@ struct Input {
 }
 
 impl Input {
-    pub fn new(window: Rc<web_sys::Window>, canvas: Rc<web_sys::HtmlCanvasElement>) -> Rc<RefCell<Self>> {
+    pub fn new(
+        window: Rc<web_sys::Window>,
+        canvas: Rc<web_sys::HtmlCanvasElement>,
+    ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Self {
-            window, canvas,
+            window,
+            canvas,
             render_loop_closure: None,
             render_requested: false,
             events: Vec::new(),
