@@ -17,7 +17,7 @@ pub enum WindowError {
 
 pub struct Window {
     gl: crate::Context,
-    canvas: web_sys::HtmlCanvasElement,
+    canvas: Rc<web_sys::HtmlCanvasElement>,
     window: Rc<web_sys::Window>,
     max_size: Option<(u32, u32)>,
 }
@@ -79,7 +79,7 @@ impl Window {
 
         let window = Window {
             gl: crate::context::Glstruct::new(context),
-            canvas,
+            canvas: Rc::new(canvas),
             window: Rc::new(websys_window),
             max_size: size,
         };
@@ -101,7 +101,7 @@ impl Window {
         let mut accumulated_time = 0.0;
         let mut first_frame = true;
 
-        let input = Input::new(self.window.clone());
+        let input = Input::new(self.window.clone(), self.canvas.clone());
         self.add_resize_event_listener(input.clone())?;
         self.add_mouseenter_event_listener(input.clone())?;
         self.add_mouseleave_event_listener(input.clone())?;
@@ -225,8 +225,8 @@ impl Window {
             input_clone.borrow_mut().request_animation_frame();
         }) as Box<dyn FnMut()>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add resize event listener. Error code: {:?}", e),
@@ -250,8 +250,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -278,8 +278,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -321,8 +321,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -361,8 +361,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add mouse up event listener. Error code: {:?}", e),
@@ -398,8 +398,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -430,8 +430,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add wheel event listener. Error code: {:?}", e),
@@ -479,8 +479,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -517,8 +517,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -583,7 +583,7 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         input
             .borrow()
-            .window
+            .canvas
             .add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -637,7 +637,7 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         input
             .borrow()
-            .window
+            .canvas
             .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key down event listener. Error code: {:?}", e),
@@ -675,8 +675,8 @@ impl Window {
             }
         }) as Box<dyn FnMut(_)>);
         input
-            .borrow_mut()
-            .window
+            .borrow()
+            .canvas
             .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key up event listener. Error code: {:?}", e),
@@ -701,6 +701,7 @@ impl Window {
 
 struct Input {
     window: Rc<web_sys::Window>,
+    canvas: Rc<web_sys::HtmlCanvasElement>,
     render_loop_closure: Option<Closure<dyn FnMut()>>,
     render_requested: bool,
     events: Vec<Event>,
@@ -710,9 +711,9 @@ struct Input {
 }
 
 impl Input {
-    pub fn new(window: Rc<web_sys::Window>) -> Rc<RefCell<Self>> {
+    pub fn new(window: Rc<web_sys::Window>, canvas: Rc<web_sys::HtmlCanvasElement>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Self {
-            window,
+            window, canvas,
             render_loop_closure: None,
             render_requested: false,
             events: Vec::new(),
