@@ -63,13 +63,6 @@ impl Window {
             antialias: settings.multisamples > 0,
         };
 
-        let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
-            event.prevent_default();
-            event.stop_propagation();
-        }) as Box<dyn FnMut(_)>);
-        canvas.set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
-        closure.forget();
-
         let window = Window {
             canvas: Rc::new(canvas),
             window: Rc::new(websys_window),
@@ -115,6 +108,7 @@ impl Window {
         let mut first_frame = true;
 
         let input = Input::new(self.window.clone(), self.canvas.clone());
+        self.add_context_menu_event_listener(input.clone())?;
         self.add_resize_event_listener(input.clone())?;
         self.add_mouseenter_event_listener(input.clone())?;
         self.add_mouseleave_event_listener(input.clone())?;
@@ -230,6 +224,22 @@ impl Window {
         let device_pixel_ratio = self.pixels_per_point();
         self.canvas.set_width(device_pixel_ratio as u32 * width);
         self.canvas.set_height(device_pixel_ratio as u32 * height);
+    }
+
+    fn add_context_menu_event_listener(
+        &mut self,
+        input: Rc<RefCell<Input>>,
+    ) -> Result<(), WindowError> {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
+            event.prevent_default();
+            event.stop_propagation();
+        }) as Box<dyn FnMut(_)>);
+        input
+            .borrow()
+            .canvas
+            .set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
+        closure.forget();
+        Ok(())
     }
 
     fn add_resize_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
