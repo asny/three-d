@@ -53,12 +53,19 @@ impl Window {
         Ok(window)
     }
 
+    ///
+    /// Get the canvas which is rendered to when using [Screen](crate::Screen).
+    /// If there is no canvas specified using the set_canvas function and no default canvas is found, this will return an error.
+    ///
     pub fn canvas(&self) -> Result<&web_sys::HtmlCanvasElement, WindowError> {
         self.canvas.as_ref().ok_or(WindowError::CanvasError {
             message: "Could not find a canvas.".to_string(),
         })
     }
 
+    ///
+    /// Specifies the canvas to write to when using [Screen](crate::Screen). Will overwrite the default canvas if any has been found.
+    ///
     pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> Result<(), WindowError> {
         self.canvas = Some(canvas);
         self.set_canvas_size()?;
