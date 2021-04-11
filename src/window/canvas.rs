@@ -20,6 +20,12 @@ pub struct Window {
     canvas: Option<web_sys::HtmlCanvasElement>,
     window: Rc<web_sys::Window>,
     settings: WindowSettings,
+    closures: Vec<Closure<dyn FnMut()>>,
+    closures_with_event: Vec<Closure<dyn FnMut(web_sys::Event)>>,
+    closures_with_mouseevent: Vec<Closure<dyn FnMut(web_sys::MouseEvent)>>,
+    closures_with_wheelevent: Vec<Closure<dyn FnMut(web_sys::WheelEvent)>>,
+    closures_with_touchevent: Vec<Closure<dyn FnMut(web_sys::TouchEvent)>>,
+    closures_with_keyboardevent: Vec<Closure<dyn FnMut(web_sys::KeyboardEvent)>>
 }
 
 impl Window {
@@ -37,6 +43,12 @@ impl Window {
             canvas: None,
             window: Rc::new(websys_window),
             settings,
+            closures: Vec::new(),
+            closures_with_event: Vec::new(),
+            closures_with_mouseevent: Vec::new(),
+            closures_with_wheelevent: Vec::new(),
+            closures_with_touchevent: Vec::new(),
+            closures_with_keyboardevent: Vec::new()
         };
         if let Some(canvas) = document.get_elements_by_tag_name("canvas").item(0) {
             window.set_canvas(
@@ -234,7 +246,7 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
-        closure.forget();
+        self.closures_with_event.push(closure);
         Ok(())
     }
 
@@ -247,7 +259,7 @@ impl Window {
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add resize event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures.push(closure);
         Ok(())
     }
 
@@ -272,7 +284,7 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
@@ -297,7 +309,7 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
@@ -337,7 +349,7 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
@@ -371,7 +383,7 @@ impl Window {
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add mouse up event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
@@ -408,7 +420,7 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
@@ -434,7 +446,7 @@ impl Window {
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add wheel event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_wheelevent.push(closure);
         Ok(())
     }
 
@@ -483,7 +495,7 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
@@ -518,7 +530,7 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
@@ -580,7 +592,7 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
@@ -628,7 +640,7 @@ impl Window {
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key down event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_keyboardevent.push(closure);
         Ok(())
     }
 
@@ -664,7 +676,7 @@ impl Window {
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key up event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_keyboardevent.push(closure);
         Ok(())
     }
 }
