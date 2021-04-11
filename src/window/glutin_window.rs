@@ -348,8 +348,8 @@ impl Window {
     ///
     /// Returns the graphics context for this window.
     ///
-    pub fn gl(&self) -> crate::Context {
-        self.gl.clone()
+    pub fn gl(&self) -> Result<crate::Context, WindowError> {
+        Ok(self.gl.clone())
     }
 }
 
