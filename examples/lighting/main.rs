@@ -14,7 +14,7 @@ fn main() {
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().aspect(),
+            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )

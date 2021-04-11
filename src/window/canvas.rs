@@ -13,10 +13,11 @@ pub enum WindowError {
     ContextError { message: String },
     PerformanceError { message: String },
     EventListenerError { message: String },
+    CanvasError { message: String },
 }
 
 pub struct Window {
-    canvas: Rc<web_sys::HtmlCanvasElement>,
+    canvas: Option<Rc<web_sys::HtmlCanvasElement>>,
     window: Rc<web_sys::Window>,
     max_size: Option<(u32, u32)>,
     context_options: ContextOptions,
@@ -45,45 +46,49 @@ impl Window {
             .ok_or(WindowError::WindowCreationError {
                 message: "Unable to get document".to_string(),
             })?;
-        let canvas = document.get_elements_by_tag_name("canvas").item(0).ok_or(
-            WindowError::WindowCreationError {
-                message: "Unable to find a canvas on the document.".to_string(),
-            },
-        )?;
-        let canvas: web_sys::HtmlCanvasElement = canvas
-            .dyn_into::<web_sys::HtmlCanvasElement>()
-            .map_err(|e| WindowError::WindowCreationError {
-                message: format!(
-                    "Unable to convert to HtmlCanvasElement. Error code: {:?}",
-                    e
-                ),
-            })?;
+        let canvas = if let Some(canvas) = document.get_elements_by_tag_name("canvas").item(0) {
+            Some(Rc::new(
+                canvas
+                    .dyn_into::<web_sys::HtmlCanvasElement>()
+                    .map_err(|e| WindowError::WindowCreationError {
+                        message: format!(
+                            "Unable to convert to HtmlCanvasElement. Error code: {:?}",
+                            e
+                        ),
+                    })?,
+            ))
+        } else {
+            None
+        };
 
         let context_options = ContextOptions {
             antialias: settings.multisamples > 0,
         };
 
         let window = Window {
-            canvas: Rc::new(canvas),
+            canvas,
             window: Rc::new(websys_window),
             max_size: size,
             context_options,
         };
-        window.set_canvas_size();
+        window.set_canvas_size()?;
         Ok(window)
     }
 
-    pub fn size(&self) -> (usize, usize) {
-        (self.canvas.width() as usize, self.canvas.height() as usize)
+    pub fn size(&self) -> Result<(usize, usize), WindowError> {
+        let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
+            message: "Could not find a canvas.".to_string(),
+        })?;
+        Ok((canvas.width() as usize, canvas.height() as usize))
     }
 
-    pub fn viewport(&self) -> crate::Viewport {
-        let (w, h) = self.size();
-        crate::Viewport::new_at_origo(w, h)
+    pub fn viewport(&self) -> Result<crate::Viewport, WindowError> {
+        let (w, h) = self.size()?;
+        Ok(crate::Viewport::new_at_origo(w, h))
     }
 
     pub fn gl(&self) -> Result<crate::Context, WindowError> {
-        let context = self.canvas
+        let context = self.canvas.as_ref().ok_or(WindowError::CanvasError {message: "Could not find a canvas.".to_string()})?
             .get_context_with_context_options("webgl2", &JsValue::from_serde(&self.context_options).unwrap())
             .map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
             .ok_or(WindowError::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
@@ -107,7 +112,10 @@ impl Window {
         let mut accumulated_time = 0.0;
         let mut first_frame = true;
 
-        let input = Input::new(self.window.clone(), self.canvas.clone());
+        let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
+            message: "Could not find a canvas.".to_string(),
+        })?;
+        let input = Input::new(self.window.clone(), canvas.clone());
         self.add_context_menu_event_listener(input.clone())?;
         self.add_resize_event_listener(input.clone())?;
         self.add_mouseenter_event_listener(input.clone())?;
@@ -130,9 +138,12 @@ impl Window {
             let elapsed_time = now - last_time;
             last_time = now;
             accumulated_time += elapsed_time;
-            self.set_canvas_size();
-            let (width, height) = self.get_canvas_size();
+            self.set_canvas_size().unwrap();
             let device_pixel_ratio = self.pixels_per_point();
+            let (width, height) = (
+                input_clone.borrow().canvas.width() as usize / device_pixel_ratio,
+                input_clone.borrow().canvas.height() as usize / device_pixel_ratio,
+            );
             let frame_input = crate::FrameInput {
                 events: input_clone.borrow().events.clone(),
                 elapsed_time,
@@ -159,13 +170,6 @@ impl Window {
         Ok(())
     }
 
-    fn inner_size(&self) -> (u32, u32) {
-        (
-            self.window.inner_width().unwrap().as_f64().unwrap() as u32,
-            self.window.inner_height().unwrap().as_f64().unwrap() as u32,
-        )
-    }
-
     fn pixels_per_point(&self) -> usize {
         let pixels_per_point = self.window.device_pixel_ratio() as f32;
         if pixels_per_point > 0.0 && pixels_per_point.is_finite() {
@@ -175,16 +179,14 @@ impl Window {
         }
     }
 
-    fn get_canvas_size(&self) -> (usize, usize) {
-        let device_pixel_ratio = self.pixels_per_point();
-        (
-            self.canvas.width() as usize / device_pixel_ratio,
-            self.canvas.height() as usize / device_pixel_ratio,
-        )
-    }
-
-    fn set_canvas_size(&self) {
-        let (window_width, window_height) = self.inner_size();
+    fn set_canvas_size(&self) -> Result<(), WindowError> {
+        let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
+            message: "Could not find a canvas.".to_string(),
+        })?;
+        let (window_width, window_height) = (
+            self.window.inner_width().unwrap().as_f64().unwrap() as u32,
+            self.window.inner_height().unwrap().as_f64().unwrap() as u32,
+        );
         let (mut width, mut height) = if let Some((w, h)) = self.max_size {
             (u32::min(w, window_width), u32::min(h, window_height))
         } else {
@@ -192,7 +194,7 @@ impl Window {
         };
         width = u32::max(width, 2);
         height = u32::max(height, 2);
-        let mut style = self.canvas.style().css_text();
+        let mut style = canvas.style().css_text();
         let w = format!("width:{}px;", width);
         let h = format!("height:{}px;", height);
         if let Some(start) = style.find("width") {
@@ -220,10 +222,11 @@ impl Window {
             style.push_str(&h);
         }
 
-        self.canvas.style().set_css_text(&style);
+        canvas.style().set_css_text(&style);
         let device_pixel_ratio = self.pixels_per_point();
-        self.canvas.set_width(device_pixel_ratio as u32 * width);
-        self.canvas.set_height(device_pixel_ratio as u32 * height);
+        canvas.set_width(device_pixel_ratio as u32 * width);
+        canvas.set_height(device_pixel_ratio as u32 * height);
+        Ok(())
     }
 
     fn add_context_menu_event_listener(

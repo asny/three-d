@@ -327,22 +327,22 @@ impl Window {
     ///
     /// Return the current logical size of the window.
     ///
-    pub fn size(&self) -> (usize, usize) {
+    pub fn size(&self) -> Result<(usize, usize), WindowError> {
         let t: (u32, u32) = self
             .windowed_context
             .window()
             .inner_size()
             .to_logical::<f64>(self.windowed_context.window().scale_factor())
             .into();
-        (t.0 as usize, t.1 as usize)
+        Ok((t.0 as usize, t.1 as usize))
     }
 
     ///
     /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
     ///
-    pub fn viewport(&self) -> Viewport {
+    pub fn viewport(&self) -> Result<Viewport, WindowError> {
         let (w, h): (u32, u32) = self.windowed_context.window().inner_size().into();
-        Viewport::new_at_origo(w as usize, h as usize)
+        Ok(Viewport::new_at_origo(w as usize, h as usize))
     }
 
     ///

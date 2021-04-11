@@ -14,7 +14,7 @@ fn main() {
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             1.2,
-            1.2 * window.viewport().aspect(),
+            1.2 * window.viewport().unwrap().aspect(),
             10.0,
         )
         .unwrap(),
