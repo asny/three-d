@@ -25,7 +25,7 @@ pub struct Window {
     closures_with_mouseevent: Vec<Closure<dyn FnMut(web_sys::MouseEvent)>>,
     closures_with_wheelevent: Vec<Closure<dyn FnMut(web_sys::WheelEvent)>>,
     closures_with_touchevent: Vec<Closure<dyn FnMut(web_sys::TouchEvent)>>,
-    closures_with_keyboardevent: Vec<Closure<dyn FnMut(web_sys::KeyboardEvent)>>
+    closures_with_keyboardevent: Vec<Closure<dyn FnMut(web_sys::KeyboardEvent)>>,
 }
 
 impl Window {
@@ -48,7 +48,7 @@ impl Window {
             closures_with_mouseevent: Vec::new(),
             closures_with_wheelevent: Vec::new(),
             closures_with_touchevent: Vec::new(),
-            closures_with_keyboardevent: Vec::new()
+            closures_with_keyboardevent: Vec::new(),
         };
         if let Some(canvas) = document.get_elements_by_tag_name("canvas").item(0) {
             window.set_canvas(
