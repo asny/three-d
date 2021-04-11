@@ -3,7 +3,12 @@ use three_d::*;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let window = Window::new("Wireframe", Some((1280, 720))).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Wireframe!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
     let gl = window.gl().unwrap();
 
     // Renderer

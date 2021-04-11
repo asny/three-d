@@ -4,7 +4,12 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     // Create a window (a canvas on web)
-    let window = Window::new("Triangle", Some((1280, 720))).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Triangle!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
 
     // Get the graphics context from the window
     let context = window.gl().unwrap();

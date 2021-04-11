@@ -19,25 +19,11 @@ pub enum WindowError {
 pub struct Window {
     canvas: Option<web_sys::HtmlCanvasElement>,
     window: Rc<web_sys::Window>,
-    max_size: Option<(u32, u32)>,
     settings: WindowSettings,
 }
 
-#[derive(Serialize)]
-struct ContextOptions {
-    antialias: bool,
-}
-
 impl Window {
-    pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError> {
-        Self::new_with_settings(_title, size, WindowSettings::default())
-    }
-
-    pub fn new_with_settings(
-        _title: &str,
-        size: Option<(u32, u32)>,
-        settings: WindowSettings,
-    ) -> Result<Window, WindowError> {
+    pub fn new(settings: WindowSettings) -> Result<Window, WindowError> {
         let websys_window = web_sys::window().ok_or(WindowError::WindowCreationError {
             message: "Unable to create web window".to_string(),
         })?;
@@ -50,7 +36,6 @@ impl Window {
         let mut window = Window {
             canvas: None,
             window: Rc::new(websys_window),
-            max_size: size,
             settings,
         };
         if let Some(canvas) = document.get_elements_by_tag_name("canvas").item(0) {
@@ -193,7 +178,7 @@ impl Window {
             self.window.inner_width().unwrap().as_f64().unwrap() as u32,
             self.window.inner_height().unwrap().as_f64().unwrap() as u32,
         );
-        let (mut width, mut height) = if let Some((w, h)) = self.max_size {
+        let (mut width, mut height) = if let Some((w, h)) = self.settings.max_size {
             (u32::min(w, window_width), u32::min(h, window_height))
         } else {
             (window_width, window_height)
@@ -675,6 +660,11 @@ impl Window {
         closure.forget();
         Ok(())
     }
+}
+
+#[derive(Serialize)]
+struct ContextOptions {
+    antialias: bool,
 }
 
 struct Input {

@@ -41,25 +41,14 @@ pub struct Window {
 
 impl Window {
     ///
-    /// Constructs a new window with the given title and specified maximum size.
+    /// Constructs a new window with the given settings.
     ///
-    pub fn new(title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError> {
-        Self::new_with_settings(title, size, WindowSettings::default())
-    }
-
-    ///
-    /// Constructs a new window with the given title, maximum size and settings.
-    ///
-    pub fn new_with_settings(
-        title: &str,
-        size: Option<(u32, u32)>,
-        mut settings: WindowSettings,
-    ) -> Result<Window, WindowError> {
+    pub fn new(mut settings: WindowSettings) -> Result<Window, WindowError> {
         let event_loop = EventLoop::new();
-        let mut wc = Self::new_windowed_context(title, size, &settings, &event_loop);
+        let mut wc = Self::new_windowed_context(&settings, &event_loop);
         if wc.is_err() {
             settings.multisamples = 0;
-            wc = Self::new_windowed_context(title, size, &settings, &event_loop);
+            wc = Self::new_windowed_context(&settings, &event_loop);
         }
 
         let windowed_context = unsafe { wc?.make_current().unwrap() };
@@ -74,24 +63,22 @@ impl Window {
     }
 
     fn new_windowed_context(
-        title: &str,
-        size: Option<(u32, u32)>,
         settings: &WindowSettings,
         event_loop: &EventLoop<()>,
     ) -> Result<WindowedContext<NotCurrent>, WindowError> {
         if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
             return Err(WindowError::InvalidNumberOfSamples);
         }
-        let window_builder = if let Some((width, height)) = size {
+        let window_builder = if let Some((width, height)) = settings.max_size {
             WindowBuilder::new()
-                .with_title(title)
+                .with_title(&settings.title)
                 .with_min_inner_size(dpi::LogicalSize::new(2, 2))
                 .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
                 .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
         } else {
             WindowBuilder::new()
                 .with_min_inner_size(dpi::LogicalSize::new(2, 2))
-                .with_title(title)
+                .with_title(&settings.title)
                 .with_maximized(true)
         };
 
