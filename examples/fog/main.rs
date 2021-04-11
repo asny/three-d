@@ -4,7 +4,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let window = Window::new("Fog", Some((1280, 720))).unwrap();
-    let context = window.gl();
+    let context = window.gl().unwrap();
 
     // Renderer
     let mut pipeline = PhongForwardPipeline::new(&context).unwrap();

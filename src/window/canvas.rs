@@ -16,10 +16,10 @@ pub enum WindowError {
 }
 
 pub struct Window {
-    gl: crate::Context,
     canvas: Rc<web_sys::HtmlCanvasElement>,
     window: Rc<web_sys::Window>,
     max_size: Option<(u32, u32)>,
+    context_options: ContextOptions,
 }
 
 #[derive(Serialize)]
@@ -62,13 +62,6 @@ impl Window {
         let context_options = ContextOptions {
             antialias: settings.multisamples > 0,
         };
-        let context = canvas
-            .get_context_with_context_options("webgl2", &JsValue::from_serde(&context_options).unwrap())
-            .map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
-            .ok_or(WindowError::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
-            .dyn_into::<WebGl2RenderingContext>().map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
-        context.get_extension("EXT_color_buffer_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
-        context.get_extension("OES_texture_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
 
         let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
             event.prevent_default();
@@ -78,10 +71,10 @@ impl Window {
         closure.forget();
 
         let window = Window {
-            gl: crate::context::Glstruct::new(context),
             canvas: Rc::new(canvas),
             window: Rc::new(websys_window),
             max_size: size,
+            context_options,
         };
         window.set_canvas_size();
         Ok(window)
@@ -694,8 +687,15 @@ impl Window {
         crate::Viewport::new_at_origo(w, h)
     }
 
-    pub fn gl(&self) -> crate::Context {
-        self.gl.clone()
+    pub fn gl(&self) -> Result<crate::Context, WindowError> {
+        let context = self.canvas
+            .get_context_with_context_options("webgl2", &JsValue::from_serde(&self.context_options).unwrap())
+            .map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
+            .ok_or(WindowError::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
+            .dyn_into::<WebGl2RenderingContext>().map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
+        context.get_extension("EXT_color_buffer_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
+        context.get_extension("OES_texture_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
+        Ok(crate::context::Glstruct::new(context))
     }
 }
 

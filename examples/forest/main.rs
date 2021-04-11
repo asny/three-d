@@ -4,7 +4,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let window = Window::new("Forest", Some((1280, 720))).unwrap();
-    let context = window.gl();
+    let context = window.gl().unwrap();
 
     let mut camera = CameraControl::new(
         Camera::new_perspective(

@@ -7,7 +7,7 @@ fn main() {
     let window = Window::new("Triangle", Some((1280, 720))).unwrap();
 
     // Get the graphics context from the window
-    let context = window.gl();
+    let context = window.gl().unwrap();
 
     // Create a camera
     let mut camera = Camera::new_perspective(

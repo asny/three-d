@@ -4,7 +4,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let window = Window::new("Wireframe", Some((1280, 720))).unwrap();
-    let gl = window.gl();
+    let gl = window.gl().unwrap();
 
     // Renderer
     let scene_center = vec3(0.0, 2.0, 0.0);
