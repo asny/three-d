@@ -17,7 +17,12 @@ pub struct PhongMesh {
 }
 
 impl Pickable for PhongMesh {
-    fn pick(&self, render_states: RenderStates, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
+    fn pick(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
         self.mesh.pick(render_states, viewport, camera)
     }
 }
