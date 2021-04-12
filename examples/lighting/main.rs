@@ -5,6 +5,7 @@ fn main() {
 
     let window = Window::new(WindowSettings {
         title: "Lighting!".to_string(),
+        min_size: (512, 512),
         max_size: Some((1280, 720)),
         ..Default::default()
     })

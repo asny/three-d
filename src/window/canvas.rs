@@ -202,8 +202,8 @@ impl Window {
         } else {
             (window_width, window_height)
         };
-        width = u32::max(width, 2);
-        height = u32::max(height, 2);
+        width = u32::max(width, self.settings.min_size.0);
+        height = u32::max(height, self.settings.min_size.1);
         let mut style = canvas.style().css_text();
         let w = format!("width:{}px;", width);
         let h = format!("height:{}px;", height);

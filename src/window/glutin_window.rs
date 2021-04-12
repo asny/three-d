@@ -72,12 +72,18 @@ impl Window {
         let window_builder = if let Some((width, height)) = settings.max_size {
             WindowBuilder::new()
                 .with_title(&settings.title)
-                .with_min_inner_size(dpi::LogicalSize::new(2, 2))
+                .with_min_inner_size(dpi::LogicalSize::new(
+                    settings.min_size.0,
+                    settings.min_size.1,
+                ))
                 .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
                 .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
         } else {
             WindowBuilder::new()
-                .with_min_inner_size(dpi::LogicalSize::new(2, 2))
+                .with_min_inner_size(dpi::LogicalSize::new(
+                    settings.min_size.0,
+                    settings.min_size.1,
+                ))
                 .with_title(&settings.title)
                 .with_maximized(true)
         };
