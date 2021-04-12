@@ -3,8 +3,14 @@ use three_d::*;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let window = Window::new("Lighting!", Some((1280, 720))).unwrap();
-    let context = window.gl();
+    let window = Window::new(WindowSettings {
+        title: "Lighting!".to_string(),
+        min_size: (512, 512),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
+    let context = window.gl().unwrap();
 
     let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
     let mut camera = CameraControl::new(
@@ -14,7 +20,7 @@ fn main() {
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().aspect(),
+            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -223,17 +229,13 @@ fn main() {
                         })
                         .unwrap();
 
-                    let viewport_geometry_pass = Viewport::new_at_origo(
-                        frame_input.viewport.width - panel_width,
-                        frame_input.viewport.height,
-                    );
-                    let viewport_light_pass = Viewport {
+                    let viewport = Viewport {
                         x: panel_width as i32,
                         y: 0,
-                        width: viewport_geometry_pass.width,
-                        height: viewport_geometry_pass.height,
+                        width: frame_input.viewport.width - panel_width,
+                        height: frame_input.viewport.height,
                     };
-                    change |= camera.set_aspect(viewport_geometry_pass.aspect()).unwrap();
+                    change |= camera.set_aspect(viewport.aspect()).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -320,38 +322,34 @@ fn main() {
                     // Geometry pass
                     if change {
                         pipeline
-                            .geometry_pass(
-                                viewport_geometry_pass.width,
-                                viewport_geometry_pass.height,
-                                &|| {
-                                    monkey.render_geometry(
-                                        RenderStates {
-                                            cull: CullType::Back,
-                                            ..Default::default()
-                                        },
-                                        viewport_geometry_pass,
-                                        &Mat4::identity(),
-                                        &camera,
-                                    )?;
-                                    plane.render_geometry(
-                                        RenderStates {
-                                            cull: CullType::Back,
-                                            ..Default::default()
-                                        },
-                                        viewport_geometry_pass,
-                                        &Mat4::identity(),
-                                        &camera,
-                                    )?;
-                                    Ok(())
-                                },
-                            )
+                            .geometry_pass(viewport.width, viewport.height, &|| {
+                                monkey.render_geometry(
+                                    RenderStates {
+                                        cull: CullType::Back,
+                                        ..Default::default()
+                                    },
+                                    Viewport::new_at_origo(viewport.width, viewport.height),
+                                    &Mat4::identity(),
+                                    &camera,
+                                )?;
+                                plane.render_geometry(
+                                    RenderStates {
+                                        cull: CullType::Back,
+                                        ..Default::default()
+                                    },
+                                    Viewport::new_at_origo(viewport.width, viewport.height),
+                                    &Mat4::identity(),
+                                    &camera,
+                                )?;
+                                Ok(())
+                            })
                             .unwrap();
                     }
 
                     // Light pass
                     Screen::write(&context, &ClearState::default(), || {
                         pipeline.light_pass(
-                            viewport_light_pass,
+                            viewport,
                             &camera,
                             if ambient_enabled {
                                 Some(&ambient_light)

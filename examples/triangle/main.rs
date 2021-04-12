@@ -4,10 +4,15 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     // Create a window (a canvas on web)
-    let window = Window::new("Triangle", Some((1280, 720))).unwrap();
+    let window = Window::new(WindowSettings {
+        title: "Triangle!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
 
     // Get the graphics context from the window
-    let context = window.gl();
+    let context = window.gl().unwrap();
 
     // Create a camera
     let mut camera = Camera::new_perspective(
@@ -16,7 +21,7 @@ fn main() {
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
-        window.viewport().aspect(),
+        window.viewport().unwrap().aspect(),
         0.1,
         10.0,
     )

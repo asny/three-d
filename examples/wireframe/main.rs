@@ -3,8 +3,13 @@ use three_d::*;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let window = Window::new("Wireframe", Some((1280, 720))).unwrap();
-    let gl = window.gl();
+    let window = Window::new(WindowSettings {
+        title: "Wireframe!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
+    let gl = window.gl().unwrap();
 
     // Renderer
     let scene_center = vec3(0.0, 2.0, 0.0);
@@ -17,7 +22,7 @@ fn main() {
             scene_center,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().aspect(),
+            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )

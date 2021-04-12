@@ -3,8 +3,13 @@ use three_d::*;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let window = Window::new("Mandelbrot", Some((1280, 720))).unwrap();
-    let context = window.gl();
+    let window = Window::new(WindowSettings {
+        title: "Mandelbrot!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
+    let context = window.gl().unwrap();
 
     // Renderer
     let mut camera = CameraControl::new(
@@ -14,7 +19,7 @@ fn main() {
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             1.2,
-            1.2 * window.viewport().aspect(),
+            1.2 * window.viewport().unwrap().aspect(),
             10.0,
         )
         .unwrap(),

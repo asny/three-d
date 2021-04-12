@@ -4,8 +4,13 @@ use three_d::*;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let window = Window::new("Fireworks", Some((1280, 720))).unwrap();
-    let context = window.gl();
+    let window = Window::new(WindowSettings {
+        title: "Fireworks!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
+    let context = window.gl().unwrap();
 
     let mut camera = CameraControl::new(
         Camera::new_perspective(
@@ -14,7 +19,7 @@ fn main() {
             vec3(0.0, 30.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().aspect(),
+            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )

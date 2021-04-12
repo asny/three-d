@@ -13,52 +13,23 @@ pub enum WindowError {
     ContextError { message: String },
     PerformanceError { message: String },
     EventListenerError { message: String },
-}
-
-struct FrameRenderer {
-    pub render_loop_closure: Rc<RefCell<Option<Closure<dyn FnMut()>>>>,
-    pub render_requested: bool,
-}
-
-impl FrameRenderer {
-    pub fn new() -> Self {
-        Self {
-            render_loop_closure: Rc::new(RefCell::new(None)),
-            render_requested: false,
-        }
-    }
-
-    fn render_frame(&mut self) {
-        if !self.render_requested {
-            self.render_requested = true;
-            request_animation_frame(self.render_loop_closure.borrow().as_ref().unwrap());
-        }
-    }
+    CanvasError { message: String },
 }
 
 pub struct Window {
-    gl: crate::Context,
-    canvas: web_sys::HtmlCanvasElement,
-    window: web_sys::Window,
-    max_size: Option<(u32, u32)>,
-    frame_renderer: Rc<RefCell<FrameRenderer>>,
-}
-
-#[derive(Serialize)]
-struct ContextOptions {
-    antialias: bool,
+    canvas: Option<web_sys::HtmlCanvasElement>,
+    window: Rc<web_sys::Window>,
+    settings: WindowSettings,
+    closures: Vec<Closure<dyn FnMut()>>,
+    closures_with_event: Vec<Closure<dyn FnMut(web_sys::Event)>>,
+    closures_with_mouseevent: Vec<Closure<dyn FnMut(web_sys::MouseEvent)>>,
+    closures_with_wheelevent: Vec<Closure<dyn FnMut(web_sys::WheelEvent)>>,
+    closures_with_touchevent: Vec<Closure<dyn FnMut(web_sys::TouchEvent)>>,
+    closures_with_keyboardevent: Vec<Closure<dyn FnMut(web_sys::KeyboardEvent)>>,
 }
 
 impl Window {
-    pub fn new(_title: &str, size: Option<(u32, u32)>) -> Result<Window, WindowError> {
-        Self::new_with_settings(_title, size, WindowSettings::default())
-    }
-
-    pub fn new_with_settings(
-        _title: &str,
-        size: Option<(u32, u32)>,
-        settings: WindowSettings,
-    ) -> Result<Window, WindowError> {
+    pub fn new(settings: WindowSettings) -> Result<Window, WindowError> {
         let websys_window = web_sys::window().ok_or(WindowError::WindowCreationError {
             message: "Unable to create web window".to_string(),
         })?;
@@ -67,57 +38,82 @@ impl Window {
             .ok_or(WindowError::WindowCreationError {
                 message: "Unable to get document".to_string(),
             })?;
-        let canvas =
-            document
-                .get_element_by_id("canvas")
-                .ok_or(WindowError::WindowCreationError {
-                    message: "Unable to get canvas, is the id different from 'canvas'?".to_string(),
-                })?;
-        let canvas: web_sys::HtmlCanvasElement = canvas
-            .dyn_into::<web_sys::HtmlCanvasElement>()
-            .map_err(|e| WindowError::WindowCreationError {
-                message: format!(
-                    "Unable to convert to HtmlCanvasElement. Error code: {:?}",
-                    e
-                ),
-            })?;
 
-        let context_options = ContextOptions {
-            antialias: settings.multisamples > 0,
+        let mut window = Window {
+            canvas: None,
+            window: Rc::new(websys_window),
+            settings,
+            closures: Vec::new(),
+            closures_with_event: Vec::new(),
+            closures_with_mouseevent: Vec::new(),
+            closures_with_wheelevent: Vec::new(),
+            closures_with_touchevent: Vec::new(),
+            closures_with_keyboardevent: Vec::new(),
         };
-        let context = canvas
+        if let Some(canvas) = document.get_elements_by_tag_name("canvas").item(0) {
+            window.set_canvas(
+                canvas
+                    .dyn_into::<web_sys::HtmlCanvasElement>()
+                    .map_err(|e| WindowError::WindowCreationError {
+                        message: format!(
+                            "Unable to convert to HtmlCanvasElement. Error code: {:?}",
+                            e
+                        ),
+                    })?,
+            )?;
+        };
+        Ok(window)
+    }
+
+    ///
+    /// Get the canvas which is rendered to when using [Screen](crate::Screen).
+    /// If there is no canvas specified using the set_canvas function and no default canvas is found, this will return an error.
+    ///
+    pub fn canvas(&self) -> Result<&web_sys::HtmlCanvasElement, WindowError> {
+        self.canvas.as_ref().ok_or(WindowError::CanvasError {
+            message: "Could not find a canvas.".to_string(),
+        })
+    }
+
+    ///
+    /// Specifies the canvas to write to when using [Screen](crate::Screen). Will overwrite the default canvas if any has been found.
+    ///
+    pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> Result<(), WindowError> {
+        self.canvas = Some(canvas);
+        self.set_canvas_size()?;
+        Ok(())
+    }
+
+    pub fn size(&self) -> Result<(usize, usize), WindowError> {
+        let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
+            message: "Could not find a canvas.".to_string(),
+        })?;
+        Ok((canvas.width() as usize, canvas.height() as usize))
+    }
+
+    pub fn viewport(&self) -> Result<crate::Viewport, WindowError> {
+        let (w, h) = self.size()?;
+        Ok(crate::Viewport::new_at_origo(w, h))
+    }
+
+    pub fn gl(&self) -> Result<crate::Context, WindowError> {
+        let context_options = ContextOptions {
+            antialias: self.settings.multisamples > 0,
+        };
+        let context = self.canvas.as_ref().ok_or(WindowError::CanvasError {message: "Could not find a canvas.".to_string()})?
             .get_context_with_context_options("webgl2", &JsValue::from_serde(&context_options).unwrap())
             .map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
             .ok_or(WindowError::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
             .dyn_into::<WebGl2RenderingContext>().map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
         context.get_extension("EXT_color_buffer_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
         context.get_extension("OES_texture_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
-
-        let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
-            event.prevent_default();
-            event.stop_propagation();
-        }) as Box<dyn FnMut(_)>);
-        canvas.set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
-        closure.forget();
-
-        let window = Window {
-            gl: crate::context::Glstruct::new(context),
-            canvas,
-            window: websys_window,
-            max_size: size,
-            frame_renderer: Rc::new(RefCell::new(FrameRenderer::new())),
-        };
-        window.set_canvas_size();
-        Ok(window)
+        Ok(crate::context::Glstruct::new(context))
     }
 
-    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), WindowError>
+    pub fn render_loop<F: 'static>(mut self, mut callback: F) -> Result<(), WindowError>
     where
         F: FnMut(FrameInput) -> FrameOutput,
     {
-        let g = self.frame_renderer.borrow().render_loop_closure.clone();
-
-        let events = Rc::new(RefCell::new(Vec::new()));
         let performance = self
             .window
             .performance()
@@ -127,78 +123,39 @@ impl Window {
         let mut last_time = performance.now();
         let mut accumulated_time = 0.0;
         let mut first_frame = true;
-        let last_position = Rc::new(RefCell::new(None));
-        let last_zoom = Rc::new(RefCell::new(None));
-        let modifiers = Rc::new(RefCell::new(Modifiers::default()));
 
-        self.add_resize_event_listener(self.frame_renderer.clone())?;
-        self.add_mouseenter_event_listener(events.clone(), self.frame_renderer.clone())?;
-        self.add_mouseleave_event_listener(events.clone(), self.frame_renderer.clone())?;
-        self.add_mousedown_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_touchstart_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            last_position.clone(),
-            last_zoom.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_mouseup_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_touchend_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            last_position.clone(),
-            last_zoom.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_mousemove_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            last_position.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_touchmove_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            last_position.clone(),
-            last_zoom.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_mousewheel_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_key_down_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            modifiers.clone(),
-        )?;
-        self.add_key_up_event_listener(
-            events.clone(),
-            self.frame_renderer.clone(),
-            modifiers.clone(),
-        )?;
+        let input = Input::new(self.window.clone());
+        self.add_context_menu_event_listener()?;
+        self.add_resize_event_listener(input.clone())?;
+        self.add_mouseenter_event_listener(input.clone())?;
+        self.add_mouseleave_event_listener(input.clone())?;
+        self.add_mousedown_event_listener(input.clone())?;
+        self.add_mouseup_event_listener(input.clone())?;
+        self.add_mousemove_event_listener(input.clone())?;
+        self.add_mousewheel_event_listener(input.clone())?;
+        self.add_touchstart_event_listener(input.clone())?;
+        self.add_touchend_event_listener(input.clone())?;
+        self.add_touchmove_event_listener(input.clone())?;
+        self.add_key_down_event_listener(input.clone())?;
+        self.add_key_up_event_listener(input.clone())?;
 
-        *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-            self.frame_renderer.borrow_mut().render_requested = false;
+        let input_clone = input.clone();
+        input.borrow_mut().render_loop_closure = Some(Closure::wrap(Box::new(move || {
+            input_clone.borrow_mut().render_requested = false;
 
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
             accumulated_time += elapsed_time;
-            self.set_canvas_size();
-            let (width, height) = self.get_canvas_size();
+            self.set_canvas_size().unwrap();
             let device_pixel_ratio = self.pixels_per_point();
+            let canvas = self.canvas.as_ref().unwrap();
+            let (width, height) = (
+                canvas.width() as usize / device_pixel_ratio,
+                canvas.height() as usize / device_pixel_ratio,
+            );
             let frame_input = crate::FrameInput {
-                events: (*events).borrow().clone(),
+                events: input_clone.borrow().events.clone(),
                 elapsed_time,
                 accumulated_time,
                 viewport: crate::Viewport::new_at_origo(
@@ -212,22 +169,15 @@ impl Window {
             };
             first_frame = false;
             let frame_output = callback(frame_input);
-            &(*events).borrow_mut().clear();
+            input_clone.borrow_mut().events.clear();
 
             if !frame_output.wait_next_event {
-                self.frame_renderer.borrow_mut().render_frame();
+                input_clone.borrow_mut().request_animation_frame();
             }
-        }) as Box<dyn FnMut()>));
-
-        request_animation_frame(g.borrow().as_ref().unwrap());
+        })
+            as Box<dyn FnMut()>));
+        input.borrow_mut().request_animation_frame();
         Ok(())
-    }
-
-    fn inner_size(&self) -> (u32, u32) {
-        (
-            self.window.inner_width().unwrap().as_f64().unwrap() as u32,
-            self.window.inner_height().unwrap().as_f64().unwrap() as u32,
-        )
     }
 
     fn pixels_per_point(&self) -> f64 {
@@ -239,24 +189,22 @@ impl Window {
         }
     }
 
-    fn get_canvas_size(&self) -> (usize, usize) {
-        let device_pixel_ratio = self.pixels_per_point();
-        (
-            (self.canvas.width() as f64 / device_pixel_ratio) as usize,
-            (self.canvas.height() as f64 / device_pixel_ratio) as usize,
-        )
-    }
-
-    fn set_canvas_size(&self) {
-        let (window_width, window_height) = self.inner_size();
-        let (mut width, mut height) = if let Some((w, h)) = self.max_size {
+    fn set_canvas_size(&self) -> Result<(), WindowError> {
+        let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
+            message: "Could not find a canvas.".to_string(),
+        })?;
+        let (window_width, window_height) = (
+            self.window.inner_width().unwrap().as_f64().unwrap() as u32,
+            self.window.inner_height().unwrap().as_f64().unwrap() as u32,
+        );
+        let (mut width, mut height) = if let Some((w, h)) = self.settings.max_size {
             (u32::min(w, window_width), u32::min(h, window_height))
         } else {
             (window_width, window_height)
         };
-        width = u32::max(width, 2);
-        height = u32::max(height, 2);
-        let mut style = self.canvas.style().css_text();
+        width = u32::max(width, self.settings.min_size.0);
+        height = u32::max(height, self.settings.min_size.1);
+        let mut style = canvas.style().css_text();
         let w = format!("width:{}px;", width);
         let h = format!("height:{}px;", height);
         if let Some(start) = style.find("width") {
@@ -284,44 +232,53 @@ impl Window {
             style.push_str(&h);
         }
 
-        self.canvas.style().set_css_text(&style);
+        canvas.style().set_css_text(&style);
         let device_pixel_ratio = self.pixels_per_point();
         self.canvas
             .set_width((device_pixel_ratio * width as f64) as u32);
         self.canvas
             .set_height((device_pixel_ratio * height as f64) as u32);
+        Ok(())
     }
 
-    fn add_resize_event_listener(
-        &self,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-    ) -> Result<(), WindowError> {
+    fn add_context_menu_event_listener(&mut self) -> Result<(), WindowError> {
+        let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
+            event.prevent_default();
+            event.stop_propagation();
+        }) as Box<dyn FnMut(_)>);
+        self.canvas()?
+            .set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
+        self.closures_with_event.push(closure);
+        Ok(())
+    }
+
+    fn add_resize_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move || {
-            frame_renderer.borrow_mut().render_frame();
+            input.borrow_mut().request_animation_frame();
         }) as Box<dyn FnMut()>);
-        self.window
+        self.canvas()?
             .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add resize event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures.push(closure);
         Ok(())
     }
 
     fn add_mouseleave_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                events.borrow_mut().push(Event::MouseLeave);
+                input.borrow_mut().events.push(Event::MouseLeave);
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -329,24 +286,24 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
     fn add_mouseenter_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                events.borrow_mut().push(Event::MouseEnter);
+                input.borrow_mut().events.push(Event::MouseEnter);
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -354,15 +311,13 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
     fn add_mousedown_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        modifiers: Rc<RefCell<Modifiers>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
@@ -373,25 +328,22 @@ impl Window {
                     _ => None,
                 };
                 if let Some(button) = button {
-                    (*events).borrow_mut().push(Event::MouseClick {
+                    let modifiers = input.borrow().modifiers;
+                    input.borrow_mut().events.push(Event::MouseClick {
                         state: State::Pressed,
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
-                        modifiers: Modifiers {
-                            ctrl: modifiers.borrow().ctrl,
-                            shift: modifiers.borrow().shift,
-                            alt: modifiers.borrow().alt,
-                            command: modifiers.borrow().command,
-                        },
+                        modifiers,
                         handled: false,
                     });
                 };
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -399,16 +351,11 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
-    fn add_mouseup_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        modifiers: Rc<RefCell<Modifiers>>,
-    ) -> Result<(), WindowError> {
+    fn add_mouseup_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let button = match event.button() {
@@ -418,60 +365,56 @@ impl Window {
                     _ => None,
                 };
                 if let Some(button) = button {
-                    (*events).borrow_mut().push(Event::MouseClick {
+                    let modifiers = input.borrow().modifiers;
+                    input.borrow_mut().events.push(Event::MouseClick {
                         state: State::Released,
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
-                        modifiers: Modifiers {
-                            ctrl: modifiers.borrow().ctrl,
-                            shift: modifiers.borrow().shift,
-                            alt: modifiers.borrow().alt,
-                            command: modifiers.borrow().command,
-                        },
+                        modifiers,
                         handled: false,
                     });
                 };
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add mouse up event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
     fn add_mousemove_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        last_position: Rc<RefCell<Option<(i32, i32)>>>,
-        modifiers: Rc<RefCell<Modifiers>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                let delta = if let Some((x, y)) = *last_position.borrow() {
+                let delta = if let Some((x, y)) = input.borrow().last_position {
                     ((event.offset_x() - x) as f64, (event.offset_y() - y) as f64)
                 } else {
                     (0.0, 0.0)
                 };
-                (*events).borrow_mut().push(Event::MouseMotion {
+                let modifiers = input.borrow().modifiers;
+                input.borrow_mut().events.push(Event::MouseMotion {
                     delta,
                     position: (event.offset_x() as f64, event.offset_y() as f64),
-                    modifiers: *modifiers.borrow(),
+                    modifiers,
                     handled: false,
                 });
-                *last_position.borrow_mut() = Some((event.offset_x(), event.offset_y()));
+                input.borrow_mut().last_position = Some((event.offset_x(), event.offset_y()));
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -479,59 +422,54 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
     fn add_mousewheel_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        modifiers: Rc<RefCell<Modifiers>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
-                (*events).borrow_mut().push(Event::MouseWheel {
+                let modifiers = input.borrow().modifiers;
+                input.borrow_mut().events.push(Event::MouseWheel {
                     delta: (event.delta_x() as f64, event.delta_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64),
-                    modifiers: *modifiers.borrow(),
+                    modifiers,
                     handled: false,
                 });
                 event.stop_propagation();
-                event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add wheel event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_wheelevent.push(closure);
         Ok(())
     }
 
     fn add_touchstart_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        last_position: Rc<RefCell<Option<(i32, i32)>>>,
-        last_zoom: Rc<RefCell<Option<f64>>>,
-        modifiers: Rc<RefCell<Modifiers>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
-                    (*events).borrow_mut().push(Event::MouseClick {
+                    let modifiers = input.borrow().modifiers;
+                    input.borrow_mut().events.push(Event::MouseClick {
                         state: State::Pressed,
                         button: MouseButton::Left,
                         position: (touch.page_x() as f64, touch.page_y() as f64),
-                        modifiers: *modifiers.borrow(),
+                        modifiers,
                         handled: false,
                     });
-                    *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
-                    *last_zoom.borrow_mut() = None;
+                    input.borrow_mut().last_position = Some((touch.page_x(), touch.page_y()));
+                    input.borrow_mut().last_zoom = None;
                 } else if event.touches().length() == 2 {
                     let touch0 = event.touches().item(0).unwrap();
                     let touch1 = event.touches().item(1).unwrap();
@@ -539,18 +477,19 @@ impl Window {
                         f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2)
                             + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2),
                     );
-                    *last_zoom.borrow_mut() = Some(zoom);
-                    *last_position.borrow_mut() = None;
+                    input.borrow_mut().last_zoom = Some(zoom);
+                    input.borrow_mut().last_position = None;
                 } else {
-                    *last_zoom.borrow_mut() = None;
-                    *last_position.borrow_mut() = None;
+                    input.borrow_mut().last_zoom = None;
+                    input.borrow_mut().last_position = None;
                 }
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -558,36 +497,34 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
     fn add_touchend_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        last_position: Rc<RefCell<Option<(i32, i32)>>>,
-        last_zoom: Rc<RefCell<Option<f64>>>,
-        modifiers: Rc<RefCell<Modifiers>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let touch = event.touches().item(0).unwrap();
-                *last_position.borrow_mut() = None;
-                *last_zoom.borrow_mut() = None;
-                (*events).borrow_mut().push(Event::MouseClick {
+                input.borrow_mut().last_position = None;
+                input.borrow_mut().last_zoom = None;
+                let modifiers = input.borrow().modifiers;
+                input.borrow_mut().events.push(Event::MouseClick {
                     state: State::Released,
                     button: MouseButton::Left,
                     position: (touch.page_x() as f64, touch.page_y() as f64),
-                    modifiers: *modifiers.borrow(),
+                    modifiers,
                     handled: false,
                 });
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -595,32 +532,29 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
     fn add_touchmove_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        last_position: Rc<RefCell<Option<(i32, i32)>>>,
-        last_zoom: Rc<RefCell<Option<f64>>>,
-        modifiers: Rc<RefCell<Modifiers>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
-                    if let Some((x, y)) = *last_position.borrow() {
-                        (*events).borrow_mut().push(Event::MouseMotion {
+                    if let Some((x, y)) = input.borrow().last_position {
+                        let modifiers = input.borrow().modifiers;
+                        input.borrow_mut().events.push(Event::MouseMotion {
                             delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64),
                             position: (touch.page_x() as f64, touch.page_y() as f64),
-                            modifiers: *modifiers.borrow(),
+                            modifiers,
                             handled: false,
                         });
                     }
-                    *last_position.borrow_mut() = Some((touch.page_x(), touch.page_y()));
-                    *last_zoom.borrow_mut() = None;
+                    input.borrow_mut().last_position = Some((touch.page_x(), touch.page_y()));
+                    input.borrow_mut().last_zoom = None;
                 } else if event.touches().length() == 2 {
                     let touch0 = event.touches().item(0).unwrap();
                     let touch1 = event.touches().item(1).unwrap();
@@ -628,29 +562,31 @@ impl Window {
                         f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2)
                             + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2),
                     );
-                    if let Some(old_zoom) = *last_zoom.borrow() {
-                        (*events).borrow_mut().push(Event::MouseWheel {
+                    if let Some(old_zoom) = input.borrow().last_zoom {
+                        let modifiers = input.borrow().modifiers;
+                        input.borrow_mut().events.push(Event::MouseWheel {
                             delta: (0.0, old_zoom - zoom),
                             position: (
                                 0.5 * touch0.page_x() as f64 + 0.5 * touch1.page_x() as f64,
                                 0.5 * touch0.page_y() as f64 + 0.5 * touch1.page_y() as f64,
                             ),
-                            modifiers: *modifiers.borrow(),
+                            modifiers,
                             handled: false,
                         });
                     }
-                    *last_zoom.borrow_mut() = Some(zoom);
-                    *last_position.borrow_mut() = None;
+                    input.borrow_mut().last_zoom = Some(zoom);
+                    input.borrow_mut().last_position = None;
                 } else {
-                    *last_zoom.borrow_mut() = None;
-                    *last_position.borrow_mut() = None;
+                    input.borrow_mut().last_zoom = None;
+                    input.borrow_mut().last_position = None;
                 }
                 event.stop_propagation();
                 event.prevent_default();
-                frame_renderer.borrow_mut().render_frame();
+
+                input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas
+        self.canvas()?
             .add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!(
@@ -658,125 +594,142 @@ impl Window {
                     e
                 ),
             })?;
-        closure.forget();
+        self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
     fn add_key_down_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        modifiers: Rc<RefCell<Modifiers>>,
+        &mut self,
+        input: Rc<RefCell<Input>>,
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                if update_modifiers(modifiers.clone(), &event) {
-                    (*events).borrow_mut().push(Event::ModifiersChange {
-                        modifiers: *modifiers.borrow(),
-                    });
+                if update_modifiers(&mut input.borrow_mut().modifiers, &event) {
+                    let modifiers = input.borrow().modifiers;
+                    input
+                        .borrow_mut()
+                        .events
+                        .push(Event::ModifiersChange { modifiers });
                     event.stop_propagation();
                     event.prevent_default();
                 }
                 let key = event.key();
+                let modifiers = input.borrow().modifiers;
                 if let Some(kind) = translate_key(&key) {
-                    (*events).borrow_mut().push(Event::Key {
+                    input.borrow_mut().events.push(Event::Key {
                         state: State::Pressed,
                         kind,
-                        modifiers: modifiers.borrow().clone(),
+                        modifiers,
                         handled: false,
                     });
                     event.stop_propagation();
                     event.prevent_default();
                 }
-                if modifiers.borrow().ctrl == State::Released
-                    && modifiers.borrow().command == State::Released
+                if modifiers.ctrl == State::Released
+                    && modifiers.command == State::Released
                     && !should_ignore_key(&key)
                 {
-                    (*events).borrow_mut().push(Event::Text(key));
+                    input.borrow_mut().events.push(Event::Text(key));
                     event.stop_propagation();
                     event.prevent_default();
-                    frame_renderer.borrow_mut().render_frame();
+
+                    input.borrow_mut().request_animation_frame();
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        window()
+        self.canvas()?
             .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key down event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_keyboardevent.push(closure);
         Ok(())
     }
 
-    fn add_key_up_event_listener(
-        &self,
-        events: Rc<RefCell<Vec<Event>>>,
-        frame_renderer: Rc<RefCell<FrameRenderer>>,
-        modifiers: Rc<RefCell<Modifiers>>,
-    ) -> Result<(), WindowError> {
+    fn add_key_up_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                if update_modifiers(modifiers.clone(), &event) {
-                    (*events).borrow_mut().push(Event::ModifiersChange {
-                        modifiers: *modifiers.borrow(),
-                    });
+                if update_modifiers(&mut input.borrow_mut().modifiers, &event) {
+                    let modifiers = input.borrow().modifiers;
+                    input
+                        .borrow_mut()
+                        .events
+                        .push(Event::ModifiersChange { modifiers });
                     event.stop_propagation();
                     event.prevent_default();
                 }
                 if let Some(kind) = translate_key(&event.key()) {
-                    (*events).borrow_mut().push(Event::Key {
+                    let modifiers = input.borrow().modifiers;
+                    input.borrow_mut().events.push(Event::Key {
                         state: State::Released,
                         kind,
-                        modifiers: Modifiers {
-                            ctrl: modifiers.borrow().ctrl,
-                            shift: modifiers.borrow().shift,
-                            alt: modifiers.borrow().alt,
-                            command: modifiers.borrow().command,
-                        },
+                        modifiers,
                         handled: false,
                     });
                     event.stop_propagation();
                     event.prevent_default();
-                    frame_renderer.borrow_mut().render_frame();
+
+                    input.borrow_mut().request_animation_frame();
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        window()
+        self.canvas()?
             .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key up event listener. Error code: {:?}", e),
             })?;
-        closure.forget();
+        self.closures_with_keyboardevent.push(closure);
         Ok(())
     }
+}
 
-    pub fn size(&self) -> (usize, usize) {
-        (self.canvas.width() as usize, self.canvas.height() as usize)
+#[derive(Serialize)]
+struct ContextOptions {
+    antialias: bool,
+}
+
+struct Input {
+    window: Rc<web_sys::Window>,
+    render_loop_closure: Option<Closure<dyn FnMut()>>,
+    render_requested: bool,
+    events: Vec<Event>,
+    modifiers: Modifiers,
+    last_position: Option<(i32, i32)>,
+    last_zoom: Option<f64>,
+}
+
+impl Input {
+    pub fn new(window: Rc<web_sys::Window>) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(Self {
+            window,
+            render_loop_closure: None,
+            render_requested: false,
+            events: Vec::new(),
+            modifiers: Modifiers::default(),
+            last_position: None,
+            last_zoom: None,
+        }))
     }
 
-    pub fn viewport(&self) -> crate::Viewport {
-        let (w, h) = self.size();
-        crate::Viewport::new_at_origo(w, h)
-    }
-
-    pub fn gl(&self) -> crate::Context {
-        self.gl.clone()
+    pub fn request_animation_frame(&mut self) {
+        if !self.render_requested {
+            self.render_requested = true;
+            self.window
+                .request_animation_frame(
+                    self.render_loop_closure
+                        .as_ref()
+                        .unwrap()
+                        .as_ref()
+                        .unchecked_ref(),
+                )
+                .expect("Unable to request a new frame.");
+        }
     }
 }
 
-fn window() -> web_sys::Window {
-    web_sys::window().expect("no global `window` exists")
-}
-
-fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    window()
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register `requestAnimationFrame` OK");
-}
-
-fn update_modifiers(modifiers: Rc<RefCell<Modifiers>>, event: &web_sys::KeyboardEvent) -> bool {
-    let old = *modifiers.borrow();
-    *modifiers.borrow_mut() = Modifiers {
+fn update_modifiers(modifiers: &mut Modifiers, event: &web_sys::KeyboardEvent) -> bool {
+    let old = modifiers.clone();
+    *modifiers = Modifiers {
         alt: if event.alt_key() {
             State::Pressed
         } else {
@@ -798,14 +751,13 @@ fn update_modifiers(modifiers: Rc<RefCell<Modifiers>>, event: &web_sys::Keyboard
             State::Released
         },
     };
-    let new = *modifiers.borrow();
-    old.alt != new.alt
-        || old.ctrl != new.ctrl
-        || old.shift != new.shift
-        || old.command != new.command
+    old.alt != modifiers.alt
+        || old.ctrl != modifiers.ctrl
+        || old.shift != modifiers.shift
+        || old.command != modifiers.command
 }
 
-pub fn translate_key(key: &str) -> Option<Key> {
+fn translate_key(key: &str) -> Option<Key> {
     use Key::*;
     Some(match key {
         "ArrowDown" => ArrowDown,
