@@ -154,9 +154,9 @@ impl BlendParameters {
     ///
     pub const TRANSPARENCY: Self = Self {
         source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-        source_alpha_multiplier: BlendMultiplierType::Zero,
+        source_alpha_multiplier: BlendMultiplierType::One,
         destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-        destination_alpha_multiplier: BlendMultiplierType::One,
+        destination_alpha_multiplier: BlendMultiplierType::Zero,
         rgb_equation: BlendEquationType::Add,
         alpha_equation: BlendEquationType::Add,
     };
