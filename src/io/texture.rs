@@ -81,12 +81,12 @@ impl Saver {
         width: usize,
         height: usize,
     ) -> Result<(), IOError> {
-        let mut pixels_out = vec![0u8; width * height * 3];
+        let mut pixels_out = vec![0u8; width * height * 4];
         for row in 0..height {
             for col in 0..width {
-                for i in 0..3 {
-                    pixels_out[3 * width * (height - row - 1) + 3 * col + i] =
-                        pixels[3 * width * row + 3 * col + i];
+                for i in 0..4 {
+                    pixels_out[4 * width * (height - row - 1) + 4 * col + i] =
+                        pixels[4 * width * row + 4 * col + i];
                 }
             }
         }
@@ -96,7 +96,7 @@ impl Saver {
             &pixels_out,
             width as u32,
             height as u32,
-            image::ColorType::Rgb8,
+            image::ColorType::Rgba8,
         )?;
         Ok(())
     }

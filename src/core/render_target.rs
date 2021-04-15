@@ -102,17 +102,16 @@ impl Screen {
     /// Returns the RGB color values from the screen as a list of bytes (one byte for each color channel).
     /// Only available on desktop.
     ///
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>, Error> {
         // TODO: Possible to change format
-        let mut pixels = vec![0u8; viewport.width * viewport.height * 3];
+        let mut pixels = vec![0u8; viewport.width * viewport.height * 4];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(
             viewport.x as u32,
             viewport.y as u32,
             viewport.width as u32,
             viewport.height as u32,
-            consts::RGB,
+            consts::RGBA,
             consts::UNSIGNED_BYTE,
             &mut pixels,
         );
