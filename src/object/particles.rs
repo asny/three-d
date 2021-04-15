@@ -106,6 +106,8 @@ pub struct Particles {
     index_buffer: Option<ElementBuffer>,
     pub acceleration: Vec3,
     instance_count: u32,
+    pub cull: CullType,
+    pub transformation: Mat4,
 }
 
 impl Particles {
@@ -136,6 +138,8 @@ impl Particles {
             start_velocity_buffer: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             acceleration: *acceleration,
             instance_count: 0,
+            cull: CullType::None,
+            transformation: Mat4::identity(),
         })
     }
 
@@ -172,11 +176,10 @@ impl Particles {
         program: &ParticlesProgram,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &Camera,
         time: f32,
     ) -> Result<(), Error> {
-        program.use_uniform_mat4("modelMatrix", &transformation)?;
+        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_vec3("acceleration", &self.acceleration)?;
         program.use_uniform_float("time", &time)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");
@@ -194,7 +197,7 @@ impl Particles {
                 Error::FailedToCreateMesh {message: "The particles shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
             program.use_uniform_mat4(
                 "normalMatrix",
-                &transformation.invert().unwrap().transpose(),
+                &self.transformation.invert().unwrap().transpose(),
             )?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
         }
@@ -202,7 +205,7 @@ impl Particles {
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements_instanced(
                 render_states,
-                CullType::None,
+                self.cull,
                 viewport,
                 index_buffer,
                 self.instance_count,
@@ -210,7 +213,7 @@ impl Particles {
         } else {
             program.draw_arrays_instanced(
                 render_states,
-                CullType::None,
+                self.cull,
                 viewport,
                 self.position_buffer.count() as u32 / 3,
                 self.instance_count,
