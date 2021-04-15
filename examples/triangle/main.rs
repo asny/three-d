@@ -45,7 +45,7 @@ fn main() {
     };
 
     // Construct a mesh, thereby transferring the mesh data to the GPU
-    let mesh = Mesh::new(&context, &cpu_mesh).unwrap();
+    let mut mesh = Mesh::new(&context, &cpu_mesh).unwrap();
 
     // Start the main render loop
     window.render_loop(move |frame_input: FrameInput| // Begin a new frame with an updated frame input
@@ -55,11 +55,11 @@ fn main() {
 
         // Start writing to the screen and clears the color and depth
         Screen::write(&context, &ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
-            // Compute the current rotation of the triangle
-            let transformation = Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32));
+            // Set the current transformation of the triangle
+            mesh.transformation = Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32));
 
             // Render the triangle with the per vertex colors defined at construction
-            mesh.render_color(RenderStates::default(), frame_input.viewport, &transformation, &camera)?;
+            mesh.render_color(RenderStates::default(), frame_input.viewport, &camera)?;
             Ok(())
         }).unwrap();
 

@@ -40,12 +40,13 @@ fn main() {
         move |loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-            let monkey = PhongMesh::new(
+            let mut monkey = PhongMesh::new(
                 &context,
                 &meshes[0],
                 &PhongMaterial::new(&context, &materials[0]).unwrap(),
             )
             .unwrap();
+            monkey.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
                 intensity: 0.2,
@@ -90,12 +91,19 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
-                                    camera.rotate(delta.0 as f32, delta.1 as f32).unwrap();
+                                    let target = *camera.target();
+                                    camera
+                                        .rotate_around(
+                                            &target,
+                                            0.1 * delta.0 as f32,
+                                            0.1 * delta.1 as f32,
+                                        )
+                                        .unwrap();
                                     change = true;
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                camera.zoom(delta.1 as f32).unwrap();
+                                camera.zoom(0.02 * delta.1 as f32, 5.0, 100.0).unwrap();
                                 change = true;
                             }
                             Event::Key { state, kind, .. } => {
@@ -116,14 +124,9 @@ fn main() {
                                 frame_input.viewport.width,
                                 frame_input.viewport.height,
                                 &|| {
-                                    let render_states = RenderStates {
-                                        cull: CullType::Back,
-                                        ..Default::default()
-                                    };
                                     monkey.render_depth(
-                                        render_states,
+                                        RenderStates::default(),
                                         frame_input.viewport,
-                                        &Mat4::identity(),
                                         &camera,
                                     )?;
                                     Ok(())
@@ -133,15 +136,12 @@ fn main() {
                     }
 
                     Screen::write(&context, &ClearState::default(), || {
-                        let render_states = RenderStates {
-                            depth_test: DepthTestType::LessOrEqual,
-                            cull: CullType::Back,
-                            ..Default::default()
-                        };
                         monkey.render_with_lighting(
-                            render_states,
+                            RenderStates {
+                                depth_test: DepthTestType::LessOrEqual,
+                                ..Default::default()
+                            },
                             frame_input.viewport,
-                            &Mat4::identity(),
                             &camera,
                             Some(&ambient_light),
                             &[&directional_light],

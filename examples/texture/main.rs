@@ -55,7 +55,8 @@ fn main() {
                 color_source: ColorSource::Texture(std::rc::Rc::new(box_texture)),
                 ..Default::default()
             };
-            let box_mesh = PhongMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
+            let mut box_mesh = PhongMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
+            box_mesh.cull = CullType::Back;
 
             let skybox = Skybox::new(
                 &context,
@@ -76,10 +77,14 @@ fn main() {
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
             let penguin_cpu_material =
                 PhongMaterial::new(&context, &penguin_cpu_materials[0]).unwrap();
-            let penguin_deferred =
+            let mut penguin_deferred =
                 PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
-            let penguin_forward =
+            penguin_deferred.cull = CullType::Back;
+            penguin_deferred.transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
+            let mut penguin_forward =
                 PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+            penguin_forward.cull = CullType::Back;
+            penguin_forward.transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
@@ -104,14 +109,19 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
+                                    let target = *camera.target();
                                     camera
-                                        .rotate_around_up(delta.0 as f32, delta.1 as f32)
+                                        .rotate_around_with_fixed_up(
+                                            &target,
+                                            0.1 * delta.0 as f32,
+                                            0.1 * delta.1 as f32,
+                                        )
                                         .unwrap();
                                     redraw = true;
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                camera.zoom(delta.1 as f32).unwrap();
+                                camera.zoom(0.1 * delta.1 as f32, 3.0, 100.0).unwrap();
                                 redraw = true;
                             }
                             _ => {}
@@ -126,24 +136,14 @@ fn main() {
                                 frame_input.viewport.width,
                                 frame_input.viewport.height,
                                 || {
-                                    let mut transformation = Mat4::identity();
                                     box_mesh.render_geometry(
-                                        RenderStates {
-                                            cull: CullType::Back,
-                                            ..Default::default()
-                                        },
+                                        RenderStates::default(),
                                         frame_input.viewport,
-                                        &transformation,
                                         &camera,
                                     )?;
-                                    transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
                                     penguin_deferred.render_geometry(
-                                        RenderStates {
-                                            cull: CullType::Back,
-                                            ..Default::default()
-                                        },
+                                        RenderStates::default(),
                                         frame_input.viewport,
-                                        &transformation,
                                         &camera,
                                     )?;
                                     Ok(())
@@ -160,21 +160,16 @@ fn main() {
                                 &[],
                                 &[],
                             )?;
-                            let transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                             penguin_forward.render_with_lighting(
-                                RenderStates {
-                                    cull: CullType::Back,
-                                    ..Default::default()
-                                },
+                                RenderStates::default(),
                                 frame_input.viewport,
-                                &transformation,
                                 &camera,
                                 Some(&ambient_light),
                                 &[&directional_light],
                                 &[],
                                 &[],
                             )?;
-                            axes.render(frame_input.viewport, &Mat4::identity(), &camera)?;
+                            axes.render(frame_input.viewport, &camera)?;
                             skybox.render(frame_input.viewport, &camera)?;
                             Ok(())
                         })

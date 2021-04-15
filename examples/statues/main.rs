@@ -52,7 +52,9 @@ fn main() {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let statue_material = PhongMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
-            let statue = PhongMesh::new(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
+            let mut statue =
+                PhongMesh::new(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
+            statue.cull = CullType::Back;
             let scale = Mat4::from_scale(10.0);
             let mut statue_transforms_and_aabb = Vec::new();
             for i in 0..8 {
@@ -74,8 +76,10 @@ fn main() {
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
             let fountain_material =
                 PhongMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
-            let fountain =
+            let mut fountain =
                 PhongMesh::new(&context, &fountain_cpu_meshes[0], &fountain_material).unwrap();
+            fountain.cull = CullType::Back;
+            fountain.transformation = Mat4::from_angle_x(degrees(-90.0));
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
@@ -93,28 +97,13 @@ fn main() {
                     2000.0,
                     1024,
                     1024,
-                    &|viewport: Viewport, camera: &Camera| {
+                    |viewport: Viewport, camera: &Camera| {
                         for (transform, _aabb) in statue_transforms_and_aabb.iter() {
-                            statue.render_depth(
-                                RenderStates {
-                                    cull: CullType::Back,
-                                    ..Default::default()
-                                },
-                                viewport,
-                                transform,
-                                &camera,
-                            )?;
+                            statue.transformation = *transform;
+                            statue.render_depth(RenderStates::default(), viewport, &camera)?;
                         }
 
-                        fountain.render_depth(
-                            RenderStates {
-                                cull: CullType::Back,
-                                ..Default::default()
-                            },
-                            viewport,
-                            &Mat4::from_angle_x(degrees(-90.0)),
-                            &camera,
-                        )?;
+                        fountain.render_depth(RenderStates::default(), viewport, &camera)?;
                         Ok(())
                     },
                 )
@@ -140,10 +129,12 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
+                                    let target = *primary_camera.target();
                                     primary_camera
-                                        .rotate_around_up(
-                                            10.0 * delta.0 as f32,
-                                            10.0 * delta.1 as f32,
+                                        .rotate_around_with_fixed_up(
+                                            &target,
+                                            2.0 * delta.0 as f32,
+                                            2.0 * delta.1 as f32,
                                         )
                                         .unwrap();
                                     redraw = true;
@@ -167,13 +158,10 @@ fn main() {
                             || {
                                 for (transform, aabb) in statue_transforms_and_aabb.iter() {
                                     if primary_camera.in_frustum(aabb) {
+                                        statue.transformation = *transform;
                                         statue.render_with_lighting(
-                                            RenderStates {
-                                                cull: CullType::Back,
-                                                ..Default::default()
-                                            },
+                                            RenderStates::default(),
                                             frame_input.viewport,
-                                            &transform,
                                             if is_primary_camera {
                                                 &primary_camera
                                             } else {
@@ -188,12 +176,8 @@ fn main() {
                                 }
 
                                 fountain.render_with_lighting(
-                                    RenderStates {
-                                        cull: CullType::Back,
-                                        ..Default::default()
-                                    },
+                                    RenderStates::default(),
                                     frame_input.viewport,
-                                    &Mat4::from_angle_x(degrees(-90.0)),
                                     if is_primary_camera {
                                         &primary_camera
                                     } else {

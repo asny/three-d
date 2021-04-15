@@ -49,10 +49,10 @@ fn main() {
                 .find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap())
                 .unwrap();
             let tree_material = PhongMaterial::new(&context, &tree_cpu_material).unwrap();
-            let tree_mesh = PhongMesh::new(&context, tree_cpu_mesh, &tree_material).unwrap();
+            let mut tree_mesh = PhongMesh::new(&context, tree_cpu_mesh, &tree_material).unwrap();
+            tree_mesh.cull = CullType::Back;
             let tree_mesh_render_states = RenderStates {
                 depth_test: DepthTestType::LessOrEqual,
-                cull: CullType::Back,
                 ..Default::default()
             };
 
@@ -92,7 +92,6 @@ fn main() {
                         tree_mesh.render_with_lighting(
                             tree_mesh_render_states,
                             viewport,
-                            &Mat4::identity(),
                             camera,
                             Some(&ambient_light),
                             &[&directional_light],
@@ -102,7 +101,6 @@ fn main() {
                         leaves_mesh.render_with_lighting(
                             leaves_mesh_render_states,
                             viewport,
-                            &Mat4::identity(),
                             camera,
                             Some(&ambient_light),
                             &[&directional_light],
@@ -132,7 +130,7 @@ fn main() {
             imposters.update_positions(&positions, &angles);
 
             // Plane
-            let plane = PhongMesh::new(
+            let mut plane = PhongMesh::new(
                 &context,
                 &CPUMesh {
                     positions: vec![
@@ -149,6 +147,7 @@ fn main() {
                 },
             )
             .unwrap();
+            plane.cull = CullType::Back;
 
             // Shadows
             directional_light
@@ -160,18 +159,8 @@ fn main() {
                     512,
                     512,
                     &|viewport: Viewport, camera: &Camera| {
-                        tree_mesh.render_depth(
-                            tree_mesh_render_states,
-                            viewport,
-                            &Mat4::identity(),
-                            camera,
-                        )?;
-                        leaves_mesh.render_depth(
-                            leaves_mesh_render_states,
-                            viewport,
-                            &Mat4::identity(),
-                            camera,
-                        )?;
+                        tree_mesh.render_depth(tree_mesh_render_states, viewport, camera)?;
+                        leaves_mesh.render_depth(leaves_mesh_render_states, viewport, camera)?;
                         Ok(())
                     },
                 )
@@ -191,14 +180,19 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
+                                    let target = *camera.target();
                                     camera
-                                        .rotate_around_up(delta.0 as f32, delta.1 as f32)
+                                        .rotate_around_with_fixed_up(
+                                            &target,
+                                            0.1 * delta.0 as f32,
+                                            0.1 * delta.1 as f32,
+                                        )
                                         .unwrap();
                                     redraw = true;
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                camera.zoom(delta.1 as f32).unwrap();
+                                camera.zoom(0.02 * delta.1 as f32, 5.0, 1000.0).unwrap();
                                 redraw = true;
                             }
                             _ => {}
@@ -213,11 +207,9 @@ fn main() {
                                 plane.render_with_lighting(
                                     RenderStates {
                                         depth_test: DepthTestType::LessOrEqual,
-                                        cull: CullType::Back,
                                         ..Default::default()
                                     },
                                     frame_input.viewport,
-                                    &Mat4::identity(),
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],
@@ -227,7 +219,6 @@ fn main() {
                                 tree_mesh.render_with_lighting(
                                     tree_mesh_render_states,
                                     frame_input.viewport,
-                                    &Mat4::identity(),
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],
@@ -237,7 +228,6 @@ fn main() {
                                 leaves_mesh.render_with_lighting(
                                     leaves_mesh_render_states,
                                     frame_input.viewport,
-                                    &Mat4::identity(),
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],

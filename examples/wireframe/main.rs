@@ -41,12 +41,14 @@ fn main() {
             cpu_material.diffuse_intensity = Some(0.2);
             cpu_material.specular_intensity = Some(0.4);
             cpu_material.specular_power = Some(20.0);
-            let model = PhongMesh::new(
+            let mut model = PhongMesh::new(
                 &gl,
                 &cpu_mesh,
                 &PhongMaterial::new(&gl, &cpu_material).unwrap(),
             )
             .unwrap();
+            model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            model.cull = CullType::Back;
 
             let wireframe_material = PhongMaterial {
                 name: "wireframe".to_string(),
@@ -55,22 +57,27 @@ fn main() {
                 specular_power: 5.0,
                 color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
             };
-            let edges = PhongInstancedMesh::new(
+            let mut edges = PhongInstancedMesh::new(
                 &gl,
                 &edge_transformations(&cpu_mesh),
                 &CPUMesh::cylinder(0.007, 1.0, 10),
                 &wireframe_material,
             )
             .unwrap();
-            let vertices = PhongInstancedMesh::new(
+            edges.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            edges.cull = CullType::Back;
+
+            let mut vertices = PhongInstancedMesh::new(
                 &gl,
                 &vertex_transformations(&cpu_mesh),
                 &CPUMesh::sphere(0.015),
                 &wireframe_material,
             )
             .unwrap();
+            vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            vertices.cull = CullType::Back;
 
-            let plane = PhongMesh::new(
+            let mut plane = PhongMesh::new(
                 &gl,
                 &CPUMesh {
                     positions: vec![
@@ -88,6 +95,7 @@ fn main() {
                 },
             )
             .unwrap();
+            plane.cull = CullType::Back;
 
             let mut spot_light0 = SpotLight::new(
                 &gl,
@@ -139,15 +147,13 @@ fn main() {
             .unwrap();
 
             let render_scene = |viewport: Viewport, camera: &Camera| {
-                let transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                 let render_states = RenderStates {
                     depth_test: DepthTestType::LessOrEqual,
-                    cull: CullType::Back,
                     ..Default::default()
                 };
-                model.render_depth(render_states, viewport, &transformation, camera)?;
-                edges.render_depth(render_states, viewport, &transformation, camera)?;
-                vertices.render_depth(render_states, viewport, &transformation, camera)?;
+                model.render_depth(render_states, viewport, camera)?;
+                edges.render_depth(render_states, viewport, camera)?;
+                vertices.render_depth(render_states, viewport, camera)?;
                 Ok(())
             };
             spot_light0
@@ -177,14 +183,19 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
+                                    let target = *camera.target();
                                     camera
-                                        .rotate_around_up(delta.0 as f32, delta.1 as f32)
+                                        .rotate_around_with_fixed_up(
+                                            &target,
+                                            0.1 * delta.0 as f32,
+                                            0.1 * delta.1 as f32,
+                                        )
                                         .unwrap();
                                     redraw = true;
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                camera.zoom(delta.1 as f32).unwrap();
+                                camera.zoom(0.1 * delta.1 as f32, 3.0, 100.0).unwrap();
                                 redraw = true;
                             }
                             _ => {}
@@ -198,35 +209,28 @@ fn main() {
                                 frame_input.viewport.width,
                                 frame_input.viewport.height,
                                 || {
-                                    let transformation =
-                                        Mat4::from_translation(vec3(0.0, 2.0, 0.0));
                                     let render_states = RenderStates {
                                         depth_test: DepthTestType::LessOrEqual,
-                                        cull: CullType::Back,
                                         ..Default::default()
                                     };
                                     model.render_geometry(
                                         render_states,
                                         frame_input.viewport,
-                                        &transformation,
                                         &camera,
                                     )?;
                                     edges.render_geometry(
                                         render_states,
                                         frame_input.viewport,
-                                        &transformation,
                                         &camera,
                                     )?;
                                     vertices.render_geometry(
                                         render_states,
                                         frame_input.viewport,
-                                        &transformation,
                                         &camera,
                                     )?;
                                     plane.render_geometry(
                                         render_states,
                                         frame_input.viewport,
-                                        &Mat4::identity(),
                                         &camera,
                                     )?;
                                     Ok(())
