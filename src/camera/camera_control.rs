@@ -34,7 +34,12 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn rotate_around_up(&mut self, point: &Vec3, x: f32, y: f32) -> Result<(), Error> {
+    pub fn rotate_around_with_fixed_up(
+        &mut self,
+        point: &Vec3,
+        x: f32,
+        y: f32,
+    ) -> Result<(), Error> {
         let dir = (point - self.position()).normalize();
         let right = dir.cross(*self.up());
         let mut up = right.cross(dir);
