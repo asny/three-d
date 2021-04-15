@@ -32,7 +32,11 @@ impl FogEffect {
     ) -> Result<(), Error> {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
-            blend: Some(BlendParameters::TRANSPARENCY),
+            blend: Some(BlendParameters {
+                source_alpha_multiplier: BlendMultiplierType::Zero,
+                destination_alpha_multiplier: BlendMultiplierType::One,
+                ..Default::default()
+            }),
             ..Default::default()
         };
 
