@@ -239,6 +239,17 @@ impl Camera {
         return true;
     }
 
+    pub fn pick_at(
+        &self,
+        screen_coordinates: (f64, f64),
+        max_depth: f32,
+        objects: &[&dyn Pickable],
+    ) -> Result<Option<Vec3>, Error> {
+        let pos = *self.position();
+        let dir = self.view_direction_at(screen_coordinates);
+        self.pick(pos, dir, max_depth, objects)
+    }
+
     pub fn pick(
         &self,
         position: Vec3,
@@ -270,7 +281,7 @@ impl Camera {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::R32F,
+            Format::RGBA32F,
         )?;
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,
