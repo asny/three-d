@@ -151,8 +151,8 @@ impl Window {
             let device_pixel_ratio = self.pixels_per_point();
             let canvas = self.canvas.as_ref().unwrap();
             let (width, height) = (
-                canvas.width() as usize / device_pixel_ratio,
-                canvas.height() as usize / device_pixel_ratio,
+                (canvas.width() as f64 / device_pixel_ratio) as usize,
+                (canvas.height() as f64 / device_pixel_ratio) as usize,
             );
             let frame_input = crate::FrameInput {
                 events: input_clone.borrow().events.clone(),
@@ -234,10 +234,8 @@ impl Window {
 
         canvas.style().set_css_text(&style);
         let device_pixel_ratio = self.pixels_per_point();
-        self.canvas
-            .set_width((device_pixel_ratio * width as f64) as u32);
-        self.canvas
-            .set_height((device_pixel_ratio * height as f64) as u32);
+        canvas.set_width((device_pixel_ratio * width as f64) as u32);
+        canvas.set_height((device_pixel_ratio * height as f64) as u32);
         Ok(())
     }
 
