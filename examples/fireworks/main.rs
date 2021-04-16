@@ -106,7 +106,7 @@ fn main() {
                 particles.update(&data);
             }
 
-            Screen::write(&context, &ClearState::color(0.0, 0.0, 0.0, 1.0), || {
+            Screen::write(&context, ClearState::color(0.0, 0.0, 0.0, 1.0), || {
                 let render_states = RenderStates {
                     blend: Some(BlendParameters {
                         rgb_equation: BlendEquationType::Add,

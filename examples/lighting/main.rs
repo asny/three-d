@@ -347,7 +347,7 @@ fn main() {
                     }
 
                     // Light pass
-                    Screen::write(&context, &ClearState::default(), || {
+                    Screen::write(&context, ClearState::default(), || {
                         pipeline.light_pass(
                             viewport,
                             &camera,

@@ -1,6 +1,7 @@
 use crate::context::{consts, Context};
-use crate::core::Error;
+use crate::core::*;
 use crate::cpu_texture::*;
+use crate::math::*;
 
 pub use crate::cpu_texture::{Format, Interpolation, Wrapping};
 
@@ -154,7 +155,7 @@ impl Drop for Texture2D {
 }
 
 ///
-/// A 2D texture that can be rendered into using a [RenderTarget](crate::RenderTarget).
+/// A 2D texture that can be rendered into, read from and copied. For more functionality see [RenderTarget](crate::RenderTarget).
 ///
 pub struct ColorTargetTexture2D {
     context: Context,
@@ -215,14 +216,109 @@ impl ColorTargetTexture2D {
         self.format
     }
 
-    pub(crate) fn generate_mip_maps(&self) {
+    ///
+    /// Renders whatever rendered in the **render** closure into the textures.
+    /// Before writing, the texture is cleared based on the given clear state.
+    ///
+    pub fn write<F: FnOnce() -> Result<(), Error>>(
+        &self,
+        clear_state: ClearState,
+        render: F,
+    ) -> Result<(), Error> {
+        RenderTarget::new_color(&self.context, &self)?.write(clear_state, render)
+    }
+
+    ///
+    /// Copies the content of the color texture inside the given viewport to the specified [destination](crate::RenderTargetDestination).
+    /// Will only copy the channels specified by the write mask.
+    ///
+    /// # Errors
+    /// Will return an error if the destination is a depth texture.
+    ///
+    pub fn copy_to(
+        &self,
+        destination: RenderTargetDestination,
+        viewport: Viewport,
+        write_mask: WriteMask,
+    ) -> Result<(), Error> {
+        RenderTarget::new_color(&self.context, &self)?.copy_to(destination, viewport, write_mask)
+    }
+
+    ///
+    /// Returns the color values of the pixels in this color texture inside the given viewport.
+    ///
+    /// **Note:** Only works for the RGBA8 format.
+    ///
+    /// # Errors
+    /// Will return an error if the color texture is not RGBA8 format.
+    ///
+    pub fn read_as_u8(&self, viewport: Viewport) -> Result<Vec<u8>, Error> {
+        let format = self.format();
+        if format != Format::RGBA8 {
+            Err(Error::FailedToReadFromRenderTarget {
+                message: "Cannot read color as u8 from anything else but an RGBA8 texture."
+                    .to_owned(),
+            })?;
+        }
+
+        let channels = channel_count_from_format(format);
+        let mut pixels = vec![0u8; viewport.width * viewport.height * channels];
+        let render_target = RenderTarget::new_color(&self.context, &self)?;
+        render_target.bind(consts::DRAW_FRAMEBUFFER)?;
+        render_target.bind(consts::READ_FRAMEBUFFER)?;
+        self.context.read_pixels_with_u8_data(
+            viewport.x as u32,
+            viewport.y as u32,
+            viewport.width as u32,
+            viewport.height as u32,
+            format_from(format),
+            consts::UNSIGNED_BYTE,
+            &mut pixels,
+        );
+        Ok(pixels)
+    }
+
+    ///
+    /// Returns the color values of the pixels in this color texture inside the given viewport.
+    ///
+    /// **Note:** Only works for RGBA32F textures.
+    ///
+    /// # Errors
+    /// Will return an error if the color texture is not RGBA32F format.
+    ///
+    pub fn read_as_f32(&self, viewport: Viewport) -> Result<Vec<f32>, Error> {
+        let format = self.format();
+        if format != Format::RGBA32F {
+            Err(Error::FailedToReadFromRenderTarget {
+                message: "Cannot read color as f32 from anything else but an RGBA32F texture."
+                    .to_owned(),
+            })?;
+        }
+        let channels = channel_count_from_format(format);
+        let mut pixels = vec![0f32; viewport.width * viewport.height * channels];
+        let render_target = RenderTarget::new_color(&self.context, &self)?;
+        render_target.bind(consts::DRAW_FRAMEBUFFER)?;
+        render_target.bind(consts::READ_FRAMEBUFFER)?;
+        self.context.read_pixels_with_f32_data(
+            viewport.x as u32,
+            viewport.y as u32,
+            viewport.width as u32,
+            viewport.height as u32,
+            format_from(format),
+            consts::FLOAT,
+            &mut pixels,
+        );
+        Ok(pixels)
+    }
+
+    pub(super) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context.bind_texture(consts::TEXTURE_2D, &self.id);
             self.context.generate_mipmap(consts::TEXTURE_2D);
         }
     }
 
-    pub(crate) fn bind_as_color_target(&self, channel: usize) {
+    pub(super) fn bind_as_color_target(&self, channel: usize) {
         self.context.framebuffer_texture_2d(
             consts::FRAMEBUFFER,
             consts::COLOR_ATTACHMENT0 + channel as u32,
@@ -311,7 +407,33 @@ impl DepthTargetTexture2D {
         })
     }
 
-    pub(crate) fn bind_as_depth_target(&self) {
+    pub fn write<F: FnOnce() -> Result<(), Error>>(
+        &self,
+        clear_state: ClearState,
+        render: F,
+    ) -> Result<(), Error> {
+        RenderTarget::new_depth(&self.context, &self)?.write(clear_state, render)
+    }
+
+    ///
+    /// Copies the content of the depth texture inside the given viewport to the specified [destination](crate::RenderTargetDestination).
+    ///
+    /// # Errors
+    /// Will return an error if the destination is a color texture.
+    ///
+    pub fn copy_to(
+        &self,
+        destination: RenderTargetDestination,
+        viewport: Viewport,
+    ) -> Result<(), Error> {
+        RenderTarget::new_depth(&self.context, &self)?.copy_to(
+            destination,
+            viewport,
+            WriteMask::DEPTH,
+        )
+    }
+
+    pub(super) fn bind_as_depth_target(&self) {
         self.context.framebuffer_texture_2d(
             consts::FRAMEBUFFER,
             consts::DEPTH_ATTACHMENT,
@@ -518,6 +640,43 @@ impl ColorTargetTexture2DArray {
         })
     }
 
+    pub fn write<F: FnOnce() -> Result<(), Error>>(
+        &self,
+        color_layers: &[usize],
+        clear_state: ClearState,
+        render: F,
+    ) -> Result<(), Error> {
+        RenderTargetArray::new_color(&self.context, &self)?.write(
+            color_layers,
+            0,
+            clear_state,
+            render,
+        )
+    }
+
+    ///
+    /// Copies the content of the color texture at the given layer and inside the given viewport to the specified [destination](crate::RenderTargetDestination).
+    /// Will only copy the channels specified by the write mask.
+    ///
+    /// # Errors
+    /// Will return an error if the destination is a depth texture.
+    ///
+    pub fn copy_to(
+        &self,
+        color_layer: usize,
+        destination: RenderTargetDestination,
+        viewport: Viewport,
+        write_mask: WriteMask,
+    ) -> Result<(), Error> {
+        RenderTargetArray::new_color(&self.context, &self)?.copy_to(
+            color_layer,
+            0,
+            destination,
+            viewport,
+            write_mask,
+        )
+    }
+
     pub(crate) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context
@@ -607,6 +766,42 @@ impl DepthTargetTexture2DArray {
             height,
             depth,
         })
+    }
+
+    pub fn write<F: FnOnce() -> Result<(), Error>>(
+        &self,
+        depth_layer: usize,
+        clear_state: ClearState,
+        render: F,
+    ) -> Result<(), Error> {
+        RenderTargetArray::new_depth(&self.context, &self)?.write(
+            &[],
+            depth_layer,
+            clear_state,
+            render,
+        )
+    }
+
+    ///
+    /// Copies the content of the depth texture at the given layer to the specified [destination](crate::RenderTargetDestination).
+    /// Will only copy the channels specified by the write mask.
+    ///
+    /// # Errors
+    /// Will return an error if the destination is a depth texture.
+    ///
+    pub fn copy_to(
+        &self,
+        depth_layer: usize,
+        destination: RenderTargetDestination,
+        viewport: Viewport,
+    ) -> Result<(), Error> {
+        RenderTargetArray::new_depth(&self.context, &self)?.copy_to(
+            0,
+            depth_layer,
+            destination,
+            viewport,
+            WriteMask::DEPTH,
+        )
     }
 
     pub(crate) fn bind_as_depth_target(&self, layer: usize) {

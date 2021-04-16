@@ -154,7 +154,7 @@ fn main() {
                     if redraw {
                         Screen::write(
                             &context,
-                            &ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
+                            ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                             || {
                                 for (transform, aabb) in statue_transforms_and_aabb.iter() {
                                     if primary_camera.in_frustum(aabb) {

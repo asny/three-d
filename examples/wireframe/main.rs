@@ -239,7 +239,7 @@ fn main() {
                             .unwrap();
 
                         // Light pass
-                        Screen::write(&gl, &ClearState::default(), || {
+                        Screen::write(&gl, ClearState::default(), || {
                             pipeline.light_pass(
                                 frame_input.viewport,
                                 &camera,

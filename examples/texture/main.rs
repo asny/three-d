@@ -151,7 +151,7 @@ fn main() {
                             )
                             .unwrap();
 
-                        Screen::write(&context, &ClearState::default(), || {
+                        Screen::write(&context, ClearState::default(), || {
                             pipeline.light_pass(
                                 frame_input.viewport,
                                 &camera,

@@ -135,7 +135,7 @@ fn main() {
                             .unwrap();
                     }
 
-                    Screen::write(&context, &ClearState::default(), || {
+                    Screen::write(&context, ClearState::default(), || {
                         monkey.render_with_lighting(
                             RenderStates {
                                 depth_test: DepthTestType::LessOrEqual,

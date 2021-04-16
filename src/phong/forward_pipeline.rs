@@ -34,8 +34,10 @@ impl PhongForwardPipeline {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?);
-        RenderTarget::new_depth(&self.context, self.depth_texture.as_ref().unwrap())?
-            .write(&ClearState::depth(1.0), render)?;
+        self.depth_texture
+            .as_ref()
+            .unwrap()
+            .write(ClearState::depth(1.0), render)?;
         Ok(())
     }
 

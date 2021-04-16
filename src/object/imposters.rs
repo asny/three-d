@@ -114,9 +114,9 @@ impl Imposters {
                 vec3(0.0, 1.0, 0.0),
             )?;
             render_target.write(
-                &ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
                 &[i],
                 0,
+                ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
                 || {
                     render(
                         Viewport::new_at_origo(texture_width, texture_height),

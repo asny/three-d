@@ -111,7 +111,7 @@ impl PhongDeferredPipeline {
             self.geometry_pass_texture.as_ref().unwrap(),
             self.geometry_pass_depth_texture.as_ref().unwrap(),
         )?
-        .write(&ClearState::default(), &[0, 1], 0, render)?;
+        .write(&[0, 1], 0, ClearState::default(), render)?;
         Ok(())
     }
 
@@ -228,11 +228,10 @@ impl PhongDeferredPipeline {
         )
         .unwrap();
 
-        RenderTargetArray::new_depth(&self.context, depth_array)
-            .unwrap()
-            .copy_depth(
+        depth_array
+            .copy_to(
                 0,
-                &RenderTarget::new_depth(&self.context, &depth_texture).unwrap(),
+                RenderTargetDestination::DepthTexture(&depth_texture),
                 Viewport::new_at_origo(depth_array.width(), depth_array.height()),
             )
             .unwrap();

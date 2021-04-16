@@ -71,7 +71,7 @@ fn main() {
             }
 
             if redraw {
-                Screen::write(&context, &ClearState::color(0.0, 1.0, 1.0, 1.0), || {
+                Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
                     mesh.render(
                         &program,
                         RenderStates {

@@ -303,7 +303,7 @@ impl Camera {
             ..Default::default()
         };
         render_target.write(
-            &ClearState {
+            ClearState {
                 red: Some(1.0),
                 depth: Some(1.0),
                 ..ClearState::none()
@@ -315,7 +315,7 @@ impl Camera {
                 Ok(())
             },
         )?;
-        let depth = render_target.read_color_with_f32(viewport)?[0];
+        let depth = texture.read_as_f32(viewport)?[0];
         Ok(if depth == 1.0 {
             None
         } else {

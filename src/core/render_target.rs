@@ -89,21 +89,19 @@ impl Screen {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         context: &Context,
-        clear_state: &ClearState,
+        clear_state: ClearState,
         render: F,
     ) -> Result<(), Error> {
         context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
-        clear(context, clear_state);
+        clear(context, &clear_state);
         render()?;
         Ok(())
     }
 
     ///
-    /// Returns the RGB color values from the screen as a list of bytes (one byte for each color channel).
-    /// Only available on desktop.
+    /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>, Error> {
-        // TODO: Possible to change format
         let mut pixels = vec![0u8; viewport.width * viewport.height * 4];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(
@@ -124,7 +122,6 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> Result<Vec<f32>, Error> {
-        // TODO: Possible to change format
         let mut pixels = vec![0f32; viewport.width * viewport.height];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_f32_data(
@@ -141,8 +138,22 @@ impl Screen {
 }
 
 ///
-/// Use a render target to render into a texture ([color](crate::ColorTargetTexture2D), [depth](DepthTargetTexture2D) or both).
-/// Can be created each time it is needed.
+/// The destination of applying a copy.
+///
+pub enum RenderTargetDestination<'a, 'b, 'c, 'd> {
+    /// Copies to the [Screen](crate::Screen).
+    Screen,
+    /// Copies to a [ColorTargetTexture2D](crate::ColorTargetTexture2D).
+    ColorTexture(&'d ColorTargetTexture2D),
+    /// Copies to a [DepthTargetTexture2D](crate::DepthTargetTexture2D).
+    DepthTexture(&'d DepthTargetTexture2D),
+    /// Copies to a [RenderTarget](crate::RenderTarget).
+    RenderTarget(&'c RenderTarget<'a, 'b>),
+}
+
+///
+/// Adds additional functionality to read, write and copy from a [color](crate::ColorTargetTexture2D) and [depth](DepthTargetTexture2D) texture.
+/// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
 pub struct RenderTarget<'a, 'b> {
     context: Context,
@@ -169,11 +180,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         })
     }
 
-    ///
-    /// Constructs a new render target that enables rendering into the given
-    /// [color](crate::ColorTargetTexture2D) texture.
-    ///
-    pub fn new_color(
+    pub(super) fn new_color(
         context: &Context,
         color_texture: &'a ColorTargetTexture2D,
     ) -> Result<Self, Error> {
@@ -185,10 +192,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         })
     }
 
-    ///
-    /// Constructs a new render target that enables rendering into the given [depth](DepthTargetTexture2D) texture.
-    ///
-    pub fn new_depth(
+    pub(super) fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2D,
     ) -> Result<Self, Error> {
@@ -206,7 +210,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
-        clear_state: &ClearState,
+        clear_state: ClearState,
         render: F,
     ) -> Result<(), Error> {
         self.bind(consts::DRAW_FRAMEBUFFER)?;
@@ -228,229 +232,61 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     ///
-    /// Copies the content of the color and depth textures in this render target to the screen.
+    /// Copies the content of the color and depth textures in this render target to the specified [destination](crate::RenderTargetDestination).
+    /// Only copies the channels specified by the write mask.
     ///
-    /// # Errors
-    /// Will return an error if this render target is not constructed with both a color and depth
-    /// texture.
-    ///
-    pub fn copy_to_screen(&self, viewport: Viewport) -> Result<(), Error> {
-        if self.color_texture.is_none() || self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
-        }
-        Screen::write(&self.context, &ClearState::none(), || {
+    pub fn copy_to(
+        &self,
+        destination: RenderTargetDestination,
+        viewport: Viewport,
+        write_mask: WriteMask,
+    ) -> Result<(), Error> {
+        let copy = || {
             let effect = get_copy_effect(&self.context)?;
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
+            if let Some(tex) = self.color_texture {
+                effect.use_texture(tex, "colorMap")?;
+            }
+            if let Some(tex) = self.depth_texture {
+                effect.use_texture(tex, "depthMap")?;
+            }
             effect.apply(
                 RenderStates {
                     depth_test: DepthTestType::Always,
+                    write_mask,
                     ..Default::default()
                 },
                 viewport,
             )?;
             Ok(())
-        })?;
+        };
+        match destination {
+            RenderTargetDestination::RenderTarget(other) => {
+                other.write(ClearState::none(), copy)?;
+            }
+            RenderTargetDestination::Screen => {
+                Screen::write(&self.context, ClearState::none(), copy)?;
+            }
+            RenderTargetDestination::ColorTexture(tex) => {
+                if self.color_texture.is_none() {
+                    Err(Error::FailedToCopyFromRenderTarget {
+                        message: "Cannot copy color from a depth texture.".to_owned(),
+                    })?;
+                }
+                tex.write(ClearState::none(), copy)?;
+            }
+            RenderTargetDestination::DepthTexture(tex) => {
+                if self.depth_texture.is_none() {
+                    Err(Error::FailedToCopyFromRenderTarget {
+                        message: "Cannot copy depth from a color texture.".to_owned(),
+                    })?;
+                }
+                tex.write(ClearState::none(), copy)?;
+            }
+        }
         Ok(())
     }
 
-    ///
-    /// Copies the content of the color texture in this render target to the screen.
-    ///
-    /// # Errors
-    /// Will return an error if this render target is not constructed with a color texture.
-    ///
-    pub fn copy_color_to_screen(&self, viewport: Viewport) -> Result<(), Error> {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy color when the render target does not have a color texture."
-                    .to_owned(),
-            })?;
-        }
-        Screen::write(&self.context, &ClearState::none(), || {
-            let effect = get_copy_effect(&self.context)?;
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::COLOR,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    ///
-    /// Copies the content of the depth texture in this render target to the screen.
-    ///
-    /// # Errors
-    /// Will return an error if this render target is not constructed with a depth texture.
-    ///
-    pub fn copy_depth_to_screen(&self, viewport: Viewport) -> Result<(), Error> {
-        if self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy depth when the render target does not have a depth texture."
-                    .to_owned(),
-            })?;
-        }
-        Screen::write(&self.context, &ClearState::none(), || {
-            let effect = get_copy_effect(&self.context)?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::DEPTH,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    ///
-    /// Copies the content of the color and depth textures in this render target to another render target.
-    ///
-    /// # Errors
-    /// Will return an error if this render target is not constructed with both a color and depth
-    /// texture.
-    ///
-    pub fn copy(&self, other: &Self, viewport: Viewport) -> Result<(), Error> {
-        if self.color_texture.is_none()
-            || self.depth_texture.is_none()
-            || other.color_texture.is_none()
-            || other.depth_texture.is_none()
-        {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
-        }
-        other.write(&ClearState::none(), || {
-            let effect = get_copy_effect(&self.context)?;
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    ///
-    /// Copies the content of the color texture in this render target to another render target.
-    ///
-    /// # Errors
-    /// Will return an error if this render target is not constructed with a color
-    /// texture.
-    ///
-    pub fn copy_color(&self, other: &Self, viewport: Viewport) -> Result<(), Error> {
-        if self.color_texture.is_none() || other.color_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy color when the render target does not have a color texture."
-                    .to_owned(),
-            })?;
-        }
-        other.write(&ClearState::none(), || {
-            let effect = get_copy_effect(&self.context)?;
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::COLOR,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    ///
-    /// Copies the content of the depth texture in this render target to another render target.
-    ///
-    /// # Errors
-    /// Will return an error if this render target is not constructed with a depth texture.
-    ///
-    pub fn copy_depth(&self, other: &Self, viewport: Viewport) -> Result<(), Error> {
-        if self.depth_texture.is_none() || other.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy depth when the render target does not have a depth texture."
-                    .to_owned(),
-            })?;
-        }
-        other.write(&ClearState::none(), || {
-            let effect = get_copy_effect(&self.context)?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::DEPTH,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    pub fn read_color_with_u8(&self, viewport: Viewport) -> Result<Vec<u8>, Error> {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToReadFromRenderTarget {
-                message: "Cannot read color when the render target does not have a color texture."
-                    .to_owned(),
-            })?;
-        }
-        let format = self.color_texture.as_ref().unwrap().format();
-        let channels = channel_count_from_format(format);
-        // TODO: Check u8 format
-        let mut pixels = vec![0u8; viewport.width * viewport.height * channels];
-        self.bind(consts::READ_FRAMEBUFFER)?;
-        self.context.read_pixels_with_u8_data(
-            viewport.x as u32,
-            viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
-            format_from(format),
-            consts::UNSIGNED_BYTE,
-            &mut pixels,
-        );
-        Ok(pixels)
-    }
-
-    pub fn read_color_with_f32(&self, viewport: Viewport) -> Result<Vec<f32>, Error> {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToReadFromRenderTarget {
-                message: "Cannot read color when the render target does not have a color texture."
-                    .to_owned(),
-            })?;
-        }
-        let format = self.color_texture.as_ref().unwrap().format();
-        let channels = channel_count_from_format(format);
-        // TODO: Check f32 format
-        let mut pixels = vec![0f32; viewport.width * viewport.height * channels];
-        self.bind(consts::READ_FRAMEBUFFER)?;
-        self.context.read_pixels_with_f32_data(
-            viewport.x as u32,
-            viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
-            format_from(format),
-            consts::FLOAT,
-            &mut pixels,
-        );
-        Ok(pixels)
-    }
-
-    fn bind(&self, target: u32) -> Result<(), Error> {
+    pub(super) fn bind(&self, target: u32) -> Result<(), Error> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
@@ -500,7 +336,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
         })
     }
 
-    pub fn new_color(
+    pub(super) fn new_color(
         context: &Context,
         color_texture: &'a ColorTargetTexture2DArray,
     ) -> Result<Self, Error> {
@@ -512,7 +348,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
         })
     }
 
-    pub fn new_depth(
+    pub(super) fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2DArray,
     ) -> Result<Self, Error> {
@@ -533,9 +369,9 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
-        clear_state: &ClearState,
         color_layers: &[usize],
         depth_layer: usize,
+        clear_state: ClearState,
         render: F,
     ) -> Result<(), Error> {
         self.bind(Some(color_layers), Some(depth_layer))?;
@@ -556,176 +392,66 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
         Ok(())
     }
 
-    pub fn copy_to_screen(
+    ///
+    /// Copies the content of the color and depth layers specified (if present) in this render target to another render target or to the [Screen](crate::Screen).
+    /// Only copies the channels specified by the write mask.
+    ///
+    /// # Errors
+    /// Will return an error if this render target is only constructed with a depth texture or the depth layer is not specfied and the write mask specifies that the depth should not be copied
+    /// or if it is constructed with only a color texture or the color layer is not specified and the write mask specifies that no color channels should be copied.
+    ///
+    pub fn copy_to(
         &self,
         color_layer: usize,
         depth_layer: usize,
+        destination: RenderTargetDestination,
         viewport: Viewport,
+        write_mask: WriteMask,
     ) -> Result<(), Error> {
-        if self.color_texture.is_none() || self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
-        }
-        Screen::write(&self.context, &ClearState::none(), || {
+        let copy = || {
             let effect = get_copy_array_effect(&self.context)?;
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
-            effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
+            if let Some(tex) = self.color_texture {
+                effect.use_texture(tex, "colorMap")?;
+                effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
+            }
+            if let Some(tex) = self.depth_texture {
+                effect.use_texture(tex, "depthMap")?;
+                effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
+            }
             effect.apply(
                 RenderStates {
                     depth_test: DepthTestType::Always,
+                    write_mask,
                     ..Default::default()
                 },
                 viewport,
             )?;
             Ok(())
-        })?;
-        Ok(())
-    }
-
-    pub fn copy_color_to_screen(
-        &self,
-        color_layer: usize,
-        viewport: Viewport,
-    ) -> Result<(), Error> {
-        if self.color_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy color when the render target does not have a color texture."
-                    .to_owned(),
-            })?;
+        };
+        match destination {
+            RenderTargetDestination::RenderTarget(other) => {
+                other.write(ClearState::none(), copy)?;
+            }
+            RenderTargetDestination::Screen => {
+                Screen::write(&self.context, ClearState::none(), copy)?;
+            }
+            RenderTargetDestination::ColorTexture(tex) => {
+                if self.color_texture.is_none() {
+                    Err(Error::FailedToCopyFromRenderTarget {
+                        message: "Cannot copy color from a depth texture.".to_owned(),
+                    })?;
+                }
+                tex.write(ClearState::none(), copy)?;
+            }
+            RenderTargetDestination::DepthTexture(tex) => {
+                if self.depth_texture.is_none() {
+                    Err(Error::FailedToCopyFromRenderTarget {
+                        message: "Cannot copy depth from a color texture.".to_owned(),
+                    })?;
+                }
+                tex.write(ClearState::none(), copy)?;
+            }
         }
-        let effect = get_copy_array_effect(&self.context)?;
-        Screen::write(&self.context, &ClearState::none(), || {
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::COLOR,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    pub fn copy_depth_to_screen(
-        &self,
-        depth_layer: usize,
-        viewport: Viewport,
-    ) -> Result<(), Error> {
-        if self.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy depth when the render target does not have a depth texture."
-                    .to_owned(),
-            })?;
-        }
-        Screen::write(&self.context, &ClearState::none(), || {
-            let effect = get_copy_array_effect(&self.context)?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::DEPTH,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    pub fn copy(
-        &self,
-        color_layer: usize,
-        depth_layer: usize,
-        other: &RenderTarget,
-        viewport: Viewport,
-    ) -> Result<(), Error> {
-        if self.color_texture.is_none()
-            || self.depth_texture.is_none()
-            || other.color_texture.is_none()
-            || other.depth_texture.is_none()
-        {
-            Err(Error::FailedToCopyFromRenderTarget {message: "Cannot copy depth and color when the render target does not have a color and depth texture.".to_owned()})?;
-        }
-        other.write(&ClearState::none(), || {
-            let effect = get_copy_array_effect(&self.context)?;
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
-            effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    pub fn copy_color(
-        &self,
-        color_layer: usize,
-        other: &RenderTarget,
-        viewport: Viewport,
-    ) -> Result<(), Error> {
-        if self.color_texture.is_none() || other.color_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy color when the render target does not have a color texture."
-                    .to_owned(),
-            })?;
-        }
-        other.write(&ClearState::none(), || {
-            let effect = get_copy_array_effect(&self.context)?;
-            effect.use_texture(self.color_texture.unwrap(), "colorMap")?;
-            effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::COLOR,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    pub fn copy_depth(
-        &self,
-        depth_layer: usize,
-        other: &RenderTarget,
-        viewport: Viewport,
-    ) -> Result<(), Error> {
-        if self.depth_texture.is_none() || other.depth_texture.is_none() {
-            Err(Error::FailedToCopyFromRenderTarget {
-                message: "Cannot copy depth when the render target does not have a depth texture."
-                    .to_owned(),
-            })?;
-        }
-        other.write(&ClearState::none(), || {
-            let effect = get_copy_array_effect(&self.context)?;
-            effect.use_texture(self.depth_texture.unwrap(), "depthMap")?;
-            effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTestType::Always,
-                    write_mask: WriteMask::DEPTH,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
-        })?;
         Ok(())
     }
 
