@@ -229,7 +229,7 @@ impl ColorTargetTexture2D {
     }
 
     ///
-    /// Copies the content of the color texture inside the given viewport to the specified [destination](crate::RenderTargetDestination).
+    /// Copies the content of the color texture inside the given viewport to the specified [destination](crate::CopyDestination).
     /// Will only copy the channels specified by the write mask.
     ///
     /// # Errors
@@ -237,7 +237,7 @@ impl ColorTargetTexture2D {
     ///
     pub fn copy_to(
         &self,
-        destination: RenderTargetDestination,
+        destination: CopyDestination,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -416,14 +416,14 @@ impl DepthTargetTexture2D {
     }
 
     ///
-    /// Copies the content of the depth texture inside the given viewport to the specified [destination](crate::RenderTargetDestination).
+    /// Copies the content of the depth texture inside the given viewport to the specified [destination](crate::CopyDestination).
     ///
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
     pub fn copy_to(
         &self,
-        destination: RenderTargetDestination,
+        destination: CopyDestination,
         viewport: Viewport,
     ) -> Result<(), Error> {
         RenderTarget::new_depth(&self.context, &self)?.copy_to(
@@ -655,7 +655,7 @@ impl ColorTargetTexture2DArray {
     }
 
     ///
-    /// Copies the content of the color texture at the given layer and inside the given viewport to the specified [destination](crate::RenderTargetDestination).
+    /// Copies the content of the color texture at the given layer and inside the given viewport to the specified [destination](crate::CopyDestination).
     /// Will only copy the channels specified by the write mask.
     ///
     /// # Errors
@@ -664,7 +664,7 @@ impl ColorTargetTexture2DArray {
     pub fn copy_to(
         &self,
         color_layer: usize,
-        destination: RenderTargetDestination,
+        destination: CopyDestination,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -783,7 +783,7 @@ impl DepthTargetTexture2DArray {
     }
 
     ///
-    /// Copies the content of the depth texture at the given layer to the specified [destination](crate::RenderTargetDestination).
+    /// Copies the content of the depth texture at the given layer to the specified [destination](crate::CopyDestination).
     /// Will only copy the channels specified by the write mask.
     ///
     /// # Errors
@@ -792,7 +792,7 @@ impl DepthTargetTexture2DArray {
     pub fn copy_to(
         &self,
         depth_layer: usize,
-        destination: RenderTargetDestination,
+        destination: CopyDestination,
         viewport: Viewport,
     ) -> Result<(), Error> {
         RenderTargetArray::new_depth(&self.context, &self)?.copy_to(

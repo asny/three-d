@@ -231,7 +231,7 @@ impl PhongDeferredPipeline {
         depth_array
             .copy_to(
                 0,
-                RenderTargetDestination::DepthTexture(&depth_texture),
+                CopyDestination::DepthTexture(&depth_texture),
                 Viewport::new_at_origo(depth_array.width(), depth_array.height()),
             )
             .unwrap();

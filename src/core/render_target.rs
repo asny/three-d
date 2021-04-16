@@ -140,7 +140,7 @@ impl Screen {
 ///
 /// The destination of applying a copy.
 ///
-pub enum RenderTargetDestination<'a, 'b, 'c, 'd> {
+pub enum CopyDestination<'a, 'b, 'c, 'd> {
     /// Copies to the [Screen](crate::Screen).
     Screen,
     /// Copies to a [ColorTargetTexture2D](crate::ColorTargetTexture2D).
@@ -232,12 +232,12 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     ///
-    /// Copies the content of the color and depth textures in this render target to the specified [destination](crate::RenderTargetDestination).
+    /// Copies the content of the color and depth textures in this render target to the specified [destination](crate::CopyDestination).
     /// Only copies the channels specified by the write mask.
     ///
     pub fn copy_to(
         &self,
-        destination: RenderTargetDestination,
+        destination: CopyDestination,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -260,13 +260,13 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             Ok(())
         };
         match destination {
-            RenderTargetDestination::RenderTarget(other) => {
+            CopyDestination::RenderTarget(other) => {
                 other.write(ClearState::none(), copy)?;
             }
-            RenderTargetDestination::Screen => {
+            CopyDestination::Screen => {
                 Screen::write(&self.context, ClearState::none(), copy)?;
             }
-            RenderTargetDestination::ColorTexture(tex) => {
+            CopyDestination::ColorTexture(tex) => {
                 if self.color_texture.is_none() {
                     Err(Error::FailedToCopyFromRenderTarget {
                         message: "Cannot copy color from a depth texture.".to_owned(),
@@ -274,7 +274,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
                 }
                 tex.write(ClearState::none(), copy)?;
             }
-            RenderTargetDestination::DepthTexture(tex) => {
+            CopyDestination::DepthTexture(tex) => {
                 if self.depth_texture.is_none() {
                     Err(Error::FailedToCopyFromRenderTarget {
                         message: "Cannot copy depth from a color texture.".to_owned(),
@@ -404,7 +404,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
         &self,
         color_layer: usize,
         depth_layer: usize,
-        destination: RenderTargetDestination,
+        destination: CopyDestination,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -429,13 +429,13 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             Ok(())
         };
         match destination {
-            RenderTargetDestination::RenderTarget(other) => {
+            CopyDestination::RenderTarget(other) => {
                 other.write(ClearState::none(), copy)?;
             }
-            RenderTargetDestination::Screen => {
+            CopyDestination::Screen => {
                 Screen::write(&self.context, ClearState::none(), copy)?;
             }
-            RenderTargetDestination::ColorTexture(tex) => {
+            CopyDestination::ColorTexture(tex) => {
                 if self.color_texture.is_none() {
                     Err(Error::FailedToCopyFromRenderTarget {
                         message: "Cannot copy color from a depth texture.".to_owned(),
@@ -443,7 +443,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
                 }
                 tex.write(ClearState::none(), copy)?;
             }
-            RenderTargetDestination::DepthTexture(tex) => {
+            CopyDestination::DepthTexture(tex) => {
                 if self.depth_texture.is_none() {
                     Err(Error::FailedToCopyFromRenderTarget {
                         message: "Cannot copy depth from a color texture.".to_owned(),
