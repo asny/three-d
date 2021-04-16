@@ -155,7 +155,7 @@ impl Drop for Texture2D {
 }
 
 ///
-/// A 2D texture that can be rendered into, read from and copied. For more functionality see [RenderTarget](crate::RenderTarget).
+/// A 2D color texture that can be rendered into and read from. See also [RenderTarget](crate::RenderTarget).
 ///
 pub struct ColorTargetTexture2D {
     context: Context,
@@ -217,7 +217,7 @@ impl ColorTargetTexture2D {
     }
 
     ///
-    /// Renders whatever rendered in the **render** closure into the textures.
+    /// Renders whatever rendered in the **render** closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
@@ -229,7 +229,7 @@ impl ColorTargetTexture2D {
     }
 
     ///
-    /// Copies the content of the color texture inside the given viewport to the specified [destination](crate::CopyDestination).
+    /// Copies the content of the color texture to the specified [destination](crate::CopyDestination) at the given viewport.
     /// Will only copy the channels specified by the write mask.
     ///
     /// # Errors
@@ -362,7 +362,7 @@ pub enum DepthFormat {
 }
 
 ///
-/// A 2D texture that can be rendered into using a [RenderTarget](crate::RenderTarget).
+/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget](crate::RenderTarget).
 ///
 pub struct DepthTargetTexture2D {
     context: Context,
@@ -407,6 +407,10 @@ impl DepthTargetTexture2D {
         })
     }
 
+    ///
+    /// Write the depth of whatever rendered in the **render** closure into the texture.
+    /// Before writing, the texture is cleared based on the given clear state.
+    ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
         clear_state: ClearState,
@@ -416,16 +420,12 @@ impl DepthTargetTexture2D {
     }
 
     ///
-    /// Copies the content of the depth texture inside the given viewport to the specified [destination](crate::CopyDestination).
+    /// Copies the content of the depth texture to the specified [destination](crate::CopyDestination) at the given viewport.
     ///
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
-    pub fn copy_to(
-        &self,
-        destination: CopyDestination,
-        viewport: Viewport,
-    ) -> Result<(), Error> {
+    pub fn copy_to(&self, destination: CopyDestination, viewport: Viewport) -> Result<(), Error> {
         RenderTarget::new_depth(&self.context, &self)?.copy_to(
             destination,
             viewport,
@@ -580,7 +580,7 @@ impl Drop for TextureCubeMap {
 }
 
 ///
-/// A 2D texture array that can be rendered into using a [RenderTargetArray](crate::RenderTargetArray).
+/// A array of 2D color textures that can be rendered into and read from. See also [RenderTargetArray](crate::RenderTargetArray).
 ///
 pub struct ColorTargetTexture2DArray {
     context: Context,
@@ -640,6 +640,11 @@ impl ColorTargetTexture2DArray {
         })
     }
 
+    ///
+    /// Renders whatever rendered in the **render** closure into the textures defined by the input parameters **color_layers**.
+    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in **color_layers**.
+    /// Before writing, the textures are cleared based on the given clear state.
+    ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
         color_layers: &[usize],
@@ -655,7 +660,7 @@ impl ColorTargetTexture2DArray {
     }
 
     ///
-    /// Copies the content of the color texture at the given layer and inside the given viewport to the specified [destination](crate::CopyDestination).
+    /// Copies the content of the color texture at the given layer to the specified [destination](crate::CopyDestination) at the given viewport.
     /// Will only copy the channels specified by the write mask.
     ///
     /// # Errors
@@ -718,7 +723,7 @@ impl Drop for ColorTargetTexture2DArray {
 }
 
 ///
-/// A 2D texture array that can be rendered into using a [RenderTargetArray](crate::RenderTargetArray).
+/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray](crate::RenderTargetArray).
 ///
 pub struct DepthTargetTexture2DArray {
     context: Context,
@@ -768,6 +773,10 @@ impl DepthTargetTexture2DArray {
         })
     }
 
+    ///
+    /// Writes the depth of whatever rendered in the **render** closure into the depth texture defined by the input parameter **depth_layer**.
+    /// Before writing, the texture is cleared based on the given clear state.
+    ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
         depth_layer: usize,
@@ -783,11 +792,10 @@ impl DepthTargetTexture2DArray {
     }
 
     ///
-    /// Copies the content of the depth texture at the given layer to the specified [destination](crate::CopyDestination).
-    /// Will only copy the channels specified by the write mask.
+    /// Copies the content of the depth texture at the given layer to the specified [destination](crate::CopyDestination) at the given viewport.
     ///
     /// # Errors
-    /// Will return an error if the destination is a depth texture.
+    /// Will return an error if the destination is a color texture.
     ///
     pub fn copy_to(
         &self,

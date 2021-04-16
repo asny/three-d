@@ -86,6 +86,7 @@ impl Screen {
     ///
     /// Call this function and make a render call (for example on some [object](crate::object))
     /// in the **render** closure to render something to the screen.
+    /// Before writing, the screen is cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         context: &Context,
@@ -152,7 +153,8 @@ pub enum CopyDestination<'a, 'b, 'c, 'd> {
 }
 
 ///
-/// Adds additional functionality to read, write and copy from a [color](crate::ColorTargetTexture2D) and [depth](DepthTargetTexture2D) texture.
+/// Adds additional functionality to read, write and copy from both a [ColorTargetTexture2D](crate::ColorTargetTexture2D) and
+/// a [DepthTargetTexture2D](crate::DepthTargetTexture2D) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
 pub struct RenderTarget<'a, 'b> {
@@ -176,30 +178,6 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             context: context.clone(),
             id: new_framebuffer(context)?,
             color_texture: Some(color_texture),
-            depth_texture: Some(depth_texture),
-        })
-    }
-
-    pub(super) fn new_color(
-        context: &Context,
-        color_texture: &'a ColorTargetTexture2D,
-    ) -> Result<Self, Error> {
-        Ok(Self {
-            context: context.clone(),
-            id: new_framebuffer(context)?,
-            color_texture: Some(color_texture),
-            depth_texture: None,
-        })
-    }
-
-    pub(super) fn new_depth(
-        context: &Context,
-        depth_texture: &'b DepthTargetTexture2D,
-    ) -> Result<Self, Error> {
-        Ok(Self {
-            context: context.clone(),
-            id: new_framebuffer(context)?,
-            color_texture: None,
             depth_texture: Some(depth_texture),
         })
     }
@@ -232,8 +210,8 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     ///
-    /// Copies the content of the color and depth textures in this render target to the specified [destination](crate::CopyDestination).
-    /// Only copies the channels specified by the write mask.
+    /// Copies the content of the color and depth textures in this render target to the specified viewport of the specified [destination](crate::CopyDestination).
+    /// Only copies the channels given by the write mask.
     ///
     pub fn copy_to(
         &self,
@@ -286,6 +264,30 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
         Ok(())
     }
 
+    pub(super) fn new_color(
+        context: &Context,
+        color_texture: &'a ColorTargetTexture2D,
+    ) -> Result<Self, Error> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: None,
+        })
+    }
+
+    pub(super) fn new_depth(
+        context: &Context,
+        depth_texture: &'b DepthTargetTexture2D,
+    ) -> Result<Self, Error> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: None,
+            depth_texture: Some(depth_texture),
+        })
+    }
+
     pub(super) fn bind(&self, target: u32) -> Result<(), Error> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
@@ -308,8 +310,9 @@ impl Drop for RenderTarget<'_, '_> {
 }
 
 ///
-/// Same as [RenderTarget](crate::RenderTarget) except that the render target contains an
-/// array of [color textures](crate::ColorTargetTexture2DArray) and [depth textures](crate::DepthTargetTexture2DArray).
+/// Adds additional functionality to read, write and copy from both a [ColorTargetTexture2DArray](crate::ColorTargetTexture2DArray) and
+/// a [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray) at the same time.
+/// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
 pub struct RenderTargetArray<'a, 'b> {
     context: Context,
@@ -393,12 +396,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
     }
 
     ///
-    /// Copies the content of the color and depth layers specified (if present) in this render target to another render target or to the [Screen](crate::Screen).
+    /// Copies the content of the specified color and depth layers in this render target to the given viewport of the given [destination](crate::CopyDestination).
     /// Only copies the channels specified by the write mask.
-    ///
-    /// # Errors
-    /// Will return an error if this render target is only constructed with a depth texture or the depth layer is not specfied and the write mask specifies that the depth should not be copied
-    /// or if it is constructed with only a color texture or the color layer is not specified and the write mask specifies that no color channels should be copied.
     ///
     pub fn copy_to(
         &self,
