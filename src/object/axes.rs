@@ -16,11 +16,12 @@ pub struct Axes {
 
 impl Axes {
     pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self, Error> {
-        Ok(Self {
-            x: Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?,
-            y: Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?,
-            z: Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?,
-        })
+        let x = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        let mut y = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        let mut z = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        y.transformation = Mat4::from_angle_z(degrees(90.0));
+        z.transformation = Mat4::from_angle_y(degrees(-90.0));
+        Ok(Self { x, y, z })
     }
 
     ///
@@ -29,31 +30,23 @@ impl Axes {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the axes.
     ///
-    pub fn render(
-        &self,
-        viewport: Viewport,
-        transformation: &Mat4,
-        camera: &camera::Camera,
-    ) -> Result<(), Error> {
+    pub fn render(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error> {
         self.x.render_with_color(
             &vec4(1.0, 0.0, 0.0, 1.0),
             RenderStates::default(),
             viewport,
-            transformation,
             camera,
         )?;
         self.y.render_with_color(
             &vec4(0.0, 1.0, 0.0, 1.0),
             RenderStates::default(),
             viewport,
-            &(transformation * Mat4::from_angle_z(degrees(90.0))),
             camera,
         )?;
         self.z.render_with_color(
             &vec4(0.0, 0.0, 1.0, 1.0),
             RenderStates::default(),
             viewport,
-            &(transformation * Mat4::from_angle_y(degrees(-90.0))),
             camera,
         )?;
 

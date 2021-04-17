@@ -42,6 +42,7 @@ fn main() {
                 &PhongMaterial::new(&context, &monkey_cpu_materials[0]).unwrap(),
             )
             .unwrap();
+            monkey.cull = CullType::Back;
 
             let mut plane = PhongMesh::new(
                 &context,
@@ -253,15 +254,23 @@ fn main() {
                             }
                             Event::MouseMotion { delta, handled, .. } => {
                                 if !handled && rotating {
+                                    let target = *camera.target();
                                     camera
-                                        .rotate_around_up(delta.0 as f32, delta.1 as f32)
+                                        .rotate_around_with_fixed_up(
+                                            &target,
+                                            0.1 * delta.0 as f32,
+                                            0.1 * delta.1 as f32,
+                                        )
                                         .unwrap();
                                     change = true;
                                 }
                             }
                             Event::MouseWheel { delta, handled, .. } => {
                                 if !handled {
-                                    camera.zoom(delta.1 as f32).unwrap();
+                                    let target = *camera.target();
+                                    camera
+                                        .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
+                                        .unwrap();
                                     change = true;
                                 }
                             }
@@ -282,11 +291,9 @@ fn main() {
                     let render_scene_depth = |viewport: Viewport, camera: &Camera| {
                         monkey.render_depth(
                             RenderStates {
-                                cull: CullType::Back,
                                 ..Default::default()
                             },
                             viewport,
-                            &Mat4::identity(),
                             camera,
                         )?;
                         Ok(())
@@ -325,20 +332,16 @@ fn main() {
                             .geometry_pass(viewport.width, viewport.height, &|| {
                                 monkey.render_geometry(
                                     RenderStates {
-                                        cull: CullType::Back,
                                         ..Default::default()
                                     },
                                     Viewport::new_at_origo(viewport.width, viewport.height),
-                                    &Mat4::identity(),
                                     &camera,
                                 )?;
                                 plane.render_geometry(
                                     RenderStates {
-                                        cull: CullType::Back,
                                         ..Default::default()
                                     },
                                     Viewport::new_at_origo(viewport.width, viewport.height),
-                                    &Mat4::identity(),
                                     &camera,
                                 )?;
                                 Ok(())
@@ -347,7 +350,7 @@ fn main() {
                     }
 
                     // Light pass
-                    Screen::write(&context, &ClearState::default(), || {
+                    Screen::write(&context, ClearState::default(), || {
                         pipeline.light_pass(
                             viewport,
                             &camera,

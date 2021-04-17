@@ -151,16 +151,16 @@ impl Window {
             let device_pixel_ratio = self.pixels_per_point();
             let canvas = self.canvas.as_ref().unwrap();
             let (width, height) = (
-                canvas.width() as usize / device_pixel_ratio,
-                canvas.height() as usize / device_pixel_ratio,
+                (canvas.width() as f64 / device_pixel_ratio) as usize,
+                (canvas.height() as f64 / device_pixel_ratio) as usize,
             );
             let frame_input = crate::FrameInput {
                 events: input_clone.borrow().events.clone(),
                 elapsed_time,
                 accumulated_time,
                 viewport: crate::Viewport::new_at_origo(
-                    device_pixel_ratio * width,
-                    device_pixel_ratio * height,
+                    (device_pixel_ratio * width as f64) as usize,
+                    (device_pixel_ratio * height as f64) as usize,
                 ),
                 window_width: width,
                 window_height: height,
@@ -180,12 +180,12 @@ impl Window {
         Ok(())
     }
 
-    fn pixels_per_point(&self) -> usize {
-        let pixels_per_point = self.window.device_pixel_ratio() as f32;
+    fn pixels_per_point(&self) -> f64 {
+        let pixels_per_point = self.window.device_pixel_ratio() as f64;
         if pixels_per_point > 0.0 && pixels_per_point.is_finite() {
-            pixels_per_point as usize
+            pixels_per_point
         } else {
-            1
+            1.0
         }
     }
 
@@ -234,8 +234,8 @@ impl Window {
 
         canvas.style().set_css_text(&style);
         let device_pixel_ratio = self.pixels_per_point();
-        canvas.set_width(device_pixel_ratio as u32 * width);
-        canvas.set_height(device_pixel_ratio as u32 * height);
+        canvas.set_width((device_pixel_ratio * width as f64) as u32);
+        canvas.set_height((device_pixel_ratio * height as f64) as u32);
         Ok(())
     }
 

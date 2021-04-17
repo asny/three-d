@@ -377,6 +377,60 @@ impl Glstruct {
         );
     }
 
+    pub fn read_pixels_with_u8_data(
+        &self,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        dst_data: &mut [u8],
+    ) {
+        self.inner
+            .read_pixels_with_opt_u8_array(
+                x as i32,
+                y as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                Some(dst_data),
+            )
+            .unwrap()
+    }
+
+    pub fn read_pixels_with_f32_data(
+        &self,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        dst_data: &mut [f32],
+    ) {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>()
+            .unwrap()
+            .buffer();
+        let data_location = dst_data.as_ptr() as u32 / 4;
+        let array = js_sys::Float32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + dst_data.len() as u32);
+        self.inner
+            .read_pixels_with_opt_array_buffer_view(
+                x as i32,
+                y as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                Some(&array),
+            )
+            .unwrap();
+    }
+
     pub fn viewport(&self, x: i32, y: i32, width: usize, height: usize) {
         self.inner.viewport(x, y, width as i32, height as i32);
     }

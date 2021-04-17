@@ -16,6 +16,18 @@ pub struct PhongMesh {
     pub material: PhongMaterial,
 }
 
+impl Pickable for PhongMesh {
+    fn pick(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+        max_depth: f32,
+    ) -> Result<(), Error> {
+        self.mesh.pick(render_states, viewport, camera, max_depth)
+    }
+}
+
 impl PhongMesh {
     pub fn new(
         context: &Context,
@@ -42,7 +54,6 @@ impl PhongMesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
@@ -79,8 +90,7 @@ impl PhongMesh {
             PROGRAMS.as_ref().unwrap().get(key).unwrap()
         };
         self.material.bind(program)?;
-        self.mesh
-            .render(program, render_states, viewport, transformation, camera)
+        self.mesh.render(program, render_states, viewport, camera)
     }
 
     ///
@@ -92,7 +102,6 @@ impl PhongMesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        transformation: &Mat4,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
@@ -154,8 +163,7 @@ impl PhongMesh {
                 }
             }
         }
-        self.mesh
-            .render(program, render_states, viewport, transformation, camera)?;
+        self.mesh.render(program, render_states, viewport, camera)?;
         Ok(())
     }
 }

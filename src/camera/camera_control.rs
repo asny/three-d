@@ -22,68 +22,71 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn rotate(&mut self, x: f32, y: f32) -> Result<(), Error> {
+    pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> Result<(), Error> {
+        let dir = (point - self.position()).normalize();
+        let right = dir.cross(*self.up());
+        let up = right.cross(dir);
+        let new_pos = self.position() - right * x + up * y;
+        let new_dir = (point - new_pos).normalize();
+        let dist = point.distance(*self.position());
         let target = *self.target();
-        let mut direction = self.target() - self.position();
-        let zoom = direction.magnitude();
-        direction /= zoom;
-        let right = direction.cross(*self.up());
-        let up = right.cross(direction);
-        let new_pos = self.position() + (-right * x + up * y) * 0.1;
-        let new_dir = (self.target() - new_pos).normalize();
-        self.set_view(target - new_dir * zoom, target, up)?;
+        self.set_view(point - dist * new_dir, target, up)?;
         Ok(())
     }
 
-    pub fn rotate_around_up(&mut self, x: f32, y: f32) -> Result<(), Error> {
-        let target = *self.target();
-        let up = *self.up();
-        let mut direction = target - self.position();
-        let zoom = direction.magnitude();
-        direction /= zoom;
-        let right = direction.cross(up);
-        let new_pos = self.position() + (-right * x + right.cross(direction) * y) * 0.1;
-        let new_dir = (self.target() - new_pos).normalize();
+    pub fn rotate_around_with_fixed_up(
+        &mut self,
+        point: &Vec3,
+        x: f32,
+        y: f32,
+    ) -> Result<(), Error> {
+        let dir = (point - self.position()).normalize();
+        let right = dir.cross(*self.up());
+        let mut up = right.cross(dir);
+        let new_pos = self.position() - right * x + up * y;
+        let new_dir = (point - new_pos).normalize();
+        up = *self.up();
         if new_dir.dot(up).abs() < 0.999 {
-            self.set_view(target - new_dir * zoom, target, up)?;
+            let dist = point.distance(*self.position());
+            let target = *self.target();
+            self.set_view(point - dist * new_dir, target, up)?;
         }
         Ok(())
     }
 
     pub fn pan(&mut self, x: f32, y: f32) -> Result<(), Error> {
-        let position = *self.position();
-        let target = *self.target();
-        let up = *self.up();
-        let mut direction = target - position;
-        let zoom = direction.magnitude();
-        direction /= zoom;
-        let right = direction.cross(up);
-        let delta = (-right * x + right.cross(direction) * y) * zoom * 0.005;
-        self.set_view(position + delta, target + delta, up)?;
+        let right = self.right_direction();
+        let up = right.cross(self.view_direction());
+        let delta = -right * x + up * y;
+        self.translate(&delta)?;
         Ok(())
     }
 
-    pub fn zoom(&mut self, wheel: f32) -> Result<(), Error> {
+    pub fn zoom_towards(
+        &mut self,
+        point: &Vec3,
+        delta: f32,
+        min: f32,
+        max: f32,
+    ) -> Result<(), Error> {
+        let distance = point.distance(*self.position());
         match self.projection_type() {
             ProjectionType::Orthographic {
                 width,
                 height,
                 depth,
             } => {
-                let h = (height - wheel).max(0.001);
+                let h = (height - delta * distance).max(min).min(max);
                 let w = h * width / height;
                 let d = *depth;
                 self.set_orthographic_projection(w, h, d)?;
             }
             ProjectionType::Perspective { .. } => {
-                let position = *self.position();
                 let target = *self.target();
                 let up = *self.up();
-                let mut direction = target - position;
-                let mut zoom = direction.magnitude();
-                direction /= zoom;
-                zoom += wheel;
-                zoom = zoom.max(1.0);
+                let direction = self.view_direction();
+                let mut zoom = (delta + 1.0) * distance;
+                zoom = zoom.max(min).min(max);
                 self.set_view(target - direction * zoom, target, up)?;
             }
         }

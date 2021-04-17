@@ -114,9 +114,9 @@ impl Imposters {
                 vec3(0.0, 1.0, 0.0),
             )?;
             render_target.write(
-                &ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
                 &[i],
                 0,
+                ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
                 || {
                     render(
                         Viewport::new_at_origo(texture_width, texture_height),
@@ -152,7 +152,6 @@ impl Imposters {
     ///
     pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
-            cull: CullType::Back,
             blend: Some(BlendParameters {
                 source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
                 source_alpha_multiplier: BlendMultiplierType::Zero,
@@ -179,8 +178,13 @@ impl Imposters {
             .use_attribute_vec3_divisor(&self.center_buffer, "center", 1)?;
         self.program
             .use_attribute_divisor(&self.rotation_buffer, "theta", 1)?;
-        self.program
-            .draw_arrays_instanced(render_states, viewport, 6, self.instance_count);
+        self.program.draw_arrays_instanced(
+            render_states,
+            CullType::Back,
+            viewport,
+            6,
+            self.instance_count,
+        );
         Ok(())
     }
 }

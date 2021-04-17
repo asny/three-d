@@ -18,10 +18,21 @@ pub enum ProjectionType {
     },
 }
 
+pub trait Pickable {
+    fn pick(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+        max_depth: f32,
+    ) -> Result<(), Error>;
+}
+
 ///
 /// Used in a render call to define how to view the 3D world.
 ///
 pub struct Camera {
+    context: Context,
     projection_type: ProjectionType,
     position: Vec3,
     target: Vec3,
@@ -229,6 +240,90 @@ impl Camera {
         return true;
     }
 
+    pub fn pick_at(
+        &self,
+        screen_coordinates: (f64, f64),
+        max_depth: f32,
+        objects: &[&dyn Pickable],
+    ) -> Result<Option<Vec3>, Error> {
+        let pos = *self.position();
+        let dir = self.view_direction_at(screen_coordinates);
+        self.pick(pos, dir, max_depth, objects)
+    }
+
+    pub fn pick(
+        &self,
+        position: Vec3,
+        direction: Vec3,
+        max_depth: f32,
+        objects: &[&dyn Pickable],
+    ) -> Result<Option<Vec3>, Error> {
+        let viewport = Viewport::new_at_origo(1, 1);
+        let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
+            direction.cross(vec3(0.0, 1.0, 0.0))
+        } else {
+            direction.cross(vec3(1.0, 0.0, 0.0))
+        };
+        let camera = Camera::new_orthographic(
+            &self.context,
+            position,
+            position + direction * max_depth,
+            up,
+            0.01,
+            0.01,
+            max_depth,
+        )?;
+        let texture = ColorTargetTexture2D::new(
+            &self.context,
+            viewport.width,
+            viewport.height,
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Format::RGBA32F,
+        )?;
+        let depth_texture = DepthTargetTexture2D::new(
+            &self.context,
+            viewport.width,
+            viewport.height,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            DepthFormat::Depth32F,
+        )?;
+        let render_target = RenderTarget::new(&self.context, &texture, &depth_texture)?;
+
+        let render_states = RenderStates {
+            write_mask: WriteMask {
+                red: true,
+                depth: true,
+                ..WriteMask::NONE
+            },
+            depth_test: DepthTestType::Less,
+            ..Default::default()
+        };
+        render_target.write(
+            ClearState {
+                red: Some(1.0),
+                depth: Some(1.0),
+                ..ClearState::none()
+            },
+            || {
+                for object in objects {
+                    object.pick(render_states, viewport, &camera, max_depth)?;
+                }
+                Ok(())
+            },
+        )?;
+        let depth = texture.read_as_f32(viewport)?[0];
+        Ok(if depth == 1.0 {
+            None
+        } else {
+            Some(position + direction * depth * max_depth)
+        })
+    }
+
     ///
     /// Returns the view direction at the given screen/image plane coordinates.
     /// The coordinates must be between 0 and 1, where (0, 0) indicate the top left corner of the screen
@@ -268,12 +363,21 @@ impl Camera {
         &self.up
     }
 
+    pub fn view_direction(&self) -> Vec3 {
+        (self.target - self.position).normalize()
+    }
+
+    pub fn right_direction(&self) -> Vec3 {
+        self.view_direction().cross(self.up)
+    }
+
     pub fn matrix_buffer(&self) -> &UniformBuffer {
         &self.matrix_buffer
     }
 
     fn new(context: &Context) -> Camera {
         Camera {
+            context: context.clone(),
             projection_type: ProjectionType::Orthographic {
                 width: 1.0,
                 height: 1.0,

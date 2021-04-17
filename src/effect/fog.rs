@@ -31,7 +31,6 @@ impl FogEffect {
         time: f32,
     ) -> Result<(), Error> {
         let render_states = RenderStates {
-            cull: CullType::Back,
             write_mask: WriteMask::COLOR,
             blend: Some(BlendParameters {
                 source_alpha_multiplier: BlendMultiplierType::Zero,

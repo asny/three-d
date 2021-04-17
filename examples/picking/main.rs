@@ -4,7 +4,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let window = Window::new(WindowSettings {
-        title: "Fog!".to_string(),
+        title: "Picking!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
     })
@@ -12,7 +12,6 @@ fn main() {
     let context = window.gl().unwrap();
 
     // Renderer
-    let mut pipeline = PhongForwardPipeline::new(&context).unwrap();
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
@@ -27,16 +26,22 @@ fn main() {
         .unwrap(),
     );
 
+    let mut pick_mesh = PhongMesh::new(
+        &context,
+        &CPUMesh::sphere(0.05),
+        &PhongMaterial::new(
+            &context,
+            &CPUMaterial {
+                color: Some((1.0, 0.0, 0.0, 1.0)),
+                ..Default::default()
+            },
+        )
+        .unwrap(),
+    )
+    .unwrap();
+
     Loader::load(
-        &[
-            "examples/assets/suzanne.obj",
-            "examples/assets/suzanne.mtl",
-            "examples/assets/skybox_evening/back.jpg",
-            "examples/assets/skybox_evening/front.jpg",
-            "examples/assets/skybox_evening/top.jpg",
-            "examples/assets/skybox_evening/left.jpg",
-            "examples/assets/skybox_evening/right.jpg",
-        ],
+        &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
@@ -56,27 +61,6 @@ fn main() {
                 DirectionalLight::new(&context, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
 
-            // Fog
-            let mut fog_effect = FogEffect::new(&context).unwrap();
-            fog_effect.color = vec3(0.8, 0.8, 0.8);
-            let mut fog_enabled = true;
-
-            // Skybox
-            let skybox = Skybox::new(
-                &context,
-                &mut loaded
-                    .cube_image(
-                        "examples/assets/skybox_evening/right.jpg",
-                        "examples/assets/skybox_evening/left.jpg",
-                        "examples/assets/skybox_evening/top.jpg",
-                        "examples/assets/skybox_evening/top.jpg",
-                        "examples/assets/skybox_evening/front.jpg",
-                        "examples/assets/skybox_evening/back.jpg",
-                    )
-                    .unwrap(),
-            )
-            .unwrap();
-
             // main loop
             let mut rotating = false;
             window
@@ -86,8 +70,33 @@ fn main() {
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick { state, button, .. } => {
+                            Event::MouseClick {
+                                state,
+                                button,
+                                position,
+                                ..
+                            } => {
                                 rotating = *button == MouseButton::Left && *state == State::Pressed;
+                                if *button == MouseButton::Left && *state == State::Pressed {
+                                    if let Some(pick) = camera
+                                        .pick_at(
+                                            (
+                                                (position.0 * frame_input.device_pixel_ratio
+                                                    - frame_input.viewport.x as f64)
+                                                    / frame_input.viewport.width as f64,
+                                                (position.1 * frame_input.device_pixel_ratio
+                                                    - frame_input.viewport.y as f64)
+                                                    / frame_input.viewport.height as f64,
+                                            ),
+                                            100.0,
+                                            &[&monkey],
+                                        )
+                                        .unwrap()
+                                    {
+                                        pick_mesh.transformation = Mat4::from_translation(pick);
+                                        change = true;
+                                    }
+                                }
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
@@ -109,60 +118,38 @@ fn main() {
                                     .unwrap();
                                 change = true;
                             }
-                            Event::Key { state, kind, .. } => {
-                                if *kind == Key::F && *state == State::Pressed {
-                                    fog_enabled = !fog_enabled;
-                                    change = true;
-                                    println!("Fog: {:?}", fog_enabled);
-                                }
-                            }
                             _ => {}
                         }
                     }
 
                     // draw
                     if change {
-                        pipeline
-                            .depth_pass(
-                                frame_input.viewport.width,
-                                frame_input.viewport.height,
-                                &|| {
-                                    monkey.render_depth(
-                                        RenderStates::default(),
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    Ok(())
+                        Screen::write(&context, ClearState::default(), || {
+                            monkey.render_with_lighting(
+                                RenderStates {
+                                    depth_test: DepthTestType::LessOrEqual,
+                                    ..Default::default()
                                 },
-                            )
-                            .unwrap();
-                    }
-
-                    Screen::write(&context, ClearState::default(), || {
-                        monkey.render_with_lighting(
-                            RenderStates {
-                                depth_test: DepthTestType::LessOrEqual,
-                                ..Default::default()
-                            },
-                            frame_input.viewport,
-                            &camera,
-                            Some(&ambient_light),
-                            &[&directional_light],
-                            &[],
-                            &[],
-                        )?;
-                        skybox.render(frame_input.viewport, &camera)?;
-                        if fog_enabled {
-                            fog_effect.apply(
                                 frame_input.viewport,
                                 &camera,
-                                pipeline.depth_texture(),
-                                frame_input.accumulated_time as f32,
+                                Some(&ambient_light),
+                                &[&directional_light],
+                                &[],
+                                &[],
                             )?;
-                        }
-                        Ok(())
-                    })
-                    .unwrap();
+                            pick_mesh.render_with_lighting(
+                                RenderStates::default(),
+                                frame_input.viewport,
+                                &camera,
+                                Some(&ambient_light),
+                                &[&directional_light],
+                                &[],
+                                &[],
+                            )?;
+                            Ok(())
+                        })
+                        .unwrap();
+                    }
 
                     if args.len() > 1 {
                         // To automatically generate screenshots of the examples, can safely be ignored.
@@ -172,7 +159,10 @@ fn main() {
                             ..Default::default()
                         }
                     } else {
-                        FrameOutput::default()
+                        FrameOutput {
+                            swap_buffers: change,
+                            ..Default::default()
+                        }
                     }
                 })
                 .unwrap();

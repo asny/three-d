@@ -188,7 +188,7 @@ impl GUI {
         self.program.use_attribute_vec2(&uv_buffer, "a_tc")?;
 
         self.program
-            .draw_elements(render_states, viewport, &index_buffer);
+            .draw_elements(render_states, CullType::None, viewport, &index_buffer);
         Ok(())
     }
 }

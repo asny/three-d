@@ -44,6 +44,7 @@ fn main() {
         ParticlesProgram::new(&context, &include_str!("../assets/shaders/particles.frag")).unwrap();
     let mut particles =
         Particles::new(&context, &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
+    particles.cull = CullType::Back;
 
     // main loop
     let mut time = explosion_time + 100.0;
@@ -60,11 +61,21 @@ fn main() {
                     }
                     Event::MouseMotion { delta, .. } => {
                         if rotating {
-                            camera.rotate(delta.0 as f32, delta.1 as f32).unwrap();
+                            let target = *camera.target();
+                            camera
+                                .rotate_around_with_fixed_up(
+                                    &target,
+                                    0.1 * delta.0 as f32,
+                                    0.1 * delta.1 as f32,
+                                )
+                                .unwrap();
                         }
                     }
                     Event::MouseWheel { delta, .. } => {
-                        camera.zoom(delta.1 as f32).unwrap();
+                        let target = *camera.target();
+                        camera
+                            .zoom_towards(&target, 0.01 * delta.1 as f32, 0.1, 100.0)
+                            .unwrap();
                     }
                     _ => {}
                 }
@@ -98,9 +109,8 @@ fn main() {
                 particles.update(&data);
             }
 
-            Screen::write(&context, &ClearState::color(0.0, 0.0, 0.0, 1.0), || {
+            Screen::write(&context, ClearState::color(0.0, 0.0, 0.0, 1.0), || {
                 let render_states = RenderStates {
-                    cull: CullType::Back,
                     blend: Some(BlendParameters {
                         rgb_equation: BlendEquationType::Add,
                         alpha_equation: BlendEquationType::Add,
@@ -124,7 +134,6 @@ fn main() {
                     &particles_program,
                     render_states,
                     frame_input.viewport,
-                    &Mat4::identity(),
                     &camera,
                     time,
                 )?;
