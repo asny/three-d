@@ -155,7 +155,10 @@ impl Drop for Texture2D {
 }
 
 ///
-/// A 2D color texture that can be rendered into and read from. See also [RenderTarget](crate::RenderTarget).
+/// A 2D color texture that can be rendered into and read from.
+///
+/// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture.
+/// Use a [RenderTarget](crate::RenderTarget) to write to both color and depth.
 ///
 pub struct ColorTargetTexture2D {
     context: Context,
@@ -219,6 +222,9 @@ impl ColorTargetTexture2D {
     ///
     /// Renders whatever rendered in the **render** closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
+    ///
+    /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture.
+    /// Use a [RenderTarget](crate::RenderTarget) to write to both color and depth.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
@@ -586,7 +592,10 @@ impl Drop for TextureCubeMap {
 }
 
 ///
-/// A array of 2D color textures that can be rendered into and read from. See also [RenderTargetArray](crate::RenderTargetArray).
+/// A array of 2D color textures that can be rendered into.
+///
+/// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture array.
+/// Use a [RenderTargetArray](crate::RenderTargetArray) to write to both color and depth.
 ///
 pub struct ColorTargetTexture2DArray {
     context: Context,
@@ -650,6 +659,9 @@ impl ColorTargetTexture2DArray {
     /// Renders whatever rendered in the **render** closure into the textures defined by the input parameters **color_layers**.
     /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in **color_layers**.
     /// Before writing, the textures are cleared based on the given clear state.
+    ///
+    /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture array.
+    /// Use a [RenderTargetArray](crate::RenderTargetArray) to write to both color and depth.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,

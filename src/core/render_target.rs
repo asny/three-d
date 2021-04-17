@@ -153,7 +153,7 @@ pub enum CopyDestination<'a, 'b, 'c, 'd> {
 }
 
 ///
-/// Adds additional functionality to read, write and copy from both a [ColorTargetTexture2D](crate::ColorTargetTexture2D) and
+/// Adds additional functionality to write to and copy from both a [ColorTargetTexture2D](crate::ColorTargetTexture2D) and
 /// a [DepthTargetTexture2D](crate::DepthTargetTexture2D) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
@@ -310,7 +310,7 @@ impl Drop for RenderTarget<'_, '_> {
 }
 
 ///
-/// Adds additional functionality to read, write and copy from both a [ColorTargetTexture2DArray](crate::ColorTargetTexture2DArray) and
+/// Adds additional functionality to write to and copy from both a [ColorTargetTexture2DArray](crate::ColorTargetTexture2DArray) and
 /// a [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
