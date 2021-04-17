@@ -62,7 +62,13 @@ impl CameraControl {
         Ok(())
     }
 
-    pub fn zoom(&mut self, point: &Vec3, delta: f32, min: f32, max: f32) -> Result<(), Error> {
+    pub fn zoom_towards(
+        &mut self,
+        point: &Vec3,
+        delta: f32,
+        min: f32,
+        max: f32,
+    ) -> Result<(), Error> {
         let distance = point.distance(*self.position());
         match self.projection_type() {
             ProjectionType::Orthographic {

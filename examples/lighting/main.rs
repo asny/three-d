@@ -269,7 +269,7 @@ fn main() {
                                 if !handled {
                                     let target = *camera.target();
                                     camera
-                                        .zoom(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
+                                        .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
                                         .unwrap();
                                     change = true;
                                 }
