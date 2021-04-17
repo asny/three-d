@@ -37,7 +37,7 @@ impl PhongForwardPipeline {
         self.depth_texture
             .as_ref()
             .unwrap()
-            .write(ClearState::depth(1.0), render)?;
+            .write(Some(1.0), render)?;
         Ok(())
     }
 

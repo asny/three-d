@@ -139,7 +139,7 @@ impl SpotLight {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?;
-        self.shadow_texture.write(ClearState::depth(1.0), || {
+        self.shadow_texture.write(Some(1.0), || {
             render_scene(
                 Viewport::new_at_origo(texture_size, texture_size),
                 self.shadow_camera.as_ref().unwrap(),

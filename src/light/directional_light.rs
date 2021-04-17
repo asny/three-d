@@ -110,7 +110,7 @@ impl DirectionalLight {
             DepthFormat::Depth32F,
         )
         .unwrap();
-        self.shadow_texture.write(ClearState::depth(1.0), || {
+        self.shadow_texture.write(Some(1.0), || {
             render_scene(
                 Viewport::new_at_origo(texture_width, texture_height),
                 self.shadow_camera.as_ref().unwrap(),

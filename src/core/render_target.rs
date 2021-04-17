@@ -258,7 +258,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
                         message: "Cannot copy depth from a color texture.".to_owned(),
                     })?;
                 }
-                tex.write(ClearState::none(), copy)?;
+                tex.write(None, copy)?;
             }
         }
         Ok(())
@@ -448,7 +448,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
                         message: "Cannot copy depth from a color texture.".to_owned(),
                     })?;
                 }
-                tex.write(ClearState::none(), copy)?;
+                tex.write(None, copy)?;
             }
         }
         Ok(())

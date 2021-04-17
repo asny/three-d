@@ -413,10 +413,16 @@ impl DepthTargetTexture2D {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
-        clear_state: ClearState,
+        clear_state: Option<f32>,
         render: F,
     ) -> Result<(), Error> {
-        RenderTarget::new_depth(&self.context, &self)?.write(clear_state, render)
+        RenderTarget::new_depth(&self.context, &self)?.write(
+            ClearState {
+                depth: clear_state,
+                ..ClearState::none()
+            },
+            render,
+        )
     }
 
     ///
@@ -780,13 +786,16 @@ impl DepthTargetTexture2DArray {
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
         depth_layer: usize,
-        clear_state: ClearState,
+        clear_state: Option<f32>,
         render: F,
     ) -> Result<(), Error> {
         RenderTargetArray::new_depth(&self.context, &self)?.write(
             &[],
             depth_layer,
-            clear_state,
+            ClearState {
+                depth: clear_state,
+                ..ClearState::none()
+            },
             render,
         )
     }
