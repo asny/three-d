@@ -157,6 +157,7 @@ impl Pickable for Mesh {
         render_states: RenderStates,
         viewport: Viewport,
         camera: &Camera,
+        max_depth: f32,
     ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_PICK.is_none() {
@@ -167,7 +168,7 @@ impl Pickable for Mesh {
             }
             PROGRAM_PICK.as_ref().unwrap()
         };
-        program.use_uniform_float("maxDistance", &camera.distance_to_target())?;
+        program.use_uniform_float("maxDistance", &max_depth)?;
         self.render(program, render_states, viewport, camera)?;
         Ok(())
     }

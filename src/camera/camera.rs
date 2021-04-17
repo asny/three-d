@@ -24,6 +24,7 @@ pub trait Pickable {
         render_states: RenderStates,
         viewport: Viewport,
         camera: &Camera,
+        max_depth: f32,
     ) -> Result<(), Error>;
 }
 
@@ -310,7 +311,7 @@ impl Camera {
             },
             || {
                 for object in objects {
-                    object.pick(render_states, viewport, &camera)?;
+                    object.pick(render_states, viewport, &camera, max_depth)?;
                 }
                 Ok(())
             },
@@ -368,10 +369,6 @@ impl Camera {
 
     pub fn right_direction(&self) -> Vec3 {
         self.view_direction().cross(self.up)
-    }
-
-    pub fn distance_to_target(&self) -> f32 {
-        self.target.distance(self.position)
     }
 
     pub fn matrix_buffer(&self) -> &UniformBuffer {

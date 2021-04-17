@@ -121,7 +121,10 @@ fn main() {
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                camera.zoom(0.1 * delta.1 as f32, 3.0, 100.0).unwrap();
+                                let target = *camera.target();
+                                camera
+                                    .zoom(&target, 0.1 * delta.1 as f32, 3.0, 100.0)
+                                    .unwrap();
                                 redraw = true;
                             }
                             _ => {}

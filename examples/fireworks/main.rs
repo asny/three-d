@@ -72,7 +72,10 @@ fn main() {
                         }
                     }
                     Event::MouseWheel { delta, .. } => {
-                        camera.zoom(0.01 * delta.1 as f32, 0.1, 100.0).unwrap();
+                        let target = *camera.target();
+                        camera
+                            .zoom(&target, 0.01 * delta.1 as f32, 0.1, 100.0)
+                            .unwrap();
                     }
                     _ => {}
                 }

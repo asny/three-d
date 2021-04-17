@@ -22,8 +22,9 @@ impl Pickable for PhongMesh {
         render_states: RenderStates,
         viewport: Viewport,
         camera: &Camera,
+        max_depth: f32,
     ) -> Result<(), Error> {
-        self.mesh.pick(render_states, viewport, camera)
+        self.mesh.pick(render_states, viewport, camera, max_depth)
     }
 }
 

@@ -58,20 +58,19 @@ impl CameraControl {
         let right = self.right_direction();
         let up = right.cross(self.view_direction());
         let delta = -right * x + up * y;
-        self.translate(&(delta * self.distance_to_target()))?;
+        self.translate(&delta)?;
         Ok(())
     }
 
-    pub fn zoom(&mut self, wheel: f32, min: f32, max: f32) -> Result<(), Error> {
+    pub fn zoom(&mut self, point: &Vec3, delta: f32, min: f32, max: f32) -> Result<(), Error> {
+        let distance = point.distance(*self.position());
         match self.projection_type() {
             ProjectionType::Orthographic {
                 width,
                 height,
                 depth,
             } => {
-                let h = (height - wheel * self.distance_to_target())
-                    .max(min)
-                    .min(max);
+                let h = (height - delta * distance).max(min).min(max);
                 let w = h * width / height;
                 let d = *depth;
                 self.set_orthographic_projection(w, h, d)?;
@@ -80,7 +79,7 @@ impl CameraControl {
                 let target = *self.target();
                 let up = *self.up();
                 let direction = self.view_direction();
-                let mut zoom = (wheel + 1.0) * self.distance_to_target();
+                let mut zoom = (delta + 1.0) * distance;
                 zoom = zoom.max(min).min(max);
                 self.set_view(target - direction * zoom, target, up)?;
             }
