@@ -16,7 +16,7 @@ pub struct PhongMesh {
     pub material: PhongMaterial,
 }
 
-impl Pickable for PhongMesh {
+impl Geometry for PhongMesh {
     fn pick(
         &self,
         render_states: RenderStates,

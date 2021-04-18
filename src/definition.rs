@@ -18,3 +18,8 @@ pub use crate::cpu_material::*;
 pub mod cpu_texture;
 #[doc(inline)]
 pub use crate::cpu_texture::*;
+
+#[doc(hidden)]
+pub mod geometry;
+#[doc(inline)]
+pub use crate::geometry::*;

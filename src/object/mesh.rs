@@ -1,9 +1,7 @@
 use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
-#[doc(hidden)]
 use crate::math::*;
-use crate::Pickable;
 
 ///
 /// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
@@ -149,29 +147,6 @@ pub struct Mesh {
     color_buffer: Option<VertexBuffer>,
     pub cull: CullType,
     pub transformation: Mat4,
-}
-
-impl Pickable for Mesh {
-    fn pick(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-        max_depth: f32,
-    ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_PICK.is_none() {
-                PROGRAM_PICK = Some(MeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_pick.frag"),
-                )?);
-            }
-            PROGRAM_PICK.as_ref().unwrap()
-        };
-        program.use_uniform_float("maxDistance", &max_depth)?;
-        self.render(program, render_states, viewport, camera)?;
-        Ok(())
-    }
 }
 
 impl Mesh {
@@ -374,6 +349,29 @@ impl Mesh {
                 self.position_buffer.count() as u32 / 3,
             );
         }
+        Ok(())
+    }
+}
+
+impl Geometry for Mesh {
+    fn pick(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+        max_depth: f32,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAM_PICK.is_none() {
+                PROGRAM_PICK = Some(MeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_pick.frag"),
+                )?);
+            }
+            PROGRAM_PICK.as_ref().unwrap()
+        };
+        program.use_uniform_float("maxDistance", &max_depth)?;
+        self.render(program, render_states, viewport, camera)?;
         Ok(())
     }
 }

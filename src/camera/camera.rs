@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::definition::*;
 use crate::math::*;
 
 ///
@@ -16,16 +17,6 @@ pub enum ProjectionType {
         z_near: f32,
         z_far: f32,
     },
-}
-
-pub trait Pickable {
-    fn pick(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-        max_depth: f32,
-    ) -> Result<(), Error>;
 }
 
 ///
@@ -244,7 +235,7 @@ impl Camera {
         &self,
         screen_coordinates: (f64, f64),
         max_depth: f32,
-        objects: &[&dyn Pickable],
+        objects: &[&dyn Geometry],
     ) -> Result<Option<Vec3>, Error> {
         let pos = *self.position();
         let dir = self.view_direction_at(screen_coordinates);
@@ -256,7 +247,7 @@ impl Camera {
         position: Vec3,
         direction: Vec3,
         max_depth: f32,
-        objects: &[&dyn Pickable],
+        objects: &[&dyn Geometry],
     ) -> Result<Option<Vec3>, Error> {
         let viewport = Viewport::new_at_origo(1, 1);
         let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
