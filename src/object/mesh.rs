@@ -192,27 +192,6 @@ impl Mesh {
     }
 
     ///
-    /// Render only the depth of the mesh into the current depth render target which is useful for shadow maps or depth pre-pass.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the mesh.
-    ///
-    pub fn render_depth(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-    ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_DEPTH.is_none() {
-                PROGRAM_DEPTH = Some(MeshProgram::new(&self.context, "void main() {}")?);
-            }
-            PROGRAM_DEPTH.as_ref().unwrap()
-        };
-        self.render(program, render_states, viewport, camera)
-    }
-
-    ///
     /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
@@ -373,6 +352,27 @@ impl Geometry for Mesh {
         program.use_uniform_float("maxDistance", &max_depth)?;
         self.render(program, render_states, viewport, camera)?;
         Ok(())
+    }
+
+    ///
+    /// Render only the depth of the mesh into the current depth render target which is useful for shadow maps or depth pre-pass.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// The transformation can be used to position, orientate and scale the mesh.
+    ///
+    fn render_depth(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAM_DEPTH.is_none() {
+                PROGRAM_DEPTH = Some(MeshProgram::new(&self.context, "void main() {}")?);
+            }
+            PROGRAM_DEPTH.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, camera)
     }
 }
 

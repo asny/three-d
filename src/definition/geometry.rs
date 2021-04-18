@@ -10,4 +10,11 @@ pub trait Geometry {
         camera: &Camera,
         max_depth: f32,
     ) -> Result<(), Error>;
+
+    fn render_depth(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error>;
 }

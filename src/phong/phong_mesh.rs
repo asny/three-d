@@ -26,6 +26,15 @@ impl Geometry for PhongMesh {
     ) -> Result<(), Error> {
         self.mesh.pick(render_states, viewport, camera, max_depth)
     }
+
+    fn render_depth(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        self.mesh.render_depth(render_states, viewport, camera)
+    }
 }
 
 impl PhongMesh {
