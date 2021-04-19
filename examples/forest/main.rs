@@ -158,11 +158,7 @@ fn main() {
                     100.0,
                     512,
                     512,
-                    &|viewport: Viewport, camera: &Camera| {
-                        tree_mesh.render_depth(tree_mesh_render_states, viewport, camera)?;
-                        leaves_mesh.render_depth(leaves_mesh_render_states, viewport, camera)?;
-                        Ok(())
-                    },
+                    &[&tree_mesh, &leaves_mesh],
                 )
                 .unwrap();
 

@@ -288,16 +288,6 @@ fn main() {
                     point_light1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
                     // Draw
-                    let render_scene_depth = |viewport: Viewport, camera: &Camera| {
-                        monkey.render_depth(
-                            RenderStates {
-                                ..Default::default()
-                            },
-                            viewport,
-                            camera,
-                        )?;
-                        Ok(())
-                    };
                     if shadows_enabled {
                         directional_light0
                             .generate_shadow_map(
@@ -307,7 +297,7 @@ fn main() {
                                 20.0,
                                 1024,
                                 1024,
-                                render_scene_depth,
+                                &[&monkey],
                             )
                             .unwrap();
                         directional_light1
@@ -318,34 +308,23 @@ fn main() {
                                 20.0,
                                 1024,
                                 1024,
-                                render_scene_depth,
+                                &[&monkey],
                             )
                             .unwrap();
                         spot_light
-                            .generate_shadow_map(20.0, 1024, render_scene_depth)
+                            .generate_shadow_map(20.0, 1024, &[&monkey])
                             .unwrap();
                     }
 
                     // Geometry pass
                     if change {
                         pipeline
-                            .geometry_pass(viewport.width, viewport.height, &|| {
-                                monkey.render_geometry(
-                                    RenderStates {
-                                        ..Default::default()
-                                    },
-                                    Viewport::new_at_origo(viewport.width, viewport.height),
-                                    &camera,
-                                )?;
-                                plane.render_geometry(
-                                    RenderStates {
-                                        ..Default::default()
-                                    },
-                                    Viewport::new_at_origo(viewport.width, viewport.height),
-                                    &camera,
-                                )?;
-                                Ok(())
-                            })
+                            .geometry_pass(
+                                viewport.width,
+                                viewport.height,
+                                &camera,
+                                &[&monkey, &plane],
+                            )
                             .unwrap();
                     }
 

@@ -145,28 +145,17 @@ fn main() {
                 0.0001,
             )
             .unwrap();
-
-            let render_scene = |viewport: Viewport, camera: &Camera| {
-                let render_states = RenderStates {
-                    depth_test: DepthTestType::LessOrEqual,
-                    ..Default::default()
-                };
-                model.render_depth(render_states, viewport, camera)?;
-                edges.render_depth(render_states, viewport, camera)?;
-                vertices.render_depth(render_states, viewport, camera)?;
-                Ok(())
-            };
             spot_light0
-                .generate_shadow_map(50.0, 512, &render_scene)
+                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
                 .unwrap();
             spot_light1
-                .generate_shadow_map(50.0, 512, &render_scene)
+                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
                 .unwrap();
             spot_light2
-                .generate_shadow_map(50.0, 512, &render_scene)
+                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
                 .unwrap();
             spot_light3
-                .generate_shadow_map(50.0, 512, &render_scene)
+                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
                 .unwrap();
 
             // main loop
@@ -211,33 +200,8 @@ fn main() {
                             .geometry_pass(
                                 frame_input.viewport.width,
                                 frame_input.viewport.height,
-                                || {
-                                    let render_states = RenderStates {
-                                        depth_test: DepthTestType::LessOrEqual,
-                                        ..Default::default()
-                                    };
-                                    model.render_geometry(
-                                        render_states,
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    edges.render_geometry(
-                                        render_states,
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    vertices.render_geometry(
-                                        render_states,
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    plane.render_geometry(
-                                        render_states,
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    Ok(())
-                                },
+                                &camera,
+                                &[&model, &edges, &vertices, &plane],
                             )
                             .unwrap();
 

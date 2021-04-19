@@ -138,19 +138,8 @@ fn main() {
                             .geometry_pass(
                                 frame_input.viewport.width,
                                 frame_input.viewport.height,
-                                || {
-                                    box_mesh.render_geometry(
-                                        RenderStates::default(),
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    penguin_deferred.render_geometry(
-                                        RenderStates::default(),
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    Ok(())
-                                },
+                                &camera,
+                                &[&box_mesh, &penguin_deferred],
                             )
                             .unwrap();
 
