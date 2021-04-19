@@ -145,6 +145,7 @@ pub struct Mesh {
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
     color_buffer: Option<VertexBuffer>,
+    aabb: AxisAlignedBoundingBox,
     pub cull: CullType,
     pub transformation: Mat4,
 }
@@ -186,6 +187,7 @@ impl Mesh {
             index_buffer,
             uv_buffer,
             color_buffer,
+            aabb: cpu_mesh.compute_aabb(),
             transformation: Mat4::identity(),
             cull: CullType::None,
         })
@@ -333,7 +335,7 @@ impl Mesh {
 }
 
 impl Geometry for Mesh {
-    fn pick(
+    fn render_depth_to_red(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
@@ -354,12 +356,6 @@ impl Geometry for Mesh {
         Ok(())
     }
 
-    ///
-    /// Render only the depth of the mesh into the current depth render target which is useful for shadow maps or depth pre-pass.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the mesh.
-    ///
     fn render_depth(
         &self,
         render_states: RenderStates,
@@ -373,6 +369,10 @@ impl Geometry for Mesh {
             PROGRAM_DEPTH.as_ref().unwrap()
         };
         self.render(program, render_states, viewport, camera)
+    }
+
+    fn aabb(&self) -> Option<&AxisAlignedBoundingBox> {
+        Some(&self.aabb)
     }
 }
 

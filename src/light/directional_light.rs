@@ -74,7 +74,7 @@ impl DirectionalLight {
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<F: FnOnce(Viewport, &Camera) -> Result<(), Error>>(
+    pub fn generate_shadow_map(
         &mut self,
         target: &Vec3,
         frustrum_width: f32,
@@ -82,7 +82,7 @@ impl DirectionalLight {
         frustrum_depth: f32,
         texture_width: usize,
         texture_height: usize,
-        render_scene: F,
+        geometries: &[&dyn Geometry],
     ) -> Result<(), Error> {
         let direction = self.direction();
         let up = compute_up_direction(direction);
@@ -111,10 +111,20 @@ impl DirectionalLight {
         )
         .unwrap();
         self.shadow_texture.write(Some(1.0), || {
-            render_scene(
-                Viewport::new_at_origo(texture_width, texture_height),
-                self.shadow_camera.as_ref().unwrap(),
-            )?;
+            let viewport = Viewport::new_at_origo(texture_width, texture_height);
+            for geometry in geometries {
+                if geometry
+                    .aabb()
+                    .map(|aabb| self.shadow_camera.as_ref().unwrap().in_frustum(aabb))
+                    .unwrap_or(true)
+                {
+                    geometry.render_depth(
+                        RenderStates::default(),
+                        viewport,
+                        self.shadow_camera.as_ref().unwrap(),
+                    )?;
+                }
+            }
             Ok(())
         })?;
         self.light_buffer.update(3, &[1.0])?;

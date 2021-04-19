@@ -247,7 +247,7 @@ impl Camera {
         position: Vec3,
         direction: Vec3,
         max_depth: f32,
-        objects: &[&dyn Geometry],
+        geometries: &[&dyn Geometry],
     ) -> Result<Option<Vec3>, Error> {
         let viewport = Viewport::new_at_origo(1, 1);
         let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
@@ -301,8 +301,19 @@ impl Camera {
                 ..ClearState::none()
             },
             || {
-                for object in objects {
-                    object.pick(render_states, viewport, &camera, max_depth)?;
+                for geometry in geometries {
+                    if geometry
+                        .aabb()
+                        .map(|aabb| self.in_frustum(aabb))
+                        .unwrap_or(true)
+                    {
+                        geometry.render_depth_to_red(
+                            render_states,
+                            viewport,
+                            &camera,
+                            max_depth,
+                        )?;
+                    }
                 }
                 Ok(())
             },

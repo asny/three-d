@@ -22,4 +22,4 @@ pub use crate::cpu_texture::*;
 #[doc(hidden)]
 pub mod geometry;
 #[doc(inline)]
-pub use crate::geometry::*;
+pub use crate::definition::geometry::*;

@@ -16,27 +16,6 @@ pub struct PhongMesh {
     pub material: PhongMaterial,
 }
 
-impl Geometry for PhongMesh {
-    fn pick(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-        max_depth: f32,
-    ) -> Result<(), Error> {
-        self.mesh.pick(render_states, viewport, camera, max_depth)
-    }
-
-    fn render_depth(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-    ) -> Result<(), Error> {
-        self.mesh.render_depth(render_states, viewport, camera)
-    }
-}
-
 impl PhongMesh {
     pub fn new(
         context: &Context,
