@@ -312,8 +312,8 @@ impl Geometry for InstancedMesh {
         self.render(program, render_states, viewport, camera)
     }
 
-    fn aabb(&self) -> Option<&AxisAlignedBoundingBox> {
-        None
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        true
     }
 }
 

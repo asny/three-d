@@ -113,11 +113,7 @@ impl PhongDeferredPipeline {
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
             for geometry in geometries {
-                if geometry
-                    .aabb()
-                    .map(|aabb| camera.in_frustum(aabb))
-                    .unwrap_or(true)
-                {
+                if geometry.in_frustum(camera) {
                     geometry.geometry_pass(
                         RenderStates::default(),
                         Viewport::new_at_origo(width, height),

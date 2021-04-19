@@ -371,8 +371,8 @@ impl Geometry for Mesh {
         self.render(program, render_states, viewport, camera)
     }
 
-    fn aabb(&self) -> Option<&AxisAlignedBoundingBox> {
-        Some(&self.aabb)
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        camera.in_frustum(&self.aabb)
     }
 }
 

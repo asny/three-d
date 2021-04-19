@@ -142,11 +142,7 @@ impl SpotLight {
         self.shadow_texture.write(Some(1.0), || {
             let viewport = Viewport::new_at_origo(texture_size, texture_size);
             for geometry in geometries {
-                if geometry
-                    .aabb()
-                    .map(|aabb| self.shadow_camera.as_ref().unwrap().in_frustum(aabb))
-                    .unwrap_or(true)
-                {
+                if geometry.in_frustum(self.shadow_camera.as_ref().unwrap()) {
                     geometry.render_depth(
                         RenderStates::default(),
                         viewport,
