@@ -13,6 +13,11 @@ pub mod forward_pipeline;
 pub use crate::forward_pipeline::*;
 
 #[doc(hidden)]
+pub mod geometry;
+#[doc(inline)]
+pub use crate::phong::geometry::*;
+
+#[doc(hidden)]
 pub mod deferred_pipeline;
 #[doc(inline)]
 pub use crate::deferred_pipeline::*;

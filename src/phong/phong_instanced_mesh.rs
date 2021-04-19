@@ -36,53 +36,6 @@ impl PhongInstancedMesh {
     }
 
     ///
-    /// Render the geometry and surface material parameters of the instanced mesh, ie. the first part of a deferred render pass.
-    /// Must be called inside the **render** closure given to [PhongDeferredPipeline::geometry_pass](crate::PhongDeferredPipeline::geometry_pass).
-    ///
-    pub fn render_geometry(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-    ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            let key = match self.material.color_source {
-                ColorSource::Color(_) => "ColorDeferred",
-                ColorSource::Texture(_) => "TextureDeferred",
-            };
-            if !PROGRAMS.as_ref().unwrap().contains_key(key) {
-                PROGRAMS.as_mut().unwrap().insert(
-                    key.to_string(),
-                    match self.material.color_source {
-                        ColorSource::Color(_) => InstancedMeshProgram::new(
-                            &self.context,
-                            &format!(
-                                "{}\n{}",
-                                include_str!("shaders/deferred_objects_shared.frag"),
-                                include_str!("shaders/deferred_color.frag")
-                            ),
-                        )?,
-                        ColorSource::Texture(_) => InstancedMeshProgram::new(
-                            &self.context,
-                            &format!(
-                                "{}\n{}",
-                                include_str!("shaders/deferred_objects_shared.frag"),
-                                include_str!("shaders/deferred_texture.frag")
-                            ),
-                        )?,
-                    },
-                );
-            };
-            PROGRAMS.as_ref().unwrap().get(key).unwrap()
-        };
-        self.material.bind(program)?;
-        self.mesh.render(program, render_states, viewport, camera)
-    }
-
-    ///
     /// Render the instanced triangle mesh shaded with the given lights based on the Phong shading model.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
@@ -154,6 +107,77 @@ impl PhongInstancedMesh {
         }
         self.mesh.render(program, render_states, viewport, camera)?;
         Ok(())
+    }
+}
+
+impl Geometry for PhongInstancedMesh {
+    fn render_depth_to_red(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+        max_depth: f32,
+    ) -> Result<(), Error> {
+        self.mesh
+            .render_depth_to_red(render_states, viewport, camera, max_depth)
+    }
+
+    fn render_depth(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        self.mesh.render_depth(render_states, viewport, camera)
+    }
+
+    fn aabb(&self) -> Option<&AxisAlignedBoundingBox> {
+        self.mesh.aabb()
+    }
+}
+
+impl PhongGeometry for PhongInstancedMesh {
+    fn geometry_pass(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
+            }
+            let key = match self.material.color_source {
+                ColorSource::Color(_) => "ColorDeferred",
+                ColorSource::Texture(_) => "TextureDeferred",
+            };
+            if !PROGRAMS.as_ref().unwrap().contains_key(key) {
+                PROGRAMS.as_mut().unwrap().insert(
+                    key.to_string(),
+                    match self.material.color_source {
+                        ColorSource::Color(_) => InstancedMeshProgram::new(
+                            &self.context,
+                            &format!(
+                                "{}\n{}",
+                                include_str!("shaders/deferred_objects_shared.frag"),
+                                include_str!("shaders/deferred_color.frag")
+                            ),
+                        )?,
+                        ColorSource::Texture(_) => InstancedMeshProgram::new(
+                            &self.context,
+                            &format!(
+                                "{}\n{}",
+                                include_str!("shaders/deferred_objects_shared.frag"),
+                                include_str!("shaders/deferred_texture.frag")
+                            ),
+                        )?,
+                    },
+                );
+            };
+            PROGRAMS.as_ref().unwrap().get(key).unwrap()
+        };
+        self.material.bind(program)?;
+        self.mesh.render(program, render_states, viewport, camera)
     }
 }
 
