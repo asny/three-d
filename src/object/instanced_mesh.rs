@@ -312,7 +312,7 @@ impl Geometry for InstancedMesh {
         self.render(program, render_states, viewport, camera)
     }
 
-    fn in_frustum(&self, camera: &Camera) -> bool {
+    fn in_frustum(&self, _camera: &Camera) -> bool {
         true
     }
 }

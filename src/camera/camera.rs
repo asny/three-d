@@ -302,11 +302,7 @@ impl Camera {
             },
             || {
                 for geometry in geometries {
-                    if geometry
-                        .aabb()
-                        .map(|aabb| self.in_frustum(aabb))
-                        .unwrap_or(true)
-                    {
+                    if geometry.in_frustum(&camera) {
                         geometry.render_depth_to_red(
                             render_states,
                             viewport,
