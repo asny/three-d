@@ -1029,7 +1029,7 @@ fn internal_format_from_depth(format: DepthFormat) -> u32 {
     }
 }
 
-pub(super) fn channel_count_from_format(format: Format) -> usize {
+fn channel_count_from_format(format: Format) -> usize {
     match format {
         Format::R8 => 1,
         Format::R32F => 1,
@@ -1042,7 +1042,7 @@ pub(super) fn channel_count_from_format(format: Format) -> usize {
     }
 }
 
-pub(super) fn format_from(format: Format) -> u32 {
+fn format_from(format: Format) -> u32 {
     match format {
         Format::R8 => consts::RED,
         Format::R32F => consts::RED,
