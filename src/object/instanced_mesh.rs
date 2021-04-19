@@ -99,27 +99,6 @@ impl InstancedMesh {
     }
 
     ///
-    /// Render only the depth of the instanced mesh into the current depth render target which is useful for shadow maps or depth pre-pass.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the instanced mesh.
-    ///
-    pub fn render_depth(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-    ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_DEPTH.is_none() {
-                PROGRAM_DEPTH = Some(InstancedMeshProgram::new(&self.context, "void main() {}")?);
-            }
-            PROGRAM_DEPTH.as_ref().unwrap()
-        };
-        self.render(program, render_states, viewport, camera)
-    }
-
-    ///
     /// Render the instanced mesh with a color per triangle vertex. The colors are defined when constructing the instanced mesh.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
@@ -296,12 +275,55 @@ impl InstancedMesh {
     }
 }
 
+impl Geometry for InstancedMesh {
+    fn render_depth_to_red(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+        max_depth: f32,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAM_PICK.is_none() {
+                PROGRAM_PICK = Some(InstancedMeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_pick.frag"),
+                )?);
+            }
+            PROGRAM_PICK.as_ref().unwrap()
+        };
+        program.use_uniform_float("maxDistance", &max_depth)?;
+        self.render(program, render_states, viewport, camera)?;
+        Ok(())
+    }
+
+    fn render_depth(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAM_DEPTH.is_none() {
+                PROGRAM_DEPTH = Some(InstancedMeshProgram::new(&self.context, "void main() {}")?);
+            }
+            PROGRAM_DEPTH.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, camera)
+    }
+
+    fn aabb(&self) -> Option<&AxisAlignedBoundingBox> {
+        None
+    }
+}
+
 impl Drop for InstancedMesh {
     fn drop(&mut self) {
         unsafe {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
                 PROGRAM_DEPTH = None;
+                PROGRAM_PICK = None;
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
                 PROGRAM_PER_VERTEX_COLOR = None;
@@ -313,5 +335,6 @@ impl Drop for InstancedMesh {
 static mut PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<InstancedMeshProgram> = None;
+static mut PROGRAM_PICK: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_PER_VERTEX_COLOR: Option<InstancedMeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
