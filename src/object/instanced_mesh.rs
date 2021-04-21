@@ -35,6 +35,7 @@ impl std::ops::Deref for InstancedMeshProgram {
 ///
 /// Similar to [Mesh](crate::Mesh), except it is possible to render many instances of the same triangle mesh efficiently.
 ///
+#[derive(Clone)]
 pub struct InstancedMesh {
     context: Context,
     position_buffer: VertexBuffer,

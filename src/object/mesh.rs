@@ -138,6 +138,7 @@ impl std::ops::Deref for MeshProgram {
 /// A triangle mesh which can be rendered with one of the default render functions or with a custom [MeshProgram](MeshProgram).
 /// See also [PhongMesh](crate::PhongMesh) for rendering a mesh with lighting.
 ///
+#[derive(Clone)]
 pub struct Mesh {
     context: Context,
     position_buffer: VertexBuffer,

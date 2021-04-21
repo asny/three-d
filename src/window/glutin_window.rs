@@ -1,6 +1,7 @@
 use crate::frame::*;
 use crate::math::*;
 use crate::window::WindowSettings;
+use crate::Context;
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
@@ -52,7 +53,7 @@ impl Window {
         }
 
         let windowed_context = unsafe { wc?.make_current().unwrap() };
-        let gl = crate::context::Glstruct::load_with(|s| {
+        let gl = Context::load_with(|s| {
             windowed_context.get_proc_address(s) as *const std::os::raw::c_void
         });
         Ok(Window {

@@ -5,6 +5,7 @@ use crate::core::Error;
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors
 /// (see also [use_attribute](crate::Program::use_attribute), [use_attribute_vec2](crate::Program::use_attribute_vec2), etc.).
 ///
+#[derive(Clone)]
 pub struct VertexBuffer {
     context: Context,
     id: crate::context::Buffer,

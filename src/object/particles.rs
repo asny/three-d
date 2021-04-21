@@ -97,6 +97,7 @@ pub struct ParticleData {
 /// Then when time passes, their position is updated based on
 /// `new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time`
 ///
+#[derive(Clone)]
 pub struct Particles {
     start_position_buffer: VertexBuffer,
     start_velocity_buffer: VertexBuffer,

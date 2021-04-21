@@ -5,6 +5,7 @@ use crate::core::Error;
 /// A buffer for transferring a set of uniform variables to the shader program
 /// (see also [use_uniform_block](crate::Program::use_uniform_block)).
 ///
+#[derive(Clone)]
 pub struct UniformBuffer {
     context: Context,
     id: crate::context::Buffer,

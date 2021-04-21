@@ -2,6 +2,8 @@ pub mod consts {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
+use std::rc::Rc;
+
 use consts::Gl as InnerGl;
 
 pub type AttributeLocation = u32;
@@ -33,29 +35,27 @@ impl ActiveInfo {
     }
 }
 
-pub struct Glstruct {
-    inner: InnerGl,
-}
-
 ///
-/// Contains the graphics API for almost direct calls to OpenGL/WebGL
-/// (See [Glstruct](crate::context::Glstruct) for a list of available functionality).
+/// Contains the graphics API for almost direct calls to OpenGL/WebGL.
 /// Used internally in the higher level features and can safely be ignored unless you want more control.
 ///
 /// Calls to this API can be combined with higher level features.
 ///
-pub type Context = std::rc::Rc<Glstruct>;
+#[derive(Clone)]
+pub struct Context {
+    inner: Rc<InnerGl>,
+}
 
-impl Glstruct {
+impl Context {
     pub fn load_with<F>(loadfn: F) -> Context
     where
         for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid,
     {
-        let gl = Glstruct {
-            inner: InnerGl::load_with(loadfn),
+        let gl = Context {
+            inner: Rc::new(InnerGl::load_with(loadfn)),
         };
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
-        std::rc::Rc::new(gl)
+        gl
     }
 
     pub fn finish(&self) {

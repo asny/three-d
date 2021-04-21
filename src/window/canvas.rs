@@ -1,5 +1,6 @@
 use crate::frame::*;
 use crate::window::WindowSettings;
+use crate::Context;
 use serde::Serialize;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -107,7 +108,7 @@ impl Window {
             .dyn_into::<WebGl2RenderingContext>().map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
         context.get_extension("EXT_color_buffer_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
         context.get_extension("OES_texture_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
-        Ok(crate::context::Glstruct::new(context))
+        Ok(Context::new(context))
     }
 
     pub fn render_loop<F: 'static>(mut self, mut callback: F) -> Result<(), WindowError>
