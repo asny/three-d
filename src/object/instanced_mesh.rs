@@ -42,6 +42,7 @@ pub struct InstancedMesh {
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
+    color_buffer: Option<VertexBuffer>,
     instance_count: u32,
     instance_buffer1: VertexBuffer,
     instance_buffer2: VertexBuffer,
@@ -78,6 +79,11 @@ impl InstancedMesh {
         } else {
             None
         };
+        let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
+            Some(VertexBuffer::new_with_static_u8(context, colors)?)
+        } else {
+            None
+        };
 
         let mut mesh = Self {
             context: context.clone(),
@@ -86,6 +92,7 @@ impl InstancedMesh {
             normal_buffer,
             index_buffer,
             uv_buffer,
+            color_buffer,
             instance_buffer1: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer2: VertexBuffer::new_with_dynamic_f32(context, &[])?,
             instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?,
@@ -223,6 +230,11 @@ impl InstancedMesh {
                 &self.transformation.invert().unwrap().transpose(),
             )?;
             program.use_attribute_vec3(normal_buffer, "normal")?;
+        }
+        if program.mesh_program.use_colors {
+            let color_buffer = self.color_buffer.as_ref().ok_or(
+                Error::FailedToCreateMesh {message: "The mesh shader program needs per vertex colors, but the mesh does not have any.".to_string()})?;
+            program.use_attribute_vec4(color_buffer, "color")?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
