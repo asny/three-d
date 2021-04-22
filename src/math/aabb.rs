@@ -10,7 +10,7 @@ pub struct AxisAlignedBoundingBox {
 }
 
 impl AxisAlignedBoundingBox {
-    pub fn new() -> Self {
+    fn empty() -> Self {
         Self {
             min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
             max: vec3(
@@ -21,7 +21,31 @@ impl AxisAlignedBoundingBox {
         }
     }
 
-    pub fn expand(mut self, positions: &[f32]) -> Self {
+    ///
+    /// Constructs a new bounding box and expands it such that all of the given positions are contained inside the bounding box.
+    /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
+    ///
+    pub fn new_with_positions(positions: &[f32]) -> Self {
+        let mut aabb = Self::empty();
+        aabb.expand(positions);
+        aabb
+    }
+
+    ///
+    /// Constructs a new bounding box and expands it such that all of the given positions transformed with the given transformation are contained inside the bounding box.
+    /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
+    ///
+    pub fn new_with_transformed_positions(positions: &[f32], transformation: &Mat4) -> Self {
+        let mut aabb = Self::empty();
+        aabb.expand_with_transformation(positions, transformation);
+        aabb
+    }
+
+    ///
+    /// Expands the bounding box such that all of the given positions are contained inside the bounding box.
+    /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
+    ///
+    pub fn expand(&mut self, positions: &[f32]) {
         for i in 0..positions.len() {
             match i % 3 {
                 0 => {
@@ -41,10 +65,13 @@ impl AxisAlignedBoundingBox {
                 }
             };
         }
-        self
     }
 
-    pub fn expand_with_transformation(mut self, positions: &[f32], transformation: &Mat4) -> Self {
+    ///
+    /// Expands the bounding box such that all of the given positions transformed with the given transformation are contained inside the bounding box.
+    /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
+    ///
+    pub fn expand_with_transformation(&mut self, positions: &[f32], transformation: &Mat4) {
         for i in 0..positions.len() / 3 {
             let pos = transformation
                 * vec4(
@@ -60,10 +87,12 @@ impl AxisAlignedBoundingBox {
             self.min.z = f32::min(pos.z, self.min.z);
             self.max.z = f32::max(pos.z, self.max.z);
         }
-        self
     }
 
-    pub fn add(mut self, other: &AxisAlignedBoundingBox) -> Self {
+    ///
+    /// Expand the bounding box such that it also contains the given other bounding box.
+    ///
+    pub fn expand_with_aabb(&mut self, other: &AxisAlignedBoundingBox) {
         self.min = vec3(
             f32::min(self.min.x, other.min.x),
             f32::min(self.min.y, other.min.y),
@@ -74,11 +103,16 @@ impl AxisAlignedBoundingBox {
             f32::max(self.max.y, other.max.y),
             f32::max(self.max.z, other.max.z),
         );
-        self
     }
 
-    pub fn transform(&self, transformation: &Mat4) -> Self {
-        Self::new().expand_with_transformation(
+    ///
+    /// Transforms the bounding box by the given transformation.
+    ///
+    /// **Note:** Use [new_with_transformed_positions](crate::AxisAlignedBoundingBox::new_with_transformed_positions) instead of
+    /// [new_with_positions](crate::AxisAlignedBoundingBox::new_with_positions) followed by this method to create a smaller bounding box.
+    ///
+    pub fn transform(&mut self, transformation: &Mat4) {
+        let aabb = Self::new_with_transformed_positions(
             &[
                 self.min.x, self.min.y, self.min.z, self.max.x, self.min.y, self.min.z, self.min.x,
                 self.max.y, self.min.z, self.min.x, self.min.y, self.max.z, self.min.x, self.max.y,
@@ -86,6 +120,8 @@ impl AxisAlignedBoundingBox {
                 self.max.x, self.max.y, self.max.z,
             ],
             transformation,
-        )
+        );
+        self.min = aabb.min;
+        self.max = aabb.max;
     }
 }

@@ -82,9 +82,8 @@ fn main() {
                     .unwrap();
 
             // Imposters
-            let aabb = tree_cpu_mesh
-                .compute_aabb()
-                .add(&leaves_cpu_mesh.compute_aabb());
+            let mut aabb = tree_cpu_mesh.compute_aabb();
+            aabb.expand_with_aabb(&leaves_cpu_mesh.compute_aabb());
             let mut imposters = Imposters::new(&context).unwrap();
             imposters
                 .update_texture(

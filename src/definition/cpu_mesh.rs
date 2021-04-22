@@ -205,7 +205,7 @@ impl CPUMesh {
     /// Computes the axis aligned bounding box of the mesh.
     ///
     pub fn compute_aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new().expand(&self.positions)
+        AxisAlignedBoundingBox::new_with_positions(&self.positions)
     }
 }
 

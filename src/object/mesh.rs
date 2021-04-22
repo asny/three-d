@@ -372,7 +372,9 @@ impl Geometry for Mesh {
     }
 
     fn in_frustum(&self, camera: &Camera) -> bool {
-        camera.in_frustum(&self.aabb.transform(&self.transformation))
+        let mut aabb = self.aabb.clone();
+        aabb.transform(&self.transformation);
+        camera.in_frustum(&aabb)
     }
 }
 
