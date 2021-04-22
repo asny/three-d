@@ -108,7 +108,7 @@ fn main() {
                         )?;
                         Ok(())
                     },
-                    (aabb.min, aabb.max),
+                    (*aabb.min(), *aabb.max()),
                     256,
                 )
                 .unwrap();

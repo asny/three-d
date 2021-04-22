@@ -5,8 +5,8 @@ use crate::math::*;
 ///
 #[derive(Debug, Copy, Clone)]
 pub struct AxisAlignedBoundingBox {
-    pub min: Vec3,
-    pub max: Vec3,
+    min: Vec3,
+    max: Vec3,
 }
 
 impl AxisAlignedBoundingBox {
@@ -39,6 +39,20 @@ impl AxisAlignedBoundingBox {
         let mut aabb = Self::empty();
         aabb.expand_with_transformation(positions, transformation);
         aabb
+    }
+
+    ///
+    /// Get the minimum coordinate of the bounding box.
+    ///
+    pub fn min(&self) -> &Vec3 {
+        &self.min
+    }
+
+    ///
+    /// Get the maximum coordinate of the bounding box.
+    ///
+    pub fn max(&self) -> &Vec3 {
+        &self.max
     }
 
     ///
