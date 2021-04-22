@@ -138,7 +138,6 @@ impl std::ops::Deref for MeshProgram {
 /// A triangle mesh which can be rendered with one of the default render functions or with a custom [MeshProgram](MeshProgram).
 /// See also [PhongMesh](crate::PhongMesh) for rendering a mesh with lighting.
 ///
-#[derive(Clone)]
 pub struct Mesh {
     context: Context,
     position_buffer: VertexBuffer,
@@ -374,6 +373,25 @@ impl Geometry for Mesh {
 
     fn in_frustum(&self, camera: &Camera) -> bool {
         camera.in_frustum(&self.aabb)
+    }
+}
+
+impl Clone for Mesh {
+    fn clone(&self) -> Self {
+        unsafe {
+            MESH_COUNT += 1;
+        }
+        Self {
+            context: self.context.clone(),
+            position_buffer: self.position_buffer.clone(),
+            normal_buffer: self.normal_buffer.clone(),
+            index_buffer: self.index_buffer.clone(),
+            uv_buffer: self.uv_buffer.clone(),
+            color_buffer: self.color_buffer.clone(),
+            aabb: self.aabb.clone(),
+            cull: self.cull.clone(),
+            transformation: self.transformation.clone(),
+        }
     }
 }
 

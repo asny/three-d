@@ -180,6 +180,20 @@ impl PhongGeometry for PhongMesh {
     }
 }
 
+impl Clone for PhongMesh {
+    fn clone(&self) -> Self {
+        unsafe {
+            MESH_COUNT += 1;
+        }
+        Self {
+            context: self.context.clone(),
+            name: self.name.clone(),
+            mesh: self.mesh.clone(),
+            material: self.material.clone(),
+        }
+    }
+}
+
 impl std::ops::Deref for PhongMesh {
     type Target = Mesh;
 

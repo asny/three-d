@@ -25,7 +25,7 @@ impl PhongInstancedMesh {
     ) -> Result<Self, Error> {
         let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
         unsafe {
-            INSTANCED_MESH_COUNT += 1;
+            MESH_COUNT += 1;
         }
         Ok(Self {
             context: context.clone(),
@@ -181,6 +181,20 @@ impl PhongGeometry for PhongInstancedMesh {
     }
 }
 
+impl Clone for PhongInstancedMesh {
+    fn clone(&self) -> Self {
+        unsafe {
+            MESH_COUNT += 1;
+        }
+        Self {
+            context: self.context.clone(),
+            name: self.name.clone(),
+            mesh: self.mesh.clone(),
+            material: self.material.clone(),
+        }
+    }
+}
+
 impl std::ops::Deref for PhongInstancedMesh {
     type Target = InstancedMesh;
 
@@ -198,8 +212,8 @@ impl std::ops::DerefMut for PhongInstancedMesh {
 impl Drop for PhongInstancedMesh {
     fn drop(&mut self) {
         unsafe {
-            INSTANCED_MESH_COUNT -= 1;
-            if INSTANCED_MESH_COUNT == 0 {
+            MESH_COUNT -= 1;
+            if MESH_COUNT == 0 {
                 PROGRAMS = None;
             }
         }
@@ -207,4 +221,4 @@ impl Drop for PhongInstancedMesh {
 }
 
 static mut PROGRAMS: Option<std::collections::HashMap<String, InstancedMeshProgram>> = None;
-static mut INSTANCED_MESH_COUNT: u32 = 0;
+static mut MESH_COUNT: u32 = 0;
