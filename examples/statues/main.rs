@@ -49,8 +49,15 @@ fn main() {
             "examples/assets/pfboy.png",
         ],
         move |loaded| {
+            let (statue_cpu_meshes, statue_cpu_materials) =
+                loaded.obj("examples/assets/COLOMBE.obj").unwrap();
+            let statue_material = PhongMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
+            let mut statue =
+                PhongMesh::new(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
+            statue.cull = CullType::Back;
+
+            let mut statues = Vec::new();
             let scale = Mat4::from_scale(10.0);
-            let mut statue_transforms = Vec::new();
             for i in 0..8 {
                 let angle = i as f32 * 2.0 * std::f32::consts::PI / 8.0;
                 let rotation = Mat4::from_angle_y(radians(0.8 * std::f32::consts::PI - angle));
@@ -60,21 +67,9 @@ fn main() {
                     (1.2 * std::f32::consts::PI - angle).cos() * 21.0 - 33.0,
                     angle.sin() * dist,
                 ));
-                let transform = translation * scale * rotation;
-                statue_transforms.push(transform);
+                statue.transformation = translation * scale * rotation;
+                statues.push(statue.clone());
             }
-
-            let (statue_cpu_meshes, statue_cpu_materials) =
-                loaded.obj("examples/assets/COLOMBE.obj").unwrap();
-            let statue_material = PhongMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
-            let mut statue = PhongInstancedMesh::new(
-                &context,
-                &statue_transforms,
-                &statue_cpu_meshes[0],
-                &statue_material,
-            )
-            .unwrap();
-            statue.cull = CullType::Back;
 
             let (fountain_cpu_meshes, fountain_cpu_materials) =
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
@@ -152,19 +147,23 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                             || {
-                                statue.render_with_lighting(
-                                    RenderStates::default(),
-                                    frame_input.viewport,
-                                    if is_primary_camera {
-                                        &primary_camera
-                                    } else {
-                                        &secondary_camera
-                                    },
-                                    Some(&ambient_light),
-                                    &[&directional_light],
-                                    &[],
-                                    &[],
-                                )?;
+                                for statue in statues.iter() {
+                                    if statue.in_frustum(&primary_camera) {
+                                        statue.render_with_lighting(
+                                            RenderStates::default(),
+                                            frame_input.viewport,
+                                            if is_primary_camera {
+                                                &primary_camera
+                                            } else {
+                                                &secondary_camera
+                                            },
+                                            Some(&ambient_light),
+                                            &[&directional_light],
+                                            &[],
+                                            &[],
+                                        )?;
+                                    }
+                                }
 
                                 fountain.render_with_lighting(
                                     RenderStates::default(),
