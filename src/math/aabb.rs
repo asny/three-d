@@ -76,4 +76,16 @@ impl AxisAlignedBoundingBox {
         );
         self
     }
+
+    pub fn transform(&self, transformation: &Mat4) -> Self {
+        Self::new().expand_with_transformation(
+            &[
+                self.min.x, self.min.y, self.min.z, self.max.x, self.min.y, self.min.z, self.min.x,
+                self.max.y, self.min.z, self.min.x, self.min.y, self.max.z, self.min.x, self.max.y,
+                self.max.z, self.max.x, self.min.y, self.max.z, self.max.x, self.max.y, self.min.z,
+                self.max.x, self.max.y, self.max.z,
+            ],
+            transformation,
+        )
+    }
 }
