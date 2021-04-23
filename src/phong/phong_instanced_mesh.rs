@@ -181,20 +181,6 @@ impl PhongGeometry for PhongInstancedMesh {
     }
 }
 
-impl Clone for PhongInstancedMesh {
-    fn clone(&self) -> Self {
-        unsafe {
-            MESH_COUNT += 1;
-        }
-        Self {
-            context: self.context.clone(),
-            name: self.name.clone(),
-            mesh: self.mesh.clone(),
-            material: self.material.clone(),
-        }
-    }
-}
-
 impl std::ops::Deref for PhongInstancedMesh {
     type Target = InstancedMesh;
 

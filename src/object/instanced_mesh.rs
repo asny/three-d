@@ -329,28 +329,6 @@ impl Geometry for InstancedMesh {
     }
 }
 
-impl Clone for InstancedMesh {
-    fn clone(&self) -> Self {
-        unsafe {
-            MESH_COUNT += 1;
-        }
-        Self {
-            context: self.context.clone(),
-            position_buffer: self.position_buffer.clone(),
-            normal_buffer: self.normal_buffer.clone(),
-            index_buffer: self.index_buffer.clone(),
-            uv_buffer: self.uv_buffer.clone(),
-            color_buffer: self.color_buffer.clone(),
-            cull: self.cull.clone(),
-            transformation: self.transformation.clone(),
-            instance_buffer1: self.instance_buffer1.clone(),
-            instance_buffer2: self.instance_buffer2.clone(),
-            instance_buffer3: self.instance_buffer3.clone(),
-            instance_count: self.instance_count,
-        }
-    }
-}
-
 impl Drop for InstancedMesh {
     fn drop(&mut self) {
         unsafe {

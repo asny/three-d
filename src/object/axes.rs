@@ -8,7 +8,6 @@ use crate::object::*;
 /// Three arrows indicating the three main axes; the x-axis (red), the y-axis (green) and the z-axis (blue).
 /// Used for easily debugging where objects are placed in the 3D world.
 ///
-#[derive(Clone)]
 pub struct Axes {
     x: Mesh,
     y: Mesh,

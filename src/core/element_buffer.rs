@@ -5,7 +5,6 @@ use crate::core::Error;
 /// A buffer containing indices for rendering, see for example [draw_elements](crate::Program::draw_elements).
 /// Also known as an index buffer.
 ///
-#[derive(Clone)]
 pub struct ElementBuffer {
     context: Context,
     id: crate::context::Buffer,

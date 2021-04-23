@@ -2,6 +2,7 @@ use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
+use std::rc::Rc;
 
 ///
 /// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
@@ -140,11 +141,11 @@ impl std::ops::Deref for MeshProgram {
 ///
 pub struct Mesh {
     context: Context,
-    position_buffer: VertexBuffer,
-    normal_buffer: Option<VertexBuffer>,
-    index_buffer: Option<ElementBuffer>,
-    uv_buffer: Option<VertexBuffer>,
-    color_buffer: Option<VertexBuffer>,
+    position_buffer: Rc<VertexBuffer>,
+    normal_buffer: Option<Rc<VertexBuffer>>,
+    index_buffer: Option<Rc<ElementBuffer>>,
+    uv_buffer: Option<Rc<VertexBuffer>>,
+    color_buffer: Option<Rc<VertexBuffer>>,
     aabb: AxisAlignedBoundingBox,
     pub cull: CullType,
     pub transformation: Mat4,
@@ -156,24 +157,29 @@ impl Mesh {
     /// making it possible to render the mesh.
     ///
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
-        let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
+        let position_buffer = Rc::new(VertexBuffer::new_with_static_f32(
+            context,
+            &cpu_mesh.positions,
+        )?);
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static_f32(context, normals)?)
+            Some(Rc::new(VertexBuffer::new_with_static_f32(
+                context, normals,
+            )?))
         } else {
             None
         };
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
-            Some(ElementBuffer::new_with_u32(context, ind)?)
+            Some(Rc::new(ElementBuffer::new_with_u32(context, ind)?))
         } else {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static_f32(context, uvs)?)
+            Some(Rc::new(VertexBuffer::new_with_static_f32(context, uvs)?))
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_static_u8(context, colors)?)
+            Some(Rc::new(VertexBuffer::new_with_static_u8(context, colors)?))
         } else {
             None
         };
