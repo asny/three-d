@@ -131,8 +131,8 @@ impl Geometry for PhongInstancedMesh {
         self.mesh.render_depth(render_states, viewport, camera)
     }
 
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        self.mesh.in_frustum(camera)
+    fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
+        self.mesh.aabb()
     }
 }
 

@@ -148,7 +148,11 @@ fn main() {
                             ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                             || {
                                 for statue in statues.iter() {
-                                    if statue.in_frustum(&primary_camera) {
+                                    if statue
+                                        .aabb()
+                                        .map(|aabb| primary_camera.in_frustum(&aabb))
+                                        .unwrap_or(true)
+                                    {
                                         statue.render_with_lighting(
                                             RenderStates::default(),
                                             frame_input.viewport,

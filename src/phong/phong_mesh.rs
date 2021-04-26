@@ -11,7 +11,6 @@ use crate::phong::*;
 ///
 pub struct PhongMesh {
     context: Context,
-    pub name: String,
     mesh: Mesh,
     pub material: PhongMaterial,
 }
@@ -28,7 +27,6 @@ impl PhongMesh {
         }
         Ok(Self {
             context: context.clone(),
-            name: cpu_mesh.name.clone(),
             mesh,
             material: material.clone(),
         })
@@ -130,8 +128,8 @@ impl Geometry for PhongMesh {
         self.mesh.render_depth(render_states, viewport, camera)
     }
 
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        self.mesh.in_frustum(camera)
+    fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
+        self.mesh.aabb()
     }
 }
 
@@ -187,7 +185,6 @@ impl Clone for PhongMesh {
         }
         Self {
             context: self.context.clone(),
-            name: self.name.clone(),
             mesh: self.mesh.clone(),
             material: self.material.clone(),
         }

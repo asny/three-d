@@ -113,7 +113,11 @@ impl DirectionalLight {
         self.shadow_texture.write(Some(1.0), || {
             let viewport = Viewport::new_at_origo(texture_width, texture_height);
             for geometry in geometries {
-                if geometry.in_frustum(&self.shadow_camera.as_ref().unwrap()) {
+                if geometry
+                    .aabb()
+                    .map(|aabb| self.shadow_camera.as_ref().unwrap().in_frustum(&aabb))
+                    .unwrap_or(true)
+                {
                     geometry.render_depth(
                         RenderStates::default(),
                         viewport,

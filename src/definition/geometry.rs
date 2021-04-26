@@ -28,5 +28,5 @@ pub trait Geometry {
         max_depth: f32,
     ) -> Result<(), Error>;
 
-    fn in_frustum(&self, camera: &Camera) -> bool;
+    fn aabb(&self) -> Option<AxisAlignedBoundingBox>;
 }

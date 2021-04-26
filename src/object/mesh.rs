@@ -147,6 +147,7 @@ pub struct Mesh {
     uv_buffer: Option<Rc<VertexBuffer>>,
     color_buffer: Option<Rc<VertexBuffer>>,
     aabb: AxisAlignedBoundingBox,
+    pub name: String,
     pub cull: CullType,
     pub transformation: Mat4,
 }
@@ -194,6 +195,7 @@ impl Mesh {
             uv_buffer,
             color_buffer,
             aabb: cpu_mesh.compute_aabb(),
+            name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
             cull: CullType::None,
         })
@@ -377,10 +379,10 @@ impl Geometry for Mesh {
         self.render(program, render_states, viewport, camera)
     }
 
-    fn in_frustum(&self, camera: &Camera) -> bool {
+    fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
         let mut aabb = self.aabb.clone();
         aabb.transform(&self.transformation);
-        camera.in_frustum(&aabb)
+        Some(aabb)
     }
 }
 
@@ -397,6 +399,7 @@ impl Clone for Mesh {
             uv_buffer: self.uv_buffer.clone(),
             color_buffer: self.color_buffer.clone(),
             aabb: self.aabb.clone(),
+            name: self.name.clone(),
             cull: self.cull.clone(),
             transformation: self.transformation.clone(),
         }
