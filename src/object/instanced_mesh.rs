@@ -214,7 +214,7 @@ impl InstancedMesh {
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
         if program.mesh_program.use_uvs {
-            let uv_buffer = self.uv_buffer.as_ref().ok_or(Error::FailedToCreateMesh {
+            let uv_buffer = self.uv_buffer.as_ref().ok_or(Error::MeshError {
                 message:
                     "The mesh shader program needs uv coordinates, but the mesh does not have any."
                         .to_string(),
@@ -223,7 +223,7 @@ impl InstancedMesh {
         }
         if program.mesh_program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
-                Error::FailedToCreateMesh {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
+                Error::MeshError {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
             program.use_uniform_mat4(
                 "normalMatrix",
                 &self.transformation.invert().unwrap().transpose(),
@@ -232,7 +232,7 @@ impl InstancedMesh {
         }
         if program.mesh_program.use_colors {
             let color_buffer = self.color_buffer.as_ref().ok_or(
-                Error::FailedToCreateMesh {message: "The mesh shader program needs per vertex colors, but the mesh does not have any.".to_string()})?;
+                Error::MeshError {message: "The mesh shader program needs per vertex colors, but the mesh does not have any.".to_string()})?;
             program.use_attribute_vec4(color_buffer, "color")?;
         }
 

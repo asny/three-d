@@ -261,7 +261,7 @@ impl ColorTargetTexture2D {
     pub fn read_as_u8(&self, viewport: Viewport) -> Result<Vec<u8>, Error> {
         let format = self.format();
         if format != Format::RGBA8 {
-            Err(Error::FailedToReadFromRenderTarget {
+            Err(Error::TextureError {
                 message: "Cannot read color as u8 from anything else but an RGBA8 texture."
                     .to_owned(),
             })?;
@@ -295,7 +295,7 @@ impl ColorTargetTexture2D {
     pub fn read_as_f32(&self, viewport: Viewport) -> Result<Vec<f32>, Error> {
         let format = self.format();
         if format != Format::RGBA32F {
-            Err(Error::FailedToReadFromRenderTarget {
+            Err(Error::TextureError {
                 message: "Cannot read color as f32 from anything else but an RGBA32F texture."
                     .to_owned(),
             })?;
@@ -867,11 +867,9 @@ impl Drop for DepthTargetTexture2DArray {
 
 // COMMON FUNCTIONS
 fn generate(context: &Context) -> Result<crate::context::Texture, Error> {
-    context
-        .create_texture()
-        .ok_or_else(|| Error::FailedToCreateTexture {
-            message: "Failed to create texture".to_string(),
-        })
+    context.create_texture().ok_or_else(|| Error::TextureError {
+        message: "Failed to create texture".to_string(),
+    })
 }
 
 fn bind_at(context: &Context, id: &crate::context::Texture, target: u32, location: u32) {
@@ -965,7 +963,7 @@ fn check_u8_format(format: Format) -> Result<(), Error> {
     {
         Ok(())
     } else {
-        Err(Error::FailedToCreateTexture {
+        Err(Error::TextureError {
             message: format!("Failed filling texture with format {:?} with u8.", format),
         })
     }
@@ -975,7 +973,7 @@ fn check_f32_format(format: Format) -> Result<(), Error> {
     if format == Format::R32F || format == Format::RGB32F || format == Format::RGBA32F {
         Ok(())
     } else {
-        Err(Error::FailedToCreateTexture {
+        Err(Error::TextureError {
             message: format!("Failed filling texture with format {:?} with f32.", format),
         })
     }
@@ -998,7 +996,7 @@ fn check_data_length(
         };
 
     if expected_pixels != actual_pixels {
-        Err(Error::FailedToCreateTexture {
+        Err(Error::TextureError {
             message: format!(
                 "Wrong size of data for the texture (got {} pixels but expected {} pixels)",
                 actual_pixels, expected_pixels

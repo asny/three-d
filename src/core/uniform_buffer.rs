@@ -38,7 +38,7 @@ impl UniformBuffer {
     pub fn update(&mut self, index: usize, data: &[f32]) -> Result<(), Error> {
         let (offset, length) = self.offset_length(index)?;
         if data.len() != length {
-            return Err(Error::FailedToUpdateBuffer {
+            return Err(Error::BufferError {
                 message: format!(
                     "The uniform buffer data for index {} has length {} but it must be {}.",
                     index,
@@ -61,7 +61,7 @@ impl UniformBuffer {
 
     fn offset_length(&self, index: usize) -> Result<(usize, usize), Error> {
         if index >= self.offsets.len() {
-            return Err(Error::FailedToUpdateBuffer {
+            return Err(Error::BufferError {
                 message: format!(
                     "The uniform buffer index {} is outside the range 0-{}",
                     index,

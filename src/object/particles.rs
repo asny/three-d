@@ -189,12 +189,12 @@ impl Particles {
         program.use_attribute_vec3(&self.position_buffer, "position")?;
         if program.use_uvs {
             let uv_buffer = self.uv_buffer.as_ref().ok_or(
-                Error::FailedToCreateMesh {message: "The particles shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
+                Error::MeshError {message: "The particles shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
             program.use_attribute_vec2(uv_buffer, "uv_coordinates")?;
         }
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
-                Error::FailedToCreateMesh {message: "The particles shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
+                Error::MeshError {message: "The particles shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
             program.use_uniform_mat4(
                 "normalMatrix",
                 &self.transformation.invert().unwrap().transpose(),

@@ -43,45 +43,33 @@ pub mod program;
 pub use program::*;
 
 ///
-/// Error message from the [core](crate::core) module.
+/// Error in some part of the render engine.
 ///
 #[derive(Debug)]
 pub enum Error {
-    UnknownShaderType {
+    /// An error in a shader program.
+    ProgramError {
+        /// Error message
         message: String,
     },
-    FailedToCreateShader {
-        shader_type: String,
+    /// An error when using a render target.
+    RenderTargetError {
+        /// Error message
         message: String,
     },
-    FailedToLinkProgram {
+    /// An error when using a texture.
+    TextureError {
+        /// Error message
         message: String,
     },
-    FailedToFindAttribute {
+    /// An error when using a buffer.
+    BufferError {
+        /// Error message
         message: String,
     },
-    FailedToFindUniform {
-        message: String,
-    },
-    FailedToCreateFramebuffer {
-        message: String,
-    },
-    FailedToCopyFromRenderTarget {
-        message: String,
-    },
-    FailedToReadFromRenderTarget {
-        message: String,
-    },
-    FailedToWriteToRenderTarget {
-        message: String,
-    },
-    FailedToCreateTexture {
-        message: String,
-    },
-    FailedToUpdateBuffer {
-        message: String,
-    },
-    FailedToCreateMesh {
+    /// An error when using a mesh.
+    MeshError {
+        /// Error message
         message: String,
     },
 }

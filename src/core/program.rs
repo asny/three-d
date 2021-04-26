@@ -1,5 +1,5 @@
 use crate::context::{consts, Context};
-use crate::core::*;
+use crate::core::{Error::ProgramError, *};
 use crate::math::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -25,20 +25,16 @@ impl Program {
         vertex_shader_source: &str,
         fragment_shader_source: &str,
     ) -> Result<Program, Error> {
-        let vert_shader =
-            context
-                .create_shader(consts::VERTEX_SHADER)
-                .ok_or(Error::FailedToCreateShader {
-                    shader_type: "Vertex shader".to_string(),
-                    message: "Unable to create shader object".to_string(),
-                })?;
-        let frag_shader =
-            context
-                .create_shader(consts::FRAGMENT_SHADER)
-                .ok_or(Error::FailedToCreateShader {
-                    shader_type: "Fragment shader".to_string(),
-                    message: "Unable to create shader object".to_string(),
-                })?;
+        let vert_shader = context
+            .create_shader(consts::VERTEX_SHADER)
+            .ok_or(ProgramError {
+                message: "Unable to create Vertex shader object".to_string(),
+            })?;
+        let frag_shader = context
+            .create_shader(consts::FRAGMENT_SHADER)
+            .ok_or(ProgramError {
+                message: "Unable to create Fragment shader object".to_string(),
+            })?;
         context.compile_shader(vertex_shader_source, &vert_shader);
         context.compile_shader(fragment_shader_source, &frag_shader);
 
@@ -58,7 +54,7 @@ impl Program {
             if let Some(log) = context.get_shader_info_log(&frag_shader) {
                 message = format!("{}\nFragment shader error: {}", message, log);
             }
-            return Err(Error::FailedToLinkProgram { message });
+            return Err(Error::ProgramError { message });
         }
 
         context.detach_shader(&id, &vert_shader);
@@ -161,12 +157,12 @@ impl Program {
 
     fn get_uniform_location(&self, name: &str) -> Result<&crate::context::UniformLocation, Error> {
         self.set_used();
-        let loc = self
-            .uniforms
-            .get(name)
-            .ok_or_else(|| Error::FailedToFindUniform {
-                message: format!("Failed to find uniform {}", name),
-            })?;
+        let loc = self.uniforms.get(name).ok_or_else(|| ProgramError {
+            message: format!(
+                "The uniform {} is sent to the shader but it is never used.",
+                name
+            ),
+        })?;
         Ok(loc)
     }
 
@@ -418,15 +414,15 @@ impl Program {
 
     fn location(&self, name: &str) -> Result<u32, Error> {
         self.set_used();
-        let location =
-            self.vertex_attributes
-                .get(name)
-                .ok_or_else(|| Error::FailedToFindAttribute {
-                    message: format!(
-                        "The attribute {} is sent to the shader but never used.",
-                        name
-                    ),
-                })?;
+        let location = self
+            .vertex_attributes
+            .get(name)
+            .ok_or_else(|| ProgramError {
+                message: format!(
+                    "The attribute {} is sent to the shader but it is never used.",
+                    name
+                ),
+            })?;
         Ok(*location)
     }
 

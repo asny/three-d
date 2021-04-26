@@ -246,7 +246,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             }
             CopyDestination::ColorTexture(tex) => {
                 if self.color_texture.is_none() {
-                    Err(Error::FailedToCopyFromRenderTarget {
+                    Err(Error::RenderTargetError {
                         message: "Cannot copy color from a depth texture.".to_owned(),
                     })?;
                 }
@@ -254,7 +254,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
             }
             CopyDestination::DepthTexture(tex) => {
                 if self.depth_texture.is_none() {
-                    Err(Error::FailedToCopyFromRenderTarget {
+                    Err(Error::RenderTargetError {
                         message: "Cannot copy depth from a color texture.".to_owned(),
                     })?;
                 }
@@ -436,7 +436,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             }
             CopyDestination::ColorTexture(tex) => {
                 if self.color_texture.is_none() {
-                    Err(Error::FailedToCopyFromRenderTarget {
+                    Err(Error::RenderTargetError {
                         message: "Cannot copy color from a depth texture.".to_owned(),
                     })?;
                 }
@@ -444,7 +444,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
             }
             CopyDestination::DepthTexture(tex) => {
                 if self.depth_texture.is_none() {
-                    Err(Error::FailedToCopyFromRenderTarget {
+                    Err(Error::RenderTargetError {
                         message: "Cannot copy depth from a color texture.".to_owned(),
                     })?;
                 }
@@ -493,16 +493,18 @@ impl Drop for RenderTargetArray<'_, '_> {
 fn new_framebuffer(context: &Context) -> Result<crate::context::Framebuffer, Error> {
     Ok(context
         .create_framebuffer()
-        .ok_or_else(|| Error::FailedToCreateFramebuffer {
+        .ok_or_else(|| Error::RenderTargetError {
             message: "Failed to create framebuffer".to_string(),
         })?)
 }
 
 #[cfg(feature = "debug")]
 fn check(context: &Context) -> Result<(), Error> {
-    context
-        .check_framebuffer_status()
-        .or_else(|message| Err(Error::FailedToCreateFramebuffer { message }))
+    context.check_framebuffer_status().or_else(|status| {
+        Err(Error::RenderTargetError {
+            message: format!("Failed to create frame buffer: {}", status),
+        })
+    })
 }
 
 fn clear(context: &Context, clear_state: &ClearState) {
