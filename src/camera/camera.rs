@@ -228,7 +228,7 @@ impl Camera {
         }
         // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
 
-        return true;
+        true
     }
 
     pub fn pick_at(
@@ -319,10 +319,10 @@ impl Camera {
             },
         )?;
         let depth = texture.read_as_f32(viewport)?[0];
-        Ok(if depth == 1.0 {
-            None
-        } else {
+        Ok(if depth < 1.0 {
             Some(position + direction * depth * max_depth)
+        } else {
+            None
         })
     }
 
@@ -385,7 +385,7 @@ impl Camera {
                 height: 1.0,
                 depth: 1.0,
             },
-            matrix_buffer: UniformBuffer::new(context, &vec![16, 16, 16, 3, 1]).unwrap(),
+            matrix_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1]).unwrap(),
             frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
             position: vec3(0.0, 0.0, 5.0),
             target: vec3(0.0, 0.0, 0.0),
@@ -397,7 +397,7 @@ impl Camera {
     }
 
     fn update_screen2ray(&mut self) {
-        let mut v = self.view.clone();
+        let mut v = self.view;
         v[3] = vec4(0.0, 0.0, 0.0, 1.0);
         self.screen2ray = (self.projection * v).invert().unwrap();
     }
