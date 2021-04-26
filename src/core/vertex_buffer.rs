@@ -13,6 +13,11 @@ pub struct VertexBuffer {
 }
 
 impl VertexBuffer {
+    ///
+    /// Creates a new vertex buffer and fill it with the data in the given byte array.
+    /// Use this method instead of [new_with_dynamic_u8](crate::VertexBuffer::new_with_dynamic_u8)
+    /// when you do not expect the data to change very often.
+    ///
     pub fn new_with_static_u8(context: &Context, data: &[u8]) -> Result<VertexBuffer, Error> {
         let id = context.create_buffer().unwrap();
         let mut buffer = VertexBuffer {
@@ -27,6 +32,11 @@ impl VertexBuffer {
         Ok(buffer)
     }
 
+    ///
+    /// Fills the vertex buffer with the data in the given byte array.
+    /// Use this method instead of [fill_with_dynamic_u8](crate::VertexBuffer::fill_with_dynamic_u8)
+    /// when you expect the data to change often.
+    ///
     pub fn fill_with_static_u8(&mut self, data: &[u8]) {
         self.bind();
         self.context
@@ -35,6 +45,11 @@ impl VertexBuffer {
         self.count = data.len();
     }
 
+    ///
+    /// Creates a new vertex buffer and fill it with the data in the given byte array.
+    /// Use this method instead of [new_with_static_u8](crate::VertexBuffer::new_with_static_u8)
+    /// when you expect the data to change often.
+    ///
     pub fn new_with_dynamic_u8(context: &Context, data: &[u8]) -> Result<VertexBuffer, Error> {
         let id = context.create_buffer().unwrap();
         let mut buffer = VertexBuffer {
@@ -49,6 +64,11 @@ impl VertexBuffer {
         Ok(buffer)
     }
 
+    ///
+    /// Fills the vertex buffer with the data in the given byte array.
+    /// Use this method instead of [fill_with_static_u8](crate::VertexBuffer::fill_with_static_u8)
+    /// when you expect the data to change often.
+    ///
     pub fn fill_with_dynamic_u8(&mut self, data: &[u8]) {
         self.bind();
         self.context
@@ -57,6 +77,11 @@ impl VertexBuffer {
         self.count = data.len();
     }
 
+    ///
+    /// Creates a new vertex buffer and fill it with the data in the given float array.
+    /// Use this method instead of [new_with_dynamic_f32](crate::VertexBuffer::new_with_dynamic_f32)
+    /// when you do not expect the data to change very often.
+    ///
     pub fn new_with_static_f32(context: &Context, data: &[f32]) -> Result<VertexBuffer, Error> {
         let id = context.create_buffer().unwrap();
         let mut buffer = VertexBuffer {
@@ -71,6 +96,11 @@ impl VertexBuffer {
         Ok(buffer)
     }
 
+    ///
+    /// Fills the vertex buffer with the data in the given float array.
+    /// Use this method instead of [fill_with_dynamic_f32](crate::VertexBuffer::fill_with_dynamic_f32)
+    /// when you expect the data to change often.
+    ///
     pub fn fill_with_static_f32(&mut self, data: &[f32]) {
         self.bind();
         self.context
@@ -79,6 +109,11 @@ impl VertexBuffer {
         self.count = data.len();
     }
 
+    ///
+    /// Creates a new vertex buffer and fill it with the data in the given float array.
+    /// Use this method instead of [new_with_static_f32](crate::VertexBuffer::new_with_static_f32)
+    /// when you do not expect the data to change very often.
+    ///
     pub fn new_with_dynamic_f32(context: &Context, data: &[f32]) -> Result<VertexBuffer, Error> {
         let id = context.create_buffer().unwrap();
         let mut buffer = VertexBuffer {
@@ -93,6 +128,11 @@ impl VertexBuffer {
         Ok(buffer)
     }
 
+    ///
+    /// Fills the vertex buffer with the data in the given float array.
+    /// Use this method instead of [fill_with_static_f32](crate::VertexBuffer::fill_with_static_f32)
+    /// when you expect the data to change often.
+    ///
     pub fn fill_with_dynamic_f32(&mut self, data: &[f32]) {
         self.bind();
         self.context
@@ -101,6 +141,9 @@ impl VertexBuffer {
         self.count = data.len();
     }
 
+    ///
+    /// The number of elements in the buffer.
+    ///
     pub fn count(&self) -> usize {
         self.count
     }

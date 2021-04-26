@@ -16,6 +16,9 @@ pub struct Axes {
 }
 
 impl Axes {
+    ///
+    /// Creates a new axes object consisting of three arrows with the given radius and length.
+    ///
     pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self, Error> {
         let x = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
         let mut y = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
