@@ -41,18 +41,26 @@ pub use obj::*;
 ///
 #[derive(Debug)]
 pub enum IOError {
+    /// An image error.
     #[cfg(feature = "image-io")]
     Image(image::ImageError),
+    /// A .3d parsing error.
     #[cfg(feature = "3d-io")]
     Bincode(bincode::Error),
+    /// A .obj parsing error.
     #[cfg(feature = "obj-io")]
     Obj(wavefront_obj::ParseError),
+    /// An IO error.
     #[cfg(not(target_arch = "wasm32"))]
     IO(std::io::Error),
+    /// A loading error.
     FailedToLoad {
+        /// Error message.
         message: String,
     },
+    /// A saving error.
     FailedToSave {
+        /// Error message.
         message: String,
     },
 }
