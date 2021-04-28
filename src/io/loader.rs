@@ -49,7 +49,7 @@ pub struct Loader {}
 
 impl Loader {
     ///
-    /// Loads all of the resources in the given paths then calls **on_done** with all of the [loaded resources](crate::Loaded).
+    /// Loads all of the resources in the given paths then calls `on_done` with all of the [loaded resources](crate::Loaded).
     ///
     pub fn load<F, P: AsRef<Path>>(paths: &[P], on_done: F)
     where
@@ -65,8 +65,8 @@ impl Loader {
     }
 
     ///
-    /// Loads all of the resources in the given paths then calls **on_done** with all of the [loaded resources](crate::Loaded).
-    /// Will continuously call **progress_callback** while loading.
+    /// Loads all of the resources in the given paths then calls `on_done` with all of the [loaded resources](crate::Loaded).
+    /// Will continuously call `progress_callback` while loading.
     ///
     pub fn load_with_progress<F, G, P>(paths: &[P], progress_callback: G, on_done: F)
     where

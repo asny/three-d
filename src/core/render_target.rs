@@ -85,7 +85,7 @@ pub struct Screen {}
 impl Screen {
     ///
     /// Call this function and make a render call (for example on some [object](crate::object))
-    /// in the **render** closure to render something to the screen.
+    /// in the `render` closure to render something to the screen.
     /// Before writing, the screen is cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
@@ -183,7 +183,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 
     ///
-    /// Renders whatever rendered in the **render** closure into the textures defined at construction.
+    /// Renders whatever rendered in the `render` closure into the textures defined at construction.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
@@ -364,10 +364,10 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
     }
 
     ///
-    /// Renders whatever rendered in the **render** closure into the textures defined at construction
-    /// and defined by the input parameters **color_layers** and **depth_layer**.
-    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in **color_layers**.
-    /// The depth is written to the depth texture defined by **depth_layer**.
+    /// Renders whatever rendered in the `render` closure into the textures defined at construction
+    /// and defined by the input parameters `color_layers` and `depth_layer`.
+    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `color_layers`.
+    /// The depth is written to the depth texture defined by `depth_layer`.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(

@@ -96,7 +96,7 @@ impl Window {
     }
 
     ///
-    /// Start the main render loop which calls the **callback** closure each frame.
+    /// Start the main render loop which calls the `callback` closure each frame.
     ///
     pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), WindowError>
     where

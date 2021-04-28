@@ -220,7 +220,7 @@ impl ColorTargetTexture2D {
     }
 
     ///
-    /// Renders whatever rendered in the **render** closure into the texture.
+    /// Renders whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
     /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture.
@@ -414,7 +414,7 @@ impl DepthTargetTexture2D {
     }
 
     ///
-    /// Write the depth of whatever rendered in the **render** closure into the texture.
+    /// Write the depth of whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
@@ -656,8 +656,8 @@ impl ColorTargetTexture2DArray {
     }
 
     ///
-    /// Renders whatever rendered in the **render** closure into the textures defined by the input parameters **color_layers**.
-    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in **color_layers**.
+    /// Renders whatever rendered in the `render` closure into the textures defined by the input parameters `color_layers`.
+    /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `color_layers`.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
     /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture array.
@@ -792,7 +792,7 @@ impl DepthTargetTexture2DArray {
     }
 
     ///
-    /// Writes the depth of whatever rendered in the **render** closure into the depth texture defined by the input parameter **depth_layer**.
+    /// Writes the depth of whatever rendered in the `render` closure into the depth texture defined by the input parameter `depth_layer`.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
