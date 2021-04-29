@@ -100,14 +100,16 @@ impl CameraControl {
                     .to_string(),
             });
         }
-        let distance = point.distance(*self.position());
+        let position = *self.position();
+        let distance = point.distance(position);
+        let direction = (point - position).normalize();
         let target = *self.target();
         let up = *self.up();
-        let direction = self.view_direction();
         let new_distance = (distance - delta)
             .max(minimum_distance)
             .min(maximum_distance);
-        self.set_view(point - direction * new_distance, target, up)?;
+        let new_position = point - direction * new_distance;
+        self.set_view(new_position, new_position + (target - position), up)?;
         match self.projection_type() {
             ProjectionType::Orthographic {
                 width,
