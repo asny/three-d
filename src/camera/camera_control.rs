@@ -85,14 +85,28 @@ impl CameraControl {
         &mut self,
         point: &Vec3,
         delta: f32,
-        minimum: f32,
-        maximum: f32,
+        minimum_distance: f32,
+        maximum_distance: f32,
     ) -> Result<(), Error> {
+        if minimum_distance <= 0.0 {
+            return Err(Error::CameraError {
+                message: "Zoom towards cannot take as input a negative minimum distance."
+                    .to_string(),
+            });
+        }
+        if maximum_distance < minimum_distance {
+            return Err(Error::CameraError {
+                message: "Zoom towards cannot take as input a maximum distance which is smaller than the minimum distance."
+                    .to_string(),
+            });
+        }
         let distance = point.distance(*self.position());
         let target = *self.target();
         let up = *self.up();
         let direction = self.view_direction();
-        let new_distance = (distance - delta).max(minimum).min(maximum);
+        let new_distance = (distance - delta)
+            .max(minimum_distance)
+            .min(maximum_distance);
         self.set_view(point - direction * new_distance, target, up)?;
         match self.projection_type() {
             ProjectionType::Orthographic {

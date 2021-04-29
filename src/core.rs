@@ -72,4 +72,9 @@ pub enum Error {
         /// Error message
         message: String,
     },
+    /// An error when using a camera.
+    CameraError {
+        /// Error message
+        message: String,
+    },
 }
