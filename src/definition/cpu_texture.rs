@@ -68,3 +68,21 @@ impl Default for CPUTexture<u8> {
         }
     }
 }
+
+impl std::fmt::Debug for CPUTexture<u8> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CPUTexture")
+            .field("format", &self.format)
+            .field("data length", &self.data.len())
+            .field("width", &self.width)
+            .field("height", &self.height)
+            .field("depth", &self.depth)
+            .field("min_filter", &self.min_filter)
+            .field("mag_filter", &self.mag_filter)
+            .field("mip_map_filter", &self.mip_map_filter)
+            .field("wrap_s", &self.wrap_s)
+            .field("wrap_t", &self.wrap_t)
+            .field("wrap_r", &self.wrap_r)
+            .finish()
+    }
+}
