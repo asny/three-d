@@ -152,15 +152,16 @@ impl Window {
                     let frame_output = callback(frame_input);
                     if frame_output.exit {
                         *control_flow = ControlFlow::Exit;
-                    }
-                    if frame_output.swap_buffers {
-                        windowed_context.swap_buffers().unwrap();
-                    }
-                    if frame_output.wait_next_event {
-                        *control_flow = ControlFlow::Wait;
                     } else {
-                        *control_flow = ControlFlow::Poll;
-                        windowed_context.window().request_redraw();
+                        if frame_output.swap_buffers {
+                            windowed_context.swap_buffers().unwrap();
+                        }
+                        if frame_output.wait_next_event {
+                            *control_flow = ControlFlow::Wait;
+                        } else {
+                            *control_flow = ControlFlow::Poll;
+                            windowed_context.window().request_redraw();
+                        }
                     }
                     if let Some(ref path) = frame_output.screenshot {
                         let pixels = crate::Screen::read_color(
