@@ -79,7 +79,7 @@ impl CameraControl {
     }
 
     ///
-    /// Moves the camera towards the given point by the amount delta times the distance to the point while keeping the given minimum and maximum distance to the point.
+    /// Moves the camera towards the given point by the amount delta while keeping the given minimum and maximum distance to the point.
     ///
     pub fn zoom_towards(
         &mut self,
@@ -89,25 +89,23 @@ impl CameraControl {
         maximum: f32,
     ) -> Result<(), Error> {
         let distance = point.distance(*self.position());
+        let target = *self.target();
+        let up = *self.up();
+        let direction = self.view_direction();
+        let new_distance = (distance - delta).max(minimum).min(maximum);
+        self.set_view(point - direction * new_distance, target, up)?;
         match self.projection_type() {
             ProjectionType::Orthographic {
                 width,
                 height,
                 depth,
             } => {
-                let h = (height - delta * distance).max(minimum).min(maximum);
+                let h = new_distance * height / distance;
                 let w = h * width / height;
                 let d = *depth;
                 self.set_orthographic_projection(w, h, d)?;
             }
-            ProjectionType::Perspective { .. } => {
-                let target = *self.target();
-                let up = *self.up();
-                let direction = self.view_direction();
-                let mut zoom = (delta + 1.0) * distance;
-                zoom = zoom.max(minimum).min(maximum);
-                self.set_view(point - direction * zoom, target, up)?;
-            }
+            _ => {}
         }
         Ok(())
     }
