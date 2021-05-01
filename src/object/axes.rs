@@ -34,7 +34,7 @@ impl Axes {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the axes.
     ///
-    pub fn render(&self, viewport: Viewport, camera: &camera::Camera) -> Result<(), Error> {
+    pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
         self.x.render_with_color(
             &vec4(1.0, 0.0, 0.0, 1.0),
             RenderStates::default(),

@@ -4,41 +4,33 @@
 //! They are higher level than [context](crate::context) but lower level than other features.
 //!
 
-#[doc(hidden)]
 pub use crate::context::Context;
 
-#[doc(hidden)]
-pub mod render_states;
+mod render_states;
 #[doc(inline)]
 pub use render_states::*;
 
-#[doc(hidden)]
-pub mod texture;
+mod texture;
 #[doc(inline)]
 pub use texture::*;
 
-#[doc(hidden)]
-pub mod element_buffer;
+mod element_buffer;
 #[doc(inline)]
 pub use element_buffer::*;
 
-#[doc(hidden)]
-pub mod vertex_buffer;
+mod vertex_buffer;
 #[doc(inline)]
 pub use vertex_buffer::*;
 
-#[doc(hidden)]
-pub mod uniform_buffer;
+mod uniform_buffer;
 #[doc(inline)]
 pub use uniform_buffer::*;
 
-#[doc(hidden)]
-pub mod render_target;
+mod render_target;
 #[doc(inline)]
 pub use render_target::*;
 
-#[doc(hidden)]
-pub mod program;
+mod program;
 #[doc(inline)]
 pub use program::*;
 

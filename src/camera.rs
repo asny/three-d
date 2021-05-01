@@ -2,12 +2,10 @@
 //! Perspective and orthographic camera.
 //!
 
-#[doc(hidden)]
-pub mod camera;
+mod camera;
 #[doc(inline)]
 pub use camera::*;
 
-#[doc(hidden)]
-pub mod camera_control;
+mod camera_control;
 #[doc(inline)]
 pub use camera_control::*;

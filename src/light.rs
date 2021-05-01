@@ -4,22 +4,18 @@
 //! Directional and spot lights can cast shadows.
 //!
 
-#[doc(hidden)]
-pub mod directional_light;
+mod directional_light;
 #[doc(inline)]
-pub use crate::directional_light::*;
+pub use directional_light::*;
 
-#[doc(hidden)]
-pub mod spot_light;
+mod spot_light;
 #[doc(inline)]
-pub use crate::spot_light::*;
+pub use spot_light::*;
 
-#[doc(hidden)]
-pub mod point_light;
+mod point_light;
 #[doc(inline)]
-pub use crate::point_light::*;
+pub use point_light::*;
 
-#[doc(hidden)]
-pub mod ambient_light;
+mod ambient_light;
 #[doc(inline)]
-pub use crate::ambient_light::*;
+pub use ambient_light::*;

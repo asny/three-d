@@ -7,9 +7,9 @@ use crate::math::*;
 /// An illusion of a sky.
 ///
 pub struct Skybox {
-    program: program::Program,
+    program: Program,
     vertex_buffer: VertexBuffer,
-    texture: texture::TextureCubeMap,
+    texture: TextureCubeMap,
 }
 
 impl Skybox {
@@ -22,11 +22,8 @@ impl Skybox {
         Self::new_with_texture(context, texture)
     }
 
-    pub fn new_with_texture(
-        context: &Context,
-        texture: texture::TextureCubeMap,
-    ) -> Result<Skybox, Error> {
-        let program = program::Program::from_source(
+    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> Result<Skybox, Error> {
+        let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
             include_str!("shaders/skybox.frag"),
@@ -64,7 +61,7 @@ impl Skybox {
         Ok(())
     }
 
-    pub fn get_texture(&self) -> &texture::TextureCubeMap {
+    pub fn get_texture(&self) -> &TextureCubeMap {
         &self.texture
     }
 }

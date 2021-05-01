@@ -13,7 +13,7 @@ const NO_VIEW_ANGLES: usize = 8;
 ///
 pub struct Imposters {
     context: Context,
-    program: program::Program,
+    program: Program,
     center_buffer: VertexBuffer,
     rotation_buffer: VertexBuffer,
     positions_buffer: VertexBuffer,
@@ -28,7 +28,7 @@ impl Imposters {
         let positions_buffer = VertexBuffer::new_with_static_f32(&context, &[])?;
         let uvs_buffer = VertexBuffer::new_with_static_f32(&context, &uvs)?;
 
-        let program = program::Program::from_source(
+        let program = Program::from_source(
             context,
             include_str!("shaders/imposter.vert"),
             include_str!("shaders/imposter.frag"),
@@ -71,7 +71,7 @@ impl Imposters {
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
         let center = 0.5 * min + 0.5 * max;
-        let mut camera = camera::Camera::new_orthographic(
+        let mut camera = Camera::new_orthographic(
             &self.context,
             center + vec3(0.0, 0.0, -1.0),
             center,

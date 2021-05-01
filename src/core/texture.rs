@@ -1,9 +1,9 @@
 use crate::context::{consts, Context};
 use crate::core::*;
-use crate::cpu_texture::*;
+use crate::definition::*;
 use crate::math::*;
 
-pub use crate::cpu_texture::{Format, Interpolation, Wrapping};
+pub use crate::{Format, Interpolation, Wrapping};
 
 ///
 /// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).

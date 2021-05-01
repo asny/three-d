@@ -3,35 +3,30 @@
 //! and a [saver](crate::Saver) for saving (available on desktop only).
 //!
 
-#[doc(hidden)]
-pub mod loader;
+mod loader;
 #[doc(inline)]
 pub use loader::*;
 
-#[doc(hidden)]
 #[cfg(not(target_arch = "wasm32"))]
-pub mod saver;
+mod saver;
 #[doc(inline)]
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
 
-#[doc(hidden)]
 #[cfg(feature = "image-io")]
-pub mod texture;
+mod texture;
 #[doc(inline)]
 #[cfg(feature = "image-io")]
 pub use texture::*;
 
-#[doc(hidden)]
 #[cfg(feature = "3d-io")]
-pub mod threed;
+mod threed;
 #[doc(inline)]
 #[cfg(feature = "3d-io")]
 pub use threed::*;
 
-#[doc(hidden)]
 #[cfg(feature = "obj-io")]
-pub mod obj;
+mod obj;
 #[doc(inline)]
 #[cfg(feature = "obj-io")]
 pub use obj::*;

@@ -10,11 +10,11 @@ pub mod context;
 
 pub mod math;
 #[doc(inline)]
-pub use crate::math::*;
+pub use math::*;
 
 pub mod definition;
 #[doc(inline)]
-pub use crate::definition::*;
+pub use definition::*;
 
 pub mod core;
 #[doc(inline)]
@@ -30,25 +30,25 @@ pub use frame::*;
 
 pub mod object;
 #[doc(inline)]
-pub use crate::object::*;
+pub use object::*;
 
 pub mod effect;
 #[doc(inline)]
-pub use crate::effect::*;
+pub use effect::*;
 
 pub mod light;
 #[doc(inline)]
-pub use crate::light::*;
+pub use light::*;
 
 pub mod io;
 #[doc(inline)]
-pub use crate::io::*;
+pub use io::*;
 
 #[cfg(feature = "phong-renderer")]
 pub mod phong;
 #[doc(inline)]
 #[cfg(feature = "phong-renderer")]
-pub use crate::phong::*;
+pub use phong::*;
 
 pub mod window;
 #[doc(inline)]

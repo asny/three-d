@@ -118,7 +118,7 @@ impl InstancedMesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_PER_VERTEX_COLOR.is_none() {
@@ -143,7 +143,7 @@ impl InstancedMesh {
         color: &Vec4,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_COLOR.is_none() {
@@ -172,7 +172,7 @@ impl InstancedMesh {
         texture: &dyn Texture,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_TEXTURE.is_none() {
@@ -203,7 +203,7 @@ impl InstancedMesh {
         program: &InstancedMeshProgram,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         program.use_attribute_vec4_divisor(&self.instance_buffer1, "row1", 1)?;
         program.use_attribute_vec4_divisor(&self.instance_buffer2, "row2", 1)?;

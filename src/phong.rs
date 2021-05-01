@@ -2,35 +2,29 @@
 //! Lighting functionality based on the phong reflection model.
 //!
 
-#[doc(hidden)]
-pub mod material;
+mod material;
 #[doc(inline)]
-pub use crate::material::*;
+pub use material::*;
 
-#[doc(hidden)]
-pub mod forward_pipeline;
+mod forward_pipeline;
 #[doc(inline)]
-pub use crate::forward_pipeline::*;
+pub use forward_pipeline::*;
 
-#[doc(hidden)]
-pub mod geometry;
+mod geometry;
 #[doc(inline)]
-pub use crate::phong::geometry::*;
+pub use geometry::*;
 
-#[doc(hidden)]
-pub mod deferred_pipeline;
+mod deferred_pipeline;
 #[doc(inline)]
-pub use crate::deferred_pipeline::*;
+pub use deferred_pipeline::*;
 
-#[doc(hidden)]
-pub mod phong_mesh;
+mod phong_mesh;
 #[doc(inline)]
-pub use crate::phong_mesh::*;
+pub use phong_mesh::*;
 
-#[doc(hidden)]
-pub mod phong_instanced_mesh;
+mod phong_instanced_mesh;
 #[doc(inline)]
-pub use crate::phong_instanced_mesh::*;
+pub use phong_instanced_mesh::*;
 
 fn phong_fragment_shader(
     surface_functionality: &str,

@@ -2,17 +2,14 @@
 //! Effects applied to each pixel, for example fog or anti-aliasing.
 //!
 
-#[doc(hidden)]
-pub mod image_effect;
+mod image_effect;
 #[doc(inline)]
 pub use image_effect::*;
 
-#[doc(hidden)]
-pub mod fog;
+mod fog;
 #[doc(inline)]
-pub use crate::fog::*;
+pub use fog::*;
 
-#[doc(hidden)]
-pub mod fxaa;
+mod fxaa;
 #[doc(inline)]
-pub use crate::fxaa::*;
+pub use fxaa::*;

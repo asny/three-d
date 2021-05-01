@@ -4,22 +4,18 @@
 //! Can be constructed manually or loaded via [io](crate::io).
 //!
 
-#[doc(hidden)]
-pub mod cpu_mesh;
+mod cpu_mesh;
 #[doc(inline)]
-pub use crate::cpu_mesh::*;
+pub use cpu_mesh::*;
 
-#[doc(hidden)]
-pub mod cpu_material;
+mod cpu_material;
 #[doc(inline)]
-pub use crate::cpu_material::*;
+pub use cpu_material::*;
 
-#[doc(hidden)]
-pub mod cpu_texture;
+mod cpu_texture;
 #[doc(inline)]
-pub use crate::cpu_texture::*;
+pub use cpu_texture::*;
 
-#[doc(hidden)]
-pub mod geometry;
+mod geometry;
 #[doc(inline)]
-pub use crate::definition::geometry::*;
+pub use geometry::*;

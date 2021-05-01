@@ -214,7 +214,7 @@ impl Mesh {
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_PER_VERTEX_COLOR.is_none() {
@@ -239,7 +239,7 @@ impl Mesh {
         color: &Vec4,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_COLOR.is_none() {
@@ -268,7 +268,7 @@ impl Mesh {
         texture: &dyn Texture,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         let program = unsafe {
             if PROGRAM_TEXTURE.is_none() {
@@ -299,7 +299,7 @@ impl Mesh {
         program: &MeshProgram,
         render_states: RenderStates,
         viewport: Viewport,
-        camera: &camera::Camera,
+        camera: &Camera,
     ) -> Result<(), Error> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block(camera.matrix_buffer(), "Camera");

@@ -13,7 +13,7 @@ pub struct ImageEffect {
 
 impl ImageEffect {
     pub fn new(context: &Context, fragment_shader: &str) -> Result<Self, Error> {
-        let program = program::Program::from_source(
+        let program = Program::from_source(
             &context,
             "in vec3 position;
                                                     in vec2 uv_coordinate;
