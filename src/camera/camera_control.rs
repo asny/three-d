@@ -34,11 +34,11 @@ impl CameraControl {
         let dir = (point - self.position()).normalize();
         let right = dir.cross(*self.up());
         let up = right.cross(dir);
-        let new_pos = self.position() - right * x + up * y;
-        let new_dir = (point - new_pos).normalize();
-        let dist = point.distance(*self.position());
-        let target = *self.target();
-        self.set_view(point - dist * new_dir, target, up)?;
+        let new_dir = (point - self.position() + right * x - up * y).normalize();
+        let rotation = rotation_matrix_from_dir_to_dir(dir, new_dir);
+        let new_position = (rotation * (self.position() - point).extend(1.0)).truncate() + point;
+        let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
+        self.set_view(new_position, new_target, up)?;
         Ok(())
     }
 
@@ -55,13 +55,14 @@ impl CameraControl {
         let dir = (point - self.position()).normalize();
         let right = dir.cross(*self.up());
         let mut up = right.cross(dir);
-        let new_pos = self.position() - right * x + up * y;
-        let new_dir = (point - new_pos).normalize();
+        let new_dir = (point - self.position() + right * x - up * y).normalize();
         up = *self.up();
         if new_dir.dot(up).abs() < 0.999 {
-            let dist = point.distance(*self.position());
-            let target = *self.target();
-            self.set_view(point - dist * new_dir, target, up)?;
+            let rotation = rotation_matrix_from_dir_to_dir(dir, new_dir);
+            let new_position =
+                (rotation * (self.position() - point).extend(1.0)).truncate() + point;
+            let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
+            self.set_view(new_position, new_target, up)?;
         }
         Ok(())
     }
