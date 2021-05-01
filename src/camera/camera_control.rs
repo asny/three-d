@@ -15,7 +15,7 @@ impl CameraControl {
     }
 
     ///
-    /// Translate the camera by the given change.
+    /// Translate the camera by the given change while keeping the same view and up directions.
     ///
     pub fn translate(&mut self, change: &Vec3) -> Result<(), Error> {
         let position = *self.position();
