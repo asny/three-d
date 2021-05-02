@@ -165,7 +165,7 @@ impl Imposters {
         self.program
             .use_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
         self.program
-            .use_uniform_block(camera.matrix_buffer(), "Camera");
+            .use_uniform_block(camera.uniform_buffer(), "Camera");
 
         self.program.use_texture(&self.texture, "tex")?;
 

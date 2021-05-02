@@ -2,10 +2,7 @@ use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
 
-///
-/// Either orthographic or perspective projection.
-///
-pub enum ProjectionType {
+pub(super) enum ProjectionType {
     Orthographic {
         width: f32,
         height: f32,
@@ -31,7 +28,7 @@ pub struct Camera {
     view: Mat4,
     projection: Mat4,
     screen2ray: Mat4,
-    matrix_buffer: UniformBuffer,
+    uniform_buffer: UniformBuffer,
     frustrum: [Vec4; 6],
 }
 
@@ -96,7 +93,7 @@ impl Camera {
         };
         self.projection = perspective(field_of_view_y, aspect, z_near, z_far);
         self.update_screen2ray();
-        self.update_matrix_buffer()?;
+        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
@@ -125,7 +122,7 @@ impl Camera {
             depth,
         );
         self.update_screen2ray();
-        self.update_matrix_buffer()?;
+        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
@@ -175,17 +172,20 @@ impl Camera {
             self.up,
         );
         self.update_screen2ray();
-        self.update_matrix_buffer()?;
+        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
 
+    ///
+    /// Change the camera view such that it is mirrored in the xz-plane.
+    ///
     pub fn mirror_in_xz_plane(&mut self) -> Result<(), Error> {
         self.view[1][0] = -self.view[1][0];
         self.view[1][1] = -self.view[1][1];
         self.view[1][2] = -self.view[1][2];
         self.update_screen2ray();
-        self.update_matrix_buffer()?;
+        self.update_uniform_buffer()?;
         self.update_frustrum();
         Ok(())
     }
@@ -341,40 +341,77 @@ impl Camera {
         (self.screen2ray * screen_pos).truncate().normalize()
     }
 
-    pub fn projection_type(&self) -> &ProjectionType {
+    pub(super) fn projection_type(&self) -> &ProjectionType {
         &self.projection_type
     }
 
+    ///
+    /// Returns the view matrix, ie. the matrix that transforms objects from world space (as placed in the world) to view space (as seen from this camera).
+    ///
     pub fn view(&self) -> &Mat4 {
         &self.view
     }
 
+    ///
+    /// Returns the projection matrix, ie. the matrix that projects objects in view space onto this cameras image plane.
+    ///
     pub fn projection(&self) -> &Mat4 {
         &self.projection
     }
 
+    ///
+    /// Returns the position of this camera.
+    ///
     pub fn position(&self) -> &Vec3 {
         &self.position
     }
 
+    ///
+    /// Returns the target of this camera, ie the point that this camera looks towards.
+    ///
     pub fn target(&self) -> &Vec3 {
         &self.target
     }
 
+    ///
+    /// Returns the up direction of this camera.
+    ///
     pub fn up(&self) -> &Vec3 {
         &self.up
     }
 
+    ///
+    /// Returns the view direction of this camera, ie. the direction the camera is looking.
+    ///
     pub fn view_direction(&self) -> Vec3 {
         (self.target - self.position).normalize()
     }
 
+    ///
+    /// Returns the right direction of this camera.
+    ///
     pub fn right_direction(&self) -> Vec3 {
         self.view_direction().cross(self.up)
     }
 
-    pub fn matrix_buffer(&self) -> &UniformBuffer {
-        &self.matrix_buffer
+    ///
+    /// Returns an uniform buffer containing camera information which makes it easy to transfer all necessary camera information to a shader.
+    ///
+    /// Use this buffer in your [Program](crate::Program) like this `program.use_uniform_block(camera.uniform_buffer(), "Camera");` and add the following to your shader code:
+    ///
+    /// ```
+    /// layout (std140) uniform Camera
+    /// {
+    ///     mat4 viewProjection;
+    ///     mat4 view;
+    ///     mat4 projection;
+    ///     vec3 position;
+    ///     float padding;
+    /// } camera;
+    /// ```
+    ///
+    pub fn uniform_buffer(&self) -> &UniformBuffer {
+        &self.uniform_buffer
     }
 
     fn new(context: &Context) -> Camera {
@@ -385,7 +422,7 @@ impl Camera {
                 height: 1.0,
                 depth: 1.0,
             },
-            matrix_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1]).unwrap(),
+            uniform_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1]).unwrap(),
             frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
             position: vec3(0.0, 0.0, 5.0),
             target: vec3(0.0, 0.0, 0.0),
@@ -402,12 +439,12 @@ impl Camera {
         self.screen2ray = (self.projection * v).invert().unwrap();
     }
 
-    fn update_matrix_buffer(&mut self) -> Result<(), Error> {
-        self.matrix_buffer
+    fn update_uniform_buffer(&mut self) -> Result<(), Error> {
+        self.uniform_buffer
             .update(0, &(self.projection * self.view).to_slice())?;
-        self.matrix_buffer.update(1, &self.view.to_slice())?;
-        self.matrix_buffer.update(2, &self.projection.to_slice())?;
-        self.matrix_buffer.update(3, &self.position.to_slice())?;
+        self.uniform_buffer.update(1, &self.view.to_slice())?;
+        self.uniform_buffer.update(2, &self.projection.to_slice())?;
+        self.uniform_buffer.update(3, &self.position.to_slice())?;
         Ok(())
     }
 

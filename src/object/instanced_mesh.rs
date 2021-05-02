@@ -210,7 +210,7 @@ impl InstancedMesh {
         program.use_attribute_vec4_divisor(&self.instance_buffer3, "row3", 1)?;
 
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        program.use_uniform_block(camera.uniform_buffer(), "Camera");
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
         if program.mesh_program.use_uvs {

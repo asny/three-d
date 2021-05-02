@@ -10,6 +10,9 @@ pub struct CameraControl {
 }
 
 impl CameraControl {
+    ///
+    /// Extends the given camera with additional functionality for camera control.
+    ///
     pub fn new(camera: Camera) -> Self {
         Self { camera }
     }

@@ -51,7 +51,7 @@ impl Skybox {
 
         self.program.use_texture(&self.texture, "texture0")?;
         self.program
-            .use_uniform_block(camera.matrix_buffer(), "Camera");
+            .use_uniform_block(camera.uniform_buffer(), "Camera");
 
         self.program
             .use_attribute_vec3(&self.vertex_buffer, "position")?;

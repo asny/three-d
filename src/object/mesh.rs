@@ -302,7 +302,7 @@ impl Mesh {
         camera: &Camera,
     ) -> Result<(), Error> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        program.use_uniform_block(camera.uniform_buffer(), "Camera");
 
         program.use_attribute_vec3(&self.position_buffer, "position")?;
         if program.use_uvs {

@@ -182,7 +182,7 @@ impl Particles {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_vec3("acceleration", &self.acceleration)?;
         program.use_uniform_float("time", &time)?;
-        program.use_uniform_block(camera.matrix_buffer(), "Camera");
+        program.use_uniform_block(camera.uniform_buffer(), "Camera");
 
         program.use_attribute_vec3_divisor(&self.start_position_buffer, "start_position", 1)?;
         program.use_attribute_vec3_divisor(&self.start_velocity_buffer, "start_velocity", 1)?;
