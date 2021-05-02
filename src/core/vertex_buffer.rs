@@ -14,7 +14,7 @@ pub struct VertexBuffer {
 
 impl VertexBuffer {
     ///
-    /// Creates a new vertex buffer and fill it with the data in the given byte array.
+    /// Creates a new vertex buffer and fills it with the data in the given byte array.
     /// Use this method instead of [new_with_dynamic_u8](crate::VertexBuffer::new_with_dynamic_u8)
     /// when you do not expect the data to change very often.
     ///

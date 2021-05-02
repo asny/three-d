@@ -12,6 +12,9 @@ pub struct ElementBuffer {
 }
 
 impl ElementBuffer {
+    ///
+    /// Creates a new element buffer and fills it with the given indices.
+    ///
     pub fn new_with_u32(context: &Context, data: &[u32]) -> Result<ElementBuffer, Error> {
         let id = context.create_buffer().unwrap();
         let mut buffer = ElementBuffer {
@@ -25,6 +28,9 @@ impl ElementBuffer {
         Ok(buffer)
     }
 
+    ///
+    /// Fills the buffer with the given indices.
+    ///
     pub fn fill_with_u32(&mut self, data: &[u32]) {
         self.bind();
         self.context
@@ -33,6 +39,9 @@ impl ElementBuffer {
         self.count = data.len();
     }
 
+    ///
+    /// The number of elements in the buffer.
+    ///
     pub fn count(&self) -> usize {
         self.count
     }

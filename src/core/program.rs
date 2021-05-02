@@ -20,6 +20,9 @@ pub struct Program {
 }
 
 impl Program {
+    ///
+    /// Creates a new shader program from the given vertex and fragment glsl shader source.
+    ///
     pub fn from_source(
         context: &Context,
         vertex_shader_source: &str,
@@ -94,6 +97,10 @@ impl Program {
         })
     }
 
+    ///
+    /// Send the given integer value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `int`.
+    ///
     pub fn use_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1i(location, *data);
@@ -101,6 +108,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Send the given float value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `float`.
+    ///
     pub fn use_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1f(location, *data);
@@ -108,6 +119,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Send the given [Vec2](crate::Vec2) value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `vec2`.
+    ///
     pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform2fv(location, &mut [data.x, data.y]);
@@ -115,6 +130,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Send the given [Vec3](crate::Vec3) value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `vec3`.
+    ///
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context
@@ -123,6 +142,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Send the given [Vec4](crate::Vec4) value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `vec4`.
+    ///
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context
@@ -131,6 +154,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Send the given [Mat2](crate::Mat2) value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `mat2`.
+    ///
     pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context
@@ -139,6 +166,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Send the given [Mat3](crate::Mat3) value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `mat3`.
+    ///
     pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context
@@ -147,6 +178,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Send the given [Mat4](crate::Mat4) value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `mat4`.
+    ///
     pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
         self.context
