@@ -99,7 +99,7 @@ impl Program {
 
     ///
     /// Send the given integer value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `int`.
+    /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
@@ -110,7 +110,7 @@ impl Program {
 
     ///
     /// Send the given float value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `float`.
+    /// The glsl shader variable must be of type `uniform float`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
@@ -121,7 +121,7 @@ impl Program {
 
     ///
     /// Send the given [Vec2](crate::Vec2) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `vec2`.
+    /// The glsl shader variable must be of type `uniform vec2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
@@ -132,7 +132,7 @@ impl Program {
 
     ///
     /// Send the given [Vec3](crate::Vec3) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `vec3`.
+    /// The glsl shader variable must be of type `uniform vec3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
@@ -144,7 +144,7 @@ impl Program {
 
     ///
     /// Send the given [Vec4](crate::Vec4) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `vec4`.
+    /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
@@ -156,7 +156,7 @@ impl Program {
 
     ///
     /// Send the given [Mat2](crate::Mat2) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `mat2`.
+    /// The glsl shader variable must be of type `uniform mat2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
@@ -168,7 +168,7 @@ impl Program {
 
     ///
     /// Send the given [Mat3](crate::Mat3) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `mat3`.
+    /// The glsl shader variable must be of type `uniform mat3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
@@ -180,7 +180,7 @@ impl Program {
 
     ///
     /// Send the given [Mat4](crate::Mat4) value to this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `mat4`.
+    /// The glsl shader variable must be of type `uniform mat4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error> {
         let location = self.get_uniform_location(name)?;
