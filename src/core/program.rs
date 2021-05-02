@@ -201,6 +201,10 @@ impl Program {
         Ok(loc)
     }
 
+    ///
+    /// Use the given texture in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2D`, `uniform sampler2DArray` or `uniform samplerCube` and can only be accessed in the fragment shader.
+    ///
     pub fn use_texture(&self, texture: &dyn Texture, texture_name: &str) -> Result<(), Error> {
         if !self.textures.borrow().contains_key(texture_name) {
             let mut map = self.textures.borrow_mut();
