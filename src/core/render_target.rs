@@ -5,15 +5,20 @@ use crate::ImageEffect;
 
 ///
 /// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a
-/// [render target](crate::RenderTarget) or the [screen](crate::Screen) and which values they are set to
-/// (the values must be between 0 and 1).
+/// [render target](crate::RenderTarget) or the [screen](crate::Screen).
+/// If `None` then the channel is not cleared and if `Some(value)` the channel is cleared to that value (the value must be between 0 and 1).
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ClearState {
+    /// Defines the clear value for the red channel.
     pub red: Option<f32>,
+    /// Defines the clear value for the green channel.
     pub green: Option<f32>,
+    /// Defines the clear value for the blue channel.
     pub blue: Option<f32>,
+    /// Defines the clear value for the alpha channel.
     pub alpha: Option<f32>,
+    /// Defines the clear value for the depth channel. A value of 1 means a depth value equal to the far plane and 0 means a depth value equal to the near plane.
     pub depth: Option<f32>,
 }
 
