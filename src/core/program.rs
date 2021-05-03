@@ -202,19 +202,53 @@ impl Program {
     }
 
     ///
-    /// Use the given texture in this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform sampler2D`, `uniform sampler2DArray` or `uniform samplerCube` and can only be accessed in the fragment shader.
+    /// Use the given [Texture2D](crate::Texture2D) in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture(&self, texture: &dyn Texture, texture_name: &str) -> Result<(), Error> {
+    pub fn use_texture(&self, texture: &impl Texture, texture_name: &str) -> Result<(), Error> {
+        let index = self.get_texture_index(texture_name);
+        texture.bind(index);
+        self.use_uniform_int(texture_name, &(index as i32))?;
+        Ok(())
+    }
+
+    ///
+    /// Use the given [TextureArray](crate::TextureArray) in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
+    ///
+    pub fn use_texture_array(
+        &self,
+        texture: &impl TextureArray,
+        texture_name: &str,
+    ) -> Result<(), Error> {
+        let index = self.get_texture_index(texture_name);
+        texture.bind(index);
+        self.use_uniform_int(texture_name, &(index as i32))?;
+        Ok(())
+    }
+
+    ///
+    /// Use the given [TextureCubeMap](crate::TextureCubeMap) in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
+    ///
+    pub fn use_texture_cubemap(
+        &self,
+        texture: &TextureCubeMap,
+        texture_name: &str,
+    ) -> Result<(), Error> {
+        let index = self.get_texture_index(texture_name);
+        texture.bind(index);
+        self.use_uniform_int(texture_name, &(index as i32))?;
+        Ok(())
+    }
+
+    fn get_texture_index(&self, texture_name: &str) -> u32 {
         if !self.textures.borrow().contains_key(texture_name) {
             let mut map = self.textures.borrow_mut();
             let index = map.len() as u32;
             map.insert(texture_name.to_owned(), index);
         };
-        let index = self.textures.borrow().get(texture_name).unwrap().clone();
-        texture.bind(index);
-        self.use_uniform_int(texture_name, &(index as i32))?;
-        Ok(())
+        self.textures.borrow().get(texture_name).unwrap().clone()
     }
 
     pub fn use_uniform_block(&self, buffer: &UniformBuffer, block_name: &str) {

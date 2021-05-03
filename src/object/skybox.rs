@@ -49,7 +49,8 @@ impl Skybox {
             ..Default::default()
         };
 
-        self.program.use_texture(&self.texture, "texture0")?;
+        self.program
+            .use_texture_cubemap(&self.texture, "texture0")?;
         self.program
             .use_uniform_block(camera.uniform_buffer(), "Camera");
 

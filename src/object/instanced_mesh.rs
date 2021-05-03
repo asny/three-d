@@ -169,7 +169,7 @@ impl InstancedMesh {
     ///
     pub fn render_with_texture(
         &self,
-        texture: &dyn Texture,
+        texture: &impl Texture,
         render_states: RenderStates,
         viewport: Viewport,
         camera: &Camera,

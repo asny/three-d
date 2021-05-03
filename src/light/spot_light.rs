@@ -160,7 +160,7 @@ impl SpotLight {
         Ok(())
     }
 
-    pub fn shadow_map(&self) -> &dyn Texture {
+    pub fn shadow_map(&self) -> &DepthTargetTexture2D {
         &self.shadow_texture
     }
 

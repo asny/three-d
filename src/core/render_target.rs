@@ -415,11 +415,11 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
         let copy = || {
             let effect = get_copy_array_effect(&self.context)?;
             if let Some(tex) = self.color_texture {
-                effect.use_texture(tex, "colorMap")?;
+                effect.use_texture_array(tex, "colorMap")?;
                 effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
             }
             if let Some(tex) = self.depth_texture {
-                effect.use_texture(tex, "depthMap")?;
+                effect.use_texture_array(tex, "depthMap")?;
                 effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
             }
             effect.apply(

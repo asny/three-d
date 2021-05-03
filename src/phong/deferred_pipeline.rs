@@ -163,11 +163,11 @@ impl PhongDeferredPipeline {
             self.debug_effect
                 .as_ref()
                 .unwrap()
-                .use_texture(self.geometry_pass_texture(), "gbuffer")?;
+                .use_texture_array(self.geometry_pass_texture(), "gbuffer")?;
             self.debug_effect
                 .as_ref()
                 .unwrap()
-                .use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+                .use_texture_array(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.debug_effect
                 .as_ref()
                 .unwrap()
@@ -210,8 +210,8 @@ impl PhongDeferredPipeline {
             point_lights,
         )?;
 
-        effect.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-        effect.use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+        effect.use_texture_array(self.geometry_pass_texture(), "gbuffer")?;
+        effect.use_texture_array(self.geometry_pass_depth_texture_array(), "depthMap")?;
         if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
             effect.use_uniform_vec3("eyePosition", &camera.position())?;
             effect.use_uniform_mat4(
@@ -223,10 +223,10 @@ impl PhongDeferredPipeline {
         Ok(())
     }
 
-    pub fn geometry_pass_texture(&self) -> &dyn Texture {
+    pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray {
         self.geometry_pass_texture.as_ref().unwrap()
     }
-    pub fn geometry_pass_depth_texture_array(&self) -> &dyn Texture {
+    pub fn geometry_pass_depth_texture_array(&self) -> &DepthTargetTexture2DArray {
         self.geometry_pass_depth_texture.as_ref().unwrap()
     }
 

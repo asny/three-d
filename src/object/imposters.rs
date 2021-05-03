@@ -167,7 +167,7 @@ impl Imposters {
         self.program
             .use_uniform_block(camera.uniform_buffer(), "Camera");
 
-        self.program.use_texture(&self.texture, "tex")?;
+        self.program.use_texture_array(&self.texture, "tex")?;
 
         self.program
             .use_attribute_vec3(&self.positions_buffer, "position")?;

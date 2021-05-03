@@ -41,7 +41,7 @@ impl PhongForwardPipeline {
         Ok(())
     }
 
-    pub fn depth_texture(&self) -> &dyn Texture {
+    pub fn depth_texture(&self) -> &DepthTargetTexture2D {
         self.depth_texture.as_ref().unwrap()
     }
 }

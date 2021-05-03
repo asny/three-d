@@ -12,6 +12,15 @@ pub trait Texture {
     fn bind(&self, location: u32);
     fn width(&self) -> usize;
     fn height(&self) -> usize;
+}
+
+///
+/// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::Program::use_texture_array)).
+///
+pub trait TextureArray {
+    fn bind(&self, location: u32);
+    fn width(&self) -> usize;
+    fn height(&self) -> usize;
     fn depth(&self) -> usize;
 }
 
@@ -142,9 +151,6 @@ impl Texture for Texture2D {
     }
     fn height(&self) -> usize {
         self.height
-    }
-    fn depth(&self) -> usize {
-        1
     }
 }
 
@@ -345,9 +351,6 @@ impl Texture for ColorTargetTexture2D {
     fn height(&self) -> usize {
         self.height
     }
-    fn depth(&self) -> usize {
-        1
-    }
 }
 
 impl Drop for ColorTargetTexture2D {
@@ -466,9 +469,6 @@ impl Texture for DepthTargetTexture2D {
     fn height(&self) -> usize {
         self.height
     }
-    fn depth(&self) -> usize {
-        1
-    }
 }
 
 impl Drop for DepthTargetTexture2D {
@@ -561,27 +561,24 @@ impl TextureCubeMap {
         })
     }
 
+    pub fn bind(&self, location: u32) {
+        bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
+    }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
     pub(crate) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context
                 .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
             self.context.generate_mipmap(consts::TEXTURE_CUBE_MAP);
         }
-    }
-}
-
-impl Texture for TextureCubeMap {
-    fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
-    }
-    fn width(&self) -> usize {
-        self.width
-    }
-    fn height(&self) -> usize {
-        self.height
-    }
-    fn depth(&self) -> usize {
-        1
     }
 }
 
@@ -719,7 +716,7 @@ impl ColorTargetTexture2DArray {
     }
 }
 
-impl Texture for ColorTargetTexture2DArray {
+impl TextureArray for ColorTargetTexture2DArray {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
@@ -844,7 +841,7 @@ impl DepthTargetTexture2DArray {
     }
 }
 
-impl Texture for DepthTargetTexture2DArray {
+impl TextureArray for DepthTargetTexture2DArray {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
