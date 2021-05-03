@@ -13,7 +13,9 @@ use glutin::*;
 ///
 #[derive(Debug)]
 pub enum WindowError {
+    /// See glutin [CreationError](glutin::CreationError).
     WindowCreationError(glutin::CreationError),
+    /// See glutin [ContextError](glutin::ContextError).
     ContextError(glutin::ContextError),
     /// The number of samples must be a power of two.
     InvalidNumberOfSamples,
