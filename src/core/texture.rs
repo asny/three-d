@@ -9,8 +9,11 @@ pub use crate::{Format, Interpolation, Wrapping};
 /// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).
 ///
 pub trait Texture {
+    /// Binds this texture to the current shader program.
     fn bind(&self, location: u32);
+    /// The width of this texture.
     fn width(&self) -> usize;
+    /// The height of this texture.
     fn height(&self) -> usize;
 }
 
@@ -18,9 +21,13 @@ pub trait Texture {
 /// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::Program::use_texture_array)).
 ///
 pub trait TextureArray {
+    /// Binds this texture array to the current shader program.
     fn bind(&self, location: u32);
+    /// The width of this texture.
     fn width(&self) -> usize;
+    /// The height of this texture.
     fn height(&self) -> usize;
+    /// The depth of this texture, ie. the number of layers.
     fn depth(&self) -> usize;
 }
 
@@ -38,6 +45,9 @@ pub struct Texture2D {
 }
 
 impl Texture2D {
+    ///
+    /// Construcs a new texture with the given byte data.
+    ///
     pub fn new_with_u8(
         context: &Context,
         cpu_texture: &CPUTexture<u8>,
@@ -47,6 +57,9 @@ impl Texture2D {
         Ok(texture)
     }
 
+    ///
+    /// Construcs a new texture with the given float data.
+    ///
     pub fn new_with_f32(
         context: &Context,
         cpu_texture: &CPUTexture<f32>,
@@ -56,6 +69,13 @@ impl Texture2D {
         Ok(texture)
     }
 
+    ///
+    /// Fills this texture with the given byte data.
+    ///
+    /// # Errors
+    /// Return an error if the format of this texture is not a byte [Format](crate::Format) or
+    /// if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
+    ///
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error> {
         check_u8_format(self.format)?;
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
@@ -75,6 +95,13 @@ impl Texture2D {
         Ok(())
     }
 
+    ///
+    /// Fills this texture with the given float data.
+    ///
+    /// # Errors
+    /// Return an error if the format of this texture is not a float [Format](crate::Format) or
+    /// if the length of the data array is smaller or bigger than the necessary number of floats to fill the entire texture.
+    ///
     pub fn fill_with_f32(&mut self, data: &[f32]) -> Result<(), Error> {
         check_f32_format(self.format)?;
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
@@ -176,6 +203,9 @@ pub struct ColorTargetTexture2D {
 }
 
 impl ColorTargetTexture2D {
+    ///
+    /// Constructs a new 2D color target texture.
+    ///
     pub fn new(
         context: &Context,
         width: usize,
@@ -221,10 +251,6 @@ impl ColorTargetTexture2D {
         })
     }
 
-    pub fn format(&self) -> Format {
-        self.format
-    }
-
     ///
     /// Renders whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
@@ -265,15 +291,14 @@ impl ColorTargetTexture2D {
     /// Will return an error if the color texture is not RGBA8 format.
     ///
     pub fn read_as_u8(&self, viewport: Viewport) -> Result<Vec<u8>, Error> {
-        let format = self.format();
-        if format != Format::RGBA8 {
+        if self.format != Format::RGBA8 {
             Err(Error::TextureError {
                 message: "Cannot read color as u8 from anything else but an RGBA8 texture."
                     .to_owned(),
             })?;
         }
 
-        let channels = channel_count_from_format(format);
+        let channels = channel_count_from_format(self.format);
         let mut pixels = vec![0u8; viewport.width * viewport.height * channels];
         let render_target = RenderTarget::new_color(&self.context, &self)?;
         render_target.bind(consts::DRAW_FRAMEBUFFER)?;
@@ -283,7 +308,7 @@ impl ColorTargetTexture2D {
             viewport.y as u32,
             viewport.width as u32,
             viewport.height as u32,
-            format_from(format),
+            format_from(self.format),
             consts::UNSIGNED_BYTE,
             &mut pixels,
         );
@@ -299,14 +324,13 @@ impl ColorTargetTexture2D {
     /// Will return an error if the color texture is not RGBA32F format.
     ///
     pub fn read_as_f32(&self, viewport: Viewport) -> Result<Vec<f32>, Error> {
-        let format = self.format();
-        if format != Format::RGBA32F {
+        if self.format != Format::RGBA32F {
             Err(Error::TextureError {
                 message: "Cannot read color as f32 from anything else but an RGBA32F texture."
                     .to_owned(),
             })?;
         }
-        let channels = channel_count_from_format(format);
+        let channels = channel_count_from_format(self.format);
         let mut pixels = vec![0f32; viewport.width * viewport.height * channels];
         let render_target = RenderTarget::new_color(&self.context, &self)?;
         render_target.bind(consts::DRAW_FRAMEBUFFER)?;
@@ -316,7 +340,7 @@ impl ColorTargetTexture2D {
             viewport.y as u32,
             viewport.width as u32,
             viewport.height as u32,
-            format_from(format),
+            format_from(self.format),
             consts::FLOAT,
             &mut pixels,
         );
@@ -381,6 +405,9 @@ pub struct DepthTargetTexture2D {
 }
 
 impl DepthTargetTexture2D {
+    ///
+    /// Constructs a new 2D depth target texture.
+    ///
     pub fn new(
         context: &Context,
         width: usize,
