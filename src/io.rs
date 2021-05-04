@@ -31,6 +31,12 @@ mod obj;
 #[cfg(feature = "obj-io")]
 pub use obj::*;
 
+#[cfg(feature = "gltf-io")]
+mod gltf;
+#[doc(inline)]
+#[cfg(feature = "gltf-io")]
+pub use self::gltf::*;
+
 ///
 /// Error message from the [core](crate::io) module.
 ///
@@ -45,6 +51,9 @@ pub enum IOError {
     /// A .obj parsing error.
     #[cfg(feature = "obj-io")]
     Obj(wavefront_obj::ParseError),
+    /// A .gltf parsing error.
+    #[cfg(feature = "gltf-io")]
+    Gltf(::gltf::Error),
     /// An IO error.
     #[cfg(not(target_arch = "wasm32"))]
     IO(std::io::Error),
@@ -78,6 +87,13 @@ impl From<bincode::Error> for IOError {
 impl From<wavefront_obj::ParseError> for IOError {
     fn from(other: wavefront_obj::ParseError) -> Self {
         IOError::Obj(other)
+    }
+}
+
+#[cfg(feature = "gltf-io")]
+impl From<::gltf::Error> for IOError {
+    fn from(other: ::gltf::Error) -> Self {
+        IOError::Gltf(other)
     }
 }
 
