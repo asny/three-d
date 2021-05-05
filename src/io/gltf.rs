@@ -13,7 +13,7 @@ impl<'a> Loaded<'a> {
 
         let bytes = self.bytes(path.as_ref())?;
         let gltf = Gltf::from_slice(bytes)?;
-        let (_, buffers, _) = ::gltf::import(path)?;
+        let (_, buffers, images) = ::gltf::import(path)?;
         for scene in gltf.scenes() {
             print!("Scene {}", scene.index());
             print!(" ({})", scene.name().unwrap_or("<Unnamed>"));
@@ -42,16 +42,65 @@ fn print_tree(
         for primitive in mesh.primitives() {
             println!("- Primitive #{}", primitive.index());
             let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
-            if let Some(iter) = reader.read_positions() {
+            if let Some(read_positions) = reader.read_positions() {
                 let mut positions = Vec::new();
-                for vertex_position in iter {
-                    positions.push(vertex_position[0]);
-                    positions.push(vertex_position[1]);
-                    positions.push(vertex_position[2]);
+                for value in read_positions {
+                    positions.push(value[0]);
+                    positions.push(value[1]);
+                    positions.push(value[2]);
                 }
+
+                let normals = if let Some(values) = reader.read_normals() {
+                    let mut nors = Vec::new();
+                    for value in values {
+                        nors.push(value[0]);
+                        nors.push(value[1]);
+                        nors.push(value[2]);
+                    }
+                    Some(nors)
+                } else {
+                    None
+                };
+
+                let colors = if let Some(values) = reader.read_colors(0) {
+                    let mut cols = Vec::new();
+                    for value in values.into_rgb_u8() {
+                        cols.push(value[0]);
+                        cols.push(value[1]);
+                        cols.push(value[2]);
+                    }
+                    Some(cols)
+                } else {
+                    None
+                };
+
+                let uvs = if let Some(values) = reader.read_tex_coords(0) {
+                    let mut uvs = Vec::new();
+                    for value in values.into_f32() {
+                        uvs.push(value[0]);
+                        uvs.push(value[1]);
+                    }
+                    Some(uvs)
+                } else {
+                    None
+                };
+
+                let indices = if let Some(values) = reader.read_indices() {
+                    let mut inds = Vec::new();
+                    for value in values.into_u32() {
+                        inds.push(value);
+                    }
+                    Some(inds)
+                } else {
+                    None
+                };
 
                 cpu_meshes.push(CPUMesh {
                     positions,
+                    normals,
+                    indices,
+                    colors,
+                    uvs,
                     ..Default::default()
                 });
             }
