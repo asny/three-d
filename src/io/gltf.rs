@@ -95,12 +95,37 @@ fn print_tree(
                     None
                 };
 
+                let material = primitive.material();
+                let material_name: String = material.name().map(|s| s.to_string()).unwrap_or(
+                    material
+                        .index()
+                        .map(|i| format!("index {}", i))
+                        .unwrap_or("default".to_string()),
+                );
+                let mut parsed = false;
+                for material in cpu_materials.iter() {
+                    if material.name == material_name {
+                        parsed = true;
+                        break;
+                    }
+                }
+                if !parsed {
+                    let pbr = material.pbr_metallic_roughness();
+                    let color = pbr.base_color_factor();
+                    cpu_materials.push(CPUMaterial {
+                        name: material_name.clone(),
+                        color: Some((color[0], color[1], color[2], color[3])),
+                        ..Default::default()
+                    });
+                }
+
                 cpu_meshes.push(CPUMesh {
                     positions,
                     normals,
                     indices,
                     colors,
                     uvs,
+                    material_name: Some(material_name),
                     ..Default::default()
                 });
             }
