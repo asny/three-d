@@ -69,7 +69,25 @@ impl Default for CPUTexture<u8> {
     }
 }
 
-impl std::fmt::Debug for CPUTexture<u8> {
+impl Default for CPUTexture<f32> {
+    fn default() -> Self {
+        Self {
+            data: [1.0f32, 1.0, 0.0, 1.0].into(),
+            width: 1,
+            height: 1,
+            depth: 1,
+            format: Format::RGBA32F,
+            min_filter: Interpolation::Linear,
+            mag_filter: Interpolation::Linear,
+            mip_map_filter: Some(Interpolation::Linear),
+            wrap_s: Wrapping::Repeat,
+            wrap_t: Wrapping::Repeat,
+            wrap_r: Wrapping::Repeat,
+        }
+    }
+}
+
+impl<T> std::fmt::Debug for CPUTexture<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CPUTexture")
             .field("format", &self.format)
