@@ -104,6 +104,9 @@ fn parse_tree<'a>(
                         name: material_name.clone(),
                         color: Some((color[0], color[1], color[2], color[3])),
                         texture_image,
+                        diffuse_intensity: Some(1.0),
+                        specular_intensity: Some(pbr.metallic_factor()),
+                        specular_power: Some(pbr.roughness_factor()),
                         ..Default::default()
                     });
                 }
