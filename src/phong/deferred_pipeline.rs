@@ -48,7 +48,7 @@ impl PhongDeferredPipeline {
             program_map: HashMap::new(),
             debug_effect: None,
             debug_type: DebugType::NONE,
-            geometry_pass_texture: Some(ColorTargetTexture2DArray::new(
+            geometry_pass_texture: Some(ColorTargetTexture2DArray::new::<u8>(
                 context,
                 1,
                 1,
@@ -58,7 +58,7 @@ impl PhongDeferredPipeline {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                Format::RGBA8,
+                Format::RGBA,
             )?),
             geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(
                 context,
@@ -85,7 +85,7 @@ impl PhongDeferredPipeline {
         camera: &Camera,
         geometries: &[&dyn PhongGeometry],
     ) -> Result<(), Error> {
-        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new(
+        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new::<u8>(
             &self.context,
             width,
             height,
@@ -95,7 +95,7 @@ impl PhongDeferredPipeline {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA8,
+            Format::RGBA,
         )?);
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(
             &self.context,

@@ -36,7 +36,7 @@ impl Imposters {
 
         let center_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
         let rotation_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
-        let texture = ColorTargetTexture2DArray::new(
+        let texture = ColorTargetTexture2DArray::new::<u8>(
             context,
             1,
             1,
@@ -46,7 +46,7 @@ impl Imposters {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA8,
+            Format::RGBA,
         )?;
 
         Ok(Imposters {
@@ -83,7 +83,7 @@ impl Imposters {
 
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
         let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
-        self.texture = ColorTargetTexture2DArray::new(
+        self.texture = ColorTargetTexture2DArray::new::<u8>(
             &self.context,
             texture_width,
             texture_height,
@@ -93,7 +93,7 @@ impl Imposters {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA8,
+            Format::RGBA,
         )?;
         let depth_texture = DepthTargetTexture2DArray::new(
             &self.context,

@@ -18,26 +18,63 @@ pub enum Wrapping {
     ClampToEdge,
 }
 
+pub trait TextureValueType: Default + std::fmt::Debug + Clone {
+    fn internal_format(format: Format) -> Result<u32, crate::Error>;
+}
+impl TextureValueType for u8 {
+    fn internal_format(format: Format) -> Result<u32, crate::Error> {
+        Ok(match format {
+            Format::R => crate::context::consts::R8,
+            Format::RGB => crate::context::consts::RGB8,
+            Format::RGBA => crate::context::consts::RGBA8,
+            Format::SRGB => crate::context::consts::SRGB8,
+            Format::SRGBA => crate::context::consts::SRGB8_ALPHA8,
+        })
+    }
+}
+impl TextureValueType for f32 {
+    fn internal_format(format: Format) -> Result<u32, crate::Error> {
+        Ok(match format {
+            Format::R => crate::context::consts::R32F,
+            Format::RGB => crate::context::consts::RGB32F,
+            Format::RGBA => crate::context::consts::RGBA32F,
+            Format::SRGB => {
+                return Err(crate::Error::TextureError {
+                    message: "Cannot use sRGB format for a float texture.".to_string(),
+                });
+            }
+            Format::SRGBA => {
+                return Err(crate::Error::TextureError {
+                    message: "Cannot use sRGBA format for a float texture.".to_string(),
+                });
+            }
+        })
+    }
+}
+
 ///
 /// Possible formats for pixels in a texture.
 ///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
-    R8,
-    R32F,
-    RGB8,
-    RGB32F,
-    SRGB8,
-    RGBA8,
-    SRGBA8,
-    RGBA32F,
+    R,
+    RGB,
+    SRGB,
+    RGBA,
+    SRGBA,
+}
+
+impl Default for Format {
+    fn default() -> Self {
+        Format::RGBA
+    }
 }
 
 ///
 /// A CPU-side version of a texture, for example [2D texture](crate::Texture2D).
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
-pub struct CPUTexture<T> {
+pub struct CPUTexture<T: TextureValueType> {
     pub data: Vec<T>,
     pub width: usize,
     pub height: usize,
@@ -51,14 +88,14 @@ pub struct CPUTexture<T> {
     pub wrap_r: Wrapping,
 }
 
-impl Default for CPUTexture<u8> {
+impl<T: TextureValueType> Default for CPUTexture<T> {
     fn default() -> Self {
         Self {
-            data: [255u8, 255, 0, 255].into(),
+            data: [T::default(), T::default(), T::default(), T::default()].into(),
             width: 1,
             height: 1,
             depth: 1,
-            format: Format::RGBA8,
+            format: Format::default(),
             min_filter: Interpolation::Linear,
             mag_filter: Interpolation::Linear,
             mip_map_filter: Some(Interpolation::Linear),
@@ -69,25 +106,7 @@ impl Default for CPUTexture<u8> {
     }
 }
 
-impl Default for CPUTexture<f32> {
-    fn default() -> Self {
-        Self {
-            data: [1.0f32, 1.0, 0.0, 1.0].into(),
-            width: 1,
-            height: 1,
-            depth: 1,
-            format: Format::RGBA32F,
-            min_filter: Interpolation::Linear,
-            mag_filter: Interpolation::Linear,
-            mip_map_filter: Some(Interpolation::Linear),
-            wrap_s: Wrapping::Repeat,
-            wrap_t: Wrapping::Repeat,
-            wrap_r: Wrapping::Repeat,
-        }
-    }
-}
-
-impl<T> std::fmt::Debug for CPUTexture<T> {
+impl<T: TextureValueType> std::fmt::Debug for CPUTexture<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CPUTexture")
             .field("format", &self.format)

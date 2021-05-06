@@ -17,9 +17,9 @@ impl<'a> Loaded<'a> {
         let bytes = img.to_bytes();
         let number_of_channels = bytes.len() / (img.width() * img.height()) as usize;
         let format = match number_of_channels {
-            1 => Ok(Format::R8),
-            3 => Ok(Format::RGB8),
-            4 => Ok(Format::RGBA8),
+            1 => Ok(Format::R),
+            3 => Ok(Format::RGB),
+            4 => Ok(Format::RGBA),
             _ => Err(IOError::FailedToLoad {
                 message: format!("Could not determine the pixel format for the texture."),
             }),

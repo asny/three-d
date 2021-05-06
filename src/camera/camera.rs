@@ -264,7 +264,7 @@ impl Camera {
             0.01,
             max_depth,
         )?;
-        let texture = ColorTargetTexture2D::new(
+        let texture = ColorTargetTexture2D::new::<f32>(
             &self.context,
             viewport.width,
             viewport.height,
@@ -273,7 +273,7 @@ impl Camera {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA32F,
+            Format::RGBA,
         )?;
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,

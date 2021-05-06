@@ -77,7 +77,6 @@ impl Texture2D {
     /// if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
     ///
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error> {
-        check_u8_format(self.format)?;
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
         self.context.bind_texture(consts::TEXTURE_2D, &self.id);
         self.context.tex_sub_image_2d_with_u8_data(
@@ -103,7 +102,6 @@ impl Texture2D {
     /// if the length of the data array is smaller or bigger than the necessary number of floats to fill the entire texture.
     ///
     pub fn fill_with_f32(&mut self, data: &[f32]) -> Result<(), Error> {
-        check_f32_format(self.format)?;
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
         self.context.bind_texture(consts::TEXTURE_2D, &self.id);
         self.context.tex_sub_image_2d_with_f32_data(
@@ -121,7 +119,10 @@ impl Texture2D {
         Ok(())
     }
 
-    fn new<T>(context: &Context, cpu_texture: &CPUTexture<T>) -> Result<Texture2D, Error> {
+    fn new<T: TextureValueType>(
+        context: &Context,
+        cpu_texture: &CPUTexture<T>,
+    ) -> Result<Texture2D, Error> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -147,7 +148,7 @@ impl Texture2D {
         context.tex_storage_2d(
             consts::TEXTURE_2D,
             number_of_mip_maps,
-            internal_format_from(cpu_texture.format),
+            T::internal_format(cpu_texture.format)?,
             cpu_texture.width as u32,
             cpu_texture.height as u32,
         );
@@ -206,7 +207,7 @@ impl ColorTargetTexture2D {
     ///
     /// Constructs a new 2D color target texture.
     ///
-    pub fn new(
+    pub fn new<T: TextureValueType>(
         context: &Context,
         width: usize,
         height: usize,
@@ -237,7 +238,7 @@ impl ColorTargetTexture2D {
         context.tex_storage_2d(
             consts::TEXTURE_2D,
             number_of_mip_maps,
-            internal_format_from(format),
+            T::internal_format(format)?,
             width as u32,
             height as u32,
         );
@@ -285,16 +286,15 @@ impl ColorTargetTexture2D {
     ///
     /// Returns the color values of the pixels in this color texture inside the given viewport.
     ///
-    /// **Note:** Only works for the RGBA8 format.
+    /// **Note:** Only works for the RGBA format.
     ///
     /// # Errors
-    /// Will return an error if the color texture is not RGBA8 format.
+    /// Will return an error if the color texture is not RGBA format.
     ///
     pub fn read_as_u8(&self, viewport: Viewport) -> Result<Vec<u8>, Error> {
-        if self.format != Format::RGBA8 {
+        if self.format != Format::RGBA {
             Err(Error::TextureError {
-                message: "Cannot read color as u8 from anything else but an RGBA8 texture."
-                    .to_owned(),
+                message: "Cannot read color from anything else but an RGBA texture.".to_owned(),
             })?;
         }
 
@@ -324,10 +324,9 @@ impl ColorTargetTexture2D {
     /// Will return an error if the color texture is not RGBA32F format.
     ///
     pub fn read_as_f32(&self, viewport: Viewport) -> Result<Vec<f32>, Error> {
-        if self.format != Format::RGBA32F {
+        if self.format != Format::RGBA {
             Err(Error::TextureError {
-                message: "Cannot read color as f32 from anything else but an RGBA32F texture."
-                    .to_owned(),
+                message: "Cannot read color from anything else but an RGBA texture.".to_owned(),
             })?;
         }
         let channels = channel_count_from_format(self.format);
@@ -525,7 +524,6 @@ impl TextureCubeMap {
 
     // data contains 6 images in the following order; right, left, top, bottom, front, back
     pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error> {
-        check_u8_format(self.format)?;
         let offset = data.len() / 6;
         check_data_length(self.width, self.height, 1, self.format, offset)?;
         self.context
@@ -547,7 +545,10 @@ impl TextureCubeMap {
         Ok(())
     }
 
-    fn new<T>(context: &Context, cpu_texture: &CPUTexture<T>) -> Result<TextureCubeMap, Error> {
+    fn new<T: TextureValueType>(
+        context: &Context,
+        cpu_texture: &CPUTexture<T>,
+    ) -> Result<TextureCubeMap, Error> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -574,7 +575,7 @@ impl TextureCubeMap {
         context.tex_storage_2d(
             consts::TEXTURE_CUBE_MAP,
             number_of_mip_maps,
-            internal_format_from(cpu_texture.format),
+            T::internal_format(cpu_texture.format)?,
             cpu_texture.width as u32,
             cpu_texture.height as u32,
         );
@@ -631,7 +632,7 @@ pub struct ColorTargetTexture2DArray {
 }
 
 impl ColorTargetTexture2DArray {
-    pub fn new(
+    pub fn new<T: TextureValueType>(
         context: &Context,
         width: usize,
         height: usize,
@@ -664,7 +665,7 @@ impl ColorTargetTexture2DArray {
         context.tex_storage_3d(
             consts::TEXTURE_2D_ARRAY,
             number_of_mip_maps,
-            internal_format_from(format),
+            T::internal_format(format)?,
             width as u32,
             height as u32,
             depth as u32,
@@ -978,31 +979,6 @@ fn calculate_number_of_mip_maps(
     }
 }
 
-fn check_u8_format(format: Format) -> Result<(), Error> {
-    if format == Format::R8
-        || format == Format::RGB8
-        || format == Format::RGBA8
-        || format == Format::SRGB8
-        || format == Format::SRGBA8
-    {
-        Ok(())
-    } else {
-        Err(Error::TextureError {
-            message: format!("Failed filling texture with format {:?} with u8.", format),
-        })
-    }
-}
-
-fn check_f32_format(format: Format) -> Result<(), Error> {
-    if format == Format::R32F || format == Format::RGB32F || format == Format::RGBA32F {
-        Ok(())
-    } else {
-        Err(Error::TextureError {
-            message: format!("Failed filling texture with format {:?} with f32.", format),
-        })
-    }
-}
-
 fn check_data_length(
     width: usize,
     height: usize,
@@ -1030,19 +1006,6 @@ fn check_data_length(
     Ok(())
 }
 
-fn internal_format_from(format: Format) -> u32 {
-    match format {
-        Format::R8 => consts::R8,
-        Format::RGB8 => consts::RGB8,
-        Format::RGBA8 => consts::RGBA8,
-        Format::SRGB8 => consts::SRGB8,
-        Format::SRGBA8 => consts::SRGB8_ALPHA8,
-        Format::R32F => consts::R32F,
-        Format::RGB32F => consts::RGB32F,
-        Format::RGBA32F => consts::RGBA32F,
-    }
-}
-
 fn internal_format_from_depth(format: DepthFormat) -> u32 {
     match format {
         DepthFormat::Depth16 => consts::DEPTH_COMPONENT16,
@@ -1053,27 +1016,21 @@ fn internal_format_from_depth(format: DepthFormat) -> u32 {
 
 fn channel_count_from_format(format: Format) -> usize {
     match format {
-        Format::R8 => 1,
-        Format::R32F => 1,
-        Format::RGB8 => 3,
-        Format::RGB32F => 3,
-        Format::SRGB8 => 3,
-        Format::RGBA8 => 4,
-        Format::RGBA32F => 4,
-        Format::SRGBA8 => 4,
+        Format::R => 1,
+        Format::RGB => 3,
+        Format::SRGB => 3,
+        Format::RGBA => 4,
+        Format::SRGBA => 4,
     }
 }
 
 fn format_from(format: Format) -> u32 {
     match format {
-        Format::R8 => consts::RED,
-        Format::R32F => consts::RED,
-        Format::RGB8 => consts::RGB,
-        Format::RGB32F => consts::RGB,
-        Format::SRGB8 => consts::RGB,
-        Format::RGBA8 => consts::RGBA,
-        Format::RGBA32F => consts::RGBA,
-        Format::SRGBA8 => consts::RGBA,
+        Format::R => consts::RED,
+        Format::RGB => consts::RGB,
+        Format::SRGB => consts::RGB,
+        Format::RGBA => consts::RGBA,
+        Format::SRGBA => consts::RGBA,
     }
 }
 

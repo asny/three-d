@@ -108,7 +108,7 @@ impl GUI {
                 &self.context,
                 &CPUTexture {
                     data: pixels,
-                    format: Format::SRGBA8,
+                    format: Format::SRGBA,
                     width: egui_texture.width,
                     height: egui_texture.height,
                     mip_map_filter: None,
