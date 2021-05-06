@@ -4,43 +4,43 @@ use ::gltf::Gltf;
 use std::path::Path;
 
 impl<'a> Loaded<'a> {
-    pub fn gltf<P: AsRef<Path>>(
+    pub fn gltf(
         &'a self,
-        path: P,
+        path: impl AsRef<Path>,
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
         let mut cpu_meshes = Vec::new();
         let mut cpu_materials = Vec::new();
 
         let bytes = self.bytes(path.as_ref())?;
         let gltf = Gltf::from_slice(bytes)?;
-        let (_, buffers, images) = ::gltf::import(path)?;
+        let (_, buffers, _) = ::gltf::import(path.as_ref())?;
+        let base_path = path.as_ref().parent().unwrap();
         for scene in gltf.scenes() {
-            print!("Scene {}", scene.index());
-            print!(" ({})", scene.name().unwrap_or("<Unnamed>"));
-            println!();
             for node in scene.nodes() {
-                print_tree(&node, &buffers, &mut cpu_meshes, &mut cpu_materials);
+                parse_tree(
+                    &node,
+                    &self,
+                    &base_path,
+                    &buffers,
+                    &mut cpu_meshes,
+                    &mut cpu_materials,
+                )?;
             }
         }
-
         Ok((cpu_meshes, cpu_materials))
     }
 }
 
-fn print_tree(
+fn parse_tree<'a>(
     node: &::gltf::Node,
+    loaded: &'a Loaded,
+    path: &Path,
     buffers: &[::gltf::buffer::Data],
     cpu_meshes: &mut Vec<CPUMesh>,
     cpu_materials: &mut Vec<CPUMaterial>,
-) {
-    print!(" -");
-    print!(" Node {}", node.index());
-    print!(" ({})", node.name().unwrap_or("<Unnamed>"));
-    println!();
-
+) -> Result<(), IOError> {
     if let Some(mesh) = node.mesh() {
         for primitive in mesh.primitives() {
-            println!("- Primitive #{}", primitive.index());
             let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
             if let Some(read_positions) = reader.read_positions() {
                 let mut positions = Vec::new();
@@ -58,29 +58,6 @@ fn print_tree(
                         nors.push(value[2]);
                     }
                     Some(nors)
-                } else {
-                    None
-                };
-
-                let colors = if let Some(values) = reader.read_colors(0) {
-                    let mut cols = Vec::new();
-                    for value in values.into_rgb_u8() {
-                        cols.push(value[0]);
-                        cols.push(value[1]);
-                        cols.push(value[2]);
-                    }
-                    Some(cols)
-                } else {
-                    None
-                };
-
-                let uvs = if let Some(values) = reader.read_tex_coords(0) {
-                    let mut uvs = Vec::new();
-                    for value in values.into_f32() {
-                        uvs.push(value[0]);
-                        uvs.push(value[1]);
-                    }
-                    Some(uvs)
                 } else {
                     None
                 };
@@ -109,15 +86,50 @@ fn print_tree(
                         break;
                     }
                 }
+
+                let mut uv_set = None;
                 if !parsed {
                     let pbr = material.pbr_metallic_roughness();
                     let color = pbr.base_color_factor();
+                    let mut texture_image = None;
+                    if let Some(tex_info) = pbr.base_color_texture() {
+                        uv_set = Some(tex_info.tex_coord());
+                        if let ::gltf::image::Source::Uri { uri, .. } =
+                            tex_info.texture().source().source()
+                        {
+                            texture_image = Some(loaded.image(path.join(Path::new(uri)))?);
+                        }
+                    }
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
                         color: Some((color[0], color[1], color[2], color[3])),
+                        texture_image,
                         ..Default::default()
                     });
                 }
+
+                let colors = if let Some(values) = reader.read_colors(0) {
+                    let mut cols = Vec::new();
+                    for value in values.into_rgb_u8() {
+                        cols.push(value[0]);
+                        cols.push(value[1]);
+                        cols.push(value[2]);
+                    }
+                    Some(cols)
+                } else {
+                    None
+                };
+
+                let uvs = if let Some(values) = reader.read_tex_coords(uv_set.unwrap_or(0)) {
+                    let mut uvs = Vec::new();
+                    for value in values.into_f32() {
+                        uvs.push(value[0]);
+                        uvs.push(value[1]);
+                    }
+                    Some(uvs)
+                } else {
+                    None
+                };
 
                 cpu_meshes.push(CPUMesh {
                     positions,
@@ -133,6 +145,7 @@ fn print_tree(
     }
 
     for child in node.children() {
-        print_tree(&child, buffers, cpu_meshes, cpu_materials);
+        parse_tree(&child, loaded, path, buffers, cpu_meshes, cpu_materials)?;
     }
+    Ok(())
 }
