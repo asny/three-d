@@ -34,7 +34,7 @@ pub struct PhongDeferredPipeline {
     /// Set this to visualize the positions, normals etc. for debug purposes.
     ///
     pub debug_type: DebugType,
-    geometry_pass_texture: Option<ColorTargetTexture2DArray>,
+    geometry_pass_texture: Option<ColorTargetTexture2DArray<u8>>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
@@ -48,7 +48,7 @@ impl PhongDeferredPipeline {
             program_map: HashMap::new(),
             debug_effect: None,
             debug_type: DebugType::NONE,
-            geometry_pass_texture: Some(ColorTargetTexture2DArray::new::<u8>(
+            geometry_pass_texture: Some(ColorTargetTexture2DArray::new(
                 context,
                 1,
                 1,
@@ -85,7 +85,7 @@ impl PhongDeferredPipeline {
         camera: &Camera,
         geometries: &[&dyn PhongGeometry],
     ) -> Result<(), Error> {
-        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new::<u8>(
+        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
             width,
             height,
@@ -223,7 +223,7 @@ impl PhongDeferredPipeline {
         Ok(())
     }
 
-    pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray {
+    pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray<u8> {
         self.geometry_pass_texture.as_ref().unwrap()
     }
     pub fn geometry_pass_depth_texture_array(&self) -> &DepthTargetTexture2DArray {
@@ -245,7 +245,7 @@ impl PhongDeferredPipeline {
         depth_array
             .copy_to(
                 0,
-                CopyDestination::DepthTexture(&depth_texture),
+                CopyDestination::<u8>::DepthTexture(&depth_texture),
                 Viewport::new_at_origo(depth_array.width(), depth_array.height()),
             )
             .unwrap();

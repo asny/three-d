@@ -8,7 +8,9 @@ pub use crate::{Format, Interpolation, Wrapping};
 pub trait TextureValueType: CPUTextureValueType {
     fn internal_format(format: Format) -> Result<u32, crate::Error>;
     fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]);
+    fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
 }
+
 impl TextureValueType for u8 {
     fn internal_format(format: Format) -> Result<u32, crate::Error> {
         Ok(match format {
@@ -20,7 +22,7 @@ impl TextureValueType for u8 {
         })
     }
 
-    fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[u8]) {
+    fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]) {
         context.tex_sub_image_2d_with_u8_data(
             consts::TEXTURE_2D,
             0,
@@ -33,7 +35,20 @@ impl TextureValueType for u8 {
             data,
         );
     }
+
+    fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+        context.read_pixels_with_u8_data(
+            viewport.x as u32,
+            viewport.y as u32,
+            viewport.width as u32,
+            viewport.height as u32,
+            format_from(format),
+            consts::UNSIGNED_BYTE,
+            pixels,
+        );
+    }
 }
+
 impl TextureValueType for f32 {
     fn internal_format(format: Format) -> Result<u32, crate::Error> {
         Ok(match format {
@@ -53,7 +68,7 @@ impl TextureValueType for f32 {
         })
     }
 
-    fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[f32]) {
+    fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]) {
         context.tex_sub_image_2d_with_f32_data(
             consts::TEXTURE_2D,
             0,
@@ -64,6 +79,18 @@ impl TextureValueType for f32 {
             format_from(format),
             consts::FLOAT,
             data,
+        );
+    }
+
+    fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+        context.read_pixels_with_f32_data(
+            viewport.x as u32,
+            viewport.y as u32,
+            viewport.width as u32,
+            viewport.height as u32,
+            format_from(format),
+            consts::FLOAT,
+            pixels,
         );
     }
 }
@@ -208,20 +235,21 @@ impl Drop for Texture2D {
 /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture.
 /// Use a [RenderTarget](crate::RenderTarget) to write to both color and depth.
 ///
-pub struct ColorTargetTexture2D {
+pub struct ColorTargetTexture2D<T: TextureValueType> {
     context: Context,
     id: crate::context::Texture,
     width: usize,
     height: usize,
     number_of_mip_maps: u32,
     format: Format,
+    _dummy: T,
 }
 
-impl ColorTargetTexture2D {
+impl<T: TextureValueType> ColorTargetTexture2D<T> {
     ///
     /// Constructs a new 2D color target texture.
     ///
-    pub fn new<T: TextureValueType>(
+    pub fn new(
         context: &Context,
         width: usize,
         height: usize,
@@ -263,6 +291,7 @@ impl ColorTargetTexture2D {
             height,
             number_of_mip_maps,
             format,
+            _dummy: T::default(),
         })
     }
 
@@ -278,7 +307,7 @@ impl ColorTargetTexture2D {
         clear_state: ClearState,
         render: F,
     ) -> Result<(), Error> {
-        RenderTarget::new_color(&self.context, &self)?.write(clear_state, render)
+        RenderTarget::<T>::new_color(&self.context, &self)?.write(clear_state, render)
     }
 
     ///
@@ -290,7 +319,7 @@ impl ColorTargetTexture2D {
     ///
     pub fn copy_to(
         &self,
-        destination: CopyDestination,
+        destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -305,7 +334,7 @@ impl ColorTargetTexture2D {
     /// # Errors
     /// Will return an error if the color texture is not RGBA format.
     ///
-    pub fn read_as_u8(&self, viewport: Viewport) -> Result<Vec<u8>, Error> {
+    pub fn read(&self, viewport: Viewport) -> Result<Vec<T>, Error> {
         if self.format != Format::RGBA {
             Err(Error::TextureError {
                 message: "Cannot read color from anything else but an RGBA texture.".to_owned(),
@@ -313,50 +342,11 @@ impl ColorTargetTexture2D {
         }
 
         let channels = channel_count_from_format(self.format);
-        let mut pixels = vec![0u8; viewport.width * viewport.height * channels];
+        let mut pixels = vec![T::default(); viewport.width * viewport.height * channels];
         let render_target = RenderTarget::new_color(&self.context, &self)?;
         render_target.bind(consts::DRAW_FRAMEBUFFER)?;
         render_target.bind(consts::READ_FRAMEBUFFER)?;
-        self.context.read_pixels_with_u8_data(
-            viewport.x as u32,
-            viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
-            format_from(self.format),
-            consts::UNSIGNED_BYTE,
-            &mut pixels,
-        );
-        Ok(pixels)
-    }
-
-    ///
-    /// Returns the color values of the pixels in this color texture inside the given viewport.
-    ///
-    /// **Note:** Only works for RGBA32F textures.
-    ///
-    /// # Errors
-    /// Will return an error if the color texture is not RGBA32F format.
-    ///
-    pub fn read_as_f32(&self, viewport: Viewport) -> Result<Vec<f32>, Error> {
-        if self.format != Format::RGBA {
-            Err(Error::TextureError {
-                message: "Cannot read color from anything else but an RGBA texture.".to_owned(),
-            })?;
-        }
-        let channels = channel_count_from_format(self.format);
-        let mut pixels = vec![0f32; viewport.width * viewport.height * channels];
-        let render_target = RenderTarget::new_color(&self.context, &self)?;
-        render_target.bind(consts::DRAW_FRAMEBUFFER)?;
-        render_target.bind(consts::READ_FRAMEBUFFER)?;
-        self.context.read_pixels_with_f32_data(
-            viewport.x as u32,
-            viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
-            format_from(self.format),
-            consts::FLOAT,
-            &mut pixels,
-        );
+        T::read(&self.context, viewport, self.format, &mut pixels);
         Ok(pixels)
     }
 
@@ -378,7 +368,7 @@ impl ColorTargetTexture2D {
     }
 }
 
-impl Texture for ColorTargetTexture2D {
+impl<T: TextureValueType> Texture for ColorTargetTexture2D<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
@@ -390,7 +380,7 @@ impl Texture for ColorTargetTexture2D {
     }
 }
 
-impl Drop for ColorTargetTexture2D {
+impl<T: TextureValueType> Drop for ColorTargetTexture2D<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }
@@ -465,7 +455,7 @@ impl DepthTargetTexture2D {
         clear_state: Option<f32>,
         render: F,
     ) -> Result<(), Error> {
-        RenderTarget::new_depth(&self.context, &self)?.write(
+        RenderTarget::<f32>::new_depth(&self.context, &self)?.write(
             ClearState {
                 depth: clear_state,
                 ..ClearState::none()
@@ -480,7 +470,11 @@ impl DepthTargetTexture2D {
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
-    pub fn copy_to(&self, destination: CopyDestination, viewport: Viewport) -> Result<(), Error> {
+    pub fn copy_to<T: TextureValueType>(
+        &self,
+        destination: CopyDestination<T>,
+        viewport: Viewport,
+    ) -> Result<(), Error> {
         RenderTarget::new_depth(&self.context, &self)?.copy_to(
             destination,
             viewport,
@@ -636,17 +630,18 @@ impl Drop for TextureCubeMap {
 /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture array.
 /// Use a [RenderTargetArray](crate::RenderTargetArray) to write to both color and depth.
 ///
-pub struct ColorTargetTexture2DArray {
+pub struct ColorTargetTexture2DArray<T: TextureValueType> {
     context: Context,
     id: crate::context::Texture,
     width: usize,
     height: usize,
     depth: usize,
     number_of_mip_maps: u32,
+    _dummy: T,
 }
 
-impl ColorTargetTexture2DArray {
-    pub fn new<T: TextureValueType>(
+impl<T: TextureValueType> ColorTargetTexture2DArray<T> {
+    pub fn new(
         context: &Context,
         width: usize,
         height: usize,
@@ -691,6 +686,7 @@ impl ColorTargetTexture2DArray {
             height,
             depth,
             number_of_mip_maps,
+            _dummy: T::default(),
         })
     }
 
@@ -726,11 +722,11 @@ impl ColorTargetTexture2DArray {
     pub fn copy_to(
         &self,
         color_layer: usize,
-        destination: CopyDestination,
+        destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
-        RenderTargetArray::new_color(&self.context, &self)?.copy_to(
+        RenderTargetArray::<T>::new_color(&self.context, &self)?.copy_to(
             color_layer,
             0,
             destination,
@@ -758,7 +754,7 @@ impl ColorTargetTexture2DArray {
     }
 }
 
-impl TextureArray for ColorTargetTexture2DArray {
+impl<T: TextureValueType> TextureArray for ColorTargetTexture2DArray<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
@@ -773,7 +769,7 @@ impl TextureArray for ColorTargetTexture2DArray {
     }
 }
 
-impl Drop for ColorTargetTexture2DArray {
+impl<T: TextureValueType> Drop for ColorTargetTexture2DArray<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }
@@ -840,7 +836,7 @@ impl DepthTargetTexture2DArray {
         clear_state: Option<f32>,
         render: F,
     ) -> Result<(), Error> {
-        RenderTargetArray::new_depth(&self.context, &self)?.write(
+        RenderTargetArray::<u8>::new_depth(&self.context, &self)?.write(
             &[],
             depth_layer,
             ClearState {
@@ -857,10 +853,10 @@ impl DepthTargetTexture2DArray {
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
-    pub fn copy_to(
+    pub fn copy_to<T: TextureValueType>(
         &self,
         depth_layer: usize,
-        destination: CopyDestination,
+        destination: CopyDestination<T>,
         viewport: Viewport,
     ) -> Result<(), Error> {
         RenderTargetArray::new_depth(&self.context, &self)?.copy_to(

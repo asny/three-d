@@ -264,7 +264,7 @@ impl Camera {
             0.01,
             max_depth,
         )?;
-        let texture = ColorTargetTexture2D::new::<f32>(
+        let texture = ColorTargetTexture2D::<f32>::new(
             &self.context,
             viewport.width,
             viewport.height,
@@ -318,7 +318,7 @@ impl Camera {
                 Ok(())
             },
         )?;
-        let depth = texture.read_as_f32(viewport)?[0];
+        let depth = texture.read(viewport)?[0];
         Ok(if depth < 1.0 {
             Some(position + direction * depth * max_depth)
         } else {

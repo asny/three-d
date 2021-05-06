@@ -146,15 +146,15 @@ impl Screen {
 ///
 /// The destination of applying a copy.
 ///
-pub enum CopyDestination<'a, 'b, 'c, 'd> {
+pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureValueType> {
     /// Copies to the [Screen](crate::Screen).
     Screen,
     /// Copies to a [ColorTargetTexture2D](crate::ColorTargetTexture2D).
-    ColorTexture(&'d ColorTargetTexture2D),
+    ColorTexture(&'d ColorTargetTexture2D<T>),
     /// Copies to a [DepthTargetTexture2D](crate::DepthTargetTexture2D).
     DepthTexture(&'d DepthTargetTexture2D),
     /// Copies to a [RenderTarget](crate::RenderTarget).
-    RenderTarget(&'c RenderTarget<'a, 'b>),
+    RenderTarget(&'c RenderTarget<'a, 'b, T>),
 }
 
 ///
@@ -162,21 +162,21 @@ pub enum CopyDestination<'a, 'b, 'c, 'd> {
 /// a [DepthTargetTexture2D](crate::DepthTargetTexture2D) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTarget<'a, 'b> {
+pub struct RenderTarget<'a, 'b, T: TextureValueType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a ColorTargetTexture2D>,
+    color_texture: Option<&'a ColorTargetTexture2D<T>>,
     depth_texture: Option<&'b DepthTargetTexture2D>,
 }
 
-impl<'a, 'b> RenderTarget<'a, 'b> {
+impl<'a, 'b, T: TextureValueType> RenderTarget<'a, 'b, T> {
     ///
     /// Constructs a new render target that enables rendering into the given
     /// [color](crate::ColorTargetTexture2D) and [depth](DepthTargetTexture2D) textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2D,
+        color_texture: &'a ColorTargetTexture2D<T>,
         depth_texture: &'b DepthTargetTexture2D,
     ) -> Result<Self, Error> {
         Ok(Self {
@@ -220,7 +220,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     pub fn copy_to(
         &self,
-        destination: CopyDestination,
+        destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -271,7 +271,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
 
     pub(super) fn new_color(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2D,
+        color_texture: &'a ColorTargetTexture2D<T>,
     ) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -308,7 +308,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 }
 
-impl Drop for RenderTarget<'_, '_> {
+impl<T: TextureValueType> Drop for RenderTarget<'_, '_, T> {
     fn drop(&mut self) {
         self.context.delete_framebuffer(Some(&self.id));
     }
@@ -319,21 +319,21 @@ impl Drop for RenderTarget<'_, '_> {
 /// a [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTargetArray<'a, 'b> {
+pub struct RenderTargetArray<'a, 'b, T: TextureValueType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a ColorTargetTexture2DArray>,
+    color_texture: Option<&'a ColorTargetTexture2DArray<T>>,
     depth_texture: Option<&'b DepthTargetTexture2DArray>,
 }
 
-impl<'a, 'b> RenderTargetArray<'a, 'b> {
+impl<'a, 'b, T: TextureValueType> RenderTargetArray<'a, 'b, T> {
     ///
     /// Constructs a new render target array that enables rendering into the given
     /// [color](crate::ColorTargetTexture2DArray) and [depth](DepthTargetTexture2DArray) array textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2DArray,
+        color_texture: &'a ColorTargetTexture2DArray<T>,
         depth_texture: &'b DepthTargetTexture2DArray,
     ) -> Result<Self, Error> {
         Ok(Self {
@@ -346,7 +346,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
 
     pub(super) fn new_color(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2DArray,
+        color_texture: &'a ColorTargetTexture2DArray<T>,
     ) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -408,7 +408,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
         &self,
         color_layer: usize,
         depth_layer: usize,
-        destination: CopyDestination,
+        destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -489,7 +489,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
     }
 }
 
-impl Drop for RenderTargetArray<'_, '_> {
+impl<T: TextureValueType> Drop for RenderTargetArray<'_, '_, T> {
     fn drop(&mut self) {
         self.context.delete_framebuffer(Some(&self.id));
     }
