@@ -104,7 +104,7 @@ impl GUI {
                 pixels.push(pixel.b());
                 pixels.push(pixel.a());
             }
-            self.texture = Some(Texture2D::new_with_u8(
+            self.texture = Some(Texture2D::new(
                 &self.context,
                 &CPUTexture {
                     data: pixels,

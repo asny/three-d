@@ -5,6 +5,69 @@ use crate::math::*;
 
 pub use crate::{Format, Interpolation, Wrapping};
 
+pub trait TextureValueType: CPUTextureValueType {
+    fn internal_format(format: Format) -> Result<u32, crate::Error>;
+    fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]);
+}
+impl TextureValueType for u8 {
+    fn internal_format(format: Format) -> Result<u32, crate::Error> {
+        Ok(match format {
+            Format::R => crate::context::consts::R8,
+            Format::RGB => crate::context::consts::RGB8,
+            Format::RGBA => crate::context::consts::RGBA8,
+            Format::SRGB => crate::context::consts::SRGB8,
+            Format::SRGBA => crate::context::consts::SRGB8_ALPHA8,
+        })
+    }
+
+    fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[u8]) {
+        context.tex_sub_image_2d_with_u8_data(
+            consts::TEXTURE_2D,
+            0,
+            0,
+            0,
+            width as u32,
+            height as u32,
+            format_from(format),
+            consts::UNSIGNED_BYTE,
+            data,
+        );
+    }
+}
+impl TextureValueType for f32 {
+    fn internal_format(format: Format) -> Result<u32, crate::Error> {
+        Ok(match format {
+            Format::R => crate::context::consts::R32F,
+            Format::RGB => crate::context::consts::RGB32F,
+            Format::RGBA => crate::context::consts::RGBA32F,
+            Format::SRGB => {
+                return Err(crate::Error::TextureError {
+                    message: "Cannot use sRGB format for a float texture.".to_string(),
+                });
+            }
+            Format::SRGBA => {
+                return Err(crate::Error::TextureError {
+                    message: "Cannot use sRGBA format for a float texture.".to_string(),
+                });
+            }
+        })
+    }
+
+    fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[f32]) {
+        context.tex_sub_image_2d_with_f32_data(
+            consts::TEXTURE_2D,
+            0,
+            0,
+            0,
+            width as u32,
+            height as u32,
+            format_from(format),
+            consts::FLOAT,
+            data,
+        );
+    }
+}
+
 ///
 /// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).
 ///
@@ -46,80 +109,9 @@ pub struct Texture2D {
 
 impl Texture2D {
     ///
-    /// Construcs a new texture with the given byte data.
+    /// Construcs a new texture with the given data.
     ///
-    pub fn new_with_u8(
-        context: &Context,
-        cpu_texture: &CPUTexture<u8>,
-    ) -> Result<Texture2D, Error> {
-        let mut texture = Self::new(context, cpu_texture)?;
-        texture.fill_with_u8(&cpu_texture.data)?;
-        Ok(texture)
-    }
-
-    ///
-    /// Construcs a new texture with the given float data.
-    ///
-    pub fn new_with_f32(
-        context: &Context,
-        cpu_texture: &CPUTexture<f32>,
-    ) -> Result<Texture2D, Error> {
-        let mut texture = Self::new(context, cpu_texture)?;
-        texture.fill_with_f32(&cpu_texture.data)?;
-        Ok(texture)
-    }
-
-    ///
-    /// Fills this texture with the given byte data.
-    ///
-    /// # Errors
-    /// Return an error if the format of this texture is not a byte [Format](crate::Format) or
-    /// if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
-    ///
-    pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error> {
-        check_data_length(self.width, self.height, 1, self.format, data.len())?;
-        self.context.bind_texture(consts::TEXTURE_2D, &self.id);
-        self.context.tex_sub_image_2d_with_u8_data(
-            consts::TEXTURE_2D,
-            0,
-            0,
-            0,
-            self.width as u32,
-            self.height as u32,
-            format_from(self.format),
-            consts::UNSIGNED_BYTE,
-            data,
-        );
-        self.generate_mip_maps();
-        Ok(())
-    }
-
-    ///
-    /// Fills this texture with the given float data.
-    ///
-    /// # Errors
-    /// Return an error if the format of this texture is not a float [Format](crate::Format) or
-    /// if the length of the data array is smaller or bigger than the necessary number of floats to fill the entire texture.
-    ///
-    pub fn fill_with_f32(&mut self, data: &[f32]) -> Result<(), Error> {
-        check_data_length(self.width, self.height, 1, self.format, data.len())?;
-        self.context.bind_texture(consts::TEXTURE_2D, &self.id);
-        self.context.tex_sub_image_2d_with_f32_data(
-            consts::TEXTURE_2D,
-            0,
-            0,
-            0,
-            self.width as u32,
-            self.height as u32,
-            format_from(self.format),
-            consts::FLOAT,
-            data,
-        );
-        self.generate_mip_maps();
-        Ok(())
-    }
-
-    fn new<T: TextureValueType>(
+    pub fn new<T: TextureValueType>(
         context: &Context,
         cpu_texture: &CPUTexture<T>,
     ) -> Result<Texture2D, Error> {
@@ -152,14 +144,36 @@ impl Texture2D {
             cpu_texture.width as u32,
             cpu_texture.height as u32,
         );
-        Ok(Self {
+        let mut tex = Self {
             context: context.clone(),
             id,
             width: cpu_texture.width,
             height: cpu_texture.height,
             format: cpu_texture.format,
             number_of_mip_maps,
-        })
+        };
+        tex.fill(&cpu_texture.data)?;
+        Ok(tex)
+    }
+
+    ///
+    /// Fills this texture with the given data.
+    ///
+    /// # Errors
+    /// Return an error if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
+    ///
+    pub fn fill<T: TextureValueType>(&mut self, data: &[T]) -> Result<(), Error> {
+        check_data_length(self.width, self.height, 1, self.format, data.len())?;
+        self.context.bind_texture(consts::TEXTURE_2D, &self.id);
+        T::fill(
+            &self.context,
+            self.width(),
+            self.height(),
+            self.format,
+            data,
+        );
+        self.generate_mip_maps();
+        Ok(())
     }
 
     pub(crate) fn generate_mip_maps(&self) {

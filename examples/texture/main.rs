@@ -46,7 +46,7 @@ fn main() {
                 ..Default::default()
             };
             box_cpu_mesh.compute_normals();
-            let box_texture = Texture2D::new_with_u8(
+            let box_texture = Texture2D::new(
                 &context,
                 &loaded.image("examples/assets/test_texture.jpg").unwrap(),
             )
