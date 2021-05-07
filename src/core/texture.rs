@@ -252,14 +252,10 @@ impl<T: TextureValueType> ColorTargetTexture2D<T> {
             })?;
         }
 
-        let channels = match self.format {
-            Format::R => 1,
-            Format::RGB => 3,
-            Format::SRGB => 3,
-            Format::RGBA => 4,
-            Format::SRGBA => 4,
-        };
-        let mut pixels = vec![T::default(); viewport.width * viewport.height * channels];
+        let mut pixels = vec![
+            T::default();
+            viewport.width * viewport.height * self.format.color_channel_count()
+        ];
         let render_target = RenderTarget::new_color(&self.context, &self)?;
         render_target.bind(consts::DRAW_FRAMEBUFFER)?;
         render_target.bind(consts::READ_FRAMEBUFFER)?;
@@ -914,13 +910,7 @@ fn check_data_length(
     length: usize,
 ) -> Result<(), Error> {
     let expected_pixels = width * height * depth;
-    let actual_pixels = length
-        / match format_from(format) {
-            consts::RED => 1,
-            consts::RGB => 3,
-            consts::RGBA => 4,
-            _ => unreachable!(),
-        };
+    let actual_pixels = length / format.color_channel_count();
 
     if expected_pixels != actual_pixels {
         Err(Error::TextureError {

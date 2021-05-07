@@ -34,6 +34,18 @@ pub enum Format {
     SRGBA,
 }
 
+impl Format {
+    pub fn color_channel_count(&self) -> usize {
+        match self {
+            Format::R => 1,
+            Format::RGB => 3,
+            Format::SRGB => 3,
+            Format::RGBA => 4,
+            Format::SRGBA => 4,
+        }
+    }
+}
+
 impl Default for Format {
     fn default() -> Self {
         Format::RGBA
