@@ -18,9 +18,12 @@ pub enum Wrapping {
     ClampToEdge,
 }
 
-pub trait CPUTextureValueType: Default + std::fmt::Debug + Clone {}
-impl CPUTextureValueType for u8 {}
-impl CPUTextureValueType for f32 {}
+pub trait TextureValueType:
+    Default + std::fmt::Debug + Clone + crate::core::internal::TextureValueTypeExtension
+{
+}
+impl TextureValueType for u8 {}
+impl TextureValueType for f32 {}
 
 ///
 /// Possible formats for pixels in a texture.
@@ -56,7 +59,7 @@ impl Default for Format {
 /// A CPU-side version of a texture, for example [2D texture](crate::Texture2D).
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
-pub struct CPUTexture<T: CPUTextureValueType> {
+pub struct CPUTexture<T: TextureValueType> {
     pub data: Vec<T>,
     pub width: usize,
     pub height: usize,
@@ -70,7 +73,7 @@ pub struct CPUTexture<T: CPUTextureValueType> {
     pub wrap_r: Wrapping,
 }
 
-impl<T: CPUTextureValueType> CPUTexture<T> {
+impl<T: TextureValueType> CPUTexture<T> {
     pub fn resize(&mut self, width: usize, height: usize, offset_x: usize, offset_y: usize) {
         let channels = self.format.color_channel_count();
         let mut new_data = vec![T::default(); width * height * channels];
@@ -99,7 +102,7 @@ impl<T: CPUTextureValueType> CPUTexture<T> {
     }
 }
 
-impl<T: CPUTextureValueType> Default for CPUTexture<T> {
+impl<T: TextureValueType> Default for CPUTexture<T> {
     fn default() -> Self {
         Self {
             data: [T::default(), T::default(), T::default(), T::default()].into(),
@@ -117,7 +120,7 @@ impl<T: CPUTextureValueType> Default for CPUTexture<T> {
     }
 }
 
-impl<T: CPUTextureValueType> std::fmt::Debug for CPUTexture<T> {
+impl<T: TextureValueType> std::fmt::Debug for CPUTexture<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CPUTexture")
             .field("format", &self.format)

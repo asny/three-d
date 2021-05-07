@@ -2,7 +2,6 @@ use crate::context::{consts, Context};
 use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
-use internal::*;
 
 pub use crate::{Format, Interpolation, Wrapping};
 
@@ -457,7 +456,7 @@ impl TextureCubeMap {
                 0,
                 self.width as u32,
                 self.height as u32,
-                format_from(self.format),
+                internal::format_from(self.format),
                 consts::UNSIGNED_BYTE,
                 &data[i * offset..(i + 1) * offset],
             );

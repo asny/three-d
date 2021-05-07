@@ -71,19 +71,19 @@ pub enum Error {
     },
 }
 
-mod internal {
+pub(crate) mod internal {
 
     use crate::context::{consts, Context};
     use crate::definition::*;
     use crate::math::*;
 
-    pub trait TextureValueType: CPUTextureValueType {
+    pub trait TextureValueTypeExtension: Clone {
         fn internal_format(format: Format) -> Result<u32, crate::Error>;
         fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]);
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
     }
 
-    impl TextureValueType for u8 {
+    impl TextureValueTypeExtension for u8 {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
             Ok(match format {
                 Format::R => crate::context::consts::R8,
@@ -118,7 +118,7 @@ mod internal {
             );
         }
     }
-    impl TextureValueType for f32 {
+    impl TextureValueTypeExtension for f32 {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
             Ok(match format {
                 Format::R => crate::context::consts::R32F,
