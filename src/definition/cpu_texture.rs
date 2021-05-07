@@ -70,6 +70,35 @@ pub struct CPUTexture<T: CPUTextureValueType> {
     pub wrap_r: Wrapping,
 }
 
+impl<T: CPUTextureValueType> CPUTexture<T> {
+    pub fn resize(&mut self, width: usize, height: usize, offset_x: usize, offset_y: usize) {
+        let channels = self.format.color_channel_count();
+        let mut new_data = vec![T::default(); width * height * channels];
+        for x in 0..width {
+            for y in 0..height {
+                let x_ = x as i32 - offset_x as i32;
+                let y_ = y as i32 - offset_y as i32;
+                if 0 <= x_ && x_ < self.width as i32 && 0 <= y_ && y_ < self.height as i32 {
+                    let source_index = (y_ as usize * self.width + x_ as usize) * channels;
+                    let dest_index = (y as usize * width + x as usize) * channels;
+                    for i in 0..channels {
+                        new_data[dest_index + i] = self.data[source_index + i].clone();
+                    }
+                }
+            }
+        }
+        self.data = new_data;
+        self.width = width;
+        self.height = height;
+    }
+
+    pub fn resize_to_power_of_2(&mut self, offset_x: usize, offset_y: usize) {
+        let w = usize::next_power_of_two(self.width);
+        let h = usize::next_power_of_two(self.height);
+        self.resize(w, h, offset_x, offset_y);
+    }
+}
+
 impl<T: CPUTextureValueType> Default for CPUTexture<T> {
     fn default() -> Self {
         Self {
