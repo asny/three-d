@@ -341,7 +341,13 @@ impl<T: TextureValueType> ColorTargetTexture2D<T> {
             })?;
         }
 
-        let channels = channel_count_from_format(self.format);
+        let channels = match self.format {
+            Format::R => 1,
+            Format::RGB => 3,
+            Format::SRGB => 3,
+            Format::RGBA => 4,
+            Format::SRGBA => 4,
+        };
         let mut pixels = vec![T::default(); viewport.width * viewport.height * channels];
         let render_target = RenderTarget::new_color(&self.context, &self)?;
         render_target.bind(consts::DRAW_FRAMEBUFFER)?;
@@ -1021,16 +1027,6 @@ fn internal_format_from_depth(format: DepthFormat) -> u32 {
         DepthFormat::Depth16 => consts::DEPTH_COMPONENT16,
         DepthFormat::Depth24 => consts::DEPTH_COMPONENT24,
         DepthFormat::Depth32F => consts::DEPTH_COMPONENT32F,
-    }
-}
-
-fn channel_count_from_format(format: Format) -> usize {
-    match format {
-        Format::R => 1,
-        Format::RGB => 3,
-        Format::SRGB => 3,
-        Format::RGBA => 4,
-        Format::SRGBA => 4,
     }
 }
 
