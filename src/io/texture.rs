@@ -18,6 +18,7 @@ impl<'a> Loaded<'a> {
         let number_of_channels = bytes.len() / (img.width() * img.height()) as usize;
         let format = match number_of_channels {
             1 => Ok(Format::R),
+            2 => Ok(Format::RG),
             3 => Ok(Format::RGB),
             4 => Ok(Format::RGBA),
             _ => Err(IOError::FailedToLoad {

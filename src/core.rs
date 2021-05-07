@@ -87,6 +87,7 @@ pub(crate) mod internal {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
             Ok(match format {
                 Format::R => crate::context::consts::R8,
+                Format::RG => crate::context::consts::RG8,
                 Format::RGB => crate::context::consts::RGB8,
                 Format::RGBA => crate::context::consts::RGBA8,
                 Format::SRGB => crate::context::consts::SRGB8,
@@ -122,6 +123,7 @@ pub(crate) mod internal {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
             Ok(match format {
                 Format::R => crate::context::consts::R32F,
+                Format::RG => crate::context::consts::RG32F,
                 Format::RGB => crate::context::consts::RGB32F,
                 Format::RGBA => crate::context::consts::RGBA32F,
                 Format::SRGB => {
@@ -165,6 +167,7 @@ pub(crate) mod internal {
     pub fn format_from(format: Format) -> u32 {
         match format {
             Format::R => consts::RED,
+            Format::RG => consts::RG,
             Format::RGB => consts::RGB,
             Format::SRGB => consts::RGB,
             Format::RGBA => consts::RGBA,

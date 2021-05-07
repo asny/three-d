@@ -31,6 +31,7 @@ impl TextureValueType for f32 {}
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
     R,
+    RG,
     RGB,
     SRGB,
     RGBA,
@@ -41,6 +42,7 @@ impl Format {
     pub fn color_channel_count(&self) -> usize {
         match self {
             Format::R => 1,
+            Format::RG => 2,
             Format::RGB => 3,
             Format::SRGB => 3,
             Format::RGBA => 4,
