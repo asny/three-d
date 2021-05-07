@@ -70,3 +70,105 @@ pub enum Error {
         message: String,
     },
 }
+
+mod internal {
+
+    use crate::context::{consts, Context};
+    use crate::definition::*;
+    use crate::math::*;
+
+    pub trait TextureValueType: CPUTextureValueType {
+        fn internal_format(format: Format) -> Result<u32, crate::Error>;
+        fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]);
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
+    }
+
+    impl TextureValueType for u8 {
+        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+            Ok(match format {
+                Format::R => crate::context::consts::R8,
+                Format::RGB => crate::context::consts::RGB8,
+                Format::RGBA => crate::context::consts::RGBA8,
+                Format::SRGB => crate::context::consts::SRGB8,
+                Format::SRGBA => crate::context::consts::SRGB8_ALPHA8,
+            })
+        }
+        fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]) {
+            context.tex_sub_image_2d_with_u8_data(
+                consts::TEXTURE_2D,
+                0,
+                0,
+                0,
+                width as u32,
+                height as u32,
+                format_from(format),
+                consts::UNSIGNED_BYTE,
+                data,
+            );
+        }
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            context.read_pixels_with_u8_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width as u32,
+                viewport.height as u32,
+                format_from(format),
+                consts::UNSIGNED_BYTE,
+                pixels,
+            );
+        }
+    }
+    impl TextureValueType for f32 {
+        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+            Ok(match format {
+                Format::R => crate::context::consts::R32F,
+                Format::RGB => crate::context::consts::RGB32F,
+                Format::RGBA => crate::context::consts::RGBA32F,
+                Format::SRGB => {
+                    return Err(crate::Error::TextureError {
+                        message: "Cannot use sRGB format for a float texture.".to_string(),
+                    });
+                }
+                Format::SRGBA => {
+                    return Err(crate::Error::TextureError {
+                        message: "Cannot use sRGBA format for a float texture.".to_string(),
+                    });
+                }
+            })
+        }
+        fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]) {
+            context.tex_sub_image_2d_with_f32_data(
+                consts::TEXTURE_2D,
+                0,
+                0,
+                0,
+                width as u32,
+                height as u32,
+                format_from(format),
+                consts::FLOAT,
+                data,
+            );
+        }
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            context.read_pixels_with_f32_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width as u32,
+                viewport.height as u32,
+                format_from(format),
+                consts::FLOAT,
+                pixels,
+            );
+        }
+    }
+
+    pub fn format_from(format: Format) -> u32 {
+        match format {
+            Format::R => consts::RED,
+            Format::RGB => consts::RGB,
+            Format::SRGB => consts::RGB,
+            Format::RGBA => consts::RGBA,
+            Format::SRGBA => consts::RGBA,
+        }
+    }
+}
