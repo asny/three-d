@@ -52,8 +52,7 @@ impl<T: TextureValueType> Skybox<T> {
             ..Default::default()
         };
 
-        self.program
-            .use_texture_cubemap(&self.texture, "texture0")?;
+        self.program.use_texture_cube(&self.texture, "texture0")?;
         self.program
             .use_uniform_block(camera.uniform_buffer(), "Camera");
 

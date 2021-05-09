@@ -231,7 +231,7 @@ impl Program {
     /// Use the given [TextureCube](crate::TextureCube) in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture_cubemap(
+    pub fn use_texture_cube(
         &self,
         texture: &impl TextureCube,
         texture_name: &str,
