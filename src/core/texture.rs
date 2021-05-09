@@ -32,6 +32,18 @@ pub trait TextureArray {
 }
 
 ///
+/// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::Program::use_texture_cube)).
+///
+pub trait TextureCube {
+    /// Binds this texture cube to the current shader program.
+    fn bind(&self, location: u32);
+    /// The width of one of the sides of this texture.
+    fn width(&self) -> usize;
+    /// The height of one of the sides of this texture.
+    fn height(&self) -> usize;
+}
+
+///
 /// A 2D texture, basically an image that is transferred to the GPU.
 /// For a texture that can be rendered into, see [ColorTargetTexture2D](crate::ColorTargetTexture2D).
 ///
@@ -104,6 +116,7 @@ impl Texture2D {
         self.context.bind_texture(consts::TEXTURE_2D, &self.id);
         T::fill(
             &self.context,
+            consts::TEXTURE_2D,
             self.width(),
             self.height(),
             self.format,
@@ -426,49 +439,18 @@ impl Drop for DepthTargetTexture2D {
 ///
 /// A texture that covers all 6 sides of a cube.
 ///
-pub struct TextureCubeMap {
+pub struct TextureCubeMap<T: TextureValueType> {
     context: Context,
     id: crate::context::Texture,
     width: usize,
     height: usize,
     format: Format,
     number_of_mip_maps: u32,
+    _dummy: T,
 }
 
-impl TextureCubeMap {
-    pub fn new_with_u8(context: &Context, cpu_texture: &CPUTexture<u8>) -> Result<Self, Error> {
-        let mut texture = Self::new(context, cpu_texture)?;
-        texture.fill_with_u8(&cpu_texture.data)?;
-        Ok(texture)
-    }
-
-    // data contains 6 images in the following order; right, left, top, bottom, front, back
-    pub fn fill_with_u8(&mut self, data: &[u8]) -> Result<(), Error> {
-        let offset = data.len() / 6;
-        check_data_length(self.width, self.height, 1, self.format, offset)?;
-        self.context
-            .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
-        for i in 0..6 {
-            self.context.tex_sub_image_2d_with_u8_data(
-                consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
-                0,
-                0,
-                0,
-                self.width as u32,
-                self.height as u32,
-                internal::format_from(self.format),
-                consts::UNSIGNED_BYTE,
-                &data[i * offset..(i + 1) * offset],
-            );
-        }
-        self.generate_mip_maps();
-        Ok(())
-    }
-
-    fn new<T: TextureValueType>(
-        context: &Context,
-        cpu_texture: &CPUTexture<T>,
-    ) -> Result<TextureCubeMap, Error> {
+impl<T: TextureValueType> TextureCubeMap<T> {
+    pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> Result<TextureCubeMap<T>, Error> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -499,26 +481,37 @@ impl TextureCubeMap {
             cpu_texture.width as u32,
             cpu_texture.height as u32,
         );
-        Ok(Self {
+        let mut texture = Self {
             context: context.clone(),
             id,
             width: cpu_texture.width,
             height: cpu_texture.height,
             format: cpu_texture.format,
             number_of_mip_maps,
-        })
+            _dummy: T::default(),
+        };
+        texture.fill(&cpu_texture.data)?;
+        Ok(texture)
     }
 
-    pub fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
-    }
-
-    pub fn width(&self) -> usize {
-        self.width
-    }
-
-    pub fn height(&self) -> usize {
-        self.height
+    // data contains 6 images in the following order; right, left, top, bottom, front, back
+    pub fn fill(&mut self, data: &[T]) -> Result<(), Error> {
+        let offset = data.len() / 6;
+        check_data_length(self.width, self.height, 1, self.format, offset)?;
+        self.context
+            .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
+        for i in 0..6 {
+            T::fill(
+                &self.context,
+                consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+                self.width,
+                self.height,
+                self.format,
+                &data[i * offset..(i + 1) * offset],
+            );
+        }
+        self.generate_mip_maps();
+        Ok(())
     }
 
     pub(crate) fn generate_mip_maps(&self) {
@@ -530,7 +523,21 @@ impl TextureCubeMap {
     }
 }
 
-impl Drop for TextureCubeMap {
+impl<T: TextureValueType> TextureCube for TextureCubeMap<T> {
+    fn bind(&self, location: u32) {
+        bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
+    }
+
+    fn width(&self) -> usize {
+        self.width
+    }
+
+    fn height(&self) -> usize {
+        self.height
+    }
+}
+
+impl<T: TextureValueType> Drop for TextureCubeMap<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }

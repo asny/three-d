@@ -79,7 +79,14 @@ pub(crate) mod internal {
 
     pub trait TextureValueTypeExtension: Clone {
         fn internal_format(format: Format) -> Result<u32, crate::Error>;
-        fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]);
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: usize,
+            height: usize,
+            format: Format,
+            data: &[Self],
+        );
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
     }
 
@@ -94,9 +101,16 @@ pub(crate) mod internal {
                 Format::SRGBA => crate::context::consts::SRGB8_ALPHA8,
             })
         }
-        fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]) {
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: usize,
+            height: usize,
+            format: Format,
+            data: &[Self],
+        ) {
             context.tex_sub_image_2d_with_u8_data(
-                consts::TEXTURE_2D,
+                target,
                 0,
                 0,
                 0,
@@ -138,9 +152,16 @@ pub(crate) mod internal {
                 }
             })
         }
-        fn fill(context: &Context, width: usize, height: usize, format: Format, data: &[Self]) {
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: usize,
+            height: usize,
+            format: Format,
+            data: &[Self],
+        ) {
             context.tex_sub_image_2d_with_f32_data(
-                consts::TEXTURE_2D,
+                target,
                 0,
                 0,
                 0,
