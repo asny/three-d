@@ -7,7 +7,7 @@ use crate::object::*;
 use crate::phong::*;
 
 ///
-/// An instanced triangle mesh that adds additional lighting functionality based on the Phong shading model to a [InstancedMesh](crate::InstancedMesh).
+/// Extends a [InstancedMesh](crate::InstancedMesh) by adding functionality to render it based on the Phong shading model.
 ///
 pub struct PhongInstancedMesh {
     context: Context,

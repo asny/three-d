@@ -1,5 +1,5 @@
 //!
-//! Lighting functionality based on the phong reflection model.
+//! Adds functionality for rendering objects based on the phong reflection model.
 //!
 
 mod material;

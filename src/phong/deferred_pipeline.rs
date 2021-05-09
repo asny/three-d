@@ -24,7 +24,7 @@ pub enum DebugType {
 
 ///
 /// Deferred pipeline based on the Phong reflection model supporting a performance-limited
-/// amount of directional, point and spot lights with shadows. Supports colored, textured and instanced meshes.
+/// amount of directional, point and spot lights with shadows.
 ///
 pub struct PhongDeferredPipeline {
     context: Context,
