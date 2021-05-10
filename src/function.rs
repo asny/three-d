@@ -1,5 +1,5 @@
 //!
-//! Additional functionality not related to any object.
+//! Additional functionality not related to any specific type.
 //!
 
 mod pick;
