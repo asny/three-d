@@ -3,7 +3,7 @@ use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
 
-pub fn pick(
+pub fn ray_intersect(
     context: &Context,
     position: Vec3,
     direction: Vec3,

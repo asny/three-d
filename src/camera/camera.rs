@@ -232,7 +232,11 @@ impl Camera {
         true
     }
 
-    pub fn pick_at(
+    ///
+    /// Finds the closest intersection between a ray from this camera in the direction of the given screen coordinates and the given geometries.
+    /// Returns ```None``` if no geometry was hit before the given maximum depth.
+    ///
+    pub fn pick(
         &self,
         screen_coordinates: (f64, f64),
         max_depth: f32,
@@ -240,7 +244,7 @@ impl Camera {
     ) -> Result<Option<Vec3>, Error> {
         let pos = *self.position();
         let dir = self.view_direction_at(screen_coordinates);
-        pick(&self.context, pos, dir, max_depth, objects)
+        ray_intersect(&self.context, pos, dir, max_depth, objects)
     }
 
     ///
