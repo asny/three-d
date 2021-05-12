@@ -205,7 +205,6 @@ impl Mesh {
     /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     /// # Errors
     /// Will return an error if the mesh has no colors.
@@ -229,10 +228,9 @@ impl Mesh {
     }
 
     ///
-    /// Render the instanced mesh with the given color.
+    /// Render the mesh with the given color.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     pub fn render_with_color(
         &self,
@@ -255,10 +253,35 @@ impl Mesh {
     }
 
     ///
+    /// Render the uv coordinates of the mesh in red (u) and green (v).
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    /// # Errors
+    /// Will return an error if the mesh has no uv coordinates.
+    ///
+    pub fn render_uvs(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAM_UVS.is_none() {
+                PROGRAM_UVS = Some(MeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_uvs.frag"),
+                )?);
+            }
+            PROGRAM_UVS.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, camera)
+    }
+
+    ///
     /// Render the mesh with the given texture.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
@@ -287,7 +310,6 @@ impl Mesh {
     /// Render the mesh with the given [MeshProgram](MeshProgram).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the mesh.
     ///
     /// # Errors
     /// Will return an error if the mesh shader program requires a certain attribute and the mesh does not have that attribute.
@@ -415,6 +437,7 @@ impl Drop for Mesh {
                 PROGRAM_PICK = None;
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
+                PROGRAM_UVS = None;
                 PROGRAM_PER_VERTEX_COLOR = None;
             }
         }
@@ -424,6 +447,7 @@ impl Drop for Mesh {
 static mut PROGRAM_COLOR: Option<MeshProgram> = None;
 static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
+static mut PROGRAM_UVS: Option<MeshProgram> = None;
 static mut PROGRAM_PICK: Option<MeshProgram> = None;
 static mut PROGRAM_PER_VERTEX_COLOR: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
