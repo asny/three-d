@@ -104,11 +104,11 @@ impl GUI {
                 pixels.push(pixel.b());
                 pixels.push(pixel.a());
             }
-            self.texture = Some(Texture2D::new_with_u8(
+            self.texture = Some(Texture2D::new(
                 &self.context,
                 &CPUTexture {
                     data: pixels,
-                    format: Format::SRGBA8,
+                    format: Format::SRGBA,
                     width: egui_texture.width,
                     height: egui_texture.height,
                     mip_map_filter: None,
@@ -163,8 +163,8 @@ impl GUI {
         let index_buffer = ElementBuffer::new_with_u32(&self.context, &indices)?;
 
         let viewport = Viewport::new_at_origo(
-            width * pixels_per_point as usize,
-            height * pixels_per_point as usize,
+            (width as f32 * pixels_per_point).round() as usize,
+            (height as f32 * pixels_per_point).round() as usize,
         );
 
         let render_states = RenderStates {

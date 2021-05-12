@@ -79,14 +79,16 @@ fn main() {
                                 rotating = *button == MouseButton::Left && *state == State::Pressed;
                                 if *button == MouseButton::Left && *state == State::Pressed {
                                     if let Some(pick) = camera
-                                        .pick_at(
+                                        .pick(
                                             (
-                                                (position.0 * frame_input.device_pixel_ratio
+                                                ((position.0 * frame_input.device_pixel_ratio
                                                     - frame_input.viewport.x as f64)
-                                                    / frame_input.viewport.width as f64,
-                                                (position.1 * frame_input.device_pixel_ratio
+                                                    / frame_input.viewport.width as f64)
+                                                    as f32,
+                                                ((position.1 * frame_input.device_pixel_ratio
                                                     - frame_input.viewport.y as f64)
-                                                    / frame_input.viewport.height as f64,
+                                                    / frame_input.viewport.height as f64)
+                                                    as f32,
                                             ),
                                             100.0,
                                             &[&monkey],

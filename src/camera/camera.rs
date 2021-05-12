@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::definition::*;
+use crate::function::*;
 use crate::math::*;
 
 pub(super) enum ProjectionType {
@@ -231,114 +232,58 @@ impl Camera {
         true
     }
 
-    pub fn pick_at(
+    ///
+    /// Finds the closest intersection between a ray from this camera in the direction of the given screen coordinates and the given geometries.
+    /// Returns ```None``` if no geometry was hit before the given maximum depth.
+    ///
+    pub fn pick(
         &self,
-        screen_coordinates: (f64, f64),
+        screen_coordinates: (f32, f32),
         max_depth: f32,
         objects: &[&dyn Geometry],
     ) -> Result<Option<Vec3>, Error> {
-        let pos = *self.position();
+        let pos = self.position_at(screen_coordinates);
         let dir = self.view_direction_at(screen_coordinates);
-        self.pick(pos, dir, max_depth, objects)
-    }
-
-    pub fn pick(
-        &self,
-        position: Vec3,
-        direction: Vec3,
-        max_depth: f32,
-        geometries: &[&dyn Geometry],
-    ) -> Result<Option<Vec3>, Error> {
-        let viewport = Viewport::new_at_origo(1, 1);
-        let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
-            direction.cross(vec3(0.0, 1.0, 0.0))
-        } else {
-            direction.cross(vec3(1.0, 0.0, 0.0))
-        };
-        let camera = Camera::new_orthographic(
-            &self.context,
-            position,
-            position + direction * max_depth,
-            up,
-            0.01,
-            0.01,
-            max_depth,
-        )?;
-        let texture = ColorTargetTexture2D::new(
-            &self.context,
-            viewport.width,
-            viewport.height,
-            Interpolation::Nearest,
-            Interpolation::Nearest,
-            None,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            Format::RGBA32F,
-        )?;
-        let depth_texture = DepthTargetTexture2D::new(
-            &self.context,
-            viewport.width,
-            viewport.height,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            DepthFormat::Depth32F,
-        )?;
-        let render_target = RenderTarget::new(&self.context, &texture, &depth_texture)?;
-
-        let render_states = RenderStates {
-            write_mask: WriteMask {
-                red: true,
-                depth: true,
-                ..WriteMask::NONE
-            },
-            depth_test: DepthTestType::Less,
-            ..Default::default()
-        };
-        render_target.write(
-            ClearState {
-                red: Some(1.0),
-                depth: Some(1.0),
-                ..ClearState::none()
-            },
-            || {
-                for geometry in geometries {
-                    if geometry
-                        .aabb()
-                        .map(|aabb| camera.in_frustum(&aabb))
-                        .unwrap_or(true)
-                    {
-                        geometry.render_depth_to_red(
-                            render_states,
-                            viewport,
-                            &camera,
-                            max_depth,
-                        )?;
-                    }
-                }
-                Ok(())
-            },
-        )?;
-        let depth = texture.read_as_f32(viewport)?[0];
-        Ok(if depth < 1.0 {
-            Some(position + direction * depth * max_depth)
-        } else {
-            None
-        })
+        ray_intersect(&self.context, pos, dir, max_depth, objects)
     }
 
     ///
-    /// Returns the view direction at the given screen/image plane coordinates.
+    /// Returns the 3D position at the given screen/image plane coordinates.
     /// The coordinates must be between 0 and 1, where (0, 0) indicate the top left corner of the screen
     /// and (1, 1) indicate the bottom right corner.
     ///
-    pub fn view_direction_at(&self, screen_coordinates: (f64, f64)) -> Vec3 {
-        let screen_pos = vec4(
-            2. * screen_coordinates.0 as f32 - 1.,
-            1. - 2. * screen_coordinates.1 as f32,
-            0.,
-            1.,
-        );
-        (self.screen2ray * screen_pos).truncate().normalize()
+    pub fn position_at(&self, screen_coordinates: (f32, f32)) -> Vec3 {
+        match self.projection_type() {
+            ProjectionType::Orthographic { width, height, .. } => {
+                self.position()
+                    + vec3(
+                        (screen_coordinates.0 - 0.5) * width,
+                        (-screen_coordinates.1 + 0.5) * height,
+                        0.0,
+                    )
+            }
+            ProjectionType::Perspective { .. } => *self.position(),
+        }
+    }
+
+    ///
+    /// Returns the 3D view direction at the given screen/image plane coordinates.
+    /// The coordinates must be between 0 and 1, where (0, 0) indicate the top left corner of the screen
+    /// and (1, 1) indicate the bottom right corner.
+    ///
+    pub fn view_direction_at(&self, screen_coordinates: (f32, f32)) -> Vec3 {
+        match self.projection_type() {
+            ProjectionType::Orthographic { .. } => self.view_direction(),
+            ProjectionType::Perspective { .. } => {
+                let screen_pos = vec4(
+                    2. * screen_coordinates.0 as f32 - 1.,
+                    1. - 2. * screen_coordinates.1 as f32,
+                    0.,
+                    1.,
+                );
+                (self.screen2ray * screen_pos).truncate().normalize()
+            }
+        }
     }
 
     pub(super) fn projection_type(&self) -> &ProjectionType {

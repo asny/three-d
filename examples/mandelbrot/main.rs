@@ -39,11 +39,13 @@ fn main() {
     )
     .unwrap();
     mesh.cull = CullType::Back;
+    mesh.transformation = Mat4::from_scale(10.0);
     let program =
         MeshProgram::new(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
     // main loop
     let mut panning = false;
+    let mut pick: Option<((f64, f64), Vec3)> = None;
     window
         .render_loop(move |frame_input| {
             let mut redraw = frame_input.first_frame;
@@ -54,20 +56,50 @@ fn main() {
                     Event::MouseClick { state, button, .. } => {
                         panning = *button == MouseButton::Left && *state == State::Pressed;
                     }
-                    Event::MouseMotion { delta, .. } => {
+                    Event::MouseMotion {
+                        delta, position, ..
+                    } => {
                         if panning {
                             camera
                                 .pan(0.02 * delta.0 as f32, 0.02 * delta.1 as f32)
                                 .unwrap();
                             redraw = true;
                         }
+                        if let Some((p, _)) = pick {
+                            if (p.0 - position.0).abs() > 2.0 || (p.1 - position.1).abs() > 2.0 {
+                                pick = None;
+                            }
+                        }
                     }
-                    Event::MouseWheel { delta, .. } => {
-                        let target = *camera.target();
-                        camera
-                            .zoom_towards(&target, 0.05 * delta.1 as f32, 0.001, 10.0)
-                            .unwrap();
-                        redraw = true;
+                    Event::MouseWheel {
+                        delta, position, ..
+                    } => {
+                        if pick.is_none() {
+                            let p = camera
+                                .pick(
+                                    (
+                                        ((position.0 * frame_input.device_pixel_ratio
+                                            - frame_input.viewport.x as f64)
+                                            / frame_input.viewport.width as f64)
+                                            as f32,
+                                        ((position.1 * frame_input.device_pixel_ratio
+                                            - frame_input.viewport.y as f64)
+                                            / frame_input.viewport.height as f64)
+                                            as f32,
+                                    ),
+                                    10.0,
+                                    &[&mesh],
+                                )
+                                .unwrap();
+                            pick = p.map(|pos| (*position, pos));
+                        };
+                        if let Some((_, pos)) = pick {
+                            let distance = pos.distance(*camera.position());
+                            camera
+                                .zoom_towards(&pos, distance * 0.05 * delta.1 as f32, 0.00001, 10.0)
+                                .unwrap();
+                            redraw = true;
+                        }
                     }
                     _ => {}
                 }

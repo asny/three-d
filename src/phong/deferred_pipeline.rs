@@ -24,7 +24,7 @@ pub enum DebugType {
 
 ///
 /// Deferred pipeline based on the Phong reflection model supporting a performance-limited
-/// amount of directional, point and spot lights with shadows. Supports colored, textured and instanced meshes.
+/// amount of directional, point and spot lights with shadows.
 ///
 pub struct PhongDeferredPipeline {
     context: Context,
@@ -34,7 +34,7 @@ pub struct PhongDeferredPipeline {
     /// Set this to visualize the positions, normals etc. for debug purposes.
     ///
     pub debug_type: DebugType,
-    geometry_pass_texture: Option<ColorTargetTexture2DArray>,
+    geometry_pass_texture: Option<ColorTargetTexture2DArray<u8>>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
@@ -58,7 +58,7 @@ impl PhongDeferredPipeline {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                Format::RGBA8,
+                Format::RGBA,
             )?),
             geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(
                 context,
@@ -85,7 +85,7 @@ impl PhongDeferredPipeline {
         camera: &Camera,
         geometries: &[&dyn PhongGeometry],
     ) -> Result<(), Error> {
-        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new(
+        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
             width,
             height,
@@ -95,7 +95,7 @@ impl PhongDeferredPipeline {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA8,
+            Format::RGBA,
         )?);
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(
             &self.context,
@@ -223,7 +223,7 @@ impl PhongDeferredPipeline {
         Ok(())
     }
 
-    pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray {
+    pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray<u8> {
         self.geometry_pass_texture.as_ref().unwrap()
     }
     pub fn geometry_pass_depth_texture_array(&self) -> &DepthTargetTexture2DArray {
@@ -245,7 +245,7 @@ impl PhongDeferredPipeline {
         depth_array
             .copy_to(
                 0,
-                CopyDestination::DepthTexture(&depth_texture),
+                CopyDestination::<u8>::DepthTexture(&depth_texture),
                 Viewport::new_at_origo(depth_array.width(), depth_array.height()),
             )
             .unwrap();

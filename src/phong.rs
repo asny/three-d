@@ -1,14 +1,10 @@
 //!
-//! Lighting functionality based on the phong reflection model.
+//! Adds functionality for rendering objects based on the phong reflection model.
 //!
 
 mod material;
 #[doc(inline)]
 pub use material::*;
-
-mod forward_pipeline;
-#[doc(inline)]
-pub use forward_pipeline::*;
 
 mod geometry;
 #[doc(inline)]
