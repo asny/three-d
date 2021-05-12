@@ -60,8 +60,9 @@ fn main() {
                         delta, position, ..
                     } => {
                         if panning {
+                            let speed = 0.003 * camera.position().z.abs();
                             camera
-                                .pan(0.02 * delta.0 as f32, 0.02 * delta.1 as f32)
+                                .pan(speed * delta.0 as f32, speed * delta.1 as f32)
                                 .unwrap();
                             redraw = true;
                         }
