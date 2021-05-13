@@ -98,10 +98,49 @@ fn parse_tree<'a>(
                     let mut texture_image = None;
                     if let Some(tex_info) = pbr.base_color_texture() {
                         uv_set = Some(tex_info.tex_coord());
-                        if let ::gltf::image::Source::Uri { uri, .. } =
-                            tex_info.texture().source().source()
-                        {
-                            texture_image = Some(loaded.image(path.join(Path::new(uri)))?);
+                        let gltf_texture = tex_info.texture();
+                        let gltf_image = gltf_texture.source();
+                        let gltf_source = gltf_image.source();
+                        match gltf_source {
+                            ::gltf::image::Source::Uri { uri, .. } => {
+                                texture_image = Some(loaded.image(path.join(Path::new(uri)))?);
+                            }
+                            ::gltf::image::Source::View { view, .. } => {
+                                let mut bytes = Vec::with_capacity(view.length());
+                                bytes.extend(
+                                    (0..view.length())
+                                        .map(|i| buffers[view.buffer().index()][view.offset() + i])
+                                        .into_iter(),
+                                );
+                                if view.stride() != None {
+                                    unimplemented!();
+                                }
+                                use image::GenericImageView;
+                                let img = image::load_from_memory(&bytes)?;
+                                bytes = img.to_bytes();
+
+                                let number_of_channels =
+                                    bytes.len() / (img.width() * img.height()) as usize;
+                                let format = match number_of_channels {
+                                    1 => Ok(Format::R),
+                                    2 => Ok(Format::RG),
+                                    3 => Ok(Format::RGB),
+                                    4 => Ok(Format::RGBA),
+                                    _ => Err(IOError::FailedToLoad {
+                                        message: format!(
+                                            "Could not determine the pixel format for the texture."
+                                        ),
+                                    }),
+                                }?;
+
+                                texture_image = Some(CPUTexture {
+                                    data: bytes,
+                                    width: img.width() as usize,
+                                    height: img.height() as usize,
+                                    format,
+                                    ..Default::default() // TODO: Parse sampling parameters
+                                });
+                            }
                         }
                     }
                     cpu_materials.push(CPUMaterial {
