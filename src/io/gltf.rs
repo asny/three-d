@@ -40,6 +40,10 @@ fn parse_tree<'a>(
     cpu_materials: &mut Vec<CPUMaterial>,
 ) -> Result<(), IOError> {
     if let Some(mesh) = node.mesh() {
+        let name: String = mesh
+            .name()
+            .map(|s| s.to_string())
+            .unwrap_or(format!("index {}", mesh.index()));
         for primitive in mesh.primitives() {
             let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
             if let Some(read_positions) = reader.read_positions() {
@@ -107,7 +111,6 @@ fn parse_tree<'a>(
                         diffuse_intensity: Some(1.0),
                         specular_intensity: Some(pbr.metallic_factor()),
                         specular_power: Some(pbr.roughness_factor()),
-                        ..Default::default()
                     });
                 }
 
@@ -135,13 +138,13 @@ fn parse_tree<'a>(
                 };
 
                 cpu_meshes.push(CPUMesh {
+                    name: name.clone(),
                     positions,
                     normals,
                     indices,
                     colors,
                     uvs,
                     material_name: Some(material_name),
-                    ..Default::default()
                 });
             }
         }
