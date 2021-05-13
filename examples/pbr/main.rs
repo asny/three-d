@@ -26,7 +26,6 @@ fn main() {
         )
         .unwrap(),
     );
-    let mut gui = three_d::GUI::new(&context).unwrap();
 
     Loader::load(&["examples/assets/gltf/DamagedHelmet.glb"], move |loaded| {
         let (cpu_meshes, cpu_materials) = loaded
@@ -40,7 +39,7 @@ fn main() {
         .unwrap();
         model.cull = CullType::Back;
 
-        let mut plane = PhongMesh::new(
+        let plane = PhongMesh::new(
             &context,
             &CPUMesh {
                 positions: vec![
@@ -104,17 +103,9 @@ fn main() {
 
         // main loop
         let mut rotating = false;
-        let mut shadows_enabled = true;
-
-        let mut ambient_enabled = true;
-        let mut directional_enabled = true;
-        let mut spot_enabled = true;
-        let mut point_enabled = true;
-
         window
-            .render_loop(move |mut frame_input| {
-                let mut change = frame_input.first_frame;
-                change |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+            .render_loop(move |frame_input| {
+                camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
                 for event in frame_input.events.iter() {
                     match event {
@@ -126,7 +117,6 @@ fn main() {
                         } => {
                             if !handled {
                                 rotating = *button == MouseButton::Left && *state == State::Pressed;
-                                change = true;
                             }
                         }
                         Event::MouseMotion { delta, handled, .. } => {
@@ -138,7 +128,6 @@ fn main() {
                                         0.1 * delta.1 as f32,
                                     )
                                     .unwrap();
-                                change = true;
                             }
                         }
                         Event::MouseWheel { delta, handled, .. } => {
@@ -146,7 +135,6 @@ fn main() {
                                 camera
                                     .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
                                     .unwrap();
-                                change = true;
                             }
                         }
                         _ => {}
@@ -163,33 +151,31 @@ fn main() {
                 point_light1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
                 // Draw
-                if shadows_enabled {
-                    directional_light0
-                        .generate_shadow_map(
-                            &vec3(0.0, 0.0, 0.0),
-                            4.0,
-                            4.0,
-                            20.0,
-                            1024,
-                            1024,
-                            &[&model],
-                        )
-                        .unwrap();
-                    directional_light1
-                        .generate_shadow_map(
-                            &vec3(0.0, 0.0, 0.0),
-                            4.0,
-                            4.0,
-                            20.0,
-                            1024,
-                            1024,
-                            &[&model],
-                        )
-                        .unwrap();
-                    spot_light
-                        .generate_shadow_map(20.0, 1024, &[&model])
-                        .unwrap();
-                }
+                directional_light0
+                    .generate_shadow_map(
+                        &vec3(0.0, 0.0, 0.0),
+                        4.0,
+                        4.0,
+                        20.0,
+                        1024,
+                        1024,
+                        &[&model],
+                    )
+                    .unwrap();
+                directional_light1
+                    .generate_shadow_map(
+                        &vec3(0.0, 0.0, 0.0),
+                        4.0,
+                        4.0,
+                        20.0,
+                        1024,
+                        1024,
+                        &[&model],
+                    )
+                    .unwrap();
+                spot_light
+                    .generate_shadow_map(20.0, 1024, &[&model])
+                    .unwrap();
                 Screen::write(&context, ClearState::default(), || {
                     plane.render_with_lighting(
                         RenderStates::default(),
