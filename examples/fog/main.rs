@@ -11,11 +11,12 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
+    let target = vec3(0.0, 0.0, 0.0);
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
             vec3(4.0, 4.0, 5.0),
-            vec3(0.0, 0.0, 0.0),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -103,7 +104,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around(
                                             &target,
@@ -115,7 +115,6 @@ fn main() {
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                let target = *camera.target();
                                 camera
                                     .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
                                     .unwrap();

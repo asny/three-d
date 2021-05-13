@@ -433,12 +433,13 @@ impl Window {
             if !event.default_prevented() {
                 let modifiers = input.borrow().modifiers;
                 input.borrow_mut().events.push(Event::MouseWheel {
-                    delta: (event.delta_x() as f64, event.delta_y() as f64),
+                    delta: (event.delta_x() as f64, -event.delta_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64),
                     modifiers,
                     handled: false,
                 });
                 event.stop_propagation();
+                event.prevent_default();
                 input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
@@ -636,7 +637,10 @@ impl Window {
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
             .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key down event listener. Error code: {:?}", e),
@@ -672,7 +676,10 @@ impl Window {
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
             .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key up event listener. Error code: {:?}", e),

@@ -1,6 +1,6 @@
 [package]
 name = "three-d"
-version = "0.6.1" # Remember to update example links
+version = "0.7.0" # Remember to update example links
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 description = "A renderer which compiles to both desktop (OpenGL) and web (WebAssembly + WebGL)."
@@ -29,8 +29,8 @@ log = "0.4"
 cgmath = "0.17"
 serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
-wavefront_obj = { version = "8.0", optional = true }
 gltf = { version = "0.15", features = ["utils"], optional = true }
+wavefront_obj = { version = "10.0", optional = true }
 image = { version = "0.23", optional = true, default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"]}
 egui = { version = "0.10", optional = true }
 
