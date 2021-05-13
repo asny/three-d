@@ -433,12 +433,13 @@ impl Window {
             if !event.default_prevented() {
                 let modifiers = input.borrow().modifiers;
                 input.borrow_mut().events.push(Event::MouseWheel {
-                    delta: (event.delta_x() as f64, event.delta_y() as f64),
+                    delta: (event.delta_x() as f64, -event.delta_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64),
                     modifiers,
                     handled: false,
                 });
                 event.stop_propagation();
+                event.prevent_default();
                 input.borrow_mut().request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
