@@ -13,11 +13,12 @@ fn main() {
     let context = window.gl().unwrap();
 
     let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
+    let target = vec3(0.0, 0.0, 0.0);
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
             vec3(2.0, 2.0, 5.0),
-            vec3(0.0, 0.0, 0.0),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -254,7 +255,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, handled, .. } => {
                                 if !handled && rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,
@@ -267,7 +267,6 @@ fn main() {
                             }
                             Event::MouseWheel { delta, handled, .. } => {
                                 if !handled {
-                                    let target = *camera.target();
                                     camera
                                         .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
                                         .unwrap();

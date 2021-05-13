@@ -12,14 +12,14 @@ fn main() {
     let gl = window.gl().unwrap();
 
     // Renderer
-    let scene_center = vec3(0.0, 2.0, 0.0);
+    let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &gl,
-            scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
-            scene_center,
+            target + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -172,7 +172,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,
@@ -184,7 +183,6 @@ fn main() {
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                let target = *camera.target();
                                 camera
                                     .zoom_towards(&target, 0.1 * delta.1 as f32, 3.0, 100.0)
                                     .unwrap();
