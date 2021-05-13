@@ -63,38 +63,18 @@ fn main() {
             intensity: 0.2,
         };
         let mut directional_light0 =
-            DirectionalLight::new(&context, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0))
+            DirectionalLight::new(&context, 0.3, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, 0.0))
                 .unwrap();
         let mut directional_light1 =
-            DirectionalLight::new(&context, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0))
+            DirectionalLight::new(&context, 0.3, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, 0.0))
                 .unwrap();
-        let mut point_light0 = PointLight::new(
-            &context,
-            0.5,
-            &vec3(0.0, 1.0, 0.0),
-            &vec3(0.0, 0.0, 0.0),
-            0.5,
-            0.05,
-            0.005,
-        )
-        .unwrap();
-        let mut point_light1 = PointLight::new(
-            &context,
-            0.5,
-            &vec3(1.0, 0.0, 0.0),
-            &vec3(0.0, 0.0, 0.0),
-            0.5,
-            0.05,
-            0.005,
-        )
-        .unwrap();
         let mut spot_light = SpotLight::new(
             &context,
-            0.8,
-            &vec3(0.0, 0.0, 1.0),
+            0.3,
+            &vec3(1.0, 1.0, 1.0),
             &vec3(0.0, 0.0, 0.0),
             &vec3(0.0, -1.0, 0.0),
-            25.0,
+            20.0,
             0.1,
             0.001,
             0.0001,
@@ -147,15 +127,13 @@ fn main() {
                 directional_light1.set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
                 spot_light.set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
                 spot_light.set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
-                point_light0.set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
-                point_light1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
                 // Draw
                 directional_light0
                     .generate_shadow_map(
                         &vec3(0.0, 0.0, 0.0),
-                        4.0,
-                        4.0,
+                        2.0,
+                        2.0,
                         20.0,
                         1024,
                         1024,
@@ -165,8 +143,8 @@ fn main() {
                 directional_light1
                     .generate_shadow_map(
                         &vec3(0.0, 0.0, 0.0),
-                        4.0,
-                        4.0,
+                        2.0,
+                        2.0,
                         20.0,
                         1024,
                         1024,
@@ -174,7 +152,7 @@ fn main() {
                     )
                     .unwrap();
                 spot_light
-                    .generate_shadow_map(20.0, 1024, &[&model])
+                    .generate_shadow_map(15.0, 1024, &[&model])
                     .unwrap();
                 Screen::write(&context, ClearState::default(), || {
                     plane.render_with_lighting(
@@ -184,7 +162,7 @@ fn main() {
                         Some(&ambient_light),
                         &[&directional_light0, &directional_light1],
                         &[&spot_light],
-                        &[&point_light0, &point_light1],
+                        &[],
                     )?;
 
                     model.render_with_lighting(
@@ -194,7 +172,7 @@ fn main() {
                         Some(&ambient_light),
                         &[&directional_light0, &directional_light1],
                         &[&spot_light],
-                        &[&point_light0, &point_light1],
+                        &[],
                     )?;
                     Ok(())
                 })
