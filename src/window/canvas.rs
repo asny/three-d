@@ -637,7 +637,10 @@ impl Window {
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
             .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key down event listener. Error code: {:?}", e),
@@ -673,7 +676,10 @@ impl Window {
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        self.canvas()?
+        web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
             .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
             .map_err(|e| WindowError::EventListenerError {
                 message: format!("Unable to add key up event listener. Error code: {:?}", e),
