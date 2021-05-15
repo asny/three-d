@@ -142,8 +142,7 @@ impl Window {
 
         let input_clone = input.clone();
         input.borrow_mut().render_loop_closure = Some(Closure::wrap(Box::new(move || {
-            input_clone.borrow_mut().render_requested = false;
-
+            let events = input_clone.borrow_mut().start_frame();
             let now = performance.now();
             let elapsed_time = now - last_time;
             last_time = now;
@@ -156,7 +155,7 @@ impl Window {
                 (canvas.height() as f64 / device_pixel_ratio) as usize,
             );
             let frame_input = crate::FrameInput {
-                events: input_clone.borrow().events.clone(),
+                events,
                 elapsed_time,
                 accumulated_time,
                 viewport: crate::Viewport::new_at_origo(
@@ -170,7 +169,6 @@ impl Window {
             };
             first_frame = false;
             let frame_output = callback(frame_input);
-            input_clone.borrow_mut().events.clear();
 
             if !frame_output.wait_next_event {
                 input_clone.borrow_mut().request_animation_frame();
@@ -270,11 +268,12 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                input.borrow_mut().events.push(Event::MouseLeave);
+                let mut input = input.borrow_mut();
+                input.events.push(Event::MouseLeave);
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -295,11 +294,12 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                input.borrow_mut().events.push(Event::MouseEnter);
+                let mut input = input.borrow_mut();
+                input.events.push(Event::MouseEnter);
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -320,6 +320,7 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
+                let mut input = input.borrow_mut();
                 let button = match event.button() {
                     0 => Some(MouseButton::Left),
                     1 => Some(MouseButton::Middle),
@@ -327,8 +328,8 @@ impl Window {
                     _ => None,
                 };
                 if let Some(button) = button {
-                    let modifiers = input.borrow().modifiers;
-                    input.borrow_mut().events.push(Event::MouseClick {
+                    let modifiers = input.modifiers;
+                    input.events.push(Event::MouseClick {
                         state: State::Pressed,
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
@@ -339,7 +340,7 @@ impl Window {
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -357,6 +358,7 @@ impl Window {
     fn add_mouseup_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
+                let mut input = input.borrow_mut();
                 let button = match event.button() {
                     0 => Some(MouseButton::Left),
                     1 => Some(MouseButton::Middle),
@@ -364,8 +366,8 @@ impl Window {
                     _ => None,
                 };
                 if let Some(button) = button {
-                    let modifiers = input.borrow().modifiers;
-                    input.borrow_mut().events.push(Event::MouseClick {
+                    let modifiers = input.modifiers;
+                    input.events.push(Event::MouseClick {
                         state: State::Released,
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
@@ -376,7 +378,7 @@ impl Window {
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -394,23 +396,24 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
-                let delta = if let Some((x, y)) = input.borrow().last_position {
+                let mut input = input.borrow_mut();
+                let delta = if let Some((x, y)) = input.last_position {
                     ((event.offset_x() - x) as f64, (event.offset_y() - y) as f64)
                 } else {
                     (0.0, 0.0)
                 };
-                let modifiers = input.borrow().modifiers;
-                input.borrow_mut().events.push(Event::MouseMotion {
+                let modifiers = input.modifiers;
+                input.events.push(Event::MouseMotion {
                     delta,
                     position: (event.offset_x() as f64, event.offset_y() as f64),
                     modifiers,
                     handled: false,
                 });
-                input.borrow_mut().last_position = Some((event.offset_x(), event.offset_y()));
+                input.last_position = Some((event.offset_x(), event.offset_y()));
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -431,8 +434,9 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
-                let modifiers = input.borrow().modifiers;
-                input.borrow_mut().events.push(Event::MouseWheel {
+                let mut input = input.borrow_mut();
+                let modifiers = input.modifiers;
+                input.events.push(Event::MouseWheel {
                     delta: (event.delta_x() as f64, -event.delta_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64),
                     modifiers,
@@ -440,7 +444,7 @@ impl Window {
                 });
                 event.stop_propagation();
                 event.prevent_default();
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -458,18 +462,19 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
+                let mut input = input.borrow_mut();
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
-                    let modifiers = input.borrow().modifiers;
-                    input.borrow_mut().events.push(Event::MouseClick {
+                    let modifiers = input.modifiers;
+                    input.events.push(Event::MouseClick {
                         state: State::Pressed,
                         button: MouseButton::Left,
                         position: (touch.page_x() as f64, touch.page_y() as f64),
                         modifiers,
                         handled: false,
                     });
-                    input.borrow_mut().last_position = Some((touch.page_x(), touch.page_y()));
-                    input.borrow_mut().last_zoom = None;
+                    input.last_position = Some((touch.page_x(), touch.page_y()));
+                    input.last_zoom = None;
                 } else if event.touches().length() == 2 {
                     let touch0 = event.touches().item(0).unwrap();
                     let touch1 = event.touches().item(1).unwrap();
@@ -477,16 +482,16 @@ impl Window {
                         f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2)
                             + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2),
                     );
-                    input.borrow_mut().last_zoom = Some(zoom);
-                    input.borrow_mut().last_position = None;
+                    input.last_zoom = Some(zoom);
+                    input.last_position = None;
                 } else {
-                    input.borrow_mut().last_zoom = None;
-                    input.borrow_mut().last_position = None;
+                    input.last_zoom = None;
+                    input.last_position = None;
                 }
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -507,21 +512,23 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
-                let touch = event.touches().item(0).unwrap();
-                input.borrow_mut().last_position = None;
-                input.borrow_mut().last_zoom = None;
-                let modifiers = input.borrow().modifiers;
-                input.borrow_mut().events.push(Event::MouseClick {
-                    state: State::Released,
-                    button: MouseButton::Left,
-                    position: (touch.page_x() as f64, touch.page_y() as f64),
-                    modifiers,
-                    handled: false,
-                });
+                let mut input = input.borrow_mut();
+                if let Some((x, y)) = input.last_position {
+                    let modifiers = input.modifiers;
+                    input.events.push(Event::MouseClick {
+                        state: State::Released,
+                        button: MouseButton::Left,
+                        position: (x as f64, y as f64),
+                        modifiers,
+                        handled: false,
+                    });
+                    input.last_position = None;
+                }
+                input.last_zoom = None;
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -542,19 +549,20 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
+                let mut input = input.borrow_mut();
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
-                    if let Some((x, y)) = input.borrow().last_position {
-                        let modifiers = input.borrow().modifiers;
-                        input.borrow_mut().events.push(Event::MouseMotion {
+                    if let Some((x, y)) = input.last_position {
+                        let modifiers = input.modifiers;
+                        input.events.push(Event::MouseMotion {
                             delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64),
                             position: (touch.page_x() as f64, touch.page_y() as f64),
                             modifiers,
                             handled: false,
                         });
                     }
-                    input.borrow_mut().last_position = Some((touch.page_x(), touch.page_y()));
-                    input.borrow_mut().last_zoom = None;
+                    input.last_position = Some((touch.page_x(), touch.page_y()));
+                    input.last_zoom = None;
                 } else if event.touches().length() == 2 {
                     let touch0 = event.touches().item(0).unwrap();
                     let touch1 = event.touches().item(1).unwrap();
@@ -562,10 +570,10 @@ impl Window {
                         f64::powi((touch0.page_x() - touch1.page_x()) as f64, 2)
                             + f64::powi((touch0.page_y() - touch1.page_y()) as f64, 2),
                     );
-                    if let Some(old_zoom) = input.borrow().last_zoom {
-                        let modifiers = input.borrow().modifiers;
-                        input.borrow_mut().events.push(Event::MouseWheel {
-                            delta: (0.0, old_zoom - zoom),
+                    if let Some(old_zoom) = input.last_zoom {
+                        let modifiers = input.modifiers;
+                        input.events.push(Event::MouseWheel {
+                            delta: (0.0, zoom - old_zoom),
                             position: (
                                 0.5 * touch0.page_x() as f64 + 0.5 * touch1.page_x() as f64,
                                 0.5 * touch0.page_y() as f64 + 0.5 * touch1.page_y() as f64,
@@ -574,16 +582,16 @@ impl Window {
                             handled: false,
                         });
                     }
-                    input.borrow_mut().last_zoom = Some(zoom);
-                    input.borrow_mut().last_position = None;
+                    input.last_zoom = Some(zoom);
+                    input.last_position = None;
                 } else {
-                    input.borrow_mut().last_zoom = None;
-                    input.borrow_mut().last_position = None;
+                    input.last_zoom = None;
+                    input.last_position = None;
                 }
                 event.stop_propagation();
                 event.prevent_default();
 
-                input.borrow_mut().request_animation_frame();
+                input.request_animation_frame();
             }
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
@@ -604,19 +612,17 @@ impl Window {
     ) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                if update_modifiers(&mut input.borrow_mut().modifiers, &event) {
-                    let modifiers = input.borrow().modifiers;
-                    input
-                        .borrow_mut()
-                        .events
-                        .push(Event::ModifiersChange { modifiers });
+                let mut input = input.borrow_mut();
+                if update_modifiers(&mut input.modifiers, &event) {
+                    let modifiers = input.modifiers;
+                    input.events.push(Event::ModifiersChange { modifiers });
                     event.stop_propagation();
                     event.prevent_default();
                 }
                 let key = event.key();
-                let modifiers = input.borrow().modifiers;
+                let modifiers = input.modifiers;
                 if let Some(kind) = translate_key(&key) {
-                    input.borrow_mut().events.push(Event::Key {
+                    input.events.push(Event::Key {
                         state: State::Pressed,
                         kind,
                         modifiers,
@@ -629,11 +635,11 @@ impl Window {
                     && modifiers.command == State::Released
                     && !should_ignore_key(&key)
                 {
-                    input.borrow_mut().events.push(Event::Text(key));
+                    input.events.push(Event::Text(key));
                     event.stop_propagation();
                     event.prevent_default();
 
-                    input.borrow_mut().request_animation_frame();
+                    input.request_animation_frame();
                 }
             }
         }) as Box<dyn FnMut(_)>);
@@ -652,18 +658,16 @@ impl Window {
     fn add_key_up_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
-                if update_modifiers(&mut input.borrow_mut().modifiers, &event) {
-                    let modifiers = input.borrow().modifiers;
-                    input
-                        .borrow_mut()
-                        .events
-                        .push(Event::ModifiersChange { modifiers });
+                let mut input = input.borrow_mut();
+                if update_modifiers(&mut input.modifiers, &event) {
+                    let modifiers = input.modifiers;
+                    input.events.push(Event::ModifiersChange { modifiers });
                     event.stop_propagation();
                     event.prevent_default();
                 }
                 if let Some(kind) = translate_key(&event.key()) {
-                    let modifiers = input.borrow().modifiers;
-                    input.borrow_mut().events.push(Event::Key {
+                    let modifiers = input.modifiers;
+                    input.events.push(Event::Key {
                         state: State::Released,
                         kind,
                         modifiers,
@@ -672,7 +676,7 @@ impl Window {
                     event.stop_propagation();
                     event.prevent_default();
 
-                    input.borrow_mut().request_animation_frame();
+                    input.request_animation_frame();
                 }
             }
         }) as Box<dyn FnMut(_)>);
@@ -715,6 +719,13 @@ impl Input {
             last_position: None,
             last_zoom: None,
         }))
+    }
+
+    pub fn start_frame(&mut self) -> Vec<Event> {
+        let events = self.events.clone();
+        self.events.clear();
+        self.render_requested = false;
+        events
     }
 
     pub fn request_animation_frame(&mut self) {
