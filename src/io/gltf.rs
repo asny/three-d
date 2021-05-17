@@ -91,34 +91,14 @@ fn parse_tree<'a>(
                     }
                 }
 
-                let mut uv_set = None;
                 if !parsed {
                     let pbr = material.pbr_metallic_roughness();
                     let color = pbr.base_color_factor();
-                    let mut color_texture = None;
-                    if let Some(tex_info) = pbr.base_color_texture() {
-                        uv_set = Some(tex_info.tex_coord());
-                        let gltf_texture = tex_info.texture();
-                        let gltf_image = gltf_texture.source();
-                        let gltf_source = gltf_image.source();
-                        match gltf_source {
-                            ::gltf::image::Source::Uri { uri, .. } => {
-                                color_texture = Some(loaded.image(path.join(Path::new(uri)))?);
-                            }
-                            ::gltf::image::Source::View { view, .. } => {
-                                let mut bytes = Vec::with_capacity(view.length());
-                                bytes.extend(
-                                    (0..view.length())
-                                        .map(|i| buffers[view.buffer().index()][view.offset() + i])
-                                        .into_iter(),
-                                );
-                                if view.stride() != None {
-                                    unimplemented!();
-                                }
-                                color_texture = Some(image_from_bytes(&bytes)?);
-                            }
-                        }
-                    }
+                    let color_texture = if let Some(info) = pbr.base_color_texture() {
+                        Some(parse_texture(loaded, path, buffers, info)?)
+                    } else {
+                        None
+                    };
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
                         color: Some((color[0], color[1], color[2], color[3])),
@@ -141,7 +121,7 @@ fn parse_tree<'a>(
                     None
                 };
 
-                let uvs = if let Some(values) = reader.read_tex_coords(uv_set.unwrap_or(0)) {
+                let uvs = if let Some(values) = reader.read_tex_coords(0) {
                     let mut uvs = Vec::new();
                     for value in values.into_f32() {
                         uvs.push(value[0]);
@@ -169,4 +149,37 @@ fn parse_tree<'a>(
         parse_tree(&child, loaded, path, buffers, cpu_meshes, cpu_materials)?;
     }
     Ok(())
+}
+
+fn parse_texture<'a>(
+    loaded: &'a Loaded,
+    path: &Path,
+    buffers: &[::gltf::buffer::Data],
+    info: ::gltf::texture::Info,
+) -> Result<CPUTexture<u8>, IOError> {
+    let gltf_texture = info.texture();
+    let gltf_image = gltf_texture.source();
+    let gltf_source = gltf_image.source();
+    let mut tex = match gltf_source {
+        ::gltf::image::Source::Uri { uri, .. } => loaded.image(path.join(Path::new(uri)))?,
+        ::gltf::image::Source::View { view, .. } => {
+            let mut bytes = Vec::with_capacity(view.length());
+            bytes.extend(
+                (0..view.length())
+                    .map(|i| buffers[view.buffer().index()][view.offset() + i])
+                    .into_iter(),
+            );
+            if view.stride() != None {
+                unimplemented!();
+            }
+            image_from_bytes(&bytes)?
+        }
+    };
+    match tex.format {
+        Format::RGB => tex.format = Format::SRGB,
+        Format::RGBA => tex.format = Format::SRGBA,
+        _ => {}
+    }
+    // TODO: Parse sampling parameters
+    Ok(tex)
 }
