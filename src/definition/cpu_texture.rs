@@ -76,31 +76,25 @@ pub struct CPUTexture<T: TextureValueType> {
 }
 
 impl<T: TextureValueType> CPUTexture<T> {
-    pub fn resize(&mut self, width: usize, height: usize, offset_x: usize, offset_y: usize) {
+    pub fn add_padding(&mut self, x0: usize, x1: usize, y0: usize, y1: usize) {
         let channels = self.format.color_channel_count();
+        let width = x0 + self.width + x1;
+        let height = y0 + self.height + y1;
         let mut new_data = vec![T::default(); width * height * channels];
-        for x in 0..width {
-            for y in 0..height {
-                let x_ = x as i32 - offset_x as i32;
-                let y_ = y as i32 - offset_y as i32;
-                if 0 <= x_ && x_ < self.width as i32 && 0 <= y_ && y_ < self.height as i32 {
-                    let source_index = (y_ as usize * self.width + x_ as usize) * channels;
-                    let dest_index = (y as usize * width + x as usize) * channels;
-                    for i in 0..channels {
-                        new_data[dest_index + i] = self.data[source_index + i].clone();
-                    }
+        for x in 0..self.width {
+            for y in 0..self.height {
+                let x_ = x + x0;
+                let y_ = y + y0;
+                let source_index = (y as usize * self.width + x as usize) * channels;
+                let dest_index = (y_ as usize * width + x_ as usize) * channels;
+                for i in 0..channels {
+                    new_data[dest_index + i] = self.data[source_index + i].clone();
                 }
             }
         }
         self.data = new_data;
         self.width = width;
         self.height = height;
-    }
-
-    pub fn resize_to_power_of_2(&mut self, offset_x: usize, offset_y: usize) {
-        let w = usize::next_power_of_two(self.width);
-        let h = usize::next_power_of_two(self.height);
-        self.resize(w, h, offset_x, offset_y);
     }
 }
 
