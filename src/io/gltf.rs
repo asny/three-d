@@ -54,27 +54,23 @@ fn parse_tree<'a>(
                     positions.push(value[2]);
                 }
 
-                let normals = if let Some(values) = reader.read_normals() {
+                let normals = reader.read_normals().map(|values| {
                     let mut nors = Vec::new();
                     for value in values {
                         nors.push(value[0]);
                         nors.push(value[1]);
                         nors.push(value[2]);
                     }
-                    Some(nors)
-                } else {
-                    None
-                };
+                    nors
+                });
 
-                let indices = if let Some(values) = reader.read_indices() {
+                let indices = reader.read_indices().map(|values| {
                     let mut inds = Vec::new();
                     for value in values.into_u32() {
                         inds.push(value);
                     }
-                    Some(inds)
-                } else {
-                    None
-                };
+                    inds
+                });
 
                 let material = primitive.material();
                 let material_name: String = material.name().map(|s| s.to_string()).unwrap_or(
@@ -109,28 +105,24 @@ fn parse_tree<'a>(
                     });
                 }
 
-                let colors = if let Some(values) = reader.read_colors(0) {
+                let colors = reader.read_colors(0).map(|values| {
                     let mut cols = Vec::new();
                     for value in values.into_rgb_u8() {
                         cols.push(value[0]);
                         cols.push(value[1]);
                         cols.push(value[2]);
                     }
-                    Some(cols)
-                } else {
-                    None
-                };
+                    cols
+                });
 
-                let uvs = if let Some(values) = reader.read_tex_coords(0) {
+                let uvs = reader.read_tex_coords(0).map(|values| {
                     let mut uvs = Vec::new();
                     for value in values.into_f32() {
                         uvs.push(value[0]);
                         uvs.push(value[1]);
                     }
-                    Some(uvs)
-                } else {
-                    None
-                };
+                    uvs
+                });
 
                 cpu_meshes.push(CPUMesh {
                     name: name.clone(),
