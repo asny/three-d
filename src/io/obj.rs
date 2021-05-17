@@ -69,6 +69,7 @@ impl<'a> Loaded<'a> {
                     } else {
                         None
                     },
+                    ..Default::default()
                 });
             }
         }

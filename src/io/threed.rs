@@ -64,6 +64,7 @@ impl<'a> Loaded<'a> {
                 } else {
                     None
                 },
+                ..Default::default()
             });
         }
         Ok((cpu_meshes, cpu_materials))

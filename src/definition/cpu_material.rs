@@ -11,17 +11,23 @@ pub struct CPUMaterial {
     pub diffuse_intensity: Option<f32>,
     pub specular_intensity: Option<f32>,
     pub specular_power: Option<f32>,
+    pub metallic_factor: Option<f32>,
+    pub roughness_factor: Option<f32>,
+    pub metallic_roughness_texture: Option<CPUTexture<u8>>,
 }
 
 impl Default for CPUMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),
-            color: Some((1.0, 1.0, 1.0, 1.0)),
+            color: None,
             color_texture: None,
-            diffuse_intensity: Some(0.5),
-            specular_intensity: Some(0.2),
-            specular_power: Some(6.0),
+            metallic_roughness_texture: None,
+            metallic_factor: None,
+            roughness_factor: None,
+            diffuse_intensity: None,
+            specular_intensity: None,
+            specular_power: None,
         }
     }
 }

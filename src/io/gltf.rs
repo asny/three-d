@@ -95,10 +95,19 @@ fn parse_tree<'a>(
                     } else {
                         None
                     };
+                    let metallic_roughness_texture =
+                        if let Some(info) = pbr.metallic_roughness_texture() {
+                            Some(parse_texture(loaded, path, buffers, info)?)
+                        } else {
+                            None
+                        };
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
                         color: Some((color[0], color[1], color[2], color[3])),
                         color_texture,
+                        metallic_factor: Some(pbr.metallic_factor()),
+                        roughness_factor: Some(pbr.roughness_factor()),
+                        metallic_roughness_texture,
                         diffuse_intensity: Some(1.0),
                         specular_intensity: Some(pbr.metallic_factor()),
                         specular_power: Some(pbr.roughness_factor()),
