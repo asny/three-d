@@ -10,7 +10,7 @@ pub(super) enum ProjectionType {
         depth: f32,
     },
     Perspective {
-        field_of_view_y: Degrees,
+        field_of_view_y: Radians,
         aspect: f32,
         z_near: f32,
         z_far: f32,
@@ -62,7 +62,7 @@ impl Camera {
         position: Vec3,
         target: Vec3,
         up: Vec3,
-        field_of_view_y: Degrees,
+        field_of_view_y: impl Into<Radians>,
         aspect: f32,
         z_near: f32,
         z_far: f32,
@@ -78,7 +78,7 @@ impl Camera {
     ///
     pub fn set_perspective_projection(
         &mut self,
-        field_of_view_y: Degrees,
+        field_of_view_y: impl Into<Radians>,
         aspect: f32,
         z_near: f32,
         z_far: f32,
@@ -86,6 +86,7 @@ impl Camera {
         if z_near < 0.0 || z_near > z_far {
             panic!("Wrong perspective camera parameters")
         };
+        let field_of_view_y = field_of_view_y.into();
         self.projection_type = ProjectionType::Perspective {
             field_of_view_y,
             aspect,
