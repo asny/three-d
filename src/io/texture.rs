@@ -12,27 +12,7 @@ impl<'a> Loaded<'a> {
     /// Only available when the `image-io` feature is enabled.
     ///
     pub fn image<P: AsRef<Path>>(&'a self, path: P) -> Result<CPUTexture<u8>, IOError> {
-        use image::GenericImageView;
-        let img = image::load_from_memory(self.bytes(path)?)?;
-        let bytes = img.to_bytes();
-        let number_of_channels = bytes.len() / (img.width() * img.height()) as usize;
-        let format = match number_of_channels {
-            1 => Ok(Format::R),
-            2 => Ok(Format::RG),
-            3 => Ok(Format::RGB),
-            4 => Ok(Format::RGBA),
-            _ => Err(IOError::FailedToLoad {
-                message: format!("Could not determine the pixel format for the texture."),
-            }),
-        }?;
-
-        Ok(CPUTexture {
-            data: bytes,
-            width: img.width() as usize,
-            height: img.height() as usize,
-            format,
-            ..Default::default()
-        })
+        image_from_bytes(self.bytes(path)?)
     }
 
     ///

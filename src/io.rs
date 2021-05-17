@@ -103,3 +103,30 @@ impl From<std::io::Error> for IOError {
         IOError::IO(other)
     }
 }
+
+use crate::definition::*;
+fn image_from_bytes(bytes: &[u8]) -> Result<CPUTexture<u8>, IOError> {
+    use image::DynamicImage;
+    use image::GenericImageView;
+    let img = image::load_from_memory(bytes)?;
+    let format = match img {
+        DynamicImage::ImageLuma8(_) => Format::R,
+        DynamicImage::ImageLumaA8(_) => Format::RG,
+        DynamicImage::ImageRgb8(_) => Format::RGB,
+        DynamicImage::ImageRgba8(_) => Format::RGBA,
+        DynamicImage::ImageBgr8(_) => unimplemented!(),
+        DynamicImage::ImageBgra8(_) => unimplemented!(),
+        DynamicImage::ImageLuma16(_) => unimplemented!(),
+        DynamicImage::ImageLumaA16(_) => unimplemented!(),
+        DynamicImage::ImageRgb16(_) => unimplemented!(),
+        DynamicImage::ImageRgba16(_) => unimplemented!(),
+    };
+
+    Ok(CPUTexture {
+        data: img.to_bytes(),
+        width: img.width() as usize,
+        height: img.height() as usize,
+        format,
+        ..Default::default()
+    })
+}

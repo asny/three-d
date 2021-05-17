@@ -115,31 +115,7 @@ fn parse_tree<'a>(
                                 if view.stride() != None {
                                     unimplemented!();
                                 }
-                                use image::GenericImageView;
-                                let img = image::load_from_memory(&bytes)?;
-                                bytes = img.to_bytes();
-
-                                let number_of_channels =
-                                    bytes.len() / (img.width() * img.height()) as usize;
-                                let format = match number_of_channels {
-                                    1 => Ok(Format::R),
-                                    2 => Ok(Format::RG),
-                                    3 => Ok(Format::RGB),
-                                    4 => Ok(Format::RGBA),
-                                    _ => Err(IOError::FailedToLoad {
-                                        message: format!(
-                                            "Could not determine the pixel format for the texture."
-                                        ),
-                                    }),
-                                }?;
-
-                                color_texture = Some(CPUTexture {
-                                    data: bytes,
-                                    width: img.width() as usize,
-                                    height: img.height() as usize,
-                                    format,
-                                    ..Default::default() // TODO: Parse sampling parameters
-                                });
+                                color_texture = Some(image_from_bytes(&bytes)?);
                             }
                         }
                     }
