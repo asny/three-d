@@ -54,7 +54,7 @@ impl<'a> Loaded<'a> {
                 diffuse_intensity: material.diffuse_intensity,
                 specular_intensity: material.specular_intensity,
                 specular_power: material.specular_power,
-                texture_image: if let Some(filename) = material.texture_path {
+                color_texture: if let Some(filename) = material.texture_path {
                     let texture_path = path
                         .as_ref()
                         .parent()
@@ -109,7 +109,7 @@ impl Saver {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
-            if let Some(ref cpu_texture) = cpu_material.texture_image {
+            if let Some(ref cpu_texture) = cpu_material.color_texture {
                 let number_of_channels =
                     cpu_texture.data.len() / (cpu_texture.width * cpu_texture.height);
                 let format = match number_of_channels {
@@ -155,7 +155,7 @@ impl Saver {
         let mut materials = Vec::new();
         for cpu_material in cpu_materials {
             let texture_path = cpu_material
-                .texture_image
+                .color_texture
                 .as_ref()
                 .map(|_| format!("{}_{}.png", filename, cpu_material.name));
             materials.push(ThreeDMaterial {

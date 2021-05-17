@@ -60,7 +60,7 @@ impl<'a> Loaded<'a> {
                     diffuse_intensity: Some(diffuse_intensity),
                     specular_intensity: Some(specular_intensity),
                     specular_power: Some(material.specular_coefficient as f32),
-                    texture_image: if let Some(path) = material
+                    color_texture: if let Some(path) = material
                         .diffuse_map
                         .as_ref()
                         .map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())

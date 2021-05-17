@@ -95,7 +95,7 @@ fn parse_tree<'a>(
                 if !parsed {
                     let pbr = material.pbr_metallic_roughness();
                     let color = pbr.base_color_factor();
-                    let mut texture_image = None;
+                    let mut color_texture = None;
                     if let Some(tex_info) = pbr.base_color_texture() {
                         uv_set = Some(tex_info.tex_coord());
                         let gltf_texture = tex_info.texture();
@@ -103,7 +103,7 @@ fn parse_tree<'a>(
                         let gltf_source = gltf_image.source();
                         match gltf_source {
                             ::gltf::image::Source::Uri { uri, .. } => {
-                                texture_image = Some(loaded.image(path.join(Path::new(uri)))?);
+                                color_texture = Some(loaded.image(path.join(Path::new(uri)))?);
                             }
                             ::gltf::image::Source::View { view, .. } => {
                                 let mut bytes = Vec::with_capacity(view.length());
@@ -133,7 +133,7 @@ fn parse_tree<'a>(
                                     }),
                                 }?;
 
-                                texture_image = Some(CPUTexture {
+                                color_texture = Some(CPUTexture {
                                     data: bytes,
                                     width: img.width() as usize,
                                     height: img.height() as usize,
@@ -146,7 +146,7 @@ fn parse_tree<'a>(
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
                         color: Some((color[0], color[1], color[2], color[3])),
-                        texture_image,
+                        color_texture,
                         diffuse_intensity: Some(1.0),
                         specular_intensity: Some(pbr.metallic_factor()),
                         specular_power: Some(pbr.roughness_factor()),

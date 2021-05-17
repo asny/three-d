@@ -42,7 +42,7 @@ impl PhongMaterial {
     /// Constructor.
     ///
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self, Error> {
-        let color_source = if let Some(ref cpu_texture) = cpu_material.texture_image {
+        let color_source = if let Some(ref cpu_texture) = cpu_material.color_texture {
             ColorSource::Texture(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
             ColorSource::Color(
