@@ -104,8 +104,9 @@ impl From<std::io::Error> for IOError {
     }
 }
 
-use crate::definition::*;
-fn image_from_bytes(bytes: &[u8]) -> Result<CPUTexture<u8>, IOError> {
+#[cfg(feature = "image-io")]
+fn image_from_bytes(bytes: &[u8]) -> Result<crate::definition::CPUTexture<u8>, IOError> {
+    use crate::definition::*;
     use image::DynamicImage;
     use image::GenericImageView;
     let img = image::load_from_memory(bytes)?;
