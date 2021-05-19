@@ -6,13 +6,13 @@ use crate::math::*;
 ///
 /// An illusion of a sky.
 ///
-pub struct Skybox<T: TextureValueType> {
+pub struct Skybox<T: TextureDataType> {
     program: Program,
     vertex_buffer: VertexBuffer,
     texture: TextureCubeMap<T>,
 }
 
-impl<T: TextureValueType> Skybox<T> {
+impl<T: TextureDataType> Skybox<T> {
     pub fn new(context: &Context, cpu_texture: &mut CPUTexture<T>) -> Result<Skybox<T>, Error> {
         cpu_texture.wrap_t = Wrapping::ClampToEdge;
         cpu_texture.wrap_s = Wrapping::ClampToEdge;

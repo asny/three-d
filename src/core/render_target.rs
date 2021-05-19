@@ -147,7 +147,7 @@ impl Screen {
 ///
 /// The destination of applying a copy.
 ///
-pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureValueType> {
+pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
     /// Copies to the [Screen](crate::Screen).
     Screen,
     /// Copies to a [ColorTargetTexture2D](crate::ColorTargetTexture2D).
@@ -163,14 +163,14 @@ pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureValueType> {
 /// a [DepthTargetTexture2D](crate::DepthTargetTexture2D) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTarget<'a, 'b, T: TextureValueType> {
+pub struct RenderTarget<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
     color_texture: Option<&'a ColorTargetTexture2D<T>>,
     depth_texture: Option<&'b DepthTargetTexture2D>,
 }
 
-impl<'a, 'b, T: TextureValueType> RenderTarget<'a, 'b, T> {
+impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     ///
     /// Constructs a new render target that enables rendering into the given
     /// [color](crate::ColorTargetTexture2D) and [depth](DepthTargetTexture2D) textures.
@@ -309,7 +309,7 @@ impl<'a, 'b, T: TextureValueType> RenderTarget<'a, 'b, T> {
     }
 }
 
-impl<T: TextureValueType> Drop for RenderTarget<'_, '_, T> {
+impl<T: TextureDataType> Drop for RenderTarget<'_, '_, T> {
     fn drop(&mut self) {
         self.context.delete_framebuffer(Some(&self.id));
     }
@@ -320,14 +320,14 @@ impl<T: TextureValueType> Drop for RenderTarget<'_, '_, T> {
 /// a [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTargetArray<'a, 'b, T: TextureValueType> {
+pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
     color_texture: Option<&'a ColorTargetTexture2DArray<T>>,
     depth_texture: Option<&'b DepthTargetTexture2DArray>,
 }
 
-impl<'a, 'b, T: TextureValueType> RenderTargetArray<'a, 'b, T> {
+impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     /// Constructs a new render target array that enables rendering into the given
     /// [color](crate::ColorTargetTexture2DArray) and [depth](DepthTargetTexture2DArray) array textures.
@@ -490,7 +490,7 @@ impl<'a, 'b, T: TextureValueType> RenderTargetArray<'a, 'b, T> {
     }
 }
 
-impl<T: TextureValueType> Drop for RenderTargetArray<'_, '_, T> {
+impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     fn drop(&mut self) {
         self.context.delete_framebuffer(Some(&self.id));
     }

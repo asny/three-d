@@ -77,7 +77,7 @@ pub(crate) mod internal {
     use crate::definition::*;
     use crate::math::*;
 
-    pub trait TextureValueTypeExtension: Clone {
+    pub trait TextureDataTypeExtension: Clone {
         fn internal_format(format: Format) -> Result<u32, crate::Error>;
         fn fill(
             context: &Context,
@@ -90,7 +90,7 @@ pub(crate) mod internal {
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
     }
 
-    impl TextureValueTypeExtension for u8 {
+    impl TextureDataTypeExtension for u8 {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
             Ok(match format {
                 Format::R => crate::context::consts::R8,
@@ -135,7 +135,7 @@ pub(crate) mod internal {
             );
         }
     }
-    impl TextureValueTypeExtension for f32 {
+    impl TextureDataTypeExtension for f32 {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
             Ok(match format {
                 Format::R => crate::context::consts::R32F,
@@ -186,7 +186,7 @@ pub(crate) mod internal {
         }
     }
 
-    impl TextureValueTypeExtension for u32 {
+    impl TextureDataTypeExtension for u32 {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
             Ok(match format {
                 Format::R => crate::context::consts::R32UI,

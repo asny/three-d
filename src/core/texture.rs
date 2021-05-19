@@ -60,7 +60,7 @@ impl Texture2D {
     ///
     /// Construcs a new texture with the given data.
     ///
-    pub fn new<T: TextureValueType>(
+    pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &CPUTexture<T>,
     ) -> Result<Texture2D, Error> {
@@ -111,7 +111,7 @@ impl Texture2D {
     /// # Errors
     /// Return an error if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
     ///
-    pub fn fill<T: TextureValueType>(&mut self, data: &[T]) -> Result<(), Error> {
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<(), Error> {
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
         self.context.bind_texture(consts::TEXTURE_2D, &self.id);
         T::fill(
@@ -158,7 +158,7 @@ impl Drop for Texture2D {
 /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture.
 /// Use a [RenderTarget](crate::RenderTarget) to write to both color and depth.
 ///
-pub struct ColorTargetTexture2D<T: TextureValueType> {
+pub struct ColorTargetTexture2D<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
     width: usize,
@@ -168,7 +168,7 @@ pub struct ColorTargetTexture2D<T: TextureValueType> {
     _dummy: T,
 }
 
-impl<T: TextureValueType> ColorTargetTexture2D<T> {
+impl<T: TextureDataType> ColorTargetTexture2D<T> {
     ///
     /// Constructs a new 2D color target texture.
     ///
@@ -293,7 +293,7 @@ impl<T: TextureValueType> ColorTargetTexture2D<T> {
     }
 }
 
-impl<T: TextureValueType> Texture for ColorTargetTexture2D<T> {
+impl<T: TextureDataType> Texture for ColorTargetTexture2D<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
@@ -305,7 +305,7 @@ impl<T: TextureValueType> Texture for ColorTargetTexture2D<T> {
     }
 }
 
-impl<T: TextureValueType> Drop for ColorTargetTexture2D<T> {
+impl<T: TextureDataType> Drop for ColorTargetTexture2D<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }
@@ -395,7 +395,7 @@ impl DepthTargetTexture2D {
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
-    pub fn copy_to<T: TextureValueType>(
+    pub fn copy_to<T: TextureDataType>(
         &self,
         destination: CopyDestination<T>,
         viewport: Viewport,
@@ -439,7 +439,7 @@ impl Drop for DepthTargetTexture2D {
 ///
 /// A texture that covers all 6 sides of a cube.
 ///
-pub struct TextureCubeMap<T: TextureValueType> {
+pub struct TextureCubeMap<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
     width: usize,
@@ -449,7 +449,7 @@ pub struct TextureCubeMap<T: TextureValueType> {
     _dummy: T,
 }
 
-impl<T: TextureValueType> TextureCubeMap<T> {
+impl<T: TextureDataType> TextureCubeMap<T> {
     pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> Result<TextureCubeMap<T>, Error> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
@@ -523,7 +523,7 @@ impl<T: TextureValueType> TextureCubeMap<T> {
     }
 }
 
-impl<T: TextureValueType> TextureCube for TextureCubeMap<T> {
+impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
     }
@@ -537,7 +537,7 @@ impl<T: TextureValueType> TextureCube for TextureCubeMap<T> {
     }
 }
 
-impl<T: TextureValueType> Drop for TextureCubeMap<T> {
+impl<T: TextureDataType> Drop for TextureCubeMap<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }
@@ -549,7 +549,7 @@ impl<T: TextureValueType> Drop for TextureCubeMap<T> {
 /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture array.
 /// Use a [RenderTargetArray](crate::RenderTargetArray) to write to both color and depth.
 ///
-pub struct ColorTargetTexture2DArray<T: TextureValueType> {
+pub struct ColorTargetTexture2DArray<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
     width: usize,
@@ -559,7 +559,7 @@ pub struct ColorTargetTexture2DArray<T: TextureValueType> {
     _dummy: T,
 }
 
-impl<T: TextureValueType> ColorTargetTexture2DArray<T> {
+impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
     pub fn new(
         context: &Context,
         width: usize,
@@ -673,7 +673,7 @@ impl<T: TextureValueType> ColorTargetTexture2DArray<T> {
     }
 }
 
-impl<T: TextureValueType> TextureArray for ColorTargetTexture2DArray<T> {
+impl<T: TextureDataType> TextureArray for ColorTargetTexture2DArray<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
@@ -688,7 +688,7 @@ impl<T: TextureValueType> TextureArray for ColorTargetTexture2DArray<T> {
     }
 }
 
-impl<T: TextureValueType> Drop for ColorTargetTexture2DArray<T> {
+impl<T: TextureDataType> Drop for ColorTargetTexture2DArray<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }
@@ -772,7 +772,7 @@ impl DepthTargetTexture2DArray {
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
-    pub fn copy_to<T: TextureValueType>(
+    pub fn copy_to<T: TextureDataType>(
         &self,
         depth_layer: usize,
         destination: CopyDestination<T>,
