@@ -52,12 +52,6 @@ impl Format {
     }
 }
 
-impl Default for Format {
-    fn default() -> Self {
-        Format::RGBA
-    }
-}
-
 ///
 /// A CPU-side version of a texture, for example [2D texture](crate::Texture2D).
 /// Can be constructed manually or loaded via [io](crate::io).
@@ -106,7 +100,7 @@ impl<T: TextureDataType> Default for CPUTexture<T> {
             width: 1,
             height: 1,
             depth: 1,
-            format: Format::default(),
+            format: Format::RGBA,
             min_filter: Interpolation::Linear,
             mag_filter: Interpolation::Linear,
             mip_map_filter: Some(Interpolation::Linear),
