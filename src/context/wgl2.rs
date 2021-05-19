@@ -55,6 +55,20 @@ impl Context {
         self.inner.buffer_data_with_u8_array(target, data, usage)
     }
 
+    pub fn buffer_data_u16(&self, target: u32, data: &[u16], usage: u32) {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>()
+            .unwrap()
+            .buffer();
+        let data_location = data.as_ptr() as u32 / 2;
+        let array = js_sys::Uint16Array::new(&memory_buffer)
+            .subarray(data_location, data_location + data.len() as u32);
+
+        self.inner
+            .buffer_data_with_array_buffer_view(target, &array, usage);
+    }
+
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32) {
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()

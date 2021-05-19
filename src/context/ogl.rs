@@ -254,6 +254,17 @@ impl Context {
         }
     }
 
+    pub fn buffer_data_u16(&self, target: u32, data: &[u16], usage: u32) {
+        unsafe {
+            self.inner.BufferData(
+                target,
+                (data.len() * std::mem::size_of::<u16>()) as consts::types::GLsizeiptr, // size of data in bytes
+                data.as_ptr() as *const consts::types::GLvoid, // pointer to data
+                usage,
+            );
+        }
+    }
+
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32) {
         unsafe {
             self.inner.BufferData(

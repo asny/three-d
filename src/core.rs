@@ -76,12 +76,15 @@ pub trait VertexBufferDataType:
 {
 }
 impl VertexBufferDataType for u8 {}
+impl VertexBufferDataType for u16 {}
 impl VertexBufferDataType for f32 {}
 
 pub trait ElementBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
 }
+impl ElementBufferDataType for u8 {}
+impl ElementBufferDataType for u16 {}
 impl ElementBufferDataType for u32 {}
 
 pub(crate) mod internal {
@@ -101,6 +104,15 @@ pub(crate) mod internal {
         }
         fn data_type() -> u32 {
             crate::context::consts::UNSIGNED_BYTE
+        }
+    }
+
+    impl BufferDataTypeExtension for u16 {
+        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
+            context.buffer_data_u16(target, data, usage);
+        }
+        fn data_type() -> u32 {
+            crate::context::consts::UNSIGNED_SHORT
         }
     }
 
