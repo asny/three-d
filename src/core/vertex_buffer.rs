@@ -39,7 +39,12 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     ///
     pub fn fill_with_static(&mut self, data: &[T]) {
         self.bind();
-        T::buffer_data(&self.context, data, consts::STATIC_DRAW);
+        T::buffer_data(
+            &self.context,
+            consts::ARRAY_BUFFER,
+            data,
+            consts::STATIC_DRAW,
+        );
         self.context.unbind_buffer(consts::ARRAY_BUFFER);
         self.count = data.len();
     }
@@ -70,7 +75,12 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     ///
     pub fn fill_with_dynamic(&mut self, data: &[T]) {
         self.bind();
-        T::buffer_data(&self.context, data, consts::DYNAMIC_DRAW);
+        T::buffer_data(
+            &self.context,
+            consts::ARRAY_BUFFER,
+            data,
+            consts::DYNAMIC_DRAW,
+        );
         self.context.unbind_buffer(consts::ARRAY_BUFFER);
         self.count = data.len();
     }

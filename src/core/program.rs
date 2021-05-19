@@ -421,12 +421,12 @@ impl Program {
         self.context.unuse_program();
     }
 
-    pub fn draw_elements(
+    pub fn draw_elements<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         cull: CullType,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
     ) {
         self.draw_subset_of_elements(
             render_states,
@@ -438,12 +438,12 @@ impl Program {
         );
     }
 
-    pub fn draw_subset_of_elements(
+    pub fn draw_subset_of_elements<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         cull: CullType,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
         first: u32,
         count: u32,
     ) {
@@ -462,12 +462,12 @@ impl Program {
         self.context.unuse_program();
     }
 
-    pub fn draw_elements_instanced(
+    pub fn draw_elements_instanced<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         cull: CullType,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
         count: u32,
     ) {
         Self::set_viewport(&self.context, viewport);
