@@ -848,6 +848,33 @@ impl Context {
         }
     }
 
+    pub fn tex_sub_image_2d_with_u32_data(
+        &self,
+        target: u32,
+        level: u32,
+        x_offset: u32,
+        y_offset: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        pixels: &[u32],
+    ) {
+        unsafe {
+            self.inner.TexSubImage2D(
+                target,
+                level as i32,
+                x_offset as i32,
+                y_offset as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                pixels.as_ptr() as *const consts::types::GLvoid,
+            );
+        }
+    }
+
     pub fn tex_image_3d(
         &self,
         target: u32,
@@ -1054,6 +1081,29 @@ impl Context {
         format: u32,
         data_type: u32,
         dst_data: &mut [f32],
+    ) {
+        unsafe {
+            self.inner.ReadPixels(
+                x as i32,
+                y as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                dst_data.as_ptr() as *mut consts::types::GLvoid,
+            )
+        }
+    }
+
+    pub fn read_pixels_with_u32_data(
+        &self,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        dst_data: &mut [u32],
     ) {
         unsafe {
             self.inner.ReadPixels(

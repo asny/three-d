@@ -101,6 +101,7 @@ pub(crate) mod internal {
                 Format::SRGBA => crate::context::consts::SRGB8_ALPHA8,
             })
         }
+
         fn fill(
             context: &Context,
             target: u32,
@@ -121,6 +122,7 @@ pub(crate) mod internal {
                 data,
             );
         }
+
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
             context.read_pixels_with_u8_data(
                 viewport.x as u32,
@@ -140,18 +142,16 @@ pub(crate) mod internal {
                 Format::RG => crate::context::consts::RG32F,
                 Format::RGB => crate::context::consts::RGB32F,
                 Format::RGBA => crate::context::consts::RGBA32F,
-                Format::SRGB => {
+                _ => {
                     return Err(crate::Error::TextureError {
-                        message: "Cannot use sRGB format for a float texture.".to_string(),
-                    });
-                }
-                Format::SRGBA => {
-                    return Err(crate::Error::TextureError {
-                        message: "Cannot use sRGBA format for a float texture.".to_string(),
+                        message:
+                            "Cannot only use the sRGB(A) format together with a u8 texture value type."
+                                .to_string(),
                     });
                 }
             })
         }
+
         fn fill(
             context: &Context,
             target: u32,
@@ -172,6 +172,7 @@ pub(crate) mod internal {
                 data,
             );
         }
+
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
             context.read_pixels_with_f32_data(
                 viewport.x as u32,
@@ -185,7 +186,57 @@ pub(crate) mod internal {
         }
     }
 
-    pub fn format_from(format: Format) -> u32 {
+    impl TextureValueTypeExtension for u32 {
+        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+            Ok(match format {
+                Format::R => crate::context::consts::R32UI,
+                Format::RG => crate::context::consts::RG32UI,
+                Format::RGB => crate::context::consts::RGB32UI,
+                Format::RGBA => crate::context::consts::RGBA32UI,
+                _ => {
+                    return Err(crate::Error::TextureError {
+                        message:
+                            "Cannot only use the sRGB(A) format together with a u8 texture value type."
+                                .to_string(),
+                    });
+                }
+            })
+        }
+
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: usize,
+            height: usize,
+            format: Format,
+            data: &[Self],
+        ) {
+            context.tex_sub_image_2d_with_u32_data(
+                target,
+                0,
+                0,
+                0,
+                width as u32,
+                height as u32,
+                format_from(format),
+                consts::UNSIGNED_INT,
+                data,
+            );
+        }
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            context.read_pixels_with_u32_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width as u32,
+                viewport.height as u32,
+                format_from(format),
+                consts::UNSIGNED_INT,
+                pixels,
+            );
+        }
+    }
+
+    fn format_from(format: Format) -> u32 {
         match format {
             Format::R => consts::RED,
             Format::RG => consts::RG,

@@ -24,6 +24,7 @@ pub trait TextureValueType:
 }
 impl TextureValueType for u8 {}
 impl TextureValueType for f32 {}
+impl TextureValueType for u32 {}
 
 ///
 /// Possible formats for pixels in a texture.

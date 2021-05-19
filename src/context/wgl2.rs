@@ -267,6 +267,42 @@ impl Context {
             .unwrap();
     }
 
+    pub fn tex_sub_image_2d_with_u32_data(
+        &self,
+        target: u32,
+        level: u32,
+        x_offset: u32,
+        y_offset: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        pixels: &[u32],
+    ) {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>()
+            .unwrap()
+            .buffer();
+        let data_location = pixels.as_ptr() as u32 / 4;
+        let array = js_sys::Uint32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + pixels.len() as u32);
+
+        self.inner
+            .tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_array_buffer_view(
+                target,
+                level as i32,
+                x_offset as i32,
+                y_offset as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                Some(&array),
+            )
+            .unwrap();
+    }
+
     pub fn tex_image_2d_with_f32_data(
         &self,
         target: u32,
@@ -415,6 +451,37 @@ impl Context {
             .buffer();
         let data_location = dst_data.as_ptr() as u32 / 4;
         let array = js_sys::Float32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + dst_data.len() as u32);
+        self.inner
+            .read_pixels_with_opt_array_buffer_view(
+                x as i32,
+                y as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                Some(&array),
+            )
+            .unwrap();
+    }
+
+    pub fn read_pixels_with_u32_data(
+        &self,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        dst_data: &mut [u32],
+    ) {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>()
+            .unwrap()
+            .buffer();
+        let data_location = dst_data.as_ptr() as u32 / 4;
+        let array = js_sys::Uint32Array::new(&memory_buffer)
             .subarray(data_location, data_location + dst_data.len() as u32);
         self.inner
             .read_pixels_with_opt_array_buffer_view(
