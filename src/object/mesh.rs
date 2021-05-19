@@ -141,11 +141,11 @@ impl std::ops::Deref for MeshProgram {
 ///
 pub struct Mesh {
     context: Context,
-    position_buffer: Rc<VertexBuffer>,
-    normal_buffer: Option<Rc<VertexBuffer>>,
+    position_buffer: Rc<VertexBuffer<f32>>,
+    normal_buffer: Option<Rc<VertexBuffer<f32>>>,
     index_buffer: Option<Rc<ElementBuffer>>,
-    uv_buffer: Option<Rc<VertexBuffer>>,
-    color_buffer: Option<Rc<VertexBuffer>>,
+    uv_buffer: Option<Rc<VertexBuffer<f32>>>,
+    color_buffer: Option<Rc<VertexBuffer<u8>>>,
     aabb: AxisAlignedBoundingBox,
     pub name: String,
     pub cull: CullType,
@@ -158,14 +158,9 @@ impl Mesh {
     /// making it possible to render the mesh.
     ///
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
-        let position_buffer = Rc::new(VertexBuffer::new_with_static_f32(
-            context,
-            &cpu_mesh.positions,
-        )?);
+        let position_buffer = Rc::new(VertexBuffer::new_with_static(context, &cpu_mesh.positions)?);
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(Rc::new(VertexBuffer::new_with_static_f32(
-                context, normals,
-            )?))
+            Some(Rc::new(VertexBuffer::new_with_static(context, normals)?))
         } else {
             None
         };
@@ -175,12 +170,12 @@ impl Mesh {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(Rc::new(VertexBuffer::new_with_static_f32(context, uvs)?))
+            Some(Rc::new(VertexBuffer::new_with_static(context, uvs)?))
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(Rc::new(VertexBuffer::new_with_static_u8(context, colors)?))
+            Some(Rc::new(VertexBuffer::new_with_static(context, colors)?))
         } else {
             None
         };

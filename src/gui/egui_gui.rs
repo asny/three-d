@@ -157,9 +157,9 @@ impl GUI {
         }
         let indices: Vec<u32> = mesh.indices.iter().map(|idx| *idx as u32).collect();
 
-        let position_buffer = VertexBuffer::new_with_static_f32(&self.context, &positions)?;
-        let uv_buffer = VertexBuffer::new_with_static_f32(&self.context, &uvs)?;
-        let color_buffer = VertexBuffer::new_with_static_f32(&self.context, &colors)?;
+        let position_buffer = VertexBuffer::new_with_static(&self.context, &positions)?;
+        let uv_buffer = VertexBuffer::new_with_static(&self.context, &uvs)?;
+        let color_buffer = VertexBuffer::new_with_static(&self.context, &colors)?;
         let index_buffer = ElementBuffer::new_with_u32(&self.context, &indices)?;
 
         let viewport = Viewport::new_at_origo(

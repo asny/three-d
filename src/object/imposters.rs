@@ -14,10 +14,10 @@ const NO_VIEW_ANGLES: usize = 8;
 pub struct Imposters {
     context: Context,
     program: Program,
-    center_buffer: VertexBuffer,
-    rotation_buffer: VertexBuffer,
-    positions_buffer: VertexBuffer,
-    uvs_buffer: VertexBuffer,
+    center_buffer: VertexBuffer<f32>,
+    rotation_buffer: VertexBuffer<f32>,
+    positions_buffer: VertexBuffer<f32>,
+    uvs_buffer: VertexBuffer<f32>,
     instance_count: u32,
     texture: ColorTargetTexture2DArray<u8>,
 }
@@ -25,8 +25,8 @@ pub struct Imposters {
 impl Imposters {
     pub fn new(context: &Context) -> Result<Self, Error> {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0];
-        let positions_buffer = VertexBuffer::new_with_static_f32(&context, &[])?;
-        let uvs_buffer = VertexBuffer::new_with_static_f32(&context, &uvs)?;
+        let positions_buffer = VertexBuffer::new_with_static(&context, &[])?;
+        let uvs_buffer = VertexBuffer::new_with_static(&context, &uvs)?;
 
         let program = Program::from_source(
             context,
@@ -34,8 +34,8 @@ impl Imposters {
             include_str!("shaders/imposter.frag"),
         )?;
 
-        let center_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
-        let rotation_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
+        let center_buffer = VertexBuffer::new_with_dynamic(context, &[])?;
+        let rotation_buffer = VertexBuffer::new_with_dynamic(context, &[])?;
         let texture = ColorTargetTexture2DArray::<u8>::new(
             context,
             1,
@@ -131,7 +131,7 @@ impl Imposters {
         let xmax = center.x + 0.5 * width;
         let ymin = min.y;
         let ymax = max.y;
-        self.positions_buffer.fill_with_dynamic_f32(&vec![
+        self.positions_buffer.fill_with_dynamic(&vec![
             xmin, ymin, 0.0, xmax, ymin, 0.0, xmax, ymax, 0.0, xmax, ymax, 0.0, xmin, ymax, 0.0,
             xmin, ymin, 0.0,
         ]);
@@ -139,9 +139,8 @@ impl Imposters {
     }
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32]) {
-        self.center_buffer.fill_with_dynamic_f32(positions);
-        self.rotation_buffer
-            .fill_with_dynamic_f32(angles_in_radians);
+        self.center_buffer.fill_with_dynamic(positions);
+        self.rotation_buffer.fill_with_dynamic(angles_in_radians);
         self.instance_count = positions.len() as u32 / 3;
     }
 

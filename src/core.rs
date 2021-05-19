@@ -71,11 +71,41 @@ pub enum Error {
     },
 }
 
+pub trait VertexBufferDataType:
+    Default + std::fmt::Debug + Clone + internal::VertexBufferDataTypeExtension
+{
+}
+impl VertexBufferDataType for u8 {}
+impl VertexBufferDataType for f32 {}
+
 pub(crate) mod internal {
 
     use crate::context::{consts, Context};
     use crate::definition::*;
     use crate::math::*;
+
+    pub trait VertexBufferDataTypeExtension: Clone {
+        fn buffer_data(context: &Context, data: &[Self], usage: u32);
+        fn data_type() -> u32;
+    }
+
+    impl VertexBufferDataTypeExtension for u8 {
+        fn buffer_data(context: &Context, data: &[Self], usage: u32) {
+            context.buffer_data_u8(consts::ARRAY_BUFFER, data, usage);
+        }
+        fn data_type() -> u32 {
+            crate::context::consts::UNSIGNED_BYTE
+        }
+    }
+
+    impl VertexBufferDataTypeExtension for f32 {
+        fn buffer_data(context: &Context, data: &[Self], usage: u32) {
+            context.buffer_data_f32(consts::ARRAY_BUFFER, data, usage);
+        }
+        fn data_type() -> u32 {
+            crate::context::consts::FLOAT
+        }
+    }
 
     pub trait TextureDataTypeExtension: Clone {
         fn internal_format(format: Format) -> Result<u32, crate::Error>;

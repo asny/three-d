@@ -8,7 +8,7 @@ use crate::math::*;
 ///
 pub struct Skybox<T: TextureDataType> {
     program: Program,
-    vertex_buffer: VertexBuffer,
+    vertex_buffer: VertexBuffer<f32>,
     texture: TextureCubeMap<T>,
 }
 
@@ -32,7 +32,7 @@ impl<T: TextureDataType> Skybox<T> {
             include_str!("shaders/skybox.frag"),
         )?;
 
-        let vertex_buffer = VertexBuffer::new_with_static_f32(context, &get_positions())?;
+        let vertex_buffer = VertexBuffer::new_with_static(context, &get_positions())?;
 
         Ok(Skybox {
             program,

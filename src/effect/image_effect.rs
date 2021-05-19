@@ -7,8 +7,8 @@ use crate::math::*;
 ///
 pub struct ImageEffect {
     program: Program,
-    positions: VertexBuffer,
-    uvs: VertexBuffer,
+    positions: VertexBuffer<f32>,
+    uvs: VertexBuffer<f32>,
 }
 
 impl ImageEffect {
@@ -28,8 +28,8 @@ impl ImageEffect {
 
         let positions = vec![-3.0, -1.0, 0.0, 3.0, -1.0, 0.0, 0.0, 2.0, 0.0];
         let uvs = vec![-1.0, 0.0, 2.0, 0.0, 0.5, 1.5];
-        let positions = VertexBuffer::new_with_static_f32(&context, &positions).unwrap();
-        let uvs = VertexBuffer::new_with_static_f32(&context, &uvs).unwrap();
+        let positions = VertexBuffer::new_with_static(&context, &positions).unwrap();
+        let uvs = VertexBuffer::new_with_static(&context, &uvs).unwrap();
 
         Ok(Self {
             program,

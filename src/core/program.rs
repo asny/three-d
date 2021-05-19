@@ -270,14 +270,18 @@ impl Program {
         self.context.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 
-    pub fn use_attribute(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error> {
+    pub fn use_attribute<T: VertexBufferDataType>(
+        &self,
+        buffer: &VertexBuffer<T>,
+        attribute_name: &str,
+    ) -> Result<(), Error> {
         self.use_attribute_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_divisor(
+    pub fn use_attribute_divisor<T: VertexBufferDataType>(
         &self,
-        buffer: &VertexBuffer,
+        buffer: &VertexBuffer<T>,
         attribute_name: &str,
         divisor: usize,
     ) -> Result<(), Error> {
@@ -286,7 +290,7 @@ impl Program {
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 1, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 1, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -294,18 +298,18 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec2(
+    pub fn use_attribute_vec2<T: VertexBufferDataType>(
         &self,
-        buffer: &VertexBuffer,
+        buffer: &VertexBuffer<T>,
         attribute_name: &str,
     ) -> Result<(), Error> {
         self.use_attribute_vec2_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec2_divisor(
+    pub fn use_attribute_vec2_divisor<T: VertexBufferDataType>(
         &self,
-        buffer: &VertexBuffer,
+        buffer: &VertexBuffer<T>,
         attribute_name: &str,
         divisor: usize,
     ) -> Result<(), Error> {
@@ -314,7 +318,7 @@ impl Program {
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 2, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 2, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -322,18 +326,18 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec3(
+    pub fn use_attribute_vec3<T: VertexBufferDataType>(
         &self,
-        buffer: &VertexBuffer,
+        buffer: &VertexBuffer<T>,
         attribute_name: &str,
     ) -> Result<(), Error> {
         self.use_attribute_vec3_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec3_divisor(
+    pub fn use_attribute_vec3_divisor<T: VertexBufferDataType>(
         &self,
-        buffer: &VertexBuffer,
+        buffer: &VertexBuffer<T>,
         attribute_name: &str,
         divisor: usize,
     ) -> Result<(), Error> {
@@ -342,7 +346,7 @@ impl Program {
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 3, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 3, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -350,18 +354,18 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec4(
+    pub fn use_attribute_vec4<T: VertexBufferDataType>(
         &self,
-        buffer: &VertexBuffer,
+        buffer: &VertexBuffer<T>,
         attribute_name: &str,
     ) -> Result<(), Error> {
         self.use_attribute_vec4_divisor(buffer, attribute_name, 0)?;
         Ok(())
     }
 
-    pub fn use_attribute_vec4_divisor(
+    pub fn use_attribute_vec4_divisor<T: VertexBufferDataType>(
         &self,
-        buffer: &VertexBuffer,
+        buffer: &VertexBuffer<T>,
         attribute_name: &str,
         divisor: usize,
     ) -> Result<(), Error> {
@@ -370,7 +374,7 @@ impl Program {
             let loc = self.location(&attribute_name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 4, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 4, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, divisor as u32);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();

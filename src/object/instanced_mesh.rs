@@ -37,15 +37,15 @@ impl std::ops::Deref for InstancedMeshProgram {
 ///
 pub struct InstancedMesh {
     context: Context,
-    position_buffer: VertexBuffer,
-    normal_buffer: Option<VertexBuffer>,
+    position_buffer: VertexBuffer<f32>,
+    normal_buffer: Option<VertexBuffer<f32>>,
     index_buffer: Option<ElementBuffer>,
-    uv_buffer: Option<VertexBuffer>,
-    color_buffer: Option<VertexBuffer>,
+    uv_buffer: Option<VertexBuffer<f32>>,
+    color_buffer: Option<VertexBuffer<u8>>,
     instance_count: u32,
-    instance_buffer1: VertexBuffer,
-    instance_buffer2: VertexBuffer,
-    instance_buffer3: VertexBuffer,
+    instance_buffer1: VertexBuffer<f32>,
+    instance_buffer2: VertexBuffer<f32>,
+    instance_buffer3: VertexBuffer<f32>,
     pub cull: CullType,
     pub transformation: Mat4,
 }
@@ -62,9 +62,9 @@ impl InstancedMesh {
         transformations: &[Mat4],
         cpu_mesh: &CPUMesh,
     ) -> Result<Self, Error> {
-        let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
+        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static_f32(context, normals)?)
+            Some(VertexBuffer::new_with_static(context, normals)?)
         } else {
             None
         };
@@ -74,12 +74,12 @@ impl InstancedMesh {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static_f32(context, uvs)?)
+            Some(VertexBuffer::new_with_static(context, uvs)?)
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_static_u8(context, colors)?)
+            Some(VertexBuffer::new_with_static(context, colors)?)
         } else {
             None
         };
@@ -92,9 +92,9 @@ impl InstancedMesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            instance_buffer1: VertexBuffer::new_with_dynamic_f32(context, &[])?,
-            instance_buffer2: VertexBuffer::new_with_dynamic_f32(context, &[])?,
-            instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?,
+            instance_buffer1: VertexBuffer::new_with_dynamic(context, &[])?,
+            instance_buffer2: VertexBuffer::new_with_dynamic(context, &[])?,
+            instance_buffer3: VertexBuffer::new_with_dynamic(context, &[])?,
             cull: CullType::None,
             transformation: Mat4::identity(),
         };
@@ -281,9 +281,9 @@ impl InstancedMesh {
             row3.push(transform.z.z);
             row3.push(transform.w.z);
         }
-        self.instance_buffer1.fill_with_dynamic_f32(&row1);
-        self.instance_buffer2.fill_with_dynamic_f32(&row2);
-        self.instance_buffer3.fill_with_dynamic_f32(&row3);
+        self.instance_buffer1.fill_with_dynamic(&row1);
+        self.instance_buffer2.fill_with_dynamic(&row2);
+        self.instance_buffer3.fill_with_dynamic(&row3);
     }
 }
 
