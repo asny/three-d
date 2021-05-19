@@ -8,8 +8,8 @@ pub use egui;
 pub struct GUI {
     context: Context,
     egui_context: egui::CtxRef,
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
     program: Program,
     texture_version: u64,
     texture: Option<Texture2D>,
@@ -109,8 +109,8 @@ impl GUI {
                 &CPUTexture {
                     data: pixels,
                     format: Format::SRGBA,
-                    width: egui_texture.width,
-                    height: egui_texture.height,
+                    width: egui_texture.width as u32,
+                    height: egui_texture.height as u32,
                     mip_map_filter: None,
                     wrap_s: Wrapping::ClampToEdge,
                     wrap_t: Wrapping::ClampToEdge,
@@ -134,8 +134,8 @@ impl GUI {
 
     fn paint_mesh(
         &self,
-        width: usize,
-        height: usize,
+        width: u32,
+        height: u32,
         pixels_per_point: f32,
         mesh: &egui::paint::Mesh,
         texture: &Texture2D,
@@ -163,8 +163,8 @@ impl GUI {
         let index_buffer = ElementBuffer::new(&self.context, &indices)?;
 
         let viewport = Viewport::new_at_origo(
-            (width as f32 * pixels_per_point).round() as usize,
-            (height as f32 * pixels_per_point).round() as usize,
+            (width as f32 * pixels_per_point).round() as u32,
+            (height as f32 * pixels_per_point).round() as u32,
         );
 
         let render_states = RenderStates {

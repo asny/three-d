@@ -80,8 +80,8 @@ impl DirectionalLight {
         frustrum_width: f32,
         frustrum_height: f32,
         frustrum_depth: f32,
-        texture_width: usize,
-        texture_height: usize,
+        texture_width: u32,
+        texture_height: u32,
         geometries: &[&dyn Geometry],
     ) -> Result<(), Error> {
         let direction = self.direction();

@@ -85,11 +85,11 @@ impl Window {
         Ok(())
     }
 
-    pub fn size(&self) -> Result<(usize, usize), WindowError> {
+    pub fn size(&self) -> Result<(u32, u32), WindowError> {
         let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
             message: "Could not find a canvas.".to_string(),
         })?;
-        Ok((canvas.width() as usize, canvas.height() as usize))
+        Ok((canvas.width(), canvas.height()))
     }
 
     pub fn viewport(&self) -> Result<crate::Viewport, WindowError> {
@@ -151,16 +151,16 @@ impl Window {
             let device_pixel_ratio = self.pixels_per_point();
             let canvas = self.canvas.as_ref().unwrap();
             let (width, height) = (
-                (canvas.width() as f64 / device_pixel_ratio) as usize,
-                (canvas.height() as f64 / device_pixel_ratio) as usize,
+                (canvas.width() as f64 / device_pixel_ratio) as u32,
+                (canvas.height() as f64 / device_pixel_ratio) as u32,
             );
             let frame_input = crate::FrameInput {
                 events,
                 elapsed_time,
                 accumulated_time,
                 viewport: crate::Viewport::new_at_origo(
-                    (device_pixel_ratio * width as f64) as usize,
-                    (device_pixel_ratio * height as f64) as usize,
+                    (device_pixel_ratio * width as f64) as u32,
+                    (device_pixel_ratio * height as f64) as u32,
                 ),
                 window_width: width,
                 window_height: height,

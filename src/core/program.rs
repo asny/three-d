@@ -283,7 +283,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer<T>,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -291,7 +291,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 1, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -311,7 +311,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer<T>,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -319,7 +319,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 2, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -339,7 +339,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer<T>,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -347,7 +347,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 3, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -367,7 +367,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer<T>,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -375,7 +375,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 4, T::data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -526,7 +526,12 @@ impl Program {
                 height: 0,
             };
             if viewport != CURRENT_VIEWPORT {
-                context.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+                context.viewport(
+                    viewport.x,
+                    viewport.y,
+                    viewport.width as i32,
+                    viewport.height as i32,
+                );
                 CURRENT_VIEWPORT = viewport;
             }
         }

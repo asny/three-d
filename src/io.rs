@@ -125,8 +125,8 @@ fn image_from_bytes(bytes: &[u8]) -> Result<crate::definition::CPUTexture<u8>, I
 
     Ok(CPUTexture {
         data: img.to_bytes(),
-        width: img.width() as usize,
-        height: img.height() as usize,
+        width: img.width(),
+        height: img.height(),
         format,
         ..Default::default()
     })

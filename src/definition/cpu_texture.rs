@@ -40,7 +40,7 @@ pub enum Format {
 }
 
 impl Format {
-    pub fn color_channel_count(&self) -> usize {
+    pub fn color_channel_count(&self) -> u32 {
         match self {
             Format::R => 1,
             Format::RG => 2,
@@ -58,9 +58,9 @@ impl Format {
 ///
 pub struct CPUTexture<T: TextureDataType> {
     pub data: Vec<T>,
-    pub width: usize,
-    pub height: usize,
-    pub depth: usize,
+    pub width: u32,
+    pub height: u32,
+    pub depth: u32,
     pub format: Format,
     pub min_filter: Interpolation,
     pub mag_filter: Interpolation,
@@ -71,19 +71,20 @@ pub struct CPUTexture<T: TextureDataType> {
 }
 
 impl<T: TextureDataType> CPUTexture<T> {
-    pub fn add_padding(&mut self, x0: usize, x1: usize, y0: usize, y1: usize) {
+    pub fn add_padding(&mut self, x0: u32, x1: u32, y0: u32, y1: u32) {
         let channels = self.format.color_channel_count();
         let width = x0 + self.width + x1;
         let height = y0 + self.height + y1;
-        let mut new_data = vec![T::default(); width * height * channels];
+        let mut new_data = vec![T::default(); width as usize * height as usize * channels as usize];
         for x in 0..self.width {
             for y in 0..self.height {
                 let x_ = x + x0;
                 let y_ = y + y0;
-                let source_index = (y as usize * self.width + x as usize) * channels;
-                let dest_index = (y_ as usize * width + x_ as usize) * channels;
+                let source_index = (y * self.width + x) * channels;
+                let dest_index = (y_ * width + x_) * channels;
                 for i in 0..channels {
-                    new_data[dest_index + i] = self.data[source_index + i].clone();
+                    new_data[(dest_index + i) as usize] =
+                        self.data[(source_index + i) as usize].clone();
                 }
             }
         }

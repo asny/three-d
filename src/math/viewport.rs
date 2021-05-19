@@ -5,15 +5,15 @@
 pub struct Viewport {
     pub x: i32,
     pub y: i32,
-    pub width: usize,
-    pub height: usize,
+    pub width: u32,
+    pub height: u32,
 }
 
 impl Viewport {
     ///
     /// New viewport which starts at origo (x and y are both zero).
     ///
-    pub fn new_at_origo(width: usize, height: usize) -> Self {
+    pub fn new_at_origo(width: u32, height: u32) -> Self {
         Self {
             x: 0,
             y: 0,

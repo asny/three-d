@@ -109,13 +109,13 @@ impl Screen {
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>, Error> {
-        let mut pixels = vec![0u8; viewport.width * viewport.height * 4];
+        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(
             viewport.x as u32,
             viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
+            viewport.width,
+            viewport.height,
             consts::RGBA,
             consts::UNSIGNED_BYTE,
             &mut pixels,
@@ -129,13 +129,13 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> Result<Vec<f32>, Error> {
-        let mut pixels = vec![0f32; viewport.width * viewport.height];
+        let mut pixels = vec![0f32; viewport.width as usize * viewport.height as usize];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_f32_data(
             viewport.x as u32,
             viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
+            viewport.width,
+            viewport.height,
             consts::DEPTH_COMPONENT,
             consts::FLOAT,
             &mut pixels,
@@ -378,8 +378,8 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
-        color_layers: &[usize],
-        depth_layer: usize,
+        color_layers: &[u32],
+        depth_layer: u32,
         clear_state: ClearState,
         render: F,
     ) -> Result<(), Error> {
@@ -407,8 +407,8 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     pub fn copy_to(
         &self,
-        color_layer: usize,
-        depth_layer: usize,
+        color_layer: u32,
+        depth_layer: u32,
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
@@ -460,11 +460,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         Ok(())
     }
 
-    fn bind(
-        &self,
-        color_layers: Option<&[usize]>,
-        depth_layer: Option<usize>,
-    ) -> Result<(), Error> {
+    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> Result<(), Error> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
@@ -475,7 +471,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
                         .collect::<Vec<u32>>(),
                 );
                 for channel in 0..color_layers.len() {
-                    color_texture.bind_as_color_target(color_layers[channel], channel);
+                    color_texture.bind_as_color_target(color_layers[channel], channel as u32);
                 }
             }
         }

@@ -112,7 +112,7 @@ impl Saver {
         for cpu_material in cpu_materials.iter() {
             if let Some(ref cpu_texture) = cpu_material.color_texture {
                 let number_of_channels =
-                    cpu_texture.data.len() / (cpu_texture.width * cpu_texture.height);
+                    cpu_texture.data.len() as u32 / (cpu_texture.width * cpu_texture.height);
                 let format = match number_of_channels {
                     1 => Ok(image::ColorType::L8),
                     3 => Ok(image::ColorType::Rgb8),

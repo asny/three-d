@@ -12,9 +12,9 @@ pub trait Texture {
     /// Binds this texture to the current shader program.
     fn bind(&self, location: u32);
     /// The width of this texture.
-    fn width(&self) -> usize;
+    fn width(&self) -> u32;
     /// The height of this texture.
-    fn height(&self) -> usize;
+    fn height(&self) -> u32;
 }
 
 ///
@@ -24,11 +24,11 @@ pub trait TextureArray {
     /// Binds this texture array to the current shader program.
     fn bind(&self, location: u32);
     /// The width of this texture.
-    fn width(&self) -> usize;
+    fn width(&self) -> u32;
     /// The height of this texture.
-    fn height(&self) -> usize;
+    fn height(&self) -> u32;
     /// The depth of this texture, ie. the number of layers.
-    fn depth(&self) -> usize;
+    fn depth(&self) -> u32;
 }
 
 ///
@@ -38,9 +38,9 @@ pub trait TextureCube {
     /// Binds this texture cube to the current shader program.
     fn bind(&self, location: u32);
     /// The width of one of the sides of this texture.
-    fn width(&self) -> usize;
+    fn width(&self) -> u32;
     /// The height of one of the sides of this texture.
-    fn height(&self) -> usize;
+    fn height(&self) -> u32;
 }
 
 ///
@@ -50,8 +50,8 @@ pub trait TextureCube {
 pub struct Texture2D {
     context: Context,
     id: crate::context::Texture,
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
     format: Format,
     number_of_mip_maps: u32,
 }
@@ -138,10 +138,10 @@ impl Texture for Texture2D {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
-    fn width(&self) -> usize {
+    fn width(&self) -> u32 {
         self.width
     }
-    fn height(&self) -> usize {
+    fn height(&self) -> u32 {
         self.height
     }
 }
@@ -161,8 +161,8 @@ impl Drop for Texture2D {
 pub struct ColorTargetTexture2D<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
     number_of_mip_maps: u32,
     format: Format,
     _dummy: T,
@@ -174,8 +174,8 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     ///
     pub fn new(
         context: &Context,
-        width: usize,
-        height: usize,
+        width: u32,
+        height: u32,
         min_filter: Interpolation,
         mag_filter: Interpolation,
         mip_map_filter: Option<Interpolation>,
@@ -204,8 +204,8 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
             consts::TEXTURE_2D,
             number_of_mip_maps,
             T::internal_format(format)?,
-            width as u32,
-            height as u32,
+            width,
+            height,
         );
         Ok(Self {
             context: context.clone(),
@@ -266,7 +266,9 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
 
         let mut pixels = vec![
             T::default();
-            viewport.width * viewport.height * self.format.color_channel_count()
+            viewport.width as usize
+                * viewport.height as usize
+                * self.format.color_channel_count() as usize
         ];
         let render_target = RenderTarget::new_color(&self.context, &self)?;
         render_target.bind(consts::DRAW_FRAMEBUFFER)?;
@@ -282,10 +284,10 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
         }
     }
 
-    pub(super) fn bind_as_color_target(&self, channel: usize) {
+    pub(super) fn bind_as_color_target(&self, channel: u32) {
         self.context.framebuffer_texture_2d(
             consts::FRAMEBUFFER,
-            consts::COLOR_ATTACHMENT0 + channel as u32,
+            consts::COLOR_ATTACHMENT0 + channel,
             consts::TEXTURE_2D,
             &self.id,
             0,
@@ -297,10 +299,10 @@ impl<T: TextureDataType> Texture for ColorTargetTexture2D<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
-    fn width(&self) -> usize {
+    fn width(&self) -> u32 {
         self.width
     }
-    fn height(&self) -> usize {
+    fn height(&self) -> u32 {
         self.height
     }
 }
@@ -328,8 +330,8 @@ pub enum DepthFormat {
 pub struct DepthTargetTexture2D {
     context: Context,
     id: crate::context::Texture,
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
 }
 
 impl DepthTargetTexture2D {
@@ -338,8 +340,8 @@ impl DepthTargetTexture2D {
     ///
     pub fn new(
         context: &Context,
-        width: usize,
-        height: usize,
+        width: u32,
+        height: u32,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: DepthFormat,
@@ -422,10 +424,10 @@ impl Texture for DepthTargetTexture2D {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
-    fn width(&self) -> usize {
+    fn width(&self) -> u32 {
         self.width
     }
-    fn height(&self) -> usize {
+    fn height(&self) -> u32 {
         self.height
     }
 }
@@ -442,8 +444,8 @@ impl Drop for DepthTargetTexture2D {
 pub struct TextureCubeMap<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
     format: Format,
     number_of_mip_maps: u32,
     _dummy: T,
@@ -478,8 +480,8 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             consts::TEXTURE_CUBE_MAP,
             number_of_mip_maps,
             T::internal_format(cpu_texture.format)?,
-            cpu_texture.width as u32,
-            cpu_texture.height as u32,
+            cpu_texture.width,
+            cpu_texture.height,
         );
         let mut texture = Self {
             context: context.clone(),
@@ -528,11 +530,11 @@ impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
     }
 
-    fn width(&self) -> usize {
+    fn width(&self) -> u32 {
         self.width
     }
 
-    fn height(&self) -> usize {
+    fn height(&self) -> u32 {
         self.height
     }
 }
@@ -552,9 +554,9 @@ impl<T: TextureDataType> Drop for TextureCubeMap<T> {
 pub struct ColorTargetTexture2DArray<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
-    width: usize,
-    height: usize,
-    depth: usize,
+    width: u32,
+    height: u32,
+    depth: u32,
     number_of_mip_maps: u32,
     _dummy: T,
 }
@@ -562,9 +564,9 @@ pub struct ColorTargetTexture2DArray<T: TextureDataType> {
 impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
     pub fn new(
         context: &Context,
-        width: usize,
-        height: usize,
-        depth: usize,
+        width: u32,
+        height: u32,
+        depth: u32,
         min_filter: Interpolation,
         mag_filter: Interpolation,
         mip_map_filter: Option<Interpolation>,
@@ -594,9 +596,9 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
             consts::TEXTURE_2D_ARRAY,
             number_of_mip_maps,
             T::internal_format(format)?,
-            width as u32,
-            height as u32,
-            depth as u32,
+            width,
+            height,
+            depth,
         );
         Ok(Self {
             context: context.clone(),
@@ -619,7 +621,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
-        color_layers: &[usize],
+        color_layers: &[u32],
         clear_state: ClearState,
         render: F,
     ) -> Result<(), Error> {
@@ -640,7 +642,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
     ///
     pub fn copy_to(
         &self,
-        color_layer: usize,
+        color_layer: u32,
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
@@ -662,13 +664,13 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
         }
     }
 
-    pub(crate) fn bind_as_color_target(&self, layer: usize, channel: usize) {
+    pub(crate) fn bind_as_color_target(&self, layer: u32, channel: u32) {
         self.context.framebuffer_texture_layer(
             consts::DRAW_FRAMEBUFFER,
-            consts::COLOR_ATTACHMENT0 + channel as u32,
+            consts::COLOR_ATTACHMENT0 + channel,
             &self.id,
             0,
-            layer as u32,
+            layer,
         );
     }
 }
@@ -677,13 +679,13 @@ impl<T: TextureDataType> TextureArray for ColorTargetTexture2DArray<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
-    fn width(&self) -> usize {
+    fn width(&self) -> u32 {
         self.width
     }
-    fn height(&self) -> usize {
+    fn height(&self) -> u32 {
         self.height
     }
-    fn depth(&self) -> usize {
+    fn depth(&self) -> u32 {
         self.depth
     }
 }
@@ -700,17 +702,17 @@ impl<T: TextureDataType> Drop for ColorTargetTexture2DArray<T> {
 pub struct DepthTargetTexture2DArray {
     context: Context,
     id: crate::context::Texture,
-    width: usize,
-    height: usize,
-    depth: usize,
+    width: u32,
+    height: u32,
+    depth: u32,
 }
 
 impl DepthTargetTexture2DArray {
     pub fn new(
         context: &Context,
-        width: usize,
-        height: usize,
-        depth: usize,
+        width: u32,
+        height: u32,
+        depth: u32,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: DepthFormat,
@@ -732,9 +734,9 @@ impl DepthTargetTexture2DArray {
             consts::TEXTURE_2D_ARRAY,
             1,
             internal_format_from_depth(format),
-            width as u32,
-            height as u32,
-            depth as u32,
+            width,
+            height,
+            depth,
         );
         Ok(Self {
             context: context.clone(),
@@ -751,7 +753,7 @@ impl DepthTargetTexture2DArray {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
-        depth_layer: usize,
+        depth_layer: u32,
         clear_state: Option<f32>,
         render: F,
     ) -> Result<(), Error> {
@@ -774,7 +776,7 @@ impl DepthTargetTexture2DArray {
     ///
     pub fn copy_to<T: TextureDataType>(
         &self,
-        depth_layer: usize,
+        depth_layer: u32,
         destination: CopyDestination<T>,
         viewport: Viewport,
     ) -> Result<(), Error> {
@@ -787,7 +789,7 @@ impl DepthTargetTexture2DArray {
         )
     }
 
-    pub(crate) fn bind_as_depth_target(&self, layer: usize) {
+    pub(crate) fn bind_as_depth_target(&self, layer: u32) {
         self.context.framebuffer_texture_layer(
             consts::DRAW_FRAMEBUFFER,
             consts::DEPTH_ATTACHMENT,
@@ -802,13 +804,13 @@ impl TextureArray for DepthTargetTexture2DArray {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
-    fn width(&self) -> usize {
+    fn width(&self) -> u32 {
         self.width
     }
-    fn height(&self) -> usize {
+    fn height(&self) -> u32 {
         self.height
     }
-    fn depth(&self) -> usize {
+    fn depth(&self) -> u32 {
         self.depth
     }
 }
@@ -894,9 +896,9 @@ fn set_parameters(
 
 fn calculate_number_of_mip_maps(
     mip_map_filter: Option<Interpolation>,
-    width: usize,
-    height: usize,
-    depth: usize,
+    width: u32,
+    height: u32,
+    depth: u32,
 ) -> u32 {
     if mip_map_filter.is_some() {
         let w = (width as f64).log2().ceil();
@@ -909,14 +911,14 @@ fn calculate_number_of_mip_maps(
 }
 
 fn check_data_length(
-    width: usize,
-    height: usize,
-    depth: usize,
+    width: u32,
+    height: u32,
+    depth: u32,
     format: Format,
     length: usize,
 ) -> Result<(), Error> {
-    let expected_pixels = width * height * depth;
-    let actual_pixels = length / format.color_channel_count();
+    let expected_pixels = width as usize * height as usize * depth as usize;
+    let actual_pixels = length / format.color_channel_count() as usize;
 
     if expected_pixels != actual_pixels {
         Err(Error::TextureError {

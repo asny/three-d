@@ -225,9 +225,8 @@ fn main() {
                                     }
                                 },
                             );
-                            panel_width = (gui_context.used_size().x
-                                * gui_context.pixels_per_point())
-                                as usize;
+                            panel_width =
+                                (gui_context.used_size().x * gui_context.pixels_per_point()) as u32;
                         })
                         .unwrap();
 

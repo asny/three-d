@@ -108,7 +108,7 @@ impl SpotLight {
     pub fn generate_shadow_map(
         &mut self,
         frustrum_depth: f32,
-        texture_size: usize,
+        texture_size: u32,
         geometries: &[&dyn Geometry],
     ) -> Result<(), Error> {
         let position = self.position();

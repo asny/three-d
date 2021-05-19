@@ -80,8 +80,8 @@ impl PhongDeferredPipeline {
     ///
     pub fn geometry_pass(
         &mut self,
-        width: usize,
-        height: usize,
+        width: u32,
+        height: u32,
         camera: &Camera,
         geometries: &[&dyn PhongGeometry],
     ) -> Result<(), Error> {

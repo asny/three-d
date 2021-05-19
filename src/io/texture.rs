@@ -59,15 +59,15 @@ impl Saver {
     pub fn save_pixels<P: AsRef<Path>>(
         path: P,
         pixels: &[u8],
-        width: usize,
-        height: usize,
+        width: u32,
+        height: u32,
     ) -> Result<(), IOError> {
-        let mut pixels_out = vec![0u8; width * height * 4];
-        for row in 0..height {
-            for col in 0..width {
+        let mut pixels_out = vec![0u8; width as usize * height as usize * 4];
+        for row in 0..height as usize {
+            for col in 0..width as usize {
                 for i in 0..4 {
-                    pixels_out[4 * width * (height - row - 1) + 4 * col + i] =
-                        pixels[4 * width * row + 4 * col + i];
+                    pixels_out[4 * width as usize * (height as usize - row - 1) + 4 * col + i] =
+                        pixels[4 * width as usize * row + 4 * col + i];
                 }
             }
         }

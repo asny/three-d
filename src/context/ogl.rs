@@ -565,9 +565,9 @@ impl Context {
         }
     }
 
-    pub fn viewport(&self, x: i32, y: i32, width: usize, height: usize) {
+    pub fn viewport(&self, x: i32, y: i32, width: i32, height: i32) {
         unsafe {
-            self.inner.Viewport(x, y, width as i32, height as i32);
+            self.inner.Viewport(x, y, width, height);
         }
     }
 

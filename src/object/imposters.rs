@@ -4,7 +4,7 @@ use crate::definition::*;
 use crate::math::*;
 use std::f32::consts::PI;
 
-const NO_VIEW_ANGLES: usize = 8;
+const NO_VIEW_ANGLES: u32 = 8;
 
 ///
 /// A level-of-detail technique to replace rendering high-poly meshes at a distance.
@@ -65,7 +65,7 @@ impl Imposters {
         &mut self,
         render: F,
         aabb: (Vec3, Vec3),
-        max_texture_size: usize,
+        max_texture_size: u32,
     ) -> Result<(), Error> {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -81,8 +81,8 @@ impl Imposters {
             4.0 * (width + height),
         )?;
 
-        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
-        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
+        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as u32;
+        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as u32;
         self.texture = ColorTargetTexture2DArray::<u8>::new(
             &self.context,
             texture_width,
