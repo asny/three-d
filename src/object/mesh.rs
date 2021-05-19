@@ -279,6 +279,32 @@ impl Mesh {
     }
 
     ///
+    /// Render the normals of the mesh.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    /// # Errors
+    /// Will return an error if the mesh has no normals.
+    ///
+    pub fn render_normals(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAM_NORMALS.is_none() {
+                PROGRAM_NORMALS = Some(MeshProgram::new(
+                    &self.context,
+                    include_str!("shaders/mesh_normals.frag"),
+                )?);
+            }
+            PROGRAM_NORMALS.as_ref().unwrap()
+        };
+        self.render(program, render_states, viewport, camera)
+    }
+
+    ///
     /// Render the mesh with the given texture.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
@@ -438,6 +464,7 @@ impl Drop for Mesh {
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
                 PROGRAM_UVS = None;
+                PROGRAM_NORMALS = None;
                 PROGRAM_PER_VERTEX_COLOR = None;
             }
         }
@@ -448,6 +475,7 @@ static mut PROGRAM_COLOR: Option<MeshProgram> = None;
 static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
 static mut PROGRAM_UVS: Option<MeshProgram> = None;
+static mut PROGRAM_NORMALS: Option<MeshProgram> = None;
 static mut PROGRAM_PICK: Option<MeshProgram> = None;
 static mut PROGRAM_PER_VERTEX_COLOR: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
