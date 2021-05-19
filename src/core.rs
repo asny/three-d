@@ -88,7 +88,6 @@ impl ElementBufferDataType for u16 {}
 impl ElementBufferDataType for u32 {}
 
 pub(crate) mod internal {
-
     use crate::context::{consts, Context};
     use crate::definition::*;
     use crate::math::*;
@@ -303,4 +302,177 @@ pub(crate) mod internal {
             Format::SRGBA => consts::RGBA,
         }
     }
+}
+
+use crate::context::consts;
+
+///
+/// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).
+///
+pub trait Texture {
+    /// Binds this texture to the current shader program.
+    fn bind(&self, location: u32);
+    /// The width of this texture.
+    fn width(&self) -> u32;
+    /// The height of this texture.
+    fn height(&self) -> u32;
+}
+
+///
+/// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::Program::use_texture_array)).
+///
+pub trait TextureArray {
+    /// Binds this texture array to the current shader program.
+    fn bind(&self, location: u32);
+    /// The width of this texture.
+    fn width(&self) -> u32;
+    /// The height of this texture.
+    fn height(&self) -> u32;
+    /// The depth of this texture, ie. the number of layers.
+    fn depth(&self) -> u32;
+}
+
+///
+/// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::Program::use_texture_cube)).
+///
+pub trait TextureCube {
+    /// Binds this texture cube to the current shader program.
+    fn bind(&self, location: u32);
+    /// The width of one of the sides of this texture.
+    fn width(&self) -> u32;
+    /// The height of one of the sides of this texture.
+    fn height(&self) -> u32;
+}
+
+// COMMON TEXTURE FUNCTIONS
+fn generate(context: &Context) -> Result<crate::context::Texture, Error> {
+    context.create_texture().ok_or_else(|| Error::TextureError {
+        message: "Failed to create texture".to_string(),
+    })
+}
+
+fn bind_at(context: &Context, id: &crate::context::Texture, target: u32, location: u32) {
+    context.active_texture(consts::TEXTURE0 + location);
+    context.bind_texture(target, id);
+}
+
+fn set_parameters(
+    context: &Context,
+    id: &crate::context::Texture,
+    target: u32,
+    min_filter: Interpolation,
+    mag_filter: Interpolation,
+    mip_map_filter: Option<Interpolation>,
+    wrap_s: Wrapping,
+    wrap_t: Wrapping,
+    wrap_r: Option<Wrapping>,
+) {
+    context.bind_texture(target, id);
+    match mip_map_filter {
+        None => context.tex_parameteri(
+            target,
+            consts::TEXTURE_MIN_FILTER,
+            interpolation_from(min_filter),
+        ),
+        Some(Interpolation::Nearest) => {
+            if min_filter == Interpolation::Nearest {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::NEAREST_MIPMAP_NEAREST as i32,
+                );
+            } else {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::LINEAR_MIPMAP_NEAREST as i32,
+                )
+            }
+        }
+        Some(Interpolation::Linear) => {
+            if min_filter == Interpolation::Nearest {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::NEAREST_MIPMAP_LINEAR as i32,
+                );
+            } else {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::LINEAR_MIPMAP_LINEAR as i32,
+                )
+            }
+        }
+    }
+    context.tex_parameteri(
+        target,
+        consts::TEXTURE_MAG_FILTER,
+        interpolation_from(mag_filter),
+    );
+    context.tex_parameteri(target, consts::TEXTURE_WRAP_S, wrapping_from(wrap_s));
+    context.tex_parameteri(target, consts::TEXTURE_WRAP_T, wrapping_from(wrap_t));
+    if let Some(r) = wrap_r {
+        context.tex_parameteri(target, consts::TEXTURE_WRAP_R, wrapping_from(r));
+    }
+}
+
+fn calculate_number_of_mip_maps(
+    mip_map_filter: Option<Interpolation>,
+    width: u32,
+    height: u32,
+    depth: u32,
+) -> u32 {
+    if mip_map_filter.is_some() {
+        let w = (width as f64).log2().ceil();
+        let h = (height as f64).log2().ceil();
+        let d = (depth as f64).log2().ceil();
+        w.max(h).max(d).floor() as u32 + 1
+    } else {
+        1
+    }
+}
+
+fn check_data_length(
+    width: u32,
+    height: u32,
+    depth: u32,
+    format: Format,
+    length: usize,
+) -> Result<(), Error> {
+    let expected_pixels = width as usize * height as usize * depth as usize;
+    let actual_pixels = length / format.color_channel_count() as usize;
+
+    if expected_pixels != actual_pixels {
+        Err(Error::TextureError {
+            message: format!(
+                "Wrong size of data for the texture (got {} pixels but expected {} pixels)",
+                actual_pixels, expected_pixels
+            ),
+        })?;
+    }
+    Ok(())
+}
+
+fn internal_format_from_depth(format: DepthFormat) -> u32 {
+    match format {
+        DepthFormat::Depth16 => consts::DEPTH_COMPONENT16,
+        DepthFormat::Depth24 => consts::DEPTH_COMPONENT24,
+        DepthFormat::Depth32F => consts::DEPTH_COMPONENT32F,
+    }
+}
+
+fn wrapping_from(wrapping: Wrapping) -> i32 {
+    (match wrapping {
+        Wrapping::Repeat => consts::REPEAT,
+        Wrapping::MirroredRepeat => consts::MIRRORED_REPEAT,
+        Wrapping::ClampToEdge => consts::CLAMP_TO_EDGE,
+    }) as i32
+}
+
+fn interpolation_from(interpolation: Interpolation) -> i32 {
+    (match interpolation {
+        Interpolation::Nearest => consts::NEAREST,
+        Interpolation::Linear => consts::LINEAR,
+    }) as i32
 }
