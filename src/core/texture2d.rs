@@ -1,7 +1,6 @@
 use crate::context::{consts, Context};
 use crate::core::*;
 use crate::definition::*;
-use crate::math::*;
 
 ///
 /// A 2D texture, basically an image that is transferred to the GPU.
