@@ -102,10 +102,23 @@ impl VertexBufferDataType for f32 {}
 pub trait ElementBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
+    fn into_u32(&self) -> u32;
 }
-impl ElementBufferDataType for u8 {}
-impl ElementBufferDataType for u16 {}
-impl ElementBufferDataType for u32 {}
+impl ElementBufferDataType for u8 {
+    fn into_u32(&self) -> u32 {
+        *self as u32
+    }
+}
+impl ElementBufferDataType for u16 {
+    fn into_u32(&self) -> u32 {
+        *self as u32
+    }
+}
+impl ElementBufferDataType for u32 {
+    fn into_u32(&self) -> u32 {
+        *self
+    }
+}
 
 pub(crate) mod internal {
     use crate::context::{consts, Context};

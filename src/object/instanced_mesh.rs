@@ -69,7 +69,7 @@ impl InstancedMesh {
             None
         };
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
-            Some(ElementBuffer::new(context, ind)?)
+            Some(ElementBuffer::new_from_indices(context, ind)?)
         } else {
             None
         };

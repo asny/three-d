@@ -64,12 +64,28 @@ fn parse_tree<'a>(
                     nors
                 });
 
-                let indices = reader.read_indices().map(|values| {
-                    let mut inds = Vec::new();
-                    for value in values.into_u32() {
-                        inds.push(value);
+                let indices = reader.read_indices().map(|values| match values {
+                    ::gltf::mesh::util::ReadIndices::U8(iter) => {
+                        let mut inds = Vec::new();
+                        for value in iter {
+                            inds.push(value);
+                        }
+                        Indices::U8(inds)
                     }
-                    inds
+                    ::gltf::mesh::util::ReadIndices::U16(iter) => {
+                        let mut inds = Vec::new();
+                        for value in iter {
+                            inds.push(value);
+                        }
+                        Indices::U16(inds)
+                    }
+                    ::gltf::mesh::util::ReadIndices::U32(iter) => {
+                        let mut inds = Vec::new();
+                        for value in iter {
+                            inds.push(value);
+                        }
+                        Indices::U32(inds)
+                    }
                 });
 
                 let material = primitive.material();

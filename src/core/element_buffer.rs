@@ -30,12 +30,61 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
         Ok(buffer)
     }
 
+    pub(crate) fn new_from_indices(
+        context: &Context,
+        indices: &crate::Indices,
+    ) -> Result<ElementBuffer<T>, Error> {
+        let id = context.create_buffer().unwrap();
+        Ok(match indices {
+            crate::Indices::U8(data) => {
+                let mut buffer = ElementBuffer {
+                    context: context.clone(),
+                    id,
+                    count: 0,
+                    _dummy: T::default(),
+                };
+                if data.len() > 0 {
+                    buffer.fill_with_internal(data);
+                }
+                buffer
+            }
+            crate::Indices::U16(data) => {
+                let mut buffer = ElementBuffer {
+                    context: context.clone(),
+                    id,
+                    count: 0,
+                    _dummy: T::default(),
+                };
+                if data.len() > 0 {
+                    buffer.fill_with_internal(data);
+                }
+                buffer
+            }
+            crate::Indices::U32(data) => {
+                let mut buffer = ElementBuffer {
+                    context: context.clone(),
+                    id,
+                    count: 0,
+                    _dummy: T::default(),
+                };
+                if data.len() > 0 {
+                    buffer.fill_with_internal(data);
+                }
+                buffer
+            }
+        })
+    }
+
     ///
     /// Fills the buffer with the given indices.
     ///
     pub fn fill_with(&mut self, data: &[T]) {
+        self.fill_with_internal(data);
+    }
+
+    fn fill_with_internal<Q: ElementBufferDataType>(&mut self, data: &[Q]) {
         self.bind();
-        T::buffer_data(
+        Q::buffer_data(
             &self.context,
             consts::ELEMENT_ARRAY_BUFFER,
             data,

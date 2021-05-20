@@ -25,14 +25,14 @@ fn main() {
         .unwrap(),
     );
 
-    let indices = vec![0, 1, 2, 2, 3, 0];
+    let indices = vec![0u8, 1, 2, 2, 3, 0];
     let positions = vec![
         -2.0, -2.0, 0.0, 2.0, -2.0, 0.0, 2.0, 2.0, 0.0, -2.0, 2.0, 0.0,
     ];
     let mut mesh = Mesh::new(
         &context,
         &CPUMesh {
-            indices: Some(indices),
+            indices: Some(Indices::U8(indices)),
             positions,
             ..Default::default()
         },

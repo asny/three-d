@@ -39,7 +39,7 @@ impl<'a> Loaded<'a> {
                 name: mesh.name,
                 material_name: mesh.material_name,
                 positions: mesh.positions,
-                indices: mesh.indices,
+                indices: mesh.indices.map(|i| Indices::U32(i)),
                 normals: mesh.normals,
                 uvs: mesh.uvs,
                 colors: None,
@@ -143,10 +143,15 @@ impl Saver {
     ) -> Result<Vec<u8>, IOError> {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {
+            let indices = cpu_mesh.indices.map(|indices| match indices {
+                Indices::U8(ind) => ind.iter().map(|i| *i as u32).collect(),
+                Indices::U16(ind) => ind.iter().map(|i| *i as u32).collect(),
+                Indices::U32(ind) => ind,
+            });
             meshes.push(ThreeDMeshSubMesh {
                 name: cpu_mesh.name,
                 material_name: cpu_mesh.material_name,
-                indices: cpu_mesh.indices,
+                indices,
                 positions: cpu_mesh.positions,
                 normals: cpu_mesh.normals,
                 uvs: cpu_mesh.uvs,

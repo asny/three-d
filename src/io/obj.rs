@@ -151,7 +151,7 @@ impl<'a> Loaded<'a> {
                     name: object.name.to_string(),
                     material_name: mesh.material_name.clone(),
                     positions,
-                    indices: Some(indices),
+                    indices: Some(Indices::U32(indices)),
                     normals: Some(normals),
                     uvs: Some(uvs),
                     colors: None,

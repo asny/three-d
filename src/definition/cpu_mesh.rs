@@ -1,5 +1,22 @@
 use crate::math::*;
 
+#[derive(Debug)]
+pub enum Indices {
+    U8(Vec<u8>),
+    U16(Vec<u16>),
+    U32(Vec<u32>),
+}
+
+impl Indices {
+    pub fn into_u32(&self) -> Vec<u32> {
+        match self {
+            Self::U8(ind) => ind.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
+            Self::U16(ind) => ind.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
+            Self::U32(ind) => ind.clone(),
+        }
+    }
+}
+
 ///
 /// A CPU-side version of a triangle mesh (for example [Mesh](crate::Mesh)).
 /// Can be constructed manually or loaded via [io](crate::io)
@@ -10,7 +27,7 @@ pub struct CPUMesh {
     pub name: String,
     pub material_name: Option<String>,
     pub positions: Vec<f32>,
-    pub indices: Option<Vec<u32>>,
+    pub indices: Option<Indices>,
     pub normals: Option<Vec<f32>>,
     pub uvs: Option<Vec<f32>>,
     pub colors: Option<Vec<u8>>,
@@ -18,7 +35,7 @@ pub struct CPUMesh {
 
 impl CPUMesh {
     pub fn square(size: f32) -> Self {
-        let indices = vec![0, 1, 2, 2, 3, 0];
+        let indices = vec![0u8, 1, 2, 2, 3, 0];
         let halfsize = 0.5 * size;
         let positions = vec![
             -halfsize, -halfsize, 0.0, halfsize, -halfsize, 0.0, halfsize, halfsize, 0.0,
@@ -28,7 +45,7 @@ impl CPUMesh {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
         CPUMesh {
             name: "square".to_string(),
-            indices: Some(indices),
+            indices: Some(Indices::U8(indices)),
             positions,
             normals: Some(normals),
             uvs: Some(uvs),
@@ -54,12 +71,12 @@ impl CPUMesh {
 
         for j in 0..angle_subdivisions as u32 {
             indices.push(0);
-            indices.push(j);
-            indices.push((j + 1) % angle_subdivisions as u32);
+            indices.push(j as u16);
+            indices.push(((j + 1) % angle_subdivisions) as u16);
         }
         CPUMesh {
             name: "circle".to_string(),
-            indices: Some(indices),
+            indices: Some(Indices::U16(indices)),
             positions,
             normals: Some(normals),
             ..Default::default()
@@ -74,18 +91,18 @@ impl CPUMesh {
             -z, -x, z, x, 0.0, -z, x, 0.0, z, -x, 0.0, -z, -x, 0.0,
         ];
         let indices = vec![
-            0, 1, 4, 0, 4, 9, 9, 4, 5, 4, 8, 5, 4, 1, 8, 8, 1, 10, 8, 10, 3, 5, 8, 3, 5, 3, 2, 2,
+            0u8, 1, 4, 0, 4, 9, 9, 4, 5, 4, 8, 5, 4, 1, 8, 8, 1, 10, 8, 10, 3, 5, 8, 3, 5, 3, 2, 2,
             3, 7, 7, 3, 10, 7, 10, 6, 7, 6, 11, 11, 6, 0, 0, 6, 1, 6, 10, 1, 9, 11, 0, 9, 2, 11, 9,
             5, 2, 7, 11, 2,
         ];
-        let normals = Some(compute_normals_with_indices(&indices, &positions));
-        CPUMesh {
+        let mut mesh = CPUMesh {
             name: "sphere".to_string(),
-            indices: Some(indices),
+            indices: Some(Indices::U8(indices)),
             positions,
-            normals,
             ..Default::default()
-        }
+        };
+        mesh.compute_normals();
+        mesh
     }
 
     pub fn cylinder(radius: f32, length: f32, angle_subdivisions: u32) -> Self {
@@ -121,7 +138,7 @@ impl CPUMesh {
         Self {
             name: "cylinder".to_string(),
             positions,
-            indices: Some(indices),
+            indices: Some(Indices::U32(indices)),
             normals,
             ..Default::default()
         }
@@ -141,29 +158,25 @@ impl CPUMesh {
                 positions.push(radius * angle.sin() * (1.0 - x));
             }
         }
-        for i in 0..length_subdivisions as u32 {
-            for j in 0..angle_subdivisions as u32 {
-                indices.push(i * angle_subdivisions as u32 + j);
-                indices.push(i * angle_subdivisions as u32 + (j + 1) % angle_subdivisions as u32);
-                indices.push(
-                    (i + 1) * angle_subdivisions as u32 + (j + 1) % angle_subdivisions as u32,
-                );
+        for i in 0..length_subdivisions {
+            for j in 0..angle_subdivisions {
+                indices.push((i * angle_subdivisions + j) as u16);
+                indices.push((i * angle_subdivisions + (j + 1) % angle_subdivisions) as u16);
+                indices.push(((i + 1) * angle_subdivisions + (j + 1) % angle_subdivisions) as u16);
 
-                indices.push(i * angle_subdivisions as u32 + j);
-                indices.push(
-                    (i + 1) * angle_subdivisions as u32 + (j + 1) % angle_subdivisions as u32,
-                );
-                indices.push((i + 1) * angle_subdivisions as u32 + j);
+                indices.push((i * angle_subdivisions + j) as u16);
+                indices.push(((i + 1) * angle_subdivisions + (j + 1) % angle_subdivisions) as u16);
+                indices.push(((i + 1) * angle_subdivisions + j) as u16);
             }
         }
-        let normals = Some(compute_normals_with_indices(&indices, &positions));
-        Self {
+        let mut mesh = Self {
             name: "cone".to_string(),
             positions,
-            indices: Some(indices),
-            normals,
+            indices: Some(Indices::U16(indices)),
             ..Default::default()
-        }
+        };
+        mesh.compute_normals();
+        mesh
     }
 
     pub fn arrow(radius: f32, length: f32, angle_subdivisions: u32) -> Self {
@@ -174,12 +187,12 @@ impl CPUMesh {
         for i in 0..cone.positions.len() / 3 {
             cone.positions[i * 3] += cylinder_length;
         }
-        let offset = *arrow.indices.as_ref().unwrap().iter().max().unwrap() + 1;
-        arrow
-            .indices
-            .as_mut()
-            .unwrap()
-            .extend(cone.indices.as_ref().unwrap().iter().map(|i| i + offset));
+        let mut indices = arrow.indices.unwrap().into_u32();
+        let cone_indices = cone.indices.unwrap().into_u32();
+        let offset = indices.iter().max().unwrap() + 1;
+        indices.extend(cone_indices.iter().map(|i| i + offset));
+        arrow.indices = Some(Indices::U32(indices));
+
         arrow.positions.extend(cone.positions);
         arrow
             .normals
@@ -194,11 +207,12 @@ impl CPUMesh {
     /// It will override the current normals if they already exist.
     ///
     pub fn compute_normals(&mut self) {
-        if let Some(ref ind) = self.indices {
-            self.normals = Some(compute_normals_with_indices(ind, &self.positions));
-        } else {
-            self.normals = Some(compute_normals(&self.positions));
-        }
+        self.normals = Some(
+            self.indices
+                .as_ref()
+                .map(|indices| compute_normals_with_indices(&indices.into_u32(), &self.positions))
+                .unwrap_or(compute_normals(&self.positions)),
+        );
     }
 
     ///

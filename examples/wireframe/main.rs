@@ -253,7 +253,7 @@ fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
 
 fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
     let mut edge_transformations = std::collections::HashMap::new();
-    let indices = cpu_mesh.indices.as_ref().unwrap();
+    let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
     for f in 0..indices.len() / 3 {
         let mut fun = |i1, i2| {
             let p1 = vec3(

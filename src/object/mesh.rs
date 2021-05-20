@@ -165,7 +165,7 @@ impl Mesh {
             None
         };
         let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
-            Some(Rc::new(ElementBuffer::new(context, ind)?))
+            Some(Rc::new(ElementBuffer::new_from_indices(context, ind)?))
         } else {
             None
         };
