@@ -17,7 +17,7 @@ pub struct MeshProgram {
 
 impl MeshProgram {
     ///
-    /// Constructs a new shader program for rendering meshes. The fragment shader can use the fragments position by adding `in vec3 pos;`,
+    /// Constructs a new shader program for rendering meshes. The fragment shader can use the fragments position in world space by adding `in vec3 pos;`,
     /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
     ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
