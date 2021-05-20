@@ -1162,7 +1162,12 @@ fn create_whitespace_cstring_with_len(len: usize) -> std::ffi::CString {
 fn byte_size_for_type(data_type: u32, count: u32) -> u32 {
     match data_type {
         consts::FLOAT => count * std::mem::size_of::<f32>() as u32,
+        consts::UNSIGNED_BYTE => count * std::mem::size_of::<u8>() as u32,
+        consts::UNSIGNED_SHORT => count * std::mem::size_of::<u16>() as u32,
         consts::UNSIGNED_INT => count * std::mem::size_of::<u32>() as u32,
-        _ => 0,
+        consts::BYTE => count * std::mem::size_of::<i8>() as u32,
+        consts::SHORT => count * std::mem::size_of::<i16>() as u32,
+        consts::INT => count * std::mem::size_of::<i32>() as u32,
+        _ => unimplemented!(),
     }
 }

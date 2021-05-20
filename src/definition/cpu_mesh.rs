@@ -191,7 +191,7 @@ impl CPUMesh {
         let cone_indices = cone.indices.unwrap().into_u32();
         let offset = indices.iter().max().unwrap() + 1;
         indices.extend(cone_indices.iter().map(|i| i + offset));
-        arrow.indices = Some(Indices::U32(indices));
+        arrow.indices = Some(Indices::U16(indices.iter().map(|i| *i as u16).collect()));
 
         arrow.positions.extend(cone.positions);
         arrow

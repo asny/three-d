@@ -453,7 +453,7 @@ impl Program {
         self.set_used();
         element_buffer.bind();
         self.context
-            .draw_elements(consts::TRIANGLES, count, consts::UNSIGNED_INT, first);
+            .draw_elements(consts::TRIANGLES, count, T::data_type(), first);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
         for location in self.vertex_attributes.values() {
@@ -478,7 +478,7 @@ impl Program {
         self.context.draw_elements_instanced(
             consts::TRIANGLES,
             element_buffer.count() as u32,
-            consts::UNSIGNED_INT,
+            T::data_type(),
             0,
             count,
         );
