@@ -98,11 +98,11 @@ pub struct ParticleData {
 /// `new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time`
 ///
 pub struct Particles {
-    start_position_buffer: VertexBuffer<f32>,
-    start_velocity_buffer: VertexBuffer<f32>,
-    position_buffer: VertexBuffer<f32>,
-    normal_buffer: Option<VertexBuffer<f32>>,
-    uv_buffer: Option<VertexBuffer<f32>>,
+    start_position_buffer: VertexBuffer,
+    start_velocity_buffer: VertexBuffer,
+    position_buffer: VertexBuffer,
+    normal_buffer: Option<VertexBuffer>,
+    uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     pub acceleration: Vec3,
     instance_count: u32,
@@ -138,8 +138,8 @@ impl Particles {
             index_buffer,
             normal_buffer,
             uv_buffer,
-            start_position_buffer: VertexBuffer::new_with_dynamic(context, &[])?,
-            start_velocity_buffer: VertexBuffer::new_with_dynamic(context, &[])?,
+            start_position_buffer: VertexBuffer::new(context)?,
+            start_velocity_buffer: VertexBuffer::new(context)?,
             acceleration: *acceleration,
             instance_count: 0,
             cull: CullType::None,

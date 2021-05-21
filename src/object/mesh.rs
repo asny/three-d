@@ -141,11 +141,11 @@ impl std::ops::Deref for MeshProgram {
 ///
 pub struct Mesh {
     context: Context,
-    position_buffer: Rc<VertexBuffer<f32>>,
-    normal_buffer: Option<Rc<VertexBuffer<f32>>>,
+    position_buffer: Rc<VertexBuffer>,
+    normal_buffer: Option<Rc<VertexBuffer>>,
     index_buffer: Option<Rc<ElementBuffer>>,
-    uv_buffer: Option<Rc<VertexBuffer<f32>>>,
-    color_buffer: Option<Rc<VertexBuffer<u8>>>,
+    uv_buffer: Option<Rc<VertexBuffer>>,
+    color_buffer: Option<Rc<VertexBuffer>>,
     aabb: AxisAlignedBoundingBox,
     pub name: String,
     pub cull: CullType,

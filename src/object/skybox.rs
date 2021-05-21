@@ -8,7 +8,7 @@ use crate::math::*;
 ///
 pub struct Skybox<T: TextureDataType> {
     program: Program,
-    vertex_buffer: VertexBuffer<f32>,
+    vertex_buffer: VertexBuffer,
     texture: TextureCubeMap<T>,
 }
 

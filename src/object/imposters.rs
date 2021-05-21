@@ -14,10 +14,10 @@ const NO_VIEW_ANGLES: u32 = 8;
 pub struct Imposters {
     context: Context,
     program: Program,
-    center_buffer: VertexBuffer<f32>,
-    rotation_buffer: VertexBuffer<f32>,
-    positions_buffer: VertexBuffer<f32>,
-    uvs_buffer: VertexBuffer<f32>,
+    center_buffer: VertexBuffer,
+    rotation_buffer: VertexBuffer,
+    positions_buffer: VertexBuffer,
+    uvs_buffer: VertexBuffer,
     instance_count: u32,
     texture: ColorTargetTexture2DArray<u8>,
 }
@@ -25,7 +25,7 @@ pub struct Imposters {
 impl Imposters {
     pub fn new(context: &Context) -> Result<Self, Error> {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0];
-        let positions_buffer = VertexBuffer::new_with_static(&context, &[])?;
+        let positions_buffer = VertexBuffer::new(&context)?;
         let uvs_buffer = VertexBuffer::new_with_static(&context, &uvs)?;
 
         let program = Program::from_source(
@@ -34,8 +34,8 @@ impl Imposters {
             include_str!("shaders/imposter.frag"),
         )?;
 
-        let center_buffer = VertexBuffer::new_with_dynamic(context, &[])?;
-        let rotation_buffer = VertexBuffer::new_with_dynamic(context, &[])?;
+        let center_buffer = VertexBuffer::new(context)?;
+        let rotation_buffer = VertexBuffer::new(context)?;
         let texture = ColorTargetTexture2DArray::<u8>::new(
             context,
             1,
