@@ -143,7 +143,7 @@ pub struct Mesh {
     context: Context,
     position_buffer: Rc<VertexBuffer<f32>>,
     normal_buffer: Option<Rc<VertexBuffer<f32>>>,
-    index_buffer: Option<Rc<ElementBuffer<u32>>>,
+    index_buffer: Option<Rc<ElementBuffer>>,
     uv_buffer: Option<Rc<VertexBuffer<f32>>>,
     color_buffer: Option<Rc<VertexBuffer<u8>>>,
     aabb: AxisAlignedBoundingBox,
@@ -164,8 +164,12 @@ impl Mesh {
         } else {
             None
         };
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
-            Some(Rc::new(ElementBuffer::new_from_indices(context, ind)?))
+        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
+            Some(Rc::new(match indices {
+                Indices::U8(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new(context, ind)?,
+            }))
         } else {
             None
         };

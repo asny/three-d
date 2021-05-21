@@ -103,7 +103,7 @@ pub struct Particles {
     position_buffer: VertexBuffer<f32>,
     normal_buffer: Option<VertexBuffer<f32>>,
     uv_buffer: Option<VertexBuffer<f32>>,
-    index_buffer: Option<ElementBuffer<u32>>,
+    index_buffer: Option<ElementBuffer>,
     pub acceleration: Vec3,
     instance_count: u32,
     pub cull: CullType,
@@ -118,8 +118,12 @@ impl Particles {
         } else {
             None
         };
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
-            Some(ElementBuffer::new_from_indices(context, ind)?)
+        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
+            Some(match indices {
+                Indices::U8(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new(context, ind)?,
+            })
         } else {
             None
         };

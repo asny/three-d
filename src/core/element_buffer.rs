@@ -5,24 +5,27 @@ use crate::core::{ElementBufferDataType, Error};
 /// A buffer containing indices for rendering, see for example [draw_elements](crate::Program::draw_elements).
 /// Also known as an index buffer.
 ///
-pub struct ElementBuffer<T: ElementBufferDataType> {
+pub struct ElementBuffer {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
-    _dummy: T,
+    data_type: u32,
 }
 
-impl<T: ElementBufferDataType> ElementBuffer<T> {
+impl ElementBuffer {
     ///
     /// Creates a new element buffer and fills it with the given indices.
     ///
-    pub fn new(context: &Context, data: &[T]) -> Result<ElementBuffer<T>, Error> {
+    pub fn new<T: ElementBufferDataType>(
+        context: &Context,
+        data: &[T],
+    ) -> Result<ElementBuffer, Error> {
         let id = context.create_buffer().unwrap();
         let mut buffer = ElementBuffer {
             context: context.clone(),
             id,
             count: 0,
-            _dummy: T::default(),
+            data_type: T::data_type(),
         };
         if data.len() > 0 {
             buffer.fill_with(data);
@@ -30,66 +33,18 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
         Ok(buffer)
     }
 
-    pub(crate) fn new_from_indices(
-        context: &Context,
-        indices: &crate::Indices,
-    ) -> Result<ElementBuffer<T>, Error> {
-        let id = context.create_buffer().unwrap();
-        Ok(match indices {
-            crate::Indices::U8(data) => {
-                let mut buffer = ElementBuffer {
-                    context: context.clone(),
-                    id,
-                    count: 0,
-                    _dummy: T::default(),
-                };
-                if data.len() > 0 {
-                    buffer.fill_with_internal(data);
-                }
-                buffer
-            }
-            crate::Indices::U16(data) => {
-                let mut buffer = ElementBuffer {
-                    context: context.clone(),
-                    id,
-                    count: 0,
-                    _dummy: T::default(),
-                };
-                if data.len() > 0 {
-                    buffer.fill_with_internal(data);
-                }
-                buffer
-            }
-            crate::Indices::U32(data) => {
-                let mut buffer = ElementBuffer {
-                    context: context.clone(),
-                    id,
-                    count: 0,
-                    _dummy: T::default(),
-                };
-                if data.len() > 0 {
-                    buffer.fill_with_internal(data);
-                }
-                buffer
-            }
-        })
-    }
-
     ///
     /// Fills the buffer with the given indices.
     ///
-    pub fn fill_with(&mut self, data: &[T]) {
-        self.fill_with_internal(data);
-    }
-
-    fn fill_with_internal<Q: ElementBufferDataType>(&mut self, data: &[Q]) {
+    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) {
         self.bind();
-        Q::buffer_data(
+        T::buffer_data(
             &self.context,
             consts::ELEMENT_ARRAY_BUFFER,
             data,
             consts::STATIC_DRAW,
         );
+        self.data_type = T::data_type();
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         self.count = data.len();
     }
@@ -101,13 +56,17 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
         self.count
     }
 
+    pub(crate) fn data_type(&self) -> u32 {
+        self.data_type
+    }
+
     pub(crate) fn bind(&self) {
         self.context
             .bind_buffer(consts::ELEMENT_ARRAY_BUFFER, &self.id);
     }
 }
 
-impl<T: ElementBufferDataType> Drop for ElementBuffer<T> {
+impl Drop for ElementBuffer {
     fn drop(&mut self) {
         self.context.delete_buffer(&self.id);
     }

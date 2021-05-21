@@ -421,12 +421,12 @@ impl Program {
         self.context.unuse_program();
     }
 
-    pub fn draw_elements<T: ElementBufferDataType>(
+    pub fn draw_elements(
         &self,
         render_states: RenderStates,
         cull: CullType,
         viewport: Viewport,
-        element_buffer: &ElementBuffer<T>,
+        element_buffer: &ElementBuffer,
     ) {
         self.draw_subset_of_elements(
             render_states,
@@ -438,12 +438,12 @@ impl Program {
         );
     }
 
-    pub fn draw_subset_of_elements<T: ElementBufferDataType>(
+    pub fn draw_subset_of_elements(
         &self,
         render_states: RenderStates,
         cull: CullType,
         viewport: Viewport,
-        element_buffer: &ElementBuffer<T>,
+        element_buffer: &ElementBuffer,
         first: u32,
         count: u32,
     ) {
@@ -453,7 +453,7 @@ impl Program {
         self.set_used();
         element_buffer.bind();
         self.context
-            .draw_elements(consts::TRIANGLES, count, T::data_type(), first);
+            .draw_elements(consts::TRIANGLES, count, element_buffer.data_type(), first);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
         for location in self.vertex_attributes.values() {
@@ -462,12 +462,12 @@ impl Program {
         self.context.unuse_program();
     }
 
-    pub fn draw_elements_instanced<T: ElementBufferDataType>(
+    pub fn draw_elements_instanced(
         &self,
         render_states: RenderStates,
         cull: CullType,
         viewport: Viewport,
-        element_buffer: &ElementBuffer<T>,
+        element_buffer: &ElementBuffer,
         count: u32,
     ) {
         Self::set_viewport(&self.context, viewport);
@@ -478,7 +478,7 @@ impl Program {
         self.context.draw_elements_instanced(
             consts::TRIANGLES,
             element_buffer.count() as u32,
-            T::data_type(),
+            element_buffer.data_type(),
             0,
             count,
         );
