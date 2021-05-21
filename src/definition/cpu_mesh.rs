@@ -69,7 +69,7 @@ impl CPUMesh {
             normals.push(1.0);
         }
 
-        for j in 0..angle_subdivisions as u32 {
+        for j in 0..angle_subdivisions {
             indices.push(0);
             indices.push(j as u16);
             indices.push(((j + 1) % angle_subdivisions) as u16);
@@ -119,29 +119,25 @@ impl CPUMesh {
                 positions.push(radius * angle.sin());
             }
         }
-        for i in 0..length_subdivisions as u32 {
-            for j in 0..angle_subdivisions as u32 {
-                indices.push(i * angle_subdivisions as u32 + j);
-                indices.push(i * angle_subdivisions as u32 + (j + 1) % angle_subdivisions as u32);
-                indices.push(
-                    (i + 1) * angle_subdivisions as u32 + (j + 1) % angle_subdivisions as u32,
-                );
+        for i in 0..length_subdivisions {
+            for j in 0..angle_subdivisions {
+                indices.push((i * angle_subdivisions + j) as u16);
+                indices.push((i * angle_subdivisions + (j + 1) % angle_subdivisions) as u16);
+                indices.push(((i + 1) * angle_subdivisions + (j + 1) % angle_subdivisions) as u16);
 
-                indices.push(i * angle_subdivisions as u32 + j);
-                indices.push(
-                    (i + 1) * angle_subdivisions as u32 + (j + 1) % angle_subdivisions as u32,
-                );
-                indices.push((i + 1) * angle_subdivisions as u32 + j);
+                indices.push((i * angle_subdivisions + j) as u16);
+                indices.push(((i + 1) * angle_subdivisions + (j + 1) % angle_subdivisions) as u16);
+                indices.push(((i + 1) * angle_subdivisions + j) as u16);
             }
         }
-        let normals = Some(compute_normals_with_indices(&indices, &positions));
-        Self {
+        let mut mesh = Self {
             name: "cylinder".to_string(),
             positions,
-            indices: Some(Indices::U32(indices)),
-            normals,
+            indices: Some(Indices::U16(indices)),
             ..Default::default()
-        }
+        };
+        mesh.compute_normals();
+        mesh
     }
 
     pub fn cone(radius: f32, length: f32, angle_subdivisions: u32) -> Self {
