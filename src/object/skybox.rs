@@ -6,14 +6,17 @@ use crate::math::*;
 ///
 /// An illusion of a sky.
 ///
-pub struct Skybox<T: TextureDataType> {
+pub struct Skybox {
     program: Program,
     vertex_buffer: VertexBuffer,
-    texture: TextureCubeMap<T>,
+    texture: TextureCubeMap,
 }
 
-impl<T: TextureDataType> Skybox<T> {
-    pub fn new(context: &Context, cpu_texture: &mut CPUTexture<T>) -> Result<Skybox<T>, Error> {
+impl Skybox {
+    pub fn new<T: TextureDataType>(
+        context: &Context,
+        cpu_texture: &mut CPUTexture<T>,
+    ) -> Result<Skybox, Error> {
         cpu_texture.wrap_t = Wrapping::ClampToEdge;
         cpu_texture.wrap_s = Wrapping::ClampToEdge;
         cpu_texture.wrap_r = Wrapping::ClampToEdge;
@@ -22,10 +25,7 @@ impl<T: TextureDataType> Skybox<T> {
         Self::new_with_texture(context, texture)
     }
 
-    pub fn new_with_texture(
-        context: &Context,
-        texture: TextureCubeMap<T>,
-    ) -> Result<Skybox<T>, Error> {
+    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> Result<Skybox, Error> {
         let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
@@ -64,7 +64,7 @@ impl<T: TextureDataType> Skybox<T> {
         Ok(())
     }
 
-    pub fn get_texture(&self) -> &TextureCubeMap<T> {
+    pub fn texture(&self) -> &TextureCubeMap {
         &self.texture
     }
 }

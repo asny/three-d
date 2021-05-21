@@ -5,18 +5,20 @@ use crate::definition::*;
 ///
 /// A texture that covers all 6 sides of a cube.
 ///
-pub struct TextureCubeMap<T: TextureDataType> {
+pub struct TextureCubeMap {
     context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
     format: Format,
     number_of_mip_maps: u32,
-    _dummy: T,
 }
 
-impl<T: TextureDataType> TextureCubeMap<T> {
-    pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> Result<TextureCubeMap<T>, Error> {
+impl TextureCubeMap {
+    pub fn new<T: TextureDataType>(
+        context: &Context,
+        cpu_texture: &CPUTexture<T>,
+    ) -> Result<TextureCubeMap, Error> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -54,14 +56,13 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             height: cpu_texture.height,
             format: cpu_texture.format,
             number_of_mip_maps,
-            _dummy: T::default(),
         };
         texture.fill(&cpu_texture.data)?;
         Ok(texture)
     }
 
     // data contains 6 images in the following order; right, left, top, bottom, front, back
-    pub fn fill(&mut self, data: &[T]) -> Result<(), Error> {
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<(), Error> {
         let offset = data.len() / 6;
         check_data_length(self.width, self.height, 1, self.format, offset)?;
         self.context
@@ -89,7 +90,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     }
 }
 
-impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
+impl TextureCube for TextureCubeMap {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
     }
@@ -103,7 +104,7 @@ impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
     }
 }
 
-impl<T: TextureDataType> Drop for TextureCubeMap<T> {
+impl Drop for TextureCubeMap {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }
