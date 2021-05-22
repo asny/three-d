@@ -59,14 +59,14 @@ impl PhongMesh {
                 PROGRAMS = Some(std::collections::HashMap::new());
             }
             if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
-                let surface_functionality = match self.material.color_source {
-                    ColorSource::Color(_) => {
-                        include_str!("shaders/forward_color_surface.frag")
-                    }
-                    ColorSource::Texture(_) => {
-                        include_str!("shaders/forward_texture_surface.frag")
-                    }
-                };
+                let surface_functionality = format!(
+                    "{}\n{}",
+                    match self.material.color_source {
+                        ColorSource::Color(_) => "",
+                        ColorSource::Texture(_) => "#define UseColorTexture;\nin vec2 uvs;",
+                    },
+                    include_str!("shaders/forward_surface.frag")
+                );
                 let fragment_shader_source = phong_fragment_shader(
                     &surface_functionality,
                     directional_lights.len(),
