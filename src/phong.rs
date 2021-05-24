@@ -81,7 +81,7 @@ fn phong_fragment_shader(
         &include_str!("phong/shaders/light_shared.frag"),
         surface_functionality,
         &format!(
-            "
+            "{}
                 uniform vec3 ambientColor;
                 layout (location = 0) out vec4 color;
 
@@ -96,8 +96,10 @@ fn phong_fragment_shader(
                     {} // Directional lights
                     {} // Spot lights
                     {} // Point lights
+                    color.rgb = srgb_from_rgb(color.rgb);
                 }}
                 ",
+            include_str!("core/shared.frag"),
             &dir_uniform,
             &spot_uniform,
             &point_uniform,

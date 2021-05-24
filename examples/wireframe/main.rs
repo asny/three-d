@@ -99,7 +99,7 @@ fn main() {
 
             let mut spot_light0 = SpotLight::new(
                 &gl,
-                0.6,
+                0.2,
                 &vec3(1.0, 1.0, 1.0),
                 &vec3(5.0, 7.0, 5.0),
                 &vec3(-1.0, -1.0, -1.0),
@@ -111,7 +111,7 @@ fn main() {
             .unwrap();
             let mut spot_light1 = SpotLight::new(
                 &gl,
-                0.6,
+                0.2,
                 &vec3(1.0, 1.0, 1.0),
                 &vec3(-5.0, 7.0, 5.0),
                 &vec3(1.0, -1.0, -1.0),
@@ -123,7 +123,7 @@ fn main() {
             .unwrap();
             let mut spot_light2 = SpotLight::new(
                 &gl,
-                0.6,
+                0.2,
                 &vec3(1.0, 1.0, 1.0),
                 &vec3(-5.0, 7.0, -5.0),
                 &vec3(1.0, -1.0, 1.0),
@@ -135,7 +135,7 @@ fn main() {
             .unwrap();
             let mut spot_light3 = SpotLight::new(
                 &gl,
-                0.6,
+                0.2,
                 &vec3(1.0, 1.0, 1.0),
                 &vec3(5.0, 7.0, -5.0),
                 &vec3(-1.0, -1.0, 1.0),

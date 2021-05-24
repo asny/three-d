@@ -66,7 +66,7 @@ fn main() {
 
             let ambient_light = AmbientLight {
                 color: vec3(1.0, 1.0, 1.0),
-                intensity: 0.2,
+                intensity: 0.05,
             };
             let mut directional_light0 =
                 DirectionalLight::new(&context, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0))

@@ -188,7 +188,11 @@ impl Mesh {
             if PROGRAM_PER_VERTEX_COLOR.is_none() {
                 PROGRAM_PER_VERTEX_COLOR = Some(MeshProgram::new(
                     &self.context,
-                    include_str!("shaders/mesh_vertex_color.frag"),
+                    &format!(
+                        "{}{}",
+                        include_str!("../core/shared.frag"),
+                        include_str!("shaders/mesh_vertex_color.frag")
+                    ),
                 )?);
             }
             PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
@@ -212,7 +216,11 @@ impl Mesh {
             if PROGRAM_COLOR.is_none() {
                 PROGRAM_COLOR = Some(MeshProgram::new(
                     &self.context,
-                    include_str!("shaders/mesh_color.frag"),
+                    &format!(
+                        "{}{}",
+                        include_str!("../core/shared.frag"),
+                        include_str!("shaders/mesh_color.frag")
+                    ),
                 )?);
             }
             PROGRAM_COLOR.as_ref().unwrap()
@@ -239,7 +247,11 @@ impl Mesh {
             if PROGRAM_UVS.is_none() {
                 PROGRAM_UVS = Some(MeshProgram::new(
                     &self.context,
-                    include_str!("shaders/mesh_uvs.frag"),
+                    &format!(
+                        "{}{}",
+                        include_str!("../core/shared.frag"),
+                        include_str!("shaders/mesh_uvs.frag")
+                    ),
                 )?);
             }
             PROGRAM_UVS.as_ref().unwrap()
@@ -265,7 +277,11 @@ impl Mesh {
             if PROGRAM_NORMALS.is_none() {
                 PROGRAM_NORMALS = Some(MeshProgram::new(
                     &self.context,
-                    include_str!("shaders/mesh_normals.frag"),
+                    &format!(
+                        "{}{}",
+                        include_str!("../core/shared.frag"),
+                        include_str!("shaders/mesh_normals.frag")
+                    ),
                 )?);
             }
             PROGRAM_NORMALS.as_ref().unwrap()
@@ -292,7 +308,11 @@ impl Mesh {
             if PROGRAM_TEXTURE.is_none() {
                 PROGRAM_TEXTURE = Some(MeshProgram::new(
                     &self.context,
-                    include_str!("shaders/mesh_texture.frag"),
+                    &format!(
+                        "{}{}",
+                        include_str!("../core/shared.frag"),
+                        include_str!("shaders/mesh_texture.frag")
+                    ),
                 )?);
             }
             PROGRAM_TEXTURE.as_ref().unwrap()

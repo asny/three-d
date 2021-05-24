@@ -177,7 +177,7 @@ fn parse_texture<'a>(
     let gltf_texture = info.texture();
     let gltf_image = gltf_texture.source();
     let gltf_source = gltf_image.source();
-    let mut tex = match gltf_source {
+    let tex = match gltf_source {
         ::gltf::image::Source::Uri { uri, .. } => loaded.image(path.join(Path::new(uri)))?,
         ::gltf::image::Source::View { view, .. } => {
             let mut bytes = Vec::with_capacity(view.length());
@@ -192,11 +192,6 @@ fn parse_texture<'a>(
             image_from_bytes(&bytes)?
         }
     };
-    match tex.format {
-        Format::RGB => tex.format = Format::SRGB,
-        Format::RGBA => tex.format = Format::SRGBA,
-        _ => {}
-    }
     // TODO: Parse sampling parameters
     Ok(tex)
 }

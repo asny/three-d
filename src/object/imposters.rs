@@ -31,7 +31,11 @@ impl Imposters {
         let program = Program::from_source(
             context,
             include_str!("shaders/imposter.vert"),
-            include_str!("shaders/imposter.frag"),
+            &format!(
+                "{}{}",
+                include_str!("../core/shared.frag"),
+                include_str!("shaders/imposter.frag")
+            ),
         )?;
 
         let center_buffer = VertexBuffer::new(context)?;
