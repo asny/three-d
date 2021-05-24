@@ -27,7 +27,19 @@ impl GUI {
             height: 0,
             texture_version: 0,
             texture: None,
-            program: Program::from_source(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?,
+            program: Program::from_source(
+                context,
+                &format!(
+                    "{}{}",
+                    include_str!("../core/shared.frag"),
+                    include_str!("shaders/egui.vert")
+                ),
+                &format!(
+                    "{}{}",
+                    include_str!("../core/shared.frag"),
+                    include_str!("shaders/egui.frag")
+                ),
+            )?,
         })
     }
 
@@ -192,63 +204,6 @@ impl GUI {
         Ok(())
     }
 }
-
-const VERTEX_SHADER_SOURCE: &str = r#"
-    uniform vec2 u_screen_size;
-    in vec2 a_pos;
-    in vec2 a_tc;
-    in vec4 a_srgba;
-    out vec4 v_rgba;
-    out vec2 v_tc;
-    // 0-1 linear  from  0-255 sRGB
-    vec3 linear_from_srgb(vec3 srgb) {
-        bvec3 cutoff = lessThan(srgb, vec3(10.31475));
-        vec3 lower = srgb / vec3(3294.6);
-        vec3 higher = pow((srgb + vec3(14.025)) / vec3(269.025), vec3(2.4));
-        return mix(higher, lower, vec3(cutoff));
-    }
-    vec4 linear_from_srgba(vec4 srgba) {
-        return vec4(linear_from_srgb(srgba.rgb), srgba.a / 255.0);
-    }
-    void main() {
-        gl_Position = vec4(
-            2.0 * a_pos.x / u_screen_size.x - 1.0,
-            1.0 - 2.0 * a_pos.y / u_screen_size.y,
-            0.0,
-            1.0);
-        // egui encodes vertex colors in gamma spaces, so we must decode the colors here:
-        v_rgba = linear_from_srgba(a_srgba);
-        v_tc = a_tc;
-    }
-"#;
-
-const FRAGMENT_SHADER_SOURCE: &str = r#"
-    uniform sampler2D u_sampler;
-    in vec4 v_rgba;
-    in vec2 v_tc;
-    layout (location = 0) out vec4 color;
-    // 0-255 sRGB  from  0-1 linear
-    vec3 srgb_from_linear(vec3 rgb) {
-        bvec3 cutoff = lessThan(rgb, vec3(0.0031308));
-        vec3 lower = rgb * vec3(3294.6);
-        vec3 higher = vec3(269.025) * pow(rgb, vec3(1.0 / 2.4)) - vec3(14.025);
-        return mix(higher, lower, vec3(cutoff));
-    }
-    vec4 srgba_from_linear(vec4 rgba) {
-        return vec4(srgb_from_linear(rgba.rgb), 255.0 * rgba.a);
-    }
-    void main() {
-        // The texture is set up with `SRGB8_ALPHA8`, so no need to decode here!
-        vec4 texture_rgba = texture(u_sampler, v_tc);
-        /// Multiply vertex color with texture color (in linear space).
-        color = v_rgba * texture_rgba;
-        // We must gamma-encode again since WebGL doesn't support linear blending in the framebuffer.
-        color = srgba_from_linear(color) / 255.0;
-        // WebGL doesn't support linear blending in the framebuffer,
-        // so we apply this hack to at least get a bit closer to the desired blending:
-        color.a = pow(color.a, 1.6); // Empiric nonsense
-    }
-"#;
 
 fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
     let mut scroll_delta = egui::Vec2::ZERO;
