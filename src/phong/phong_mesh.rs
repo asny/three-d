@@ -59,16 +59,16 @@ impl PhongMesh {
                 PROGRAMS = Some(std::collections::HashMap::new());
             }
             if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
-                let surface_functionality = format!(
-                    "{}\n{}",
-                    match self.material.color_source {
-                        ColorSource::Color(_) => "",
-                        ColorSource::Texture(_) => "#define UseColorTexture;\nin vec2 uvs;",
-                    },
-                    include_str!("shaders/forward_surface.frag")
-                );
                 let fragment_shader_source = phong_fragment_shader(
-                    &surface_functionality,
+                    &match self.material.color_source {
+                        ColorSource::Color(_) => {
+                            include_str!("shaders/forward_surface.frag").to_string()
+                        }
+                        ColorSource::Texture(_) => format!(
+                            "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
+                            include_str!("shaders/forward_surface.frag")
+                        ),
+                    },
                     directional_lights.len(),
                     spot_lights.len(),
                     point_lights.len(),
@@ -151,24 +151,18 @@ impl PhongGeometry for PhongMesh {
             if !PROGRAMS.as_ref().unwrap().contains_key(key) {
                 PROGRAMS.as_mut().unwrap().insert(
                     key.to_string(),
-                    match self.material.color_source {
-                        ColorSource::Color(_) => MeshProgram::new(
-                            &self.context,
-                            &format!(
-                                "{}\n{}",
-                                include_str!("shaders/deferred_objects_shared.frag"),
-                                include_str!("shaders/deferred_color.frag")
+                    MeshProgram::new(
+                        &self.context,
+                        &match self.material.color_source {
+                            ColorSource::Color(_) => {
+                                include_str!("shaders/deferred_objects.frag").to_string()
+                            }
+                            ColorSource::Texture(_) => format!(
+                                "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
+                                include_str!("shaders/deferred_objects.frag")
                             ),
-                        )?,
-                        ColorSource::Texture(_) => MeshProgram::new(
-                            &self.context,
-                            &format!(
-                                "{}\n{}",
-                                include_str!("shaders/deferred_objects_shared.frag"),
-                                include_str!("shaders/deferred_texture.frag")
-                            ),
-                        )?,
-                    },
+                        },
+                    )?,
                 );
             };
             PROGRAMS.as_ref().unwrap().get(key).unwrap()
