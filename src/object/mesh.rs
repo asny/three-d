@@ -35,6 +35,7 @@ impl MeshProgram {
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         let vertex_shader_source = &format!(
             include_str!("shaders/mesh.vert"),
+            include_str!("../core/shared.frag"),
             if instanced {
                 "in vec4 row1;
                 in vec4 row2;
@@ -84,7 +85,11 @@ impl MeshProgram {
                 ""
             },
             if use_uvs { "uvs = uv_coordinates;" } else { "" },
-            if use_colors { "col = color;" } else { "" }
+            if use_colors {
+                "col = vec4(rgb_from_srgb(color.rgb/255.0), color.a/255.0);"
+            } else {
+                ""
+            }
         );
 
         let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
@@ -171,7 +176,7 @@ impl Mesh {
     }
 
     ///
-    /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh.
+    /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh and are assumed to be in gamma color space (sRGBA).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
@@ -216,11 +221,7 @@ impl Mesh {
             if PROGRAM_COLOR.is_none() {
                 PROGRAM_COLOR = Some(MeshProgram::new(
                     &self.context,
-                    &format!(
-                        "{}{}",
-                        include_str!("../core/shared.frag"),
-                        include_str!("shaders/mesh_color.frag")
-                    ),
+                    include_str!("shaders/mesh_color.frag"),
                 )?);
             }
             PROGRAM_COLOR.as_ref().unwrap()
@@ -247,11 +248,7 @@ impl Mesh {
             if PROGRAM_UVS.is_none() {
                 PROGRAM_UVS = Some(MeshProgram::new(
                     &self.context,
-                    &format!(
-                        "{}{}",
-                        include_str!("../core/shared.frag"),
-                        include_str!("shaders/mesh_uvs.frag")
-                    ),
+                    include_str!("shaders/mesh_uvs.frag"),
                 )?);
             }
             PROGRAM_UVS.as_ref().unwrap()
@@ -277,11 +274,7 @@ impl Mesh {
             if PROGRAM_NORMALS.is_none() {
                 PROGRAM_NORMALS = Some(MeshProgram::new(
                     &self.context,
-                    &format!(
-                        "{}{}",
-                        include_str!("../core/shared.frag"),
-                        include_str!("shaders/mesh_normals.frag")
-                    ),
+                    include_str!("shaders/mesh_normals.frag"),
                 )?);
             }
             PROGRAM_NORMALS.as_ref().unwrap()
