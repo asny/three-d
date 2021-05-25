@@ -23,7 +23,7 @@ mod phong_instanced_mesh;
 pub use phong_instanced_mesh::*;
 
 fn phong_fragment_shader(
-    surface_functionality: &str,
+    shader_addition: &str,
     directional_lights: usize,
     spot_lights: usize,
     point_lights: usize,
@@ -41,8 +41,8 @@ fn phong_fragment_shader(
             i, i, i
         ));
         dir_fun.push_str(&format!("
-                    color.rgb += calculate_directional_light(directionalLight{}, surface.color.rgb, surface.position, surface.normal,
-                        surface.diffuse_intensity, surface.specular_intensity, surface.specular_power, directionalShadowMap{});", i, i));
+                    color.rgb += calculate_directional_light(directionalLight{}, surface_color, position, normal,
+                        diffuse_intensity, specular_intensity, specular_power, directionalShadowMap{});", i, i));
     }
     let mut spot_uniform = String::new();
     let mut spot_fun = String::new();
@@ -56,9 +56,12 @@ fn phong_fragment_shader(
                 }};",
             i, i, i
         ));
-        spot_fun.push_str(&format!("
-                    color.rgb += calculate_spot_light(spotLight{}, surface.color.rgb, surface.position, surface.normal,
-                        surface.diffuse_intensity, surface.specular_intensity, surface.specular_power, spotShadowMap{});", i, i));
+        spot_fun.push_str(&format!(
+            "
+                    color.rgb += calculate_spot_light(spotLight{}, surface_color, position, normal,
+                        diffuse_intensity, specular_intensity, specular_power, spotShadowMap{});",
+            i, i
+        ));
     }
     let mut point_uniform = String::new();
     let mut point_fun = String::new();
@@ -71,23 +74,26 @@ fn phong_fragment_shader(
                 }};",
             i, i
         ));
-        point_fun.push_str(&format!("
-                    color.rgb += calculate_point_light(pointLight{}, surface.color.rgb, surface.position, surface.normal,
-                        surface.diffuse_intensity, surface.specular_intensity, surface.specular_power);", i));
+        point_fun.push_str(&format!(
+            "
+                    color.rgb += calculate_point_light(pointLight{}, surface_color, position, normal,
+                        diffuse_intensity, specular_intensity, specular_power);",
+            i
+        ));
     }
 
     format!(
         "{}\n{}\n{}\n{}\n{}",
         include_str!("core/shared.frag"),
         include_str!("phong/shaders/light_shared.frag"),
-        surface_functionality,
         &format!(
             "
                 {} // Directional lights
                 {} // Spot lights
                 {} // Point lights
 
-                void calculate_lighting(inout vec4 color, Surface surface)
+                void calculate_lighting(inout vec4 color, vec3 surface_color, vec3 position, vec3 normal,
+                    float diffuse_intensity, float specular_intensity, float specular_power)
                 {{
                     {} // Directional lights
                     {} // Spot lights
@@ -96,6 +102,7 @@ fn phong_fragment_shader(
                 ",
             &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
         ),
+        shader_addition,
         include_str!("phong/shaders/lighting.frag"),
     )
 }

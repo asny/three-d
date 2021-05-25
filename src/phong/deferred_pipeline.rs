@@ -192,7 +192,7 @@ impl PhongDeferredPipeline {
                 ImageEffect::new(
                     &self.context,
                     &crate::phong::phong_fragment_shader(
-                        &include_str!("shaders/deferred_surface.frag"),
+                        "#define DEFERRED\nin vec2 uv;\n",
                         directional_lights.len(),
                         spot_lights.len(),
                         point_lights.len(),

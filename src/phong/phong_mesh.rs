@@ -60,14 +60,11 @@ impl PhongMesh {
             }
             if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
                 let fragment_shader_source = phong_fragment_shader(
-                    &match self.material.color_source {
-                        ColorSource::Color(_) => {
-                            include_str!("shaders/forward_surface.frag").to_string()
+                    match self.material.color_source {
+                        ColorSource::Color(_) => "in vec3 pos;\nin vec3 nor;\n",
+                        ColorSource::Texture(_) => {
+                            "#define USE_COLOR_TEXTURE;\nin vec3 pos;\nin vec3 nor;\nin vec2 uvs;\n"
                         }
-                        ColorSource::Texture(_) => format!(
-                            "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
-                            include_str!("shaders/forward_surface.frag")
-                        ),
                     },
                     directional_lights.len(),
                     spot_lights.len(),

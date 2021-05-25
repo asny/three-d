@@ -20,3 +20,9 @@ vec3 rgb_from_srgb(vec3 srgb) {
 	vec3 hi = pow((srgb + a) / ap1, g);
 	return mix(lo, hi, select);
 }
+
+vec3 world_pos_from_depth(mat4 viewProjectionInverse, float depth, vec2 uv) {
+    vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 position = viewProjectionInverse * clipSpacePosition;
+    return position.xyz / position.w;
+}
