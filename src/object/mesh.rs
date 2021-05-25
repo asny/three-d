@@ -34,62 +34,26 @@ impl MeshProgram {
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         let vertex_shader_source = &format!(
-            include_str!("shaders/mesh.vert"),
-            include_str!("../core/shared.frag"),
-            if instanced {
-                "in vec4 row1;
-                in vec4 row2;
-                in vec4 row3;"
-            } else {
-                ""
-            },
-            if use_positions { "out vec3 pos;" } else { "" },
-            if use_normals {
-                "uniform mat4 normalMatrix;
-                in vec3 normal;
-                out vec3 nor;"
-            } else {
-                ""
-            },
-            if use_uvs {
-                "in vec2 uv_coordinates;
-                out vec2 uvs;"
-            } else {
-                ""
-            },
-            if use_colors {
-                "in vec4 color;
-                out vec4 col;"
-            } else {
-                ""
-            },
-            if instanced {
-                "
-                    mat4 transform;
-                    transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
-                    transform[1] = vec4(row1.y, row2.y, row3.y, 0.0);
-                    transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
-                    transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
-                    local2World *= transform;"
-            } else {
-                ""
-            },
+            "{}{}{}{}{}{}{}",
             if use_positions {
-                "pos = worldPosition.xyz;"
+                "#define USE_POSITIONS\n"
             } else {
                 ""
             },
             if use_normals {
-                "nor = mat3(normalMatrix) * normal;"
+                "#define USE_NORMALS\n"
             } else {
                 ""
             },
-            if use_uvs { "uvs = uv_coordinates;" } else { "" },
+            if use_uvs { "#define USE_UVS\n" } else { "" },
             if use_colors {
-                "col = vec4(rgb_from_srgb(color.rgb/255.0), color.a/255.0);"
+                "#define USE_COLORS\n"
             } else {
                 ""
-            }
+            },
+            if instanced { "#define INSTANCED\n" } else { "" },
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh.vert"),
         );
 
         let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
