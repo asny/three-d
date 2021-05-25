@@ -1,4 +1,3 @@
-
 uniform sampler2DArray gbuffer;
 uniform sampler2DArray depthMap;
 uniform mat4 viewProjectionInverse;
@@ -11,7 +10,7 @@ vec3 WorldPosFromDepth(float depth, vec2 uv) {
     return position.xyz / position.w;
 }
 
-float get_surface_depth()
+Surface get_surface()
 {
     float depth = texture(depthMap, vec3(uv,0)).r;
     if(depth > 0.99999)
@@ -19,18 +18,6 @@ float get_surface_depth()
         discard;
     }
     gl_FragDepth = depth;
-   	return depth;
-}
-
-vec4 get_surface_color()
-{
-    get_surface_depth();
-   	return vec4(texture(gbuffer, vec3(uv, 0)).rgb, 1.0);
-}
-
-Surface get_surface()
-{
-    float depth = get_surface_depth();
    	vec4 c = texture(gbuffer, vec3(uv, 0));
     vec4 surface_color = vec4(c.rgb, 1.0);
     vec3 position = WorldPosFromDepth(depth, uv);

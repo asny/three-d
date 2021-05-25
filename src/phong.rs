@@ -77,41 +77,26 @@ fn phong_fragment_shader(
     }
 
     format!(
-        "{}\n{}\n{}",
-        &include_str!("phong/shaders/light_shared.frag"),
+        "{}\n{}\n{}\n{}\n{}",
+        include_str!("core/shared.frag"),
+        include_str!("phong/shaders/light_shared.frag"),
         surface_functionality,
         &format!(
-            "{}
-                uniform vec3 ambientColor;
-                layout (location = 0) out vec4 color;
-
+            "
                 {} // Directional lights
                 {} // Spot lights
                 {} // Point lights
 
-                void main()
+                void calculate_lighting(inout vec4 color, Surface surface)
                 {{
-                    {} // Surface parameters
-                    color = vec4(ambientColor * surfaceColor.rgb, surfaceColor.a);
                     {} // Directional lights
                     {} // Spot lights
                     {} // Point lights
-                    color.rgb = srgb_from_rgb(color.rgb);
                 }}
                 ",
-            include_str!("core/shared.frag"),
-            &dir_uniform,
-            &spot_uniform,
-            &point_uniform,
-            if directional_lights > 0 || spot_lights > 0 || point_lights > 0 {
-                "Surface surface = get_surface(); vec4 surfaceColor = surface.color;"
-            } else {
-                "vec4 surfaceColor = get_surface_color();"
-            },
-            &dir_fun,
-            &spot_fun,
-            &point_fun
-        )
+            &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
+        ),
+        include_str!("phong/shaders/lighting.frag"),
     )
 }
 
