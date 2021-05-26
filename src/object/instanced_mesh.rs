@@ -4,7 +4,7 @@ use crate::definition::*;
 use crate::light::*;
 use crate::math::*;
 use crate::object::mesh::*;
-use crate::phong::*;
+use crate::shading::*;
 
 ///
 /// A shader program used for rendering one or more instances of a [InstancedMesh](InstancedMesh). It has a fixed vertex shader and
@@ -370,7 +370,7 @@ impl ShadedGeometry for InstancedMesh {
                     key.to_string(),
                     InstancedMeshProgram::new(
                         &self.context,
-                        &crate::phong::geometry_fragment_shader(&self.material),
+                        &geometry_fragment_shader(&self.material),
                     )?,
                 );
             };
@@ -421,7 +421,7 @@ impl ShadedGeometry for InstancedMesh {
             PROGRAMS.as_ref().unwrap().get(&key).unwrap()
         };
 
-        crate::phong::bind_lights(
+        bind_lights(
             program,
             ambient_light,
             directional_lights,

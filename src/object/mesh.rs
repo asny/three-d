@@ -3,7 +3,7 @@ use crate::core::*;
 use crate::definition::*;
 use crate::light::*;
 use crate::math::*;
-use crate::phong::*;
+use crate::shading::*;
 use std::rc::Rc;
 
 ///
@@ -412,10 +412,7 @@ impl ShadedGeometry for Mesh {
             if !PROGRAMS.as_ref().unwrap().contains_key(key) {
                 PROGRAMS.as_mut().unwrap().insert(
                     key.to_string(),
-                    MeshProgram::new(
-                        &self.context,
-                        &crate::phong::geometry_fragment_shader(&self.material),
-                    )?,
+                    MeshProgram::new(&self.context, &geometry_fragment_shader(&self.material))?,
                 );
             };
             PROGRAMS.as_ref().unwrap().get(key).unwrap()
@@ -465,7 +462,7 @@ impl ShadedGeometry for Mesh {
             PROGRAMS.as_ref().unwrap().get(&key).unwrap()
         };
 
-        crate::phong::bind_lights(
+        bind_lights(
             program,
             ambient_light,
             directional_lights,

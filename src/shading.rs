@@ -12,10 +12,10 @@ pub use deferred_pipeline::*;
 
 pub(crate) fn geometry_fragment_shader(material: &Material) -> String {
     match material.color_source {
-        ColorSource::Color(_) => include_str!("phong/shaders/deferred_objects.frag").to_string(),
+        ColorSource::Color(_) => include_str!("shading/shaders/deferred_objects.frag").to_string(),
         ColorSource::Texture(_) => format!(
             "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
-            include_str!("phong/shaders/deferred_objects.frag")
+            include_str!("shading/shaders/deferred_objects.frag")
         ),
     }
 }
@@ -80,7 +80,7 @@ pub(crate) fn shaded_fragment_shader(
     format!(
         "#define PHONG\n{}\n{}\n{}\n{}\n{}",
         include_str!("core/shared.frag"),
-        include_str!("phong/shaders/light_shared.frag"),
+        include_str!("shading/shaders/light_shared.frag"),
         &format!(
             "
                 {} // Directional lights
@@ -97,7 +97,7 @@ pub(crate) fn shaded_fragment_shader(
             &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
         ),
         shader_addition,
-        include_str!("phong/shaders/lighting.frag"),
+        include_str!("shading/shaders/lighting.frag"),
     )
 }
 

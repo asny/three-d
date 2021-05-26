@@ -4,6 +4,7 @@ use crate::definition::*;
 use crate::effect::*;
 use crate::light::*;
 use crate::math::*;
+use crate::shading::*;
 use std::collections::HashMap;
 
 ///
@@ -190,7 +191,7 @@ impl PhongDeferredPipeline {
                 key.clone(),
                 ImageEffect::new(
                     &self.context,
-                    &crate::phong::shaded_fragment_shader(
+                    &shaded_fragment_shader(
                         "#define DEFERRED\nin vec2 uv;\n",
                         directional_lights.len(),
                         spot_lights.len(),
@@ -201,7 +202,7 @@ impl PhongDeferredPipeline {
         };
         let effect = self.program_map.get(&key).unwrap();
 
-        crate::phong::bind_lights(
+        bind_lights(
             effect,
             ambient_light,
             directional_lights,

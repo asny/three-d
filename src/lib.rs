@@ -48,11 +48,9 @@ pub mod io;
 #[doc(inline)]
 pub use io::*;
 
-#[cfg(feature = "phong-renderer")]
-pub mod phong;
+pub mod shading;
 #[doc(inline)]
-#[cfg(feature = "phong-renderer")]
-pub use phong::*;
+pub use shading::*;
 
 pub mod window;
 #[doc(inline)]
