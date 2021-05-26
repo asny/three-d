@@ -32,9 +32,8 @@ impl std::fmt::Display for ColorSource {
 pub struct PhongMaterial {
     pub name: String,
     pub color_source: ColorSource,
-    pub diffuse_intensity: f32,
-    pub specular_intensity: f32,
-    pub specular_power: f32,
+    pub metallic: f32,
+    pub roughness: f32,
 }
 
 impl PhongMaterial {
@@ -55,16 +54,14 @@ impl PhongMaterial {
         Ok(Self {
             name: cpu_material.name.clone(),
             color_source,
-            diffuse_intensity: cpu_material.diffuse_intensity.unwrap_or(0.5),
-            specular_intensity: cpu_material.specular_intensity.unwrap_or(0.2),
-            specular_power: cpu_material.specular_power.unwrap_or(6.0),
+            metallic: cpu_material.metallic_factor.unwrap_or(0.0),
+            roughness: cpu_material.roughness_factor.unwrap_or(0.0),
         })
     }
 
     pub(crate) fn bind(&self, program: &Program) -> Result<(), Error> {
-        program.use_uniform_float("diffuse_intensity", &self.diffuse_intensity)?;
-        program.use_uniform_float("specular_intensity", &self.specular_intensity)?;
-        program.use_uniform_float("specular_power", &self.specular_power)?;
+        program.use_uniform_float("metallic", &self.metallic)?;
+        program.use_uniform_float("roughness", &self.roughness)?;
 
         match self.color_source {
             ColorSource::Color(ref color) => {
@@ -83,9 +80,8 @@ impl Default for PhongMaterial {
         Self {
             name: "default".to_string(),
             color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
-            diffuse_intensity: 0.5,
-            specular_intensity: 0.2,
-            specular_power: 6.0,
+            metallic: 0.0,
+            roughness: 0.0,
         }
     }
 }

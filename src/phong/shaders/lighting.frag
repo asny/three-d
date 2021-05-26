@@ -8,9 +8,8 @@ uniform mat4 viewProjectionInverse;
 
 #else
 
-uniform float diffuse_intensity;
-uniform float specular_intensity;
-uniform float specular_power;
+uniform float metallic;
+uniform float roughness;
 
 #ifdef USE_COLOR_TEXTURE
 uniform sampler2D tex;
@@ -32,15 +31,16 @@ void main()
         discard;
     }
     gl_FragDepth = depth;
-   	vec4 c = texture(gbuffer, vec3(uv, 0));
-    vec4 surface_color = vec4(c.rgb, 1.0);
+
     vec3 position = world_pos_from_depth(viewProjectionInverse, depth, uv);
+   	
+    vec4 c = texture(gbuffer, vec3(uv, 0));
+    vec4 surface_color = vec4(c.rgb, 1.0);
+    float metallic = c.w;
+
     vec4 n = texture(gbuffer, vec3(uv, 1));
     vec3 normal = normalize(n.xyz*2.0 - 1.0);
-    float diffuse_intensity = c.w;
-    int t = int(floor(n.w*255.0));
-    float specular_intensity = float(t & 15) / 15.0;
-    float specular_power = 2.0 * float((t & 240) >> 4);
+    float roughness = n.w;
 
 #else 
 
@@ -54,11 +54,6 @@ void main()
     vec3 position = pos;
 
 #endif
-
-    // Material parameters
-    // TODO
-    float metallic = 0.5;
-    float roughness = 0.5;
 
     outColor.rgb = surface_color.rgb * mix(ambientColor, vec3(0.0), metallic);
     calculate_lighting(outColor, surface_color.rgb, position, normal, metallic, roughness);

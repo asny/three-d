@@ -124,9 +124,6 @@ fn parse_tree<'a>(
                         metallic_factor: Some(pbr.metallic_factor()),
                         roughness_factor: Some(pbr.roughness_factor()),
                         metallic_roughness_texture,
-                        diffuse_intensity: Some(1.0),
-                        specular_intensity: Some(pbr.metallic_factor()),
-                        specular_power: Some(pbr.roughness_factor()),
                     });
                 }
 

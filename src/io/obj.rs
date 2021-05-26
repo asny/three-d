@@ -43,12 +43,6 @@ impl<'a> Loaded<'a> {
                 } else {
                     material.color_diffuse
                 };
-                let diffuse_intensity = (material.color_diffuse.r as f32)
-                    .max(material.color_diffuse.g as f32)
-                    .max(material.color_diffuse.b as f32);
-                let specular_intensity = (material.color_specular.r as f32)
-                    .max(material.color_specular.g as f32)
-                    .max(material.color_specular.b as f32);
                 cpu_materials.push(CPUMaterial {
                     name: material.name,
                     color: Some((
@@ -57,9 +51,6 @@ impl<'a> Loaded<'a> {
                         color.b as f32,
                         material.alpha as f32,
                     )),
-                    diffuse_intensity: Some(diffuse_intensity),
-                    specular_intensity: Some(specular_intensity),
-                    specular_power: Some(material.specular_coefficient as f32),
                     color_texture: if let Some(path) = material
                         .diffuse_map
                         .as_ref()

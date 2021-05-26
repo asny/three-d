@@ -50,9 +50,6 @@ fn main() {
             },
             &PhongMaterial {
                 color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
-                diffuse_intensity: 0.7,
-                specular_intensity: 0.8,
-                specular_power: 20.0,
                 ..Default::default()
             },
         )

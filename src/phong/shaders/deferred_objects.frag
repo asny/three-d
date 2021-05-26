@@ -1,7 +1,6 @@
 
-uniform float diffuse_intensity;
-uniform float specular_intensity;
-uniform float specular_power;
+uniform float metallic;
+uniform float roughness;
 
 #ifdef USE_COLOR_TEXTURE
 uniform sampler2D tex;
@@ -24,8 +23,6 @@ void main()
 #else 
     color = surfaceColor;
 #endif
-    out_color = vec4(color.rgb, diffuse_intensity);
-	int intensity = int(floor(specular_intensity * 15.0));
-	int power = int(floor(clamp(specular_power, 0.0, 30.0)*0.5));
-    out_normal = vec4(0.5 * normal + 0.5, float(power << 4 | intensity)/255.0);
+    out_color = vec4(color.rgb, metallic);
+    out_normal = vec4(0.5 * normal + 0.5, roughness);
 }

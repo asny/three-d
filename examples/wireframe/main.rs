@@ -37,10 +37,7 @@ fn main() {
         move |loaded| {
             let (mut meshes, mut materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let cpu_mesh = meshes.remove(0);
-            let mut cpu_material = materials.remove(0);
-            cpu_material.diffuse_intensity = Some(0.2);
-            cpu_material.specular_intensity = Some(0.4);
-            cpu_material.specular_power = Some(20.0);
+            let cpu_material = materials.remove(0);
             let mut model = PhongMesh::new(
                 &gl,
                 &cpu_mesh,
@@ -52,10 +49,8 @@ fn main() {
 
             let wireframe_material = PhongMaterial {
                 name: "wireframe".to_string(),
-                diffuse_intensity: 0.8,
-                specular_intensity: 0.2,
-                specular_power: 5.0,
                 color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
+                ..Default::default()
             };
             let mut edges = PhongInstancedMesh::new(
                 &gl,
@@ -88,9 +83,6 @@ fn main() {
                 },
                 &PhongMaterial {
                     color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
-                    diffuse_intensity: 0.2,
-                    specular_intensity: 0.4,
-                    specular_power: 20.0,
                     ..Default::default()
                 },
             )

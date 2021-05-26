@@ -141,8 +141,8 @@ fn main() {
                 },
                 &PhongMaterial {
                     color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
-                    diffuse_intensity: 1.0,
-                    specular_intensity: 0.0,
+                    metallic: 0.0,
+                    roughness: 1.0,
                     ..Default::default()
                 },
             )

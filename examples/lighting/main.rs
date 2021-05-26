@@ -32,11 +32,8 @@ fn main() {
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |loaded| {
-            let (monkey_cpu_meshes, mut monkey_cpu_materials) =
+            let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
-            monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
-            monkey_cpu_materials[0].specular_intensity = Some(0.8);
-            monkey_cpu_materials[0].specular_power = Some(20.0);
             let mut monkey = PhongMesh::new(
                 &context,
                 &monkey_cpu_meshes[0],
@@ -56,9 +53,6 @@ fn main() {
                 },
                 &PhongMaterial {
                     color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
-                    diffuse_intensity: 0.7,
-                    specular_intensity: 0.8,
-                    specular_power: 20.0,
                     ..Default::default()
                 },
             )
@@ -130,43 +124,20 @@ fn main() {
 
                                     ui.label("Surface parameters");
                                     ui.add(
-                                        Slider::f32(
-                                            &mut monkey.material.diffuse_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Monkey Diffuse"),
+                                        Slider::f32(&mut monkey.material.metallic, 0.0..=1.0)
+                                            .text("Monkey Metallic"),
                                     );
                                     ui.add(
-                                        Slider::f32(
-                                            &mut monkey.material.specular_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Monkey Specular"),
+                                        Slider::f32(&mut monkey.material.roughness, 0.0..=1.0)
+                                            .text("Monkey Roughness"),
                                     );
                                     ui.add(
-                                        Slider::f32(
-                                            &mut monkey.material.specular_power,
-                                            2.0..=30.0,
-                                        )
-                                        .text("Monkey Specular Power"),
+                                        Slider::f32(&mut plane.material.metallic, 0.0..=1.0)
+                                            .text("Plane Metallic"),
                                     );
                                     ui.add(
-                                        Slider::f32(
-                                            &mut plane.material.diffuse_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Plane Diffuse"),
-                                    );
-                                    ui.add(
-                                        Slider::f32(
-                                            &mut plane.material.specular_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Plane Specular"),
-                                    );
-                                    ui.add(
-                                        Slider::f32(&mut plane.material.specular_power, 2.0..=30.0)
-                                            .text("Plane Specular Power"),
+                                        Slider::f32(&mut plane.material.roughness, 0.0..=1.0)
+                                            .text("Plane Roughness"),
                                     );
 
                                     ui.label("Debug options");

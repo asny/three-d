@@ -51,9 +51,6 @@ impl<'a> Loaded<'a> {
             cpu_materials.push(CPUMaterial {
                 name: material.name,
                 color: material.color,
-                diffuse_intensity: material.diffuse_intensity,
-                specular_intensity: material.specular_intensity,
-                specular_power: material.specular_power,
                 color_texture: if let Some(filename) = material.texture_path {
                     let texture_path = path
                         .as_ref()
@@ -168,9 +165,9 @@ impl Saver {
                 name: cpu_material.name,
                 texture_path,
                 color: cpu_material.color,
-                diffuse_intensity: cpu_material.diffuse_intensity,
-                specular_intensity: cpu_material.specular_intensity,
-                specular_power: cpu_material.specular_power,
+                diffuse_intensity: None,
+                specular_intensity: None,
+                specular_power: None,
             });
         }
 
