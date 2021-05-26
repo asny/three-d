@@ -144,8 +144,8 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
     return (1.0 / rim_) * specular * G * D;
 }
 
-vec3 calculate_light(BaseLight light, vec3 L, vec3 position, vec3 N,
-    float diffuse_intensity, float specular_intensity, float specular_power)
+vec3 calculate_light(BaseLight light, vec3 L, vec3 surface_color, vec3 position, vec3 N, 
+    float metallic, float roughness)
 {
     vec3 light_color = light.intensity * light.color;
 
@@ -161,14 +161,9 @@ vec3 calculate_light(BaseLight light, vec3 L, vec3 position, vec3 N,
     float HdV = max(0.001, dot(H, V));
     float LdV = max(0.001, dot(L, V));
 
-    // Material parameters
-    // TODO
-    float metallic = 0.5;
-    float roughness = 0.5;
-
     // mix between metal and non-metal material, for non-metal
     // constant base specular factor of 0.04 grey is used
-    vec3 specular = mix(vec3(0.04), light_color, metallic);
+    vec3 specular = mix(vec3(0.04), surface_color, metallic);
 
     // fresnel term is common for any, except phong
     // so it will be calcuated inside ifdefs
@@ -211,19 +206,18 @@ vec3 calculate_light(BaseLight light, vec3 L, vec3 position, vec3 N,
 
     // final result
     return
-        diffuse_light * mix(light_color, vec3(0.0), metallic) +
+        diffuse_light * mix(surface_color, vec3(0.0), metallic) +
         reflected_light;
 }
 
-vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 light_position, vec3 position, vec3 normal,
-    float diffuse_intensity, float specular_intensity, float specular_power)
+vec3 calculate_attenuated_light(BaseLight light, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, 
+    float metallic, float roughness)
 {
     vec3 light_direction = light_position - position;
     float distance = length(light_direction);
     light_direction = light_direction / distance;
 
-    vec3 color = calculate_light(light, light_direction, position, normal,
-        diffuse_intensity, specular_intensity, specular_power);
+    vec3 color = calculate_light(light, light_direction, surface_color, position, normal, metallic, roughness);
 
     float att =  attenuation.constant +
         attenuation.linear * distance +
@@ -262,25 +256,24 @@ float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
 }
 
 vec3 calculate_directional_light(DirectionalLight directionalLight, vec3 surface_color, vec3 position, vec3 normal,
-    float diffuse_intensity, float specular_intensity, float specular_power, sampler2D shadowMap)
+    float metallic, float roughness, sampler2D shadowMap)
 {
-    vec3 light = calculate_light(directionalLight.base, -directionalLight.direction, position, normal,
-        diffuse_intensity, specular_intensity, specular_power);
+    vec3 light = calculate_light(directionalLight.base, -directionalLight.direction, surface_color, position, normal, metallic, roughness);
     if(directionalLight.shadowEnabled > 0.5) {
         light *= calculate_shadow(shadowMap, directionalLight.shadowMVP, position);
     }
-    return surface_color * light;
+    return light;
 }
 
 vec3 calculate_point_light(PointLight pointLight, vec3 surface_color, vec3 position, vec3 normal,
-    float diffuse_intensity, float specular_intensity, float specular_power)
+    float metallic, float roughness)
 {
-    return surface_color * calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, position, normal,
-        diffuse_intensity, specular_intensity, specular_power);
+    return calculate_attenuated_light(pointLight.base, pointLight.attenuation, pointLight.position, surface_color, position, normal,
+        metallic, roughness);
 }
 
 vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position, vec3 normal,
-    float diffuse_intensity, float specular_intensity, float specular_power, sampler2D shadowMap)
+    float metallic, float roughness, sampler2D shadowMap)
 {
     vec3 light_direction = normalize(position - spotLight.position);
     float angle = acos(dot(light_direction, normalize(spotLight.direction)));
@@ -288,11 +281,11 @@ vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position
 
     vec3 light = vec3(0.0);
     if (angle < cutoff) {
-        light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, position, normal,
-            diffuse_intensity, specular_intensity, specular_power) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+        light = calculate_attenuated_light(spotLight.base, spotLight.attenuation, spotLight.position, surface_color, position, normal, 
+            metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
         if(spotLight.shadowEnabled > 0.5) {
             light *= calculate_shadow(shadowMap, spotLight.shadowMVP, position);
         }
     }
-    return surface_color * light;
+    return light;
 }

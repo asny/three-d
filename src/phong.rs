@@ -41,8 +41,7 @@ fn phong_fragment_shader(
             i, i, i
         ));
         dir_fun.push_str(&format!("
-                    color.rgb += calculate_directional_light(directionalLight{}, surface_color, position, normal,
-                        diffuse_intensity, specular_intensity, specular_power, directionalShadowMap{});", i, i));
+                    color.rgb += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, directionalShadowMap{});", i, i));
     }
     let mut spot_uniform = String::new();
     let mut spot_fun = String::new();
@@ -58,8 +57,7 @@ fn phong_fragment_shader(
         ));
         spot_fun.push_str(&format!(
             "
-                    color.rgb += calculate_spot_light(spotLight{}, surface_color, position, normal,
-                        diffuse_intensity, specular_intensity, specular_power, spotShadowMap{});",
+                    color.rgb += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, spotShadowMap{});",
             i, i
         ));
     }
@@ -76,8 +74,7 @@ fn phong_fragment_shader(
         ));
         point_fun.push_str(&format!(
             "
-                    color.rgb += calculate_point_light(pointLight{}, surface_color, position, normal,
-                        diffuse_intensity, specular_intensity, specular_power);",
+                    color.rgb += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness);",
             i
         ));
     }
@@ -92,8 +89,7 @@ fn phong_fragment_shader(
                 {} // Spot lights
                 {} // Point lights
 
-                void calculate_lighting(inout vec4 color, vec3 surface_color, vec3 position, vec3 normal,
-                    float diffuse_intensity, float specular_intensity, float specular_power)
+                void calculate_lighting(inout vec4 color, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
                 {{
                     {} // Directional lights
                     {} // Spot lights

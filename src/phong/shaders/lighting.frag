@@ -55,8 +55,12 @@ void main()
 
 #endif
 
-    outColor = surface_color;
-    outColor.rgb *= ambientColor;
-    calculate_lighting(outColor, surface_color.rgb, position, normal, diffuse_intensity, specular_intensity, specular_power);
-    outColor.rgb = srgb_from_rgb(outColor.rgb);
+    // Material parameters
+    // TODO
+    float metallic = 0.5;
+    float roughness = 0.5;
+
+    outColor.rgb = surface_color.rgb * mix(ambientColor, vec3(0.0), metallic);
+    calculate_lighting(outColor, surface_color.rgb, position, normal, metallic, roughness);
+    outColor = vec4(srgb_from_rgb(outColor.rgb), surface_color.a);
 }
