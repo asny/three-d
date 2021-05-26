@@ -56,7 +56,7 @@ pub(crate) fn geometry_fragment_shader(material: &Material) -> String {
 }
 
 pub(crate) fn shaded_fragment_shader(
-    shader_addition: &str,
+    material: Option<&Material>,
     directional_lights: usize,
     spot_lights: usize,
     point_lights: usize,
@@ -111,6 +111,16 @@ pub(crate) fn shaded_fragment_shader(
             i
         ));
     }
+    let material_setup = if let Some(mat) = material {
+        match mat.color_source {
+            ColorSource::Color(_) => "in vec3 pos;\nin vec3 nor;\n",
+            ColorSource::Texture(_) => {
+                "#define USE_COLOR_TEXTURE;\nin vec3 pos;\nin vec3 nor;\nin vec2 uvs;\n"
+            }
+        }
+    } else {
+        "#define DEFERRED\nin vec2 uv;\n"
+    };
 
     format!(
         "#define PHONG\n{}\n{}\n{}\n{}\n{}",
@@ -131,7 +141,7 @@ pub(crate) fn shaded_fragment_shader(
                 ",
             &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
         ),
-        shader_addition,
+        material_setup,
         include_str!("shading/shaders/lighting.frag"),
     )
 }

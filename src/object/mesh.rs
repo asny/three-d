@@ -444,12 +444,7 @@ impl ShadedGeometry for Mesh {
             }
             if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
                 let fragment_shader_source = shaded_fragment_shader(
-                    match self.material.color_source {
-                        ColorSource::Color(_) => "in vec3 pos;\nin vec3 nor;\n",
-                        ColorSource::Texture(_) => {
-                            "#define USE_COLOR_TEXTURE;\nin vec3 pos;\nin vec3 nor;\nin vec2 uvs;\n"
-                        }
-                    },
+                    Some(&self.material),
                     directional_lights.len(),
                     spot_lights.len(),
                     point_lights.len(),

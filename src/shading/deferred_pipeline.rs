@@ -192,7 +192,7 @@ impl DeferredPipeline {
                 ImageEffect::new(
                     &self.context,
                     &shaded_fragment_shader(
-                        "#define DEFERRED\nin vec2 uv;\n",
+                        None,
                         directional_lights.len(),
                         spot_lights.len(),
                         point_lights.len(),
