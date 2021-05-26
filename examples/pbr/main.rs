@@ -31,15 +31,15 @@ fn main() {
         let (cpu_meshes, cpu_materials) = loaded
             .gltf("examples/assets/gltf/DamagedHelmet.glb")
             .unwrap();
-        let mut model = PhongMesh::new(
+        let mut model = Mesh::with_material(
             &context,
             &cpu_meshes[0],
-            &PhongMaterial::new(&context, &cpu_materials[0]).unwrap(),
+            &Material::new(&context, &cpu_materials[0]).unwrap(),
         )
         .unwrap();
         model.cull = CullType::Back;
 
-        let plane = PhongMesh::new(
+        let plane = Mesh::with_material(
             &context,
             &CPUMesh {
                 positions: vec![
@@ -48,7 +48,7 @@ fn main() {
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                 ..Default::default()
             },
-            &PhongMaterial {
+            &Material {
                 color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
                 ..Default::default()
             },

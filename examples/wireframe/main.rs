@@ -38,21 +38,18 @@ fn main() {
             let (mut meshes, mut materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let cpu_mesh = meshes.remove(0);
             let cpu_material = materials.remove(0);
-            let mut model = PhongMesh::new(
-                &gl,
-                &cpu_mesh,
-                &PhongMaterial::new(&gl, &cpu_material).unwrap(),
-            )
-            .unwrap();
+            let mut model =
+                Mesh::with_material(&gl, &cpu_mesh, &Material::new(&gl, &cpu_material).unwrap())
+                    .unwrap();
             model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.cull = CullType::Back;
 
-            let wireframe_material = PhongMaterial {
+            let wireframe_material = Material {
                 name: "wireframe".to_string(),
                 color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
                 ..Default::default()
             };
-            let mut edges = PhongInstancedMesh::new(
+            let mut edges = InstancedMesh::with_material(
                 &gl,
                 &edge_transformations(&cpu_mesh),
                 &CPUMesh::cylinder(0.007, 1.0, 10),
@@ -62,7 +59,7 @@ fn main() {
             edges.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             edges.cull = CullType::Back;
 
-            let mut vertices = PhongInstancedMesh::new(
+            let mut vertices = InstancedMesh::with_material(
                 &gl,
                 &vertex_transformations(&cpu_mesh),
                 &CPUMesh::sphere(0.015),
@@ -72,7 +69,7 @@ fn main() {
             vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             vertices.cull = CullType::Back;
 
-            let mut plane = PhongMesh::new(
+            let mut plane = Mesh::with_material(
                 &gl,
                 &CPUMesh {
                     positions: vec![
@@ -81,7 +78,7 @@ fn main() {
                     normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                     ..Default::default()
                 },
-                &PhongMaterial {
+                &Material {
                     color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
                     ..Default::default()
                 },

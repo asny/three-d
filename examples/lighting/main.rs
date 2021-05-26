@@ -34,15 +34,15 @@ fn main() {
         move |loaded| {
             let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = PhongMesh::new(
+            let mut monkey = Mesh::with_material(
                 &context,
                 &monkey_cpu_meshes[0],
-                &PhongMaterial::new(&context, &monkey_cpu_materials[0]).unwrap(),
+                &Material::new(&context, &monkey_cpu_materials[0]).unwrap(),
             )
             .unwrap();
             monkey.cull = CullType::Back;
 
-            let mut plane = PhongMesh::new(
+            let mut plane = Mesh::with_material(
                 &context,
                 &CPUMesh {
                     positions: vec![
@@ -51,7 +51,7 @@ fn main() {
                     normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                     ..Default::default()
                 },
-                &PhongMaterial {
+                &Material {
                     color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
                     ..Default::default()
                 },

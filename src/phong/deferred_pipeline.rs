@@ -4,7 +4,6 @@ use crate::definition::*;
 use crate::effect::*;
 use crate::light::*;
 use crate::math::*;
-use crate::phong::*;
 use std::collections::HashMap;
 
 ///
@@ -83,7 +82,7 @@ impl PhongDeferredPipeline {
         width: u32,
         height: u32,
         camera: &Camera,
-        geometries: &[&dyn PhongGeometry],
+        geometries: &[&dyn ShadedGeometry],
     ) -> Result<(), Error> {
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
@@ -191,7 +190,7 @@ impl PhongDeferredPipeline {
                 key.clone(),
                 ImageEffect::new(
                     &self.context,
-                    &crate::phong::phong_fragment_shader(
+                    &crate::phong::shaded_fragment_shader(
                         "#define DEFERRED\nin vec2 uv;\n",
                         directional_lights.len(),
                         spot_lights.len(),

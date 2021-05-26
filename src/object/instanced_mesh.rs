@@ -1,8 +1,10 @@
 use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
+use crate::light::*;
 use crate::math::*;
 use crate::object::mesh::*;
+use crate::phong::*;
 
 ///
 /// A shader program used for rendering one or more instances of a [InstancedMesh](InstancedMesh). It has a fixed vertex shader and
@@ -49,6 +51,7 @@ pub struct InstancedMesh {
     pub name: String,
     pub cull: CullType,
     pub transformation: Mat4,
+    pub material: Material,
 }
 
 impl InstancedMesh {
@@ -103,11 +106,23 @@ impl InstancedMesh {
             instance_buffer3: VertexBuffer::new(context)?,
             cull: CullType::None,
             transformation: Mat4::identity(),
+            material: Material::default(),
         };
         mesh.update_transformations(transformations);
         unsafe {
             MESH_COUNT += 1;
         }
+        Ok(mesh)
+    }
+
+    pub fn with_material(
+        context: &Context,
+        transformations: &[Mat4],
+        cpu_mesh: &CPUMesh,
+        material: &Material,
+    ) -> Result<Self, Error> {
+        let mut mesh = Self::new(context, transformations, cpu_mesh)?;
+        mesh.material = material.clone();
         Ok(mesh)
     }
 
@@ -335,6 +350,100 @@ impl Geometry for InstancedMesh {
     }
 }
 
+impl ShadedGeometry for InstancedMesh {
+    fn geometry_pass(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error> {
+        let program = unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
+            }
+            let key = match self.material.color_source {
+                ColorSource::Color(_) => "ColorDeferred",
+                ColorSource::Texture(_) => "TextureDeferred",
+            };
+            if !PROGRAMS.as_ref().unwrap().contains_key(key) {
+                PROGRAMS.as_mut().unwrap().insert(
+                    key.to_string(),
+                    InstancedMeshProgram::new(
+                        &self.context,
+                        &match self.material.color_source {
+                            ColorSource::Color(_) => {
+                                include_str!("shaders/deferred_objects.frag").to_string()
+                            }
+                            ColorSource::Texture(_) => format!(
+                                "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
+                                include_str!("shaders/deferred_objects.frag")
+                            ),
+                        },
+                    )?,
+                );
+            };
+            PROGRAMS.as_ref().unwrap().get(key).unwrap()
+        };
+        self.material.bind(program)?;
+        self.render(program, render_states, viewport, camera)
+    }
+
+    fn render_with_lighting(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<(), Error> {
+        let key = format!(
+            "{},{},{},{}",
+            self.material.color_source,
+            directional_lights.len(),
+            spot_lights.len(),
+            point_lights.len()
+        );
+        let program = unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
+            }
+            if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
+                let fragment_shader_source = shaded_fragment_shader(
+                    match self.material.color_source {
+                        ColorSource::Color(_) => "in vec3 pos;\nin vec3 nor;\n",
+                        ColorSource::Texture(_) => {
+                            "#define USE_COLOR_TEXTURE;\nin vec3 pos;\nin vec3 nor;\nin vec2 uvs;\n"
+                        }
+                    },
+                    directional_lights.len(),
+                    spot_lights.len(),
+                    point_lights.len(),
+                );
+                PROGRAMS.as_mut().unwrap().insert(
+                    key.clone(),
+                    InstancedMeshProgram::new(&self.context, &fragment_shader_source)?,
+                );
+            };
+            PROGRAMS.as_ref().unwrap().get(&key).unwrap()
+        };
+
+        crate::phong::bind_lights(
+            program,
+            ambient_light,
+            directional_lights,
+            spot_lights,
+            point_lights,
+        )?;
+
+        program.use_uniform_vec3("eyePosition", &camera.position())?;
+        self.material.bind(program)?;
+        self.render(program, render_states, viewport, camera)?;
+        Ok(())
+    }
+}
+
 impl Drop for InstancedMesh {
     fn drop(&mut self) {
         unsafe {
@@ -345,6 +454,7 @@ impl Drop for InstancedMesh {
                 PROGRAM_COLOR = None;
                 PROGRAM_TEXTURE = None;
                 PROGRAM_PER_VERTEX_COLOR = None;
+                PROGRAMS = None;
             }
         }
     }
@@ -355,4 +465,5 @@ static mut PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_DEPTH: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_PICK: Option<InstancedMeshProgram> = None;
 static mut PROGRAM_PER_VERTEX_COLOR: Option<InstancedMeshProgram> = None;
+static mut PROGRAMS: Option<std::collections::HashMap<String, InstancedMeshProgram>> = None;
 static mut MESH_COUNT: u32 = 0;

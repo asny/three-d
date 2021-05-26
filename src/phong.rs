@@ -6,23 +6,11 @@ mod material;
 #[doc(inline)]
 pub use material::*;
 
-mod geometry;
-#[doc(inline)]
-pub use geometry::*;
-
 mod deferred_pipeline;
 #[doc(inline)]
 pub use deferred_pipeline::*;
 
-mod phong_mesh;
-#[doc(inline)]
-pub use phong_mesh::*;
-
-mod phong_instanced_mesh;
-#[doc(inline)]
-pub use phong_instanced_mesh::*;
-
-fn phong_fragment_shader(
+pub(crate) fn shaded_fragment_shader(
     shader_addition: &str,
     directional_lights: usize,
     spot_lights: usize,
@@ -106,7 +94,7 @@ fn phong_fragment_shader(
 use crate::core::*;
 use crate::light::*;
 use crate::math::*;
-fn bind_lights(
+pub(crate) fn bind_lights(
     effect: &Program,
     ambient_light: Option<&AmbientLight>,
     directional_lights: &[&DirectionalLight],

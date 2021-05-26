@@ -49,8 +49,9 @@ fn main() {
                 .iter()
                 .find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap())
                 .unwrap();
-            let tree_material = PhongMaterial::new(&context, &tree_cpu_material).unwrap();
-            let mut tree_mesh = PhongMesh::new(&context, tree_cpu_mesh, &tree_material).unwrap();
+            let tree_material = Material::new(&context, &tree_cpu_material).unwrap();
+            let mut tree_mesh =
+                Mesh::with_material(&context, tree_cpu_mesh, &tree_material).unwrap();
             tree_mesh.cull = CullType::Back;
             let tree_mesh_render_states = RenderStates {
                 depth_test: DepthTestType::LessOrEqual,
@@ -62,10 +63,10 @@ fn main() {
                 .iter()
                 .find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap())
                 .unwrap();
-            let leaves_mesh = PhongMesh::new(
+            let leaves_mesh = Mesh::with_material(
                 &context,
                 leaves_cpu_mesh,
-                &PhongMaterial::new(&context, &leaves_cpu_material).unwrap(),
+                &Material::new(&context, &leaves_cpu_material).unwrap(),
             )
             .unwrap();
             let leaves_mesh_render_states = RenderStates {
@@ -130,7 +131,7 @@ fn main() {
             imposters.update_positions(&positions, &angles);
 
             // Plane
-            let mut plane = PhongMesh::new(
+            let mut plane = Mesh::with_material(
                 &context,
                 &CPUMesh {
                     positions: vec![
@@ -139,7 +140,7 @@ fn main() {
                     normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                     ..Default::default()
                 },
-                &PhongMaterial {
+                &Material {
                     color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
                     metallic: 0.0,
                     roughness: 1.0,

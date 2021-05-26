@@ -52,11 +52,11 @@ fn main() {
                 &loaded.image("examples/assets/test_texture.jpg").unwrap(),
             )
             .unwrap();
-            let box_material = PhongMaterial {
+            let box_material = Material {
                 color_source: ColorSource::Texture(std::rc::Rc::new(box_texture)),
                 ..Default::default()
             };
-            let mut box_mesh = PhongMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
+            let mut box_mesh = Mesh::with_material(&context, &box_cpu_mesh, &box_material).unwrap();
             box_mesh.cull = CullType::Back;
 
             let skybox = Skybox::new(
@@ -76,14 +76,15 @@ fn main() {
 
             let (penguin_cpu_meshes, penguin_cpu_materials) =
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
-            let penguin_cpu_material =
-                PhongMaterial::new(&context, &penguin_cpu_materials[0]).unwrap();
+            let penguin_cpu_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
             let mut penguin_deferred =
-                PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+                Mesh::with_material(&context, &penguin_cpu_meshes[0], &penguin_cpu_material)
+                    .unwrap();
             penguin_deferred.cull = CullType::Back;
             penguin_deferred.transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
             let mut penguin_forward =
-                PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+                Mesh::with_material(&context, &penguin_cpu_meshes[0], &penguin_cpu_material)
+                    .unwrap();
             penguin_forward.cull = CullType::Back;
             penguin_forward.transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
 

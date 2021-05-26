@@ -29,14 +29,14 @@ impl std::fmt::Display for ColorSource {
 /// A material used for shading an object based on the Phong shading model.
 ///
 #[derive(Clone)]
-pub struct PhongMaterial {
+pub struct Material {
     pub name: String,
     pub color_source: ColorSource,
     pub metallic: f32,
     pub roughness: f32,
 }
 
-impl PhongMaterial {
+impl Material {
     ///
     /// Constructor.
     ///
@@ -75,7 +75,7 @@ impl PhongMaterial {
     }
 }
 
-impl Default for PhongMaterial {
+impl Default for Material {
     fn default() -> Self {
         Self {
             name: "default".to_string(),

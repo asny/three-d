@@ -39,10 +39,10 @@ fn main() {
         move |loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-            let mut monkey = PhongMesh::new(
+            let mut monkey = Mesh::with_material(
                 &context,
                 &meshes[0],
-                &PhongMaterial::new(&context, &materials[0]).unwrap(),
+                &Material::new(&context, &materials[0]).unwrap(),
             )
             .unwrap();
             monkey.cull = CullType::Back;
