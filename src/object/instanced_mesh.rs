@@ -370,15 +370,7 @@ impl ShadedGeometry for InstancedMesh {
                     key.to_string(),
                     InstancedMeshProgram::new(
                         &self.context,
-                        &match self.material.color_source {
-                            ColorSource::Color(_) => {
-                                include_str!("shaders/deferred_objects.frag").to_string()
-                            }
-                            ColorSource::Texture(_) => format!(
-                                "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
-                                include_str!("shaders/deferred_objects.frag")
-                            ),
-                        },
+                        &crate::phong::geometry_fragment_shader(&self.material),
                     )?,
                 );
             };

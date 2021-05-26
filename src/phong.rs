@@ -10,6 +10,16 @@ mod deferred_pipeline;
 #[doc(inline)]
 pub use deferred_pipeline::*;
 
+pub(crate) fn geometry_fragment_shader(material: &Material) -> String {
+    match material.color_source {
+        ColorSource::Color(_) => include_str!("phong/shaders/deferred_objects.frag").to_string(),
+        ColorSource::Texture(_) => format!(
+            "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
+            include_str!("phong/shaders/deferred_objects.frag")
+        ),
+    }
+}
+
 pub(crate) fn shaded_fragment_shader(
     shader_addition: &str,
     directional_lights: usize,
