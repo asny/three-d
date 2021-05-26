@@ -8,9 +8,6 @@ uniform sampler2D tex;
 uniform vec4 surfaceColor;
 #endif
 
-in vec3 pos;
-in vec3 nor;
-
 layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_normal;
 

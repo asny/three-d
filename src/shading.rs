@@ -46,13 +46,11 @@ pub trait ShadedGeometry: Geometry {
 }
 
 pub(crate) fn geometry_fragment_shader(material: &Material) -> String {
-    match material.color_source {
-        ColorSource::Color(_) => include_str!("shading/shaders/deferred_objects.frag").to_string(),
-        ColorSource::Texture(_) => format!(
-            "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n{}",
-            include_str!("shading/shaders/deferred_objects.frag")
-        ),
-    }
+    format!(
+        "{}{}",
+        material_shader(material),
+        include_str!("shading/shaders/deferred_objects.frag")
+    )
 }
 
 pub(crate) fn shaded_fragment_shader(
@@ -112,12 +110,7 @@ pub(crate) fn shaded_fragment_shader(
         ));
     }
     let material_setup = if let Some(mat) = material {
-        match mat.color_source {
-            ColorSource::Color(_) => "in vec3 pos;\nin vec3 nor;\n",
-            ColorSource::Texture(_) => {
-                "#define USE_COLOR_TEXTURE;\nin vec3 pos;\nin vec3 nor;\nin vec2 uvs;\n"
-            }
-        }
+        material_shader(mat)
     } else {
         "#define DEFERRED\nin vec2 uv;\n"
     };
@@ -144,6 +137,15 @@ pub(crate) fn shaded_fragment_shader(
         material_setup,
         include_str!("shading/shaders/lighting.frag"),
     )
+}
+
+fn material_shader(material: &Material) -> &'static str {
+    match material.color_source {
+        ColorSource::Color(_) => "in vec3 pos;\nin vec3 nor;\n",
+        ColorSource::Texture(_) => {
+            "#define USE_COLOR_TEXTURE;\nin vec3 pos;\nin vec3 nor;\nin vec2 uvs;\n"
+        }
+    }
 }
 
 pub(crate) fn bind_lights(
