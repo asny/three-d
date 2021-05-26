@@ -26,7 +26,7 @@ impl std::fmt::Display for ColorSource {
 }
 
 ///
-/// A material used for shading an object based on the Phong shading model.
+/// A material used for shading an object using physically based rendering (PBR).
 ///
 #[derive(Clone)]
 pub struct Material {

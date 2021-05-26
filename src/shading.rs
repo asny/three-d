@@ -1,5 +1,5 @@
 //!
-//! Adds functionality for rendering objects based on the phong reflection model.
+//! Adds functionality for physically based rendering (PBR).
 //!
 
 mod material;
@@ -16,12 +16,10 @@ use crate::light::*;
 use crate::math::*;
 use crate::object::*;
 
-///
-/// Used for [deferred Phong rendering](crate::DeferredPipeline).
-///
 pub trait ShadedGeometry: Geometry {
     ///
-    /// Render the geometry and surface material parameters of the mesh, ie. the first part of a [deferred render pass](crate::DeferredPipeline::geometry_pass).
+    /// Render the geometry and surface material parameters of the object.
+    /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
     fn geometry_pass(
         &self,
@@ -31,7 +29,7 @@ pub trait ShadedGeometry: Geometry {
     ) -> Result<(), Error>;
 
     ///
-    /// Render the triangle mesh shaded with the given lights based on the Phong shading model.
+    /// Render the object shaded with the given lights using physically based rendering (PBR).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///

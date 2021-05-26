@@ -1,7 +1,7 @@
 use crate::definition::*;
 
 ///
-/// A CPU-side version of a material (for example [phong material](crate::PhongMaterial)).
+/// A CPU-side version of a [material](crate::Material).
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
 pub struct CPUMaterial {

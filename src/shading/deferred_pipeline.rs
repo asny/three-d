@@ -23,7 +23,7 @@ pub enum DebugType {
 }
 
 ///
-/// Deferred pipeline based on the Phong reflection model supporting a performance-limited
+/// Deferred pipeline using physically based rendering (PBR) and supporting a performance-limited
 /// amount of directional, point and spot lights with shadows.
 ///
 pub struct DeferredPipeline {
@@ -74,7 +74,7 @@ impl DeferredPipeline {
     }
 
     ///
-    /// Render the geometry and surface material parameters of the given [Phong geometries](crate::PhongGeometry).
+    /// Render the geometry and surface material parameters of the given [shaded geometries](crate::ShadedGeometry).
     /// This function must not be called in a render target render function and needs to be followed
     /// by a call to [light_pass](Self::light_pass) which must be inside a render target render function.
     ///
@@ -132,7 +132,7 @@ impl DeferredPipeline {
 
     ///
     /// Uses the geometry and surface material parameters written in the last [geometry_pass](Self::geometry_pass) call
-    /// and all of the given lights to shade the [Phong geometries](crate::PhongGeometry).
+    /// and all of the given lights to shade the [Shaded geometries](crate::ShadedGeometry).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
