@@ -109,11 +109,6 @@ pub(crate) fn shaded_fragment_shader(
             i
         ));
     }
-    let material_setup = if let Some(mat) = material {
-        material_shader(mat)
-    } else {
-        "#define DEFERRED\nin vec2 uv;\n"
-    };
 
     format!(
         "#define PHONG\n{}\n{}\n{}\n{}\n{}",
@@ -134,7 +129,7 @@ pub(crate) fn shaded_fragment_shader(
                 ",
             &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
         ),
-        material_setup,
+        material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n"),
         include_str!("shading/shaders/lighting.frag"),
     )
 }
