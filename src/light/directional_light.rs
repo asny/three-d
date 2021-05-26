@@ -2,6 +2,7 @@ use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
+use crate::object::*;
 
 ///
 /// A light which shines in the given direction.

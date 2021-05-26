@@ -4,8 +4,8 @@
 
 use crate::camera::*;
 use crate::core::*;
-use crate::definition::*;
 use crate::math::*;
+use crate::object::*;
 
 pub fn ray_intersect(
     context: &Context,

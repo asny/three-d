@@ -3,6 +3,7 @@ use crate::core::*;
 use crate::definition::*;
 use crate::light::*;
 use crate::math::*;
+use crate::object::*;
 use crate::shading::*;
 use std::rc::Rc;
 

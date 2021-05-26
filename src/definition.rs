@@ -15,7 +15,3 @@ pub use cpu_material::*;
 mod cpu_texture;
 #[doc(inline)]
 pub use cpu_texture::*;
-
-mod geometry;
-#[doc(inline)]
-pub use geometry::*;

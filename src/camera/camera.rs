@@ -1,7 +1,7 @@
 use crate::core::*;
-use crate::definition::*;
 use crate::function::*;
 use crate::math::*;
+use crate::object::*;
 
 pub(super) enum ProjectionType {
     Orthographic {

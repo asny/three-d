@@ -4,6 +4,7 @@ use crate::definition::*;
 use crate::light::*;
 use crate::math::*;
 use crate::object::mesh::*;
+use crate::object::*;
 use crate::shading::*;
 
 ///

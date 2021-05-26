@@ -10,6 +10,43 @@ mod deferred_pipeline;
 #[doc(inline)]
 pub use deferred_pipeline::*;
 
+use crate::camera::*;
+use crate::core::*;
+use crate::light::*;
+use crate::math::*;
+use crate::object::*;
+
+///
+/// Used for [deferred Phong rendering](crate::DeferredPipeline).
+///
+pub trait ShadedGeometry: Geometry {
+    ///
+    /// Render the geometry and surface material parameters of the mesh, ie. the first part of a [deferred render pass](crate::DeferredPipeline::geometry_pass).
+    ///
+    fn geometry_pass(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+    ) -> Result<(), Error>;
+
+    ///
+    /// Render the triangle mesh shaded with the given lights based on the Phong shading model.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    fn render_with_lighting(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<(), Error>;
+}
+
 pub(crate) fn geometry_fragment_shader(material: &Material) -> String {
     match material.color_source {
         ColorSource::Color(_) => include_str!("shading/shaders/deferred_objects.frag").to_string(),
@@ -101,9 +138,6 @@ pub(crate) fn shaded_fragment_shader(
     )
 }
 
-use crate::core::*;
-use crate::light::*;
-use crate::math::*;
 pub(crate) fn bind_lights(
     effect: &Program,
     ambient_light: Option<&AmbientLight>,
