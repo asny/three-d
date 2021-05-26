@@ -83,7 +83,7 @@ fn phong_fragment_shader(
     }
 
     format!(
-        "{}\n{}\n{}\n{}\n{}",
+        "#define PHONG\n{}\n{}\n{}\n{}\n{}",
         include_str!("core/shared.frag"),
         include_str!("phong/shaders/light_shared.frag"),
         &format!(
