@@ -116,7 +116,7 @@ impl InstancedMesh {
         Ok(mesh)
     }
 
-    pub fn with_material(
+    pub fn new_with_material(
         context: &Context,
         transformations: &[Mat4],
         cpu_mesh: &CPUMesh,

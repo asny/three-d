@@ -34,7 +34,7 @@ fn main() {
         move |loaded| {
             let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = Mesh::with_material(
+            let mut monkey = Mesh::new_with_material(
                 &context,
                 &monkey_cpu_meshes[0],
                 &Material::new(&context, &monkey_cpu_materials[0]).unwrap(),
@@ -42,7 +42,7 @@ fn main() {
             .unwrap();
             monkey.cull = CullType::Back;
 
-            let mut plane = Mesh::with_material(
+            let mut plane = Mesh::new_with_material(
                 &context,
                 &CPUMesh {
                     positions: vec![

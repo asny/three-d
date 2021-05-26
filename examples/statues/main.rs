@@ -53,7 +53,7 @@ fn main() {
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let statue_material = Material::new(&context, &statue_cpu_materials[0]).unwrap();
             let mut statue =
-                Mesh::with_material(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
+                Mesh::new_with_material(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
             statue.cull = CullType::Back;
 
             let mut statues = Vec::new();
@@ -75,7 +75,8 @@ fn main() {
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
             let fountain_material = Material::new(&context, &fountain_cpu_materials[0]).unwrap();
             let mut fountain =
-                Mesh::with_material(&context, &fountain_cpu_meshes[0], &fountain_material).unwrap();
+                Mesh::new_with_material(&context, &fountain_cpu_meshes[0], &fountain_material)
+                    .unwrap();
             fountain.cull = CullType::Back;
             fountain.transformation = Mat4::from_angle_x(degrees(-90.0));
 

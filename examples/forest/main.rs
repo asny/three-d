@@ -51,7 +51,7 @@ fn main() {
                 .unwrap();
             let tree_material = Material::new(&context, &tree_cpu_material).unwrap();
             let mut tree_mesh =
-                Mesh::with_material(&context, tree_cpu_mesh, &tree_material).unwrap();
+                Mesh::new_with_material(&context, tree_cpu_mesh, &tree_material).unwrap();
             tree_mesh.cull = CullType::Back;
             let tree_mesh_render_states = RenderStates {
                 depth_test: DepthTestType::LessOrEqual,
@@ -63,7 +63,7 @@ fn main() {
                 .iter()
                 .find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap())
                 .unwrap();
-            let leaves_mesh = Mesh::with_material(
+            let leaves_mesh = Mesh::new_with_material(
                 &context,
                 leaves_cpu_mesh,
                 &Material::new(&context, &leaves_cpu_material).unwrap(),
@@ -131,7 +131,7 @@ fn main() {
             imposters.update_positions(&positions, &angles);
 
             // Plane
-            let mut plane = Mesh::with_material(
+            let mut plane = Mesh::new_with_material(
                 &context,
                 &CPUMesh {
                     positions: vec![

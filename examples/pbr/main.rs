@@ -31,7 +31,7 @@ fn main() {
         let (cpu_meshes, cpu_materials) = loaded
             .gltf("examples/assets/gltf/DamagedHelmet.glb")
             .unwrap();
-        let mut model = Mesh::with_material(
+        let mut model = Mesh::new_with_material(
             &context,
             &cpu_meshes[0],
             &Material::new(&context, &cpu_materials[0]).unwrap(),
@@ -39,7 +39,7 @@ fn main() {
         .unwrap();
         model.cull = CullType::Back;
 
-        let plane = Mesh::with_material(
+        let plane = Mesh::new_with_material(
             &context,
             &CPUMesh {
                 positions: vec![

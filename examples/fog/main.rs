@@ -39,7 +39,7 @@ fn main() {
         move |loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-            let mut monkey = Mesh::with_material(
+            let mut monkey = Mesh::new_with_material(
                 &context,
                 &meshes[0],
                 &Material::new(&context, &materials[0]).unwrap(),

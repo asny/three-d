@@ -38,9 +38,12 @@ fn main() {
             let (mut meshes, mut materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let cpu_mesh = meshes.remove(0);
             let cpu_material = materials.remove(0);
-            let mut model =
-                Mesh::with_material(&gl, &cpu_mesh, &Material::new(&gl, &cpu_material).unwrap())
-                    .unwrap();
+            let mut model = Mesh::new_with_material(
+                &gl,
+                &cpu_mesh,
+                &Material::new(&gl, &cpu_material).unwrap(),
+            )
+            .unwrap();
             model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.cull = CullType::Back;
 
@@ -49,7 +52,7 @@ fn main() {
                 color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
                 ..Default::default()
             };
-            let mut edges = InstancedMesh::with_material(
+            let mut edges = InstancedMesh::new_with_material(
                 &gl,
                 &edge_transformations(&cpu_mesh),
                 &CPUMesh::cylinder(0.007, 1.0, 10),
@@ -59,7 +62,7 @@ fn main() {
             edges.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             edges.cull = CullType::Back;
 
-            let mut vertices = InstancedMesh::with_material(
+            let mut vertices = InstancedMesh::new_with_material(
                 &gl,
                 &vertex_transformations(&cpu_mesh),
                 &CPUMesh::sphere(0.015),
@@ -69,7 +72,7 @@ fn main() {
             vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             vertices.cull = CullType::Back;
 
-            let mut plane = Mesh::with_material(
+            let mut plane = Mesh::new_with_material(
                 &gl,
                 &CPUMesh {
                     positions: vec![

@@ -143,7 +143,7 @@ impl Mesh {
         })
     }
 
-    pub fn with_material(
+    pub fn new_with_material(
         context: &Context,
         cpu_mesh: &CPUMesh,
         material: &Material,
