@@ -46,6 +46,7 @@ pub struct InstancedMesh {
     instance_buffer1: VertexBuffer,
     instance_buffer2: VertexBuffer,
     instance_buffer3: VertexBuffer,
+    pub name: String,
     pub cull: CullType,
     pub transformation: Mat4,
 }
@@ -89,6 +90,7 @@ impl InstancedMesh {
         };
 
         let mut mesh = Self {
+            name: cpu_mesh.name.clone(),
             context: context.clone(),
             instance_count: 0,
             position_buffer,

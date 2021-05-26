@@ -11,7 +11,6 @@ use crate::phong::*;
 ///
 pub struct PhongInstancedMesh {
     context: Context,
-    pub name: String,
     mesh: InstancedMesh,
     pub material: PhongMaterial,
 }
@@ -29,7 +28,6 @@ impl PhongInstancedMesh {
         }
         Ok(Self {
             context: context.clone(),
-            name: cpu_mesh.name.clone(),
             mesh,
             material: material.clone(),
         })
