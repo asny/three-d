@@ -14,7 +14,7 @@ fn main() {
     // Renderer
     let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
-    let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
+    let mut pipeline = DeferredPipeline::new(&gl).unwrap();
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &gl,

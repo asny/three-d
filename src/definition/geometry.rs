@@ -33,12 +33,12 @@ pub trait Geometry {
 }
 
 ///
-/// Used for [deferred Phong rendering](crate::PhongDeferredPipeline).
+/// Used for [deferred Phong rendering](crate::DeferredPipeline).
 /// Implemented by [PhongMesh](crate::PhongMesh) and [PhongInstancedMesh](crate::PhongInstancedMesh).
 ///
 pub trait ShadedGeometry: Geometry {
     ///
-    /// Render the geometry and surface material parameters of the mesh, ie. the first part of a [deferred render pass](crate::PhongDeferredPipeline::geometry_pass).
+    /// Render the geometry and surface material parameters of the mesh, ie. the first part of a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
     fn geometry_pass(
         &self,

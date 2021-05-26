@@ -12,7 +12,7 @@ fn main() {
     let context = window.gl().unwrap();
 
     // Renderer
-    let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
+    let mut pipeline = DeferredPipeline::new(&context).unwrap();
     let target = vec3(0.0, 1.0, 0.0);
     let mut camera = CameraControl::new(
         Camera::new_perspective(

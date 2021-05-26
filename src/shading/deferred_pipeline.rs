@@ -26,7 +26,7 @@ pub enum DebugType {
 /// Deferred pipeline based on the Phong reflection model supporting a performance-limited
 /// amount of directional, point and spot lights with shadows.
 ///
-pub struct PhongDeferredPipeline {
+pub struct DeferredPipeline {
     context: Context,
     program_map: HashMap<String, ImageEffect>,
     debug_effect: Option<ImageEffect>,
@@ -38,7 +38,7 @@ pub struct PhongDeferredPipeline {
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
-impl PhongDeferredPipeline {
+impl DeferredPipeline {
     ///
     /// Constructor.
     ///
