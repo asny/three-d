@@ -80,7 +80,7 @@ fn shaded_fragment_shader(
             i, i, i
         ));
         dir_fun.push_str(&format!("
-                    color.rgb += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, directionalShadowMap{});", i, i));
+                    color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, directionalShadowMap{});", i, i));
     }
     let mut spot_uniform = String::new();
     let mut spot_fun = String::new();
@@ -96,7 +96,7 @@ fn shaded_fragment_shader(
         ));
         spot_fun.push_str(&format!(
             "
-                    color.rgb += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, spotShadowMap{});",
+                    color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, spotShadowMap{});",
             i, i
         ));
     }
@@ -113,7 +113,7 @@ fn shaded_fragment_shader(
         ));
         point_fun.push_str(&format!(
             "
-                    color.rgb += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness);",
+                    color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness);",
             i
         ));
     }
@@ -124,15 +124,18 @@ fn shaded_fragment_shader(
         include_str!("shading/shaders/light_shared.frag"),
         &format!(
             "
+                uniform vec3 ambientColor;
                 {} // Directional lights
                 {} // Spot lights
                 {} // Point lights
 
-                void calculate_lighting(inout vec4 color, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
+                vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
                 {{
+                    vec3 color = ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
                     {} // Directional lights
                     {} // Spot lights
                     {} // Point lights
+                    return color;
                 }}
                 ",
             &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun

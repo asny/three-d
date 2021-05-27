@@ -1,4 +1,3 @@
-uniform vec3 ambientColor;
 
 #ifdef DEFERRED 
 
@@ -55,7 +54,6 @@ void main()
 
 #endif
 
-    outColor.rgb = surface_color.rgb * mix(ambientColor, vec3(0.0), metallic);
-    calculate_lighting(outColor, surface_color.rgb, position, normal, metallic, roughness);
-    outColor = vec4(srgb_from_rgb(outColor.rgb), surface_color.a);
+    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, position, normal, metallic, roughness));
+    outColor.a = surface_color.a;
 }

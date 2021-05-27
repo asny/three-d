@@ -147,25 +147,23 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
 vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position, vec3 N, float metallic, float roughness)
 {
     vec3 V = normalize(eyePosition - position);
-    vec3 H = normalize(L + V);
 
     // compute material reflectance
     float NdL = max(0.0, dot(N, L));
     float NdV = max(0.001, dot(N, V));
-    float NdH = max(0.001, dot(N, H));
-    float HdV = max(0.001, dot(H, V));
-    float LdV = max(0.001, dot(L, V));
 
     // mix between metal and non-metal material, for non-metal
     // constant base specular factor of 0.04 grey is used
     vec3 specular = mix(vec3(0.04), surface_color, metallic);
 
-    // fresnel term is common for any, except phong
-    // so it will be calcuated inside ifdefs
 #ifdef PHONG
     // specular reflectance with PHONG
     vec3 specfresnel = fresnel_factor(specular, NdV);
     vec3 specref = phong_specular(V, L, N, specfresnel, roughness);
+#else
+    vec3 H = normalize(L + V);
+    float NdH = max(0.001, dot(N, H));
+    float HdV = max(0.001, dot(H, V));
 #endif
 
 #ifdef BLINN
@@ -186,18 +184,8 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
     vec3 diffref = (vec3(1.0) - specfresnel) * phong_diffuse() * NdL;
     
     // compute lighting
-    vec3 reflected_light = vec3(0);
-    vec3 diffuse_light = vec3(0); // initial value == constant ambient light
-
-    // point light
-    reflected_light += specref * light_color;
-    diffuse_light += diffref * light_color;
-
-    // IBL lighting
-    /*vec2 brdf = texture2D(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
-    vec3 iblspec = min(vec3(0.99), fresnel_factor(specular, NdV) * brdf.x + brdf.y);
-    reflected_light += iblspec * envspec;
-    diffuse_light += envdiff * (1.0 / PI);*/
+    vec3 reflected_light = specref * light_color;
+    vec3 diffuse_light = diffref * light_color;
 
     // final result
     return
