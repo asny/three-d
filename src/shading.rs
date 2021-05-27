@@ -14,6 +14,10 @@ mod mesh;
 #[doc(inline)]
 pub use mesh::*;
 
+mod instanced_mesh;
+#[doc(inline)]
+pub use instanced_mesh::*;
+
 use crate::camera::*;
 use crate::core::*;
 use crate::light::*;

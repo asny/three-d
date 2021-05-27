@@ -1,7 +1,6 @@
 use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
-use crate::light::*;
 use crate::math::*;
 use crate::object::mesh::*;
 use crate::object::*;
@@ -307,6 +306,32 @@ impl InstancedMesh {
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
     }
+
+    pub(crate) fn get_or_insert_program(
+        &self,
+        fragment_shader_source: &str,
+    ) -> Result<&InstancedMeshProgram, Error> {
+        unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
+            }
+            if !PROGRAMS
+                .as_ref()
+                .unwrap()
+                .contains_key(fragment_shader_source)
+            {
+                PROGRAMS.as_mut().unwrap().insert(
+                    fragment_shader_source.to_string(),
+                    InstancedMeshProgram::new(&self.context, fragment_shader_source)?,
+                );
+            };
+            Ok(PROGRAMS
+                .as_ref()
+                .unwrap()
+                .get(fragment_shader_source)
+                .unwrap())
+        }
+    }
 }
 
 impl Geometry for InstancedMesh {
@@ -348,87 +373,6 @@ impl Geometry for InstancedMesh {
 
     fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
         None // TODO: Compute bounding box
-    }
-}
-
-impl ShadedGeometry for InstancedMesh {
-    fn geometry_pass(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-    ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            let key = match self.material.color_source {
-                ColorSource::Color(_) => "ColorDeferred",
-                ColorSource::Texture(_) => "TextureDeferred",
-            };
-            if !PROGRAMS.as_ref().unwrap().contains_key(key) {
-                PROGRAMS.as_mut().unwrap().insert(
-                    key.to_string(),
-                    InstancedMeshProgram::new(
-                        &self.context,
-                        &geometry_fragment_shader(&self.material),
-                    )?,
-                );
-            };
-            PROGRAMS.as_ref().unwrap().get(key).unwrap()
-        };
-        self.material.bind(program)?;
-        self.render(program, render_states, viewport, camera)
-    }
-
-    fn render_with_lighting(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> Result<(), Error> {
-        let key = format!(
-            "{},{},{},{}",
-            self.material.color_source,
-            directional_lights.len(),
-            spot_lights.len(),
-            point_lights.len()
-        );
-        let program = unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
-                let fragment_shader_source = shaded_fragment_shader(
-                    Some(&self.material),
-                    directional_lights.len(),
-                    spot_lights.len(),
-                    point_lights.len(),
-                );
-                PROGRAMS.as_mut().unwrap().insert(
-                    key.clone(),
-                    InstancedMeshProgram::new(&self.context, &fragment_shader_source)?,
-                );
-            };
-            PROGRAMS.as_ref().unwrap().get(&key).unwrap()
-        };
-
-        bind_lights(
-            program,
-            ambient_light,
-            directional_lights,
-            spot_lights,
-            point_lights,
-        )?;
-
-        program.use_uniform_vec3("eyePosition", &camera.position())?;
-        self.material.bind(program)?;
-        self.render(program, render_states, viewport, camera)?;
-        Ok(())
     }
 }
 
