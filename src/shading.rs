@@ -10,6 +10,10 @@ mod deferred_pipeline;
 #[doc(inline)]
 pub use deferred_pipeline::*;
 
+mod mesh;
+#[doc(inline)]
+pub use mesh::*;
+
 use crate::camera::*;
 use crate::core::*;
 use crate::light::*;
