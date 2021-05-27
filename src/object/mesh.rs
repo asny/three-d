@@ -175,7 +175,7 @@ impl Mesh {
     }
 
     ///
-    /// Render the mesh with the given color.
+    /// Render the mesh with the given color. The color is assumed to be in gamma color space (sRGBA).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
@@ -186,7 +186,11 @@ impl Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
+        let program = self.get_or_insert_program(&format!(
+            "{}{}",
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh_color.frag")
+        ))?;
         program.use_uniform_vec4("color", color)?;
         self.render(program, render_states, viewport, camera)
     }
