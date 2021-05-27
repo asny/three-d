@@ -348,6 +348,32 @@ impl Mesh {
         }
         Ok(())
     }
+
+    pub(crate) fn get_or_insert_program(
+        &self,
+        fragment_shader_source: &str,
+    ) -> Result<&MeshProgram, Error> {
+        unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
+            }
+            if !PROGRAMS
+                .as_ref()
+                .unwrap()
+                .contains_key(fragment_shader_source)
+            {
+                PROGRAMS.as_mut().unwrap().insert(
+                    fragment_shader_source.to_string(),
+                    MeshProgram::new(&self.context, fragment_shader_source)?,
+                );
+            };
+            Ok(PROGRAMS
+                .as_ref()
+                .unwrap()
+                .get(fragment_shader_source)
+                .unwrap())
+        }
+    }
 }
 
 impl Geometry for Mesh {
@@ -401,22 +427,8 @@ impl ShadedGeometry for Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            let key = match self.material.color_source {
-                ColorSource::Color(_) => "ColorDeferred",
-                ColorSource::Texture(_) => "TextureDeferred",
-            };
-            if !PROGRAMS.as_ref().unwrap().contains_key(key) {
-                PROGRAMS.as_mut().unwrap().insert(
-                    key.to_string(),
-                    MeshProgram::new(&self.context, &geometry_fragment_shader(&self.material))?,
-                );
-            };
-            PROGRAMS.as_ref().unwrap().get(key).unwrap()
-        };
+        let fragment_shader_source = geometry_fragment_shader(&self.material);
+        let program = self.get_or_insert_program(&fragment_shader_source)?;
         self.material.bind(program)?;
         self.render(program, render_states, viewport, camera)
     }
@@ -431,31 +443,13 @@ impl ShadedGeometry for Mesh {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<(), Error> {
-        let key = format!(
-            "{},{},{},{}",
-            self.material.color_source,
+        let fragment_shader_source = shaded_fragment_shader(
+            Some(&self.material),
             directional_lights.len(),
             spot_lights.len(),
-            point_lights.len()
+            point_lights.len(),
         );
-        let program = unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            if !PROGRAMS.as_ref().unwrap().contains_key(&key) {
-                let fragment_shader_source = shaded_fragment_shader(
-                    Some(&self.material),
-                    directional_lights.len(),
-                    spot_lights.len(),
-                    point_lights.len(),
-                );
-                PROGRAMS.as_mut().unwrap().insert(
-                    key.clone(),
-                    MeshProgram::new(&self.context, &fragment_shader_source)?,
-                );
-            };
-            PROGRAMS.as_ref().unwrap().get(&key).unwrap()
-        };
+        let program = self.get_or_insert_program(&fragment_shader_source)?;
 
         bind_lights(
             program,
@@ -464,20 +458,8 @@ impl ShadedGeometry for Mesh {
             spot_lights,
             point_lights,
         )?;
-
-        if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
-            program.use_uniform_vec3("eyePosition", &camera.position())?;
-            self.material.bind(program)?;
-        } else {
-            match self.material.color_source {
-                ColorSource::Color(ref color) => {
-                    program.use_uniform_vec4("surfaceColor", color)?;
-                }
-                ColorSource::Texture(ref texture) => {
-                    program.use_texture(texture.as_ref(), "tex")?;
-                }
-            }
-        }
+        program.use_uniform_vec3("eyePosition", &camera.position())?;
+        self.material.bind(program)?;
         self.render(program, render_states, viewport, camera)?;
         Ok(())
     }
