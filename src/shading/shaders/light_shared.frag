@@ -58,11 +58,11 @@ float phong_diffuse()
 }
 
 
-// compute fresnel specular factor for given base specular and product
-// product could be NdV or VdH depending on used technique
-vec3 fresnel_factor(in vec3 f0, in float product)
+// compute fresnel specular factor
+// cosTheta could be NdV or VdH depending on used technique
+vec3 fresnel_factor(in vec3 F0, in float cosTheta)
 {
-    return mix(f0, vec3(1.0), pow(1.01 - product, 5.0));
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 
@@ -106,11 +106,11 @@ float G_schlick(in float roughness, in float NdV, in float NdL)
 vec3 phong_specular(in vec3 V, in vec3 L, in vec3 N, in vec3 specular, in float roughness)
 {
     vec3 R = reflect(-L, N);
-    float spec = max(0.0, dot(V, R));
+    float VdR = max(0.0, dot(V, R));
 
     float k = 1.999 / (roughness * roughness);
 
-    return min(1.0, 3.0 * 0.0398 * k) * pow(spec, min(10000.0, k)) * specular;
+    return min(1.0, 3.0 * 0.0398 * k) * pow(VdR, min(10000.0, k)) * specular;
 }
 
 // simple blinn specular calculation with normalization
