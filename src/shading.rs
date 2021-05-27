@@ -53,7 +53,7 @@ pub trait ShadedGeometry: Geometry {
     ) -> Result<(), Error>;
 }
 
-pub(crate) fn geometry_fragment_shader(material: &Material) -> String {
+fn geometry_fragment_shader(material: &Material) -> String {
     format!(
         "{}{}",
         material_shader(material),
@@ -61,7 +61,7 @@ pub(crate) fn geometry_fragment_shader(material: &Material) -> String {
     )
 }
 
-pub(crate) fn shaded_fragment_shader(
+fn shaded_fragment_shader(
     material: Option<&Material>,
     directional_lights: usize,
     spot_lights: usize,
@@ -151,7 +151,7 @@ fn material_shader(material: &Material) -> &'static str {
     }
 }
 
-pub(crate) fn bind_lights(
+fn bind_lights(
     effect: &Program,
     ambient_light: Option<&AmbientLight>,
     directional_lights: &[&DirectionalLight],
