@@ -141,15 +141,7 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_PER_VERTEX_COLOR.is_none() {
-                PROGRAM_PER_VERTEX_COLOR = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_vertex_color.frag"),
-                )?);
-            }
-            PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_vertex_color.frag"))?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -166,15 +158,7 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_COLOR.is_none() {
-                PROGRAM_COLOR = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_color.frag"),
-                )?);
-            }
-            PROGRAM_COLOR.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", color)?;
         self.render(program, render_states, viewport, camera)
     }
@@ -195,15 +179,7 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_TEXTURE.is_none() {
-                PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_texture.frag"),
-                )?);
-            }
-            PROGRAM_TEXTURE.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture(texture, "tex")?;
         self.render(program, render_states, viewport, camera)
     }
@@ -342,15 +318,7 @@ impl Geometry for InstancedMesh {
         camera: &Camera,
         max_depth: f32,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_PICK.is_none() {
-                PROGRAM_PICK = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_pick.frag"),
-                )?);
-            }
-            PROGRAM_PICK.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
         self.render(program, render_states, viewport, camera)?;
         Ok(())
@@ -362,12 +330,7 @@ impl Geometry for InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_DEPTH.is_none() {
-                PROGRAM_DEPTH = Some(InstancedMeshProgram::new(&self.context, "void main() {}")?);
-            }
-            PROGRAM_DEPTH.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program("void main() {}")?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -381,21 +344,11 @@ impl Drop for InstancedMesh {
         unsafe {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
-                PROGRAM_DEPTH = None;
-                PROGRAM_PICK = None;
-                PROGRAM_COLOR = None;
-                PROGRAM_TEXTURE = None;
-                PROGRAM_PER_VERTEX_COLOR = None;
                 PROGRAMS = None;
             }
         }
     }
 }
 
-static mut PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_DEPTH: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_PICK: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_PER_VERTEX_COLOR: Option<InstancedMeshProgram> = None;
 static mut PROGRAMS: Option<std::collections::HashMap<String, InstancedMeshProgram>> = None;
 static mut MESH_COUNT: u32 = 0;

@@ -166,19 +166,11 @@ impl Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_PER_VERTEX_COLOR.is_none() {
-                PROGRAM_PER_VERTEX_COLOR = Some(MeshProgram::new(
-                    &self.context,
-                    &format!(
-                        "{}{}",
-                        include_str!("../core/shared.frag"),
-                        include_str!("shaders/mesh_vertex_color.frag")
-                    ),
-                )?);
-            }
-            PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(&format!(
+            "{}{}",
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh_vertex_color.frag")
+        ))?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -194,15 +186,7 @@ impl Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_COLOR.is_none() {
-                PROGRAM_COLOR = Some(MeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_color.frag"),
-                )?);
-            }
-            PROGRAM_COLOR.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", color)?;
         self.render(program, render_states, viewport, camera)
     }
@@ -221,15 +205,7 @@ impl Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_UVS.is_none() {
-                PROGRAM_UVS = Some(MeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_uvs.frag"),
-                )?);
-            }
-            PROGRAM_UVS.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_uvs.frag"))?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -247,15 +223,7 @@ impl Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_NORMALS.is_none() {
-                PROGRAM_NORMALS = Some(MeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_normals.frag"),
-                )?);
-            }
-            PROGRAM_NORMALS.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_normals.frag"))?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -274,19 +242,11 @@ impl Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_TEXTURE.is_none() {
-                PROGRAM_TEXTURE = Some(MeshProgram::new(
-                    &self.context,
-                    &format!(
-                        "{}{}",
-                        include_str!("../core/shared.frag"),
-                        include_str!("shaders/mesh_texture.frag")
-                    ),
-                )?);
-            }
-            PROGRAM_TEXTURE.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(&format!(
+            "{}{}",
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh_texture.frag")
+        ))?;
         program.use_texture(texture, "tex")?;
         self.render(program, render_states, viewport, camera)
     }
@@ -383,15 +343,7 @@ impl Geometry for Mesh {
         camera: &Camera,
         max_depth: f32,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_PICK.is_none() {
-                PROGRAM_PICK = Some(MeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_pick.frag"),
-                )?);
-            }
-            PROGRAM_PICK.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
         self.render(program, render_states, viewport, camera)?;
         Ok(())
@@ -403,12 +355,7 @@ impl Geometry for Mesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_DEPTH.is_none() {
-                PROGRAM_DEPTH = Some(MeshProgram::new(&self.context, "void main() {}")?);
-            }
-            PROGRAM_DEPTH.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program("void main() {}")?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -445,26 +392,11 @@ impl Drop for Mesh {
         unsafe {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
-                PROGRAM_DEPTH = None;
-                PROGRAM_PICK = None;
-                PROGRAM_COLOR = None;
-                PROGRAM_TEXTURE = None;
-                PROGRAM_UVS = None;
-                PROGRAM_NORMALS = None;
-                PROGRAM_PER_VERTEX_COLOR = None;
                 PROGRAMS = None;
             }
         }
     }
 }
 
-static mut PROGRAM_COLOR: Option<MeshProgram> = None;
-static mut PROGRAM_TEXTURE: Option<MeshProgram> = None;
-static mut PROGRAM_DEPTH: Option<MeshProgram> = None;
-static mut PROGRAM_UVS: Option<MeshProgram> = None;
-static mut PROGRAM_NORMALS: Option<MeshProgram> = None;
-static mut PROGRAM_PICK: Option<MeshProgram> = None;
-static mut PROGRAM_PER_VERTEX_COLOR: Option<MeshProgram> = None;
 static mut MESH_COUNT: u32 = 0;
-
 static mut PROGRAMS: Option<std::collections::HashMap<String, MeshProgram>> = None;
