@@ -179,28 +179,19 @@ impl DeferredPipeline {
             return Ok(());
         }
 
-        let key = format!(
-            "{},{},{},{}",
-            ambient_light.is_some(),
+        let fragment_shader = shaded_fragment_shader(
+            None,
             directional_lights.len(),
             spot_lights.len(),
-            point_lights.len()
+            point_lights.len(),
         );
-        if !self.program_map.contains_key(&key) {
+        if !self.program_map.contains_key(&fragment_shader) {
             self.program_map.insert(
-                key.clone(),
-                ImageEffect::new(
-                    &self.context,
-                    &shaded_fragment_shader(
-                        None,
-                        directional_lights.len(),
-                        spot_lights.len(),
-                        point_lights.len(),
-                    ),
-                )?,
+                fragment_shader.clone(),
+                ImageEffect::new(&self.context, &fragment_shader)?,
             );
         };
-        let effect = self.program_map.get(&key).unwrap();
+        let effect = self.program_map.get(&fragment_shader).unwrap();
 
         bind_lights(
             effect,
