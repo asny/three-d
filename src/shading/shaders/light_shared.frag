@@ -50,14 +50,6 @@ float saturate(in float value)
     return clamp(value, 0.0, 1.0);
 }
 
-
-// phong (lambertian) diffuse term
-float phong_diffuse()
-{
-    return (1.0 / PI);
-}
-
-
 // compute fresnel specular factor
 // cosTheta could be NdV or VdH depending on used technique
 vec3 fresnel_factor(in vec3 F0, in float cosTheta)
@@ -71,31 +63,33 @@ vec3 fresnel_factor(in vec3 F0, in float cosTheta)
 
 float D_blinn(in float roughness, in float NdH)
 {
-    float m = roughness * roughness;
-    float m2 = m * m;
-    float n = 2.0 / m2 - 2.0;
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+    float n = 2.0 / alpha2 - 2.0;
     return (n + 2.0) / (2.0 * PI) * pow(NdH, n);
 }
 
 float D_beckmann(in float roughness, in float NdH)
 {
-    float m = roughness * roughness;
-    float m2 = m * m;
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
     float NdH2 = NdH * NdH;
-    return exp((NdH2 - 1.0) / (m2 * NdH2)) / (PI * m2 * NdH2 * NdH2);
+    return exp((NdH2 - 1.0) / (alpha2 * NdH2)) / (PI * alpha2 * NdH2 * NdH2);
 }
 
 float D_GGX(in float roughness, in float NdH)
 {
-    float m = roughness * roughness;
-    float m2 = m * m;
-    float d = (NdH * m2 - NdH) * NdH + 1.0;
-    return m2 / (PI * d * d);
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+    float d = (NdH * alpha2 - NdH) * NdH + 1.0;
+    return alpha2 / (PI * d * d);
 }
 
+// Trowbridge-Reitz GGX geometry function including the normalization factor 1 / (4 * NdV * NdL)
 float G_schlick(in float roughness, in float NdV, in float NdL)
 {
-    float k = roughness * roughness * 0.5;
+    float alpha = roughness * roughness;
+    float k = 0.125 * (alpha + 1.0) * (alpha + 1.0);
     float V = NdV * (1.0 - k) + k;
     float L = NdL * (1.0 - k) + k;
     return 0.25 / (V * L);
@@ -103,26 +97,26 @@ float G_schlick(in float roughness, in float NdV, in float NdL)
 
 
 // simple phong specular calculation with normalization
-vec3 phong_specular(in vec3 V, in vec3 L, in vec3 N, in vec3 specular, in float roughness)
+vec3 phong_specular(in vec3 V, in vec3 L, in vec3 N, in vec3 specular_fresnel, in float roughness)
 {
     vec3 R = reflect(-L, N);
     float VdR = max(0.0, dot(V, R));
 
     float k = 1.999 / (roughness * roughness);
 
-    return min(1.0, 3.0 * 0.0398 * k) * pow(VdR, min(10000.0, k)) * specular;
+    return min(1.0, 3.0 * 0.0398 * k) * pow(VdR, min(10000.0, k)) * specular_fresnel;
 }
 
 // simple blinn specular calculation with normalization
-vec3 blinn_specular(in float NdH, in vec3 specular, in float roughness)
+vec3 blinn_specular(in float NdH, in vec3 specular_fresnel, in float roughness)
 {
     float k = 1.999 / (roughness * roughness);
     
-    return min(1.0, 3.0 * 0.0398 * k) * pow(NdH, min(10000.0, k)) * specular;
+    return min(1.0, 3.0 * 0.0398 * k) * pow(NdH, min(10000.0, k)) * specular_fresnel;
 }
 
 // cook-torrance specular calculation                      
-vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 specular, in float roughness, in float rim)
+vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 specular_fresnel, in float roughness)
 {
     float D = 0.0;
 #ifdef COOK_BLINN
@@ -139,9 +133,7 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
 
     float G = G_schlick(roughness, NdV, NdL);
 
-    float rim_ = mix(1.0 - roughness * rim * 0.9, 1.0, NdV);
-
-    return (1.0 / rim_) * specular * G * D;
+    return specular_fresnel * G * D;
 }
 
 vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position, vec3 N, float metallic, float roughness)
@@ -158,8 +150,8 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
 
 #ifdef PHONG
     // specular reflectance with PHONG
-    vec3 specfresnel = fresnel_factor(specular, NdV);
-    vec3 specref = phong_specular(V, L, N, specfresnel, roughness);
+    vec3 specular_fresnel = fresnel_factor(specular, NdV);
+    vec3 reflected_light = phong_specular(V, L, N, specular_fresnel, roughness);
 #else
     vec3 H = normalize(L + V);
     float NdH = max(0.001, dot(N, H));
@@ -168,29 +160,22 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
 
 #ifdef BLINN
     // specular reflectance with BLINN
-    vec3 specfresnel = fresnel_factor(specular, HdV);
-    vec3 specref = blinn_specular(NdH, specfresnel, roughness);
+    vec3 specular_fresnel = fresnel_factor(specular, HdV);
+    vec3 reflected_light = blinn_specular(NdH, specular_fresnel, roughness);
 #endif
 
 #ifdef COOK
     // specular reflectance with COOK-TORRANCE
-    vec3 specfresnel = fresnel_factor(specular, HdV);
-    vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness);
+    vec3 specular_fresnel = fresnel_factor(specular, HdV);
+    vec3 reflected_light = cooktorrance_specular(NdL, NdV, NdH, specular_fresnel, roughness);
 #endif
 
-    specref *= vec3(NdL);
-
     // diffuse is common for any model
-    vec3 diffref = (vec3(1.0) - specfresnel) * phong_diffuse() * NdL;
+    vec3 diffuse_fresnel = 1.0 - specular_fresnel;
+    vec3 diffuse_light = diffuse_fresnel * mix(surface_color, vec3(0.0), metallic) / PI;
     
-    // compute lighting
-    vec3 reflected_light = specref * light_color;
-    vec3 diffuse_light = diffref * light_color;
-
     // final result
-    return
-        diffuse_light * mix(surface_color, vec3(0.0), metallic) +
-        reflected_light;
+    return (diffuse_light + reflected_light) * light_color * NdL;
 }
 
 vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
