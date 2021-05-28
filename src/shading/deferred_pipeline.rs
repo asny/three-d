@@ -34,6 +34,7 @@ pub struct DeferredPipeline {
     /// Set this to visualize the positions, normals etc. for debug purposes.
     ///
     pub debug_type: DebugType,
+    pub lighting_model: LightingModel,
     geometry_pass_texture: Option<ColorTargetTexture2DArray<u8>>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
@@ -48,6 +49,7 @@ impl DeferredPipeline {
             program_map: HashMap::new(),
             debug_effect: None,
             debug_type: DebugType::NONE,
+            lighting_model: LightingModel::Blinn,
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(
                 context,
                 1,
@@ -180,6 +182,7 @@ impl DeferredPipeline {
         }
 
         let fragment_shader = shaded_fragment_shader(
+            self.lighting_model,
             None,
             directional_lights.len(),
             spot_lights.len(),

@@ -91,6 +91,7 @@ pub struct Mesh {
     pub cull: CullType,
     pub transformation: Mat4,
     pub material: Material,
+    pub lighting_model: LightingModel,
 }
 
 impl Mesh {
@@ -139,6 +140,7 @@ impl Mesh {
             transformation: Mat4::identity(),
             cull: CullType::None,
             material: Material::default(),
+            lighting_model: LightingModel::Blinn,
         })
     }
 
@@ -387,6 +389,7 @@ impl Clone for Mesh {
             cull: self.cull.clone(),
             transformation: self.transformation.clone(),
             material: self.material.clone(),
+            lighting_model: self.lighting_model,
         }
     }
 }

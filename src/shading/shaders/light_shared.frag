@@ -77,6 +77,7 @@ float D_beckmann(in float roughness, in float NdH)
     return exp((NdH2 - 1.0) / (alpha2 * NdH2)) / (PI * alpha2 * NdH2 * NdH2);
 }
 
+// Trowbridge-Reitz GGX normal distribution function
 float D_GGX(in float roughness, in float NdH)
 {
     float alpha = roughness * roughness;
@@ -85,7 +86,7 @@ float D_GGX(in float roughness, in float NdH)
     return alpha2 / (PI * d * d);
 }
 
-// Trowbridge-Reitz GGX geometry function including the normalization factor 1 / (4 * NdV * NdL)
+// Smith's Schlick-GGX geometry function including the normalization factor 1 / (4 * NdV * NdL)
 float G_schlick(in float roughness, in float NdV, in float NdL)
 {
     float alpha = roughness * roughness;

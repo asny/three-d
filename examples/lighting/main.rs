@@ -140,6 +140,42 @@ fn main() {
                                             .text("Plane Roughness"),
                                     );
 
+                                    ui.label("Lighting model");
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Phong,
+                                        "Phong",
+                                    );
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Blinn,
+                                        "Blinn",
+                                    );
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Cook(
+                                            NormalDistributionFunction::Blinn,
+                                            GeometryFunction::SmithSchlickGGX,
+                                        ),
+                                        "Cook (Blinn)",
+                                    );
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Cook(
+                                            NormalDistributionFunction::Beckmann,
+                                            GeometryFunction::SmithSchlickGGX,
+                                        ),
+                                        "Cook (Beckmann)",
+                                    );
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Cook(
+                                            NormalDistributionFunction::TrowbridgeReitzGGX,
+                                            GeometryFunction::SmithSchlickGGX,
+                                        ),
+                                        "Cook (Trowbridge-Reitz GGX)",
+                                    );
+
                                     ui.label("Debug options");
                                     ui.radio_value(
                                         &mut pipeline.debug_type,

@@ -52,6 +52,7 @@ pub struct InstancedMesh {
     pub cull: CullType,
     pub transformation: Mat4,
     pub material: Material,
+    pub lighting_model: LightingModel,
 }
 
 impl InstancedMesh {
@@ -107,6 +108,7 @@ impl InstancedMesh {
             cull: CullType::None,
             transformation: Mat4::identity(),
             material: Material::default(),
+            lighting_model: LightingModel::Blinn,
         };
         mesh.update_transformations(transformations);
         unsafe {

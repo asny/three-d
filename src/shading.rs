@@ -53,6 +53,25 @@ pub trait ShadedGeometry: Geometry {
     ) -> Result<(), Error>;
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum LightingModel {
+    Phong,
+    Blinn,
+    Cook(NormalDistributionFunction, GeometryFunction),
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum GeometryFunction {
+    SmithSchlickGGX,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum NormalDistributionFunction {
+    Blinn,
+    Beckmann,
+    TrowbridgeReitzGGX,
+}
+
 fn geometry_fragment_shader(material: &Material) -> String {
     format!(
         "{}{}",
@@ -62,6 +81,7 @@ fn geometry_fragment_shader(material: &Material) -> String {
 }
 
 fn shaded_fragment_shader(
+    lighting_model: LightingModel,
     material: Option<&Material>,
     directional_lights: usize,
     spot_lights: usize,
@@ -118,8 +138,19 @@ fn shaded_fragment_shader(
         ));
     }
 
+    let model = match lighting_model {
+        LightingModel::Phong => "#define PHONG",
+        LightingModel::Blinn => "#define BLINN",
+        LightingModel::Cook(normal, _) => match normal {
+            NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+            NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+            NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
+        },
+    };
+
     format!(
-        "#define PHONG\n{}\n{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}\n{}",
+        model,
         include_str!("core/shared.frag"),
         include_str!("shading/shaders/light_shared.frag"),
         &format!(
