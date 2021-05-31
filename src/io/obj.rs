@@ -60,6 +60,17 @@ impl<'a> Loaded<'a> {
                     } else {
                         None
                     },
+                    metallic_factor: Some(
+                        ((material.color_specular.r
+                            + material.color_specular.g
+                            + material.color_specular.b)
+                            / 3.0) as f32,
+                    ),
+                    roughness_factor: if material.specular_coefficient > 0.1 {
+                        Some((1.999 / material.specular_coefficient).sqrt() as f32)
+                    } else {
+                        None
+                    },
                     ..Default::default()
                 });
             }
