@@ -186,27 +186,32 @@ fn material_shader(material: &Material) -> &'static str {
 }
 
 fn bind_lights(
-    effect: &Program,
+    program: &Program,
     ambient_light: Option<&AmbientLight>,
     directional_lights: &[&DirectionalLight],
     spot_lights: &[&SpotLight],
     point_lights: &[&PointLight],
+    camera_position: &Vec3,
 ) -> Result<(), Error> {
     // Ambient light
-    effect.use_uniform_vec3(
+    program.use_uniform_vec3(
         "ambientColor",
         &ambient_light
             .map(|light| light.color * light.intensity)
             .unwrap_or(vec3(0.0, 0.0, 0.0)),
     )?;
 
+    if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
+        program.use_uniform_vec3("eyePosition", camera_position)?;
+    }
+
     // Directional light
     for i in 0..directional_lights.len() {
-        effect.use_texture(
+        program.use_texture(
             directional_lights[i].shadow_map(),
             &format!("directionalShadowMap{}", i),
         )?;
-        effect.use_uniform_block(
+        program.use_uniform_block(
             directional_lights[i].buffer(),
             &format!("DirectionalLightUniform{}", i),
         );
@@ -214,13 +219,13 @@ fn bind_lights(
 
     // Spot light
     for i in 0..spot_lights.len() {
-        effect.use_texture(spot_lights[i].shadow_map(), &format!("spotShadowMap{}", i))?;
-        effect.use_uniform_block(spot_lights[i].buffer(), &format!("SpotLightUniform{}", i));
+        program.use_texture(spot_lights[i].shadow_map(), &format!("spotShadowMap{}", i))?;
+        program.use_uniform_block(spot_lights[i].buffer(), &format!("SpotLightUniform{}", i));
     }
 
     // Point light
     for i in 0..point_lights.len() {
-        effect.use_uniform_block(point_lights[i].buffer(), &format!("PointLightUniform{}", i));
+        program.use_uniform_block(point_lights[i].buffer(), &format!("PointLightUniform{}", i));
     }
     Ok(())
 }

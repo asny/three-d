@@ -43,9 +43,8 @@ impl ShadedGeometry for InstancedMesh {
             directional_lights,
             spot_lights,
             point_lights,
+            camera.position(),
         )?;
-
-        program.use_uniform_vec3("eyePosition", &camera.position())?;
         self.material.bind(program)?;
         self.render(program, render_states, viewport, camera)?;
         Ok(())

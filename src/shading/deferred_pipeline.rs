@@ -202,12 +202,12 @@ impl DeferredPipeline {
             directional_lights,
             spot_lights,
             point_lights,
+            camera.position(),
         )?;
 
         effect.use_texture_array(self.geometry_pass_texture(), "gbuffer")?;
         effect.use_texture_array(self.geometry_pass_depth_texture_array(), "depthMap")?;
         if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
-            effect.use_uniform_vec3("eyePosition", &camera.position())?;
             effect.use_uniform_mat4(
                 "viewProjectionInverse",
                 &(camera.projection() * camera.view()).invert().unwrap(),
