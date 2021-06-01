@@ -5,22 +5,38 @@ use std::path::Path;
 
 impl<'a> Loaded<'a> {
     pub fn gltf(
-        &'a self,
+        &mut self,
         path: impl AsRef<Path>,
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
         let mut cpu_meshes = Vec::new();
         let mut cpu_materials = Vec::new();
 
-        let bytes = self.bytes(path.as_ref())?;
-        let Gltf { document, blob } = Gltf::from_slice(bytes)?;
+        let Gltf { document, mut blob } = Gltf::from_slice(&self.bytes(path.as_ref())?)?;
         let base_path = path.as_ref().parent().unwrap();
-        let buffers = parse_buffer_data(self, &base_path, &document, blob)?;
+        let mut buffers = Vec::new();
+        for buffer in document.buffers() {
+            let mut data = match buffer.source() {
+                ::gltf::buffer::Source::Uri(uri) => self.bytes(base_path.join(uri))?,
+                ::gltf::buffer::Source::Bin => blob.take().ok_or(IOError::FailedToLoad {
+                    message: "Binary blob is missing!".to_string(),
+                })?,
+            };
+            if data.len() < buffer.length() {
+                return Err(IOError::FailedToLoad {
+                    message: "Buffer data is corrupt!".to_string(),
+                });
+            }
+            while data.len() % 4 != 0 {
+                data.push(0);
+            }
+            buffers.push(::gltf::buffer::Data(data));
+        }
 
         for scene in document.scenes() {
             for node in scene.nodes() {
                 parse_tree(
                     &node,
-                    &self,
+                    self,
                     &base_path,
                     &buffers,
                     &mut cpu_meshes,
@@ -34,7 +50,7 @@ impl<'a> Loaded<'a> {
 
 fn parse_tree<'a>(
     node: &::gltf::Node,
-    loaded: &'a Loaded,
+    loaded: &mut Loaded,
     path: &Path,
     buffers: &[::gltf::buffer::Data],
     cpu_meshes: &mut Vec<CPUMesh>,
@@ -167,7 +183,7 @@ fn parse_tree<'a>(
 }
 
 fn parse_texture<'a>(
-    loaded: &'a Loaded,
+    loaded: &mut Loaded,
     path: &Path,
     buffers: &[::gltf::buffer::Data],
     info: ::gltf::texture::Info,
@@ -192,31 +208,4 @@ fn parse_texture<'a>(
     };
     // TODO: Parse sampling parameters
     Ok(tex)
-}
-
-pub fn parse_buffer_data<'a>(
-    loaded: &'a Loaded,
-    path: &Path,
-    document: &::gltf::Document,
-    mut blob: Option<Vec<u8>>,
-) -> Result<Vec<::gltf::buffer::Data>, IOError> {
-    let mut buffers = Vec::new();
-    for buffer in document.buffers() {
-        let mut data = match buffer.source() {
-            ::gltf::buffer::Source::Uri(uri) => loaded.bytes(path.join(uri))?.to_vec(),
-            ::gltf::buffer::Source::Bin => blob.take().ok_or(IOError::FailedToLoad {
-                message: "Binary blob is missing!".to_string(),
-            })?,
-        };
-        if data.len() < buffer.length() {
-            return Err(IOError::FailedToLoad {
-                message: "Buffer data is corrupt!".to_string(),
-            });
-        }
-        while data.len() % 4 != 0 {
-            data.push(0);
-        }
-        buffers.push(::gltf::buffer::Data(data));
-    }
-    Ok(buffers)
 }

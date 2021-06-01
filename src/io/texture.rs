@@ -11,8 +11,8 @@ impl<'a> Loaded<'a> {
     /// # Feature
     /// Only available when the `image-io` feature is enabled.
     ///
-    pub fn image<P: AsRef<Path>>(&'a self, path: P) -> Result<CPUTexture<u8>, IOError> {
-        image_from_bytes(self.bytes(path)?)
+    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>, IOError> {
+        image_from_bytes(&self.bytes(path)?)
     }
 
     ///
@@ -24,7 +24,7 @@ impl<'a> Loaded<'a> {
     /// Only available when the `image-io` feature is enabled.
     ///
     pub fn cube_image<P: AsRef<Path>>(
-        &'a self,
+        &mut self,
         right_path: P,
         left_path: P,
         top_path: P,

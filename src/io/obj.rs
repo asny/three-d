@@ -12,11 +12,11 @@ impl<'a> Loaded<'a> {
     /// Only available when the `obj-io` feature is enabled.
     ///
     pub fn obj<P: AsRef<Path>>(
-        &'a self,
+        &mut self,
         path: P,
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
         let obj_bytes = self.bytes(path.as_ref())?;
-        let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
+        let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes).unwrap())?;
         let p = path.as_ref().parent().unwrap();
 
         // Parse materials

@@ -10,16 +10,16 @@ impl<'a> Loaded<'a> {
     /// Only available when the `3d-io` feature is enabled.
     ///
     pub fn three_d<P: AsRef<Path>>(
-        &'a self,
+        &mut self,
         path: P,
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
         let bytes = self.bytes(path.as_ref())?;
-        let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
-            .or_else(|_| Self::deserialize_version2(bytes))
-            .or_else(|_| Self::deserialize_version1(bytes))?;
+        let mut decoded = bincode::deserialize::<ThreeDMesh>(&bytes)
+            .or_else(|_| Self::deserialize_version2(&bytes))
+            .or_else(|_| Self::deserialize_version1(&bytes))?;
 
         if decoded.meshes.len() == 0 {
-            decoded = Self::deserialize_version1(bytes)?;
+            decoded = Self::deserialize_version1(&bytes)?;
         }
 
         if decoded.magic_number != 61 {

@@ -21,17 +21,17 @@ impl<'a> Loaded<'a> {
     /// Returns the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn bytes<P: AsRef<Path>>(&'a self, path: P) -> Result<&'a [u8], IOError> {
+    pub fn bytes<P: AsRef<Path>>(&mut self, path: P) -> Result<Vec<u8>, IOError> {
         let bytes = self
             .loaded
-            .get(path.as_ref())
+            .remove_entry(path.as_ref())
             .ok_or(IOError::FailedToLoad {
                 message: format!(
                     "Tried to use a resource which was not loaded: {}",
                     path.as_ref().to_str().unwrap()
                 ),
             })?
-            .as_ref()
+            .1
             .map_err(|e| IOError::FailedToLoad {
                 message: format!(
                     "Could not load resource {} due to: {}",
