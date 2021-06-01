@@ -15,6 +15,7 @@ impl<'a> Loaded<'a> {
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
         let bytes = self.bytes(path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
+            .or_else(|_| Self::deserialize_version2(bytes))
             .or_else(|_| Self::deserialize_version1(bytes))?;
 
         if decoded.meshes.len() == 0 {
@@ -67,10 +68,29 @@ impl<'a> Loaded<'a> {
         Ok((cpu_meshes, cpu_materials))
     }
 
+    fn deserialize_version2(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
+        bincode::deserialize::<ThreeDMeshV2>(bytes).map(|m| ThreeDMesh {
+            magic_number: m.magic_number,
+            version: 3,
+            meshes: m.meshes,
+            materials: m
+                .materials
+                .iter()
+                .map(|mat| ThreeDMaterial {
+                    name: mat.name.clone(),
+                    color: mat.color,
+                    texture_path: mat.texture_path.clone(),
+                    metallic: mat.specular_intensity,
+                    roughness: mat.specular_power.map(|power| (1.999 / power).sqrt()),
+                })
+                .collect(),
+        })
+    }
+
     fn deserialize_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
         bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
             magic_number: m.magic_number,
-            version: 2,
+            version: 3,
             meshes: vec![ThreeDMeshSubMesh {
                 indices: if m.indices.len() > 0 {
                     Some(m.indices)
@@ -165,15 +185,14 @@ impl Saver {
                 name: cpu_material.name,
                 texture_path,
                 color: cpu_material.color,
-                diffuse_intensity: None,
-                specular_intensity: None,
-                specular_power: None,
+                metallic: cpu_material.metallic_factor,
+                roughness: cpu_material.roughness_factor,
             });
         }
 
         Ok(bincode::serialize::<ThreeDMesh>(&ThreeDMesh {
             magic_number: 61,
-            version: 2,
+            version: 3,
             meshes,
             materials,
         })?)
@@ -200,6 +219,23 @@ struct ThreeDMeshSubMesh {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
 struct ThreeDMaterial {
+    pub name: String,
+    pub texture_path: Option<String>,
+    pub color: Option<(f32, f32, f32, f32)>,
+    pub roughness: Option<f32>,
+    pub metallic: Option<f32>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+struct ThreeDMeshV2 {
+    pub magic_number: u8,
+    pub version: u8,
+    pub meshes: Vec<ThreeDMeshSubMesh>,
+    pub materials: Vec<ThreeDMaterialV1>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
+struct ThreeDMaterialV1 {
     pub name: String,
     pub texture_path: Option<String>,
     pub color: Option<(f32, f32, f32, f32)>,
