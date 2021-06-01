@@ -32,10 +32,11 @@ impl<'a> Loaded<'a> {
                 ),
             })?
             .as_ref()
-            .map_err(|_| IOError::FailedToLoad {
+            .map_err(|e| IOError::FailedToLoad {
                 message: format!(
-                    "Could not load resource: {}",
-                    path.as_ref().to_str().unwrap()
+                    "Could not load resource {} due to: {}",
+                    path.as_ref().to_str().unwrap(),
+                    e
                 ),
             })?;
         Ok(bytes)

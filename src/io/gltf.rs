@@ -12,10 +12,11 @@ impl<'a> Loaded<'a> {
         let mut cpu_materials = Vec::new();
 
         let bytes = self.bytes(path.as_ref())?;
-        let gltf = Gltf::from_slice(bytes)?;
-        let (_, buffers, _) = ::gltf::import(path.as_ref())?;
+        let Gltf { document, blob } = Gltf::from_slice(bytes)?;
         let base_path = path.as_ref().parent().unwrap();
-        for scene in gltf.scenes() {
+        let buffers = parse_buffer_data(self, &base_path, &document, blob)?;
+
+        for scene in document.scenes() {
             for node in scene.nodes() {
                 parse_tree(
                     &node,
@@ -191,4 +192,31 @@ fn parse_texture<'a>(
     };
     // TODO: Parse sampling parameters
     Ok(tex)
+}
+
+pub fn parse_buffer_data<'a>(
+    loaded: &'a Loaded,
+    path: &Path,
+    document: &::gltf::Document,
+    mut blob: Option<Vec<u8>>,
+) -> Result<Vec<::gltf::buffer::Data>, IOError> {
+    let mut buffers = Vec::new();
+    for buffer in document.buffers() {
+        let mut data = match buffer.source() {
+            ::gltf::buffer::Source::Uri(uri) => loaded.bytes(path.join(uri))?.to_vec(),
+            ::gltf::buffer::Source::Bin => blob.take().ok_or(IOError::FailedToLoad {
+                message: "Binary blob is missing!".to_string(),
+            })?,
+        };
+        if data.len() < buffer.length() {
+            return Err(IOError::FailedToLoad {
+                message: "Buffer data is corrupt!".to_string(),
+            });
+        }
+        while data.len() % 4 != 0 {
+            data.push(0);
+        }
+        buffers.push(::gltf::buffer::Data(data));
+    }
+    Ok(buffers)
 }
