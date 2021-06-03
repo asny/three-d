@@ -11,12 +11,12 @@ impl<'a> Loaded<'a> {
         let mut cpu_meshes = Vec::new();
         let mut cpu_materials = Vec::new();
 
-        let Gltf { document, mut blob } = Gltf::from_slice(&self.bytes(path.as_ref())?)?;
+        let Gltf { document, mut blob } = Gltf::from_slice(self.get_bytes(path.as_ref())?)?;
         let base_path = path.as_ref().parent().unwrap();
         let mut buffers = Vec::new();
         for buffer in document.buffers() {
             let mut data = match buffer.source() {
-                ::gltf::buffer::Source::Uri(uri) => self.bytes(base_path.join(uri))?,
+                ::gltf::buffer::Source::Uri(uri) => self.remove_bytes(base_path.join(uri))?,
                 ::gltf::buffer::Source::Bin => blob.take().ok_or(IOError::FailedToLoad {
                     message: "Binary blob is missing!".to_string(),
                 })?,

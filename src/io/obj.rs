@@ -15,16 +15,14 @@ impl<'a> Loaded<'a> {
         &mut self,
         path: P,
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
-        let obj_bytes = self.bytes(path.as_ref())?;
+        let obj_bytes = self.remove_bytes(path.as_ref())?;
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes).unwrap())?;
         let p = path.as_ref().parent().unwrap();
 
         // Parse materials
         let mut cpu_materials = Vec::new();
         if let Some(material_library) = obj.material_library {
-            let bytes = self
-                .bytes(p.join(material_library).to_str().unwrap())?
-                .to_owned();
+            let bytes = self.remove_bytes(p.join(material_library).to_str().unwrap())?;
             let materials = wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap())?.materials;
 
             for material in materials {

@@ -12,7 +12,7 @@ impl<'a> Loaded<'a> {
     /// Only available when the `image-io` feature is enabled.
     ///
     pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>, IOError> {
-        image_from_bytes(&self.bytes(path)?)
+        image_from_bytes(&self.get_bytes(path)?)
     }
 
     ///
