@@ -287,6 +287,11 @@ impl Camera {
         }
     }
 
+    pub fn uv_coordinate_at(&self, position: Vec3) -> (f32, f32) {
+        let proj = self.projection() * self.view() * position.extend(1.0);
+        (0.5 * (proj.x / proj.w + 1.0), 0.5 * (proj.y / proj.w + 1.0))
+    }
+
     pub(super) fn projection_type(&self) -> &ProjectionType {
         &self.projection_type
     }
