@@ -6,15 +6,25 @@ use std::rc::Rc;
 
 use consts::Gl as InnerGl;
 
-pub type AttributeLocation = u32;
-pub type UniformLocation = u32;
-pub type Shader = u32;
-pub type Program = u32;
-pub type Buffer = u32;
-pub type Framebuffer = u32;
-pub type Texture = u32;
-pub type VertexArrayObject = u32;
+#[derive(Copy, Clone, Debug)]
+pub struct AttributeLocation(pub u32);
+#[derive(Copy, Clone, Debug)]
+pub struct UniformLocation(pub u32);
+#[derive(Copy, Clone, Debug)]
+pub struct Shader(pub u32);
+#[derive(Copy, Clone, Debug)]
+pub struct Program(pub u32);
+#[derive(Copy, Clone, Debug)]
+pub struct Buffer(pub u32);
+#[derive(Copy, Clone, Debug)]
+pub struct Framebuffer(pub u32);
+#[derive(Copy, Clone, Debug)]
+pub struct Texture(pub u32);
+#[derive(Copy, Clone, Debug)]
+pub struct VertexArrayObject(pub u32);
+
 pub type Sync = consts::types::GLsync;
+
 pub struct ActiveInfo {
     size: u32,
     type_: u32,
@@ -66,7 +76,7 @@ impl Context {
 
     pub fn create_shader(&self, type_: u32) -> Option<Shader> {
         let id = unsafe { self.inner.CreateShader(type_) };
-        Some(id)
+        Some(Shader(id))
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {
@@ -78,8 +88,8 @@ impl Context {
 
         unsafe {
             self.inner
-                .ShaderSource(*shader, 1, &c_str.as_ptr(), std::ptr::null());
-            self.inner.CompileShader(*shader);
+                .ShaderSource(shader.0, 1, &c_str.as_ptr(), std::ptr::null());
+            self.inner.CompileShader(shader.0);
         }
     }
 
@@ -87,7 +97,7 @@ impl Context {
         let mut len: consts::types::GLint = 0;
         unsafe {
             self.inner
-                .GetShaderiv(*shader, consts::INFO_LOG_LENGTH, &mut len);
+                .GetShaderiv(shader.0, consts::INFO_LOG_LENGTH, &mut len);
         }
 
         if len == 0 {
@@ -96,7 +106,7 @@ impl Context {
             let error = create_whitespace_cstring_with_len(len as usize);
             unsafe {
                 self.inner.GetShaderInfoLog(
-                    *shader,
+                    shader.0,
                     len,
                     std::ptr::null_mut(),
                     error.as_ptr() as *mut consts::types::GLchar,
@@ -108,26 +118,26 @@ impl Context {
 
     pub fn delete_shader(&self, shader: Option<&Shader>) {
         unsafe {
-            self.inner.DeleteShader(*shader.unwrap());
+            self.inner.DeleteShader(shader.unwrap().0);
         }
     }
 
     pub fn attach_shader(&self, program: &Program, shader: &Shader) {
         unsafe {
-            self.inner.AttachShader(*program, *shader);
+            self.inner.AttachShader(program.0, shader.0);
         }
     }
 
     pub fn detach_shader(&self, program: &Program, shader: &Shader) {
         unsafe {
-            self.inner.DetachShader(*program, *shader);
+            self.inner.DetachShader(program.0, shader.0);
         }
     }
 
     pub fn get_program_parameter(&self, program: &Program, pname: u32) -> u32 {
         let mut out = 0;
         unsafe {
-            self.inner.GetProgramiv(*program, pname, &mut out);
+            self.inner.GetProgramiv(program.0, pname, &mut out);
         }
         out as u32
     }
@@ -139,7 +149,7 @@ impl Context {
         let name = create_whitespace_cstring_with_len(length as usize);
         unsafe {
             self.inner.GetActiveAttrib(
-                *program,
+                program.0,
                 index,
                 length,
                 &mut length,
@@ -161,7 +171,7 @@ impl Context {
         let name = create_whitespace_cstring_with_len(length as usize);
         unsafe {
             self.inner.GetActiveUniform(
-                *program,
+                program.0,
                 index,
                 length,
                 &mut length,
@@ -181,12 +191,12 @@ impl Context {
         unsafe {
             self.inner.GenBuffers(1, &mut id);
         }
-        Some(id)
+        Some(Buffer(id))
     }
 
     pub fn delete_buffer(&self, buffer: &Buffer) {
         unsafe {
-            self.inner.DeleteBuffers(1, [*buffer].as_ptr());
+            self.inner.DeleteBuffers(1, [buffer.0].as_ptr());
         }
     }
 
@@ -205,13 +215,13 @@ impl Context {
                 println!("{}", current);
                 panic!();
             }
-            self.inner.BindBufferBase(target, index, *buffer);
+            self.inner.BindBufferBase(target, index, buffer.0);
         }
     }
 
     pub fn bind_buffer(&self, target: u32, buffer: &Buffer) {
         unsafe {
-            self.inner.BindBuffer(target, *buffer);
+            self.inner.BindBuffer(target, buffer.0);
         }
     }
 
@@ -223,12 +233,12 @@ impl Context {
 
     pub fn get_uniform_block_index(&self, program: &Program, name: &str) -> u32 {
         let c_str = std::ffi::CString::new(name).unwrap();
-        unsafe { self.inner.GetUniformBlockIndex(*program, c_str.as_ptr()) }
+        unsafe { self.inner.GetUniformBlockIndex(program.0, c_str.as_ptr()) }
     }
 
     pub fn uniform_block_binding(&self, program: &Program, location: u32, index: u32) {
         unsafe {
-            self.inner.UniformBlockBinding(*program, location, index);
+            self.inner.UniformBlockBinding(program.0, location, index);
         }
     }
 
@@ -292,28 +302,28 @@ impl Context {
         unsafe {
             self.inner.GenVertexArrays(1, &mut id);
         }
-        Some(id)
+        Some(VertexArrayObject(id))
     }
 
     pub fn bind_vertex_array(&self, array: &VertexArrayObject) {
         unsafe {
-            self.inner.BindVertexArray(*array);
+            self.inner.BindVertexArray(array.0);
         }
     }
 
     pub fn create_program(&self) -> Program {
-        unsafe { self.inner.CreateProgram() }
+        unsafe { Program(self.inner.CreateProgram()) }
     }
 
     pub fn link_program(&self, program: &Program) -> bool {
         unsafe {
-            self.inner.LinkProgram(*program);
+            self.inner.LinkProgram(program.0);
         }
 
         let mut success: consts::types::GLint = 1;
         unsafe {
             self.inner
-                .GetProgramiv(*program, consts::LINK_STATUS, &mut success);
+                .GetProgramiv(program.0, consts::LINK_STATUS, &mut success);
         }
         success == 1
     }
@@ -322,7 +332,7 @@ impl Context {
         let mut len: consts::types::GLint = 0;
         unsafe {
             self.inner
-                .GetProgramiv(*program, consts::INFO_LOG_LENGTH, &mut len);
+                .GetProgramiv(program.0, consts::INFO_LOG_LENGTH, &mut len);
         }
 
         if len == 0 {
@@ -331,7 +341,7 @@ impl Context {
             let error = create_whitespace_cstring_with_len(len as usize);
             unsafe {
                 self.inner.GetProgramInfoLog(
-                    *program,
+                    program.0,
                     len,
                     std::ptr::null_mut(),
                     error.as_ptr() as *mut consts::types::GLchar,
@@ -343,7 +353,7 @@ impl Context {
 
     pub fn use_program(&self, program: &Program) {
         unsafe {
-            self.inner.UseProgram(*program);
+            self.inner.UseProgram(program.0);
         }
     }
 
@@ -355,29 +365,29 @@ impl Context {
 
     pub fn delete_program(&self, program: &Program) {
         unsafe {
-            self.inner.DeleteProgram(*program);
+            self.inner.DeleteProgram(program.0);
         }
     }
 
     pub fn get_attrib_location(&self, program: &Program, name: &str) -> Option<AttributeLocation> {
         let c_str = std::ffi::CString::new(name).unwrap();
-        let location = unsafe { self.inner.GetAttribLocation(*program, c_str.as_ptr()) };
+        let location = unsafe { self.inner.GetAttribLocation(program.0, c_str.as_ptr()) };
         if location == -1 {
             None
         } else {
-            Some(location as AttributeLocation)
+            Some(AttributeLocation(location as _))
         }
     }
 
     pub fn enable_vertex_attrib_array(&self, location: AttributeLocation) {
         unsafe {
-            self.inner.EnableVertexAttribArray(location);
+            self.inner.EnableVertexAttribArray(location.0);
         }
     }
 
     pub fn disable_vertex_attrib_array(&self, location: AttributeLocation) {
         unsafe {
-            self.inner.DisableVertexAttribArray(location);
+            self.inner.DisableVertexAttribArray(location.0);
         }
     }
 
@@ -392,7 +402,7 @@ impl Context {
     ) {
         unsafe {
             self.inner.VertexAttribPointer(
-                location as consts::types::GLuint, // index of the generic vertex attribute
+                location.0 as consts::types::GLuint, // index of the generic vertex attribute
                 size as consts::types::GLint, // the number of components per generic vertex attribute
                 data_type as consts::types::GLenum, // data type
                 normalized as consts::types::GLboolean, // normalized (int-to-float conversion)
@@ -405,7 +415,7 @@ impl Context {
     pub fn vertex_attrib_divisor(&self, location: AttributeLocation, divisor: u32) {
         unsafe {
             self.inner.VertexAttribDivisor(
-                location as consts::types::GLuint,
+                location.0 as consts::types::GLuint,
                 divisor as consts::types::GLuint,
             );
         }
@@ -413,62 +423,62 @@ impl Context {
 
     pub fn get_uniform_location(&self, program: &Program, name: &str) -> Option<UniformLocation> {
         let c_str = std::ffi::CString::new(name).unwrap();
-        let location = unsafe { self.inner.GetUniformLocation(*program, c_str.as_ptr()) };
+        let location = unsafe { self.inner.GetUniformLocation(program.0, c_str.as_ptr()) };
         if location == -1 {
             None
         } else {
-            Some(location as UniformLocation)
+            Some(UniformLocation(location as _))
         }
     }
 
     pub fn uniform1i(&self, location: &UniformLocation, data: i32) {
         unsafe {
-            self.inner.Uniform1i(*location as i32, data);
+            self.inner.Uniform1i(location.0 as i32, data);
         }
     }
 
     pub fn uniform1f(&self, location: &UniformLocation, data: f32) {
         unsafe {
-            self.inner.Uniform1f(*location as i32, data);
+            self.inner.Uniform1f(location.0 as i32, data);
         }
     }
 
     pub fn uniform2fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner.Uniform2fv(*location as i32, 1, data.as_ptr());
+            self.inner.Uniform2fv(location.0 as i32, 1, data.as_ptr());
         }
     }
 
     pub fn uniform3fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner.Uniform3fv(*location as i32, 1, data.as_ptr());
+            self.inner.Uniform3fv(location.0 as i32, 1, data.as_ptr());
         }
     }
 
     pub fn uniform4fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner.Uniform4fv(*location as i32, 1, data.as_ptr());
+            self.inner.Uniform4fv(location.0 as i32, 1, data.as_ptr());
         }
     }
 
     pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
             self.inner
-                .UniformMatrix2fv(*location as i32, 1, consts::FALSE, data.as_ptr());
+                .UniformMatrix2fv(location.0 as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
     pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
             self.inner
-                .UniformMatrix3fv(*location as i32, 1, consts::FALSE, data.as_ptr());
+                .UniformMatrix3fv(location.0 as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
     pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
             self.inner
-                .UniformMatrix4fv(*location as i32, 1, consts::FALSE, data.as_ptr());
+                .UniformMatrix4fv(location.0 as i32, 1, consts::FALSE, data.as_ptr());
         }
     }
 
@@ -484,12 +494,12 @@ impl Context {
         unsafe {
             self.inner.GenFramebuffers(1, &mut id);
         }
-        Some(id)
+        Some(Framebuffer(id))
     }
 
     pub fn bind_framebuffer(&self, target: u32, framebuffer: Option<&Framebuffer>) {
         let id = match framebuffer {
-            Some(fb) => *fb,
+            Some(fb) => fb.0,
             None => 0,
         };
         unsafe {
@@ -499,7 +509,7 @@ impl Context {
 
     pub fn delete_framebuffer(&self, framebuffer: Option<&Framebuffer>) {
         let id = match framebuffer {
-            Some(fb) => fb,
+            Some(fb) => &fb.0,
             None => &0,
         };
         unsafe {
@@ -664,7 +674,7 @@ impl Context {
         unsafe {
             self.inner.GenTextures(1, &mut id);
         }
-        Some(id)
+        Some(Texture(id))
     }
 
     pub fn active_texture(&self, texture: u32) {
@@ -675,7 +685,7 @@ impl Context {
 
     pub fn bind_texture(&self, target: u32, texture: &Texture) {
         unsafe {
-            self.inner.BindTexture(target, *texture);
+            self.inner.BindTexture(target, texture.0);
         }
     }
 
@@ -950,7 +960,7 @@ impl Context {
 
     pub fn delete_texture(&self, texture: &Texture) {
         unsafe {
-            self.inner.DeleteTextures(1, texture);
+            self.inner.DeleteTextures(1, &texture.0);
         }
     }
 
@@ -964,7 +974,7 @@ impl Context {
     ) {
         unsafe {
             self.inner
-                .FramebufferTexture2D(target, attachment, textarget, *texture, level as i32);
+                .FramebufferTexture2D(target, attachment, textarget, texture.0, level as i32);
         }
     }
 
@@ -980,7 +990,7 @@ impl Context {
             self.inner.FramebufferTextureLayer(
                 target,
                 attachment,
-                *texture,
+                texture.0,
                 level as i32,
                 layer as i32,
             );
