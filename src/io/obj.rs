@@ -1,5 +1,6 @@
 use crate::definition::*;
 use crate::io::*;
+use crate::vec3;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -115,12 +116,14 @@ impl<'a> Loaded<'a> {
                     }
 
                     if index.is_none() {
-                        index = Some(positions.len() / 3);
+                        index = Some(positions.len());
                         map.insert(i.0, index.unwrap());
                         let position = object.vertices[i.0];
-                        positions.push(position.x as f32);
-                        positions.push(position.y as f32);
-                        positions.push(position.z as f32);
+                        positions.push(vec3(
+                            position.x as f32,
+                            position.y as f32,
+                            position.z as f32,
+                        ));
 
                         if let Some(tex) = uvw {
                             uvs.push(tex.u as f32);

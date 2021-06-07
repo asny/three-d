@@ -3,6 +3,8 @@ pub(crate) use cgmath::perspective;
 #[doc(hidden)]
 pub use cgmath::prelude::*;
 use cgmath::{Deg, Matrix2, Matrix3, Matrix4, Point3, Rad, Vector2, Vector3, Vector4};
+use std::alloc::Layout;
+use std::slice;
 
 pub type Vec2 = Vector2<f32>;
 pub type Vec3 = Vector3<f32>;
@@ -24,6 +26,33 @@ pub fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
 
 pub fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
     Vector4::new(x, y, z, w)
+}
+
+pub fn vector3_vec_flatten<T: Copy>(vec: Vec<Vector3<T>>) -> Vec<T> {
+    // TODO: this can be transmute
+    let mut r = Vec::with_capacity(vec.len() * 3);
+    for v in &vec {
+        r.push(v.x);
+        r.push(v.y);
+        r.push(v.z);
+    }
+    r
+}
+
+pub fn vector3_slice_flatten<T>(slice: &[Vector3<T>]) -> &[T] {
+    // this should be no-op, because `Vector3` is `#[repr(C)]`
+    assert_eq!(Layout::array::<T>(3).unwrap(), Layout::new::<Vector3<T>>());
+
+    unsafe { slice::from_raw_parts(slice.as_ptr() as *const T, slice.len() * 3) }
+}
+
+pub fn vector3_vec_fold<T: Copy>(vec: Vec<T>) -> Vec<Vector3<T>> {
+    // TODO: this can be transmute
+    let mut r = Vec::with_capacity(vec.len() / 3);
+    for i in 0..vec.len() / 3 {
+        r.push(Vector3::new(vec[i * 3], vec[i * 3 + 1], vec[i * 3 + 2]))
+    }
+    r
 }
 
 pub(crate) trait Vec2Ext {
@@ -130,4 +159,36 @@ pub fn rotation_matrix_from_dir_to_dir(source_dir: Vec3, target_dir: Vec3) -> Ma
         1.0,
     )
     .transpose();
+}
+
+#[cfg(test)]
+mod test {
+    use crate::vec3;
+    use crate::vector3_slice_flatten;
+    use crate::vector3_vec_flatten;
+    use crate::vector3_vec_fold;
+
+    #[test]
+    fn test_vector3_vec_flatten() {
+        assert_eq!(
+            vec![1.0, 1.1, 1.2, 2.0, 2.1, 2.2],
+            vector3_vec_flatten(vec![vec3(1.0, 1.1, 1.2), vec3(2.0, 2.1, 2.2)])
+        );
+    }
+
+    #[test]
+    fn test_vector3_slice_flatten() {
+        assert_eq!(
+            &[1.0, 1.1, 1.2, 2.0, 2.1, 2.2],
+            vector3_slice_flatten(&[vec3(1.0, 1.1, 1.2), vec3(2.0, 2.1, 2.2)])
+        );
+    }
+
+    #[test]
+    fn test_vector3_vec_fold() {
+        assert_eq!(
+            vec![vec3(1.0, 1.1, 1.2), vec3(2.0, 2.1, 2.2)],
+            vector3_vec_fold(vec![1.0, 1.1, 1.2, 2.0, 2.1, 2.2])
+        );
+    }
 }

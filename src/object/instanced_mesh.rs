@@ -67,7 +67,8 @@ impl InstancedMesh {
         transformations: &[Mat4],
         cpu_mesh: &CPUMesh,
     ) -> Result<Self, Error> {
-        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
+        let position_buffer =
+            VertexBuffer::new_with_static(context, vector3_slice_flatten(&cpu_mesh.positions))?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(VertexBuffer::new_with_static(context, normals)?)
         } else {

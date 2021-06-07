@@ -100,7 +100,10 @@ impl Mesh {
     /// making it possible to render the mesh.
     ///
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
-        let position_buffer = Rc::new(VertexBuffer::new_with_static(context, &cpu_mesh.positions)?);
+        let position_buffer = Rc::new(VertexBuffer::new_with_static(
+            context,
+            vector3_slice_flatten(&cpu_mesh.positions),
+        )?);
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(Rc::new(VertexBuffer::new_with_static(context, normals)?))
         } else {

@@ -1,5 +1,7 @@
 use crate::definition::*;
 use crate::io::*;
+use crate::vector3_vec_flatten;
+use crate::vector3_vec_fold;
 use std::path::Path;
 
 impl<'a> Loaded<'a> {
@@ -39,7 +41,7 @@ impl<'a> Loaded<'a> {
             cpu_meshes.push(CPUMesh {
                 name: mesh.name,
                 material_name: mesh.material_name,
-                positions: mesh.positions,
+                positions: vector3_vec_fold(mesh.positions),
                 indices: mesh.indices.map(|i| Indices::U32(i)),
                 normals: mesh.normals,
                 uvs: mesh.uvs,
@@ -169,7 +171,7 @@ impl Saver {
                 name: cpu_mesh.name,
                 material_name: cpu_mesh.material_name,
                 indices,
-                positions: cpu_mesh.positions,
+                positions: vector3_vec_flatten(cpu_mesh.positions),
                 normals: cpu_mesh.normals,
                 uvs: cpu_mesh.uvs,
             });

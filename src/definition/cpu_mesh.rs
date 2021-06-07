@@ -26,7 +26,7 @@ impl Indices {
 pub struct CPUMesh {
     pub name: String,
     pub material_name: Option<String>,
-    pub positions: Vec<f32>,
+    pub positions: Vec<Vec3>,
     pub indices: Option<Indices>,
     pub normals: Option<Vec<f32>>,
     pub uvs: Option<Vec<f32>>,
@@ -38,8 +38,10 @@ impl CPUMesh {
         let indices = vec![0u8, 1, 2, 2, 3, 0];
         let halfsize = 0.5 * size;
         let positions = vec![
-            -halfsize, -halfsize, 0.0, halfsize, -halfsize, 0.0, halfsize, halfsize, 0.0,
-            -halfsize, halfsize, 0.0,
+            vec3(-halfsize, -halfsize, 0.0),
+            vec3(halfsize, -halfsize, 0.0),
+            vec3(halfsize, halfsize, 0.0),
+            vec3(-halfsize, halfsize, 0.0),
         ];
         let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
@@ -60,9 +62,7 @@ impl CPUMesh {
         for j in 0..angle_subdivisions {
             let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-            positions.push(radius * angle.cos());
-            positions.push(radius * angle.sin());
-            positions.push(0.0);
+            positions.push(vec3(radius * angle.cos(), radius * angle.sin(), 0.0));
 
             normals.push(0.0);
             normals.push(0.0);
@@ -87,8 +87,18 @@ impl CPUMesh {
         let x = radius * 0.525731112119133606f32;
         let z = radius * 0.850650808352039932f32;
         let positions = vec![
-            -x, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0, -z, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0,
-            -z, -x, z, x, 0.0, -z, x, 0.0, z, -x, 0.0, -z, -x, 0.0,
+            vec3(-x, 0.0, z),
+            vec3(x, 0.0, z),
+            vec3(-x, 0.0, -z),
+            vec3(x, 0.0, -z),
+            vec3(0.0, z, x),
+            vec3(0.0, z, -x),
+            vec3(0.0, -z, x),
+            vec3(0.0, -z, -x),
+            vec3(z, x, 0.0),
+            vec3(-z, x, 0.0),
+            vec3(z, -x, 0.0),
+            vec3(-z, -x, 0.0),
         ];
         let indices = vec![
             0u8, 1, 4, 0, 4, 9, 9, 4, 5, 4, 8, 5, 4, 1, 8, 8, 1, 10, 8, 10, 3, 5, 8, 3, 5, 3, 2, 2,
@@ -114,9 +124,7 @@ impl CPUMesh {
             for j in 0..angle_subdivisions {
                 let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-                positions.push(length * x);
-                positions.push(radius * angle.cos());
-                positions.push(radius * angle.sin());
+                positions.push(vec3(length * x, radius * angle.cos(), radius * angle.sin()));
             }
         }
         for i in 0..length_subdivisions {
@@ -149,9 +157,11 @@ impl CPUMesh {
             for j in 0..angle_subdivisions {
                 let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-                positions.push(length * x);
-                positions.push(radius * angle.cos() * (1.0 - x));
-                positions.push(radius * angle.sin() * (1.0 - x));
+                positions.push(vec3(
+                    length * x,
+                    radius * angle.cos() * (1.0 - x),
+                    radius * angle.sin() * (1.0 - x),
+                ));
             }
         }
         for i in 0..length_subdivisions {
@@ -180,8 +190,8 @@ impl CPUMesh {
         let mut arrow = Self::cylinder(radius * 0.5, cylinder_length, angle_subdivisions);
         arrow.name = "arrow".to_string();
         let mut cone = Self::cone(radius, length - cylinder_length, angle_subdivisions);
-        for i in 0..cone.positions.len() / 3 {
-            cone.positions[i * 3] += cylinder_length;
+        for i in 0..cone.positions.len() {
+            cone.positions[i].x += cylinder_length;
         }
         let mut indices = arrow.indices.unwrap().into_u32();
         let cone_indices = cone.indices.unwrap().into_u32();
@@ -219,27 +229,15 @@ impl CPUMesh {
     }
 }
 
-fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
-    let mut normals = vec![0.0f32; positions.len() * 3];
+fn compute_normals_with_indices(indices: &[u32], positions: &[Vec3]) -> Vec<f32> {
+    let mut normals = vec![0.0f32; positions.len() * 9];
     for face in 0..indices.len() / 3 {
         let index0 = indices[face * 3] as usize;
-        let p0 = vec3(
-            positions[index0 * 3],
-            positions[index0 * 3 + 1],
-            positions[index0 * 3 + 2],
-        );
+        let p0 = positions[index0];
         let index1 = indices[face * 3 + 1] as usize;
-        let p1 = vec3(
-            positions[index1 * 3],
-            positions[index1 * 3 + 1],
-            positions[index1 * 3 + 2],
-        );
+        let p1 = positions[index1];
         let index2 = indices[face * 3 + 2] as usize;
-        let p2 = vec3(
-            positions[index2 * 3],
-            positions[index2 * 3 + 1],
-            positions[index2 * 3 + 2],
-        );
+        let p2 = positions[index2];
 
         let normal = (p1 - p0).cross(p2 - p0);
         normals[index0 * 3] += normal.x;
@@ -262,27 +260,15 @@ fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> 
     normals
 }
 
-fn compute_normals(positions: &[f32]) -> Vec<f32> {
-    let mut normals = vec![0.0f32; positions.len()];
-    for face in 0..positions.len() / 9 {
-        let index0 = face * 3 as usize;
-        let p0 = vec3(
-            positions[index0 * 3],
-            positions[index0 * 3 + 1],
-            positions[index0 * 3 + 2],
-        );
-        let index1 = face * 3 + 1 as usize;
-        let p1 = vec3(
-            positions[index1 * 3],
-            positions[index1 * 3 + 1],
-            positions[index1 * 3 + 2],
-        );
-        let index2 = face * 3 + 2 as usize;
-        let p2 = vec3(
-            positions[index2 * 3],
-            positions[index2 * 3 + 1],
-            positions[index2 * 3 + 2],
-        );
+fn compute_normals(positions: &[Vec3]) -> Vec<f32> {
+    let mut normals = vec![0.0f32; positions.len() * 3];
+    for face in 0..positions.len() / 3 {
+        let index0 = face as usize;
+        let p0 = positions[index0];
+        let index1 = face + 1 as usize;
+        let p1 = positions[index1];
+        let index2 = face + 2 as usize;
+        let p2 = positions[index2];
 
         let normal = (p1 - p0).cross(p2 - p0);
         normals[index0 * 3] += normal.x;
