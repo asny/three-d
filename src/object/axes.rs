@@ -3,6 +3,7 @@ use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
 use crate::object::*;
+use crate::Color;
 
 ///
 /// Three arrows indicating the three main axes; the x-axis (red), the y-axis (green) and the z-axis (blue).
@@ -36,11 +37,11 @@ impl Axes {
     ///
     pub fn render(&self, camera: &Camera) -> Result<(), Error> {
         self.x
-            .render_with_color(&vec4(1.0, 0.0, 0.0, 1.0), RenderStates::default(), camera)?;
+            .render_with_color(&Color::RED, RenderStates::default(), camera)?;
         self.y
-            .render_with_color(&vec4(0.0, 1.0, 0.0, 1.0), RenderStates::default(), camera)?;
+            .render_with_color(&Color::GREEN, RenderStates::default(), camera)?;
         self.z
-            .render_with_color(&vec4(0.0, 0.0, 1.0, 1.0), RenderStates::default(), camera)?;
+            .render_with_color(&Color::BLUE, RenderStates::default(), camera)?;
 
         Ok(())
     }
