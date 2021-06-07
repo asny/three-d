@@ -28,6 +28,13 @@ pub struct FrameInput {
     pub first_frame: bool,
 }
 
+impl FrameInput {
+    /// Has a keyboard quit event.
+    pub fn has_key_quit(&self) -> bool {
+        self.events.iter().any(Event::is_key_quit)
+    }
+}
+
 /// State of a key or button click.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum State {
@@ -49,40 +56,75 @@ pub enum MouseButton {
     Middle,
 }
 
+/// Mouse click event.
+#[derive(Clone, Debug)]
+pub struct MouseClickEvent {
+    pub state: State,
+    pub button: MouseButton,
+    pub position: (f64, f64),
+    pub modifiers: Modifiers,
+    pub handled: bool,
+}
+
+/// Mouse motion event.
+#[derive(Clone, Debug)]
+pub struct MouseMotionEvent {
+    pub delta: (f64, f64),
+    pub position: (f64, f64),
+    pub modifiers: Modifiers,
+    pub handled: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct MouseWheelEvent {
+    pub delta: (f64, f64),
+    pub position: (f64, f64),
+    pub modifiers: Modifiers,
+    pub handled: bool,
+}
+
+/// Keyboard event.
+#[derive(Clone, Debug)]
+pub struct KeyEvent {
+    pub state: State,
+    pub kind: Key,
+    pub modifiers: Modifiers,
+    pub handled: bool,
+}
+
+impl KeyEvent {
+    /// Is this a quit event (Cmd-Q on mac, Ctrl-Q elsewhere).
+    pub fn is_quit(&self) -> bool {
+        self.modifiers.command == State::Pressed && self.kind == Key::Q
+    }
+}
+
+/// Keyboard modifiers changed.
+#[derive(Clone, Debug)]
+pub struct ModifiersChangeEvent {
+    pub modifiers: Modifiers,
+}
+
 /// An input event (from mouse, keyboard or similar).
 #[derive(Clone, Debug)]
 pub enum Event {
-    MouseClick {
-        state: State,
-        button: MouseButton,
-        position: (f64, f64),
-        modifiers: Modifiers,
-        handled: bool,
-    },
-    MouseMotion {
-        delta: (f64, f64),
-        position: (f64, f64),
-        modifiers: Modifiers,
-        handled: bool,
-    },
-    MouseWheel {
-        delta: (f64, f64),
-        position: (f64, f64),
-        modifiers: Modifiers,
-        handled: bool,
-    },
+    MouseClick(MouseClickEvent),
+    MouseMotion(MouseMotionEvent),
+    MouseWheel(MouseWheelEvent),
     MouseEnter,
     MouseLeave,
-    Key {
-        state: State,
-        kind: Key,
-        modifiers: Modifiers,
-        handled: bool,
-    },
-    ModifiersChange {
-        modifiers: Modifiers,
-    },
+    Key(KeyEvent),
+    ModifiersChange(ModifiersChangeEvent),
     Text(String),
+}
+
+impl Event {
+    pub fn is_key_quit(&self) -> bool {
+        match self {
+            Event::Key(e) => e.is_quit(),
+            _ => false,
+        }
+    }
 }
 
 /// Keyboard key input.

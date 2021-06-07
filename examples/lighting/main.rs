@@ -112,6 +112,11 @@ fn main() {
 
             window
                 .render_loop(move |mut frame_input| {
+                    // Quit if Cmd-Q/Ctrl-Q pressed.
+                    if frame_input.has_key_quit() {
+                        return FrameOutput::exit();
+                    }
+
                     let mut change = frame_input.first_frame;
                     let mut panel_width = frame_input.viewport.width;
                     change |= gui
@@ -247,19 +252,19 @@ fn main() {
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick {
+                            Event::MouseClick(MouseClickEvent {
                                 state,
                                 button,
                                 handled,
                                 ..
-                            } => {
+                            }) => {
                                 if !handled {
                                     rotating =
                                         *button == MouseButton::Left && *state == State::Pressed;
                                     change = true;
                                 }
                             }
-                            Event::MouseMotion { delta, handled, .. } => {
+                            Event::MouseMotion(MouseMotionEvent { delta, handled, .. }) => {
                                 if !handled && rotating {
                                     camera
                                         .rotate_around_with_fixed_up(
@@ -271,7 +276,7 @@ fn main() {
                                     change = true;
                                 }
                             }
-                            Event::MouseWheel { delta, handled, .. } => {
+                            Event::MouseWheel(MouseWheelEvent { delta, handled, .. }) => {
                                 if !handled {
                                     camera
                                         .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)

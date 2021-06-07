@@ -30,6 +30,16 @@ pub struct FrameOutput {
     pub wait_next_event: bool,
 }
 
+impl FrameOutput {
+    /// Create an output which requests the exit from the loop.
+    pub fn exit() -> FrameOutput {
+        FrameOutput {
+            exit: true,
+            ..Default::default()
+        }
+    }
+}
+
 impl Default for FrameOutput {
     fn default() -> Self {
         Self {

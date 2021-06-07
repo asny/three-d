@@ -1,6 +1,6 @@
 use crate::frame::*;
 use crate::window::WindowSettings;
-use crate::Context;
+use crate::{Context, Key};
 use serde::Serialize;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -329,13 +329,13 @@ impl Window {
                 };
                 if let Some(button) = button {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
+                    input.events.push(Event::MouseClick(MouseClickEvent {
                         state: State::Pressed,
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
                         modifiers,
                         handled: false,
-                    });
+                    }));
                 };
                 event.stop_propagation();
                 event.prevent_default();
@@ -367,13 +367,13 @@ impl Window {
                 };
                 if let Some(button) = button {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
+                    input.events.push(Event::MouseClick(MouseClickEvent {
                         state: State::Released,
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
                         modifiers,
                         handled: false,
-                    });
+                    }));
                 };
                 event.stop_propagation();
                 event.prevent_default();
@@ -403,12 +403,12 @@ impl Window {
                     (0.0, 0.0)
                 };
                 let modifiers = input.modifiers;
-                input.events.push(Event::MouseMotion {
+                input.events.push(Event::MouseMotion(MouseMotionEvent {
                     delta,
                     position: (event.offset_x() as f64, event.offset_y() as f64),
                     modifiers,
                     handled: false,
-                });
+                }));
                 input.last_position = Some((event.offset_x(), event.offset_y()));
                 event.stop_propagation();
                 event.prevent_default();
@@ -436,12 +436,12 @@ impl Window {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
                 let modifiers = input.modifiers;
-                input.events.push(Event::MouseWheel {
+                input.events.push(Event::MouseWheel(MouseWheelEvent {
                     delta: (event.delta_x() as f64, -event.delta_y() as f64),
                     position: (event.offset_x() as f64, event.offset_y() as f64),
                     modifiers,
                     handled: false,
-                });
+                }));
                 event.stop_propagation();
                 event.prevent_default();
                 input.request_animation_frame();
@@ -466,13 +466,13 @@ impl Window {
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
+                    input.events.push(Event::MouseClick(MouseClickEvent {
                         state: State::Pressed,
                         button: MouseButton::Left,
                         position: (touch.page_x() as f64, touch.page_y() as f64),
                         modifiers,
                         handled: false,
-                    });
+                    }));
                     input.last_position = Some((touch.page_x(), touch.page_y()));
                     input.last_zoom = None;
                 } else if event.touches().length() == 2 {
@@ -515,13 +515,13 @@ impl Window {
                 let mut input = input.borrow_mut();
                 if let Some((x, y)) = input.last_position {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
+                    input.events.push(Event::MouseClick(MouseClickEvent {
                         state: State::Released,
                         button: MouseButton::Left,
                         position: (x as f64, y as f64),
                         modifiers,
                         handled: false,
-                    });
+                    }));
                     input.last_position = None;
                 }
                 input.last_zoom = None;
@@ -554,12 +554,12 @@ impl Window {
                     let touch = event.touches().item(0).unwrap();
                     if let Some((x, y)) = input.last_position {
                         let modifiers = input.modifiers;
-                        input.events.push(Event::MouseMotion {
+                        input.events.push(Event::MouseMotion(MouseMotionEvent {
                             delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64),
                             position: (touch.page_x() as f64, touch.page_y() as f64),
                             modifiers,
                             handled: false,
-                        });
+                        }));
                     }
                     input.last_position = Some((touch.page_x(), touch.page_y()));
                     input.last_zoom = None;
@@ -572,7 +572,7 @@ impl Window {
                     );
                     if let Some(old_zoom) = input.last_zoom {
                         let modifiers = input.modifiers;
-                        input.events.push(Event::MouseWheel {
+                        input.events.push(Event::MouseWheel(MouseWheelEvent {
                             delta: (0.0, zoom - old_zoom),
                             position: (
                                 0.5 * touch0.page_x() as f64 + 0.5 * touch1.page_x() as f64,
@@ -580,7 +580,7 @@ impl Window {
                             ),
                             modifiers,
                             handled: false,
-                        });
+                        }));
                     }
                     input.last_zoom = Some(zoom);
                     input.last_position = None;
@@ -615,19 +615,21 @@ impl Window {
                 let mut input = input.borrow_mut();
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::ModifiersChange { modifiers });
+                    input
+                        .events
+                        .push(Event::ModifiersChange(ModifiersChangeEvent { modifiers }));
                     event.stop_propagation();
                     event.prevent_default();
                 }
                 let key = event.key();
                 let modifiers = input.modifiers;
                 if let Some(kind) = translate_key(&key) {
-                    input.events.push(Event::Key {
+                    input.events.push(Event::Key(Key {
                         state: State::Pressed,
                         kind,
                         modifiers,
                         handled: false,
-                    });
+                    }));
                     event.stop_propagation();
                     event.prevent_default();
                 }
@@ -661,18 +663,20 @@ impl Window {
                 let mut input = input.borrow_mut();
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::ModifiersChange { modifiers });
+                    input
+                        .events
+                        .push(Event::ModifiersChange(ModifiersChangeEvent { modifiers }));
                     event.stop_propagation();
                     event.prevent_default();
                 }
                 if let Some(kind) = translate_key(&event.key()) {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::Key {
+                    input.events.push(Event::Key(Key {
                         state: State::Released,
                         kind,
                         modifiers,
                         handled: false,
-                    });
+                    }));
                     event.stop_propagation();
                     event.prevent_default();
 

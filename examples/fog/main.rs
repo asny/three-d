@@ -81,6 +81,11 @@ fn main() {
             let mut depth_texture = None;
             window
                 .render_loop(move |frame_input| {
+                    // Quit if Cmd-Q/Ctrl-Q pressed.
+                    if frame_input.has_key_quit() {
+                        return FrameOutput::exit();
+                    }
+
                     let mut change = frame_input.first_frame;
                     change |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
                     if change {

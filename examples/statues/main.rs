@@ -105,6 +105,11 @@ fn main() {
             let mut is_primary_camera = true;
             window
                 .render_loop(move |frame_input| {
+                    // Quit if Cmd-Q/Ctrl-Q pressed.
+                    if frame_input.has_key_quit() {
+                        return FrameOutput::exit();
+                    }
+
                     let mut redraw = frame_input.first_frame;
                     redraw |= primary_camera
                         .set_aspect(frame_input.viewport.aspect())
