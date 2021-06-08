@@ -95,11 +95,80 @@ pub struct Mesh {
 }
 
 impl Mesh {
+    fn validate(cpu_mesh: &CPUMesh) -> Result<(), Error> {
+        if let Some(ref indices) = cpu_mesh.indices {
+            let index_count = match indices {
+                Indices::U8(ind) => ind.len(),
+                Indices::U16(ind) => ind.len(),
+                Indices::U32(ind) => ind.len(),
+            };
+            if index_count % 3 != 0 {
+                return Err(Error::MeshError {
+                    message: format!(
+                        "element count in indices of mesh `{}` \
+                            must be divisible by 3, actual count is {}",
+                        cpu_mesh.name, index_count
+                    ),
+                });
+            }
+            if cpu_mesh.positions.len() % 3 != 0 {
+                return Err(Error::MeshError {
+                    message: format!(
+                        "when indices specified, element count in positions of mesh `{}` \
+                            must be divisible by 3, actual count is {}",
+                        cpu_mesh.name,
+                        cpu_mesh.positions.len()
+                    ),
+                });
+            }
+            if cfg!(debug) {
+                let indices_valid = match indices {
+                    Indices::U8(ind) => {
+                        let len = cpu_mesh.positions.len();
+                        ind.iter().all(|&i| (i as usize) < len)
+                    }
+                    Indices::U16(ind) => {
+                        let len = cpu_mesh.positions.len();
+                        ind.iter().all(|&i| (i as usize) < len)
+                    }
+                    Indices::U32(ind) => {
+                        let len = cpu_mesh.positions.len();
+                        ind.iter().all(|&i| (i as usize) < len)
+                    }
+                };
+                if !indices_valid {
+                    return Err(Error::MeshError {
+                        message: format!(
+                            "some indices of mesh `{}` \
+                                are outside of valid number of positions, which is {}",
+                            cpu_mesh.name,
+                            cpu_mesh.positions.len()
+                        ),
+                    });
+                }
+            }
+        } else {
+            if cpu_mesh.positions.len() % 9 != 0 {
+                return Err(Error::MeshError {
+                    message: format!(
+                        "when indices unspecified, element count in positions of mesh `{}` \
+                            must be divisible by 9, actual count is {}",
+                        cpu_mesh.name,
+                        cpu_mesh.positions.len()
+                    ),
+                });
+            }
+        };
+        Ok(())
+    }
+
     ///
     /// Copies the per vertex data defined in the given [CPUMesh](crate::CPUMesh) to the GPU, thereby
     /// making it possible to render the mesh.
     ///
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+        Self::validate(cpu_mesh)?;
+
         let position_buffer = Rc::new(VertexBuffer::new_with_static(context, &cpu_mesh.positions)?);
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(Rc::new(VertexBuffer::new_with_static(context, normals)?))
