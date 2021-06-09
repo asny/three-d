@@ -143,7 +143,11 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_vertex_color.frag"))?;
+        let program = self.get_or_insert_program(&format!(
+            "{}{}",
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh_vertex_color.frag")
+        ))?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -160,7 +164,11 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
+        let program = self.get_or_insert_program(&format!(
+            "{}{}",
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh_color.frag")
+        ))?;
         program.use_uniform_vec4("color", color)?;
         self.render(program, render_states, viewport, camera)
     }
@@ -181,7 +189,11 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
+        let program = self.get_or_insert_program(&format!(
+            "{}{}",
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh_texture.frag")
+        ))?;
         program.use_texture(texture, "tex")?;
         self.render(program, render_states, viewport, camera)
     }

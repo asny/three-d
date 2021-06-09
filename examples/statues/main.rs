@@ -56,7 +56,7 @@ fn main() {
                 Mesh::new_with_material(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
             statue.cull = CullType::Back;
 
-            let mut statues = Vec::new();
+            let mut models = Vec::new();
             let scale = Mat4::from_scale(10.0);
             for i in 0..8 {
                 let angle = i as f32 * 2.0 * std::f32::consts::PI / 8.0;
@@ -68,7 +68,7 @@ fn main() {
                     angle.sin() * dist,
                 ));
                 statue.transformation = translation * scale * rotation;
-                statues.push(statue.clone());
+                models.push(statue.clone());
             }
 
             let (fountain_cpu_meshes, fountain_cpu_materials) =
@@ -79,13 +79,14 @@ fn main() {
                     .unwrap();
             fountain.cull = CullType::Back;
             fountain.transformation = Mat4::from_angle_x(degrees(-90.0));
+            models.push(fountain);
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
                 color: vec3(1.0, 1.0, 1.0),
             };
             let mut directional_light =
-                DirectionalLight::new(&context, 1.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 10.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0))
                     .unwrap();
 
             directional_light
@@ -96,7 +97,10 @@ fn main() {
                     2000.0,
                     1024,
                     1024,
-                    &[&statue, &fountain],
+                    &models
+                        .iter()
+                        .map(|model| model as &dyn Geometry)
+                        .collect::<Vec<&dyn Geometry>>(),
                 )
                 .unwrap();
 
@@ -147,13 +151,13 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                             || {
-                                for statue in statues.iter() {
-                                    if statue
+                                for model in models.iter() {
+                                    if model
                                         .aabb()
                                         .map(|aabb| primary_camera.in_frustum(&aabb))
                                         .unwrap_or(true)
                                     {
-                                        statue.render_with_lighting(
+                                        model.render_with_lighting(
                                             RenderStates::default(),
                                             frame_input.viewport,
                                             if is_primary_camera {
@@ -168,20 +172,6 @@ fn main() {
                                         )?;
                                     }
                                 }
-
-                                fountain.render_with_lighting(
-                                    RenderStates::default(),
-                                    frame_input.viewport,
-                                    if is_primary_camera {
-                                        &primary_camera
-                                    } else {
-                                        &secondary_camera
-                                    },
-                                    Some(&ambient_light),
-                                    &[&directional_light],
-                                    &[],
-                                    &[],
-                                )?;
                                 Ok(())
                             },
                         )

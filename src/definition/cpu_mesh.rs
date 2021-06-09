@@ -207,7 +207,7 @@ impl CPUMesh {
             self.indices
                 .as_ref()
                 .map(|indices| compute_normals_with_indices(&indices.into_u32(), &self.positions))
-                .unwrap_or(compute_normals(&self.positions)),
+                .unwrap_or_else(|| compute_normals(&self.positions)),
         );
     }
 

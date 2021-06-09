@@ -9,15 +9,14 @@ fn main() {
         ..Default::default()
     })
     .unwrap();
-    let gl = window.gl().unwrap();
+    let context = window.gl().unwrap();
 
     // Renderer
     let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
-    let mut pipeline = DeferredPipeline::new(&gl).unwrap();
     let mut camera = CameraControl::new(
         Camera::new_perspective(
-            &gl,
+            &context,
             target + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
             target,
             vec3(0.0, 1.0, 0.0),
@@ -39,9 +38,9 @@ fn main() {
             let cpu_mesh = meshes.remove(0);
             let cpu_material = materials.remove(0);
             let mut model = Mesh::new_with_material(
-                &gl,
+                &context,
                 &cpu_mesh,
-                &Material::new(&gl, &cpu_material).unwrap(),
+                &Material::new(&context, &cpu_material).unwrap(),
             )
             .unwrap();
             model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
@@ -50,10 +49,12 @@ fn main() {
             let wireframe_material = Material {
                 name: "wireframe".to_string(),
                 color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
+                roughness: 0.5,
+                metallic: 0.9,
                 ..Default::default()
             };
             let mut edges = InstancedMesh::new_with_material(
-                &gl,
+                &context,
                 &edge_transformations(&cpu_mesh),
                 &CPUMesh::cylinder(0.007, 1.0, 10),
                 &wireframe_material,
@@ -63,7 +64,7 @@ fn main() {
             edges.cull = CullType::Back;
 
             let mut vertices = InstancedMesh::new_with_material(
-                &gl,
+                &context,
                 &vertex_transformations(&cpu_mesh),
                 &CPUMesh::sphere(0.015),
                 &wireframe_material,
@@ -72,83 +73,16 @@ fn main() {
             vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             vertices.cull = CullType::Back;
 
-            let mut plane = Mesh::new_with_material(
-                &gl,
-                &CPUMesh {
-                    positions: vec![
-                        -10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0,
-                    ],
-                    normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                    ..Default::default()
-                },
-                &Material {
-                    color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
-                    ..Default::default()
-                },
-            )
-            .unwrap();
-            plane.cull = CullType::Back;
-
-            let mut spot_light0 = SpotLight::new(
-                &gl,
-                0.2,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(5.0, 7.0, 5.0),
-                &vec3(-1.0, -1.0, -1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            let mut spot_light1 = SpotLight::new(
-                &gl,
-                0.2,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(-5.0, 7.0, 5.0),
-                &vec3(1.0, -1.0, -1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            let mut spot_light2 = SpotLight::new(
-                &gl,
-                0.2,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(-5.0, 7.0, -5.0),
-                &vec3(1.0, -1.0, 1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            let mut spot_light3 = SpotLight::new(
-                &gl,
-                0.2,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(5.0, 7.0, -5.0),
-                &vec3(-1.0, -1.0, 1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            spot_light0
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
-            spot_light1
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
-            spot_light2
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
-            spot_light3
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
+            let ambient_light = AmbientLight {
+                intensity: 0.7,
+                color: vec3(1.0, 1.0, 1.0),
+            };
+            let directional_light0 =
+                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                    .unwrap();
+            let directional_light1 =
+                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(1.0, 1.0, 1.0))
+                    .unwrap();
 
             // main loop
             let mut rotating = false;
@@ -176,7 +110,7 @@ fn main() {
                             }
                             Event::MouseWheel { delta, .. } => {
                                 camera
-                                    .zoom_towards(&target, 0.1 * delta.1 as f32, 3.0, 100.0)
+                                    .zoom_towards(&target, 0.1 * delta.1 as f32, 1.0, 100.0)
                                     .unwrap();
                                 redraw = true;
                             }
@@ -185,28 +119,40 @@ fn main() {
                     }
 
                     if redraw {
-                        // Geometry pass
-                        pipeline
-                            .geometry_pass(
-                                frame_input.viewport.width,
-                                frame_input.viewport.height,
-                                &camera,
-                                &[&model, &edges, &vertices, &plane],
-                            )
-                            .unwrap();
-
-                        // Light pass
-                        Screen::write(&gl, ClearState::default(), || {
-                            pipeline.light_pass(
-                                frame_input.viewport,
-                                &camera,
-                                None,
-                                &[],
-                                &[&spot_light0, &spot_light1, &spot_light2, &spot_light3],
-                                &[],
-                            )?;
-                            Ok(())
-                        })
+                        Screen::write(
+                            &context,
+                            ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
+                            || {
+                                model.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light0, &directional_light1],
+                                    &[],
+                                    &[],
+                                )?;
+                                vertices.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light0, &directional_light1],
+                                    &[],
+                                    &[],
+                                )?;
+                                edges.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light0, &directional_light1],
+                                    &[],
+                                    &[],
+                                )?;
+                                Ok(())
+                            },
+                        )
                         .unwrap();
                     }
 

@@ -94,7 +94,7 @@ fn main() {
                 color: vec3(1.0, 1.0, 1.0),
             };
             let directional_light =
-                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 2.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0))
                     .unwrap();
 
             let axes = Axes::new(&context, 0.1, 3.0).unwrap();
