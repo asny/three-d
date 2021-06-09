@@ -54,11 +54,11 @@ fn main() {
             monkey.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
-                intensity: 0.2,
+                intensity: 0.4,
                 color: vec3(1.0, 1.0, 1.0),
             };
             let directional_light =
-                DirectionalLight::new(&context, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 2.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
 
             // main loop
@@ -124,30 +124,34 @@ fn main() {
 
                     // draw
                     if change {
-                        Screen::write(&context, ClearState::default(), || {
-                            monkey.render_with_lighting(
-                                RenderStates {
-                                    depth_test: DepthTestType::LessOrEqual,
-                                    ..Default::default()
-                                },
-                                frame_input.viewport,
-                                &camera,
-                                Some(&ambient_light),
-                                &[&directional_light],
-                                &[],
-                                &[],
-                            )?;
-                            pick_mesh.render_with_lighting(
-                                RenderStates::default(),
-                                frame_input.viewport,
-                                &camera,
-                                Some(&ambient_light),
-                                &[&directional_light],
-                                &[],
-                                &[],
-                            )?;
-                            Ok(())
-                        })
+                        Screen::write(
+                            &context,
+                            ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
+                            || {
+                                monkey.render_with_lighting(
+                                    RenderStates {
+                                        depth_test: DepthTestType::LessOrEqual,
+                                        ..Default::default()
+                                    },
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light],
+                                    &[],
+                                    &[],
+                                )?;
+                                pick_mesh.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light],
+                                    &[],
+                                    &[],
+                                )?;
+                                Ok(())
+                            },
+                        )
                         .unwrap();
                     }
 

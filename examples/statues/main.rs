@@ -86,7 +86,7 @@ fn main() {
                 color: vec3(1.0, 1.0, 1.0),
             };
             let mut directional_light =
-                DirectionalLight::new(&context, 1.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 10.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0))
                     .unwrap();
 
             directional_light
