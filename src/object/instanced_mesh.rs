@@ -152,7 +152,7 @@ impl InstancedMesh {
     }
 
     ///
-    /// Render the instanced mesh with the given color.
+    /// Render the instanced mesh with the given color. The color is assumed to be in gamma color space (sRGBA).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
@@ -164,17 +164,13 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = self.get_or_insert_program(&format!(
-            "{}{}",
-            include_str!("../core/shared.frag"),
-            include_str!("shaders/mesh_color.frag")
-        ))?;
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", color)?;
         self.render(program, render_states, viewport, camera)
     }
 
     ///
-    /// Render the instanced mesh with the given texture.
+    /// Render the instanced mesh with the given texture which is assumed to be in sRGB color space with or without an alpha channel.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
@@ -189,11 +185,7 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = self.get_or_insert_program(&format!(
-            "{}{}",
-            include_str!("../core/shared.frag"),
-            include_str!("shaders/mesh_texture.frag")
-        ))?;
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture(texture, "tex")?;
         self.render(program, render_states, viewport, camera)
     }

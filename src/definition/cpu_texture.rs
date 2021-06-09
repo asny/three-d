@@ -34,9 +34,7 @@ pub enum Format {
     R,
     RG,
     RGB,
-    SRGB,
     RGBA,
-    SRGBA,
 }
 
 impl Format {
@@ -45,9 +43,7 @@ impl Format {
             Format::R => 1,
             Format::RG => 2,
             Format::RGB => 3,
-            Format::SRGB => 3,
             Format::RGBA => 4,
-            Format::SRGBA => 4,
         }
     }
 }

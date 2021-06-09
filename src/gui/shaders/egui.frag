@@ -7,8 +7,9 @@ in vec2 v_tc;
 layout (location = 0) out vec4 color;
 
 void main() {
-    // The texture is set up with `SRGB8_ALPHA8`, so no need to decode here!
+    // The texture is in linear space so we need to decode here
     vec4 texture_rgba = texture(u_sampler, v_tc);
+    texture_rgba.rgb = rgb_from_srgb(texture_rgba.rgb);
     /// Multiply vertex color with texture color (in linear space).
     color = v_rgba * texture_rgba;
     // We must gamma-encode again since WebGL doesn't support linear blending in the framebuffer.

@@ -186,8 +186,6 @@ pub(crate) mod internal {
                 Format::RG => crate::context::consts::RG8,
                 Format::RGB => crate::context::consts::RGB8,
                 Format::RGBA => crate::context::consts::RGBA8,
-                Format::SRGB => crate::context::consts::SRGB8,
-                Format::SRGBA => crate::context::consts::SRGB8_ALPHA8,
             })
         }
 
@@ -231,13 +229,6 @@ pub(crate) mod internal {
                 Format::RG => crate::context::consts::RG32F,
                 Format::RGB => crate::context::consts::RGB32F,
                 Format::RGBA => crate::context::consts::RGBA32F,
-                _ => {
-                    return Err(crate::Error::TextureError {
-                        message:
-                            "Cannot only use the sRGB(A) format together with a u8 texture value type."
-                                .to_string(),
-                    });
-                }
             })
         }
 
@@ -282,13 +273,6 @@ pub(crate) mod internal {
                 Format::RG => crate::context::consts::RG32UI,
                 Format::RGB => crate::context::consts::RGB32UI,
                 Format::RGBA => crate::context::consts::RGBA32UI,
-                _ => {
-                    return Err(crate::Error::TextureError {
-                        message:
-                            "Cannot only use the sRGB(A) format together with a u8 texture value type."
-                                .to_string(),
-                    });
-                }
             })
         }
 
@@ -330,9 +314,7 @@ pub(crate) mod internal {
             Format::R => consts::RED,
             Format::RG => consts::RG,
             Format::RGB => consts::RGB,
-            Format::SRGB => consts::RGB,
             Format::RGBA => consts::RGBA,
-            Format::SRGBA => consts::RGBA,
         }
     }
 }

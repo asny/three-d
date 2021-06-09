@@ -3,6 +3,7 @@ use crate::definition::*;
 ///
 /// A CPU-side version of a [material](crate::Material).
 /// Can be constructed manually or loaded via [io](crate::io).
+/// Textures are assumed to be in sRGB with or without an alpha channel.
 ///
 pub struct CPUMaterial {
     pub name: String,

@@ -120,7 +120,7 @@ impl GUI {
                 &self.context,
                 &CPUTexture {
                     data: pixels,
-                    format: Format::SRGBA,
+                    format: Format::RGBA,
                     width: egui_texture.width as u32,
                     height: egui_texture.height as u32,
                     mip_map_filter: None,

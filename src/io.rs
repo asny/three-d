@@ -113,8 +113,8 @@ fn image_from_bytes(bytes: &[u8]) -> Result<crate::definition::CPUTexture<u8>, I
     let format = match img {
         DynamicImage::ImageLuma8(_) => Format::R,
         DynamicImage::ImageLumaA8(_) => Format::RG,
-        DynamicImage::ImageRgb8(_) => Format::SRGB,
-        DynamicImage::ImageRgba8(_) => Format::SRGBA,
+        DynamicImage::ImageRgb8(_) => Format::RGB,
+        DynamicImage::ImageRgba8(_) => Format::RGBA,
         DynamicImage::ImageBgr8(_) => unimplemented!(),
         DynamicImage::ImageBgra8(_) => unimplemented!(),
         DynamicImage::ImageLuma16(_) => unimplemented!(),

@@ -34,7 +34,7 @@ void main()
     vec3 position = world_pos_from_depth(viewProjectionInverse, depth, uv);
    	
     vec4 c = texture(gbuffer, vec3(uv, 0));
-    vec4 surface_color = vec4(c.rgb, 1.0);
+    vec4 surface_color = vec4(rgb_from_srgb(c.rgb), 1.0);
     float metallic = c.w;
 
     vec4 n = texture(gbuffer, vec3(uv, 1));
@@ -45,9 +45,10 @@ void main()
 
     vec4 surface_color;
 #ifdef USE_COLOR_TEXTURE
-    surface_color = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+    vec4 c = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+    surface_color = vec4(rgb_from_srgb(c.rgb), c.a);
 #else 
-    surface_color = surfaceColor;
+    surface_color = vec4(rgb_from_srgb(surfaceColor.rgb), surfaceColor.a);
 #endif
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
     vec3 position = pos;
