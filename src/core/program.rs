@@ -1,4 +1,4 @@
-use crate::context::{consts, Context};
+use crate::context::{consts, AttributeLocation, Context};
 use crate::core::{Error::ProgramError, *};
 use crate::math::*;
 use std::cell::RefCell;
@@ -13,7 +13,7 @@ use std::collections::HashMap;
 pub struct Program {
     context: Context,
     id: crate::context::Program,
-    vertex_attributes: HashMap<String, u32>,
+    vertex_attributes: HashMap<String, AttributeLocation>,
     textures: RefCell<HashMap<String, u32>>,
     uniforms: HashMap<String, crate::context::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
@@ -485,7 +485,7 @@ impl Program {
         self.context.unuse_program();
     }
 
-    fn location(&self, name: &str) -> Result<u32, Error> {
+    fn location(&self, name: &str) -> Result<AttributeLocation, Error> {
         self.set_used();
         let location = self
             .vertex_attributes
