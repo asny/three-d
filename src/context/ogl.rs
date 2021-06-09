@@ -7,21 +7,21 @@ use std::rc::Rc;
 use consts::Gl as InnerGl;
 
 #[derive(Copy, Clone, Debug)]
-pub struct AttributeLocation(pub u32);
+pub struct AttributeLocation(u32);
 #[derive(Copy, Clone, Debug)]
-pub struct UniformLocation(pub u32);
+pub struct UniformLocation(u32);
 #[derive(Copy, Clone, Debug)]
-pub struct Shader(pub u32);
+pub struct Shader(u32);
 #[derive(Copy, Clone, Debug)]
-pub struct Program(pub u32);
+pub struct Program(u32);
 #[derive(Copy, Clone, Debug)]
-pub struct Buffer(pub u32);
+pub struct Buffer(u32);
 #[derive(Copy, Clone, Debug)]
-pub struct Framebuffer(pub u32);
+pub struct Framebuffer(u32);
 #[derive(Copy, Clone, Debug)]
-pub struct Texture(pub u32);
+pub struct Texture(u32);
 #[derive(Copy, Clone, Debug)]
-pub struct VertexArrayObject(pub u32);
+pub struct VertexArrayObject(u32);
 
 pub type Sync = consts::types::GLsync;
 
