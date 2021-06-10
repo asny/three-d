@@ -91,6 +91,19 @@ pub enum Error {
     },
 }
 
+impl Error {
+    pub fn message(&self) -> &String {
+        return match self {
+            Error::ProgramError { message } => message,
+            Error::RenderTargetError { message } => message,
+            Error::TextureError { message } => message,
+            Error::BufferError { message } => message,
+            Error::MeshError { message } => message,
+            Error::CameraError { message } => message,
+        };
+    }
+}
+
 pub trait VertexBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
