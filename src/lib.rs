@@ -3,7 +3,7 @@
 //!
 //! A 3D renderer which enables out-of-the-box build to both desktop and web with the same code.
 //! See the [README](https://crates.io/crates/three-d) for more information and
-//! the [examples](https://github.com/asny/three-d/tree/0.6/examples) for how to use it.
+//! the [examples](https://github.com/asny/three-d/tree/master/examples) for how to use it.
 //!
 
 pub mod context;
@@ -40,15 +40,17 @@ pub mod light;
 #[doc(inline)]
 pub use light::*;
 
+pub mod function;
+#[doc(inline)]
+pub use function::*;
+
 pub mod io;
 #[doc(inline)]
 pub use io::*;
 
-#[cfg(feature = "phong-renderer")]
-pub mod phong;
+pub mod shading;
 #[doc(inline)]
-#[cfg(feature = "phong-renderer")]
-pub use phong::*;
+pub use shading::*;
 
 pub mod window;
 #[doc(inline)]

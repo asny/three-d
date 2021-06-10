@@ -11,8 +11,8 @@ layout (std140) uniform Camera
 
 in vec3 coords;
 
-layout (location = 0) out vec4 color;
+layout (location = 0) out vec4 outColor;
 
 void main() {
-    color = vec4(texture(texture0, coords).rgb, 1.0);
+    outColor = vec4(texture(texture0, coords).rgb, 1.0);
 }

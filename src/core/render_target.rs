@@ -1,19 +1,25 @@
 use crate::context::{consts, Context};
 use crate::core::*;
+use crate::definition::*;
 use crate::math::*;
 use crate::ImageEffect;
 
 ///
 /// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a
-/// [render target](crate::RenderTarget) or the [screen](crate::Screen) and which values they are set to
-/// (the values must be between 0 and 1).
+/// [render target](crate::RenderTarget) or the [screen](crate::Screen).
+/// If `None` then the channel is not cleared and if `Some(value)` the channel is cleared to that value (the value must be between 0 and 1).
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ClearState {
+    /// Defines the clear value for the red channel.
     pub red: Option<f32>,
+    /// Defines the clear value for the green channel.
     pub green: Option<f32>,
+    /// Defines the clear value for the blue channel.
     pub blue: Option<f32>,
+    /// Defines the clear value for the alpha channel.
     pub alpha: Option<f32>,
+    /// Defines the clear value for the depth channel. A value of 1 means a depth value equal to the far plane and 0 means a depth value equal to the near plane.
     pub depth: Option<f32>,
 }
 
@@ -103,13 +109,13 @@ impl Screen {
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
     pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>, Error> {
-        let mut pixels = vec![0u8; viewport.width * viewport.height * 4];
+        let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(
             viewport.x as u32,
             viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
+            viewport.width,
+            viewport.height,
             consts::RGBA,
             consts::UNSIGNED_BYTE,
             &mut pixels,
@@ -123,13 +129,13 @@ impl Screen {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub fn read_depth(context: &Context, viewport: Viewport) -> Result<Vec<f32>, Error> {
-        let mut pixels = vec![0f32; viewport.width * viewport.height];
+        let mut pixels = vec![0f32; viewport.width as usize * viewport.height as usize];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_f32_data(
             viewport.x as u32,
             viewport.y as u32,
-            viewport.width as u32,
-            viewport.height as u32,
+            viewport.width,
+            viewport.height,
             consts::DEPTH_COMPONENT,
             consts::FLOAT,
             &mut pixels,
@@ -141,15 +147,15 @@ impl Screen {
 ///
 /// The destination of applying a copy.
 ///
-pub enum CopyDestination<'a, 'b, 'c, 'd> {
+pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
     /// Copies to the [Screen](crate::Screen).
     Screen,
     /// Copies to a [ColorTargetTexture2D](crate::ColorTargetTexture2D).
-    ColorTexture(&'d ColorTargetTexture2D),
+    ColorTexture(&'d ColorTargetTexture2D<T>),
     /// Copies to a [DepthTargetTexture2D](crate::DepthTargetTexture2D).
     DepthTexture(&'d DepthTargetTexture2D),
     /// Copies to a [RenderTarget](crate::RenderTarget).
-    RenderTarget(&'c RenderTarget<'a, 'b>),
+    RenderTarget(&'c RenderTarget<'a, 'b, T>),
 }
 
 ///
@@ -157,21 +163,21 @@ pub enum CopyDestination<'a, 'b, 'c, 'd> {
 /// a [DepthTargetTexture2D](crate::DepthTargetTexture2D) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTarget<'a, 'b> {
+pub struct RenderTarget<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a ColorTargetTexture2D>,
+    color_texture: Option<&'a ColorTargetTexture2D<T>>,
     depth_texture: Option<&'b DepthTargetTexture2D>,
 }
 
-impl<'a, 'b> RenderTarget<'a, 'b> {
+impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     ///
     /// Constructs a new render target that enables rendering into the given
     /// [color](crate::ColorTargetTexture2D) and [depth](DepthTargetTexture2D) textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2D,
+        color_texture: &'a ColorTargetTexture2D<T>,
         depth_texture: &'b DepthTargetTexture2D,
     ) -> Result<Self, Error> {
         Ok(Self {
@@ -215,7 +221,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     ///
     pub fn copy_to(
         &self,
-        destination: CopyDestination,
+        destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
@@ -266,7 +272,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
 
     pub(super) fn new_color(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2D,
+        color_texture: &'a ColorTargetTexture2D<T>,
     ) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -303,7 +309,7 @@ impl<'a, 'b> RenderTarget<'a, 'b> {
     }
 }
 
-impl Drop for RenderTarget<'_, '_> {
+impl<T: TextureDataType> Drop for RenderTarget<'_, '_, T> {
     fn drop(&mut self) {
         self.context.delete_framebuffer(Some(&self.id));
     }
@@ -314,21 +320,21 @@ impl Drop for RenderTarget<'_, '_> {
 /// a [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray) at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
-pub struct RenderTargetArray<'a, 'b> {
+pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a ColorTargetTexture2DArray>,
+    color_texture: Option<&'a ColorTargetTexture2DArray<T>>,
     depth_texture: Option<&'b DepthTargetTexture2DArray>,
 }
 
-impl<'a, 'b> RenderTargetArray<'a, 'b> {
+impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     /// Constructs a new render target array that enables rendering into the given
     /// [color](crate::ColorTargetTexture2DArray) and [depth](DepthTargetTexture2DArray) array textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2DArray,
+        color_texture: &'a ColorTargetTexture2DArray<T>,
         depth_texture: &'b DepthTargetTexture2DArray,
     ) -> Result<Self, Error> {
         Ok(Self {
@@ -341,7 +347,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
 
     pub(super) fn new_color(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2DArray,
+        color_texture: &'a ColorTargetTexture2DArray<T>,
     ) -> Result<Self, Error> {
         Ok(Self {
             context: context.clone(),
@@ -372,8 +378,8 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
-        color_layers: &[usize],
-        depth_layer: usize,
+        color_layers: &[u32],
+        depth_layer: u32,
         clear_state: ClearState,
         render: F,
     ) -> Result<(), Error> {
@@ -401,20 +407,20 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
     ///
     pub fn copy_to(
         &self,
-        color_layer: usize,
-        depth_layer: usize,
-        destination: CopyDestination,
+        color_layer: u32,
+        depth_layer: u32,
+        destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> Result<(), Error> {
         let copy = || {
             let effect = get_copy_array_effect(&self.context)?;
             if let Some(tex) = self.color_texture {
-                effect.use_texture(tex, "colorMap")?;
+                effect.use_texture_array(tex, "colorMap")?;
                 effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
             }
             if let Some(tex) = self.depth_texture {
-                effect.use_texture(tex, "depthMap")?;
+                effect.use_texture_array(tex, "depthMap")?;
                 effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
             }
             effect.apply(
@@ -454,11 +460,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
         Ok(())
     }
 
-    fn bind(
-        &self,
-        color_layers: Option<&[usize]>,
-        depth_layer: Option<usize>,
-    ) -> Result<(), Error> {
+    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> Result<(), Error> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
@@ -469,7 +471,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
                         .collect::<Vec<u32>>(),
                 );
                 for channel in 0..color_layers.len() {
-                    color_texture.bind_as_color_target(color_layers[channel], channel);
+                    color_texture.bind_as_color_target(color_layers[channel], channel as u32);
                 }
             }
         }
@@ -484,7 +486,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b> {
     }
 }
 
-impl Drop for RenderTargetArray<'_, '_> {
+impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     fn drop(&mut self) {
         self.context.delete_framebuffer(Some(&self.id));
     }

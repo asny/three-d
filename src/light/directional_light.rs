@@ -2,6 +2,7 @@ use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
+use crate::object::*;
 
 ///
 /// A light which shines in the given direction.
@@ -80,8 +81,8 @@ impl DirectionalLight {
         frustrum_width: f32,
         frustrum_height: f32,
         frustrum_depth: f32,
-        texture_width: usize,
-        texture_height: usize,
+        texture_width: u32,
+        texture_height: u32,
         geometries: &[&dyn Geometry],
     ) -> Result<(), Error> {
         let direction = self.direction();
@@ -131,7 +132,7 @@ impl DirectionalLight {
         Ok(())
     }
 
-    pub fn shadow_map(&self) -> &dyn Texture {
+    pub fn shadow_map(&self) -> &DepthTargetTexture2D {
         &self.shadow_texture
     }
 

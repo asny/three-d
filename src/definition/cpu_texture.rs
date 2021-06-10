@@ -18,30 +18,45 @@ pub enum Wrapping {
     ClampToEdge,
 }
 
+pub trait TextureDataType:
+    Default + std::fmt::Debug + Clone + crate::core::internal::TextureDataTypeExtension
+{
+}
+impl TextureDataType for u8 {}
+impl TextureDataType for f32 {}
+impl TextureDataType for u32 {}
+
 ///
 /// Possible formats for pixels in a texture.
 ///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
-    R8,
-    R32F,
-    RGB8,
-    RGB32F,
-    SRGB8,
-    RGBA8,
-    SRGBA8,
-    RGBA32F,
+    R,
+    RG,
+    RGB,
+    RGBA,
+}
+
+impl Format {
+    pub fn color_channel_count(&self) -> u32 {
+        match self {
+            Format::R => 1,
+            Format::RG => 2,
+            Format::RGB => 3,
+            Format::RGBA => 4,
+        }
+    }
 }
 
 ///
-/// A CPU-side version of a texture (for example [2D texture](crate::Texture2D).
+/// A CPU-side version of a texture, for example [2D texture](crate::Texture2D).
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
-pub struct CPUTexture<T> {
+pub struct CPUTexture<T: TextureDataType> {
     pub data: Vec<T>,
-    pub width: usize,
-    pub height: usize,
-    pub depth: usize,
+    pub width: u32,
+    pub height: u32,
+    pub depth: u32,
     pub format: Format,
     pub min_filter: Interpolation,
     pub mag_filter: Interpolation,
@@ -51,14 +66,38 @@ pub struct CPUTexture<T> {
     pub wrap_r: Wrapping,
 }
 
-impl Default for CPUTexture<u8> {
+impl<T: TextureDataType> CPUTexture<T> {
+    pub fn add_padding(&mut self, x0: u32, x1: u32, y0: u32, y1: u32) {
+        let channels = self.format.color_channel_count();
+        let width = x0 + self.width + x1;
+        let height = y0 + self.height + y1;
+        let mut new_data = vec![T::default(); width as usize * height as usize * channels as usize];
+        for x in 0..self.width {
+            for y in 0..self.height {
+                let x_ = x + x0;
+                let y_ = y + y0;
+                let source_index = (y * self.width + x) * channels;
+                let dest_index = (y_ * width + x_) * channels;
+                for i in 0..channels {
+                    new_data[(dest_index + i) as usize] =
+                        self.data[(source_index + i) as usize].clone();
+                }
+            }
+        }
+        self.data = new_data;
+        self.width = width;
+        self.height = height;
+    }
+}
+
+impl<T: TextureDataType> Default for CPUTexture<T> {
     fn default() -> Self {
         Self {
-            data: [255u8, 255, 0, 255].into(),
+            data: [T::default(), T::default(), T::default(), T::default()].into(),
             width: 1,
             height: 1,
             depth: 1,
-            format: Format::RGBA8,
+            format: Format::RGBA,
             min_filter: Interpolation::Linear,
             mag_filter: Interpolation::Linear,
             mip_map_filter: Some(Interpolation::Linear),
@@ -69,7 +108,7 @@ impl Default for CPUTexture<u8> {
     }
 }
 
-impl std::fmt::Debug for CPUTexture<u8> {
+impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CPUTexture")
             .field("format", &self.format)

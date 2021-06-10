@@ -10,15 +10,16 @@ impl<'a> Loaded<'a> {
     /// Only available when the `3d-io` feature is enabled.
     ///
     pub fn three_d<P: AsRef<Path>>(
-        &'a self,
+        &mut self,
         path: P,
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
-        let bytes = self.bytes(path.as_ref())?;
+        let bytes = self.get_bytes(path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
+            .or_else(|_| Self::deserialize_version2(bytes))
             .or_else(|_| Self::deserialize_version1(bytes))?;
 
         if decoded.meshes.len() == 0 {
-            decoded = Self::deserialize_version1(bytes)?;
+            decoded = Self::deserialize_version1(&bytes)?;
         }
 
         if decoded.magic_number != 61 {
@@ -39,7 +40,7 @@ impl<'a> Loaded<'a> {
                 name: mesh.name,
                 material_name: mesh.material_name,
                 positions: mesh.positions,
-                indices: mesh.indices,
+                indices: mesh.indices.map(|i| Indices::U32(i)),
                 normals: mesh.normals,
                 uvs: mesh.uvs,
                 colors: None,
@@ -51,10 +52,7 @@ impl<'a> Loaded<'a> {
             cpu_materials.push(CPUMaterial {
                 name: material.name,
                 color: material.color,
-                diffuse_intensity: material.diffuse_intensity,
-                specular_intensity: material.specular_intensity,
-                specular_power: material.specular_power,
-                texture_image: if let Some(filename) = material.texture_path {
+                color_texture: if let Some(filename) = material.texture_path {
                     let texture_path = path
                         .as_ref()
                         .parent()
@@ -64,15 +62,35 @@ impl<'a> Loaded<'a> {
                 } else {
                     None
                 },
+                ..Default::default()
             });
         }
         Ok((cpu_meshes, cpu_materials))
     }
 
+    fn deserialize_version2(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
+        bincode::deserialize::<ThreeDMeshV2>(bytes).map(|m| ThreeDMesh {
+            magic_number: m.magic_number,
+            version: 3,
+            meshes: m.meshes,
+            materials: m
+                .materials
+                .iter()
+                .map(|mat| ThreeDMaterial {
+                    name: mat.name.clone(),
+                    color: mat.color,
+                    texture_path: mat.texture_path.clone(),
+                    metallic: mat.specular_intensity,
+                    roughness: mat.specular_power.map(|power| (1.999 / power).sqrt()),
+                })
+                .collect(),
+        })
+    }
+
     fn deserialize_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
         bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
             magic_number: m.magic_number,
-            version: 2,
+            version: 3,
             meshes: vec![ThreeDMeshSubMesh {
                 indices: if m.indices.len() > 0 {
                     Some(m.indices)
@@ -109,9 +127,9 @@ impl Saver {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
-            if let Some(ref cpu_texture) = cpu_material.texture_image {
+            if let Some(ref cpu_texture) = cpu_material.color_texture {
                 let number_of_channels =
-                    cpu_texture.data.len() / (cpu_texture.width * cpu_texture.height);
+                    cpu_texture.data.len() as u32 / (cpu_texture.width * cpu_texture.height);
                 let format = match number_of_channels {
                     1 => Ok(image::ColorType::L8),
                     3 => Ok(image::ColorType::Rgb8),
@@ -142,10 +160,15 @@ impl Saver {
     ) -> Result<Vec<u8>, IOError> {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {
+            let indices = cpu_mesh.indices.map(|indices| match indices {
+                Indices::U8(ind) => ind.iter().map(|i| *i as u32).collect(),
+                Indices::U16(ind) => ind.iter().map(|i| *i as u32).collect(),
+                Indices::U32(ind) => ind,
+            });
             meshes.push(ThreeDMeshSubMesh {
                 name: cpu_mesh.name,
                 material_name: cpu_mesh.material_name,
-                indices: cpu_mesh.indices,
+                indices,
                 positions: cpu_mesh.positions,
                 normals: cpu_mesh.normals,
                 uvs: cpu_mesh.uvs,
@@ -155,22 +178,21 @@ impl Saver {
         let mut materials = Vec::new();
         for cpu_material in cpu_materials {
             let texture_path = cpu_material
-                .texture_image
+                .color_texture
                 .as_ref()
                 .map(|_| format!("{}_{}.png", filename, cpu_material.name));
             materials.push(ThreeDMaterial {
                 name: cpu_material.name,
                 texture_path,
                 color: cpu_material.color,
-                diffuse_intensity: cpu_material.diffuse_intensity,
-                specular_intensity: cpu_material.specular_intensity,
-                specular_power: cpu_material.specular_power,
+                metallic: cpu_material.metallic_factor,
+                roughness: cpu_material.roughness_factor,
             });
         }
 
         Ok(bincode::serialize::<ThreeDMesh>(&ThreeDMesh {
             magic_number: 61,
-            version: 2,
+            version: 3,
             meshes,
             materials,
         })?)
@@ -197,6 +219,23 @@ struct ThreeDMeshSubMesh {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
 struct ThreeDMaterial {
+    pub name: String,
+    pub texture_path: Option<String>,
+    pub color: Option<(f32, f32, f32, f32)>,
+    pub roughness: Option<f32>,
+    pub metallic: Option<f32>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+struct ThreeDMeshV2 {
+    pub magic_number: u8,
+    pub version: u8,
+    pub meshes: Vec<ThreeDMeshSubMesh>,
+    pub materials: Vec<ThreeDMaterialV1>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default)]
+struct ThreeDMaterialV1 {
     pub name: String,
     pub texture_path: Option<String>,
     pub color: Option<(f32, f32, f32, f32)>,

@@ -13,7 +13,9 @@ use glutin::*;
 ///
 #[derive(Debug)]
 pub enum WindowError {
+    /// See glutin [CreationError](glutin::CreationError).
     WindowCreationError(glutin::CreationError),
+    /// See glutin [ContextError](glutin::ContextError).
     ContextError(glutin::ContextError),
     /// The number of samples must be a power of two.
     InvalidNumberOfSamples,
@@ -138,12 +140,9 @@ impl Window {
                         events: events.clone(),
                         elapsed_time,
                         accumulated_time,
-                        viewport: crate::Viewport::new_at_origo(
-                            physical_width as usize,
-                            physical_height as usize,
-                        ),
-                        window_width: width as usize,
-                        window_height: height as usize,
+                        viewport: crate::Viewport::new_at_origo(physical_width, physical_height),
+                        window_width: width,
+                        window_height: height,
                         device_pixel_ratio: device_pixel_ratio,
                         first_frame: first_frame,
                     };
@@ -166,19 +165,11 @@ impl Window {
                     if let Some(ref path) = frame_output.screenshot {
                         let pixels = crate::Screen::read_color(
                             &context,
-                            crate::Viewport::new_at_origo(
-                                physical_width as usize,
-                                physical_height as usize,
-                            ),
+                            crate::Viewport::new_at_origo(physical_width, physical_height),
                         )
                         .unwrap();
-                        crate::Saver::save_pixels(
-                            path,
-                            &pixels,
-                            physical_width as usize,
-                            physical_height as usize,
-                        )
-                        .unwrap();
+                        crate::Saver::save_pixels(path, &pixels, physical_width, physical_height)
+                            .unwrap();
                     }
                 }
                 Event::WindowEvent { ref event, .. } => match event {
@@ -322,14 +313,13 @@ impl Window {
     ///
     /// Return the current logical size of the window.
     ///
-    pub fn size(&self) -> Result<(usize, usize), WindowError> {
-        let t: (u32, u32) = self
+    pub fn size(&self) -> Result<(u32, u32), WindowError> {
+        Ok(self
             .windowed_context
             .window()
             .inner_size()
             .to_logical::<f64>(self.windowed_context.window().scale_factor())
-            .into();
-        Ok((t.0 as usize, t.1 as usize))
+            .into())
     }
 
     ///
@@ -337,7 +327,7 @@ impl Window {
     ///
     pub fn viewport(&self) -> Result<Viewport, WindowError> {
         let (w, h): (u32, u32) = self.windowed_context.window().inner_size().into();
-        Ok(Viewport::new_at_origo(w as usize, h as usize))
+        Ok(Viewport::new_at_origo(w, h))
     }
 
     ///

@@ -12,19 +12,17 @@ impl<'a> Loaded<'a> {
     /// Only available when the `obj-io` feature is enabled.
     ///
     pub fn obj<P: AsRef<Path>>(
-        &'a self,
+        &mut self,
         path: P,
     ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
-        let obj_bytes = self.bytes(path.as_ref())?;
-        let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes.to_owned()).unwrap())?;
+        let obj_bytes = self.remove_bytes(path.as_ref())?;
+        let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes).unwrap())?;
         let p = path.as_ref().parent().unwrap();
 
         // Parse materials
         let mut cpu_materials = Vec::new();
         if let Some(material_library) = obj.material_library {
-            let bytes = self
-                .bytes(p.join(material_library).to_str().unwrap())?
-                .to_owned();
+            let bytes = self.remove_bytes(p.join(material_library).to_str().unwrap())?;
             let materials = wavefront_obj::mtl::parse(String::from_utf8(bytes).unwrap())?.materials;
 
             for material in materials {
@@ -43,12 +41,6 @@ impl<'a> Loaded<'a> {
                 } else {
                     material.color_diffuse
                 };
-                let diffuse_intensity = (material.color_diffuse.r as f32)
-                    .max(material.color_diffuse.g as f32)
-                    .max(material.color_diffuse.b as f32);
-                let specular_intensity = (material.color_specular.r as f32)
-                    .max(material.color_specular.g as f32)
-                    .max(material.color_specular.b as f32);
                 cpu_materials.push(CPUMaterial {
                     name: material.name,
                     color: Some((
@@ -57,11 +49,8 @@ impl<'a> Loaded<'a> {
                         color.b as f32,
                         material.alpha as f32,
                     )),
-                    diffuse_intensity: Some(diffuse_intensity),
-                    specular_intensity: Some(specular_intensity),
-                    specular_power: Some(material.specular_coefficient as f32),
-                    texture_image: if let Some(path) = material
-                        .uv_map
+                    color_texture: if let Some(path) = material
+                        .diffuse_map
                         .as_ref()
                         .map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
                     {
@@ -69,6 +58,18 @@ impl<'a> Loaded<'a> {
                     } else {
                         None
                     },
+                    metallic_factor: Some(
+                        ((material.color_specular.r
+                            + material.color_specular.g
+                            + material.color_specular.b)
+                            / 3.0) as f32,
+                    ),
+                    roughness_factor: if material.specular_coefficient > 0.1 {
+                        Some((1.999 / material.specular_coefficient).sqrt() as f32)
+                    } else {
+                        None
+                    },
+                    ..Default::default()
                 });
             }
         }
@@ -150,7 +151,7 @@ impl<'a> Loaded<'a> {
                     name: object.name.to_string(),
                     material_name: mesh.material_name.clone(),
                     positions,
-                    indices: Some(indices),
+                    indices: Some(Indices::U32(indices)),
                     normals: Some(normals),
                     uvs: Some(uvs),
                     colors: None,

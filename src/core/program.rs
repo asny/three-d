@@ -1,4 +1,4 @@
-use crate::context::{consts, Context};
+use crate::context::{consts, AttributeLocation, Context};
 use crate::core::{Error::ProgramError, *};
 use crate::math::*;
 use std::cell::RefCell;
@@ -13,7 +13,7 @@ use std::collections::HashMap;
 pub struct Program {
     context: Context,
     id: crate::context::Program,
-    vertex_attributes: HashMap<String, u32>,
+    vertex_attributes: HashMap<String, AttributeLocation>,
     textures: RefCell<HashMap<String, u32>>,
     uniforms: HashMap<String, crate::context::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
@@ -202,19 +202,53 @@ impl Program {
     }
 
     ///
-    /// Use the given texture in this shader program and associate it with the given named variable.
-    /// The glsl shader variable must be of type `uniform sampler2D`, `uniform sampler2DArray` or `uniform samplerCube` and can only be accessed in the fragment shader.
+    /// Use the given [Texture2D](crate::Texture2D) in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture(&self, texture: &dyn Texture, texture_name: &str) -> Result<(), Error> {
+    pub fn use_texture(&self, texture: &impl Texture, texture_name: &str) -> Result<(), Error> {
+        let index = self.get_texture_index(texture_name);
+        texture.bind(index);
+        self.use_uniform_int(texture_name, &(index as i32))?;
+        Ok(())
+    }
+
+    ///
+    /// Use the given [TextureArray](crate::TextureArray) in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
+    ///
+    pub fn use_texture_array(
+        &self,
+        texture: &impl TextureArray,
+        texture_name: &str,
+    ) -> Result<(), Error> {
+        let index = self.get_texture_index(texture_name);
+        texture.bind(index);
+        self.use_uniform_int(texture_name, &(index as i32))?;
+        Ok(())
+    }
+
+    ///
+    /// Use the given [TextureCube](crate::TextureCube) in this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
+    ///
+    pub fn use_texture_cube(
+        &self,
+        texture: &impl TextureCube,
+        texture_name: &str,
+    ) -> Result<(), Error> {
+        let index = self.get_texture_index(texture_name);
+        texture.bind(index);
+        self.use_uniform_int(texture_name, &(index as i32))?;
+        Ok(())
+    }
+
+    fn get_texture_index(&self, texture_name: &str) -> u32 {
         if !self.textures.borrow().contains_key(texture_name) {
             let mut map = self.textures.borrow_mut();
             let index = map.len() as u32;
             map.insert(texture_name.to_owned(), index);
         };
-        let index = self.textures.borrow().get(texture_name).unwrap().clone();
-        texture.bind(index);
-        self.use_uniform_int(texture_name, &(index as i32))?;
-        Ok(())
+        self.textures.borrow().get(texture_name).unwrap().clone()
     }
 
     pub fn use_uniform_block(&self, buffer: &UniformBuffer, block_name: &str) {
@@ -245,7 +279,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -253,7 +287,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 1, buffer.data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -273,7 +307,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -281,7 +315,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 2, buffer.data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -301,7 +335,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -309,7 +343,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 3, buffer.data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -329,7 +363,7 @@ impl Program {
         &self,
         buffer: &VertexBuffer,
         attribute_name: &str,
-        divisor: usize,
+        divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -337,7 +371,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 4, buffer.data_type(), false, 0, 0);
-            self.context.vertex_attrib_divisor(loc, divisor as u32);
+            self.context.vertex_attrib_divisor(loc, divisor);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
         }
@@ -415,7 +449,7 @@ impl Program {
         self.set_used();
         element_buffer.bind();
         self.context
-            .draw_elements(consts::TRIANGLES, count, consts::UNSIGNED_INT, first);
+            .draw_elements(consts::TRIANGLES, count, element_buffer.data_type(), first);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
         for location in self.vertex_attributes.values() {
@@ -440,7 +474,7 @@ impl Program {
         self.context.draw_elements_instanced(
             consts::TRIANGLES,
             element_buffer.count() as u32,
-            consts::UNSIGNED_INT,
+            element_buffer.data_type(),
             0,
             count,
         );
@@ -451,7 +485,7 @@ impl Program {
         self.context.unuse_program();
     }
 
-    fn location(&self, name: &str) -> Result<u32, Error> {
+    fn location(&self, name: &str) -> Result<AttributeLocation, Error> {
         self.set_used();
         let location = self
             .vertex_attributes
@@ -488,7 +522,12 @@ impl Program {
                 height: 0,
             };
             if viewport != CURRENT_VIEWPORT {
-                context.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+                context.viewport(
+                    viewport.x,
+                    viewport.y,
+                    viewport.width as i32,
+                    viewport.height as i32,
+                );
                 CURRENT_VIEWPORT = viewport;
             }
         }

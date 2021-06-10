@@ -3,6 +3,8 @@ use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
 use crate::object::mesh::*;
+use crate::object::*;
+use crate::shading::*;
 
 ///
 /// A shader program used for rendering one or more instances of a [InstancedMesh](InstancedMesh). It has a fixed vertex shader and
@@ -46,8 +48,11 @@ pub struct InstancedMesh {
     instance_buffer1: VertexBuffer,
     instance_buffer2: VertexBuffer,
     instance_buffer3: VertexBuffer,
+    pub name: String,
     pub cull: CullType,
     pub transformation: Mat4,
+    pub material: Material,
+    pub lighting_model: LightingModel,
 }
 
 impl InstancedMesh {
@@ -62,29 +67,34 @@ impl InstancedMesh {
         transformations: &[Mat4],
         cpu_mesh: &CPUMesh,
     ) -> Result<Self, Error> {
-        let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
+        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static_f32(context, normals)?)
+            Some(VertexBuffer::new_with_static(context, normals)?)
         } else {
             None
         };
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
-            Some(ElementBuffer::new_with_u32(context, ind)?)
+        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
+            Some(match indices {
+                Indices::U8(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new(context, ind)?,
+            })
         } else {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static_f32(context, uvs)?)
+            Some(VertexBuffer::new_with_static(context, uvs)?)
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_static_u8(context, colors)?)
+            Some(VertexBuffer::new_with_static(context, colors)?)
         } else {
             None
         };
 
         let mut mesh = Self {
+            name: cpu_mesh.name.clone(),
             context: context.clone(),
             instance_count: 0,
             position_buffer,
@@ -92,16 +102,29 @@ impl InstancedMesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            instance_buffer1: VertexBuffer::new_with_dynamic_f32(context, &[])?,
-            instance_buffer2: VertexBuffer::new_with_dynamic_f32(context, &[])?,
-            instance_buffer3: VertexBuffer::new_with_dynamic_f32(context, &[])?,
+            instance_buffer1: VertexBuffer::new(context)?,
+            instance_buffer2: VertexBuffer::new(context)?,
+            instance_buffer3: VertexBuffer::new(context)?,
             cull: CullType::None,
             transformation: Mat4::identity(),
+            material: Material::default(),
+            lighting_model: LightingModel::Blinn,
         };
         mesh.update_transformations(transformations);
         unsafe {
             MESH_COUNT += 1;
         }
+        Ok(mesh)
+    }
+
+    pub fn new_with_material(
+        context: &Context,
+        transformations: &[Mat4],
+        cpu_mesh: &CPUMesh,
+        material: &Material,
+    ) -> Result<Self, Error> {
+        let mut mesh = Self::new(context, transformations, cpu_mesh)?;
+        mesh.material = material.clone();
         Ok(mesh)
     }
 
@@ -120,20 +143,16 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_PER_VERTEX_COLOR.is_none() {
-                PROGRAM_PER_VERTEX_COLOR = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_vertex_color.frag"),
-                )?);
-            }
-            PROGRAM_PER_VERTEX_COLOR.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(&format!(
+            "{}{}",
+            include_str!("../core/shared.frag"),
+            include_str!("shaders/mesh_vertex_color.frag")
+        ))?;
         self.render(program, render_states, viewport, camera)
     }
 
     ///
-    /// Render the instanced mesh with the given color.
+    /// Render the instanced mesh with the given color. The color is assumed to be in gamma color space (sRGBA).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
@@ -145,21 +164,13 @@ impl InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_COLOR.is_none() {
-                PROGRAM_COLOR = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_color.frag"),
-                )?);
-            }
-            PROGRAM_COLOR.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", color)?;
         self.render(program, render_states, viewport, camera)
     }
 
     ///
-    /// Render the instanced mesh with the given texture.
+    /// Render the instanced mesh with the given texture which is assumed to be in sRGB color space with or without an alpha channel.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
@@ -169,20 +180,12 @@ impl InstancedMesh {
     ///
     pub fn render_with_texture(
         &self,
-        texture: &dyn Texture,
+        texture: &impl Texture,
         render_states: RenderStates,
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_TEXTURE.is_none() {
-                PROGRAM_TEXTURE = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_texture.frag"),
-                )?);
-            }
-            PROGRAM_TEXTURE.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture(texture, "tex")?;
         self.render(program, render_states, viewport, camera)
     }
@@ -281,9 +284,35 @@ impl InstancedMesh {
             row3.push(transform.z.z);
             row3.push(transform.w.z);
         }
-        self.instance_buffer1.fill_with_dynamic_f32(&row1);
-        self.instance_buffer2.fill_with_dynamic_f32(&row2);
-        self.instance_buffer3.fill_with_dynamic_f32(&row3);
+        self.instance_buffer1.fill_with_dynamic(&row1);
+        self.instance_buffer2.fill_with_dynamic(&row2);
+        self.instance_buffer3.fill_with_dynamic(&row3);
+    }
+
+    pub(crate) fn get_or_insert_program(
+        &self,
+        fragment_shader_source: &str,
+    ) -> Result<&InstancedMeshProgram, Error> {
+        unsafe {
+            if PROGRAMS.is_none() {
+                PROGRAMS = Some(std::collections::HashMap::new());
+            }
+            if !PROGRAMS
+                .as_ref()
+                .unwrap()
+                .contains_key(fragment_shader_source)
+            {
+                PROGRAMS.as_mut().unwrap().insert(
+                    fragment_shader_source.to_string(),
+                    InstancedMeshProgram::new(&self.context, fragment_shader_source)?,
+                );
+            };
+            Ok(PROGRAMS
+                .as_ref()
+                .unwrap()
+                .get(fragment_shader_source)
+                .unwrap())
+        }
     }
 }
 
@@ -295,15 +324,7 @@ impl Geometry for InstancedMesh {
         camera: &Camera,
         max_depth: f32,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_PICK.is_none() {
-                PROGRAM_PICK = Some(InstancedMeshProgram::new(
-                    &self.context,
-                    include_str!("shaders/mesh_pick.frag"),
-                )?);
-            }
-            PROGRAM_PICK.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
         self.render(program, render_states, viewport, camera)?;
         Ok(())
@@ -315,12 +336,7 @@ impl Geometry for InstancedMesh {
         viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
-        let program = unsafe {
-            if PROGRAM_DEPTH.is_none() {
-                PROGRAM_DEPTH = Some(InstancedMeshProgram::new(&self.context, "void main() {}")?);
-            }
-            PROGRAM_DEPTH.as_ref().unwrap()
-        };
+        let program = self.get_or_insert_program("void main() {}")?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -334,19 +350,11 @@ impl Drop for InstancedMesh {
         unsafe {
             MESH_COUNT -= 1;
             if MESH_COUNT == 0 {
-                PROGRAM_DEPTH = None;
-                PROGRAM_PICK = None;
-                PROGRAM_COLOR = None;
-                PROGRAM_TEXTURE = None;
-                PROGRAM_PER_VERTEX_COLOR = None;
+                PROGRAMS = None;
             }
         }
     }
 }
 
-static mut PROGRAM_COLOR: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_TEXTURE: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_DEPTH: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_PICK: Option<InstancedMeshProgram> = None;
-static mut PROGRAM_PER_VERTEX_COLOR: Option<InstancedMeshProgram> = None;
+static mut PROGRAMS: Option<std::collections::HashMap<String, InstancedMeshProgram>> = None;
 static mut MESH_COUNT: u32 = 0;

@@ -27,7 +27,7 @@ impl FogEffect {
         &self,
         viewport: Viewport,
         camera: &Camera,
-        depth_texture: &dyn Texture,
+        depth_texture: &DepthTargetTexture2D,
         time: f32,
     ) -> Result<(), Error> {
         let render_states = RenderStates {

@@ -13,12 +13,15 @@ pub struct Skybox {
 }
 
 impl Skybox {
-    pub fn new(context: &Context, cpu_texture: &mut CPUTexture<u8>) -> Result<Skybox, Error> {
+    pub fn new<T: TextureDataType>(
+        context: &Context,
+        cpu_texture: &mut CPUTexture<T>,
+    ) -> Result<Skybox, Error> {
         cpu_texture.wrap_t = Wrapping::ClampToEdge;
         cpu_texture.wrap_s = Wrapping::ClampToEdge;
         cpu_texture.wrap_r = Wrapping::ClampToEdge;
         cpu_texture.mip_map_filter = None;
-        let texture = TextureCubeMap::new_with_u8(&context, cpu_texture)?;
+        let texture = TextureCubeMap::new(&context, cpu_texture)?;
         Self::new_with_texture(context, texture)
     }
 
@@ -26,10 +29,14 @@ impl Skybox {
         let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
-            include_str!("shaders/skybox.frag"),
+            &format!(
+                "{}{}",
+                include_str!("../core/shared.frag"),
+                include_str!("shaders/skybox.frag")
+            ),
         )?;
 
-        let vertex_buffer = VertexBuffer::new_with_static_f32(context, &get_positions())?;
+        let vertex_buffer = VertexBuffer::new_with_static(context, &get_positions())?;
 
         Ok(Skybox {
             program,
@@ -49,7 +56,7 @@ impl Skybox {
             ..Default::default()
         };
 
-        self.program.use_texture(&self.texture, "texture0")?;
+        self.program.use_texture_cube(&self.texture, "texture0")?;
         self.program
             .use_uniform_block(camera.uniform_buffer(), "Camera");
 
@@ -61,7 +68,7 @@ impl Skybox {
         Ok(())
     }
 
-    pub fn get_texture(&self) -> &TextureCubeMap {
+    pub fn texture(&self) -> &TextureCubeMap {
         &self.texture
     }
 }

@@ -12,12 +12,13 @@ fn main() {
     let context = window.gl().unwrap();
 
     // Renderer
-    let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
+    let mut pipeline = DeferredPipeline::new(&context).unwrap();
+    let target = vec3(0.0, 1.0, 0.0);
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
             vec3(4.0, 1.5, 4.0),
-            vec3(0.0, 1.0, 0.0),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -46,16 +47,17 @@ fn main() {
                 ..Default::default()
             };
             box_cpu_mesh.compute_normals();
-            let box_texture = Texture2D::new_with_u8(
+            let box_texture = Texture2D::new(
                 &context,
                 &loaded.image("examples/assets/test_texture.jpg").unwrap(),
             )
             .unwrap();
-            let box_material = PhongMaterial {
+            let box_material = Material {
                 color_source: ColorSource::Texture(std::rc::Rc::new(box_texture)),
                 ..Default::default()
             };
-            let mut box_mesh = PhongMesh::new(&context, &box_cpu_mesh, &box_material).unwrap();
+            let mut box_mesh =
+                Mesh::new_with_material(&context, &box_cpu_mesh, &box_material).unwrap();
             box_mesh.cull = CullType::Back;
 
             let skybox = Skybox::new(
@@ -75,14 +77,15 @@ fn main() {
 
             let (penguin_cpu_meshes, penguin_cpu_materials) =
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
-            let penguin_cpu_material =
-                PhongMaterial::new(&context, &penguin_cpu_materials[0]).unwrap();
+            let penguin_cpu_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
             let mut penguin_deferred =
-                PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+                Mesh::new_with_material(&context, &penguin_cpu_meshes[0], &penguin_cpu_material)
+                    .unwrap();
             penguin_deferred.cull = CullType::Back;
             penguin_deferred.transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
             let mut penguin_forward =
-                PhongMesh::new(&context, &penguin_cpu_meshes[0], &penguin_cpu_material).unwrap();
+                Mesh::new_with_material(&context, &penguin_cpu_meshes[0], &penguin_cpu_material)
+                    .unwrap();
             penguin_forward.cull = CullType::Back;
             penguin_forward.transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
 
@@ -91,7 +94,7 @@ fn main() {
                 color: vec3(1.0, 1.0, 1.0),
             };
             let directional_light =
-                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 2.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0))
                     .unwrap();
 
             let axes = Axes::new(&context, 0.1, 3.0).unwrap();
@@ -109,7 +112,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,
@@ -121,7 +123,6 @@ fn main() {
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                let target = *camera.target();
                                 camera
                                     .zoom_towards(&target, 0.1 * delta.1 as f32, 3.0, 100.0)
                                     .unwrap();

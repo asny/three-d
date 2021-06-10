@@ -11,13 +11,12 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    // Renderer
-    let mut pipeline = PhongForwardPipeline::new(&context).unwrap();
+    let target = vec3(0.0, 0.0, 0.0);
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
             vec3(4.0, 4.0, 5.0),
-            vec3(0.0, 0.0, 0.0),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -40,20 +39,20 @@ fn main() {
         move |loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-            let mut monkey = PhongMesh::new(
+            let mut monkey = Mesh::new_with_material(
                 &context,
                 &meshes[0],
-                &PhongMaterial::new(&context, &materials[0]).unwrap(),
+                &Material::new(&context, &materials[0]).unwrap(),
             )
             .unwrap();
             monkey.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
-                intensity: 0.2,
+                intensity: 0.4,
                 color: vec3(1.0, 1.0, 1.0),
             };
             let directional_light =
-                DirectionalLight::new(&context, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 2.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
 
             // Fog
@@ -79,10 +78,24 @@ fn main() {
 
             // main loop
             let mut rotating = false;
+            let mut depth_texture = None;
             window
                 .render_loop(move |frame_input| {
                     let mut change = frame_input.first_frame;
                     change |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+                    if change {
+                        depth_texture = Some(
+                            DepthTargetTexture2D::new(
+                                &context,
+                                frame_input.viewport.width,
+                                frame_input.viewport.height,
+                                Wrapping::ClampToEdge,
+                                Wrapping::ClampToEdge,
+                                DepthFormat::Depth32F,
+                            )
+                            .unwrap(),
+                        );
+                    }
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -91,7 +104,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around(
                                             &target,
@@ -103,7 +115,6 @@ fn main() {
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                let target = *camera.target();
                                 camera
                                     .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
                                     .unwrap();
@@ -122,19 +133,17 @@ fn main() {
 
                     // draw
                     if change {
-                        pipeline
-                            .depth_pass(
-                                frame_input.viewport.width,
-                                frame_input.viewport.height,
-                                &|| {
-                                    monkey.render_depth(
-                                        RenderStates::default(),
-                                        frame_input.viewport,
-                                        &camera,
-                                    )?;
-                                    Ok(())
-                                },
-                            )
+                        depth_texture
+                            .as_ref()
+                            .unwrap()
+                            .write(Some(1.0), &|| {
+                                monkey.render_depth(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                )?;
+                                Ok(())
+                            })
                             .unwrap();
                     }
 
@@ -156,7 +165,7 @@ fn main() {
                             fog_effect.apply(
                                 frame_input.viewport,
                                 &camera,
-                                pipeline.depth_texture(),
+                                depth_texture.as_ref().unwrap(),
                                 frame_input.accumulated_time as f32,
                             )?;
                         }

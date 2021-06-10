@@ -12,12 +12,13 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let mut pipeline = PhongDeferredPipeline::new(&context).unwrap();
+    let mut pipeline = DeferredPipeline::new(&context).unwrap();
+    let target = vec3(0.0, 0.0, 0.0);
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
             vec3(2.0, 2.0, 5.0),
-            vec3(0.0, 0.0, 0.0),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -31,20 +32,17 @@ fn main() {
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |loaded| {
-            let (monkey_cpu_meshes, mut monkey_cpu_materials) =
+            let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
-            monkey_cpu_materials[0].diffuse_intensity = Some(0.7);
-            monkey_cpu_materials[0].specular_intensity = Some(0.8);
-            monkey_cpu_materials[0].specular_power = Some(20.0);
-            let mut monkey = PhongMesh::new(
+            let mut monkey = Mesh::new_with_material(
                 &context,
                 &monkey_cpu_meshes[0],
-                &PhongMaterial::new(&context, &monkey_cpu_materials[0]).unwrap(),
+                &Material::new(&context, &monkey_cpu_materials[0]).unwrap(),
             )
             .unwrap();
             monkey.cull = CullType::Back;
 
-            let mut plane = PhongMesh::new(
+            let mut plane = Mesh::new_with_material(
                 &context,
                 &CPUMesh {
                     positions: vec![
@@ -53,11 +51,8 @@ fn main() {
                     normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                     ..Default::default()
                 },
-                &PhongMaterial {
+                &Material {
                     color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
-                    diffuse_intensity: 0.7,
-                    specular_intensity: 0.8,
-                    specular_power: 20.0,
                     ..Default::default()
                 },
             )
@@ -68,14 +63,14 @@ fn main() {
                 intensity: 0.2,
             };
             let mut directional_light0 =
-                DirectionalLight::new(&context, 0.3, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0))
+                DirectionalLight::new(&context, 1.0, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0))
                     .unwrap();
             let mut directional_light1 =
-                DirectionalLight::new(&context, 0.3, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0))
+                DirectionalLight::new(&context, 1.0, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0))
                     .unwrap();
             let mut point_light0 = PointLight::new(
                 &context,
-                0.5,
+                1.0,
                 &vec3(0.0, 1.0, 0.0),
                 &vec3(0.0, 0.0, 0.0),
                 0.5,
@@ -85,7 +80,7 @@ fn main() {
             .unwrap();
             let mut point_light1 = PointLight::new(
                 &context,
-                0.5,
+                1.0,
                 &vec3(1.0, 0.0, 0.0),
                 &vec3(0.0, 0.0, 0.0),
                 0.5,
@@ -95,7 +90,7 @@ fn main() {
             .unwrap();
             let mut spot_light = SpotLight::new(
                 &context,
-                0.8,
+                2.0,
                 &vec3(0.0, 0.0, 1.0),
                 &vec3(0.0, 0.0, 0.0),
                 &vec3(0.0, -1.0, 0.0),
@@ -129,43 +124,56 @@ fn main() {
 
                                     ui.label("Surface parameters");
                                     ui.add(
-                                        Slider::f32(
-                                            &mut monkey.material.diffuse_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Monkey Diffuse"),
+                                        Slider::f32(&mut monkey.material.metallic, 0.0..=1.0)
+                                            .text("Monkey Metallic"),
                                     );
                                     ui.add(
-                                        Slider::f32(
-                                            &mut monkey.material.specular_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Monkey Specular"),
+                                        Slider::f32(&mut monkey.material.roughness, 0.0..=1.0)
+                                            .text("Monkey Roughness"),
                                     );
                                     ui.add(
-                                        Slider::f32(
-                                            &mut monkey.material.specular_power,
-                                            2.0..=30.0,
-                                        )
-                                        .text("Monkey Specular Power"),
+                                        Slider::f32(&mut plane.material.metallic, 0.0..=1.0)
+                                            .text("Plane Metallic"),
                                     );
                                     ui.add(
-                                        Slider::f32(
-                                            &mut plane.material.diffuse_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Plane Diffuse"),
+                                        Slider::f32(&mut plane.material.roughness, 0.0..=1.0)
+                                            .text("Plane Roughness"),
                                     );
-                                    ui.add(
-                                        Slider::f32(
-                                            &mut plane.material.specular_intensity,
-                                            0.0..=1.0,
-                                        )
-                                        .text("Plane Specular"),
+
+                                    ui.label("Lighting model");
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Phong,
+                                        "Phong",
                                     );
-                                    ui.add(
-                                        Slider::f32(&mut plane.material.specular_power, 2.0..=30.0)
-                                            .text("Plane Specular Power"),
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Blinn,
+                                        "Blinn",
+                                    );
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Cook(
+                                            NormalDistributionFunction::Blinn,
+                                            GeometryFunction::SmithSchlickGGX,
+                                        ),
+                                        "Cook (Blinn)",
+                                    );
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Cook(
+                                            NormalDistributionFunction::Beckmann,
+                                            GeometryFunction::SmithSchlickGGX,
+                                        ),
+                                        "Cook (Beckmann)",
+                                    );
+                                    ui.radio_value(
+                                        &mut pipeline.lighting_model,
+                                        LightingModel::Cook(
+                                            NormalDistributionFunction::TrowbridgeReitzGGX,
+                                            GeometryFunction::SmithSchlickGGX,
+                                        ),
+                                        "Cook (Trowbridge-Reitz GGX)",
                                     );
 
                                     ui.label("Debug options");
@@ -224,9 +232,8 @@ fn main() {
                                     }
                                 },
                             );
-                            panel_width = (gui_context.used_size().x
-                                * gui_context.pixels_per_point())
-                                as usize;
+                            panel_width =
+                                (gui_context.used_size().x * gui_context.pixels_per_point()) as u32;
                         })
                         .unwrap();
 
@@ -254,7 +261,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, handled, .. } => {
                                 if !handled && rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,
@@ -267,7 +273,6 @@ fn main() {
                             }
                             Event::MouseWheel { delta, handled, .. } => {
                                 if !handled {
-                                    let target = *camera.target();
                                     camera
                                         .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
                                         .unwrap();

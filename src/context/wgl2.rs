@@ -55,6 +55,20 @@ impl Context {
         self.inner.buffer_data_with_u8_array(target, data, usage)
     }
 
+    pub fn buffer_data_u16(&self, target: u32, data: &[u16], usage: u32) {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>()
+            .unwrap()
+            .buffer();
+        let data_location = data.as_ptr() as u32 / 2;
+        let array = js_sys::Uint16Array::new(&memory_buffer)
+            .subarray(data_location, data_location + data.len() as u32);
+
+        self.inner
+            .buffer_data_with_array_buffer_view(target, &array, usage);
+    }
+
     pub fn buffer_data_u32(&self, target: u32, data: &[u32], usage: u32) {
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
@@ -267,6 +281,42 @@ impl Context {
             .unwrap();
     }
 
+    pub fn tex_sub_image_2d_with_u32_data(
+        &self,
+        target: u32,
+        level: u32,
+        x_offset: u32,
+        y_offset: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        pixels: &[u32],
+    ) {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>()
+            .unwrap()
+            .buffer();
+        let data_location = pixels.as_ptr() as u32 / 4;
+        let array = js_sys::Uint32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + pixels.len() as u32);
+
+        self.inner
+            .tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_array_buffer_view(
+                target,
+                level as i32,
+                x_offset as i32,
+                y_offset as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                Some(&array),
+            )
+            .unwrap();
+    }
+
     pub fn tex_image_2d_with_f32_data(
         &self,
         target: u32,
@@ -429,8 +479,35 @@ impl Context {
             .unwrap();
     }
 
-    pub fn viewport(&self, x: i32, y: i32, width: usize, height: usize) {
-        self.inner.viewport(x, y, width as i32, height as i32);
+    pub fn read_pixels_with_u32_data(
+        &self,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+        format: u32,
+        data_type: u32,
+        dst_data: &mut [u32],
+    ) {
+        use wasm_bindgen::JsCast;
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<js_sys::WebAssembly::Memory>()
+            .unwrap()
+            .buffer();
+        let data_location = dst_data.as_ptr() as u32 / 4;
+        let array = js_sys::Uint32Array::new(&memory_buffer)
+            .subarray(data_location, data_location + dst_data.len() as u32);
+        self.inner
+            .read_pixels_with_opt_array_buffer_view(
+                x as i32,
+                y as i32,
+                width as i32,
+                height as i32,
+                format,
+                data_type,
+                Some(&array),
+            )
+            .unwrap();
     }
 
     pub fn get_attrib_location(&self, program: &Program, name: &str) -> Option<AttributeLocation> {
@@ -640,7 +717,12 @@ impl std::ops::Deref for Context {
 pub fn byte_size_for_type(data_type: u32, count: u32) -> u32 {
     match data_type {
         consts::FLOAT => count * std::mem::size_of::<f32>() as u32,
+        consts::UNSIGNED_BYTE => count * std::mem::size_of::<u8>() as u32,
+        consts::UNSIGNED_SHORT => count * std::mem::size_of::<u16>() as u32,
         consts::UNSIGNED_INT => count * std::mem::size_of::<u32>() as u32,
-        _ => 0,
+        consts::BYTE => count * std::mem::size_of::<i8>() as u32,
+        consts::SHORT => count * std::mem::size_of::<i16>() as u32,
+        consts::INT => count * std::mem::size_of::<i32>() as u32,
+        _ => unimplemented!(),
     }
 }

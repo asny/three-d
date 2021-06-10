@@ -4,7 +4,7 @@ use crate::definition::*;
 use crate::effect::*;
 use crate::light::*;
 use crate::math::*;
-use crate::phong::*;
+use crate::shading::*;
 use std::collections::HashMap;
 
 ///
@@ -23,10 +23,10 @@ pub enum DebugType {
 }
 
 ///
-/// Deferred pipeline based on the Phong reflection model supporting a performance-limited
-/// amount of directional, point and spot lights with shadows. Supports colored, textured and instanced meshes.
+/// Deferred pipeline using physically based rendering (PBR) and supporting a performance-limited
+/// amount of directional, point and spot lights with shadows.
 ///
-pub struct PhongDeferredPipeline {
+pub struct DeferredPipeline {
     context: Context,
     program_map: HashMap<String, ImageEffect>,
     debug_effect: Option<ImageEffect>,
@@ -34,11 +34,12 @@ pub struct PhongDeferredPipeline {
     /// Set this to visualize the positions, normals etc. for debug purposes.
     ///
     pub debug_type: DebugType,
-    geometry_pass_texture: Option<ColorTargetTexture2DArray>,
+    pub lighting_model: LightingModel,
+    geometry_pass_texture: Option<ColorTargetTexture2DArray<u8>>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
-impl PhongDeferredPipeline {
+impl DeferredPipeline {
     ///
     /// Constructor.
     ///
@@ -48,6 +49,7 @@ impl PhongDeferredPipeline {
             program_map: HashMap::new(),
             debug_effect: None,
             debug_type: DebugType::NONE,
+            lighting_model: LightingModel::Blinn,
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(
                 context,
                 1,
@@ -58,7 +60,7 @@ impl PhongDeferredPipeline {
                 None,
                 Wrapping::ClampToEdge,
                 Wrapping::ClampToEdge,
-                Format::RGBA8,
+                Format::RGBA,
             )?),
             geometry_pass_depth_texture: Some(DepthTargetTexture2DArray::new(
                 context,
@@ -74,18 +76,18 @@ impl PhongDeferredPipeline {
     }
 
     ///
-    /// Render the geometry and surface material parameters of the given [Phong geometries](crate::PhongGeometry).
+    /// Render the geometry and surface material parameters of the given [shaded geometries](crate::ShadedGeometry).
     /// This function must not be called in a render target render function and needs to be followed
     /// by a call to [light_pass](Self::light_pass) which must be inside a render target render function.
     ///
     pub fn geometry_pass(
         &mut self,
-        width: usize,
-        height: usize,
+        width: u32,
+        height: u32,
         camera: &Camera,
-        geometries: &[&dyn PhongGeometry],
+        geometries: &[&dyn ShadedGeometry],
     ) -> Result<(), Error> {
-        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::new(
+        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
             width,
             height,
@@ -95,7 +97,7 @@ impl PhongDeferredPipeline {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA8,
+            Format::RGBA,
         )?);
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(
             &self.context,
@@ -132,7 +134,7 @@ impl PhongDeferredPipeline {
 
     ///
     /// Uses the geometry and surface material parameters written in the last [geometry_pass](Self::geometry_pass) call
-    /// and all of the given lights to shade the [Phong geometries](crate::PhongGeometry).
+    /// and all of the given lights to shade the [Shaded geometries](crate::ShadedGeometry).
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
@@ -163,11 +165,11 @@ impl PhongDeferredPipeline {
             self.debug_effect
                 .as_ref()
                 .unwrap()
-                .use_texture(self.geometry_pass_texture(), "gbuffer")?;
+                .use_texture_array(self.geometry_pass_texture(), "gbuffer")?;
             self.debug_effect
                 .as_ref()
                 .unwrap()
-                .use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+                .use_texture_array(self.geometry_pass_depth_texture_array(), "depthMap")?;
             self.debug_effect
                 .as_ref()
                 .unwrap()
@@ -179,41 +181,33 @@ impl PhongDeferredPipeline {
             return Ok(());
         }
 
-        let key = format!(
-            "{},{},{},{}",
-            ambient_light.is_some(),
+        let fragment_shader = shaded_fragment_shader(
+            self.lighting_model,
+            None,
             directional_lights.len(),
             spot_lights.len(),
-            point_lights.len()
+            point_lights.len(),
         );
-        if !self.program_map.contains_key(&key) {
+        if !self.program_map.contains_key(&fragment_shader) {
             self.program_map.insert(
-                key.clone(),
-                ImageEffect::new(
-                    &self.context,
-                    &crate::phong::phong_fragment_shader(
-                        &include_str!("shaders/deferred_surface.frag"),
-                        directional_lights.len(),
-                        spot_lights.len(),
-                        point_lights.len(),
-                    ),
-                )?,
+                fragment_shader.clone(),
+                ImageEffect::new(&self.context, &fragment_shader)?,
             );
         };
-        let effect = self.program_map.get(&key).unwrap();
+        let effect = self.program_map.get(&fragment_shader).unwrap();
 
-        crate::phong::bind_lights(
+        bind_lights(
             effect,
             ambient_light,
             directional_lights,
             spot_lights,
             point_lights,
+            camera.position(),
         )?;
 
-        effect.use_texture(self.geometry_pass_texture(), "gbuffer")?;
-        effect.use_texture(self.geometry_pass_depth_texture_array(), "depthMap")?;
+        effect.use_texture_array(self.geometry_pass_texture(), "gbuffer")?;
+        effect.use_texture_array(self.geometry_pass_depth_texture_array(), "depthMap")?;
         if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
-            effect.use_uniform_vec3("eyePosition", &camera.position())?;
             effect.use_uniform_mat4(
                 "viewProjectionInverse",
                 &(camera.projection() * camera.view()).invert().unwrap(),
@@ -223,10 +217,10 @@ impl PhongDeferredPipeline {
         Ok(())
     }
 
-    pub fn geometry_pass_texture(&self) -> &dyn Texture {
+    pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray<u8> {
         self.geometry_pass_texture.as_ref().unwrap()
     }
-    pub fn geometry_pass_depth_texture_array(&self) -> &dyn Texture {
+    pub fn geometry_pass_depth_texture_array(&self) -> &DepthTargetTexture2DArray {
         self.geometry_pass_depth_texture.as_ref().unwrap()
     }
 
@@ -245,7 +239,7 @@ impl PhongDeferredPipeline {
         depth_array
             .copy_to(
                 0,
-                CopyDestination::DepthTexture(&depth_texture),
+                CopyDestination::<u8>::DepthTexture(&depth_texture),
                 Viewport::new_at_origo(depth_array.width(), depth_array.height()),
             )
             .unwrap();

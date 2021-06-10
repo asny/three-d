@@ -2,6 +2,7 @@ use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
+use crate::object::*;
 
 ///
 /// A light which shines from the given position and in the given direction.
@@ -108,7 +109,7 @@ impl SpotLight {
     pub fn generate_shadow_map(
         &mut self,
         frustrum_depth: f32,
-        texture_size: usize,
+        texture_size: u32,
         geometries: &[&dyn Geometry],
     ) -> Result<(), Error> {
         let position = self.position();
@@ -160,7 +161,7 @@ impl SpotLight {
         Ok(())
     }
 
-    pub fn shadow_map(&self) -> &dyn Texture {
+    pub fn shadow_map(&self) -> &DepthTargetTexture2D {
         &self.shadow_texture
     }
 

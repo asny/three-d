@@ -11,12 +11,12 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    // Renderer
+    let target = vec3(0.0, 0.0, 0.0);
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
             vec3(4.0, 4.0, 5.0),
-            vec3(0.0, 0.0, 0.0),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -26,10 +26,10 @@ fn main() {
         .unwrap(),
     );
 
-    let mut pick_mesh = PhongMesh::new(
+    let mut pick_mesh = Mesh::new_with_material(
         &context,
         &CPUMesh::sphere(0.05),
-        &PhongMaterial::new(
+        &Material::new(
             &context,
             &CPUMaterial {
                 color: Some((1.0, 0.0, 0.0, 1.0)),
@@ -45,20 +45,20 @@ fn main() {
         move |loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-            let mut monkey = PhongMesh::new(
+            let mut monkey = Mesh::new_with_material(
                 &context,
                 &meshes[0],
-                &PhongMaterial::new(&context, &materials[0]).unwrap(),
+                &Material::new(&context, &materials[0]).unwrap(),
             )
             .unwrap();
             monkey.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
-                intensity: 0.2,
+                intensity: 0.4,
                 color: vec3(1.0, 1.0, 1.0),
             };
             let directional_light =
-                DirectionalLight::new(&context, 0.5, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 2.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
 
             // main loop
@@ -79,14 +79,16 @@ fn main() {
                                 rotating = *button == MouseButton::Left && *state == State::Pressed;
                                 if *button == MouseButton::Left && *state == State::Pressed {
                                     if let Some(pick) = camera
-                                        .pick_at(
+                                        .pick(
                                             (
-                                                (position.0 * frame_input.device_pixel_ratio
+                                                ((position.0 * frame_input.device_pixel_ratio
                                                     - frame_input.viewport.x as f64)
-                                                    / frame_input.viewport.width as f64,
-                                                (position.1 * frame_input.device_pixel_ratio
+                                                    / frame_input.viewport.width as f64)
+                                                    as f32,
+                                                ((position.1 * frame_input.device_pixel_ratio
                                                     - frame_input.viewport.y as f64)
-                                                    / frame_input.viewport.height as f64,
+                                                    / frame_input.viewport.height as f64)
+                                                    as f32,
                                             ),
                                             100.0,
                                             &[&monkey],
@@ -100,7 +102,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around(
                                             &target,
@@ -112,7 +113,6 @@ fn main() {
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                let target = *camera.target();
                                 camera
                                     .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
                                     .unwrap();
@@ -124,30 +124,34 @@ fn main() {
 
                     // draw
                     if change {
-                        Screen::write(&context, ClearState::default(), || {
-                            monkey.render_with_lighting(
-                                RenderStates {
-                                    depth_test: DepthTestType::LessOrEqual,
-                                    ..Default::default()
-                                },
-                                frame_input.viewport,
-                                &camera,
-                                Some(&ambient_light),
-                                &[&directional_light],
-                                &[],
-                                &[],
-                            )?;
-                            pick_mesh.render_with_lighting(
-                                RenderStates::default(),
-                                frame_input.viewport,
-                                &camera,
-                                Some(&ambient_light),
-                                &[&directional_light],
-                                &[],
-                                &[],
-                            )?;
-                            Ok(())
-                        })
+                        Screen::write(
+                            &context,
+                            ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
+                            || {
+                                monkey.render_with_lighting(
+                                    RenderStates {
+                                        depth_test: DepthTestType::LessOrEqual,
+                                        ..Default::default()
+                                    },
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light],
+                                    &[],
+                                    &[],
+                                )?;
+                                pick_mesh.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light],
+                                    &[],
+                                    &[],
+                                )?;
+                                Ok(())
+                            },
+                        )
                         .unwrap();
                     }
 

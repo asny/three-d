@@ -1,5 +1,5 @@
 use crate::context::{consts, Context};
-use crate::core::Error;
+use crate::core::{ElementBufferDataType, Error};
 
 ///
 /// A buffer containing indices for rendering, see for example [draw_elements](crate::Program::draw_elements).
@@ -9,21 +9,26 @@ pub struct ElementBuffer {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
+    data_type: u32,
 }
 
 impl ElementBuffer {
     ///
     /// Creates a new element buffer and fills it with the given indices.
     ///
-    pub fn new_with_u32(context: &Context, data: &[u32]) -> Result<ElementBuffer, Error> {
+    pub fn new<T: ElementBufferDataType>(
+        context: &Context,
+        data: &[T],
+    ) -> Result<ElementBuffer, Error> {
         let id = context.create_buffer().unwrap();
         let mut buffer = ElementBuffer {
             context: context.clone(),
             id,
             count: 0,
+            data_type: T::data_type(),
         };
         if data.len() > 0 {
-            buffer.fill_with_u32(data);
+            buffer.fill_with(data);
         }
         Ok(buffer)
     }
@@ -31,10 +36,15 @@ impl ElementBuffer {
     ///
     /// Fills the buffer with the given indices.
     ///
-    pub fn fill_with_u32(&mut self, data: &[u32]) {
+    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) {
         self.bind();
-        self.context
-            .buffer_data_u32(consts::ELEMENT_ARRAY_BUFFER, data, consts::STATIC_DRAW);
+        T::buffer_data(
+            &self.context,
+            consts::ELEMENT_ARRAY_BUFFER,
+            data,
+            consts::STATIC_DRAW,
+        );
+        self.data_type = T::data_type();
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         self.count = data.len();
     }
@@ -44,6 +54,10 @@ impl ElementBuffer {
     ///
     pub fn count(&self) -> usize {
         self.count
+    }
+
+    pub(crate) fn data_type(&self) -> u32 {
+        self.data_type
     }
 
     pub(crate) fn bind(&self) {

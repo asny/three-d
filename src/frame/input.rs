@@ -16,10 +16,10 @@ pub struct FrameInput {
     pub viewport: crate::Viewport,
 
     /// Width of the window in logical pixels.
-    pub window_width: usize,
+    pub window_width: u32,
 
     /// Height of the window in logical pixels.
-    pub window_height: usize,
+    pub window_height: u32,
 
     /// Number of physical pixels for each logical pixel.
     pub device_pixel_ratio: f64,

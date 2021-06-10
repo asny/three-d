@@ -112,19 +112,23 @@ pub struct Particles {
 
 impl Particles {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self, Error> {
-        let position_buffer = VertexBuffer::new_with_static_f32(context, &cpu_mesh.positions)?;
+        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static_f32(context, normals)?)
+            Some(VertexBuffer::new_with_static(context, normals)?)
         } else {
             None
         };
-        let index_buffer = if let Some(ref ind) = cpu_mesh.indices {
-            Some(ElementBuffer::new_with_u32(context, ind)?)
+        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
+            Some(match indices {
+                Indices::U8(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new(context, ind)?,
+            })
         } else {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static_f32(context, uvs)?)
+            Some(VertexBuffer::new_with_static(context, uvs)?)
         } else {
             None
         };
@@ -134,8 +138,8 @@ impl Particles {
             index_buffer,
             normal_buffer,
             uv_buffer,
-            start_position_buffer: VertexBuffer::new_with_dynamic_f32(context, &[])?,
-            start_velocity_buffer: VertexBuffer::new_with_dynamic_f32(context, &[])?,
+            start_position_buffer: VertexBuffer::new(context)?,
+            start_velocity_buffer: VertexBuffer::new(context)?,
             acceleration: *acceleration,
             instance_count: 0,
             cull: CullType::None,
@@ -159,9 +163,9 @@ impl Particles {
             start_velocity.push(particle.start_velocity.z);
         }
         self.start_position_buffer
-            .fill_with_dynamic_f32(&start_position);
+            .fill_with_dynamic(&start_position);
         self.start_velocity_buffer
-            .fill_with_dynamic_f32(&start_velocity);
+            .fill_with_dynamic(&start_velocity);
         self.instance_count = data.len() as u32;
     }
 

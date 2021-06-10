@@ -9,17 +9,16 @@ fn main() {
         ..Default::default()
     })
     .unwrap();
-    let gl = window.gl().unwrap();
+    let context = window.gl().unwrap();
 
     // Renderer
-    let scene_center = vec3(0.0, 2.0, 0.0);
+    let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
-    let mut pipeline = PhongDeferredPipeline::new(&gl).unwrap();
     let mut camera = CameraControl::new(
         Camera::new_perspective(
-            &gl,
-            scene_center + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
-            scene_center,
+            &context,
+            target + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
+            target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
             window.viewport().unwrap().aspect(),
@@ -37,28 +36,25 @@ fn main() {
         move |loaded| {
             let (mut meshes, mut materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let cpu_mesh = meshes.remove(0);
-            let mut cpu_material = materials.remove(0);
-            cpu_material.diffuse_intensity = Some(0.2);
-            cpu_material.specular_intensity = Some(0.4);
-            cpu_material.specular_power = Some(20.0);
-            let mut model = PhongMesh::new(
-                &gl,
+            let cpu_material = materials.remove(0);
+            let mut model = Mesh::new_with_material(
+                &context,
                 &cpu_mesh,
-                &PhongMaterial::new(&gl, &cpu_material).unwrap(),
+                &Material::new(&context, &cpu_material).unwrap(),
             )
             .unwrap();
             model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             model.cull = CullType::Back;
 
-            let wireframe_material = PhongMaterial {
+            let wireframe_material = Material {
                 name: "wireframe".to_string(),
-                diffuse_intensity: 0.8,
-                specular_intensity: 0.2,
-                specular_power: 5.0,
                 color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
+                roughness: 0.5,
+                metallic: 0.9,
+                ..Default::default()
             };
-            let mut edges = PhongInstancedMesh::new(
-                &gl,
+            let mut edges = InstancedMesh::new_with_material(
+                &context,
                 &edge_transformations(&cpu_mesh),
                 &CPUMesh::cylinder(0.007, 1.0, 10),
                 &wireframe_material,
@@ -67,8 +63,8 @@ fn main() {
             edges.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             edges.cull = CullType::Back;
 
-            let mut vertices = PhongInstancedMesh::new(
-                &gl,
+            let mut vertices = InstancedMesh::new_with_material(
+                &context,
                 &vertex_transformations(&cpu_mesh),
                 &CPUMesh::sphere(0.015),
                 &wireframe_material,
@@ -77,86 +73,16 @@ fn main() {
             vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
             vertices.cull = CullType::Back;
 
-            let mut plane = PhongMesh::new(
-                &gl,
-                &CPUMesh {
-                    positions: vec![
-                        -10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0,
-                    ],
-                    normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                    ..Default::default()
-                },
-                &PhongMaterial {
-                    color_source: ColorSource::Color(vec4(1.0, 1.0, 1.0, 1.0)),
-                    diffuse_intensity: 0.2,
-                    specular_intensity: 0.4,
-                    specular_power: 20.0,
-                    ..Default::default()
-                },
-            )
-            .unwrap();
-            plane.cull = CullType::Back;
-
-            let mut spot_light0 = SpotLight::new(
-                &gl,
-                0.6,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(5.0, 7.0, 5.0),
-                &vec3(-1.0, -1.0, -1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            let mut spot_light1 = SpotLight::new(
-                &gl,
-                0.6,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(-5.0, 7.0, 5.0),
-                &vec3(1.0, -1.0, -1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            let mut spot_light2 = SpotLight::new(
-                &gl,
-                0.6,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(-5.0, 7.0, -5.0),
-                &vec3(1.0, -1.0, 1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            let mut spot_light3 = SpotLight::new(
-                &gl,
-                0.6,
-                &vec3(1.0, 1.0, 1.0),
-                &vec3(5.0, 7.0, -5.0),
-                &vec3(-1.0, -1.0, 1.0),
-                25.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
-            spot_light0
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
-            spot_light1
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
-            spot_light2
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
-            spot_light3
-                .generate_shadow_map(50.0, 512, &[&model, &edges, &vertices])
-                .unwrap();
+            let ambient_light = AmbientLight {
+                intensity: 0.7,
+                color: vec3(1.0, 1.0, 1.0),
+            };
+            let directional_light0 =
+                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                    .unwrap();
+            let directional_light1 =
+                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(1.0, 1.0, 1.0))
+                    .unwrap();
 
             // main loop
             let mut rotating = false;
@@ -172,7 +98,6 @@ fn main() {
                             }
                             Event::MouseMotion { delta, .. } => {
                                 if rotating {
-                                    let target = *camera.target();
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,
@@ -184,9 +109,8 @@ fn main() {
                                 }
                             }
                             Event::MouseWheel { delta, .. } => {
-                                let target = *camera.target();
                                 camera
-                                    .zoom_towards(&target, 0.1 * delta.1 as f32, 3.0, 100.0)
+                                    .zoom_towards(&target, 0.1 * delta.1 as f32, 1.0, 100.0)
                                     .unwrap();
                                 redraw = true;
                             }
@@ -195,28 +119,40 @@ fn main() {
                     }
 
                     if redraw {
-                        // Geometry pass
-                        pipeline
-                            .geometry_pass(
-                                frame_input.viewport.width,
-                                frame_input.viewport.height,
-                                &camera,
-                                &[&model, &edges, &vertices, &plane],
-                            )
-                            .unwrap();
-
-                        // Light pass
-                        Screen::write(&gl, ClearState::default(), || {
-                            pipeline.light_pass(
-                                frame_input.viewport,
-                                &camera,
-                                None,
-                                &[],
-                                &[&spot_light0, &spot_light1, &spot_light2, &spot_light3],
-                                &[],
-                            )?;
-                            Ok(())
-                        })
+                        Screen::write(
+                            &context,
+                            ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
+                            || {
+                                model.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light0, &directional_light1],
+                                    &[],
+                                    &[],
+                                )?;
+                                vertices.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light0, &directional_light1],
+                                    &[],
+                                    &[],
+                                )?;
+                                edges.render_with_lighting(
+                                    RenderStates::default(),
+                                    frame_input.viewport,
+                                    &camera,
+                                    Some(&ambient_light),
+                                    &[&directional_light0, &directional_light1],
+                                    &[],
+                                    &[],
+                                )?;
+                                Ok(())
+                            },
+                        )
                         .unwrap();
                     }
 
@@ -255,7 +191,7 @@ fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
 
 fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
     let mut edge_transformations = std::collections::HashMap::new();
-    let indices = cpu_mesh.indices.as_ref().unwrap();
+    let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
     for f in 0..indices.len() / 3 {
         let mut fun = |i1, i2| {
             let p1 = vec3(

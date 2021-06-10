@@ -35,8 +35,8 @@ impl UniformBuffer {
             .bind_buffer_base(consts::UNIFORM_BUFFER, id, &self.id);
     }
 
-    pub fn update(&mut self, index: usize, data: &[f32]) -> Result<(), Error> {
-        let (offset, length) = self.offset_length(index)?;
+    pub fn update(&mut self, index: u32, data: &[f32]) -> Result<(), Error> {
+        let (offset, length) = self.offset_length(index as usize)?;
         if data.len() != length {
             return Err(Error::BufferError {
                 message: format!(
@@ -54,8 +54,8 @@ impl UniformBuffer {
         Ok(())
     }
 
-    pub fn get(&self, index: usize) -> Result<&[f32], Error> {
-        let (offset, length) = self.offset_length(index)?;
+    pub fn get(&self, index: u32) -> Result<&[f32], Error> {
+        let (offset, length) = self.offset_length(index as usize)?;
         Ok(&self.data[offset..offset + length])
     }
 

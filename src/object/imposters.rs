@@ -4,7 +4,7 @@ use crate::definition::*;
 use crate::math::*;
 use std::f32::consts::PI;
 
-const NO_VIEW_ANGLES: usize = 8;
+const NO_VIEW_ANGLES: u32 = 8;
 
 ///
 /// A level-of-detail technique to replace rendering high-poly meshes at a distance.
@@ -19,24 +19,28 @@ pub struct Imposters {
     positions_buffer: VertexBuffer,
     uvs_buffer: VertexBuffer,
     instance_count: u32,
-    texture: ColorTargetTexture2DArray,
+    texture: ColorTargetTexture2DArray<u8>,
 }
 
 impl Imposters {
     pub fn new(context: &Context) -> Result<Self, Error> {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0];
-        let positions_buffer = VertexBuffer::new_with_static_f32(&context, &[])?;
-        let uvs_buffer = VertexBuffer::new_with_static_f32(&context, &uvs)?;
+        let positions_buffer = VertexBuffer::new(&context)?;
+        let uvs_buffer = VertexBuffer::new_with_static(&context, &uvs)?;
 
         let program = Program::from_source(
             context,
             include_str!("shaders/imposter.vert"),
-            include_str!("shaders/imposter.frag"),
+            &format!(
+                "{}{}",
+                include_str!("../core/shared.frag"),
+                include_str!("shaders/imposter.frag")
+            ),
         )?;
 
-        let center_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
-        let rotation_buffer = VertexBuffer::new_with_dynamic_f32(context, &[])?;
-        let texture = ColorTargetTexture2DArray::new(
+        let center_buffer = VertexBuffer::new(context)?;
+        let rotation_buffer = VertexBuffer::new(context)?;
+        let texture = ColorTargetTexture2DArray::<u8>::new(
             context,
             1,
             1,
@@ -46,7 +50,7 @@ impl Imposters {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA8,
+            Format::RGBA,
         )?;
 
         Ok(Imposters {
@@ -65,7 +69,7 @@ impl Imposters {
         &mut self,
         render: F,
         aabb: (Vec3, Vec3),
-        max_texture_size: usize,
+        max_texture_size: u32,
     ) -> Result<(), Error> {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
@@ -81,9 +85,9 @@ impl Imposters {
             4.0 * (width + height),
         )?;
 
-        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as usize;
-        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as usize;
-        self.texture = ColorTargetTexture2DArray::new(
+        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as u32;
+        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as u32;
+        self.texture = ColorTargetTexture2DArray::<u8>::new(
             &self.context,
             texture_width,
             texture_height,
@@ -93,7 +97,7 @@ impl Imposters {
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGBA8,
+            Format::RGBA,
         )?;
         let depth_texture = DepthTargetTexture2DArray::new(
             &self.context,
@@ -131,7 +135,7 @@ impl Imposters {
         let xmax = center.x + 0.5 * width;
         let ymin = min.y;
         let ymax = max.y;
-        self.positions_buffer.fill_with_dynamic_f32(&vec![
+        self.positions_buffer.fill_with_dynamic(&vec![
             xmin, ymin, 0.0, xmax, ymin, 0.0, xmax, ymax, 0.0, xmax, ymax, 0.0, xmin, ymax, 0.0,
             xmin, ymin, 0.0,
         ]);
@@ -139,9 +143,8 @@ impl Imposters {
     }
 
     pub fn update_positions(&mut self, positions: &[f32], angles_in_radians: &[f32]) {
-        self.center_buffer.fill_with_dynamic_f32(positions);
-        self.rotation_buffer
-            .fill_with_dynamic_f32(angles_in_radians);
+        self.center_buffer.fill_with_dynamic(positions);
+        self.rotation_buffer.fill_with_dynamic(angles_in_radians);
         self.instance_count = positions.len() as u32 / 3;
     }
 
@@ -167,7 +170,7 @@ impl Imposters {
         self.program
             .use_uniform_block(camera.uniform_buffer(), "Camera");
 
-        self.program.use_texture(&self.texture, "tex")?;
+        self.program.use_texture_array(&self.texture, "tex")?;
 
         self.program
             .use_attribute_vec3(&self.positions_buffer, "position")?;
