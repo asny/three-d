@@ -132,11 +132,26 @@ impl GUI {
             self.texture_version = egui_texture.version;
         };
 
-        for egui::ClippedMesh(_, mesh) in clipped_meshes {
+        let scale = self.egui_context.pixels_per_point();
+        let viewport = Viewport::new_at_origo(
+            (self.width as f32 * scale).round() as u32,
+            (self.height as f32 * scale).round() as u32,
+        );
+
+        for egui::ClippedMesh(rect, mesh) in clipped_meshes {
+            let width = rect.max.x - rect.min.x;
+            let height = rect.max.y - rect.min.y;
+            let clipping = ClipParameters {
+                x: (rect.min.x * scale) as u32,
+                y: ((self.height as f32 - rect.max.y) * scale) as u32,
+                width: (width * scale) as u32,
+                height: (height * scale) as u32,
+            };
             self.paint_mesh(
+                viewport,
+                clipping,
                 self.width,
                 self.height,
-                self.egui_context.pixels_per_point(),
                 &mesh,
                 self.texture.as_ref().unwrap(),
             )?;
@@ -146,9 +161,10 @@ impl GUI {
 
     fn paint_mesh(
         &self,
+        viewport: Viewport,
+        clip: ClipParameters,
         width: u32,
         height: u32,
-        pixels_per_point: f32,
         mesh: &egui::paint::Mesh,
         texture: &Texture2D,
     ) -> Result<(), Error> {
@@ -174,11 +190,6 @@ impl GUI {
         let color_buffer = VertexBuffer::new_with_static(&self.context, &colors)?;
         let index_buffer = ElementBuffer::new(&self.context, &indices)?;
 
-        let viewport = Viewport::new_at_origo(
-            (width as f32 * pixels_per_point).round() as u32,
-            (height as f32 * pixels_per_point).round() as u32,
-        );
-
         let render_states = RenderStates {
             blend: Some(BlendParameters {
                 source_rgb_multiplier: BlendMultiplierType::One,
@@ -188,6 +199,7 @@ impl GUI {
                 ..Default::default()
             }),
             depth_test: DepthTestType::Always,
+            clip: Some(clip),
             ..Default::default()
         };
 
