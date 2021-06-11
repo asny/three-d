@@ -164,61 +164,47 @@ impl Loader {
 
     #[cfg(not(target_arch = "wasm32"))]
     fn load_file<P: AsRef<Path>>(path: P, loads: RefLoaded) {
-        let file = std::fs::File::open(path.as_ref());
-        match file {
-            Ok(mut f) => {
-                use std::io::prelude::*;
-                let mut bytes = Vec::new();
-                let result = f.read_to_end(&mut bytes).and(Ok(bytes));
-                loads
-                    .borrow_mut()
-                    .insert(path.as_ref().to_path_buf(), result);
-            }
-            Err(e) => {
-                loads
-                    .borrow_mut()
-                    .insert(path.as_ref().to_path_buf(), Err(e));
-            }
-        }
+        let result = if let Ok(url) = reqwest::Url::parse(path.as_ref().to_str().unwrap()) {
+            Ok(reqwest::blocking::get(url)
+                .map(|r| (*r.bytes().unwrap()).to_vec())
+                .unwrap())
+        } else {
+            std::fs::read(path.as_ref())
+        };
+        loads
+            .borrow_mut()
+            .insert(path.as_ref().to_path_buf(), result);
     }
 
     #[cfg(target_arch = "wasm32")]
     fn load_file<P: AsRef<Path>>(path: P, loads: RefLoaded) {
+        let url = reqwest::Url::parse(path.as_ref().to_str().unwrap()).unwrap_or_else(|_| {
+            let u = web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .url()
+                .unwrap();
+            reqwest::Url::parse(
+                std::path::PathBuf::from(u)
+                    .join(path.as_ref())
+                    .to_str()
+                    .unwrap(),
+            )
+            .unwrap()
+        });
         wasm_bindgen_futures::spawn_local(Self::load_file_async(
             path.as_ref().to_path_buf(),
+            url,
             loads,
         ));
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load_file_async<P: AsRef<Path>>(path: P, loads: RefLoaded) {
-        use wasm_bindgen::prelude::*;
-        use wasm_bindgen::JsCast;
-        use wasm_bindgen_futures::JsFuture;
-        use web_sys::{Request, RequestInit, RequestMode, Response};
-
-        let mut opts = RequestInit::new();
-        opts.method("GET");
-        opts.mode(RequestMode::Cors);
-
-        let request =
-            Request::new_with_str_and_init(path.as_ref().to_str().unwrap(), &opts).unwrap();
-        request
-            .headers()
-            .set("Accept", "application/octet-stream")
-            .unwrap();
-
-        let window = web_sys::window().unwrap();
-        let resp_value = JsFuture::from(window.fetch_with_request(&request))
-            .await
-            .unwrap();
-        let resp: Response = resp_value.dyn_into().unwrap();
-
-        // Convert this other `Promise` into a rust `Future`.
-        let data: JsValue = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
-        loads.borrow_mut().insert(
-            path.as_ref().to_path_buf(),
-            Ok(js_sys::Uint8Array::new(&data).to_vec()),
-        );
+    async fn load_file_async<P: AsRef<Path>>(path: P, url: reqwest::Url, loads: RefLoaded) {
+        let data = reqwest::get(url).await.unwrap().bytes().await.unwrap();
+        loads
+            .borrow_mut()
+            .insert(path.as_ref().to_path_buf(), Ok((*data).to_vec()));
     }
 }
