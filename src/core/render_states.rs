@@ -8,6 +8,8 @@ pub struct RenderStates {
     ///
     pub write_mask: WriteMask,
 
+    pub clip: Option<ClipParameters>,
+
     ///
     /// Defines the depth test in a render call.
     /// The depth test determines whether or not a fragment from the current render call should be discarded
@@ -30,6 +32,7 @@ impl Default for RenderStates {
             write_mask: WriteMask::default(),
             depth_test: DepthTestType::Less,
             blend: None,
+            clip: None,
         }
     }
 }
@@ -64,6 +67,14 @@ pub enum DepthTestType {
     NotEqual,
     GreaterOrEqual,
     Always,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct ClipParameters {
+    pub x: u32,
+    pub y: u32,
+    pub width: u32,
+    pub height: u32,
 }
 
 ///

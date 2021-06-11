@@ -505,12 +505,33 @@ impl Program {
 
     fn set_states(context: &Context, render_states: RenderStates) {
         Self::set_write_mask(context, render_states.write_mask);
+        Self::set_clip(context, render_states.clip);
         Self::set_depth(
             context,
             Some(render_states.depth_test),
             render_states.write_mask.depth,
         );
         Self::set_blend(context, render_states.blend);
+    }
+
+    fn set_clip(context: &Context, clip: Option<ClipParameters>) {
+        unsafe {
+            static mut CURRENT: Option<ClipParameters> = None;
+            if clip != CURRENT {
+                if let Some(clip) = clip {
+                    context.enable(consts::SCISSOR_TEST);
+                    context.scissor(
+                        clip.x as i32,
+                        clip.y as i32,
+                        clip.width as i32,
+                        clip.height as i32,
+                    );
+                } else {
+                    context.disable(consts::SCISSOR_TEST);
+                }
+                CURRENT = clip;
+            }
+        }
     }
 
     fn set_viewport(context: &Context, viewport: Viewport) {

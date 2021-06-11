@@ -642,6 +642,12 @@ impl Context {
         }
     }
 
+    pub fn scissor(&self, x: i32, y: i32, width: i32, height: i32) {
+        unsafe {
+            self.inner.Scissor(x, y, width, height);
+        }
+    }
+
     pub fn depth_func(&self, func: u32) {
         unsafe {
             self.inner.DepthFunc(func);
