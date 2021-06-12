@@ -9,7 +9,7 @@ type RefLoaded = Rc<RefCell<HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>>>;
 
 ///
 /// The resources loaded using the [Loader](crate::Loader).
-/// Use the [bytes](crate::Loaded::bytes) function to extract the raw byte array for the loaded resource
+/// Use the [remove_bytes](crate::Loaded::remove_bytes) or [get_bytes](crate::Loaded::get_bytes) function to extract the raw byte array for the loaded resource
 /// or one of the other methods to both extract and deserialize a loaded resource.
 ///
 pub struct Loaded<'a> {
