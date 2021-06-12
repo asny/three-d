@@ -30,7 +30,7 @@ impl FXAAEffect {
             ..Default::default()
         };
 
-        self.image_effect.use_texture(color_texture, "colorMap")?;
+        self.image_effect.use_texture("colorMap", color_texture)?;
         self.image_effect.use_uniform_vec2(
             "resolution",
             &vec2(color_texture.width() as f32, color_texture.height() as f32),

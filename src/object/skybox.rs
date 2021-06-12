@@ -56,12 +56,12 @@ impl Skybox {
             ..Default::default()
         };
 
-        self.program.use_texture_cube(&self.texture, "texture0")?;
+        self.program.use_texture_cube("texture0", &self.texture)?;
         self.program
-            .use_uniform_block(camera.uniform_buffer(), "Camera");
+            .use_uniform_block("Camera", camera.uniform_buffer());
 
         self.program
-            .use_attribute_vec3(&self.vertex_buffer, "position")?;
+            .use_attribute_vec3("position", &self.vertex_buffer)?;
 
         self.program
             .draw_arrays(render_states, CullType::Front, viewport, 36);

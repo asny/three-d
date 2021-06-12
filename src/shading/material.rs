@@ -68,7 +68,7 @@ impl Material {
                 program.use_uniform_vec4("surfaceColor", color)?;
             }
             ColorSource::Texture(ref texture) => {
-                program.use_texture(texture.as_ref(), "tex")?;
+                program.use_texture("tex", texture.as_ref())?;
             }
         }
         Ok(())

@@ -228,10 +228,10 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         let copy = || {
             let effect = get_copy_effect(&self.context)?;
             if let Some(tex) = self.color_texture {
-                effect.use_texture(tex, "colorMap")?;
+                effect.use_texture("colorMap", tex)?;
             }
             if let Some(tex) = self.depth_texture {
-                effect.use_texture(tex, "depthMap")?;
+                effect.use_texture("depthMap", tex)?;
             }
             effect.apply(
                 RenderStates {
@@ -416,11 +416,11 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         let copy = || {
             let effect = get_copy_array_effect(&self.context)?;
             if let Some(tex) = self.color_texture {
-                effect.use_texture_array(tex, "colorMap")?;
+                effect.use_texture_array("colorMap", tex)?;
                 effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
             }
             if let Some(tex) = self.depth_texture {
-                effect.use_texture_array(tex, "depthMap")?;
+                effect.use_texture_array("depthMap", tex)?;
                 effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
             }
             effect.apply(

@@ -205,10 +205,10 @@ impl Program {
     /// Use the given [Texture2D](crate::Texture2D) in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture(&self, texture: &impl Texture, texture_name: &str) -> Result<(), Error> {
-        let index = self.get_texture_index(texture_name);
+    pub fn use_texture(&self, name: &str, texture: &impl Texture) -> Result<(), Error> {
+        let index = self.get_texture_index(name);
         texture.bind(index);
-        self.use_uniform_int(texture_name, &(index as i32))?;
+        self.use_uniform_int(name, &(index as i32))?;
         Ok(())
     }
 
@@ -216,14 +216,10 @@ impl Program {
     /// Use the given [TextureArray](crate::TextureArray) in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture_array(
-        &self,
-        texture: &impl TextureArray,
-        texture_name: &str,
-    ) -> Result<(), Error> {
-        let index = self.get_texture_index(texture_name);
+    pub fn use_texture_array(&self, name: &str, texture: &impl TextureArray) -> Result<(), Error> {
+        let index = self.get_texture_index(name);
         texture.bind(index);
-        self.use_uniform_int(texture_name, &(index as i32))?;
+        self.use_uniform_int(name, &(index as i32))?;
         Ok(())
     }
 
@@ -231,59 +227,50 @@ impl Program {
     /// Use the given [TextureCube](crate::TextureCube) in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture_cube(
-        &self,
-        texture: &impl TextureCube,
-        texture_name: &str,
-    ) -> Result<(), Error> {
-        let index = self.get_texture_index(texture_name);
+    pub fn use_texture_cube(&self, name: &str, texture: &impl TextureCube) -> Result<(), Error> {
+        let index = self.get_texture_index(name);
         texture.bind(index);
-        self.use_uniform_int(texture_name, &(index as i32))?;
+        self.use_uniform_int(name, &(index as i32))?;
         Ok(())
     }
 
-    fn get_texture_index(&self, texture_name: &str) -> u32 {
-        if !self.textures.borrow().contains_key(texture_name) {
+    fn get_texture_index(&self, name: &str) -> u32 {
+        if !self.textures.borrow().contains_key(name) {
             let mut map = self.textures.borrow_mut();
             let index = map.len() as u32;
-            map.insert(texture_name.to_owned(), index);
+            map.insert(name.to_owned(), index);
         };
-        self.textures.borrow().get(texture_name).unwrap().clone()
+        self.textures.borrow().get(name).unwrap().clone()
     }
 
-    pub fn use_uniform_block(&self, buffer: &UniformBuffer, block_name: &str) {
-        if !self.uniform_blocks.borrow().contains_key(block_name) {
+    pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) {
+        if !self.uniform_blocks.borrow().contains_key(name) {
             let mut map = self.uniform_blocks.borrow_mut();
-            let location = self.context.get_uniform_block_index(&self.id, block_name);
+            let location = self.context.get_uniform_block_index(&self.id, name);
             let index = map.len() as u32;
-            map.insert(block_name.to_owned(), (location, index));
+            map.insert(name.to_owned(), (location, index));
         };
-        let (location, index) = self
-            .uniform_blocks
-            .borrow()
-            .get(block_name)
-            .unwrap()
-            .clone();
+        let (location, index) = self.uniform_blocks.borrow().get(name).unwrap().clone();
         self.context
             .uniform_block_binding(&self.id, location, index);
         buffer.bind(index);
         self.context.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 
-    pub fn use_attribute(&self, buffer: &VertexBuffer, attribute_name: &str) -> Result<(), Error> {
-        self.use_attribute_divisor(buffer, attribute_name, 0)?;
+    pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+        self.use_attribute_divisor(name, buffer, 0)?;
         Ok(())
     }
 
     pub fn use_attribute_divisor(
         &self,
+        name: &str,
         buffer: &VertexBuffer,
-        attribute_name: &str,
         divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(&attribute_name)?;
+            let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 1, buffer.data_type(), false, 0, 0);
@@ -294,24 +281,20 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec2(
-        &self,
-        buffer: &VertexBuffer,
-        attribute_name: &str,
-    ) -> Result<(), Error> {
-        self.use_attribute_vec2_divisor(buffer, attribute_name, 0)?;
+    pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+        self.use_attribute_vec2_divisor(name, buffer, 0)?;
         Ok(())
     }
 
     pub fn use_attribute_vec2_divisor(
         &self,
+        name: &str,
         buffer: &VertexBuffer,
-        attribute_name: &str,
         divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(&attribute_name)?;
+            let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 2, buffer.data_type(), false, 0, 0);
@@ -322,24 +305,20 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec3(
-        &self,
-        buffer: &VertexBuffer,
-        attribute_name: &str,
-    ) -> Result<(), Error> {
-        self.use_attribute_vec3_divisor(buffer, attribute_name, 0)?;
+    pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+        self.use_attribute_vec3_divisor(name, buffer, 0)?;
         Ok(())
     }
 
     pub fn use_attribute_vec3_divisor(
         &self,
+        name: &str,
         buffer: &VertexBuffer,
-        attribute_name: &str,
         divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(&attribute_name)?;
+            let loc = self.location(&name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 3, buffer.data_type(), false, 0, 0);
@@ -350,24 +329,20 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec4(
-        &self,
-        buffer: &VertexBuffer,
-        attribute_name: &str,
-    ) -> Result<(), Error> {
-        self.use_attribute_vec4_divisor(buffer, attribute_name, 0)?;
+    pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+        self.use_attribute_vec4_divisor(name, buffer, 0)?;
         Ok(())
     }
 
     pub fn use_attribute_vec4_divisor(
         &self,
+        name: &str,
         buffer: &VertexBuffer,
-        attribute_name: &str,
         divisor: u32,
     ) -> Result<(), Error> {
         if buffer.count() > 0 {
             buffer.bind();
-            let loc = self.location(&attribute_name)?;
+            let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
                 .vertex_attrib_pointer(loc, 4, buffer.data_type(), false, 0, 0);

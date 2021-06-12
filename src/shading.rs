@@ -208,24 +208,24 @@ fn bind_lights(
     // Directional light
     for i in 0..directional_lights.len() {
         program.use_texture(
-            directional_lights[i].shadow_map(),
             &format!("directionalShadowMap{}", i),
+            directional_lights[i].shadow_map(),
         )?;
         program.use_uniform_block(
-            directional_lights[i].buffer(),
             &format!("DirectionalLightUniform{}", i),
+            directional_lights[i].buffer(),
         );
     }
 
     // Spot light
     for i in 0..spot_lights.len() {
-        program.use_texture(spot_lights[i].shadow_map(), &format!("spotShadowMap{}", i))?;
-        program.use_uniform_block(spot_lights[i].buffer(), &format!("SpotLightUniform{}", i));
+        program.use_texture(&format!("spotShadowMap{}", i), spot_lights[i].shadow_map())?;
+        program.use_uniform_block(&format!("SpotLightUniform{}", i), spot_lights[i].buffer());
     }
 
     // Point light
     for i in 0..point_lights.len() {
-        program.use_uniform_block(point_lights[i].buffer(), &format!("PointLightUniform{}", i));
+        program.use_uniform_block(&format!("PointLightUniform{}", i), point_lights[i].buffer());
     }
     Ok(())
 }

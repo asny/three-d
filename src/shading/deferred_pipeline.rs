@@ -165,11 +165,11 @@ impl DeferredPipeline {
             self.debug_effect
                 .as_ref()
                 .unwrap()
-                .use_texture_array(self.geometry_pass_texture(), "gbuffer")?;
+                .use_texture_array("gbuffer", self.geometry_pass_texture())?;
             self.debug_effect
                 .as_ref()
                 .unwrap()
-                .use_texture_array(self.geometry_pass_depth_texture_array(), "depthMap")?;
+                .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
             self.debug_effect
                 .as_ref()
                 .unwrap()
@@ -205,8 +205,8 @@ impl DeferredPipeline {
             camera.position(),
         )?;
 
-        effect.use_texture_array(self.geometry_pass_texture(), "gbuffer")?;
-        effect.use_texture_array(self.geometry_pass_depth_texture_array(), "depthMap")?;
+        effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
+        effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
         if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
             effect.use_uniform_mat4(
                 "viewProjectionInverse",

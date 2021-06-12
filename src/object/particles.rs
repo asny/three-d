@@ -186,15 +186,15 @@ impl Particles {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_vec3("acceleration", &self.acceleration)?;
         program.use_uniform_float("time", &time)?;
-        program.use_uniform_block(camera.uniform_buffer(), "Camera");
+        program.use_uniform_block("Camera", camera.uniform_buffer());
 
-        program.use_attribute_vec3_divisor(&self.start_position_buffer, "start_position", 1)?;
-        program.use_attribute_vec3_divisor(&self.start_velocity_buffer, "start_velocity", 1)?;
-        program.use_attribute_vec3(&self.position_buffer, "position")?;
+        program.use_attribute_vec3_divisor("start_position", &self.start_position_buffer, 1)?;
+        program.use_attribute_vec3_divisor("start_velocity", &self.start_velocity_buffer, 1)?;
+        program.use_attribute_vec3("position", &self.position_buffer)?;
         if program.use_uvs {
             let uv_buffer = self.uv_buffer.as_ref().ok_or(
                 Error::MeshError {message: "The particles shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
-            program.use_attribute_vec2(uv_buffer, "uv_coordinates")?;
+            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
         }
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
@@ -203,7 +203,7 @@ impl Particles {
                 "normalMatrix",
                 &self.transformation.invert().unwrap().transpose(),
             )?;
-            program.use_attribute_vec3(normal_buffer, "normal")?;
+            program.use_attribute_vec3("normal", normal_buffer)?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {

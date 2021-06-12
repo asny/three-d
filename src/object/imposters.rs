@@ -168,19 +168,19 @@ impl Imposters {
         self.program
             .use_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
         self.program
-            .use_uniform_block(camera.uniform_buffer(), "Camera");
+            .use_uniform_block("Camera", camera.uniform_buffer());
 
-        self.program.use_texture_array(&self.texture, "tex")?;
-
-        self.program
-            .use_attribute_vec3(&self.positions_buffer, "position")?;
-        self.program
-            .use_attribute_vec2(&self.uvs_buffer, "uv_coordinate")?;
+        self.program.use_texture_array("tex", &self.texture)?;
 
         self.program
-            .use_attribute_vec3_divisor(&self.center_buffer, "center", 1)?;
+            .use_attribute_vec3("position", &self.positions_buffer)?;
         self.program
-            .use_attribute_divisor(&self.rotation_buffer, "theta", 1)?;
+            .use_attribute_vec2("uv_coordinate", &self.uvs_buffer)?;
+
+        self.program
+            .use_attribute_vec3_divisor("center", &self.center_buffer, 1)?;
+        self.program
+            .use_attribute_divisor("theta", &self.rotation_buffer, 1)?;
         self.program.draw_arrays_instanced(
             render_states,
             CullType::Back,

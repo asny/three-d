@@ -40,7 +40,7 @@ impl FogEffect {
             ..Default::default()
         };
 
-        self.image_effect.use_texture(depth_texture, "depthMap")?;
+        self.image_effect.use_texture("depthMap", depth_texture)?;
         self.image_effect.use_uniform_mat4(
             "viewProjectionInverse",
             &(camera.projection() * camera.view()).invert().unwrap(),

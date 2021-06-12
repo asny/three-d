@@ -314,7 +314,7 @@ impl Mesh {
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
-        program.use_texture(texture, "tex")?;
+        program.use_texture("tex", texture)?;
         self.render(program, render_states, viewport, camera)
     }
 
@@ -336,16 +336,16 @@ impl Mesh {
         camera: &Camera,
     ) -> Result<(), Error> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-        program.use_uniform_block(camera.uniform_buffer(), "Camera");
+        program.use_uniform_block("Camera", camera.uniform_buffer());
 
-        program.use_attribute_vec3(&self.position_buffer, "position")?;
+        program.use_attribute_vec3("position", &self.position_buffer)?;
         if program.use_uvs {
             let uv_buffer = self.uv_buffer.as_ref().ok_or(Error::MeshError {
                 message:
                     "The mesh shader program needs uv coordinates, but the mesh does not have any."
                         .to_string(),
             })?;
-            program.use_attribute_vec2(uv_buffer, "uv_coordinates")?;
+            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
         }
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
@@ -354,12 +354,12 @@ impl Mesh {
                 "normalMatrix",
                 &self.transformation.invert().unwrap().transpose(),
             )?;
-            program.use_attribute_vec3(normal_buffer, "normal")?;
+            program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.use_colors {
             let color_buffer = self.color_buffer.as_ref().ok_or(
                 Error::MeshError {message: "The mesh shader program needs per vertex colors, but the mesh does not have any.".to_string()})?;
-            program.use_attribute_vec4(color_buffer, "color")?;
+            program.use_attribute_vec4("color", color_buffer)?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
