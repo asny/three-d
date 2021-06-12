@@ -1,7 +1,7 @@
 use crate::frame::*;
 use crate::math::*;
 use crate::window::WindowSettings;
-use crate::Context;
+use crate::{Context, Key};
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
@@ -186,12 +186,12 @@ impl Window {
                                 crate::State::Released
                             };
                             if let Some(kind) = translate_virtual_key_code(keycode) {
-                                events.push(crate::Event::Key {
+                                events.push(crate::Event::Key(KeyEvent {
                                     state,
                                     kind,
                                     modifiers,
                                     handled: false,
-                                });
+                                }));
                             } else {
                                 if keycode == VirtualKeyCode::LControl
                                     || keycode == VirtualKeyCode::RControl
@@ -200,23 +200,31 @@ impl Window {
                                     if !cfg!(target_os = "macos") {
                                         modifiers.command = state;
                                     }
-                                    events.push(crate::Event::ModifiersChange { modifiers });
+                                    events.push(crate::Event::ModifiersChange(
+                                        ModifiersChangeEvent { modifiers },
+                                    ));
                                 } else if keycode == VirtualKeyCode::LAlt
                                     || keycode == VirtualKeyCode::RAlt
                                 {
                                     modifiers.alt = state;
-                                    events.push(crate::Event::ModifiersChange { modifiers });
+                                    events.push(crate::Event::ModifiersChange(
+                                        ModifiersChangeEvent { modifiers },
+                                    ));
                                 } else if keycode == VirtualKeyCode::LShift
                                     || keycode == VirtualKeyCode::RShift
                                 {
                                     modifiers.shift = state;
-                                    events.push(crate::Event::ModifiersChange { modifiers });
+                                    events.push(crate::Event::ModifiersChange(
+                                        ModifiersChangeEvent { modifiers },
+                                    ));
                                 } else if keycode == VirtualKeyCode::LWin
                                     || keycode == VirtualKeyCode::RWin
                                 {
                                     if cfg!(target_os = "macos") {
                                         modifiers.command = state;
-                                        events.push(crate::Event::ModifiersChange { modifiers });
+                                        events.push(crate::Event::ModifiersChange(
+                                            ModifiersChangeEvent { modifiers },
+                                        ));
                                     }
                                 }
                             }
@@ -227,7 +235,7 @@ impl Window {
                             match delta {
                                 glutin::event::MouseScrollDelta::LineDelta(x, y) => {
                                     let line_height = 24.0; // TODO
-                                    events.push(crate::Event::MouseWheel {
+                                    events.push(crate::Event::MouseWheel(MouseWheelEvent {
                                         delta: (
                                             (*x * line_height) as f64,
                                             (*y * line_height) as f64,
@@ -235,17 +243,17 @@ impl Window {
                                         position,
                                         modifiers,
                                         handled: false,
-                                    });
+                                    }));
                                 }
                                 glutin::event::MouseScrollDelta::PixelDelta(delta) => {
                                     let d =
                                         delta.to_logical(windowed_context.window().scale_factor());
-                                    events.push(crate::Event::MouseWheel {
+                                    events.push(crate::Event::MouseWheel(MouseWheelEvent {
                                         delta: (d.x, d.y),
                                         position,
                                         modifiers,
                                         handled: false,
-                                    });
+                                    }));
                                 }
                             }
                         }
@@ -264,13 +272,13 @@ impl Window {
                                 _ => None,
                             };
                             if let Some(b) = button {
-                                events.push(crate::Event::MouseClick {
+                                events.push(crate::Event::MouseClick(MouseClickEvent {
                                     state,
                                     button: b,
                                     position,
                                     modifiers,
                                     handled: false,
-                                });
+                                }));
                             }
                         }
                     }
@@ -281,12 +289,12 @@ impl Window {
                         } else {
                             (0.0, 0.0)
                         };
-                        events.push(crate::Event::MouseMotion {
+                        events.push(crate::Event::MouseMotion(MouseMotionEvent {
                             delta,
                             position: (p.x, p.y),
                             modifiers,
                             handled: false,
-                        });
+                        }));
                         cursor_pos = Some((p.x, p.y));
                     }
                     WindowEvent::ReceivedCharacter(ch) => {

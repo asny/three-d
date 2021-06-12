@@ -48,6 +48,11 @@ fn main() {
     let mut pick: Option<((f64, f64), Vec3)> = None;
     window
         .render_loop(move |frame_input| {
+            // Quit if Cmd-Q/Ctrl-Q pressed.
+            if frame_input.has_key_quit() {
+                return FrameOutput::exit();
+            }
+
             let mut redraw = frame_input.first_frame;
             redraw |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 

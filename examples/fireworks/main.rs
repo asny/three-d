@@ -53,6 +53,11 @@ fn main() {
     let mut color_index = 0;
     window
         .render_loop(move |frame_input| {
+            // Quit if Cmd-Q/Ctrl-Q pressed.
+            if frame_input.has_key_quit() {
+                return FrameOutput::exit();
+            }
+
             camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
             for event in frame_input.events.iter() {

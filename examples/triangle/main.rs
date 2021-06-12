@@ -50,6 +50,11 @@ fn main() {
     // Start the main render loop
     window.render_loop(move |frame_input: FrameInput| // Begin a new frame with an updated frame input
     {
+        // Quit if Cmd-Q/Ctrl-Q pressed.
+        if frame_input.has_key_quit() {
+            return FrameOutput::exit();
+        }
+
         // Ensure the aspect ratio of the camera matches the aspect ratio of the window viewport
         camera.set_aspect(frame_input.viewport.aspect()).unwrap();
 
