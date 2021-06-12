@@ -8,6 +8,9 @@ pub struct RenderStates {
     ///
     pub write_mask: WriteMask,
 
+    ///
+    /// Defines the rectangle of pixels to write to in a render call. If none, all pixels in the current render target are possibly written into.
+    ///
     pub clip: Option<ClipParameters>,
 
     ///
@@ -69,6 +72,9 @@ pub enum DepthTestType {
     Always,
 }
 
+///
+/// Defines the rectangle of pixels to write to in a render call.
+///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ClipParameters {
     pub x: u32,
