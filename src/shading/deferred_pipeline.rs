@@ -82,15 +82,13 @@ impl DeferredPipeline {
     ///
     pub fn geometry_pass(
         &mut self,
-        width: u32,
-        height: u32,
         camera: &Camera,
         geometries: &[&dyn ShadedGeometry],
     ) -> Result<(), Error> {
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
-            width,
-            height,
+            camera.viewport().width,
+            camera.viewport().height,
             2,
             Interpolation::Nearest,
             Interpolation::Nearest,
@@ -101,8 +99,8 @@ impl DeferredPipeline {
         )?);
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(
             &self.context,
-            width,
-            height,
+            camera.viewport().width,
+            camera.viewport().height,
             1,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
@@ -120,11 +118,7 @@ impl DeferredPipeline {
                     .map(|aabb| camera.in_frustum(&aabb))
                     .unwrap_or(true)
                 {
-                    geometry.geometry_pass(
-                        RenderStates::default(),
-                        Viewport::new_at_origo(width, height),
-                        camera,
-                    )?;
+                    geometry.geometry_pass(RenderStates::default(), camera)?;
                 }
             }
             Ok(())
@@ -140,7 +134,6 @@ impl DeferredPipeline {
     ///
     pub fn light_pass(
         &mut self,
-        viewport: Viewport,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
@@ -177,7 +170,7 @@ impl DeferredPipeline {
             self.debug_effect
                 .as_ref()
                 .unwrap()
-                .apply(render_states, viewport)?;
+                .apply(render_states, camera.viewport())?;
             return Ok(());
         }
 
@@ -213,7 +206,7 @@ impl DeferredPipeline {
                 &(camera.projection() * camera.view()).invert().unwrap(),
             )?;
         }
-        effect.apply(render_states, viewport)?;
+        effect.apply(render_states, camera.viewport())?;
         Ok(())
     }
 

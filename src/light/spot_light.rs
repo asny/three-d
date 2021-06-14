@@ -117,13 +117,14 @@ impl SpotLight {
         let up = compute_up_direction(direction);
         let cutoff = self.light_buffer.get(7).unwrap()[0];
 
+        let viewport = Viewport::new_at_origo(texture_size, texture_size);
         self.shadow_camera = Some(Camera::new_perspective(
             &self.context,
+            viewport,
             position,
             position + direction,
             up,
             degrees(cutoff),
-            1.0,
             0.1,
             frustrum_depth,
         )?);
@@ -141,7 +142,6 @@ impl SpotLight {
             DepthFormat::Depth32F,
         )?;
         self.shadow_texture.write(Some(1.0), || {
-            let viewport = Viewport::new_at_origo(texture_size, texture_size);
             for geometry in geometries {
                 if geometry
                     .aabb()
@@ -150,7 +150,6 @@ impl SpotLight {
                 {
                     geometry.render_depth(
                         RenderStates::default(),
-                        viewport,
                         self.shadow_camera.as_ref().unwrap(),
                     )?;
                 }

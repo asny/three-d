@@ -22,11 +22,12 @@ pub fn ray_intersect(
     };
     let camera = Camera::new_orthographic(
         context,
+        viewport,
         position,
         position + direction * max_depth,
         up,
         0.01,
-        0.01,
+        0.0,
         max_depth,
     )?;
     let texture = ColorTargetTexture2D::<f32>::new(
@@ -72,7 +73,7 @@ pub fn ray_intersect(
                     .map(|aabb| camera.in_frustum(&aabb))
                     .unwrap_or(true)
                 {
-                    geometry.render_depth_to_red(render_states, viewport, &camera, max_depth)?;
+                    geometry.render_depth_to_red(render_states, &camera, max_depth)?;
                 }
             }
             Ok(())

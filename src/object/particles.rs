@@ -179,7 +179,6 @@ impl Particles {
         &self,
         program: &ParticlesProgram,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
         time: f32,
     ) -> Result<(), Error> {
@@ -210,7 +209,7 @@ impl Particles {
             program.draw_elements_instanced(
                 render_states,
                 self.cull,
-                viewport,
+                camera.viewport(),
                 index_buffer,
                 self.instance_count,
             );
@@ -218,7 +217,7 @@ impl Particles {
             program.draw_arrays_instanced(
                 render_states,
                 self.cull,
-                viewport,
+                camera.viewport(),
                 self.position_buffer.count() as u32 / 3,
                 self.instance_count,
             );

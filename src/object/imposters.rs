@@ -65,7 +65,7 @@ impl Imposters {
         })
     }
 
-    pub fn update_texture<F: Fn(Viewport, &Camera) -> Result<(), Error>>(
+    pub fn update_texture<F: Fn(&Camera) -> Result<(), Error>>(
         &mut self,
         render: F,
         aabb: (Vec3, Vec3),
@@ -74,9 +74,13 @@ impl Imposters {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
+        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as u32;
+        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as u32;
+        let viewport = Viewport::new_at_origo(texture_width, texture_height);
         let center = 0.5 * min + 0.5 * max;
         let mut camera = Camera::new_orthographic(
             &self.context,
+            viewport,
             center + vec3(0.0, 0.0, -1.0),
             center,
             vec3(0.0, 1.0, 0.0),
@@ -84,9 +88,6 @@ impl Imposters {
             height,
             4.0 * (width + height),
         )?;
-
-        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as u32;
-        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as u32;
         self.texture = ColorTargetTexture2DArray::<u8>::new(
             &self.context,
             texture_width,
@@ -122,10 +123,7 @@ impl Imposters {
                 0,
                 ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
                 || {
-                    render(
-                        Viewport::new_at_origo(texture_width, texture_height),
-                        &camera,
-                    )?;
+                    render(&camera)?;
                     Ok(())
                 },
             )?;
@@ -153,7 +151,7 @@ impl Imposters {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
+    pub fn render(&self, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
             blend: Some(BlendParameters {
                 source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
@@ -184,7 +182,7 @@ impl Imposters {
         self.program.draw_arrays_instanced(
             render_states,
             CullType::Back,
-            viewport,
+            camera.viewport(),
             6,
             self.instance_count,
         );

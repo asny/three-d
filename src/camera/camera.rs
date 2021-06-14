@@ -4,17 +4,8 @@ use crate::math::*;
 use crate::object::*;
 
 pub(super) enum ProjectionType {
-    Orthographic {
-        width: f32,
-        height: f32,
-        depth: f32,
-    },
-    Perspective {
-        field_of_view_y: Radians,
-        aspect: f32,
-        z_near: f32,
-        z_far: f32,
-    },
+    Orthographic { width: f32, height: f32 },
+    Perspective { field_of_view_y: Radians },
 }
 
 ///
@@ -22,7 +13,10 @@ pub(super) enum ProjectionType {
 ///
 pub struct Camera {
     context: Context,
+    viewport: Viewport,
     projection_type: ProjectionType,
+    z_near: f32,
+    z_far: f32,
     position: Vec3,
     target: Vec3,
     up: Vec3,
@@ -41,6 +35,7 @@ impl Camera {
     ///
     pub fn new_orthographic(
         context: &Context,
+        viewport: Viewport,
         position: Vec3,
         target: Vec3,
         up: Vec3,
@@ -48,7 +43,7 @@ impl Camera {
         height: f32,
         depth: f32,
     ) -> Result<Camera, Error> {
-        let mut camera = Camera::new(context);
+        let mut camera = Camera::new(context, viewport);
         camera.set_view(position, target, up)?;
         camera.set_orthographic_projection(width, height, depth)?;
         Ok(camera)
@@ -59,41 +54,37 @@ impl Camera {
     ///
     pub fn new_perspective(
         context: &Context,
+        viewport: Viewport,
         position: Vec3,
         target: Vec3,
         up: Vec3,
         field_of_view_y: impl Into<Radians>,
-        aspect: f32,
         z_near: f32,
         z_far: f32,
     ) -> Result<Camera, Error> {
-        let mut camera = Camera::new(context);
+        let mut camera = Camera::new(context, viewport);
         camera.set_view(position, target, up)?;
-        camera.set_perspective_projection(field_of_view_y, aspect, z_near, z_far)?;
+        camera.set_perspective_projection(field_of_view_y, z_near, z_far)?;
         Ok(camera)
     }
 
     ///
-    /// Specify the camera to use perspective projection with the given field of view in the y-direction, aspect and near and far plane.
+    /// Specify the camera to use perspective projection with the given field of view in the y-direction and near and far plane.
     ///
     pub fn set_perspective_projection(
         &mut self,
         field_of_view_y: impl Into<Radians>,
-        aspect: f32,
         z_near: f32,
         z_far: f32,
     ) -> Result<(), Error> {
         if z_near < 0.0 || z_near > z_far {
             panic!("Wrong perspective camera parameters")
         };
+        self.z_near = z_near;
+        self.z_far = z_far;
         let field_of_view_y = field_of_view_y.into();
-        self.projection_type = ProjectionType::Perspective {
-            field_of_view_y,
-            aspect,
-            z_near,
-            z_far,
-        };
-        self.projection = perspective(field_of_view_y, aspect, z_near, z_far);
+        self.projection_type = ProjectionType::Perspective { field_of_view_y };
+        self.projection = perspective(field_of_view_y, self.viewport.aspect(), z_near, z_far);
         self.update_screen2ray();
         self.update_uniform_buffer()?;
         self.update_frustrum();
@@ -101,27 +92,31 @@ impl Camera {
     }
 
     ///
-    /// Specify the camera to use orthographic projection with the given width, height and depth.
-    /// The view frustum width is +/- width/2, height is +/- height/2 and depth is 0 to depth.
+    /// Specify the camera to use orthographic projection with the given height and depth.
+    /// The view frustum height is +/- height/2
+    /// The view frustum width is calculated as height * viewport.width / viewport.height.
+    /// The view frustum depth is z_near to z_far.
     ///
     pub fn set_orthographic_projection(
         &mut self,
-        width: f32,
         height: f32,
-        depth: f32,
+        z_near: f32,
+        z_far: f32,
     ) -> Result<(), Error> {
-        self.projection_type = ProjectionType::Orthographic {
-            width,
-            height,
-            depth,
+        if z_near > z_far {
+            panic!("Wrong orthographic camera parameters")
         };
+        self.z_near = z_near;
+        self.z_far = z_far;
+        let width = height * self.viewport.aspect();
+        self.projection_type = ProjectionType::Orthographic { width, height };
         self.projection = ortho(
             -0.5 * width,
             0.5 * width,
             -0.5 * height,
             0.5 * height,
-            0.0,
-            depth,
+            z_near,
+            z_far,
         );
         self.update_screen2ray();
         self.update_uniform_buffer()?;
@@ -130,34 +125,24 @@ impl Camera {
     }
 
     ///
-    /// Change the current projection to abide to the given aspect ratio.
+    /// Set the current [viewport](crate::Viewport).
+    /// Returns whether or not the viewport actually changed.
     ///
-    pub fn set_aspect(&mut self, value: f32) -> Result<bool, Error> {
-        let mut change = false;
-        match self.projection_type {
-            ProjectionType::Orthographic {
-                width,
-                height,
-                depth,
-            } => {
-                if (width / height - value).abs() > 0.001 {
-                    self.set_orthographic_projection(height * value, height, depth)?;
-                    change = true;
+    pub fn set_viewport(&mut self, viewport: Viewport) -> Result<bool, Error> {
+        if self.viewport != viewport {
+            self.viewport = viewport;
+            match self.projection_type {
+                ProjectionType::Orthographic { width: _, height } => {
+                    self.set_orthographic_projection(height, self.z_near, self.z_far)?;
+                }
+                ProjectionType::Perspective { field_of_view_y } => {
+                    self.set_perspective_projection(field_of_view_y, self.z_near, self.z_far)?;
                 }
             }
-            ProjectionType::Perspective {
-                aspect,
-                field_of_view_y,
-                z_near,
-                z_far,
-            } => {
-                if (aspect - value).abs() > 0.001 {
-                    self.set_perspective_projection(field_of_view_y, value, z_near, z_far)?;
-                    change = true;
-                }
-            }
+            Ok(true)
+        } else {
+            Ok(false)
         }
-        Ok(change)
     }
 
     ///
@@ -234,60 +219,75 @@ impl Camera {
     }
 
     ///
-    /// Finds the closest intersection between a ray from this camera in the direction of the given screen coordinates and the given geometries.
+    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate (in logical pixels) and the given geometries.
     /// Returns ```None``` if no geometry was hit before the given maximum depth.
     ///
     pub fn pick(
         &self,
-        screen_coordinates: (f32, f32),
+        logical_pixel: (f64, f64),
+        device_pixel_ratio: f64,
         max_depth: f32,
         objects: &[&dyn Geometry],
     ) -> Result<Option<Vec3>, Error> {
-        let pos = self.position_at(screen_coordinates);
-        let dir = self.view_direction_at(screen_coordinates);
+        let physical_pixel = (
+            (device_pixel_ratio * logical_pixel.0) as f32,
+            (device_pixel_ratio * logical_pixel.1) as f32,
+        );
+        let pos = self.position_at(physical_pixel);
+        let dir = self.view_direction_at(physical_pixel);
         ray_intersect(&self.context, pos, dir, max_depth, objects)
     }
 
     ///
-    /// Returns the 3D position at the given screen/image plane coordinates.
-    /// The coordinates must be between 0 and 1, where (0, 0) indicate the top left corner of the screen
-    /// and (1, 1) indicate the bottom right corner.
+    /// Returns the 3D position at the given pixel coordinate.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     ///
-    pub fn position_at(&self, screen_coordinates: (f32, f32)) -> Vec3 {
+    pub fn position_at(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { width, height, .. } => {
-                self.position()
-                    + vec3(
-                        (screen_coordinates.0 - 0.5) * width,
-                        (-screen_coordinates.1 + 0.5) * height,
-                        0.0,
-                    )
+                let coords = self.uv_coordinates_at_pixel(pixel);
+                self.position() + vec3((coords.0 - 0.5) * width, (0.5 - coords.1) * height, 0.0)
             }
             ProjectionType::Perspective { .. } => *self.position(),
         }
     }
 
     ///
-    /// Returns the 3D view direction at the given screen/image plane coordinates.
-    /// The coordinates must be between 0 and 1, where (0, 0) indicate the top left corner of the screen
-    /// and (1, 1) indicate the bottom right corner.
+    /// Returns the 3D view direction at the given pixel coordinate.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     ///
-    pub fn view_direction_at(&self, screen_coordinates: (f32, f32)) -> Vec3 {
+    pub fn view_direction_at(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { .. } => self.view_direction(),
             ProjectionType::Perspective { .. } => {
-                let screen_pos = vec4(
-                    2. * screen_coordinates.0 as f32 - 1.,
-                    1. - 2. * screen_coordinates.1 as f32,
-                    0.,
-                    1.,
-                );
+                let coords = self.uv_coordinates_at_pixel(pixel);
+                let screen_pos = vec4(2. * coords.0 - 1., 1. - 2. * coords.1, 0., 1.);
                 (self.screen2ray * screen_pos).truncate().normalize()
             }
         }
     }
 
-    pub fn uv_coordinate_at(&self, position: Vec3) -> (f32, f32) {
+    ///
+    /// Returns the uv coordinate for the given pixel coordinate.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+    /// The returned uv coordinate are between 0 and 1 where (0,0) indicate the top left corner of the viewport and (1,1) indicate the bottom right corner.
+    ///
+    pub fn uv_coordinates_at_pixel(&self, pixel: (f32, f32)) -> (f32, f32) {
+        (
+            (pixel.0 - self.viewport.x as f32) / self.viewport.width as f32,
+            (pixel.1 - self.viewport.y as f32) / self.viewport.height as f32,
+        )
+    }
+
+    ///
+    /// Returns the uv coordinate for the given world position.
+    /// The returned uv coordinate are between 0 and 1 where (0,0) indicate a position that maps to the top left corner of the viewport
+    /// and (1,1) indicate a position that maps to the bottom right corner.
+    ///
+    pub fn uv_coordinates_at_position(&self, position: Vec3) -> (f32, f32) {
         let proj = self.projection() * self.view() * position.extend(1.0);
         (0.5 * (proj.x / proj.w + 1.0), 0.5 * (proj.y / proj.w + 1.0))
     }
@@ -308,6 +308,27 @@ impl Camera {
     ///
     pub fn projection(&self) -> &Mat4 {
         &self.projection
+    }
+
+    ///
+    /// Returns the viewport.
+    ///
+    pub fn viewport(&self) -> Viewport {
+        self.viewport
+    }
+
+    ///
+    /// Returns the distance to the near plane of the camera frustum.
+    ///
+    pub fn z_near(&self) -> f32 {
+        self.z_near
+    }
+
+    ///
+    /// Returns the distance to the far plane of the camera frustum.
+    ///
+    pub fn z_far(&self) -> f32 {
+        self.z_far
     }
 
     ///
@@ -365,14 +386,16 @@ impl Camera {
         &self.uniform_buffer
     }
 
-    fn new(context: &Context) -> Camera {
+    fn new(context: &Context, viewport: Viewport) -> Camera {
         Camera {
             context: context.clone(),
+            viewport,
             projection_type: ProjectionType::Orthographic {
                 width: 1.0,
                 height: 1.0,
-                depth: 1.0,
             },
+            z_near: 0.0,
+            z_far: 0.0,
             uniform_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1]).unwrap(),
             frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
             position: vec3(0.0, 0.0, 5.0),

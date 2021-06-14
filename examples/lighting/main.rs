@@ -17,11 +17,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(2.0, 2.0, 5.0),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -243,7 +243,7 @@ fn main() {
                         width: frame_input.viewport.width - panel_width,
                         height: frame_input.viewport.height,
                     };
-                    change |= camera.set_aspect(viewport.aspect()).unwrap();
+                    change |= camera.set_viewport(viewport).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -298,7 +298,6 @@ fn main() {
                             .generate_shadow_map(
                                 &vec3(0.0, 0.0, 0.0),
                                 4.0,
-                                4.0,
                                 20.0,
                                 1024,
                                 1024,
@@ -308,7 +307,6 @@ fn main() {
                         directional_light1
                             .generate_shadow_map(
                                 &vec3(0.0, 0.0, 0.0),
-                                4.0,
                                 4.0,
                                 20.0,
                                 1024,
@@ -323,20 +321,12 @@ fn main() {
 
                     // Geometry pass
                     if change {
-                        pipeline
-                            .geometry_pass(
-                                viewport.width,
-                                viewport.height,
-                                &camera,
-                                &[&monkey, &plane],
-                            )
-                            .unwrap();
+                        pipeline.geometry_pass(&camera, &[&monkey, &plane]).unwrap();
                     }
 
                     // Light pass
                     Screen::write(&context, ClearState::default(), || {
                         pipeline.light_pass(
-                            viewport,
                             &camera,
                             if ambient_enabled {
                                 Some(&ambient_light)

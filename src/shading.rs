@@ -29,12 +29,7 @@ pub trait ShadedGeometry: Geometry {
     /// Render the geometry and surface material parameters of the object.
     /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
-    fn geometry_pass(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        camera: &Camera,
-    ) -> Result<(), Error>;
+    fn geometry_pass(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error>;
 
     ///
     /// Render the object shaded with the given lights using physically based rendering (PBR).
@@ -44,7 +39,6 @@ pub trait ShadedGeometry: Geometry {
     fn render_with_lighting(
         &self,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],

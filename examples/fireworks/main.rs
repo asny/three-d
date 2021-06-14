@@ -16,11 +16,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(0.0, 30.0, 150.0),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -53,7 +53,7 @@ fn main() {
     let mut color_index = 0;
     window
         .render_loop(move |frame_input| {
-            camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+            camera.set_viewport(frame_input.viewport).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
@@ -129,13 +129,7 @@ fn main() {
                     "color",
                     &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0),
                 )?;
-                particles.render(
-                    &particles_program,
-                    render_states,
-                    frame_input.viewport,
-                    &camera,
-                    time,
-                )?;
+                particles.render(&particles_program, render_states, &camera, time)?;
                 Ok(())
             })
             .unwrap();

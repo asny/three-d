@@ -17,11 +17,11 @@ fn main() {
     // Create a camera
     let mut camera = Camera::new_perspective(
         &context,
+        window.viewport().unwrap(),
         vec3(0.0, 0.0, 2.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
-        window.viewport().unwrap().aspect(),
         0.1,
         10.0,
     )
@@ -50,8 +50,8 @@ fn main() {
     // Start the main render loop
     window.render_loop(move |frame_input: FrameInput| // Begin a new frame with an updated frame input
     {
-        // Ensure the aspect ratio of the camera matches the aspect ratio of the window viewport
-        camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+        // Ensure the viewport matches the current window viewport which changes if the window is resized
+        camera.set_viewport(frame_input.viewport).unwrap();
 
         // Start writing to the screen and clears the color and depth
         Screen::write(&context, ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
@@ -59,7 +59,7 @@ fn main() {
             mesh.transformation = Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32));
 
             // Render the triangle with the per vertex colors defined at construction
-            mesh.render_color(RenderStates::default(), frame_input.viewport, &camera)?;
+            mesh.render_color(RenderStates::default(), &camera)?;
             Ok(())
         }).unwrap();
 

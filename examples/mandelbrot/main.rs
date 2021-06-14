@@ -15,11 +15,12 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_orthographic(
             &context,
+            window.viewport().unwrap(),
             vec3(0.0, 0.0, 1.0),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             1.2,
-            1.2 * window.viewport().unwrap().aspect(),
+            0.0,
             10.0,
         )
         .unwrap(),
@@ -49,7 +50,7 @@ fn main() {
     window
         .render_loop(move |frame_input| {
             let mut redraw = frame_input.first_frame;
-            redraw |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+            redraw |= camera.set_viewport(frame_input.viewport).unwrap();
 
             for event in frame_input.events.iter() {
                 match event {
@@ -77,20 +78,7 @@ fn main() {
                     } => {
                         if pick.is_none() {
                             let p = camera
-                                .pick(
-                                    (
-                                        ((position.0 * frame_input.device_pixel_ratio
-                                            - frame_input.viewport.x as f64)
-                                            / frame_input.viewport.width as f64)
-                                            as f32,
-                                        ((position.1 * frame_input.device_pixel_ratio
-                                            - frame_input.viewport.y as f64)
-                                            / frame_input.viewport.height as f64)
-                                            as f32,
-                                    ),
-                                    10.0,
-                                    &[&mesh],
-                                )
+                                .pick(*position, frame_input.device_pixel_ratio, 10.0, &[&mesh])
                                 .unwrap();
                             pick = p.map(|pos| (*position, pos));
                         };
@@ -115,7 +103,6 @@ fn main() {
                             depth_test: DepthTestType::Always,
                             ..Default::default()
                         },
-                        frame_input.viewport,
                         &camera,
                     )
                     .unwrap();

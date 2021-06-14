@@ -1,7 +1,6 @@
 use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
-use crate::math::*;
 
 ///
 /// An illusion of a sky.
@@ -50,7 +49,7 @@ impl Skybox {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render(&self, viewport: Viewport, camera: &Camera) -> Result<(), Error> {
+    pub fn render(&self, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
             depth_test: DepthTestType::LessOrEqual,
             ..Default::default()
@@ -64,7 +63,7 @@ impl Skybox {
             .use_attribute_vec3("position", &self.vertex_buffer)?;
 
         self.program
-            .draw_arrays(render_states, CullType::Front, viewport, 36);
+            .draw_arrays(render_states, CullType::Front, camera.viewport(), 36);
         Ok(())
     }
 

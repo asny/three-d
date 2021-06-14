@@ -234,7 +234,6 @@ impl Mesh {
     pub fn render_color(
         &self,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(&format!(
@@ -242,7 +241,7 @@ impl Mesh {
             include_str!("../core/shared.frag"),
             include_str!("shaders/mesh_vertex_color.frag")
         ))?;
-        self.render(program, render_states, viewport, camera)
+        self.render(program, render_states, camera)
     }
 
     ///
@@ -254,12 +253,11 @@ impl Mesh {
         &self,
         color: &Vec4,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", color)?;
-        self.render(program, render_states, viewport, camera)
+        self.render(program, render_states, camera)
     }
 
     ///
@@ -273,11 +271,10 @@ impl Mesh {
     pub fn render_uvs(
         &self,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_uvs.frag"))?;
-        self.render(program, render_states, viewport, camera)
+        self.render(program, render_states, camera)
     }
 
     ///
@@ -291,11 +288,10 @@ impl Mesh {
     pub fn render_normals(
         &self,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_normals.frag"))?;
-        self.render(program, render_states, viewport, camera)
+        self.render(program, render_states, camera)
     }
 
     ///
@@ -310,12 +306,11 @@ impl Mesh {
         &self,
         texture: &impl Texture,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture("tex", texture)?;
-        self.render(program, render_states, viewport, camera)
+        self.render(program, render_states, camera)
     }
 
     ///
@@ -332,7 +327,6 @@ impl Mesh {
         &self,
         program: &MeshProgram,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
@@ -363,12 +357,12 @@ impl Mesh {
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(render_states, self.cull, viewport, index_buffer);
+            program.draw_elements(render_states, self.cull, camera.viewport(), index_buffer);
         } else {
             program.draw_arrays(
                 render_states,
                 self.cull,
-                viewport,
+                camera.viewport(),
                 self.position_buffer.count() as u32 / 3,
             );
         }
@@ -406,24 +400,22 @@ impl Geometry for Mesh {
     fn render_depth_to_red(
         &self,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
         max_depth: f32,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
-        self.render(program, render_states, viewport, camera)?;
+        self.render(program, render_states, camera)?;
         Ok(())
     }
 
     fn render_depth(
         &self,
         render_states: RenderStates,
-        viewport: Viewport,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program("void main() {}")?;
-        self.render(program, render_states, viewport, camera)
+        self.render(program, render_states, camera)
     }
 
     fn aabb(&self) -> Option<AxisAlignedBoundingBox> {

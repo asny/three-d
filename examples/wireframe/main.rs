@@ -17,11 +17,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             target + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -89,7 +89,7 @@ fn main() {
             window
                 .render_loop(move |frame_input| {
                     let mut redraw = frame_input.first_frame;
-                    redraw |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+                    redraw |= camera.set_viewport(frame_input.viewport).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -125,7 +125,6 @@ fn main() {
                             || {
                                 model.render_with_lighting(
                                     RenderStates::default(),
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light0, &directional_light1],
@@ -134,7 +133,6 @@ fn main() {
                                 )?;
                                 vertices.render_with_lighting(
                                     RenderStates::default(),
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light0, &directional_light1],
@@ -143,7 +141,6 @@ fn main() {
                                 )?;
                                 edges.render_with_lighting(
                                     RenderStates::default(),
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light0, &directional_light1],

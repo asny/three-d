@@ -115,15 +115,11 @@ impl CameraControl {
         let new_position = point - direction * new_distance;
         self.set_view(new_position, new_position + (target - position), up)?;
         match self.projection_type() {
-            ProjectionType::Orthographic {
-                width,
-                height,
-                depth,
-            } => {
+            ProjectionType::Orthographic { width: _, height } => {
                 let h = new_distance * height / distance;
-                let w = h * width / height;
-                let d = *depth;
-                self.set_orthographic_projection(w, h, d)?;
+                let z_near = self.z_near();
+                let z_far = self.z_far();
+                self.set_orthographic_projection(h, z_near, z_far)?;
             }
             _ => {}
         }

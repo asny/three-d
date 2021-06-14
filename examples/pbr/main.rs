@@ -16,11 +16,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(2.0, 2.0, 5.0),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -82,7 +82,7 @@ fn main() {
         let mut rotating = false;
         window
             .render_loop(move |frame_input| {
-                camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+                camera.set_viewport(frame_input.viewport).unwrap();
 
                 for event in frame_input.events.iter() {
                     match event {
@@ -127,26 +127,10 @@ fn main() {
 
                 // Draw
                 directional_light0
-                    .generate_shadow_map(
-                        &vec3(0.0, 0.0, 0.0),
-                        2.0,
-                        2.0,
-                        20.0,
-                        1024,
-                        1024,
-                        &[&model],
-                    )
+                    .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 2.0, 20.0, 1024, 1024, &[&model])
                     .unwrap();
                 directional_light1
-                    .generate_shadow_map(
-                        &vec3(0.0, 0.0, 0.0),
-                        2.0,
-                        2.0,
-                        20.0,
-                        1024,
-                        1024,
-                        &[&model],
-                    )
+                    .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 2.0, 20.0, 1024, 1024, &[&model])
                     .unwrap();
                 spot_light
                     .generate_shadow_map(15.0, 1024, &[&model])
@@ -154,7 +138,6 @@ fn main() {
                 Screen::write(&context, ClearState::default(), || {
                     plane.render_with_lighting(
                         RenderStates::default(),
-                        frame_input.viewport,
                         &camera,
                         Some(&ambient_light),
                         &[&directional_light0, &directional_light1],
@@ -164,7 +147,6 @@ fn main() {
 
                     model.render_with_lighting(
                         RenderStates::default(),
-                        frame_input.viewport,
                         &camera,
                         Some(&ambient_light),
                         &[&directional_light0, &directional_light1],

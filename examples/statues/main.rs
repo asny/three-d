@@ -15,11 +15,11 @@ fn main() {
     let mut primary_camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(-200.0, 200.0, 100.0),
             vec3(0.0, 100.0, 0.0),
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             10000.0,
         )
@@ -28,11 +28,11 @@ fn main() {
     // Static camera to view frustum culling in effect
     let mut secondary_camera = Camera::new_perspective(
         &context,
+        window.viewport().unwrap(),
         vec3(-500.0, 700.0, 500.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
-        window.viewport().unwrap().aspect(),
         0.1,
         10000.0,
     )
@@ -93,7 +93,6 @@ fn main() {
                 .generate_shadow_map(
                     &vec3(0.0, 0.0, 0.0),
                     1000.0,
-                    1000.0,
                     2000.0,
                     1024,
                     1024,
@@ -110,12 +109,8 @@ fn main() {
             window
                 .render_loop(move |frame_input| {
                     let mut redraw = frame_input.first_frame;
-                    redraw |= primary_camera
-                        .set_aspect(frame_input.viewport.aspect())
-                        .unwrap();
-                    redraw |= secondary_camera
-                        .set_aspect(frame_input.viewport.aspect())
-                        .unwrap();
+                    redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
+                    redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -159,7 +154,6 @@ fn main() {
                                     {
                                         model.render_with_lighting(
                                             RenderStates::default(),
-                                            frame_input.viewport,
                                             if is_primary_camera {
                                                 &primary_camera
                                             } else {

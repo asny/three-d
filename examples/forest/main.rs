@@ -15,11 +15,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(180.0, 40.0, 70.0),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             10000.0,
         )
@@ -89,10 +89,9 @@ fn main() {
             let mut imposters = Imposters::new(&context).unwrap();
             imposters
                 .update_texture(
-                    |viewport: Viewport, camera: &Camera| {
+                    |camera: &Camera| {
                         tree_mesh.render_with_lighting(
                             tree_mesh_render_states,
-                            viewport,
                             camera,
                             Some(&ambient_light),
                             &[&directional_light],
@@ -101,7 +100,6 @@ fn main() {
                         )?;
                         leaves_mesh.render_with_lighting(
                             leaves_mesh_render_states,
-                            viewport,
                             camera,
                             Some(&ambient_light),
                             &[&directional_light],
@@ -155,7 +153,6 @@ fn main() {
                 .generate_shadow_map(
                     &vec3(0.0, 0.0, 0.0),
                     50.0,
-                    50.0,
                     100.0,
                     512,
                     512,
@@ -168,7 +165,7 @@ fn main() {
             window
                 .render_loop(move |frame_input| {
                     let mut redraw = frame_input.first_frame;
-                    redraw |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+                    redraw |= camera.set_viewport(frame_input.viewport).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -207,7 +204,6 @@ fn main() {
                                         depth_test: DepthTestType::LessOrEqual,
                                         ..Default::default()
                                     },
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],
@@ -216,7 +212,6 @@ fn main() {
                                 )?;
                                 tree_mesh.render_with_lighting(
                                     tree_mesh_render_states,
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],
@@ -225,14 +220,13 @@ fn main() {
                                 )?;
                                 leaves_mesh.render_with_lighting(
                                     leaves_mesh_render_states,
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],
                                     &[],
                                 )?;
-                                imposters.render(frame_input.viewport, &camera)?;
+                                imposters.render(&camera)?;
                                 Ok(())
                             },
                         )

@@ -78,7 +78,6 @@ impl DirectionalLight {
     pub fn generate_shadow_map(
         &mut self,
         target: &Vec3,
-        frustrum_width: f32,
         frustrum_height: f32,
         frustrum_depth: f32,
         texture_width: u32,
@@ -88,13 +87,15 @@ impl DirectionalLight {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 
+        let viewport = Viewport::new_at_origo(texture_width, texture_height);
         self.shadow_camera = Some(Camera::new_orthographic(
             &self.context,
+            viewport,
             target - direction.normalize() * 0.5 * frustrum_depth,
             *target,
             up,
-            frustrum_width,
             frustrum_height,
+            0.0,
             frustrum_depth,
         )?);
         self.light_buffer.update(
@@ -112,7 +113,6 @@ impl DirectionalLight {
         )
         .unwrap();
         self.shadow_texture.write(Some(1.0), || {
-            let viewport = Viewport::new_at_origo(texture_width, texture_height);
             for geometry in geometries {
                 if geometry
                     .aabb()
@@ -121,7 +121,6 @@ impl DirectionalLight {
                 {
                     geometry.render_depth(
                         RenderStates::default(),
-                        viewport,
                         self.shadow_camera.as_ref().unwrap(),
                     )?;
                 }

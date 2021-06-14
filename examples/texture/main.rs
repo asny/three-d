@@ -17,11 +17,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(4.0, 1.5, 4.0),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -103,7 +103,7 @@ fn main() {
             window
                 .render_loop(move |frame_input| {
                     let mut redraw = frame_input.first_frame;
-                    redraw |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+                    redraw |= camera.set_viewport(frame_input.viewport).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -136,17 +136,11 @@ fn main() {
                     if redraw {
                         // Geometry pass
                         pipeline
-                            .geometry_pass(
-                                frame_input.viewport.width,
-                                frame_input.viewport.height,
-                                &camera,
-                                &[&box_mesh, &penguin_deferred],
-                            )
+                            .geometry_pass(&camera, &[&box_mesh, &penguin_deferred])
                             .unwrap();
 
                         Screen::write(&context, ClearState::default(), || {
                             pipeline.light_pass(
-                                frame_input.viewport,
                                 &camera,
                                 Some(&ambient_light),
                                 &[&directional_light],
@@ -155,15 +149,14 @@ fn main() {
                             )?;
                             penguin_forward.render_with_lighting(
                                 RenderStates::default(),
-                                frame_input.viewport,
                                 &camera,
                                 Some(&ambient_light),
                                 &[&directional_light],
                                 &[],
                                 &[],
                             )?;
-                            axes.render(frame_input.viewport, &camera)?;
-                            skybox.render(frame_input.viewport, &camera)?;
+                            axes.render(&camera)?;
+                            skybox.render(&camera)?;
                             Ok(())
                         })
                         .unwrap();

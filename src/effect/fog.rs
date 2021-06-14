@@ -25,7 +25,6 @@ impl FogEffect {
 
     pub fn apply(
         &self,
-        viewport: Viewport,
         camera: &Camera,
         depth_texture: &DepthTargetTexture2D,
         time: f32,
@@ -56,7 +55,7 @@ impl FogEffect {
         self.image_effect
             .use_uniform_vec3("eyePosition", camera.position())?;
 
-        self.image_effect.apply(render_states, viewport)?;
+        self.image_effect.apply(render_states, camera.viewport())?;
         Ok(())
     }
 }

@@ -15,11 +15,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(4.0, 4.0, 5.0),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -82,7 +82,7 @@ fn main() {
             window
                 .render_loop(move |frame_input| {
                     let mut change = frame_input.first_frame;
-                    change |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+                    change |= camera.set_viewport(frame_input.viewport).unwrap();
                     if change {
                         depth_texture = Some(
                             DepthTargetTexture2D::new(
@@ -137,11 +137,7 @@ fn main() {
                             .as_ref()
                             .unwrap()
                             .write(Some(1.0), &|| {
-                                monkey.render_depth(
-                                    RenderStates::default(),
-                                    frame_input.viewport,
-                                    &camera,
-                                )?;
+                                monkey.render_depth(RenderStates::default(), &camera)?;
                                 Ok(())
                             })
                             .unwrap();
@@ -153,17 +149,15 @@ fn main() {
                                 depth_test: DepthTestType::LessOrEqual,
                                 ..Default::default()
                             },
-                            frame_input.viewport,
                             &camera,
                             Some(&ambient_light),
                             &[&directional_light],
                             &[],
                             &[],
                         )?;
-                        skybox.render(frame_input.viewport, &camera)?;
+                        skybox.render(&camera)?;
                         if fog_enabled {
                             fog_effect.apply(
-                                frame_input.viewport,
                                 &camera,
                                 depth_texture.as_ref().unwrap(),
                                 frame_input.accumulated_time as f32,

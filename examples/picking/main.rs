@@ -15,11 +15,11 @@ fn main() {
     let mut camera = CameraControl::new(
         Camera::new_perspective(
             &context,
+            window.viewport().unwrap(),
             vec3(4.0, 4.0, 5.0),
             target,
             vec3(0.0, 1.0, 0.0),
             degrees(45.0),
-            window.viewport().unwrap().aspect(),
             0.1,
             1000.0,
         )
@@ -66,7 +66,7 @@ fn main() {
             window
                 .render_loop(move |frame_input| {
                     let mut change = frame_input.first_frame;
-                    change |= camera.set_aspect(frame_input.viewport.aspect()).unwrap();
+                    change |= camera.set_viewport(frame_input.viewport).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
@@ -80,16 +80,8 @@ fn main() {
                                 if *button == MouseButton::Left && *state == State::Pressed {
                                     if let Some(pick) = camera
                                         .pick(
-                                            (
-                                                ((position.0 * frame_input.device_pixel_ratio
-                                                    - frame_input.viewport.x as f64)
-                                                    / frame_input.viewport.width as f64)
-                                                    as f32,
-                                                ((position.1 * frame_input.device_pixel_ratio
-                                                    - frame_input.viewport.y as f64)
-                                                    / frame_input.viewport.height as f64)
-                                                    as f32,
-                                            ),
+                                            *position,
+                                            frame_input.device_pixel_ratio,
                                             100.0,
                                             &[&monkey],
                                         )
@@ -133,7 +125,6 @@ fn main() {
                                         depth_test: DepthTestType::LessOrEqual,
                                         ..Default::default()
                                     },
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],
@@ -142,7 +133,6 @@ fn main() {
                                 )?;
                                 pick_mesh.render_with_lighting(
                                     RenderStates::default(),
-                                    frame_input.viewport,
                                     &camera,
                                     Some(&ambient_light),
                                     &[&directional_light],
