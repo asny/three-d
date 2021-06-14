@@ -231,11 +231,7 @@ impl Mesh {
     /// # Errors
     /// Will return an error if the mesh has no colors.
     ///
-    pub fn render_color(
-        &self,
-        render_states: RenderStates,
-        camera: &Camera,
-    ) -> Result<(), Error> {
+    pub fn render_color(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(&format!(
             "{}{}",
             include_str!("../core/shared.frag"),
@@ -268,11 +264,7 @@ impl Mesh {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    pub fn render_uvs(
-        &self,
-        render_states: RenderStates,
-        camera: &Camera,
-    ) -> Result<(), Error> {
+    pub fn render_uvs(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_uvs.frag"))?;
         self.render(program, render_states, camera)
     }
@@ -409,11 +401,7 @@ impl Geometry for Mesh {
         Ok(())
     }
 
-    fn render_depth(
-        &self,
-        render_states: RenderStates,
-        camera: &Camera,
-    ) -> Result<(), Error> {
+    fn render_depth(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program("void main() {}")?;
         self.render(program, render_states, camera)
     }
