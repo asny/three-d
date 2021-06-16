@@ -77,9 +77,11 @@ fn main() {
                         delta, position, ..
                     } => {
                         if pick.is_none() {
-                            let p = camera
-                                .pick(*position, frame_input.device_pixel_ratio, 10.0, &[&mesh])
-                                .unwrap();
+                            let pixel = (
+                                (frame_input.device_pixel_ratio * position.0) as f32,
+                                (frame_input.device_pixel_ratio * position.1) as f32,
+                            );
+                            let p = camera.pick(pixel, 10.0, &[&mesh]).unwrap();
                             pick = p.map(|pos| (*position, pos));
                         };
                         if let Some((_, pos)) = pick {

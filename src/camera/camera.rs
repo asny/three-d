@@ -219,22 +219,19 @@ impl Camera {
     }
 
     ///
-    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate (in logical pixels) and the given geometries.
+    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     /// Returns ```None``` if no geometry was hit before the given maximum depth.
     ///
     pub fn pick(
         &self,
-        logical_pixel: (f64, f64),
-        device_pixel_ratio: f64,
+        pixel: (f32, f32),
         max_depth: f32,
         objects: &[&dyn Geometry],
     ) -> Result<Option<Vec3>, Error> {
-        let physical_pixel = (
-            (device_pixel_ratio * logical_pixel.0) as f32,
-            (device_pixel_ratio * logical_pixel.1) as f32,
-        );
-        let pos = self.position_at(physical_pixel);
-        let dir = self.view_direction_at(physical_pixel);
+        let pos = self.position_at_pixel(pixel);
+        let dir = self.view_direction_at_pixel(pixel);
         ray_intersect(&self.context, pos, dir, max_depth, objects)
     }
 
@@ -243,7 +240,7 @@ impl Camera {
     /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
     /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     ///
-    pub fn position_at(&self, pixel: (f32, f32)) -> Vec3 {
+    pub fn position_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { width, height, .. } => {
                 let coords = self.uv_coordinates_at_pixel(pixel);
@@ -258,7 +255,7 @@ impl Camera {
     /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
     /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     ///
-    pub fn view_direction_at(&self, pixel: (f32, f32)) -> Vec3 {
+    pub fn view_direction_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { .. } => self.view_direction(),
             ProjectionType::Perspective { .. } => {

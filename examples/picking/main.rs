@@ -78,14 +78,12 @@ fn main() {
                             } => {
                                 rotating = *button == MouseButton::Left && *state == State::Pressed;
                                 if *button == MouseButton::Left && *state == State::Pressed {
-                                    if let Some(pick) = camera
-                                        .pick(
-                                            *position,
-                                            frame_input.device_pixel_ratio,
-                                            100.0,
-                                            &[&monkey],
-                                        )
-                                        .unwrap()
+                                    let pixel = (
+                                        (frame_input.device_pixel_ratio * position.0) as f32,
+                                        (frame_input.device_pixel_ratio * position.1) as f32,
+                                    );
+                                    if let Some(pick) =
+                                        camera.pick(pixel, 100.0, &[&monkey]).unwrap()
                                     {
                                         pick_mesh.transformation = Mat4::from_translation(pick);
                                         change = true;
