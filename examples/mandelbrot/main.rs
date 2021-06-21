@@ -34,7 +34,7 @@ fn main() {
         &context,
         &CPUMesh {
             indices: Some(Indices::U8(indices)),
-            positions,
+            positions: CPUVertexBuffer::from_xyz(positions),
             ..Default::default()
         },
     )

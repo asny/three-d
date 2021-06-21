@@ -111,28 +111,18 @@ impl Mesh {
                     ),
                 });
             }
-            if cpu_mesh.positions.len() % 3 != 0 {
-                return Err(Error::MeshError {
-                    message: format!(
-                        "when indices specified, element count in positions of mesh `{}` \
-                            must be divisible by 3, actual count is {}",
-                        cpu_mesh.name,
-                        cpu_mesh.positions.len()
-                    ),
-                });
-            }
             if cfg!(debug) {
                 let indices_valid = match indices {
                     Indices::U8(ind) => {
-                        let len = cpu_mesh.positions.len();
+                        let len = cpu_mesh.positions.position_count();
                         ind.iter().all(|&i| (i as usize) < len)
                     }
                     Indices::U16(ind) => {
-                        let len = cpu_mesh.positions.len();
+                        let len = cpu_mesh.positions.position_count();
                         ind.iter().all(|&i| (i as usize) < len)
                     }
                     Indices::U32(ind) => {
-                        let len = cpu_mesh.positions.len();
+                        let len = cpu_mesh.positions.position_count();
                         ind.iter().all(|&i| (i as usize) < len)
                     }
                 };
@@ -142,19 +132,19 @@ impl Mesh {
                             "some indices of mesh `{}` \
                                 are outside of valid number of positions, which is {}",
                             cpu_mesh.name,
-                            cpu_mesh.positions.len()
+                            cpu_mesh.positions.position_count()
                         ),
                     });
                 }
             }
         } else {
-            if cpu_mesh.positions.len() % 9 != 0 {
+            if cpu_mesh.positions.position_count() % 3 != 0 {
                 return Err(Error::MeshError {
                     message: format!(
                         "when indices unspecified, element count in positions of mesh `{}` \
-                            must be divisible by 9, actual count is {}",
+                            must be divisible by 3, actual count is {}",
                         cpu_mesh.name,
-                        cpu_mesh.positions.len()
+                        cpu_mesh.positions.position_count()
                     ),
                 });
             }
@@ -169,7 +159,10 @@ impl Mesh {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
         Self::validate(cpu_mesh)?;
 
-        let position_buffer = Rc::new(VertexBuffer::new_with_static(context, &cpu_mesh.positions)?);
+        let position_buffer = Rc::new(VertexBuffer::new_with_static(
+            context,
+            cpu_mesh.positions.data(),
+        )?);
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(Rc::new(VertexBuffer::new_with_static(context, normals)?))
         } else {

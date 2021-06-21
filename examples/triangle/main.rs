@@ -39,7 +39,7 @@ fn main() {
         0, 0, 255, 255, // top
     ];
     let cpu_mesh = CPUMesh {
-        positions,
+        positions: CPUVertexBuffer::from_xyz(positions),
         colors: Some(colors),
         ..Default::default()
     };

@@ -1,5 +1,57 @@
 use crate::context::{consts, Context};
 use crate::core::{Error, VertexBufferDataType};
+use crate::{vec3, Vec3};
+
+/// A buffer containing vertex data.
+#[derive(Default, Debug)]
+pub struct CPUVertexBuffer {
+    data: Vec<f32>,
+}
+
+impl CPUVertexBuffer {
+    pub fn from_xyz(xyz: Vec<f32>) -> CPUVertexBuffer {
+        Self::try_from_xyz(xyz).unwrap()
+    }
+
+    pub fn try_from_xyz(xyz: Vec<f32>) -> Result<CPUVertexBuffer, Error> {
+        if xyz.len() % 3 != 0 {
+            return Err(Error::MeshError {
+                message: format!("positions len must be divisible by 3: {}", xyz.len()),
+            });
+        }
+        Ok(CPUVertexBuffer { data: xyz })
+    }
+
+    pub fn xyz_at(&self, index: usize) -> Vec3 {
+        vec3(
+            self.data[index * 3],
+            self.data[index * 3 + 1],
+            self.data[index * 3 + 2],
+        )
+    }
+
+    pub fn set_xyz_at(&mut self, index: usize, vertex: Vec3) {
+        self.data[index * 3] = vertex.x;
+        self.data[index * 3 + 1] = vertex.y;
+        self.data[index * 3 + 2] = vertex.z;
+    }
+
+    pub fn position_count(&self) -> usize {
+        self.data.len() / 3
+    }
+
+    pub fn extend(&mut self, other: &CPUVertexBuffer) {
+        self.data.extend(&other.data);
+    }
+
+    pub fn data(&self) -> &[f32] {
+        &self.data
+    }
+
+    pub fn into_data(self) -> Vec<f32> {
+        self.data
+    }
+}
 
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors

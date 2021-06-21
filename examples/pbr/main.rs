@@ -42,9 +42,9 @@ fn main() {
         let plane = Mesh::new_with_material(
             &context,
             &CPUMesh {
-                positions: vec![
+                positions: CPUVertexBuffer::from_xyz(vec![
                     -10000.0, -1.3, 10000.0, 10000.0, -1.3, 10000.0, 0.0, -1.3, -10000.0,
-                ],
+                ]),
                 normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
                 ..Default::default()
             },

@@ -1,7 +1,10 @@
+use std::path::Path;
+
+use ::gltf::Gltf;
+
 use crate::definition::*;
 use crate::io::*;
-use ::gltf::Gltf;
-use std::path::Path;
+use crate::CPUVertexBuffer;
 
 impl<'a> Loaded<'a> {
     pub fn gltf(
@@ -165,7 +168,7 @@ fn parse_tree<'a>(
 
                 cpu_meshes.push(CPUMesh {
                     name: name.clone(),
-                    positions,
+                    positions: CPUVertexBuffer::from_xyz(positions),
                     normals,
                     indices,
                     colors,

@@ -1,4 +1,5 @@
 use crate::math::*;
+use crate::CPUVertexBuffer;
 
 #[derive(Debug)]
 pub enum Indices {
@@ -26,7 +27,7 @@ impl Indices {
 pub struct CPUMesh {
     pub name: String,
     pub material_name: Option<String>,
-    pub positions: Vec<f32>,
+    pub positions: CPUVertexBuffer,
     pub indices: Option<Indices>,
     pub normals: Option<Vec<f32>>,
     pub uvs: Option<Vec<f32>>,
@@ -37,10 +38,12 @@ impl CPUMesh {
     pub fn square(size: f32) -> Self {
         let indices = vec![0u8, 1, 2, 2, 3, 0];
         let halfsize = 0.5 * size;
-        let positions = vec![
-            -halfsize, -halfsize, 0.0, halfsize, -halfsize, 0.0, halfsize, halfsize, 0.0,
-            -halfsize, halfsize, 0.0,
-        ];
+        let positions = CPUVertexBuffer::from_xyz(vec![
+            -halfsize, -halfsize, 0.0, //
+            halfsize, -halfsize, 0.0, //
+            halfsize, halfsize, 0.0, //
+            -halfsize, halfsize, 0.0, //
+        ]);
         let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
         CPUMesh {
@@ -77,7 +80,7 @@ impl CPUMesh {
         CPUMesh {
             name: "circle".to_string(),
             indices: Some(Indices::U16(indices)),
-            positions,
+            positions: CPUVertexBuffer::from_xyz(positions),
             normals: Some(normals),
             ..Default::default()
         }
@@ -98,7 +101,7 @@ impl CPUMesh {
         let mut mesh = CPUMesh {
             name: "sphere".to_string(),
             indices: Some(Indices::U8(indices)),
-            positions,
+            positions: CPUVertexBuffer::from_xyz(positions),
             ..Default::default()
         };
         mesh.compute_normals();
@@ -132,7 +135,7 @@ impl CPUMesh {
         }
         let mut mesh = Self {
             name: "cylinder".to_string(),
-            positions,
+            positions: CPUVertexBuffer::from_xyz(positions),
             indices: Some(Indices::U16(indices)),
             ..Default::default()
         };
@@ -167,7 +170,7 @@ impl CPUMesh {
         }
         let mut mesh = Self {
             name: "cone".to_string(),
-            positions,
+            positions: CPUVertexBuffer::from_xyz(positions),
             indices: Some(Indices::U16(indices)),
             ..Default::default()
         };
@@ -180,8 +183,10 @@ impl CPUMesh {
         let mut arrow = Self::cylinder(radius * 0.5, cylinder_length, angle_subdivisions);
         arrow.name = "arrow".to_string();
         let mut cone = Self::cone(radius, length - cylinder_length, angle_subdivisions);
-        for i in 0..cone.positions.len() / 3 {
-            cone.positions[i * 3] += cylinder_length;
+        for i in 0..cone.positions.position_count() {
+            let mut position = cone.positions.xyz_at(i);
+            position.x += cylinder_length;
+            cone.positions.set_xyz_at(i, position);
         }
         let mut indices = arrow.indices.unwrap().into_u32();
         let cone_indices = cone.indices.unwrap().into_u32();
@@ -189,7 +194,7 @@ impl CPUMesh {
         indices.extend(cone_indices.iter().map(|i| i + offset));
         arrow.indices = Some(Indices::U16(indices.iter().map(|i| *i as u16).collect()));
 
-        arrow.positions.extend(cone.positions);
+        arrow.positions.extend(&cone.positions);
         arrow
             .normals
             .as_mut()
@@ -219,27 +224,15 @@ impl CPUMesh {
     }
 }
 
-fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
-    let mut normals = vec![0.0f32; positions.len() * 3];
+fn compute_normals_with_indices(indices: &[u32], positions: &CPUVertexBuffer) -> Vec<f32> {
+    let mut normals = vec![0.0f32; positions.position_count() * 9];
     for face in 0..indices.len() / 3 {
         let index0 = indices[face * 3] as usize;
-        let p0 = vec3(
-            positions[index0 * 3],
-            positions[index0 * 3 + 1],
-            positions[index0 * 3 + 2],
-        );
+        let p0 = positions.xyz_at(index0);
         let index1 = indices[face * 3 + 1] as usize;
-        let p1 = vec3(
-            positions[index1 * 3],
-            positions[index1 * 3 + 1],
-            positions[index1 * 3 + 2],
-        );
+        let p1 = positions.xyz_at(index1);
         let index2 = indices[face * 3 + 2] as usize;
-        let p2 = vec3(
-            positions[index2 * 3],
-            positions[index2 * 3 + 1],
-            positions[index2 * 3 + 2],
-        );
+        let p2 = positions.xyz_at(index2);
 
         let normal = (p1 - p0).cross(p2 - p0);
         normals[index0 * 3] += normal.x;
@@ -262,27 +255,15 @@ fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> 
     normals
 }
 
-fn compute_normals(positions: &[f32]) -> Vec<f32> {
-    let mut normals = vec![0.0f32; positions.len()];
-    for face in 0..positions.len() / 9 {
+fn compute_normals(positions: &CPUVertexBuffer) -> Vec<f32> {
+    let mut normals = vec![0.0f32; positions.position_count() * 3];
+    for face in 0..positions.position_count() / 3 {
         let index0 = face * 3 as usize;
-        let p0 = vec3(
-            positions[index0 * 3],
-            positions[index0 * 3 + 1],
-            positions[index0 * 3 + 2],
-        );
+        let p0 = positions.xyz_at(index0);
         let index1 = face * 3 + 1 as usize;
-        let p1 = vec3(
-            positions[index1 * 3],
-            positions[index1 * 3 + 1],
-            positions[index1 * 3 + 2],
-        );
+        let p1 = positions.xyz_at(index1);
         let index2 = face * 3 + 2 as usize;
-        let p2 = vec3(
-            positions[index2 * 3],
-            positions[index2 * 3 + 1],
-            positions[index2 * 3 + 2],
-        );
+        let p2 = positions.xyz_at(index2);
 
         let normal = (p1 - p0).cross(p2 - p0);
         normals[index0 * 3] += normal.x;
