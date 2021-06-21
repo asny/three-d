@@ -1,6 +1,8 @@
+use std::path::Path;
+
 use crate::definition::*;
 use crate::io::*;
-use std::path::Path;
+use crate::CPUVertexBuffer;
 
 impl<'a> Loaded<'a> {
     ///
@@ -39,7 +41,11 @@ impl<'a> Loaded<'a> {
             cpu_meshes.push(CPUMesh {
                 name: mesh.name,
                 material_name: mesh.material_name,
-                positions: mesh.positions,
+                positions: CPUVertexBuffer::try_from_xyz(mesh.positions).map_err(|_| {
+                    IOError::FailedToLoad {
+                        message: format!("incorrect positions array"),
+                    }
+                })?,
                 indices: mesh.indices.map(|i| Indices::U32(i)),
                 normals: mesh.normals,
                 uvs: mesh.uvs,
@@ -169,7 +175,7 @@ impl Saver {
                 name: cpu_mesh.name,
                 material_name: cpu_mesh.material_name,
                 indices,
-                positions: cpu_mesh.positions,
+                positions: cpu_mesh.positions.into_data(),
                 normals: cpu_mesh.normals,
                 uvs: cpu_mesh.uvs,
             });

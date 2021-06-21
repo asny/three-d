@@ -112,7 +112,7 @@ pub struct Particles {
 
 impl Particles {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self, Error> {
-        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
+        let position_buffer = VertexBuffer::new_with_static(context, cpu_mesh.positions.data())?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(VertexBuffer::new_with_static(context, normals)?)
         } else {

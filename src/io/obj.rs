@@ -1,7 +1,9 @@
-use crate::definition::*;
-use crate::io::*;
 use std::collections::HashMap;
 use std::path::Path;
+
+use crate::definition::*;
+use crate::io::*;
+use crate::CPUVertexBuffer;
 
 impl<'a> Loaded<'a> {
     ///
@@ -150,7 +152,7 @@ impl<'a> Loaded<'a> {
                 cpu_meshes.push(CPUMesh {
                     name: object.name.to_string(),
                     material_name: mesh.material_name.clone(),
-                    positions,
+                    positions: CPUVertexBuffer::from_xyz(positions),
                     indices: Some(Indices::U32(indices)),
                     normals: Some(normals),
                     uvs: Some(uvs),

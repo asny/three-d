@@ -42,7 +42,7 @@ fn main() {
         ],
         move |loaded| {
             let mut box_cpu_mesh = CPUMesh {
-                positions: cube_positions(),
+                positions: CPUVertexBuffer::from_xyz(cube_positions()),
                 uvs: Some(cube_uvs()),
                 ..Default::default()
             };
