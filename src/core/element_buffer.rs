@@ -1,5 +1,6 @@
 use crate::context::{consts, Context};
 use crate::core::{ElementBufferDataType, Error};
+use crate::DataType;
 
 ///
 /// A buffer containing indices for rendering, see for example [draw_elements](crate::Program::draw_elements).
@@ -9,7 +10,7 @@ pub struct ElementBuffer {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
-    data_type: u32,
+    data_type: DataType,
 }
 
 impl ElementBuffer {
@@ -56,7 +57,7 @@ impl ElementBuffer {
         self.count
     }
 
-    pub(crate) fn data_type(&self) -> u32 {
+    pub(crate) fn data_type(&self) -> DataType {
         self.data_type
     }
 

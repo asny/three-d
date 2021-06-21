@@ -1,5 +1,6 @@
 use crate::context::{consts, Context};
 use crate::core::{Error, VertexBufferDataType};
+use crate::DataType;
 
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors
@@ -9,7 +10,7 @@ pub struct VertexBuffer {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
-    data_type: u32,
+    data_type: DataType,
 }
 
 impl VertexBuffer {
@@ -21,7 +22,7 @@ impl VertexBuffer {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
             count: 0,
-            data_type: consts::FLOAT,
+            data_type: DataType::FLOAT,
         })
     }
 
@@ -100,7 +101,7 @@ impl VertexBuffer {
         self.count
     }
 
-    pub(crate) fn data_type(&self) -> u32 {
+    pub(crate) fn data_type(&self) -> DataType {
         self.data_type
     }
 
