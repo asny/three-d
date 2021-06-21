@@ -8,15 +8,25 @@ use std::rc::Rc;
 type RefLoaded = Rc<RefCell<HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>>>;
 
 ///
-/// The resources loaded using the [Loader](crate::Loader).
+/// Contains the resources loaded using the [Loader](crate::Loader) and/or manually inserted using the [insert_bytes](Self::insert_bytes) method.
 /// Use the [remove_bytes](crate::Loaded::remove_bytes) or [get_bytes](crate::Loaded::get_bytes) function to extract the raw byte array for the loaded resource
 /// or one of the other methods to both extract and deserialize a loaded resource.
 ///
-pub struct Loaded<'a> {
-    loaded: &'a mut HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>,
+pub struct Loaded {
+    loaded: HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>,
 }
 
-impl<'a> Loaded<'a> {
+impl Loaded {
+    ///
+    /// Constructs a new empty set of loaded files. Use this together with [insert_bytes](Self::insert_bytes) to load resources
+    /// from an unsuported source and then parse them as usual using the functionality on Loaded.
+    ///
+    pub fn new() -> Self {
+        Self {
+            loaded: HashMap::new(),
+        }
+    }
+
     ///
     /// Remove and returns the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
@@ -65,6 +75,14 @@ impl<'a> Loaded<'a> {
                 ),
             })?;
         Ok(bytes)
+    }
+
+    ///
+    /// Inserts the given bytes into the set of loaded files which is useful if you want to load the data from an unsuported source.
+    /// The files can then be parsed as usual using the functionality on Loaded.
+    ///
+    pub fn insert_bytes<P: AsRef<Path>>(&mut self, path: P, bytes: Vec<u8>) {
+        self.loaded.insert(path.as_ref().to_path_buf(), Ok(bytes));
     }
 }
 
@@ -137,7 +155,7 @@ impl Loader {
             } else {
                 info!("Loading done.");
                 on_done(&mut Loaded {
-                    loaded: &mut loads.borrow_mut(),
+                    loaded: loads.take(),
                 });
             }
         });
