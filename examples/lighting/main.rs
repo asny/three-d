@@ -102,7 +102,6 @@ fn main() {
             .unwrap();
 
             // main loop
-            let mut rotating = false;
             let mut shadows_enabled = true;
 
             let mut ambient_enabled = true;
@@ -246,20 +245,13 @@ fn main() {
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick {
-                                state,
-                                button,
+                            Event::MouseMotion {
+                                delta,
                                 handled,
+                                button,
                                 ..
                             } => {
-                                if !handled {
-                                    rotating =
-                                        *button == MouseButton::Left && *state == State::Pressed;
-                                    change = true;
-                                }
-                            }
-                            Event::MouseMotion { delta, handled, .. } => {
-                                if !handled && rotating {
+                                if !handled && *button == Some(MouseButton::Left) {
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,

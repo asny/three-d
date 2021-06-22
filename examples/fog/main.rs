@@ -77,7 +77,6 @@ fn main() {
             .unwrap();
 
             // main loop
-            let mut rotating = false;
             let mut depth_texture = None;
             window
                 .render_loop(move |frame_input| {
@@ -99,11 +98,8 @@ fn main() {
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick { state, button, .. } => {
-                                rotating = *button == MouseButton::Left && *state == State::Pressed;
-                            }
-                            Event::MouseMotion { delta, .. } => {
-                                if rotating {
+                            Event::MouseMotion { delta, button, .. } => {
+                                if *button == Some(MouseButton::Left) {
                                     camera
                                         .rotate_around(
                                             &target,
@@ -120,8 +116,8 @@ fn main() {
                                     .unwrap();
                                 change = true;
                             }
-                            Event::Key { state, kind, .. } => {
-                                if *kind == Key::F && *state == State::Pressed {
+                            Event::KeyPress { kind, .. } => {
+                                if *kind == Key::F {
                                     fog_enabled = !fog_enabled;
                                     change = true;
                                     println!("Fog: {:?}", fog_enabled);

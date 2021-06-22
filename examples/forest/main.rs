@@ -161,7 +161,6 @@ fn main() {
                 .unwrap();
 
             // main loop
-            let mut rotating = false;
             window
                 .render_loop(move |frame_input| {
                     let mut redraw = frame_input.first_frame;
@@ -169,11 +168,8 @@ fn main() {
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick { state, button, .. } => {
-                                rotating = *button == MouseButton::Left && *state == State::Pressed;
-                            }
-                            Event::MouseMotion { delta, .. } => {
-                                if rotating {
+                            Event::MouseMotion { delta, button, .. } => {
+                                if *button == Some(MouseButton::Left) {
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,

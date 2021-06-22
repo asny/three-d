@@ -269,6 +269,7 @@ impl Window {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
+                input.mouse_pressed = None;
                 input.events.push(Event::MouseLeave);
                 event.stop_propagation();
                 event.prevent_default();
@@ -329,8 +330,8 @@ impl Window {
                 };
                 if let Some(button) = button {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
-                        state: State::Pressed,
+                    input.mouse_pressed = Some(button);
+                    input.events.push(Event::MousePress {
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
                         modifiers,
@@ -367,8 +368,8 @@ impl Window {
                 };
                 if let Some(button) = button {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
-                        state: State::Released,
+                    input.mouse_pressed = None;
+                    input.events.push(Event::MouseRelease {
                         button,
                         position: (event.offset_x() as f64, event.offset_y() as f64),
                         modifiers,
@@ -403,7 +404,9 @@ impl Window {
                     (0.0, 0.0)
                 };
                 let modifiers = input.modifiers;
+                let button = input.mouse_pressed;
                 input.events.push(Event::MouseMotion {
+                    button,
                     delta,
                     position: (event.offset_x() as f64, event.offset_y() as f64),
                     modifiers,
@@ -466,8 +469,8 @@ impl Window {
                 if event.touches().length() == 1 {
                     let touch = event.touches().item(0).unwrap();
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
-                        state: State::Pressed,
+                    input.mouse_pressed = Some(MouseButton::Left);
+                    input.events.push(Event::MousePress {
                         button: MouseButton::Left,
                         position: (touch.page_x() as f64, touch.page_y() as f64),
                         modifiers,
@@ -515,8 +518,8 @@ impl Window {
                 let mut input = input.borrow_mut();
                 if let Some((x, y)) = input.last_position {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::MouseClick {
-                        state: State::Released,
+                    input.mouse_pressed = None;
+                    input.events.push(Event::MouseRelease {
                         button: MouseButton::Left,
                         position: (x as f64, y as f64),
                         modifiers,
@@ -554,7 +557,9 @@ impl Window {
                     let touch = event.touches().item(0).unwrap();
                     if let Some((x, y)) = input.last_position {
                         let modifiers = input.modifiers;
+                        let button = input.mouse_pressed;
                         input.events.push(Event::MouseMotion {
+                            button,
                             delta: ((touch.page_x() - x) as f64, (touch.page_y() - y) as f64),
                             position: (touch.page_x() as f64, touch.page_y() as f64),
                             modifiers,
@@ -622,8 +627,7 @@ impl Window {
                 let key = event.key();
                 let modifiers = input.modifiers;
                 if let Some(kind) = translate_key(&key) {
-                    input.events.push(Event::Key {
-                        state: State::Pressed,
+                    input.events.push(Event::KeyPress {
                         kind,
                         modifiers,
                         handled: false,
@@ -631,10 +635,7 @@ impl Window {
                     event.stop_propagation();
                     event.prevent_default();
                 }
-                if modifiers.ctrl == State::Released
-                    && modifiers.command == State::Released
-                    && !should_ignore_key(&key)
-                {
+                if modifiers.ctrl && modifiers.command && !should_ignore_key(&key) {
                     input.events.push(Event::Text(key));
                     event.stop_propagation();
                     event.prevent_default();
@@ -667,8 +668,7 @@ impl Window {
                 }
                 if let Some(kind) = translate_key(&event.key()) {
                     let modifiers = input.modifiers;
-                    input.events.push(Event::Key {
-                        state: State::Released,
+                    input.events.push(Event::KeyRelease {
                         kind,
                         modifiers,
                         handled: false,
@@ -706,6 +706,7 @@ struct Input {
     modifiers: Modifiers,
     last_position: Option<(i32, i32)>,
     last_zoom: Option<f64>,
+    mouse_pressed: Option<MouseButton>,
 }
 
 impl Input {
@@ -718,6 +719,7 @@ impl Input {
             modifiers: Modifiers::default(),
             last_position: None,
             last_zoom: None,
+            mouse_pressed: None,
         }))
     }
 
@@ -747,26 +749,10 @@ impl Input {
 fn update_modifiers(modifiers: &mut Modifiers, event: &web_sys::KeyboardEvent) -> bool {
     let old = modifiers.clone();
     *modifiers = Modifiers {
-        alt: if event.alt_key() {
-            State::Pressed
-        } else {
-            State::Released
-        },
-        ctrl: if event.ctrl_key() {
-            State::Pressed
-        } else {
-            State::Released
-        },
-        shift: if event.shift_key() {
-            State::Pressed
-        } else {
-            State::Released
-        },
-        command: if event.ctrl_key() || event.meta_key() {
-            State::Pressed
-        } else {
-            State::Released
-        },
+        alt: event.alt_key(),
+        ctrl: event.ctrl_key(),
+        shift: event.shift_key(),
+        command: event.ctrl_key() || event.meta_key(),
     };
     old.alt != modifiers.alt
         || old.ctrl != modifiers.ctrl

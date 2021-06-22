@@ -81,26 +81,14 @@ fn main() {
             .unwrap();
 
             // main loop
-            let mut rotating = false;
             window
                 .render_loop(move |frame_input| {
                     camera.set_viewport(frame_input.viewport).unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick {
-                                state,
-                                button,
-                                handled,
-                                ..
-                            } => {
-                                if !handled {
-                                    rotating =
-                                        *button == MouseButton::Left && *state == State::Pressed;
-                                }
-                            }
-                            Event::MouseMotion { delta, handled, .. } => {
-                                if !handled && rotating {
+                            Event::MouseMotion { delta, button, .. } => {
+                                if *button == Some(MouseButton::Left) {
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,
@@ -110,12 +98,10 @@ fn main() {
                                         .unwrap();
                                 }
                             }
-                            Event::MouseWheel { delta, handled, .. } => {
-                                if !handled {
-                                    camera
-                                        .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
-                                        .unwrap();
-                                }
+                            Event::MouseWheel { delta, .. } => {
+                                camera
+                                    .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
+                                    .unwrap();
                             }
                             _ => {}
                         }

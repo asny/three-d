@@ -45,7 +45,6 @@ fn main() {
         MeshProgram::new(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
     // main loop
-    let mut panning = false;
     let mut pick: Option<((f64, f64), Vec3)> = None;
     window
         .render_loop(move |frame_input| {
@@ -54,13 +53,13 @@ fn main() {
 
             for event in frame_input.events.iter() {
                 match event {
-                    Event::MouseClick { state, button, .. } => {
-                        panning = *button == MouseButton::Left && *state == State::Pressed;
-                    }
                     Event::MouseMotion {
-                        delta, position, ..
+                        delta,
+                        button,
+                        position,
+                        ..
                     } => {
-                        if panning {
+                        if *button == Some(MouseButton::Left) {
                             let speed = 0.003 * camera.position().z.abs();
                             camera
                                 .pan(speed * delta.0 as f32, speed * delta.1 as f32)
