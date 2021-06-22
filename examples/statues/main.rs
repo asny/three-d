@@ -48,7 +48,7 @@ fn main() {
             "examples/assets/pfboy.mtl",
             "examples/assets/pfboy.png",
         ],
-        move |loaded| {
+        move |mut loaded| {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let statue_material = Material::new(&context, &statue_cpu_materials[0]).unwrap();

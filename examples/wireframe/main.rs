@@ -33,7 +33,7 @@ fn main() {
             "./examples/assets/suzanne.obj",
             "./examples/assets/suzanne.mtl",
         ],
-        move |loaded| {
+        move |mut loaded| {
             let (mut meshes, mut materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let cpu_mesh = meshes.remove(0);
             let cpu_material = materials.remove(0);

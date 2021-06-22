@@ -31,7 +31,7 @@ fn main() {
 
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
-        move |loaded| {
+        move |mut loaded| {
             let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
             let mut monkey = Mesh::new_with_material(

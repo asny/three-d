@@ -42,7 +42,7 @@ fn main() {
 
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
-        move |loaded| {
+        move |mut loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
             let mut monkey = Mesh::new_with_material(

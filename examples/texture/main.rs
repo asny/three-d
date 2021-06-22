@@ -40,7 +40,7 @@ fn main() {
             "examples/assets/skybox_evening/left.jpg",
             "examples/assets/skybox_evening/right.jpg",
         ],
-        move |loaded| {
+        move |mut loaded| {
             let mut box_cpu_mesh = CPUMesh {
                 positions: cube_positions(),
                 uvs: Some(cube_uvs()),

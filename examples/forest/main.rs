@@ -33,7 +33,7 @@ fn main() {
             "examples/assets/Tree1Bark.jpg",
             "examples/assets/Tree1Leave.png",
         ],
-        move |loaded| {
+        move |mut loaded| {
             // Tree
             let (mut meshes, materials) = loaded.obj("examples/assets/Tree1.obj").unwrap();
             for mesh in meshes.iter_mut() {
