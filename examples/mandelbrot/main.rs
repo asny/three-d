@@ -12,19 +12,17 @@ fn main() {
     let context = window.gl().unwrap();
 
     // Renderer
-    let mut camera = CameraControl::new(
-        Camera::new_orthographic(
-            &context,
-            window.viewport().unwrap(),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            1.2,
-            0.0,
-            10.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_orthographic(
+        &context,
+        window.viewport().unwrap(),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        1.2,
+        0.0,
+        10.0,
+    )
+    .unwrap();
 
     let indices = vec![0u8, 1, 2, 2, 3, 0];
     let positions = vec![

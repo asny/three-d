@@ -445,7 +445,7 @@ impl Camera {
     ///
     /// Rotate the camera around the given point while keeping the same distance to the point.
     /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
-    /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](crate::CameraControl::rotate_around_with_fixed_up) function instead.
+    /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](crate::Camera::rotate_around_with_fixed_up) function instead.
     ///
     pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> Result<(), Error> {
         let dir = (point - self.position()).normalize();

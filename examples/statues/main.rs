@@ -12,19 +12,17 @@ fn main() {
     let context = window.gl().unwrap();
 
     // Renderer
-    let mut primary_camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(-200.0, 200.0, 100.0),
-            vec3(0.0, 100.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            10000.0,
-        )
-        .unwrap(),
-    );
+    let mut primary_camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(-200.0, 200.0, 100.0),
+        vec3(0.0, 100.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        10000.0,
+    )
+    .unwrap();
     // Static camera to view frustum culling in effect
     let mut secondary_camera = Camera::new_perspective(
         &context,

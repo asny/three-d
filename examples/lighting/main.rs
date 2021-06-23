@@ -14,19 +14,17 @@ fn main() {
 
     let mut pipeline = DeferredPipeline::new(&context).unwrap();
     let target = vec3(0.0, 0.0, 0.0);
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(2.0, 2.0, 5.0),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            1000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(2.0, 2.0, 5.0),
+        target,
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        1000.0,
+    )
+    .unwrap();
     let mut gui = three_d::GUI::new(&context).unwrap();
 
     Loader::load(

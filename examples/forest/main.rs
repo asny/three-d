@@ -12,19 +12,17 @@ fn main() {
     let context = window.gl().unwrap();
 
     let target = vec3(0.0, 6.0, 0.0);
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(180.0, 40.0, 70.0),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            10000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(180.0, 40.0, 70.0),
+        target,
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        10000.0,
+    )
+    .unwrap();
 
     Loader::load(
         &[

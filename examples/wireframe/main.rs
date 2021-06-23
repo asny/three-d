@@ -14,19 +14,17 @@ fn main() {
     // Renderer
     let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            target + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            1000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        target + scene_radius * vec3(0.6, 0.3, 1.0).normalize(),
+        target,
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        1000.0,
+    )
+    .unwrap();
 
     Loader::load(
         &[
