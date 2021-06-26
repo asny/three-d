@@ -4,6 +4,7 @@ use web_sys::WebGl2RenderingContext as InnerGl;
 pub type consts = InnerGl;
 
 pub type AttributeLocation = u32;
+use crate::context::ShaderType;
 pub use web_sys::WebGlActiveInfo as ActiveInfo;
 pub use web_sys::WebGlBuffer as Buffer;
 pub use web_sys::WebGlFramebuffer as Framebuffer;
@@ -95,6 +96,10 @@ impl Context {
 
         self.inner
             .buffer_data_with_array_buffer_view(target, &array, usage);
+    }
+
+    pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
+        self.inner.create_shader(type_ as _)
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {

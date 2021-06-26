@@ -6,6 +6,9 @@
 //! Can be used in combination with more high-level features or be ignored entirely.
 //!
 
+mod shader_type;
+pub use shader_type::*;
+
 // GL
 #[cfg(not(target_arch = "wasm32"))]
 mod ogl;
