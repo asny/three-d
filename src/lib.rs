@@ -20,10 +20,6 @@ pub mod core;
 #[doc(inline)]
 pub use crate::core::*;
 
-pub mod color;
-#[doc(inline)]
-pub use crate::color::*;
-
 pub mod camera;
 #[doc(inline)]
 pub use camera::*;
@@ -44,9 +40,9 @@ pub mod light;
 #[doc(inline)]
 pub use light::*;
 
-pub mod function;
+pub mod misc;
 #[doc(inline)]
-pub use function::*;
+pub use misc::*;
 
 pub mod io;
 #[doc(inline)]

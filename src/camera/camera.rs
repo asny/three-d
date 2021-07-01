@@ -1,6 +1,6 @@
 use crate::core::*;
-use crate::function::*;
 use crate::math::*;
+use crate::misc::*;
 use crate::object::*;
 
 pub(super) enum ProjectionType {
