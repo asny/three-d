@@ -1,11 +1,15 @@
 //!
-//! Additional functionality not related to any specific type.
+//! Additional functionality and types.
 //!
 
 use crate::camera::*;
 use crate::core::*;
 use crate::math::*;
 use crate::object::*;
+
+mod color;
+#[doc(inline)]
+pub use color::*;
 
 pub fn ray_intersect(
     context: &Context,
