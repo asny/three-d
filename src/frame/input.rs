@@ -28,19 +28,6 @@ pub struct FrameInput {
     pub first_frame: bool,
 }
 
-/// State of a key or button click.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
-pub enum State {
-    Pressed,
-    Released,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        Self::Released
-    }
-}
-
 /// Type of mouse button.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
@@ -52,14 +39,20 @@ pub enum MouseButton {
 /// An input event (from mouse, keyboard or similar).
 #[derive(Clone, Debug)]
 pub enum Event {
-    MouseClick {
-        state: State,
+    MousePress {
+        button: MouseButton,
+        position: (f64, f64),
+        modifiers: Modifiers,
+        handled: bool,
+    },
+    MouseRelease {
         button: MouseButton,
         position: (f64, f64),
         modifiers: Modifiers,
         handled: bool,
     },
     MouseMotion {
+        button: Option<MouseButton>,
         delta: (f64, f64),
         position: (f64, f64),
         modifiers: Modifiers,
@@ -73,8 +66,12 @@ pub enum Event {
     },
     MouseEnter,
     MouseLeave,
-    Key {
-        state: State,
+    KeyPress {
+        kind: Key,
+        modifiers: Modifiers,
+        handled: bool,
+    },
+    KeyRelease {
         kind: Key,
         modifiers: Modifiers,
         handled: bool,
@@ -159,13 +156,13 @@ pub enum Key {
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Modifiers {
     /// Either of the alt keys are down (option ⌥ on Mac).
-    pub alt: State,
+    pub alt: bool,
     /// Either of the control keys are down.
     /// When checking for keyboard shortcuts, consider using [`Self::command`] instead.
-    pub ctrl: State,
+    pub ctrl: bool,
     /// Either of the shift keys are down.
-    pub shift: State,
+    pub shift: bool,
     /// On Windows and Linux, set this to the same value as `ctrl`.
     /// On Mac, this should be set whenever one of the ⌘ Command keys are down.
-    pub command: State,
+    pub command: bool,
 }

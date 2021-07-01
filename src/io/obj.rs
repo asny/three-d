@@ -3,7 +3,7 @@ use crate::io::*;
 use std::collections::HashMap;
 use std::path::Path;
 
-impl<'a> Loaded<'a> {
+impl Loaded {
     ///
     /// Deserialize a loaded .obj file resource and .mtl material file resource (if present) into a list of meshes and materials.
     /// It uses the [wavefront-obj](https://crates.io/crates/wavefront_obj/main.rs) crate.

@@ -14,19 +14,17 @@ fn main() {
     // Renderer
     let mut pipeline = DeferredPipeline::new(&context).unwrap();
     let target = vec3(0.0, 1.0, 0.0);
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(4.0, 1.5, 4.0),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            1000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(4.0, 1.5, 4.0),
+        target,
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        1000.0,
+    )
+    .unwrap();
 
     Loader::load(
         &[
@@ -40,7 +38,7 @@ fn main() {
             "examples/assets/skybox_evening/left.jpg",
             "examples/assets/skybox_evening/right.jpg",
         ],
-        move |loaded| {
+        move |mut loaded| {
             let mut box_cpu_mesh = CPUMesh {
                 positions: cube_positions(),
                 uvs: Some(cube_uvs()),
@@ -99,7 +97,6 @@ fn main() {
 
             let axes = Axes::new(&context, 0.1, 3.0).unwrap();
             // main loop
-            let mut rotating = false;
             window
                 .render_loop(move |frame_input| {
                     let mut redraw = frame_input.first_frame;
@@ -107,11 +104,8 @@ fn main() {
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick { state, button, .. } => {
-                                rotating = *button == MouseButton::Left && *state == State::Pressed;
-                            }
-                            Event::MouseMotion { delta, .. } => {
-                                if rotating {
+                            Event::MouseMotion { delta, button, .. } => {
+                                if *button == Some(MouseButton::Left) {
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,

@@ -38,7 +38,7 @@ egui = { version = "0.10", optional = true }
 gl_generator = {version = "0.14"}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-glutin = { version = "0.26", optional = true }
+glutin = { version = "0.27", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3"

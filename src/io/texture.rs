@@ -2,7 +2,7 @@ use crate::definition::*;
 use crate::io::*;
 use std::path::Path;
 
-impl<'a> Loaded<'a> {
+impl Loaded {
     ///
     /// Deserialize the loaded image resource at the given path into a [CPUTexture](crate::CPUTexture) using
     /// the [image](https://crates.io/crates/image/main.rs) crate.

@@ -111,6 +111,7 @@ impl Window {
         let mut cursor_pos = None;
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
+        let mut mouse_pressed = None;
         let context = self.gl.clone();
         self.event_loop.run(move |event, _, control_flow| {
             match event {
@@ -180,17 +181,20 @@ impl Window {
                     WindowEvent::KeyboardInput { input, .. } => {
                         if let Some(keycode) = input.virtual_keycode {
                             use event::VirtualKeyCode;
-                            let state = if input.state == event::ElementState::Pressed {
-                                crate::State::Pressed
-                            } else {
-                                crate::State::Released
-                            };
+                            let state = input.state == event::ElementState::Pressed;
                             if let Some(kind) = translate_virtual_key_code(keycode) {
-                                events.push(crate::Event::Key {
-                                    state,
-                                    kind,
-                                    modifiers,
-                                    handled: false,
+                                events.push(if state {
+                                    crate::Event::KeyPress {
+                                        kind,
+                                        modifiers,
+                                        handled: false,
+                                    }
+                                } else {
+                                    crate::Event::KeyRelease {
+                                        kind,
+                                        modifiers,
+                                        handled: false,
+                                    }
                                 });
                             } else {
                                 if keycode == VirtualKeyCode::LControl
@@ -252,11 +256,6 @@ impl Window {
                     }
                     WindowEvent::MouseInput { state, button, .. } => {
                         if let Some(position) = cursor_pos {
-                            let state = if *state == event::ElementState::Pressed {
-                                crate::State::Pressed
-                            } else {
-                                crate::State::Released
-                            };
                             let button = match button {
                                 event::MouseButton::Left => Some(crate::MouseButton::Left),
                                 event::MouseButton::Middle => Some(crate::MouseButton::Middle),
@@ -264,12 +263,22 @@ impl Window {
                                 _ => None,
                             };
                             if let Some(b) = button {
-                                events.push(crate::Event::MouseClick {
-                                    state,
-                                    button: b,
-                                    position,
-                                    modifiers,
-                                    handled: false,
+                                events.push(if *state == event::ElementState::Pressed {
+                                    mouse_pressed = Some(b);
+                                    crate::Event::MousePress {
+                                        button: b,
+                                        position,
+                                        modifiers,
+                                        handled: false,
+                                    }
+                                } else {
+                                    mouse_pressed = None;
+                                    crate::Event::MouseRelease {
+                                        button: b,
+                                        position,
+                                        modifiers,
+                                        handled: false,
+                                    }
                                 });
                             }
                         }
@@ -282,6 +291,7 @@ impl Window {
                             (0.0, 0.0)
                         };
                         events.push(crate::Event::MouseMotion {
+                            button: mouse_pressed,
                             delta,
                             position: (p.x, p.y),
                             modifiers,
@@ -290,10 +300,7 @@ impl Window {
                         cursor_pos = Some((p.x, p.y));
                     }
                     WindowEvent::ReceivedCharacter(ch) => {
-                        if is_printable_char(*ch)
-                            && modifiers.ctrl != State::Pressed
-                            && modifiers.command != State::Pressed
-                        {
+                        if is_printable_char(*ch) && modifiers.ctrl && modifiers.command {
                             events.push(crate::Event::Text(ch.to_string()));
                         }
                     }
@@ -301,6 +308,7 @@ impl Window {
                         events.push(crate::Event::MouseEnter);
                     }
                     WindowEvent::CursorLeft { .. } => {
+                        mouse_pressed = None;
                         events.push(crate::Event::MouseLeave);
                     }
                     _ => (),

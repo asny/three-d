@@ -14,24 +14,22 @@ fn main() {
 
     let mut pipeline = DeferredPipeline::new(&context).unwrap();
     let target = vec3(0.0, 0.0, 0.0);
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(2.0, 2.0, 5.0),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            1000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(2.0, 2.0, 5.0),
+        target,
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        1000.0,
+    )
+    .unwrap();
     let mut gui = three_d::GUI::new(&context).unwrap();
 
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
-        move |loaded| {
+        move |mut loaded| {
             let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
             let mut monkey = Mesh::new_with_material(
@@ -102,7 +100,6 @@ fn main() {
             .unwrap();
 
             // main loop
-            let mut rotating = false;
             let mut shadows_enabled = true;
 
             let mut ambient_enabled = true;
@@ -232,8 +229,7 @@ fn main() {
                                     }
                                 },
                             );
-                            panel_width =
-                                (gui_context.used_size().x * gui_context.pixels_per_point()) as u32;
+                            panel_width = gui_context.used_size().x as u32;
                         })
                         .unwrap();
 
@@ -247,20 +243,13 @@ fn main() {
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick {
-                                state,
-                                button,
+                            Event::MouseMotion {
+                                delta,
                                 handled,
+                                button,
                                 ..
                             } => {
-                                if !handled {
-                                    rotating =
-                                        *button == MouseButton::Left && *state == State::Pressed;
-                                    change = true;
-                                }
-                            }
-                            Event::MouseMotion { delta, handled, .. } => {
-                                if !handled && rotating {
+                                if !handled && *button == Some(MouseButton::Left) {
                                     camera
                                         .rotate_around_with_fixed_up(
                                             &target,
