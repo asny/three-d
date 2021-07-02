@@ -1,3 +1,5 @@
+use crate::context::consts;
+
 ///
 /// A set of render specific states that has to be specified at each render call.
 ///
@@ -44,11 +46,12 @@ impl Default for RenderStates {
 /// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[repr(u32 /* GLenum */)]
 pub enum CullType {
-    None,
-    Back,
-    Front,
-    FrontAndBack,
+    None = 0,
+    Back = consts::BACK,
+    Front = consts::FRONT,
+    FrontAndBack = consts::FRONT_AND_BACK,
 }
 
 ///
@@ -61,15 +64,16 @@ pub enum CullType {
 /// [DepthTargetTexture2D](crate::DepthTargetTexture2D) or [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray).
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[repr(u32 /* GLenum */)]
 pub enum DepthTestType {
-    Never,
-    Less,
-    Equal,
-    LessOrEqual,
-    Greater,
-    NotEqual,
-    GreaterOrEqual,
-    Always,
+    Never = consts::NEVER,
+    Less = consts::LESS,
+    Equal = consts::EQUAL,
+    LessOrEqual = consts::LEQUAL,
+    Greater = consts::GREATER,
+    NotEqual = consts::NOTEQUAL,
+    GreaterOrEqual = consts::GEQUAL,
+    Always = consts::ALWAYS,
 }
 
 ///

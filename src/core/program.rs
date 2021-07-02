@@ -537,17 +537,9 @@ impl Program {
                     CullType::None => {
                         context.disable(consts::CULL_FACE);
                     }
-                    CullType::Back => {
+                    c => {
                         context.enable(consts::CULL_FACE);
-                        context.cull_face(consts::BACK);
-                    }
-                    CullType::Front => {
-                        context.enable(consts::CULL_FACE);
-                        context.cull_face(consts::FRONT);
-                    }
-                    CullType::FrontAndBack => {
-                        context.enable(consts::CULL_FACE);
-                        context.cull_face(consts::FRONT_AND_BACK);
+                        context.cull_face(c as _);
                     }
                 }
                 CURRENT_CULL = cull;
@@ -650,32 +642,7 @@ impl Program {
             }
 
             if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST {
-                match depth_test.unwrap() {
-                    DepthTestType::Never => {
-                        context.depth_func(consts::NEVER);
-                    }
-                    DepthTestType::Less => {
-                        context.depth_func(consts::LESS);
-                    }
-                    DepthTestType::Equal => {
-                        context.depth_func(consts::EQUAL);
-                    }
-                    DepthTestType::LessOrEqual => {
-                        context.depth_func(consts::LEQUAL);
-                    }
-                    DepthTestType::Greater => {
-                        context.depth_func(consts::GREATER);
-                    }
-                    DepthTestType::NotEqual => {
-                        context.depth_func(consts::NOTEQUAL);
-                    }
-                    DepthTestType::GreaterOrEqual => {
-                        context.depth_func(consts::GEQUAL);
-                    }
-                    DepthTestType::Always => {
-                        context.depth_func(consts::ALWAYS);
-                    }
-                }
+                context.depth_func(depth_test.unwrap() as _);
                 CURRENT_DEPTH_TEST = depth_test.unwrap();
             }
         }
