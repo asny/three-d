@@ -117,7 +117,7 @@ impl Screen {
             viewport.width,
             viewport.height,
             consts::RGBA,
-            consts::UNSIGNED_BYTE,
+            DataType::UNSIGNED_BYTE,
             &mut pixels,
         );
         Ok(pixels)
@@ -137,7 +137,7 @@ impl Screen {
             viewport.width,
             viewport.height,
             consts::DEPTH_COMPONENT,
-            consts::FLOAT,
+            DataType::FLOAT,
             &mut pixels,
         );
         Ok(pixels)

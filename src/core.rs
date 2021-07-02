@@ -104,6 +104,19 @@ impl Error {
     }
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[repr(u32)]
+pub enum DataType {
+    FLOAT = consts::FLOAT,
+    BYTE = consts::BYTE,
+    UNSIGNED_BYTE = consts::UNSIGNED_BYTE,
+    SHORT = consts::SHORT,
+    UNSIGNED_SHORT = consts::UNSIGNED_SHORT,
+    INT = consts::INT,
+    UNSIGNED_INT = consts::UNSIGNED_INT,
+}
+
 pub trait VertexBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
@@ -137,18 +150,19 @@ pub(crate) mod internal {
     use crate::context::{consts, Context};
     use crate::definition::*;
     use crate::math::*;
+    use crate::DataType;
 
     pub trait BufferDataTypeExtension: Clone {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32);
-        fn data_type() -> u32;
+        fn data_type() -> DataType;
     }
 
     impl BufferDataTypeExtension for u8 {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u8(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::UNSIGNED_BYTE
+        fn data_type() -> DataType {
+            DataType::UNSIGNED_BYTE
         }
     }
 
@@ -156,8 +170,8 @@ pub(crate) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u16(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::UNSIGNED_SHORT
+        fn data_type() -> DataType {
+            DataType::UNSIGNED_SHORT
         }
     }
 
@@ -165,8 +179,8 @@ pub(crate) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_f32(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::FLOAT
+        fn data_type() -> DataType {
+            DataType::FLOAT
         }
     }
 
@@ -174,8 +188,8 @@ pub(crate) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u32(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::UNSIGNED_INT
+        fn data_type() -> DataType {
+            DataType::UNSIGNED_INT
         }
     }
 
@@ -218,7 +232,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                consts::UNSIGNED_BYTE,
+                DataType::UNSIGNED_BYTE,
                 data,
             );
         }
@@ -230,7 +244,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                consts::UNSIGNED_BYTE,
+                DataType::UNSIGNED_BYTE,
                 pixels,
             );
         }
@@ -261,7 +275,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                consts::FLOAT,
+                DataType::FLOAT,
                 data,
             );
         }
@@ -273,7 +287,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                consts::FLOAT,
+                DataType::FLOAT,
                 pixels,
             );
         }
@@ -305,7 +319,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                consts::UNSIGNED_INT,
+                DataType::UNSIGNED_INT,
                 data,
             );
         }
@@ -316,7 +330,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                consts::UNSIGNED_INT,
+                DataType::UNSIGNED_INT,
                 pixels,
             );
         }
