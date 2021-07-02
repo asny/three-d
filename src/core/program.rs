@@ -1,4 +1,4 @@
-use crate::context::{consts, AttributeLocation, Context};
+use crate::context::{consts, AttributeLocation, Context, ShaderType};
 use crate::core::{Error::ProgramError, *};
 use crate::math::*;
 use std::cell::RefCell;
@@ -29,12 +29,12 @@ impl Program {
         fragment_shader_source: &str,
     ) -> Result<Program, Error> {
         let vert_shader = context
-            .create_shader(consts::VERTEX_SHADER)
+            .create_shader(ShaderType::Vertex)
             .ok_or(ProgramError {
                 message: "Unable to create Vertex shader object".to_string(),
             })?;
         let frag_shader = context
-            .create_shader(consts::FRAGMENT_SHADER)
+            .create_shader(ShaderType::Fragment)
             .ok_or(ProgramError {
                 message: "Unable to create Fragment shader object".to_string(),
             })?;
