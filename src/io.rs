@@ -31,8 +31,12 @@ mod obj;
 #[cfg(feature = "obj-io")]
 pub use obj::*;
 
+#[cfg(feature = "dae-io")]
+mod dae;
+
 #[cfg(feature = "gltf-io")]
 mod gltf;
+
 #[doc(inline)]
 #[cfg(feature = "gltf-io")]
 pub use self::gltf::*;

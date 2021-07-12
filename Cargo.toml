@@ -20,6 +20,7 @@ egui-gui = ["egui"] # Default window for desktop (only available when NOT buildi
 image-io = ["image"] # Additional image functionality, for example loading an image to a texture
 3d-io = ["serde", "bincode", "image-io"]
 obj-io = ["wavefront_obj", "image-io"]
+dae-io = ["collada", "image-io"]
 gltf-io = ["gltf", "image-io"]
 debug = [] # Prints OpenGL debug information (only available when NOT building for the wasm32 architecture)
 
@@ -31,6 +32,7 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 bincode = { version = "1.2", optional = true }
 gltf = { version = "0.15", features = ["utils"], optional = true }
 wavefront_obj = { version = "10.0", optional = true }
+collada = { version = "0.13.0", optional = true }
 image = { version = "0.23", optional = true, default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"]}
 egui = { version = "0.10", optional = true }
 
