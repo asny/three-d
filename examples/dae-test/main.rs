@@ -26,145 +26,140 @@ fn main() {
     )
     .unwrap();
 
-    Loader::load(
-        &[
-            "./examples/assets/sphere.dae",
-        ],
-        move |mut loaded| {
-            let (mut meshes, mut materials) = loaded.dae("./examples/assets/sphere.dae").unwrap();
-            let cpu_mesh = meshes.remove(0);
-            // let cpu_material = materials.remove(0);
-            let mut model = Mesh::new_with_material(
-                &context,
-                &cpu_mesh,
-                &Material::default(),
-                // &Material::new(&context, &cpu_material).unwrap(),
-            )
-            .unwrap();
-            model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-            model.cull = CullType::Back;
+    Loader::load(&["./examples/assets/sphere.dae"], move |mut loaded| {
+        let (mut meshes, mut materials) = loaded.dae("./examples/assets/sphere.dae").unwrap();
+        let cpu_mesh = meshes.remove(0);
+        // let cpu_material = materials.remove(0);
+        let mut model = Mesh::new_with_material(
+            &context,
+            &cpu_mesh,
+            &Material::default(),
+            // &Material::new(&context, &cpu_material).unwrap(),
+        )
+        .unwrap();
+        model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+        model.cull = CullType::Back;
 
-            let wireframe_material = Material {
-                name: "wireframe".to_string(),
-                color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
-                roughness: 0.5,
-                metallic: 0.9,
-                ..Default::default()
-            };
-            let mut edges = InstancedMesh::new_with_material(
-                &context,
-                &edge_transformations(&cpu_mesh),
-                &CPUMesh::cylinder(0.007, 1.0, 10),
-                &wireframe_material,
-            )
-            .unwrap();
-            edges.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-            edges.cull = CullType::Back;
+        let wireframe_material = Material {
+            name: "wireframe".to_string(),
+            color_source: ColorSource::Color(vec4(0.9, 0.2, 0.2, 1.0)),
+            roughness: 0.5,
+            metallic: 0.9,
+            ..Default::default()
+        };
+        let mut edges = InstancedMesh::new_with_material(
+            &context,
+            &edge_transformations(&cpu_mesh),
+            &CPUMesh::cylinder(0.007, 1.0, 10),
+            &wireframe_material,
+        )
+        .unwrap();
+        edges.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+        edges.cull = CullType::Back;
 
-            let mut vertices = InstancedMesh::new_with_material(
-                &context,
-                &vertex_transformations(&cpu_mesh),
-                &CPUMesh::sphere(0.015),
-                &wireframe_material,
-            )
-            .unwrap();
-            vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
-            vertices.cull = CullType::Back;
+        let mut vertices = InstancedMesh::new_with_material(
+            &context,
+            &vertex_transformations(&cpu_mesh),
+            &CPUMesh::sphere(0.015),
+            &wireframe_material,
+        )
+        .unwrap();
+        vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+        vertices.cull = CullType::Back;
 
-            let ambient_light = AmbientLight {
-                intensity: 0.7,
-                color: vec3(1.0, 1.0, 1.0),
-            };
-            let directional_light0 =
-                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
-                    .unwrap();
-            let directional_light1 =
-                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(1.0, 1.0, 1.0))
-                    .unwrap();
+        let ambient_light = AmbientLight {
+            intensity: 0.7,
+            color: vec3(1.0, 1.0, 1.0),
+        };
+        let directional_light0 =
+            DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                .unwrap();
+        let directional_light1 =
+            DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(1.0, 1.0, 1.0))
+                .unwrap();
 
-            // main loop
-            window
-                .render_loop(move |frame_input| {
-                    let mut redraw = frame_input.first_frame;
-                    redraw |= camera.set_viewport(frame_input.viewport).unwrap();
+        // main loop
+        window
+            .render_loop(move |frame_input| {
+                let mut redraw = frame_input.first_frame;
+                redraw |= camera.set_viewport(frame_input.viewport).unwrap();
 
-                    for event in frame_input.events.iter() {
-                        match event {
-                            Event::MouseMotion { delta, button, .. } => {
-                                if *button == Some(MouseButton::Left) {
-                                    camera
-                                        .rotate_around_with_fixed_up(
-                                            &target,
-                                            0.1 * delta.0 as f32,
-                                            0.1 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                    redraw = true;
-                                }
-                            }
-                            Event::MouseWheel { delta, .. } => {
+                for event in frame_input.events.iter() {
+                    match event {
+                        Event::MouseMotion { delta, button, .. } => {
+                            if *button == Some(MouseButton::Left) {
                                 camera
-                                    .zoom_towards(&target, 0.1 * delta.1 as f32, 1.0, 100.0)
+                                    .rotate_around_with_fixed_up(
+                                        &target,
+                                        0.1 * delta.0 as f32,
+                                        0.1 * delta.1 as f32,
+                                    )
                                     .unwrap();
                                 redraw = true;
                             }
-                            _ => {}
                         }
+                        Event::MouseWheel { delta, .. } => {
+                            camera
+                                .zoom_towards(&target, 0.1 * delta.1 as f32, 1.0, 100.0)
+                                .unwrap();
+                            redraw = true;
+                        }
+                        _ => {}
                     }
+                }
 
-                    if redraw {
-                        Screen::write(
-                            &context,
-                            ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
-                            || {
-                                model.render_with_lighting(
-                                    RenderStates::default(),
-                                    &camera,
-                                    Some(&ambient_light),
-                                    &[&directional_light0, &directional_light1],
-                                    &[],
-                                    &[],
-                                )?;
-                                vertices.render_with_lighting(
-                                    RenderStates::default(),
-                                    &camera,
-                                    Some(&ambient_light),
-                                    &[&directional_light0, &directional_light1],
-                                    &[],
-                                    &[],
-                                )?;
-                                edges.render_with_lighting(
-                                    RenderStates::default(),
-                                    &camera,
-                                    Some(&ambient_light),
-                                    &[&directional_light0, &directional_light1],
-                                    &[],
-                                    &[],
-                                )?;
-                                Ok(())
-                            },
-                        )
-                        .unwrap();
-                    }
+                if redraw {
+                    Screen::write(
+                        &context,
+                        ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
+                        || {
+                            model.render_with_lighting(
+                                RenderStates::default(),
+                                &camera,
+                                Some(&ambient_light),
+                                &[&directional_light0, &directional_light1],
+                                &[],
+                                &[],
+                            )?;
+                            vertices.render_with_lighting(
+                                RenderStates::default(),
+                                &camera,
+                                Some(&ambient_light),
+                                &[&directional_light0, &directional_light1],
+                                &[],
+                                &[],
+                            )?;
+                            edges.render_with_lighting(
+                                RenderStates::default(),
+                                &camera,
+                                Some(&ambient_light),
+                                &[&directional_light0, &directional_light1],
+                                &[],
+                                &[],
+                            )?;
+                            Ok(())
+                        },
+                    )
+                    .unwrap();
+                }
 
-                    if args.len() > 1 {
-                        // To automatically generate screenshots of the examples, can safely be ignored.
-                        FrameOutput {
-                            screenshot: Some(args[1].clone().into()),
-                            exit: true,
-                            ..Default::default()
-                        }
-                    } else {
-                        FrameOutput {
-                            swap_buffers: redraw,
-                            wait_next_event: true,
-                            ..Default::default()
-                        }
+                if args.len() > 1 {
+                    // To automatically generate screenshots of the examples, can safely be ignored.
+                    FrameOutput {
+                        screenshot: Some(args[1].clone().into()),
+                        exit: true,
+                        ..Default::default()
                     }
-                })
-                .unwrap();
-        },
-    );
+                } else {
+                    FrameOutput {
+                        swap_buffers: redraw,
+                        wait_next_event: true,
+                        ..Default::default()
+                    }
+                }
+            })
+            .unwrap();
+    });
 }
 
 fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
