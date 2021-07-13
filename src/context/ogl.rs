@@ -76,7 +76,11 @@ impl Context {
     }
 
     pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
-        let id = unsafe { self.inner.CreateShader(type_ as _) };
+        let type_ = match type_ {
+            ShaderType::Vertex => consts::VERTEX_SHADER,
+            ShaderType::Fragment => consts::FRAGMENT_SHADER,
+        };
+        let id = unsafe { self.inner.CreateShader(type_) };
         Some(Shader(id))
     }
 
