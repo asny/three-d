@@ -40,9 +40,9 @@ pub mod light;
 #[doc(inline)]
 pub use light::*;
 
-pub mod function;
+pub mod misc;
 #[doc(inline)]
-pub use function::*;
+pub use misc::*;
 
 pub mod io;
 #[doc(inline)]

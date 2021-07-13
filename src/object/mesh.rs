@@ -4,6 +4,7 @@ use crate::definition::*;
 use crate::math::*;
 use crate::object::*;
 use crate::shading::*;
+use crate::Color;
 use std::rc::Rc;
 
 ///
@@ -247,12 +248,12 @@ impl Mesh {
     ///
     pub fn render_with_color(
         &self,
-        color: &Vec4,
+        color: &Color,
         render_states: RenderStates,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
-        program.use_uniform_vec4("color", color)?;
+        program.use_uniform_vec4("color", &color.to_vec4())?;
         self.render(program, render_states, camera)
     }
 

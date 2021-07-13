@@ -12,19 +12,17 @@ fn main() {
     let context = window.gl().unwrap();
 
     // Renderer
-    let mut primary_camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(-200.0, 200.0, 100.0),
-            vec3(0.0, 100.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            10000.0,
-        )
-        .unwrap(),
-    );
+    let mut primary_camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(-200.0, 200.0, 100.0),
+        vec3(0.0, 100.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        10000.0,
+    )
+    .unwrap();
     // Static camera to view frustum culling in effect
     let mut secondary_camera = Camera::new_perspective(
         &context,
@@ -37,6 +35,11 @@ fn main() {
         10000.0,
     )
     .unwrap();
+    let mut control = OrbitControl::new(
+        *primary_camera.target(),
+        0.5 * primary_camera.target().distance(*primary_camera.position()),
+        5.0 * primary_camera.target().distance(*primary_camera.position()),
+    );
 
     // Models from http://texturedmesh.isti.cnr.it/
     Loader::load(
@@ -48,7 +51,7 @@ fn main() {
             "examples/assets/pfboy.mtl",
             "examples/assets/pfboy.png",
         ],
-        move |loaded| {
+        move |mut loaded| {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let statue_material = Material::new(&context, &statue_cpu_materials[0]).unwrap();
@@ -83,11 +86,15 @@ fn main() {
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
-                color: vec3(1.0, 1.0, 1.0),
+                color: Color::WHITE,
             };
-            let mut directional_light =
-                DirectionalLight::new(&context, 10.0, &vec3(0.8, 0.7, 0.5), &vec3(0.0, -1.0, -1.0))
-                    .unwrap();
+            let mut directional_light = DirectionalLight::new(
+                &context,
+                10.0,
+                Color::from_rgb(204, 178, 127),
+                &vec3(0.0, -1.0, -1.0),
+            )
+            .unwrap();
 
             directional_light
                 .generate_shadow_map(
@@ -104,34 +111,20 @@ fn main() {
                 .unwrap();
 
             // main loop
-            let mut rotating = false;
             let mut is_primary_camera = true;
             window
-                .render_loop(move |frame_input| {
+                .render_loop(move |mut frame_input| {
                     let mut redraw = frame_input.first_frame;
                     redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
                     redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
+                    redraw |= control
+                        .handle_events(&mut primary_camera, &mut frame_input.events)
+                        .unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick { state, button, .. } => {
-                                rotating = *button == MouseButton::Left && *state == State::Pressed;
-                            }
-                            Event::MouseMotion { delta, .. } => {
-                                if rotating {
-                                    let target = *primary_camera.target();
-                                    primary_camera
-                                        .rotate_around_with_fixed_up(
-                                            &target,
-                                            2.0 * delta.0 as f32,
-                                            2.0 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                    redraw = true;
-                                }
-                            }
-                            Event::Key { state, kind, .. } => {
-                                if *kind == Key::C && *state == State::Pressed {
+                            Event::KeyPress { kind, .. } => {
+                                if *kind == Key::C {
                                     is_primary_camera = !is_primary_camera;
                                     redraw = true;
                                 }

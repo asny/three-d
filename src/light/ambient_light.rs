@@ -1,17 +1,17 @@
-use crate::math::*;
+use crate::Color;
 
 ///
 /// A light which shines equally on all parts of any surface.
 ///
 pub struct AmbientLight {
-    pub color: Vec3,
+    pub color: Color,
     pub intensity: f32,
 }
 
 impl Default for AmbientLight {
     fn default() -> Self {
         Self {
-            color: vec3(1.0, 1.0, 1.0),
+            color: Color::WHITE,
             intensity: 1.0,
         }
     }

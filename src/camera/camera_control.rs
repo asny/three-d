@@ -1,142 +1,160 @@
 use crate::camera::*;
-use crate::core::Error;
+use crate::frame::*;
 use crate::math::*;
+use crate::Error;
 
-///
-/// 3D controls for a camera. Use this to add additional control functionality to a [camera](crate::Camera).
-///
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum CameraAction {
+    None,
+    Pitch {
+        speed: f32,
+    },
+    OrbitUp {
+        target: Vec3,
+        speed: f32,
+    },
+    Yaw {
+        speed: f32,
+    },
+    OrbitLeft {
+        target: Vec3,
+        speed: f32,
+    },
+    Roll {
+        speed: f32,
+    },
+    Left {
+        speed: f32,
+    },
+    Up {
+        speed: f32,
+    },
+    Forward {
+        speed: f32,
+    },
+    Zoom {
+        target: Vec3,
+        speed: f32,
+        min: f32,
+        max: f32,
+    },
+}
+
+impl std::default::Default for CameraAction {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
 pub struct CameraControl {
-    camera: Camera,
+    pub left_drag_horizontal: CameraAction,
+    pub left_drag_vertical: CameraAction,
+    pub middle_drag_horizontal: CameraAction,
+    pub middle_drag_vertical: CameraAction,
+    pub right_drag_horizontal: CameraAction,
+    pub right_drag_vertical: CameraAction,
+    pub scroll_horizontal: CameraAction,
+    pub scroll_vertical: CameraAction,
 }
 
 impl CameraControl {
-    ///
-    /// Extends the given camera with additional functionality for camera control.
-    ///
-    pub fn new(camera: Camera) -> Self {
-        Self { camera }
+    pub fn new() -> Self {
+        Self::default()
     }
 
-    ///
-    /// Translate the camera by the given change while keeping the same view and up directions.
-    ///
-    pub fn translate(&mut self, change: &Vec3) -> Result<(), Error> {
-        let position = *self.position();
-        let target = *self.target();
-        let up = *self.up();
-        self.set_view(position + change, target + change, up)?;
-        Ok(())
-    }
-
-    ///
-    /// Rotate the camera around the given point while keeping the same distance to the point.
-    /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
-    /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](crate::CameraControl::rotate_around_with_fixed_up) function instead.
-    ///
-    pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> Result<(), Error> {
-        let dir = (point - self.position()).normalize();
-        let right = dir.cross(*self.up());
-        let up = right.cross(dir);
-        let new_dir = (point - self.position() + right * x - up * y).normalize();
-        let rotation = rotation_matrix_from_dir_to_dir(dir, new_dir);
-        let new_position = (rotation * (self.position() - point).extend(1.0)).truncate() + point;
-        let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
-        self.set_view(new_position, new_target, up)?;
-        Ok(())
-    }
-
-    ///
-    /// Rotate the camera around the given point while keeping the same distance to the point and the same up direction.
-    /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
-    ///
-    pub fn rotate_around_with_fixed_up(
+    pub fn handle_events(
         &mut self,
-        point: &Vec3,
-        x: f32,
-        y: f32,
-    ) -> Result<(), Error> {
-        let dir = (point - self.position()).normalize();
-        let right = dir.cross(*self.up());
-        let mut up = right.cross(dir);
-        let new_dir = (point - self.position() + right * x - up * y).normalize();
-        up = *self.up();
-        if new_dir.dot(up).abs() < 0.999 {
-            let rotation = rotation_matrix_from_dir_to_dir(dir, new_dir);
-            let new_position =
-                (rotation * (self.position() - point).extend(1.0)).truncate() + point;
-            let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
-            self.set_view(new_position, new_target, up)?;
-        }
-        Ok(())
-    }
-
-    ///
-    /// Moves the camera in the plane orthogonal to the current view direction, which means the view and up directions will stay the same.
-    /// The input `x` specifies the amount of translation in the left direction and `y` specifies the amount of translation in the up direction.
-    ///
-    pub fn pan(&mut self, x: f32, y: f32) -> Result<(), Error> {
-        let right = self.right_direction();
-        let up = right.cross(self.view_direction());
-        let delta = -right * x + up * y;
-        self.translate(&delta)?;
-        Ok(())
-    }
-
-    ///
-    /// Moves the camera towards the given point by the amount delta while keeping the given minimum and maximum distance to the point.
-    ///
-    pub fn zoom_towards(
-        &mut self,
-        point: &Vec3,
-        delta: f32,
-        minimum_distance: f32,
-        maximum_distance: f32,
-    ) -> Result<(), Error> {
-        if minimum_distance <= 0.0 {
-            return Err(Error::CameraError {
-                message: "Zoom towards cannot take as input a negative minimum distance."
-                    .to_string(),
-            });
-        }
-        if maximum_distance < minimum_distance {
-            return Err(Error::CameraError {
-                message: "Zoom towards cannot take as input a maximum distance which is smaller than the minimum distance."
-                    .to_string(),
-            });
-        }
-        let position = *self.position();
-        let distance = point.distance(position);
-        let direction = (point - position).normalize();
-        let target = *self.target();
-        let up = *self.up();
-        let new_distance = (distance - delta)
-            .max(minimum_distance)
-            .min(maximum_distance);
-        let new_position = point - direction * new_distance;
-        self.set_view(new_position, new_position + (target - position), up)?;
-        match self.projection_type() {
-            ProjectionType::Orthographic { width: _, height } => {
-                let h = new_distance * height / distance;
-                let z_near = self.z_near();
-                let z_far = self.z_far();
-                self.set_orthographic_projection(h, z_near, z_far)?;
+        camera: &mut Camera,
+        events: &mut [Event],
+    ) -> Result<bool, Error> {
+        let mut change = false;
+        for event in events.iter_mut() {
+            match event {
+                Event::MouseMotion {
+                    delta,
+                    button,
+                    handled,
+                    ..
+                } => {
+                    if !*handled && button.is_some() {
+                        if let Some(b) = button {
+                            let (control_horizontal, control_vertical) = match b {
+                                MouseButton::Left => {
+                                    (self.left_drag_horizontal, self.left_drag_vertical)
+                                }
+                                MouseButton::Middle => {
+                                    (self.middle_drag_horizontal, self.middle_drag_vertical)
+                                }
+                                MouseButton::Right => {
+                                    (self.right_drag_horizontal, self.right_drag_vertical)
+                                }
+                            };
+                            *handled = self.handle_action(camera, control_horizontal, delta.0)?;
+                            *handled |= self.handle_action(camera, control_vertical, delta.1)?;
+                            change |= *handled;
+                        }
+                    }
+                }
+                Event::MouseWheel { delta, handled, .. } => {
+                    if !*handled {
+                        *handled = self.handle_action(camera, self.scroll_horizontal, delta.0)?;
+                        *handled |= self.handle_action(camera, self.scroll_vertical, delta.1)?;
+                        change |= *handled;
+                    }
+                }
+                _ => {}
             }
-            _ => {}
         }
-        Ok(())
+        Ok(change)
     }
-}
 
-impl std::ops::Deref for CameraControl {
-    type Target = Camera;
-
-    fn deref(&self) -> &Self::Target {
-        &self.camera
-    }
-}
-
-impl std::ops::DerefMut for CameraControl {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.camera
+    fn handle_action(
+        &mut self,
+        camera: &mut Camera,
+        control_type: CameraAction,
+        x: f64,
+    ) -> Result<bool, Error> {
+        match control_type {
+            CameraAction::Pitch { speed } => {
+                camera.pitch(radians(speed * x as f32))?;
+            }
+            CameraAction::OrbitUp { speed, target } => {
+                camera.rotate_around_with_fixed_up(&target, 0.0, speed * x as f32)?;
+            }
+            CameraAction::Yaw { speed } => {
+                camera.yaw(radians(speed * x as f32))?;
+            }
+            CameraAction::OrbitLeft { speed, target } => {
+                camera.rotate_around_with_fixed_up(&target, speed * x as f32, 0.0)?;
+            }
+            CameraAction::Roll { speed } => {
+                camera.roll(radians(speed * x as f32))?;
+            }
+            CameraAction::Left { speed } => {
+                let change = -camera.right_direction() * x as f32 * speed;
+                camera.translate(&change)?;
+            }
+            CameraAction::Up { speed } => {
+                let right = camera.right_direction();
+                let up = right.cross(camera.view_direction());
+                let change = up * x as f32 * speed;
+                camera.translate(&change)?;
+            }
+            CameraAction::Forward { speed } => {
+                let change = camera.view_direction() * speed * x as f32;
+                camera.translate(&change)?;
+            }
+            CameraAction::Zoom {
+                target,
+                speed,
+                min,
+                max,
+            } => {
+                camera.zoom_towards(&target, speed * x as f32, min, max)?;
+            }
+            CameraAction::None => {}
+        }
+        Ok(control_type != CameraAction::None)
     }
 }

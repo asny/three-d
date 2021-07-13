@@ -14,15 +14,15 @@ pub type Point = Point3<f32>;
 pub type Degrees = Deg<f32>;
 pub type Radians = Rad<f32>;
 
-pub fn vec2(x: f32, y: f32) -> Vec2 {
+pub const fn vec2(x: f32, y: f32) -> Vec2 {
     Vector2::new(x, y)
 }
 
-pub fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
+pub const fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
     Vector3::new(x, y, z)
 }
 
-pub fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
+pub const fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
     Vector4::new(x, y, z, w)
 }
 

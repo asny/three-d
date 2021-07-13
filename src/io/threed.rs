@@ -2,7 +2,7 @@ use crate::definition::*;
 use crate::io::*;
 use std::path::Path;
 
-impl<'a> Loaded<'a> {
+impl Loaded {
     ///
     /// Deserialize a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
     ///

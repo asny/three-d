@@ -11,20 +11,18 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let target = vec3(0.0, 0.0, 0.0);
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(4.0, 4.0, 5.0),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            1000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(4.0, 4.0, 5.0),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        1000.0,
+    )
+    .unwrap();
+    let mut control = FlyControl::new(0.05);
 
     Loader::load(
         &[
@@ -36,7 +34,7 @@ fn main() {
             "examples/assets/skybox_evening/left.jpg",
             "examples/assets/skybox_evening/right.jpg",
         ],
-        move |loaded| {
+        move |mut loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
             let mut monkey = Mesh::new_with_material(
@@ -49,10 +47,10 @@ fn main() {
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
-                color: vec3(1.0, 1.0, 1.0),
+                color: Color::WHITE,
             };
             let directional_light =
-                DirectionalLight::new(&context, 2.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
 
             // Fog
@@ -77,10 +75,9 @@ fn main() {
             .unwrap();
 
             // main loop
-            let mut rotating = false;
             let mut depth_texture = None;
             window
-                .render_loop(move |frame_input| {
+                .render_loop(move |mut frame_input| {
                     let mut change = frame_input.first_frame;
                     change |= camera.set_viewport(frame_input.viewport).unwrap();
                     if change {
@@ -96,32 +93,14 @@ fn main() {
                             .unwrap(),
                         );
                     }
+                    change |= control
+                        .handle_events(&mut camera, &mut frame_input.events)
+                        .unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseClick { state, button, .. } => {
-                                rotating = *button == MouseButton::Left && *state == State::Pressed;
-                            }
-                            Event::MouseMotion { delta, .. } => {
-                                if rotating {
-                                    camera
-                                        .rotate_around(
-                                            &target,
-                                            0.1 * delta.0 as f32,
-                                            0.1 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                    change = true;
-                                }
-                            }
-                            Event::MouseWheel { delta, .. } => {
-                                camera
-                                    .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
-                                    .unwrap();
-                                change = true;
-                            }
-                            Event::Key { state, kind, .. } => {
-                                if *kind == Key::F && *state == State::Pressed {
+                            Event::KeyPress { kind, .. } => {
+                                if *kind == Key::F {
                                     fog_enabled = !fog_enabled;
                                     change = true;
                                     println!("Fog: {:?}", fog_enabled);

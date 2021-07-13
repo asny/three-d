@@ -12,20 +12,18 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let target = vec3(0.0, 30.0, 0.0);
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(0.0, 30.0, 150.0),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            1000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(0.0, 30.0, 150.0),
+        vec3(0.0, 30.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        1000.0,
+    )
+    .unwrap();
+    let mut control = FlyControl::new(0.1);
 
     let mut rng = rand::thread_rng();
 
@@ -49,36 +47,14 @@ fn main() {
 
     // main loop
     let mut time = explosion_time + 100.0;
-    let mut rotating = false;
     let mut color_index = 0;
     window
-        .render_loop(move |frame_input| {
+        .render_loop(move |mut frame_input| {
             camera.set_viewport(frame_input.viewport).unwrap();
 
-            for event in frame_input.events.iter() {
-                match event {
-                    Event::MouseClick { state, button, .. } => {
-                        rotating = *button == MouseButton::Left && *state == State::Pressed;
-                    }
-                    Event::MouseMotion { delta, .. } => {
-                        if rotating {
-                            camera
-                                .rotate_around_with_fixed_up(
-                                    &target,
-                                    0.1 * delta.0 as f32,
-                                    0.1 * delta.1 as f32,
-                                )
-                                .unwrap();
-                        }
-                    }
-                    Event::MouseWheel { delta, .. } => {
-                        camera
-                            .zoom_towards(&target, 0.1 * delta.1 as f32, 0.1, 200.0)
-                            .unwrap();
-                    }
-                    _ => {}
-                }
-            }
+            control
+                .handle_events(&mut camera, &mut frame_input.events)
+                .unwrap();
             let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
             time += elapsed_time;
             if time > explosion_time {

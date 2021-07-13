@@ -11,20 +11,18 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let target = vec3(0.0, 6.0, 0.0);
-    let mut camera = CameraControl::new(
-        Camera::new_perspective(
-            &context,
-            window.viewport().unwrap(),
-            vec3(180.0, 40.0, 70.0),
-            target,
-            vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.1,
-            10000.0,
-        )
-        .unwrap(),
-    );
+    let mut camera = Camera::new_perspective(
+        &context,
+        window.viewport().unwrap(),
+        vec3(180.0, 40.0, 70.0),
+        vec3(0.0, 6.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        degrees(45.0),
+        0.1,
+        10000.0,
+    )
+    .unwrap();
+    let mut control = FlyControl::new(0.1);
 
     Loader::load(
         &[
@@ -33,7 +31,7 @@ fn main() {
             "examples/assets/Tree1Bark.jpg",
             "examples/assets/Tree1Leave.png",
         ],
-        move |loaded| {
+        move |mut loaded| {
             // Tree
             let (mut meshes, materials) = loaded.obj("examples/assets/Tree1.obj").unwrap();
             for mesh in meshes.iter_mut() {
@@ -77,10 +75,10 @@ fn main() {
             // Lights
             let ambient_light = AmbientLight {
                 intensity: 0.3,
-                color: vec3(1.0, 1.0, 1.0),
+                color: Color::WHITE,
             };
             let mut directional_light =
-                DirectionalLight::new(&context, 4.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
 
             // Imposters
@@ -161,38 +159,14 @@ fn main() {
                 .unwrap();
 
             // main loop
-            let mut rotating = false;
             window
-                .render_loop(move |frame_input| {
+                .render_loop(move |mut frame_input| {
                     let mut redraw = frame_input.first_frame;
                     redraw |= camera.set_viewport(frame_input.viewport).unwrap();
 
-                    for event in frame_input.events.iter() {
-                        match event {
-                            Event::MouseClick { state, button, .. } => {
-                                rotating = *button == MouseButton::Left && *state == State::Pressed;
-                            }
-                            Event::MouseMotion { delta, .. } => {
-                                if rotating {
-                                    camera
-                                        .rotate_around_with_fixed_up(
-                                            &target,
-                                            0.1 * delta.0 as f32,
-                                            0.1 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                    redraw = true;
-                                }
-                            }
-                            Event::MouseWheel { delta, .. } => {
-                                camera
-                                    .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 1000.0)
-                                    .unwrap();
-                                redraw = true;
-                            }
-                            _ => {}
-                        }
-                    }
+                    redraw |= control
+                        .handle_events(&mut camera, &mut frame_input.events)
+                        .unwrap();
 
                     if redraw {
                         Screen::write(

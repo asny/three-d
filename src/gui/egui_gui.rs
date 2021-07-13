@@ -63,7 +63,12 @@ impl GUI {
         for event in frame_input.events.iter_mut() {
             if self.egui_context.wants_pointer_input() {
                 match event {
-                    Event::MouseClick {
+                    Event::MousePress {
+                        ref mut handled, ..
+                    } => {
+                        *handled = true;
+                    }
+                    Event::MouseRelease {
                         ref mut handled, ..
                     } => {
                         *handled = true;
@@ -85,7 +90,12 @@ impl GUI {
 
             if self.egui_context.wants_keyboard_input() {
                 match event {
-                    Event::Key {
+                    Event::KeyRelease {
+                        ref mut handled, ..
+                    } => {
+                        *handled = true;
+                    }
+                    Event::KeyPress {
                         ref mut handled, ..
                     } => {
                         *handled = true;
@@ -223,22 +233,33 @@ fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
     let mut egui_events = Vec::new();
     for event in frame_input.events.iter() {
         match event {
-            Event::Key {
+            Event::KeyPress {
                 kind,
-                state,
                 modifiers,
                 handled,
             } => {
                 if !handled {
                     egui_events.push(egui::Event::Key {
                         key: translate_to_egui_key_code(kind),
-                        pressed: *state == State::Pressed,
+                        pressed: true,
                         modifiers: map_modifiers(modifiers),
                     });
                 }
             }
-            Event::MouseClick {
-                state,
+            Event::KeyRelease {
+                kind,
+                modifiers,
+                handled,
+            } => {
+                if !handled {
+                    egui_events.push(egui::Event::Key {
+                        key: translate_to_egui_key_code(kind),
+                        pressed: false,
+                        modifiers: map_modifiers(modifiers),
+                    });
+                }
+            }
+            Event::MousePress {
                 button,
                 position,
                 modifiers,
@@ -255,7 +276,29 @@ fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
                             MouseButton::Right => egui::PointerButton::Secondary,
                             MouseButton::Middle => egui::PointerButton::Middle,
                         },
-                        pressed: *state == State::Pressed,
+                        pressed: true,
+                        modifiers: map_modifiers(modifiers),
+                    });
+                }
+            }
+            Event::MouseRelease {
+                button,
+                position,
+                modifiers,
+                handled,
+            } => {
+                if !handled {
+                    egui_events.push(egui::Event::PointerButton {
+                        pos: egui::Pos2 {
+                            x: position.0 as f32,
+                            y: position.1 as f32,
+                        },
+                        button: match button {
+                            MouseButton::Left => egui::PointerButton::Primary,
+                            MouseButton::Right => egui::PointerButton::Secondary,
+                            MouseButton::Middle => egui::PointerButton::Middle,
+                        },
+                        pressed: false,
                         modifiers: map_modifiers(modifiers),
                     });
                 }
@@ -281,15 +324,7 @@ fn construct_input_state(frame_input: &mut FrameInput) -> egui::RawInput {
                     scroll_delta = egui::Vec2::new(delta.0 as f32, delta.1 as f32);
                 }
             }
-            Event::ModifiersChange { modifiers } => {
-                egui_modifiers = egui::Modifiers {
-                    alt: modifiers.alt == State::Pressed,
-                    ctrl: modifiers.ctrl == State::Pressed,
-                    shift: modifiers.shift == State::Pressed,
-                    mac_cmd: modifiers.command == State::Pressed,
-                    command: modifiers.command == State::Pressed,
-                }
-            }
+            Event::ModifiersChange { modifiers } => egui_modifiers = map_modifiers(modifiers),
             _ => (),
         }
     }
@@ -376,10 +411,10 @@ fn translate_to_egui_key_code(key: &crate::Key) -> egui::Key {
 
 fn map_modifiers(modifiers: &Modifiers) -> egui::Modifiers {
     egui::Modifiers {
-        alt: modifiers.alt == State::Pressed,
-        ctrl: modifiers.ctrl == State::Pressed,
-        shift: modifiers.shift == State::Pressed,
-        command: modifiers.command == State::Pressed,
-        mac_cmd: cfg!(target_os = "macos") && modifiers.command == State::Pressed,
+        alt: modifiers.alt,
+        ctrl: modifiers.ctrl,
+        shift: modifiers.shift,
+        command: modifiers.command,
+        mac_cmd: cfg!(target_os = "macos") && modifiers.command,
     }
 }

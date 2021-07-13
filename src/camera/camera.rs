@@ -1,6 +1,6 @@
 use crate::core::*;
-use crate::function::*;
 use crate::math::*;
+use crate::misc::*;
 use crate::object::*;
 
 pub(super) enum ProjectionType {
@@ -219,22 +219,19 @@ impl Camera {
     }
 
     ///
-    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate (in logical pixels) and the given geometries.
+    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     /// Returns ```None``` if no geometry was hit before the given maximum depth.
     ///
     pub fn pick(
         &self,
-        logical_pixel: (f64, f64),
-        device_pixel_ratio: f64,
+        pixel: (f32, f32),
         max_depth: f32,
         objects: &[&dyn Geometry],
     ) -> Result<Option<Vec3>, Error> {
-        let physical_pixel = (
-            (device_pixel_ratio * logical_pixel.0) as f32,
-            (device_pixel_ratio * logical_pixel.1) as f32,
-        );
-        let pos = self.position_at(physical_pixel);
-        let dir = self.view_direction_at(physical_pixel);
+        let pos = self.position_at_pixel(pixel);
+        let dir = self.view_direction_at_pixel(pixel);
         ray_intersect(&self.context, pos, dir, max_depth, objects)
     }
 
@@ -243,7 +240,7 @@ impl Camera {
     /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
     /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     ///
-    pub fn position_at(&self, pixel: (f32, f32)) -> Vec3 {
+    pub fn position_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { width, height, .. } => {
                 let coords = self.uv_coordinates_at_pixel(pixel);
@@ -258,7 +255,7 @@ impl Camera {
     /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
     /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     ///
-    pub fn view_direction_at(&self, pixel: (f32, f32)) -> Vec3 {
+    pub fn view_direction_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
             ProjectionType::Orthographic { .. } => self.view_direction(),
             ProjectionType::Perspective { .. } => {
@@ -289,7 +286,10 @@ impl Camera {
     ///
     pub fn uv_coordinates_at_position(&self, position: Vec3) -> (f32, f32) {
         let proj = self.projection() * self.view() * position.extend(1.0);
-        (0.5 * (proj.x / proj.w + 1.0), 0.5 * (proj.y / proj.w + 1.0))
+        (
+            0.5 * (proj.x / proj.w.abs() + 1.0),
+            0.5 * (proj.y / proj.w.abs() + 1.0),
+        )
     }
 
     pub(super) fn projection_type(&self) -> &ProjectionType {
@@ -346,7 +346,7 @@ impl Camera {
     }
 
     ///
-    /// Returns the up direction of this camera.
+    /// Returns the up direction of this camera (might not be orthogonal to the view direction).
     ///
     pub fn up(&self) -> &Vec3 {
         &self.up
@@ -432,5 +432,132 @@ impl Camera {
             vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z),
             vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z),
         ];
+    }
+
+    ///
+    /// Translate the camera by the given change while keeping the same view and up directions.
+    ///
+    pub fn translate(&mut self, change: &Vec3) -> Result<(), Error> {
+        self.set_view(self.position + change, self.target + change, self.up)?;
+        Ok(())
+    }
+
+    pub fn pitch(&mut self, delta: impl Into<Radians>) -> Result<(), Error> {
+        let target = (self.view.invert().unwrap()
+            * Mat4::from_angle_x(delta)
+            * self.view
+            * self.target.extend(1.0))
+        .truncate();
+        if (target - self.position).normalize().dot(self.up).abs() < 0.999 {
+            self.set_view(self.position, target, self.up)?;
+        }
+        Ok(())
+    }
+
+    pub fn yaw(&mut self, delta: impl Into<Radians>) -> Result<(), Error> {
+        let target = (self.view.invert().unwrap()
+            * Mat4::from_angle_y(delta)
+            * self.view
+            * self.target.extend(1.0))
+        .truncate();
+        self.set_view(self.position, target, self.up)?;
+        Ok(())
+    }
+
+    pub fn roll(&mut self, delta: impl Into<Radians>) -> Result<(), Error> {
+        let up = (self.view.invert().unwrap()
+            * Mat4::from_angle_z(delta)
+            * self.view
+            * (self.up + self.position).extend(1.0))
+        .truncate()
+            - self.position;
+        self.set_view(self.position, self.target, up.normalize())?;
+        Ok(())
+    }
+
+    ///
+    /// Rotate the camera around the given point while keeping the same distance to the point.
+    /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
+    /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](crate::Camera::rotate_around_with_fixed_up) function instead.
+    ///
+    pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> Result<(), Error> {
+        let dir = (point - self.position()).normalize();
+        let right = dir.cross(*self.up());
+        let up = right.cross(dir);
+        let new_dir = (point - self.position() + right * x - up * y).normalize();
+        let rotation = rotation_matrix_from_dir_to_dir(dir, new_dir);
+        let new_position = (rotation * (self.position() - point).extend(1.0)).truncate() + point;
+        let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
+        self.set_view(new_position, new_target, up)?;
+        Ok(())
+    }
+
+    ///
+    /// Rotate the camera around the given point while keeping the same distance to the point and the same up direction.
+    /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
+    ///
+    pub fn rotate_around_with_fixed_up(
+        &mut self,
+        point: &Vec3,
+        x: f32,
+        y: f32,
+    ) -> Result<(), Error> {
+        let dir = (point - self.position()).normalize();
+        let right = dir.cross(*self.up());
+        let mut up = right.cross(dir);
+        let new_dir = (point - self.position() + right * x - up * y).normalize();
+        up = *self.up();
+        if new_dir.dot(up).abs() < 0.999 {
+            let rotation = rotation_matrix_from_dir_to_dir(dir, new_dir);
+            let new_position =
+                (rotation * (self.position() - point).extend(1.0)).truncate() + point;
+            let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
+            self.set_view(new_position, new_target, up)?;
+        }
+        Ok(())
+    }
+
+    ///
+    /// Moves the camera towards the given point by the amount delta while keeping the given minimum and maximum distance to the point.
+    ///
+    pub fn zoom_towards(
+        &mut self,
+        point: &Vec3,
+        delta: f32,
+        minimum_distance: f32,
+        maximum_distance: f32,
+    ) -> Result<(), Error> {
+        if minimum_distance <= 0.0 {
+            return Err(Error::CameraError {
+                message: "Zoom towards cannot take as input a negative minimum distance."
+                    .to_string(),
+            });
+        }
+        if maximum_distance < minimum_distance {
+            return Err(Error::CameraError {
+                message: "Zoom towards cannot take as input a maximum distance which is smaller than the minimum distance."
+                    .to_string(),
+            });
+        }
+        let position = *self.position();
+        let distance = point.distance(position);
+        let direction = (point - position).normalize();
+        let target = *self.target();
+        let up = *self.up();
+        let new_distance = (distance - delta)
+            .max(minimum_distance)
+            .min(maximum_distance);
+        let new_position = point - direction * new_distance;
+        self.set_view(new_position, new_position + (target - position), up)?;
+        match self.projection_type() {
+            ProjectionType::Orthographic { width: _, height } => {
+                let h = new_distance * height / distance;
+                let z_near = self.z_near();
+                let z_far = self.z_far();
+                self.set_orthographic_projection(h, z_near, z_far)?;
+            }
+            _ => {}
+        }
+        Ok(())
     }
 }

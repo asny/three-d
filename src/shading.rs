@@ -191,7 +191,7 @@ fn bind_lights(
     program.use_uniform_vec3(
         "ambientColor",
         &ambient_light
-            .map(|light| light.color * light.intensity)
+            .map(|light| light.color.to_vec3() * light.intensity)
             .unwrap_or(vec3(0.0, 0.0, 0.0)),
     )?;
 

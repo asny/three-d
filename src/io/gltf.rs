@@ -3,7 +3,7 @@ use crate::io::*;
 use ::gltf::Gltf;
 use std::path::Path;
 
-impl<'a> Loaded<'a> {
+impl Loaded {
     pub fn gltf(
         &mut self,
         path: impl AsRef<Path>,
