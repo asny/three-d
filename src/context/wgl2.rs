@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext as InnerGl;
 pub type consts = InnerGl;
 
 pub type AttributeLocation = u32;
-use crate::context::ShaderType;
+use crate::context::{DataType, ShaderType};
 pub use web_sys::WebGlActiveInfo as ActiveInfo;
 pub use web_sys::WebGlBuffer as Buffer;
 pub use web_sys::WebGlFramebuffer as Framebuffer;
@@ -99,11 +99,7 @@ impl Context {
     }
 
     pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
-        let type_ = match type_ {
-            ShaderType::Vertex => consts::VERTEX_SHADER,
-            ShaderType::Fragment => consts::FRAGMENT_SHADER,
-        };
-        self.inner.create_shader(type_)
+        self.inner.create_shader(type_.to_const())
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {
@@ -183,7 +179,7 @@ impl Context {
         height: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
     ) {
         self.inner
             .tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
@@ -194,7 +190,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 None,
             )
             .unwrap();
@@ -209,7 +205,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u8],
     ) {
         self.inner
@@ -221,7 +217,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(pixels),
             )
             .unwrap();
@@ -236,7 +232,7 @@ impl Context {
         height: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u8],
     ) {
         self.inner
@@ -248,7 +244,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(pixels),
             )
             .unwrap();
@@ -263,7 +259,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[f32],
     ) {
         use wasm_bindgen::JsCast;
@@ -284,7 +280,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -299,7 +295,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u32],
     ) {
         use wasm_bindgen::JsCast;
@@ -320,7 +316,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -335,7 +331,7 @@ impl Context {
         height: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[f32],
     ) {
         use wasm_bindgen::JsCast;
@@ -356,7 +352,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -372,7 +368,7 @@ impl Context {
         depth: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u16],
     ) {
         use wasm_bindgen::JsCast;
@@ -394,7 +390,7 @@ impl Context {
                 depth as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -441,7 +437,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         dst_data: &mut [u8],
     ) {
         self.inner
@@ -451,7 +447,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(dst_data),
             )
             .unwrap()
@@ -464,7 +460,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         dst_data: &mut [f32],
     ) {
         use wasm_bindgen::JsCast;
@@ -482,7 +478,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -495,7 +491,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         dst_data: &mut [u32],
     ) {
         use wasm_bindgen::JsCast;
@@ -513,7 +509,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -552,23 +548,23 @@ impl Context {
         );
     }
 
-    pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32) {
+    pub fn draw_elements(&self, mode: u32, count: u32, data_type: DataType, offset: u32) {
         self.inner
-            .draw_elements_with_i32(mode, count as i32, data_type, offset as i32);
+            .draw_elements_with_i32(mode, count as i32, data_type.to_const(), offset as i32);
     }
 
     pub fn draw_elements_instanced(
         &self,
         mode: u32,
         count: u32,
-        data_type: u32,
+        data_type: DataType,
         offset: u32,
         instance_count: u32,
     ) {
         self.inner.draw_elements_instanced_with_i32(
             mode,
             count as i32,
-            data_type,
+            data_type.to_const(),
             offset as i32,
             instance_count as i32,
         );
@@ -672,7 +668,7 @@ impl Context {
         &self,
         location: AttributeLocation,
         size: u32,
-        data_type: u32,
+        data_type: DataType,
         normalized: bool,
         stride: u32,
         offset: u32,
@@ -680,10 +676,10 @@ impl Context {
         self.inner.vertex_attrib_pointer_with_i32(
             location,
             size as i32,
-            data_type,
+            data_type.to_const(),
             normalized,
-            byte_size_for_type(data_type, stride) as i32,
-            byte_size_for_type(data_type, offset) as i32,
+            (stride * data_type.byte_size()) as i32,
+            (offset * data_type.byte_size()) as i32,
         );
     }
 
@@ -723,15 +719,25 @@ impl std::ops::Deref for Context {
     }
 }
 
-pub fn byte_size_for_type(data_type: u32, count: u32) -> u32 {
-    match data_type {
-        consts::FLOAT => count * std::mem::size_of::<f32>() as u32,
-        consts::UNSIGNED_BYTE => count * std::mem::size_of::<u8>() as u32,
-        consts::UNSIGNED_SHORT => count * std::mem::size_of::<u16>() as u32,
-        consts::UNSIGNED_INT => count * std::mem::size_of::<u32>() as u32,
-        consts::BYTE => count * std::mem::size_of::<i8>() as u32,
-        consts::SHORT => count * std::mem::size_of::<i16>() as u32,
-        consts::INT => count * std::mem::size_of::<i32>() as u32,
-        _ => unimplemented!(),
+impl ShaderType {
+    fn to_const(&self) -> u32 {
+        match self {
+            ShaderType::Vertex => consts::VERTEX_SHADER,
+            ShaderType::Fragment => consts::FRAGMENT_SHADER,
+        }
+    }
+}
+
+impl DataType {
+    fn to_const(&self) -> u32 {
+        match self {
+            DataType::Float => consts::FLOAT,
+            DataType::Byte => consts::BYTE,
+            DataType::UnsignedByte => consts::UNSIGNED_BYTE,
+            DataType::Short => consts::SHORT,
+            DataType::UnsignedShort => consts::UNSIGNED_SHORT,
+            DataType::Int => consts::INT,
+            DataType::UnsignedInt => consts::UNSIGNED_INT,
+        }
     }
 }

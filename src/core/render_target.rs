@@ -1,4 +1,4 @@
-use crate::context::{consts, Context};
+use crate::context::{consts, Context, DataType};
 use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
@@ -117,7 +117,7 @@ impl Screen {
             viewport.width,
             viewport.height,
             consts::RGBA,
-            consts::UNSIGNED_BYTE,
+            DataType::UnsignedByte,
             &mut pixels,
         );
         Ok(pixels)
@@ -137,7 +137,7 @@ impl Screen {
             viewport.width,
             viewport.height,
             consts::DEPTH_COMPONENT,
-            consts::FLOAT,
+            DataType::Float,
             &mut pixels,
         );
         Ok(pixels)

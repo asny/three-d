@@ -134,21 +134,21 @@ impl ElementBufferDataType for u32 {
 }
 
 pub(crate) mod internal {
-    use crate::context::{consts, Context};
+    use crate::context::{consts, Context, DataType};
     use crate::definition::*;
     use crate::math::*;
 
     pub trait BufferDataTypeExtension: Clone {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32);
-        fn data_type() -> u32;
+        fn data_type() -> DataType;
     }
 
     impl BufferDataTypeExtension for u8 {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u8(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::UNSIGNED_BYTE
+        fn data_type() -> DataType {
+            DataType::UnsignedByte
         }
     }
 
@@ -156,8 +156,8 @@ pub(crate) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u16(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::UNSIGNED_SHORT
+        fn data_type() -> DataType {
+            DataType::UnsignedShort
         }
     }
 
@@ -165,8 +165,8 @@ pub(crate) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_f32(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::FLOAT
+        fn data_type() -> DataType {
+            DataType::Float
         }
     }
 
@@ -174,8 +174,8 @@ pub(crate) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u32(target, data, usage);
         }
-        fn data_type() -> u32 {
-            crate::context::consts::UNSIGNED_INT
+        fn data_type() -> DataType {
+            DataType::UnsignedInt
         }
     }
 
@@ -218,7 +218,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                consts::UNSIGNED_BYTE,
+                DataType::UnsignedByte,
                 data,
             );
         }
@@ -230,7 +230,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                consts::UNSIGNED_BYTE,
+                DataType::UnsignedByte,
                 pixels,
             );
         }
@@ -261,7 +261,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                consts::FLOAT,
+                DataType::Float,
                 data,
             );
         }
@@ -273,7 +273,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                consts::FLOAT,
+                DataType::Float,
                 pixels,
             );
         }
@@ -305,7 +305,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                consts::UNSIGNED_INT,
+                DataType::UnsignedInt,
                 data,
             );
         }
@@ -316,7 +316,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                consts::UNSIGNED_INT,
+                DataType::UnsignedInt,
                 pixels,
             );
         }

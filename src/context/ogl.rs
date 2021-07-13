@@ -4,7 +4,7 @@ pub mod consts {
 
 use std::rc::Rc;
 
-use crate::context::ShaderType;
+use crate::context::{DataType, ShaderType};
 use consts::Gl as InnerGl;
 
 #[derive(Copy, Clone, Debug)]
@@ -76,11 +76,7 @@ impl Context {
     }
 
     pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
-        let type_ = match type_ {
-            ShaderType::Vertex => consts::VERTEX_SHADER,
-            ShaderType::Fragment => consts::FRAGMENT_SHADER,
-        };
-        let id = unsafe { self.inner.CreateShader(type_) };
+        let id = unsafe { self.inner.CreateShader(type_.to_const()) };
         Some(Shader(id))
     }
 
@@ -400,7 +396,7 @@ impl Context {
         &self,
         location: AttributeLocation,
         size: u32,
-        data_type: u32,
+        data_type: DataType,
         normalized: bool,
         stride: u32,
         offset: u32,
@@ -409,10 +405,10 @@ impl Context {
             self.inner.VertexAttribPointer(
                 location.0 as consts::types::GLuint, // index of the generic vertex attribute
                 size as consts::types::GLint, // the number of components per generic vertex attribute
-                data_type as consts::types::GLenum, // data type
+                data_type.to_const(),         // data type
                 normalized as consts::types::GLboolean, // normalized (int-to-float conversion)
-                byte_size_for_type(data_type, stride) as consts::types::GLint, // stride (byte offset between consecutive attributes)
-                byte_size_for_type(data_type, offset) as *const consts::types::GLvoid, // offset of the first component
+                (stride * data_type.byte_size()) as consts::types::GLint, // stride (byte offset between consecutive attributes)
+                (offset * data_type.byte_size()) as *const consts::types::GLvoid, // offset of the first component
             );
         }
     }
@@ -755,7 +751,7 @@ impl Context {
         height: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
     ) {
         unsafe {
             self.inner.TexImage2D(
@@ -766,7 +762,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 std::ptr::null() as *const consts::types::GLvoid,
             );
         }
@@ -781,7 +777,7 @@ impl Context {
         height: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u8],
     ) {
         unsafe {
@@ -793,7 +789,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 pixels.as_ptr() as *const consts::types::GLvoid,
             );
         }
@@ -808,7 +804,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u8],
     ) {
         unsafe {
@@ -820,7 +816,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 pixels.as_ptr() as *const consts::types::GLvoid,
             );
         }
@@ -835,7 +831,7 @@ impl Context {
         height: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[f32],
     ) {
         unsafe {
@@ -847,7 +843,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 pixels.as_ptr() as *const consts::types::GLvoid,
             );
         }
@@ -862,7 +858,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[f32],
     ) {
         unsafe {
@@ -874,7 +870,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 pixels.as_ptr() as *const consts::types::GLvoid,
             );
         }
@@ -889,7 +885,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u32],
     ) {
         unsafe {
@@ -901,7 +897,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 pixels.as_ptr() as *const consts::types::GLvoid,
             );
         }
@@ -916,7 +912,7 @@ impl Context {
         height: u32,
         depth: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
     ) {
         unsafe {
             self.inner.TexImage3D(
@@ -928,7 +924,7 @@ impl Context {
                 depth as i32,
                 0,
                 format,
-                data_type,
+                data_type.to_const(),
                 std::ptr::null() as *const consts::types::GLvoid,
             );
         }
@@ -944,7 +940,7 @@ impl Context {
         depth: u32,
         border: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         pixels: &[u16],
     ) {
         unsafe {
@@ -957,7 +953,7 @@ impl Context {
                 depth as i32,
                 border as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 pixels.as_ptr() as *const consts::types::GLvoid,
             );
         }
@@ -1029,13 +1025,13 @@ impl Context {
         }
     }
 
-    pub fn draw_elements(&self, mode: u32, count: u32, data_type: u32, offset: u32) {
+    pub fn draw_elements(&self, mode: u32, count: u32, data_type: DataType, offset: u32) {
         unsafe {
             self.inner.DrawElements(
                 mode as consts::types::GLenum,
                 count as consts::types::GLint, // number of indices to be rendered
-                data_type as consts::types::GLenum,
-                byte_size_for_type(data_type, offset) as *const consts::types::GLvoid, // starting index in the enabled arrays
+                data_type.to_const(),
+                (offset * data_type.byte_size()) as *const consts::types::GLvoid, // starting index in the enabled arrays
             );
         }
     }
@@ -1044,7 +1040,7 @@ impl Context {
         &self,
         mode: u32,
         count: u32,
-        data_type: u32,
+        data_type: DataType,
         offset: u32,
         instance_count: u32,
     ) {
@@ -1052,8 +1048,8 @@ impl Context {
             self.inner.DrawElementsInstanced(
                 mode as consts::types::GLenum,
                 count as consts::types::GLint, // number of indices to be rendered
-                data_type as consts::types::GLenum,
-                byte_size_for_type(data_type, offset) as *const consts::types::GLvoid, // starting index in the enabled arrays
+                data_type.to_const(),
+                (offset * data_type.byte_size()) as *const consts::types::GLvoid, // starting index in the enabled arrays
                 instance_count as consts::types::GLint,
             );
         }
@@ -1066,7 +1062,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
     ) {
         unsafe {
             self.inner.ReadPixels(
@@ -1075,7 +1071,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 0 as *mut consts::types::GLvoid,
             );
         }
@@ -1088,7 +1084,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         dst_data: &mut [u8],
     ) {
         unsafe {
@@ -1098,7 +1094,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 dst_data.as_ptr() as *mut consts::types::GLvoid,
             )
         }
@@ -1111,7 +1107,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         dst_data: &mut [f32],
     ) {
         unsafe {
@@ -1121,7 +1117,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 dst_data.as_ptr() as *mut consts::types::GLvoid,
             )
         }
@@ -1134,7 +1130,7 @@ impl Context {
         width: u32,
         height: u32,
         format: u32,
-        data_type: u32,
+        data_type: DataType,
         dst_data: &mut [u32],
     ) {
         unsafe {
@@ -1144,7 +1140,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type,
+                data_type.to_const(),
                 dst_data.as_ptr() as *mut consts::types::GLvoid,
             )
         }
@@ -1180,15 +1176,25 @@ fn create_whitespace_cstring_with_len(len: usize) -> std::ffi::CString {
     unsafe { std::ffi::CString::from_vec_unchecked(buffer) }
 }
 
-fn byte_size_for_type(data_type: u32, count: u32) -> u32 {
-    match data_type {
-        consts::FLOAT => count * std::mem::size_of::<f32>() as u32,
-        consts::UNSIGNED_BYTE => count * std::mem::size_of::<u8>() as u32,
-        consts::UNSIGNED_SHORT => count * std::mem::size_of::<u16>() as u32,
-        consts::UNSIGNED_INT => count * std::mem::size_of::<u32>() as u32,
-        consts::BYTE => count * std::mem::size_of::<i8>() as u32,
-        consts::SHORT => count * std::mem::size_of::<i16>() as u32,
-        consts::INT => count * std::mem::size_of::<i32>() as u32,
-        _ => unimplemented!(),
+impl ShaderType {
+    fn to_const(&self) -> u32 {
+        match self {
+            ShaderType::Vertex => consts::VERTEX_SHADER,
+            ShaderType::Fragment => consts::FRAGMENT_SHADER,
+        }
+    }
+}
+
+impl DataType {
+    fn to_const(&self) -> u32 {
+        match self {
+            DataType::Float => consts::FLOAT,
+            DataType::Byte => consts::BYTE,
+            DataType::UnsignedByte => consts::UNSIGNED_BYTE,
+            DataType::Short => consts::SHORT,
+            DataType::UnsignedShort => consts::UNSIGNED_SHORT,
+            DataType::Int => consts::INT,
+            DataType::UnsignedInt => consts::UNSIGNED_INT,
+        }
     }
 }
