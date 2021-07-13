@@ -4,6 +4,7 @@ use web_sys::WebGl2RenderingContext as InnerGl;
 pub type consts = InnerGl;
 
 pub type AttributeLocation = u32;
+use crate::context::ShaderType;
 use crate::DataType;
 pub use web_sys::WebGlActiveInfo as ActiveInfo;
 pub use web_sys::WebGlBuffer as Buffer;
@@ -96,6 +97,14 @@ impl Context {
 
         self.inner
             .buffer_data_with_array_buffer_view(target, &array, usage);
+    }
+
+    pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
+        let type_ = match type_ {
+            ShaderType::Vertex => consts::VERTEX_SHADER,
+            ShaderType::Fragment => consts::FRAGMENT_SHADER,
+        };
+        self.inner.create_shader(type_)
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {

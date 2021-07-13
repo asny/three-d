@@ -4,6 +4,7 @@ pub mod consts {
 
 use std::rc::Rc;
 
+use crate::context::ShaderType;
 use crate::DataType;
 use consts::Gl as InnerGl;
 
@@ -75,7 +76,11 @@ impl Context {
         }
     }
 
-    pub fn create_shader(&self, type_: u32) -> Option<Shader> {
+    pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
+        let type_ = match type_ {
+            ShaderType::Vertex => consts::VERTEX_SHADER,
+            ShaderType::Fragment => consts::FRAGMENT_SHADER,
+        };
         let id = unsafe { self.inner.CreateShader(type_) };
         Some(Shader(id))
     }
