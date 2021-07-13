@@ -99,7 +99,11 @@ impl Context {
     }
 
     pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
-        self.inner.create_shader(type_ as _)
+        let type_ = match type_ {
+            ShaderType::Vertex => consts::VERTEX_SHADER,
+            ShaderType::Fragment => consts::FRAGMENT_SHADER,
+        };
+        self.inner.create_shader(type_)
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {
