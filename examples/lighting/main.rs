@@ -57,19 +57,17 @@ fn main() {
             .unwrap();
 
             let ambient_light = AmbientLight {
-                color: vec3(1.0, 1.0, 1.0),
+                color: Color::WHITE,
                 intensity: 0.2,
             };
             let mut directional_light0 =
-                DirectionalLight::new(&context, 1.0, &vec3(1.0, 0.0, 0.0), &vec3(0.0, -1.0, 0.0))
-                    .unwrap();
+                DirectionalLight::new(&context, 1.0, Color::RED, &vec3(0.0, -1.0, 0.0)).unwrap();
             let mut directional_light1 =
-                DirectionalLight::new(&context, 1.0, &vec3(0.0, 1.0, 0.0), &vec3(0.0, -1.0, 0.0))
-                    .unwrap();
+                DirectionalLight::new(&context, 1.0, Color::GREEN, &vec3(0.0, -1.0, 0.0)).unwrap();
             let mut point_light0 = PointLight::new(
                 &context,
                 1.0,
-                &vec3(0.0, 1.0, 0.0),
+                Color::GREEN,
                 &vec3(0.0, 0.0, 0.0),
                 0.5,
                 0.05,
@@ -79,7 +77,7 @@ fn main() {
             let mut point_light1 = PointLight::new(
                 &context,
                 1.0,
-                &vec3(1.0, 0.0, 0.0),
+                Color::RED,
                 &vec3(0.0, 0.0, 0.0),
                 0.5,
                 0.05,
@@ -89,7 +87,7 @@ fn main() {
             let mut spot_light = SpotLight::new(
                 &context,
                 2.0,
-                &vec3(0.0, 0.0, 1.0),
+                Color::BLUE,
                 &vec3(0.0, 0.0, 0.0),
                 &vec3(0.0, -1.0, 0.0),
                 25.0,

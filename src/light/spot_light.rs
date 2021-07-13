@@ -2,6 +2,7 @@ use crate::camera::*;
 use crate::core::*;
 use crate::definition::*;
 use crate::math::*;
+use crate::misc::*;
 use crate::object::*;
 
 ///
@@ -19,7 +20,7 @@ impl SpotLight {
     pub fn new(
         context: &Context,
         intensity: f32,
-        color: &Vec3,
+        color: Color,
         position: &Vec3,
         direction: &Vec3,
         cutoff: f32,
@@ -54,8 +55,8 @@ impl SpotLight {
         Ok(light)
     }
 
-    pub fn set_color(&mut self, color: &Vec3) {
-        self.light_buffer.update(0, &color.to_slice()).unwrap();
+    pub fn set_color(&mut self, color: Color) {
+        self.light_buffer.update(0, &color.to_rgb_slice()).unwrap();
     }
 
     pub fn set_intensity(&mut self, intensity: f32) {

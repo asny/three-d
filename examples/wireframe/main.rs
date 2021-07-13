@@ -74,14 +74,13 @@ fn main() {
 
             let ambient_light = AmbientLight {
                 intensity: 0.7,
-                color: vec3(1.0, 1.0, 1.0),
+                color: Color::WHITE,
             };
             let directional_light0 =
-                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(-1.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
             let directional_light1 =
-                DirectionalLight::new(&context, 1.0, &vec3(1.0, 1.0, 1.0), &vec3(1.0, 1.0, 1.0))
-                    .unwrap();
+                DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
 
             // main loop
             window

@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::math::*;
+use crate::misc::*;
 
 ///
 /// A light which shines from the given position in all directions.
@@ -12,7 +13,7 @@ impl PointLight {
     pub fn new(
         context: &Context,
         intensity: f32,
-        color: &Vec3,
+        color: Color,
         position: &Vec3,
         attenuation_constant: f32,
         attenuation_linear: f32,
@@ -33,8 +34,8 @@ impl PointLight {
         Ok(light)
     }
 
-    pub fn set_color(&mut self, color: &Vec3) {
-        self.light_buffer.update(0, &color.to_slice()).unwrap();
+    pub fn set_color(&mut self, color: Color) {
+        self.light_buffer.update(0, &color.to_rgb_slice()).unwrap();
     }
 
     pub fn set_intensity(&mut self, intensity: f32) {

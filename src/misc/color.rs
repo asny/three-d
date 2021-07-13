@@ -15,29 +15,29 @@ pub struct Color {
 }
 
 impl Color {
-    /// Opaque red
-    pub const RED: Color = Color {
-        r: 255,
-        g: 0,
-        b: 0,
-        a: 255,
-    };
-    /// Opaque green
-    pub const GREEN: Color = Color {
-        r: 0,
-        g: 255,
-        b: 0,
-        a: 255,
-    };
-    /// Opaque blue
-    pub const BLUE: Color = Color {
-        r: 0,
-        g: 0,
-        b: 255,
-        a: 255,
-    };
+    pub const fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+        Self { r, g, b, a: 255 }
+    }
 
-    /// Convert to [`Vec4`] by mapping each component to range `0.0..=1.0`.
+    /// Opaque red
+    pub const RED: Color = Color::from_rgb(255, 0, 0);
+    /// Opaque green
+    pub const GREEN: Color = Color::from_rgb(0, 255, 0);
+    /// Opaque blue
+    pub const BLUE: Color = Color::from_rgb(0, 0, 255);
+    /// Opaque white
+    pub const WHITE: Color = Color::from_rgb(255, 255, 255);
+
+    /// Convert to [`Vec3`] by mapping the red, green and blue component to the range `0.0..=1.0`.
+    pub fn to_vec3(&self) -> Vec3 {
+        vec3(
+            self.r as f32 / 255.0,
+            self.g as f32 / 255.0,
+            self.b as f32 / 255.0,
+        )
+    }
+
+    /// Convert to [`Vec4`] by mapping each component to the range `0.0..=1.0`.
     pub fn to_vec4(&self) -> Vec4 {
         vec4(
             self.r as f32 / 255.0,
@@ -45,5 +45,24 @@ impl Color {
             self.b as f32 / 255.0,
             self.a as f32 / 255.0,
         )
+    }
+
+    /// Convert to a slice by mapping the red, green and blue component to the range `0.0..=1.0`.
+    pub fn to_rgb_slice(&self) -> [f32; 3] {
+        [
+            self.r as f32 / 255.0,
+            self.g as f32 / 255.0,
+            self.b as f32 / 255.0,
+        ]
+    }
+
+    /// Convert to a slice by mapping each component to the range `0.0..=1.0`.
+    pub fn to_rgba_slice(&self) -> [f32; 4] {
+        [
+            self.r as f32 / 255.0,
+            self.g as f32 / 255.0,
+            self.b as f32 / 255.0,
+            self.a as f32 / 255.0,
+        ]
     }
 }

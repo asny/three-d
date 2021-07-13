@@ -89,11 +89,10 @@ fn main() {
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
-                color: vec3(1.0, 1.0, 1.0),
+                color: Color::WHITE,
             };
             let directional_light =
-                DirectionalLight::new(&context, 2.0, &vec3(1.0, 1.0, 1.0), &vec3(0.0, -1.0, -1.0))
-                    .unwrap();
+                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
 
             let axes = Axes::new(&context, 0.1, 3.0).unwrap();
             // main loop
