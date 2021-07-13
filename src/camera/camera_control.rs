@@ -3,7 +3,6 @@ use crate::frame::*;
 use crate::math::*;
 use crate::Error;
 
-// TODO: Add min/max
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CameraAction {
     None,
