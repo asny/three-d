@@ -35,6 +35,11 @@ fn main() {
         10000.0,
     )
     .unwrap();
+    let mut control = OrbitControl::new(
+        *primary_camera.target(),
+        0.5 * primary_camera.target().distance(*primary_camera.position()),
+        5.0 * primary_camera.target().distance(*primary_camera.position()),
+    );
 
     // Models from http://texturedmesh.isti.cnr.it/
     Loader::load(
@@ -104,26 +109,16 @@ fn main() {
             // main loop
             let mut is_primary_camera = true;
             window
-                .render_loop(move |frame_input| {
+                .render_loop(move |mut frame_input| {
                     let mut redraw = frame_input.first_frame;
                     redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
                     redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
+                    redraw |= control
+                        .handle_events(&mut primary_camera, &mut frame_input.events)
+                        .unwrap();
 
                     for event in frame_input.events.iter() {
                         match event {
-                            Event::MouseMotion { delta, button, .. } => {
-                                if *button == Some(MouseButton::Left) {
-                                    let target = *primary_camera.target();
-                                    primary_camera
-                                        .rotate_around_with_fixed_up(
-                                            &target,
-                                            2.0 * delta.0 as f32,
-                                            2.0 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                    redraw = true;
-                                }
-                            }
                             Event::KeyPress { kind, .. } => {
                                 if *kind == Key::C {
                                     is_primary_camera = !is_primary_camera;

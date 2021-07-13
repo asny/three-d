@@ -25,6 +25,7 @@ fn main() {
         1000.0,
     )
     .unwrap();
+    let mut control = OrbitControl::new(*camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
 
     Loader::load(
         &[
@@ -84,33 +85,12 @@ fn main() {
 
             // main loop
             window
-                .render_loop(move |frame_input| {
+                .render_loop(move |mut frame_input| {
                     let mut redraw = frame_input.first_frame;
                     redraw |= camera.set_viewport(frame_input.viewport).unwrap();
-
-                    for event in frame_input.events.iter() {
-                        match event {
-                            Event::MouseMotion { delta, button, .. } => {
-                                if *button == Some(MouseButton::Left) {
-                                    camera
-                                        .rotate_around_with_fixed_up(
-                                            &target,
-                                            0.1 * delta.0 as f32,
-                                            0.1 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                    redraw = true;
-                                }
-                            }
-                            Event::MouseWheel { delta, .. } => {
-                                camera
-                                    .zoom_towards(&target, 0.1 * delta.1 as f32, 1.0, 100.0)
-                                    .unwrap();
-                                redraw = true;
-                            }
-                            _ => {}
-                        }
-                    }
+                    redraw |= control
+                        .handle_events(&mut camera, &mut frame_input.events)
+                        .unwrap();
 
                     if redraw {
                         Screen::write(

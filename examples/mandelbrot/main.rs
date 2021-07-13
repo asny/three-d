@@ -59,9 +59,11 @@ fn main() {
                     } => {
                         if *button == Some(MouseButton::Left) {
                             let speed = 0.003 * camera.position().z.abs();
-                            camera
-                                .pan(speed * delta.0 as f32, speed * delta.1 as f32)
-                                .unwrap();
+                            let right = camera.right_direction();
+                            let up = right.cross(camera.view_direction());
+                            let delta =
+                                -right * speed * delta.0 as f32 + up * speed * delta.1 as f32;
+                            camera.translate(&delta).unwrap();
                             redraw = true;
                         }
                         if let Some((p, _)) = pick {

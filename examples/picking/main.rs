@@ -11,18 +11,18 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let target = vec3(0.0, 0.0, 0.0);
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
         vec3(4.0, 4.0, 5.0),
-        target,
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
         1000.0,
     )
     .unwrap();
+    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let mut pick_mesh = Mesh::new_with_material(
         &context,
@@ -61,7 +61,7 @@ fn main() {
 
             // main loop
             window
-                .render_loop(move |frame_input| {
+                .render_loop(move |mut frame_input| {
                     let mut change = frame_input.first_frame;
                     change |= camera.set_viewport(frame_input.viewport).unwrap();
 
@@ -83,27 +83,13 @@ fn main() {
                                     }
                                 }
                             }
-                            Event::MouseMotion { delta, button, .. } => {
-                                if *button == Some(MouseButton::Left) {
-                                    camera
-                                        .rotate_around(
-                                            &target,
-                                            0.1 * delta.0 as f32,
-                                            0.1 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                    change = true;
-                                }
-                            }
-                            Event::MouseWheel { delta, .. } => {
-                                camera
-                                    .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
-                                    .unwrap();
-                                change = true;
-                            }
                             _ => {}
                         }
                     }
+
+                    change |= control
+                        .handle_events(&mut camera, &mut frame_input.events)
+                        .unwrap();
 
                     // draw
                     if change {

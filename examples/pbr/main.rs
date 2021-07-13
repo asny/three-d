@@ -12,18 +12,18 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let target = vec3(0.0, 0.0, 0.0);
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
         vec3(2.0, 2.0, 5.0),
-        target,
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
         1000.0,
     )
     .unwrap();
+    let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     Loader::load(
         &["examples/assets/gltf/DamagedHelmet.glb"],
@@ -80,30 +80,12 @@ fn main() {
 
             // main loop
             window
-                .render_loop(move |frame_input| {
+                .render_loop(move |mut frame_input| {
                     camera.set_viewport(frame_input.viewport).unwrap();
+                    control
+                        .handle_events(&mut camera, &mut frame_input.events)
+                        .unwrap();
 
-                    for event in frame_input.events.iter() {
-                        match event {
-                            Event::MouseMotion { delta, button, .. } => {
-                                if *button == Some(MouseButton::Left) {
-                                    camera
-                                        .rotate_around_with_fixed_up(
-                                            &target,
-                                            0.1 * delta.0 as f32,
-                                            0.1 * delta.1 as f32,
-                                        )
-                                        .unwrap();
-                                }
-                            }
-                            Event::MouseWheel { delta, .. } => {
-                                camera
-                                    .zoom_towards(&target, 0.02 * delta.1 as f32, 5.0, 100.0)
-                                    .unwrap();
-                            }
-                            _ => {}
-                        }
-                    }
                     let time = 0.001 * frame_input.accumulated_time;
                     let c = time.cos() as f32;
                     let s = time.sin() as f32;

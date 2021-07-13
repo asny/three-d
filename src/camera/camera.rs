@@ -346,7 +346,7 @@ impl Camera {
     }
 
     ///
-    /// Returns the up direction of this camera.
+    /// Returns the up direction of this camera (might not be orthogonal to the view direction).
     ///
     pub fn up(&self) -> &Vec3 {
         &self.up
@@ -438,10 +438,40 @@ impl Camera {
     /// Translate the camera by the given change while keeping the same view and up directions.
     ///
     pub fn translate(&mut self, change: &Vec3) -> Result<(), Error> {
-        let position = *self.position();
-        let target = *self.target();
-        let up = *self.up();
-        self.set_view(position + change, target + change, up)?;
+        self.set_view(self.position + change, self.target + change, self.up)?;
+        Ok(())
+    }
+
+    pub fn pitch(&mut self, delta: impl Into<Radians>) -> Result<(), Error> {
+        let target = (self.view.invert().unwrap()
+            * Mat4::from_angle_x(delta)
+            * self.view
+            * self.target.extend(1.0))
+        .truncate();
+        if (target - self.position).normalize().dot(self.up).abs() < 0.999 {
+            self.set_view(self.position, target, self.up)?;
+        }
+        Ok(())
+    }
+
+    pub fn yaw(&mut self, delta: impl Into<Radians>) -> Result<(), Error> {
+        let target = (self.view.invert().unwrap()
+            * Mat4::from_angle_y(delta)
+            * self.view
+            * self.target.extend(1.0))
+        .truncate();
+        self.set_view(self.position, target, self.up)?;
+        Ok(())
+    }
+
+    pub fn roll(&mut self, delta: impl Into<Radians>) -> Result<(), Error> {
+        let up = (self.view.invert().unwrap()
+            * Mat4::from_angle_z(delta)
+            * self.view
+            * (self.up + self.position).extend(1.0))
+        .truncate()
+            - self.position;
+        self.set_view(self.position, self.target, up.normalize())?;
         Ok(())
     }
 
@@ -484,18 +514,6 @@ impl Camera {
             let new_target = (rotation * (self.target() - point).extend(1.0)).truncate() + point;
             self.set_view(new_position, new_target, up)?;
         }
-        Ok(())
-    }
-
-    ///
-    /// Moves the camera in the plane orthogonal to the current view direction, which means the view and up directions will stay the same.
-    /// The input `x` specifies the amount of translation in the left direction and `y` specifies the amount of translation in the up direction.
-    ///
-    pub fn pan(&mut self, x: f32, y: f32) -> Result<(), Error> {
-        let right = self.right_direction();
-        let up = right.cross(self.view_direction());
-        let delta = -right * x + up * y;
-        self.translate(&delta)?;
         Ok(())
     }
 
