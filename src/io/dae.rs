@@ -1,6 +1,5 @@
 use crate::definition::*;
 use crate::io::*;
-use collada;
 use std::collections::HashMap;
 use std::path::Path;
 

@@ -33,6 +33,9 @@ pub use obj::*;
 
 #[cfg(feature = "dae-io")]
 mod dae;
+#[doc(inline)]
+#[cfg(feature = "dae-io")]
+pub use dae::*;
 
 #[cfg(feature = "gltf-io")]
 mod gltf;

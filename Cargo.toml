@@ -13,7 +13,7 @@ keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 exclude = ["/examples", ".gitignore", "index.html"]
 
 [features]
-default = ["glutin-window", "canvas", "egui-gui", "3d-io", "obj-io", "gltf-io", "image-io"]
+default = ["glutin-window", "canvas", "egui-gui", "3d-io", "obj-io", "dae-io","gltf-io", "image-io"]
 glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
 canvas = [] # Default window for web (only available when building for the wasm32 architecture)
 egui-gui = ["egui"] # Default window for desktop (only available when NOT building for the wasm32 architecture)
