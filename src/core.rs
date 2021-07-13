@@ -104,19 +104,6 @@ impl Error {
     }
 }
 
-#[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-#[repr(u32)]
-pub enum DataType {
-    FLOAT = consts::FLOAT,
-    BYTE = consts::BYTE,
-    UNSIGNED_BYTE = consts::UNSIGNED_BYTE,
-    SHORT = consts::SHORT,
-    UNSIGNED_SHORT = consts::UNSIGNED_SHORT,
-    INT = consts::INT,
-    UNSIGNED_INT = consts::UNSIGNED_INT,
-}
-
 pub trait VertexBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
@@ -147,10 +134,9 @@ impl ElementBufferDataType for u32 {
 }
 
 pub(crate) mod internal {
-    use crate::context::{consts, Context};
+    use crate::context::{consts, Context, DataType};
     use crate::definition::*;
     use crate::math::*;
-    use crate::DataType;
 
     pub trait BufferDataTypeExtension: Clone {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32);

@@ -4,8 +4,7 @@ use web_sys::WebGl2RenderingContext as InnerGl;
 pub type consts = InnerGl;
 
 pub type AttributeLocation = u32;
-use crate::context::ShaderType;
-use crate::DataType;
+use crate::context::{DataType, ShaderType};
 pub use web_sys::WebGlActiveInfo as ActiveInfo;
 pub use web_sys::WebGlBuffer as Buffer;
 pub use web_sys::WebGlFramebuffer as Framebuffer;
@@ -100,11 +99,7 @@ impl Context {
     }
 
     pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
-        let type_ = match type_ {
-            ShaderType::Vertex => consts::VERTEX_SHADER,
-            ShaderType::Fragment => consts::FRAGMENT_SHADER,
-        };
-        self.inner.create_shader(type_)
+        self.inner.create_shader(type_.to_const())
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {
@@ -195,7 +190,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 None,
             )
             .unwrap();
@@ -222,7 +217,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(pixels),
             )
             .unwrap();
@@ -249,7 +244,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(pixels),
             )
             .unwrap();
@@ -285,7 +280,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -321,7 +316,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -357,7 +352,7 @@ impl Context {
                 height as i32,
                 border as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -395,7 +390,7 @@ impl Context {
                 depth as i32,
                 border as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -452,7 +447,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(dst_data),
             )
             .unwrap()
@@ -483,7 +478,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -514,7 +509,7 @@ impl Context {
                 width as i32,
                 height as i32,
                 format,
-                data_type as u32,
+                data_type.to_const(),
                 Some(&array),
             )
             .unwrap();
@@ -555,7 +550,7 @@ impl Context {
 
     pub fn draw_elements(&self, mode: u32, count: u32, data_type: DataType, offset: u32) {
         self.inner
-            .draw_elements_with_i32(mode, count as i32, data_type as u32, offset as i32);
+            .draw_elements_with_i32(mode, count as i32, data_type.to_const(), offset as i32);
     }
 
     pub fn draw_elements_instanced(
@@ -569,7 +564,7 @@ impl Context {
         self.inner.draw_elements_instanced_with_i32(
             mode,
             count as i32,
-            data_type as u32,
+            data_type.to_const(),
             offset as i32,
             instance_count as i32,
         );
@@ -681,10 +676,10 @@ impl Context {
         self.inner.vertex_attrib_pointer_with_i32(
             location,
             size as i32,
-            data_type as u32,
+            data_type.to_const(),
             normalized,
-            byte_size_for_type(data_type, stride) as i32,
-            byte_size_for_type(data_type, offset) as i32,
+            (stride * data_type.byte_size()) as i32,
+            (offset * data_type.byte_size()) as i32,
         );
     }
 
@@ -724,14 +719,25 @@ impl std::ops::Deref for Context {
     }
 }
 
-pub fn byte_size_for_type(data_type: DataType, count: u32) -> u32 {
-    match data_type {
-        DataType::FLOAT => count * std::mem::size_of::<f32>() as u32,
-        DataType::UNSIGNED_BYTE => count * std::mem::size_of::<u8>() as u32,
-        DataType::UNSIGNED_SHORT => count * std::mem::size_of::<u16>() as u32,
-        DataType::UNSIGNED_INT => count * std::mem::size_of::<u32>() as u32,
-        DataType::BYTE => count * std::mem::size_of::<i8>() as u32,
-        DataType::SHORT => count * std::mem::size_of::<i16>() as u32,
-        DataType::INT => count * std::mem::size_of::<i32>() as u32,
+impl ShaderType {
+    fn to_const(&self) -> u32 {
+        match self {
+            ShaderType::Vertex => consts::VERTEX_SHADER,
+            ShaderType::Fragment => consts::FRAGMENT_SHADER,
+        }
+    }
+}
+
+impl DataType {
+    fn to_const(&self) -> u32 {
+        match self {
+            DataType::FLOAT => consts::FLOAT,
+            DataType::BYTE => consts::BYTE,
+            DataType::UNSIGNED_BYTE => consts::UNSIGNED_BYTE,
+            DataType::SHORT => consts::SHORT,
+            DataType::UNSIGNED_SHORT => consts::UNSIGNED_SHORT,
+            DataType::INT => consts::INT,
+            DataType::UNSIGNED_INT => consts::UNSIGNED_INT,
+        }
     }
 }

@@ -1,6 +1,5 @@
-use crate::context::{consts, Context};
+use crate::context::{consts, Context, DataType};
 use crate::core::{Error, VertexBufferDataType};
-use crate::DataType;
 
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors

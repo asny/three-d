@@ -1,6 +1,5 @@
-use crate::context::{consts, Context};
+use crate::context::{consts, Context, DataType};
 use crate::core::{ElementBufferDataType, Error};
-use crate::DataType;
 
 ///
 /// A buffer containing indices for rendering, see for example [draw_elements](crate::Program::draw_elements).
