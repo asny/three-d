@@ -21,7 +21,7 @@ impl VertexBuffer {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
             count: 0,
-            data_type: DataType::FLOAT,
+            data_type: DataType::Float,
         })
     }
 

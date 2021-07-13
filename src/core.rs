@@ -148,7 +148,7 @@ pub(crate) mod internal {
             context.buffer_data_u8(target, data, usage);
         }
         fn data_type() -> DataType {
-            DataType::UNSIGNED_BYTE
+            DataType::UnsignedByte
         }
     }
 
@@ -157,7 +157,7 @@ pub(crate) mod internal {
             context.buffer_data_u16(target, data, usage);
         }
         fn data_type() -> DataType {
-            DataType::UNSIGNED_SHORT
+            DataType::UnsignedShort
         }
     }
 
@@ -166,7 +166,7 @@ pub(crate) mod internal {
             context.buffer_data_f32(target, data, usage);
         }
         fn data_type() -> DataType {
-            DataType::FLOAT
+            DataType::Float
         }
     }
 
@@ -175,7 +175,7 @@ pub(crate) mod internal {
             context.buffer_data_u32(target, data, usage);
         }
         fn data_type() -> DataType {
-            DataType::UNSIGNED_INT
+            DataType::UnsignedInt
         }
     }
 
@@ -218,7 +218,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                DataType::UNSIGNED_BYTE,
+                DataType::UnsignedByte,
                 data,
             );
         }
@@ -230,7 +230,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                DataType::UNSIGNED_BYTE,
+                DataType::UnsignedByte,
                 pixels,
             );
         }
@@ -261,7 +261,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                DataType::FLOAT,
+                DataType::Float,
                 data,
             );
         }
@@ -273,7 +273,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                DataType::FLOAT,
+                DataType::Float,
                 pixels,
             );
         }
@@ -305,7 +305,7 @@ pub(crate) mod internal {
                 width,
                 height,
                 format_from(format),
-                DataType::UNSIGNED_INT,
+                DataType::UnsignedInt,
                 data,
             );
         }
@@ -316,7 +316,7 @@ pub(crate) mod internal {
                 viewport.width,
                 viewport.height,
                 format_from(format),
-                DataType::UNSIGNED_INT,
+                DataType::UnsignedInt,
                 pixels,
             );
         }

@@ -1188,13 +1188,13 @@ impl ShaderType {
 impl DataType {
     fn to_const(&self) -> u32 {
         match self {
-            DataType::FLOAT => consts::FLOAT,
-            DataType::BYTE => consts::BYTE,
-            DataType::UNSIGNED_BYTE => consts::UNSIGNED_BYTE,
-            DataType::SHORT => consts::SHORT,
-            DataType::UNSIGNED_SHORT => consts::UNSIGNED_SHORT,
-            DataType::INT => consts::INT,
-            DataType::UNSIGNED_INT => consts::UNSIGNED_INT,
+            DataType::Float => consts::FLOAT,
+            DataType::Byte => consts::BYTE,
+            DataType::UnsignedByte => consts::UNSIGNED_BYTE,
+            DataType::Short => consts::SHORT,
+            DataType::UnsignedShort => consts::UNSIGNED_SHORT,
+            DataType::Int => consts::INT,
+            DataType::UnsignedInt => consts::UNSIGNED_INT,
         }
     }
 }
