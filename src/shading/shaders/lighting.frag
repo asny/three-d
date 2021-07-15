@@ -11,7 +11,7 @@ uniform float metallic;
 uniform float roughness;
 
 uniform vec4 albedo;
-#ifdef USE_COLOR_TEXTURE
+#ifdef USE_ALBEDO_TEXTURE
 uniform sampler2D albedoTexture;
 #endif
 
@@ -43,7 +43,7 @@ void main()
 #else 
 
     vec4 surface_color;
-#ifdef USE_COLOR_TEXTURE
+#ifdef USE_ALBEDO_TEXTURE
     vec4 c = texture(albedoTexture, vec2(uvs.x, 1.0 - uvs.y));
     surface_color = vec4(rgb_from_srgb(albedo.rgb * c.rgb), albedo.a * c.a);
 #else 

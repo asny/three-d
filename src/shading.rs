@@ -178,7 +178,7 @@ fn shaded_fragment_shader(
 
 fn material_shader(material: &Material) -> &'static str {
     if material.albedo_texture.is_some() {
-        "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n"
+        "#define USE_ALBEDO_TEXTURE;\nin vec2 uvs;\n"
     } else {
         ""
     }
