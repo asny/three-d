@@ -15,6 +15,10 @@ uniform vec4 albedo;
 uniform sampler2D albedoTexture;
 #endif
 
+#ifdef USE_METALLIC_ROUGHNESS_TEXTURE
+uniform sampler2D metallicRoughnessTexture;
+#endif
+
 #endif
 
 layout (location = 0) out vec4 outColor;
@@ -34,11 +38,11 @@ void main()
    	
     vec4 c = texture(gbuffer, vec3(uv, 0));
     vec4 surface_color = vec4(rgb_from_srgb(c.rgb), 1.0);
-    float metallic = c.w;
+    float metallic_factor = c.w;
 
     vec4 n = texture(gbuffer, vec3(uv, 1));
     vec3 normal = normalize(n.xyz*2.0 - 1.0);
-    float roughness = n.w;
+    float roughness_factor = n.w;
 
 #else 
 
@@ -49,11 +53,20 @@ void main()
 #else 
     surface_color = vec4(rgb_from_srgb(albedo.rgb), albedo.a);
 #endif
+
+    float metallic_factor = metallic;
+    float roughness_factor = roughness;
+#ifdef USE_METALLIC_ROUGHNESS_TEXTURE
+    vec2 t = texture(metallicRoughnessTexture, vec2(uvs.x, 1.0 - uvs.y)).gb;
+    metallic_factor *= t.x;
+    roughness_factor *= t.y;
+#endif
+
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
     vec3 position = pos;
 
 #endif
 
-    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, position, normal, metallic, roughness));
+    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor));
     outColor.a = surface_color.a;
 }

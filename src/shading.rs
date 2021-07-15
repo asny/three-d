@@ -171,17 +171,23 @@ fn shaded_fragment_shader(
                 ",
             &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
         ),
-        material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n"),
+        material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n".to_string()),
         include_str!("shading/shaders/lighting.frag"),
     )
 }
 
-fn material_shader(material: &Material) -> &'static str {
-    if material.albedo_texture.is_some() {
-        "#define USE_ALBEDO_TEXTURE;\nin vec2 uvs;\n"
-    } else {
-        ""
+fn material_shader(material: &Material) -> String {
+    let mut output = String::new();
+    if material.albedo_texture.is_some() || material.metallic_roughness_texture.is_some() {
+        output.push_str("in vec2 uvs;\n");
+        if material.albedo_texture.is_some() {
+            output.push_str("#define USE_ALBEDO_TEXTURE;\n");
+        }
+        if material.metallic_roughness_texture.is_some() {
+            output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+        }
     }
+    output
 }
 
 fn bind_lights(

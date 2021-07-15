@@ -7,6 +7,10 @@ uniform vec4 albedo;
 uniform sampler2D tex;
 #endif
 
+#ifdef USE_METALLIC_ROUGHNESS_TEXTURE
+uniform sampler2D metallicRoughnessTexture;
+#endif
+
 layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_normal;
 
@@ -19,6 +23,15 @@ void main()
 #else 
     color = albedo;
 #endif
-    out_color = vec4(color.rgb, metallic);
-    out_normal = vec4(0.5 * normal + 0.5, roughness);
+
+    float metallic_factor = metallic;
+    float roughness_factor = roughness;
+#ifdef USE_METALLIC_ROUGHNESS_TEXTURE
+    vec2 t = texture(metallicRoughnessTexture, vec2(uvs.x, 1.0 - uvs.y)).xy;
+    metallic_factor *= t.x;
+    roughness_factor *= t.y;
+#endif
+
+    out_color = vec4(color.rgb, metallic_factor);
+    out_normal = vec4(0.5 * normal + 0.5, roughness_factor);
 }
