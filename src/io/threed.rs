@@ -1,5 +1,6 @@
 use crate::definition::*;
 use crate::io::*;
+use crate::misc::Color;
 use std::path::Path;
 
 impl Loaded {
@@ -51,8 +52,11 @@ impl Loaded {
         for material in decoded.materials {
             cpu_materials.push(CPUMaterial {
                 name: material.name,
-                color: material.color,
-                color_texture: if let Some(filename) = material.texture_path {
+                albedo: material
+                    .color
+                    .map(|color| Color::from_rgba_slice(&[color.0, color.1, color.2, color.3]))
+                    .unwrap_or(Color::WHITE),
+                albedo_texture: if let Some(filename) = material.texture_path {
                     let texture_path = path
                         .as_ref()
                         .parent()
@@ -127,7 +131,7 @@ impl Saver {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
-            if let Some(ref cpu_texture) = cpu_material.color_texture {
+            if let Some(ref cpu_texture) = cpu_material.albedo_texture {
                 let number_of_channels =
                     cpu_texture.data.len() as u32 / (cpu_texture.width * cpu_texture.height);
                 let format = match number_of_channels {
@@ -178,15 +182,16 @@ impl Saver {
         let mut materials = Vec::new();
         for cpu_material in cpu_materials {
             let texture_path = cpu_material
-                .color_texture
+                .albedo_texture
                 .as_ref()
                 .map(|_| format!("{}_{}.png", filename, cpu_material.name));
+            let albedo = cpu_material.albedo.to_rgba_slice();
             materials.push(ThreeDMaterial {
                 name: cpu_material.name,
                 texture_path,
-                color: cpu_material.color,
-                metallic: cpu_material.metallic_factor,
-                roughness: cpu_material.roughness_factor,
+                color: Some((albedo[0], albedo[1], albedo[2], albedo[3])),
+                metallic: Some(cpu_material.metallic),
+                roughness: Some(cpu_material.roughness),
             });
         }
 

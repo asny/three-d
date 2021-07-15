@@ -41,21 +41,16 @@ impl Material {
     /// Constructor.
     ///
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self, Error> {
-        let color_source = if let Some(ref cpu_texture) = cpu_material.color_texture {
+        let color_source = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             ColorSource::Texture(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
-            ColorSource::Color(
-                cpu_material
-                    .color
-                    .map(|(r, g, b, a)| vec4(r, g, b, a))
-                    .unwrap_or(vec4(1.0, 1.0, 1.0, 1.0)),
-            )
+            ColorSource::Color(cpu_material.albedo.to_vec4())
         };
         Ok(Self {
             name: cpu_material.name.clone(),
             color_source,
-            metallic: cpu_material.metallic_factor.unwrap_or(0.0),
-            roughness: cpu_material.roughness_factor.unwrap_or(0.0),
+            metallic: cpu_material.metallic,
+            roughness: cpu_material.roughness,
         })
     }
 

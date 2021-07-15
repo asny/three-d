@@ -19,6 +19,24 @@ impl Color {
         Self { r, g, b, a: 255 }
     }
 
+    pub fn from_rgb_slice(rgba: &[f32; 3]) -> Self {
+        Self {
+            r: (rgba[0] * 255.0) as u8,
+            g: (rgba[1] * 255.0) as u8,
+            b: (rgba[2] * 255.0) as u8,
+            a: 255,
+        }
+    }
+
+    pub fn from_rgba_slice(rgba: &[f32; 4]) -> Self {
+        Self {
+            r: (rgba[0] * 255.0) as u8,
+            g: (rgba[1] * 255.0) as u8,
+            b: (rgba[2] * 255.0) as u8,
+            a: (rgba[3] * 255.0) as u8,
+        }
+    }
+
     /// Opaque red
     pub const RED: Color = Color::from_rgb(255, 0, 0);
     /// Opaque green

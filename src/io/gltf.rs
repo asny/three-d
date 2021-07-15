@@ -123,7 +123,7 @@ fn parse_tree<'a>(
                 if !parsed {
                     let pbr = material.pbr_metallic_roughness();
                     let color = pbr.base_color_factor();
-                    let color_texture = if let Some(info) = pbr.base_color_texture() {
+                    let albedo_texture = if let Some(info) = pbr.base_color_texture() {
                         Some(parse_texture(loaded, path, buffers, info)?)
                     } else {
                         None
@@ -136,10 +136,10 @@ fn parse_tree<'a>(
                         };
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
-                        color: Some((color[0], color[1], color[2], color[3])),
-                        color_texture,
-                        metallic_factor: Some(pbr.metallic_factor()),
-                        roughness_factor: Some(pbr.roughness_factor()),
+                        albedo: crate::misc::Color::from_rgba_slice(&color),
+                        albedo_texture,
+                        metallic: pbr.metallic_factor(),
+                        roughness: pbr.roughness_factor(),
                         metallic_roughness_texture,
                     });
                 }

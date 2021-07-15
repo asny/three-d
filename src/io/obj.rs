@@ -43,13 +43,13 @@ impl Loaded {
                 };
                 cpu_materials.push(CPUMaterial {
                     name: material.name,
-                    color: Some((
+                    albedo: crate::misc::Color::from_rgba_slice(&[
                         color.r as f32,
                         color.g as f32,
                         color.b as f32,
                         material.alpha as f32,
-                    )),
-                    color_texture: if let Some(path) = material
+                    ]),
+                    albedo_texture: if let Some(path) = material
                         .diffuse_map
                         .as_ref()
                         .map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
@@ -58,16 +58,14 @@ impl Loaded {
                     } else {
                         None
                     },
-                    metallic_factor: Some(
-                        ((material.color_specular.r
-                            + material.color_specular.g
-                            + material.color_specular.b)
-                            / 3.0) as f32,
-                    ),
-                    roughness_factor: if material.specular_coefficient > 0.1 {
-                        Some((1.999 / material.specular_coefficient).sqrt() as f32)
+                    metallic: ((material.color_specular.r
+                        + material.color_specular.g
+                        + material.color_specular.b)
+                        / 3.0) as f32,
+                    roughness: if material.specular_coefficient > 0.1 {
+                        ((1.999 / material.specular_coefficient).sqrt() as f32).min(1.0)
                     } else {
-                        None
+                        1.0
                     },
                     ..Default::default()
                 });
