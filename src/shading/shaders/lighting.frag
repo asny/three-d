@@ -9,9 +9,10 @@ uniform mat4 viewProjectionInverse;
 
 uniform float metallic;
 uniform float roughness;
-uniform vec4 surfaceColor;
+
+uniform vec4 albedo;
 #ifdef USE_COLOR_TEXTURE
-uniform sampler2D tex;
+uniform sampler2D albedoTexture;
 #endif
 
 #endif
@@ -43,10 +44,10 @@ void main()
 
     vec4 surface_color;
 #ifdef USE_COLOR_TEXTURE
-    vec4 c = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
-    surface_color = vec4(rgb_from_srgb(surfaceColor.rgb * c.rgb), surfaceColor.a * c.a);
+    vec4 c = texture(albedoTexture, vec2(uvs.x, 1.0 - uvs.y));
+    surface_color = vec4(rgb_from_srgb(albedo.rgb * c.rgb), albedo.a * c.a);
 #else 
-    surface_color = vec4(rgb_from_srgb(surfaceColor.rgb), surfaceColor.a);
+    surface_color = vec4(rgb_from_srgb(albedo.rgb), albedo.a);
 #endif
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
     vec3 position = pos;

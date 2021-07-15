@@ -37,9 +37,9 @@ impl Material {
     pub(crate) fn bind(&self, program: &Program) -> Result<(), Error> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
-        program.use_uniform_vec4("surfaceColor", &self.albedo)?;
+        program.use_uniform_vec4("albedo", &self.albedo)?;
         if let Some(ref texture) = self.albedo_texture {
-            program.use_texture("tex", texture.as_ref())?;
+            program.use_texture("albedoTexture", texture.as_ref())?;
         }
         Ok(())
     }
