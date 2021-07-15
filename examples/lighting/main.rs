@@ -32,25 +32,21 @@ fn main() {
         move |mut loaded| {
             let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = Mesh::new_with_material(
-                &context,
-                &monkey_cpu_meshes[0],
-                &Material::new(&context, &monkey_cpu_materials[0]).unwrap(),
-            )
-            .unwrap();
+            let mut monkey_material = Material::new(&context, &monkey_cpu_materials[0]).unwrap();
+            let mut monkey = Mesh::new(&context, &monkey_cpu_meshes[0]).unwrap();
             monkey.cull = CullType::Back;
 
-            let mut plane = Mesh::new_with_material(
+            let mut plane_material = Material {
+                albedo: vec4(0.5, 0.7, 0.3, 1.0),
+                ..Default::default()
+            };
+            let plane = Mesh::new(
                 &context,
                 &CPUMesh {
                     positions: vec![
                         -10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0,
                     ],
                     normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                    ..Default::default()
-                },
-                &Material {
-                    color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
                     ..Default::default()
                 },
             )
@@ -119,19 +115,19 @@ fn main() {
 
                                     ui.label("Surface parameters");
                                     ui.add(
-                                        Slider::f32(&mut monkey.material.metallic, 0.0..=1.0)
+                                        Slider::f32(&mut monkey_material.metallic, 0.0..=1.0)
                                             .text("Monkey Metallic"),
                                     );
                                     ui.add(
-                                        Slider::f32(&mut monkey.material.roughness, 0.0..=1.0)
+                                        Slider::f32(&mut monkey_material.roughness, 0.0..=1.0)
                                             .text("Monkey Roughness"),
                                     );
                                     ui.add(
-                                        Slider::f32(&mut plane.material.metallic, 0.0..=1.0)
+                                        Slider::f32(&mut plane_material.metallic, 0.0..=1.0)
                                             .text("Plane Metallic"),
                                     );
                                     ui.add(
-                                        Slider::f32(&mut plane.material.roughness, 0.0..=1.0)
+                                        Slider::f32(&mut plane_material.roughness, 0.0..=1.0)
                                             .text("Plane Roughness"),
                                     );
 
@@ -281,7 +277,12 @@ fn main() {
 
                     // Geometry pass
                     if change {
-                        pipeline.geometry_pass(&camera, &[&monkey, &plane]).unwrap();
+                        pipeline
+                            .geometry_pass(
+                                &camera,
+                                &[(&monkey, &monkey_material), (&plane, &plane_material)],
+                            )
+                            .unwrap();
                     }
 
                     // Light pass

@@ -51,11 +51,10 @@ fn main() {
             )
             .unwrap();
             let box_material = Material {
-                color_source: ColorSource::Texture(std::rc::Rc::new(box_texture)),
+                albedo_texture: Some(std::rc::Rc::new(box_texture)),
                 ..Default::default()
             };
-            let mut box_mesh =
-                Mesh::new_with_material(&context, &box_cpu_mesh, &box_material).unwrap();
+            let mut box_mesh = Mesh::new(&context, &box_cpu_mesh).unwrap();
             box_mesh.cull = CullType::Back;
 
             let skybox = Skybox::new(
@@ -75,17 +74,9 @@ fn main() {
 
             let (penguin_cpu_meshes, penguin_cpu_materials) =
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
-            let penguin_cpu_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
-            let mut penguin_deferred =
-                Mesh::new_with_material(&context, &penguin_cpu_meshes[0], &penguin_cpu_material)
-                    .unwrap();
-            penguin_deferred.cull = CullType::Back;
-            penguin_deferred.transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
-            let mut penguin_forward =
-                Mesh::new_with_material(&context, &penguin_cpu_meshes[0], &penguin_cpu_material)
-                    .unwrap();
-            penguin_forward.cull = CullType::Back;
-            penguin_forward.transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
+            let penguin_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
+            let mut penguin = Mesh::new(&context, &penguin_cpu_meshes[0]).unwrap();
+            penguin.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
@@ -107,8 +98,12 @@ fn main() {
                     // draw
                     if redraw {
                         // Geometry pass
+                        penguin.transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
                         pipeline
-                            .geometry_pass(&camera, &[&box_mesh, &penguin_deferred])
+                            .geometry_pass(
+                                &camera,
+                                &[(&box_mesh, &box_material), (&penguin, &penguin_material)],
+                            )
                             .unwrap();
 
                         Screen::write(&context, ClearState::default(), || {
@@ -119,9 +114,11 @@ fn main() {
                                 &[],
                                 &[],
                             )?;
-                            penguin_forward.render_with_lighting(
+                            penguin.transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
+                            penguin.render_with_lighting(
                                 RenderStates::default(),
                                 &camera,
+                                &penguin_material,
                                 Some(&ambient_light),
                                 &[&directional_light],
                                 &[],

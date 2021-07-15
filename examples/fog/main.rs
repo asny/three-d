@@ -36,13 +36,8 @@ fn main() {
         ],
         move |mut loaded| {
             let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
-            materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-            let mut monkey = Mesh::new_with_material(
-                &context,
-                &meshes[0],
-                &Material::new(&context, &materials[0]).unwrap(),
-            )
-            .unwrap();
+            let monkey_material = Material::new(&context, &materials[0]).unwrap();
+            let mut monkey = Mesh::new(&context, &meshes[0]).unwrap();
             monkey.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
@@ -129,6 +124,7 @@ fn main() {
                                 ..Default::default()
                             },
                             &camera,
+                            &monkey_material,
                             Some(&ambient_light),
                             &[&directional_light],
                             &[],

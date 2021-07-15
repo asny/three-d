@@ -29,7 +29,12 @@ pub trait ShadedGeometry: Geometry {
     /// Render the geometry and surface material parameters of the object.
     /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
-    fn geometry_pass(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error>;
+    fn geometry_pass(
+        &self,
+        render_states: RenderStates,
+        camera: &Camera,
+        material: &Material,
+    ) -> Result<(), Error>;
 
     ///
     /// Render the object shaded with the given lights using physically based rendering (PBR).
@@ -40,6 +45,7 @@ pub trait ShadedGeometry: Geometry {
         &self,
         render_states: RenderStates,
         camera: &Camera,
+        material: &Material,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
@@ -68,7 +74,7 @@ pub enum NormalDistributionFunction {
 
 fn geometry_fragment_shader(material: &Material) -> String {
     format!(
-        "{}{}",
+        "in vec3 pos;\nin vec3 nor;\n{}{}",
         material_shader(material),
         include_str!("shading/shaders/deferred_objects.frag")
     )
@@ -143,7 +149,7 @@ fn shaded_fragment_shader(
     };
 
     format!(
-        "{}\n{}\n{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\nin vec3 pos;\nin vec3 nor;\n{}\n{}",
         model,
         include_str!("core/shared.frag"),
         include_str!("shading/shaders/light_shared.frag"),
@@ -171,11 +177,10 @@ fn shaded_fragment_shader(
 }
 
 fn material_shader(material: &Material) -> &'static str {
-    match material.color_source {
-        ColorSource::Color(_) => "in vec3 pos;\nin vec3 nor;\n",
-        ColorSource::Texture(_) => {
-            "#define USE_COLOR_TEXTURE;\nin vec3 pos;\nin vec3 nor;\nin vec2 uvs;\n"
-        }
+    if material.albedo_texture.is_some() {
+        "#define USE_COLOR_TEXTURE;\nin vec2 uvs;\n"
+    } else {
+        ""
     }
 }
 

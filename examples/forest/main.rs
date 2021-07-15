@@ -48,8 +48,7 @@ fn main() {
                 .find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap())
                 .unwrap();
             let tree_material = Material::new(&context, &tree_cpu_material).unwrap();
-            let mut tree_mesh =
-                Mesh::new_with_material(&context, tree_cpu_mesh, &tree_material).unwrap();
+            let mut tree_mesh = Mesh::new(&context, tree_cpu_mesh).unwrap();
             tree_mesh.cull = CullType::Back;
             let tree_mesh_render_states = RenderStates {
                 depth_test: DepthTestType::LessOrEqual,
@@ -57,16 +56,15 @@ fn main() {
             };
 
             let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
-            let leaves_cpu_material = materials
-                .iter()
-                .find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap())
-                .unwrap();
-            let leaves_mesh = Mesh::new_with_material(
+            let leaves_material = Material::new(
                 &context,
-                leaves_cpu_mesh,
-                &Material::new(&context, &leaves_cpu_material).unwrap(),
+                &materials
+                    .iter()
+                    .find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap())
+                    .unwrap(),
             )
             .unwrap();
+            let leaves_mesh = Mesh::new(&context, leaves_cpu_mesh).unwrap();
             let leaves_mesh_render_states = RenderStates {
                 depth_test: DepthTestType::LessOrEqual,
                 ..Default::default()
@@ -91,6 +89,7 @@ fn main() {
                         tree_mesh.render_with_lighting(
                             tree_mesh_render_states,
                             camera,
+                            &tree_material,
                             Some(&ambient_light),
                             &[&directional_light],
                             &[],
@@ -99,6 +98,7 @@ fn main() {
                         leaves_mesh.render_with_lighting(
                             leaves_mesh_render_states,
                             camera,
+                            &leaves_material,
                             Some(&ambient_light),
                             &[&directional_light],
                             &[],
@@ -127,19 +127,19 @@ fn main() {
             imposters.update_positions(&positions, &angles);
 
             // Plane
-            let mut plane = Mesh::new_with_material(
+            let plane_material = Material {
+                albedo: vec4(0.5, 0.7, 0.3, 1.0),
+                metallic: 0.0,
+                roughness: 1.0,
+                ..Default::default()
+            };
+            let mut plane = Mesh::new(
                 &context,
                 &CPUMesh {
                     positions: vec![
                         -10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0,
                     ],
                     normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                    ..Default::default()
-                },
-                &Material {
-                    color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
-                    metallic: 0.0,
-                    roughness: 1.0,
                     ..Default::default()
                 },
             )
@@ -179,6 +179,7 @@ fn main() {
                                         ..Default::default()
                                     },
                                     &camera,
+                                    &plane_material,
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],
@@ -187,6 +188,7 @@ fn main() {
                                 tree_mesh.render_with_lighting(
                                     tree_mesh_render_states,
                                     &camera,
+                                    &tree_material,
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],
@@ -195,6 +197,7 @@ fn main() {
                                 leaves_mesh.render_with_lighting(
                                     leaves_mesh_render_states,
                                     &camera,
+                                    &leaves_material,
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],

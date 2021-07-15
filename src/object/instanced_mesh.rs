@@ -51,7 +51,6 @@ pub struct InstancedMesh {
     pub name: String,
     pub cull: CullType,
     pub transformation: Mat4,
-    pub material: Material,
     pub lighting_model: LightingModel,
 }
 
@@ -107,24 +106,12 @@ impl InstancedMesh {
             instance_buffer3: VertexBuffer::new(context)?,
             cull: CullType::None,
             transformation: Mat4::identity(),
-            material: Material::default(),
             lighting_model: LightingModel::Blinn,
         };
         mesh.update_transformations(transformations);
         unsafe {
             MESH_COUNT += 1;
         }
-        Ok(mesh)
-    }
-
-    pub fn new_with_material(
-        context: &Context,
-        transformations: &[Mat4],
-        cpu_mesh: &CPUMesh,
-        material: &Material,
-    ) -> Result<Self, Error> {
-        let mut mesh = Self::new(context, transformations, cpu_mesh)?;
-        mesh.material = material.clone();
         Ok(mesh)
     }
 

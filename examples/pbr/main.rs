@@ -31,25 +31,21 @@ fn main() {
             let (cpu_meshes, cpu_materials) = loaded
                 .gltf("examples/assets/gltf/DamagedHelmet.glb")
                 .unwrap();
-            let mut model = Mesh::new_with_material(
-                &context,
-                &cpu_meshes[0],
-                &Material::new(&context, &cpu_materials[0]).unwrap(),
-            )
-            .unwrap();
+            let material = Material::new(&context, &cpu_materials[0]).unwrap();
+            let mut model = Mesh::new(&context, &cpu_meshes[0]).unwrap();
             model.cull = CullType::Back;
 
-            let plane = Mesh::new_with_material(
+            let plane_material = Material {
+                albedo: vec4(0.5, 0.7, 0.3, 1.0),
+                ..Default::default()
+            };
+            let plane = Mesh::new(
                 &context,
                 &CPUMesh {
                     positions: vec![
                         -10000.0, -1.3, 10000.0, 10000.0, -1.3, 10000.0, 0.0, -1.3, -10000.0,
                     ],
                     normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                    ..Default::default()
-                },
-                &Material {
-                    color_source: ColorSource::Color(vec4(0.5, 0.7, 0.3, 1.0)),
                     ..Default::default()
                 },
             )
@@ -106,6 +102,7 @@ fn main() {
                         plane.render_with_lighting(
                             RenderStates::default(),
                             &camera,
+                            &plane_material,
                             Some(&ambient_light),
                             &[&directional_light0, &directional_light1],
                             &[&spot_light],
@@ -115,6 +112,7 @@ fn main() {
                         model.render_with_lighting(
                             RenderStates::default(),
                             &camera,
+                            &material,
                             Some(&ambient_light),
                             &[&directional_light0, &directional_light1],
                             &[&spot_light],

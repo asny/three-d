@@ -55,8 +55,7 @@ fn main() {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let statue_material = Material::new(&context, &statue_cpu_materials[0]).unwrap();
-            let mut statue =
-                Mesh::new_with_material(&context, &statue_cpu_meshes[0], &statue_material).unwrap();
+            let mut statue = Mesh::new(&context, &statue_cpu_meshes[0]).unwrap();
             statue.cull = CullType::Back;
 
             let mut models = Vec::new();
@@ -77,12 +76,9 @@ fn main() {
             let (fountain_cpu_meshes, fountain_cpu_materials) =
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
             let fountain_material = Material::new(&context, &fountain_cpu_materials[0]).unwrap();
-            let mut fountain =
-                Mesh::new_with_material(&context, &fountain_cpu_meshes[0], &fountain_material)
-                    .unwrap();
+            let mut fountain = Mesh::new(&context, &fountain_cpu_meshes[0]).unwrap();
             fountain.cull = CullType::Back;
             fountain.transformation = Mat4::from_angle_x(degrees(-90.0));
-            models.push(fountain);
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,
@@ -139,19 +135,20 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                             || {
-                                for model in models.iter() {
-                                    if model
+                                for statue in models.iter() {
+                                    if statue
                                         .aabb()
                                         .map(|aabb| primary_camera.in_frustum(&aabb))
                                         .unwrap_or(true)
                                     {
-                                        model.render_with_lighting(
+                                        statue.render_with_lighting(
                                             RenderStates::default(),
                                             if is_primary_camera {
                                                 &primary_camera
                                             } else {
                                                 &secondary_camera
                                             },
+                                            &statue_material,
                                             Some(&ambient_light),
                                             &[&directional_light],
                                             &[],
@@ -159,6 +156,19 @@ fn main() {
                                         )?;
                                     }
                                 }
+                                fountain.render_with_lighting(
+                                    RenderStates::default(),
+                                    if is_primary_camera {
+                                        &primary_camera
+                                    } else {
+                                        &secondary_camera
+                                    },
+                                    &fountain_material,
+                                    Some(&ambient_light),
+                                    &[&directional_light],
+                                    &[],
+                                    &[],
+                                )?;
                                 Ok(())
                             },
                         )

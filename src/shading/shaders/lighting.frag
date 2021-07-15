@@ -9,11 +9,9 @@ uniform mat4 viewProjectionInverse;
 
 uniform float metallic;
 uniform float roughness;
-
+uniform vec4 surfaceColor;
 #ifdef USE_COLOR_TEXTURE
 uniform sampler2D tex;
-#else 
-uniform vec4 surfaceColor;
 #endif
 
 #endif
@@ -46,7 +44,7 @@ void main()
     vec4 surface_color;
 #ifdef USE_COLOR_TEXTURE
     vec4 c = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
-    surface_color = vec4(rgb_from_srgb(c.rgb), c.a);
+    surface_color = vec4(rgb_from_srgb(surfaceColor.rgb * c.rgb), surfaceColor.a * c.a);
 #else 
     surface_color = vec4(rgb_from_srgb(surfaceColor.rgb), surfaceColor.a);
 #endif

@@ -24,31 +24,18 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut pick_mesh = Mesh::new_with_material(
-        &context,
-        &CPUMesh::sphere(0.05),
-        &Material::new(
-            &context,
-            &CPUMaterial {
-                color: Some((1.0, 0.0, 0.0, 1.0)),
-                ..Default::default()
-            },
-        )
-        .unwrap(),
-    )
-    .unwrap();
+    let pick_mesh_material = Material {
+        albedo: vec4(1.0, 0.0, 0.0, 1.0),
+        ..Default::default()
+    };
+    let mut pick_mesh = Mesh::new(&context, &CPUMesh::sphere(0.05)).unwrap();
 
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |mut loaded| {
-            let (meshes, mut materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
-            materials[0].color = Some((0.5, 1.0, 0.5, 1.0));
-            let mut monkey = Mesh::new_with_material(
-                &context,
-                &meshes[0],
-                &Material::new(&context, &materials[0]).unwrap(),
-            )
-            .unwrap();
+            let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
+            let monkey_material = Material::new(&context, &materials[0]).unwrap();
+            let mut monkey = Mesh::new(&context, &meshes[0]).unwrap();
             monkey.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
@@ -103,6 +90,7 @@ fn main() {
                                         ..Default::default()
                                     },
                                     &camera,
+                                    &monkey_material,
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],
@@ -111,6 +99,7 @@ fn main() {
                                 pick_mesh.render_with_lighting(
                                     RenderStates::default(),
                                     &camera,
+                                    &pick_mesh_material,
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],

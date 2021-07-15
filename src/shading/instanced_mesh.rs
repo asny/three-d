@@ -5,10 +5,15 @@ use crate::object::*;
 use crate::shading::*;
 
 impl ShadedGeometry for InstancedMesh {
-    fn geometry_pass(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
-        let fragment_shader_source = geometry_fragment_shader(&self.material);
+    fn geometry_pass(
+        &self,
+        render_states: RenderStates,
+        camera: &Camera,
+        material: &Material,
+    ) -> Result<(), Error> {
+        let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
-        self.material.bind(program)?;
+        material.bind(program)?;
         self.render(program, render_states, camera)
     }
 
@@ -16,6 +21,7 @@ impl ShadedGeometry for InstancedMesh {
         &self,
         render_states: RenderStates,
         camera: &Camera,
+        material: &Material,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
@@ -23,7 +29,7 @@ impl ShadedGeometry for InstancedMesh {
     ) -> Result<(), Error> {
         let fragment_shader_source = shaded_fragment_shader(
             self.lighting_model,
-            Some(&self.material),
+            Some(material),
             directional_lights.len(),
             spot_lights.len(),
             point_lights.len(),
@@ -38,7 +44,7 @@ impl ShadedGeometry for InstancedMesh {
             point_lights,
             camera.position(),
         )?;
-        self.material.bind(program)?;
+        material.bind(program)?;
         self.render(program, render_states, camera)?;
         Ok(())
     }

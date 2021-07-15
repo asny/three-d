@@ -2,10 +2,9 @@
 uniform float metallic;
 uniform float roughness;
 
+uniform vec4 surfaceColor;
 #ifdef USE_COLOR_TEXTURE
 uniform sampler2D tex;
-#else 
-uniform vec4 surfaceColor;
 #endif
 
 layout (location = 0) out vec4 out_color;
@@ -16,7 +15,7 @@ void main()
 	vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
     vec4 color;
 #ifdef USE_COLOR_TEXTURE
-    color = texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+    color = surfaceColor * texture(tex, vec2(uvs.x, 1.0 - uvs.y));
 #else 
     color = surfaceColor;
 #endif
