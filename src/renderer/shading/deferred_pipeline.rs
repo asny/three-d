@@ -1,5 +1,5 @@
+use crate::renderer::shading::*;
 use crate::renderer::*;
-use crate::shading::*;
 use std::collections::HashMap;
 
 ///

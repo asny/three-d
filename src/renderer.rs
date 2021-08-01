@@ -9,31 +9,26 @@ mod frame;
 pub use frame::*;
 
 pub mod object;
-#[doc(inline)]
 pub use object::*;
 
 pub mod effect;
-#[doc(inline)]
 pub use effect::*;
 
 pub mod light;
-#[doc(inline)]
 pub use light::*;
 
 pub mod io;
-#[doc(inline)]
 pub use io::*;
 
-pub mod shading;
+mod shading;
 #[doc(inline)]
 pub use shading::*;
 
-pub mod gui;
+mod gui;
 #[doc(inline)]
 pub use gui::*;
 
 pub mod control;
-#[doc(inline)]
 pub use control::*;
 
 pub fn ray_intersect(

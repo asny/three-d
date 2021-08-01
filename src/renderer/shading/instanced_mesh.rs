@@ -1,5 +1,5 @@
+use crate::renderer::shading::*;
 use crate::renderer::*;
-use crate::shading::*;
 
 impl ShadedGeometry for InstancedMesh {
     fn geometry_pass(
