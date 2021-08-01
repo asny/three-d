@@ -1,6 +1,4 @@
-use crate::camera::*;
-use crate::core::*;
-use crate::effect::*;
+use crate::renderer::*;
 
 ///
 /// An effect that simulates fog, ie. the entire screen gets hazy white when objects are far away.

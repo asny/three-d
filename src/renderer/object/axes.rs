@@ -1,6 +1,4 @@
-use crate::camera::*;
-use crate::core::*;
-use crate::object::*;
+use crate::renderer::*;
 
 ///
 /// Three arrows indicating the three main axes; the x-axis (red), the y-axis (green) and the z-axis (blue).

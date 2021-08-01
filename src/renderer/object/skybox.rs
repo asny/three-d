@@ -1,5 +1,4 @@
-use crate::camera::*;
-use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// An illusion of a sky.

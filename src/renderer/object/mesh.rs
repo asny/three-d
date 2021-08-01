@@ -1,6 +1,4 @@
-use crate::camera::*;
-use crate::core::*;
-use crate::object::*;
+use crate::renderer::*;
 use std::rc::Rc;
 
 ///

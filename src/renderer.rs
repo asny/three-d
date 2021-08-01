@@ -1,4 +1,6 @@
-pub mod camera;
+pub use crate::core::*;
+
+mod camera;
 #[doc(inline)]
 pub use camera::*;
 
@@ -33,9 +35,6 @@ pub use frame::*;
 pub mod control;
 #[doc(inline)]
 pub use control::*;
-
-pub use crate::context::Context;
-pub use crate::core::*;
 
 pub fn ray_intersect(
     context: &Context,

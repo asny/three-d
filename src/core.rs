@@ -58,19 +58,19 @@ mod program;
 #[doc(inline)]
 pub use program::*;
 
-pub mod math;
+mod math;
 #[doc(inline)]
 pub use math::*;
 
-pub mod aabb;
+mod aabb;
 #[doc(inline)]
 pub use aabb::*;
 
-pub mod color;
+mod color;
 #[doc(inline)]
 pub use color::*;
 
-pub mod viewport;
+mod viewport;
 #[doc(inline)]
 pub use viewport::*;
 

@@ -1,4 +1,4 @@
-use crate::math::*;
+use crate::core::*;
 
 ///
 /// A bounding box that aligns with the x, y and z axes.

@@ -1,7 +1,4 @@
-use crate::camera::*;
-use crate::core::*;
-use crate::effect::*;
-use crate::light::*;
+use crate::renderer::*;
 use crate::shading::*;
 use std::collections::HashMap;
 

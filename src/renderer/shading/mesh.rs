@@ -1,7 +1,4 @@
-use crate::camera::*;
-use crate::core::*;
-use crate::light::*;
-use crate::object::*;
+use crate::renderer::*;
 use crate::shading::*;
 
 impl ShadedGeometry for Mesh {

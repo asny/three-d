@@ -9,13 +9,9 @@
 pub mod context;
 
 pub mod core;
-#[doc(inline)]
-pub use crate::core::*;
 
 pub mod renderer;
-#[doc(inline)]
 pub use renderer::*;
 
 pub mod window;
-#[doc(inline)]
 pub use window::*;
