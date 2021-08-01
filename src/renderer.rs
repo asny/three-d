@@ -4,21 +4,6 @@ mod camera;
 #[doc(inline)]
 pub use camera::*;
 
-pub mod frame;
-pub use frame::*;
-
-pub mod object;
-pub use object::*;
-
-pub mod effect;
-pub use effect::*;
-
-pub mod light;
-pub use light::*;
-
-pub mod io;
-pub use io::*;
-
 mod shading;
 #[doc(inline)]
 pub use shading::*;
@@ -29,6 +14,21 @@ pub use gui::*;
 
 pub mod control;
 pub use control::*;
+
+pub mod effect;
+pub use effect::*;
+
+pub mod frame;
+pub use frame::*;
+
+pub mod io;
+pub use io::*;
+
+pub mod light;
+pub use light::*;
+
+pub mod object;
+pub use object::*;
 
 pub fn ray_intersect(
     context: &Context,

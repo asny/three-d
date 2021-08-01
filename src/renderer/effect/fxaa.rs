@@ -1,5 +1,4 @@
 use crate::core::*;
-use crate::effect::*;
 
 ///
 /// A simple anti-aliasing approach which smooths otherwise jagged edges (for example lines) but also

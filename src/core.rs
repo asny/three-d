@@ -10,11 +10,9 @@ mod render_states;
 #[doc(inline)]
 pub use render_states::*;
 
-pub mod texture;
-pub use texture::*;
-
-pub mod buffer;
-pub use buffer::*;
+mod image_effect;
+#[doc(inline)]
+pub use image_effect::*;
 
 mod render_target;
 #[doc(inline)]
@@ -39,6 +37,12 @@ pub use color::*;
 mod viewport;
 #[doc(inline)]
 pub use viewport::*;
+
+pub mod buffer;
+pub use buffer::*;
+
+pub mod texture;
+pub use texture::*;
 
 ///
 /// Error in some part of the render engine.

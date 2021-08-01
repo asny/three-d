@@ -1,6 +1,5 @@
 use crate::context::{consts, Context, DataType};
 use crate::core::*;
-use crate::ImageEffect;
 
 ///
 /// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a
