@@ -6,6 +6,15 @@
 
 pub use crate::context::Context;
 
+pub mod buffer;
+pub use buffer::*;
+
+pub mod math;
+pub use math::*;
+
+pub mod texture;
+pub use texture::*;
+
 mod render_states;
 #[doc(inline)]
 pub use render_states::*;
@@ -22,10 +31,6 @@ mod program;
 #[doc(inline)]
 pub use program::*;
 
-mod math;
-#[doc(inline)]
-pub use math::*;
-
 mod aabb;
 #[doc(inline)]
 pub use aabb::*;
@@ -37,12 +42,6 @@ pub use color::*;
 mod viewport;
 #[doc(inline)]
 pub use viewport::*;
-
-pub mod buffer;
-pub use buffer::*;
-
-pub mod texture;
-pub use texture::*;
 
 ///
 /// Error in some part of the render engine.

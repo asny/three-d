@@ -1,6 +1,9 @@
+//!
+//! Contain basic math functionality. Mostly just an re-export of [cgmath](https://crates.io/crates/cgmath).
+//!
+
 pub(crate) use cgmath::ortho;
 pub(crate) use cgmath::perspective;
-#[doc(hidden)]
 pub use cgmath::prelude::*;
 use cgmath::{Deg, Matrix2, Matrix3, Matrix4, Point3, Rad, Vector2, Vector3, Vector4};
 
