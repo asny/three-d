@@ -4,8 +4,7 @@ mod camera;
 #[doc(inline)]
 pub use camera::*;
 
-mod frame;
-#[doc(inline)]
+pub mod frame;
 pub use frame::*;
 
 pub mod object;
