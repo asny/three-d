@@ -4,6 +4,10 @@ mod camera;
 #[doc(inline)]
 pub use camera::*;
 
+mod frame;
+#[doc(inline)]
+pub use frame::*;
+
 pub mod object;
 #[doc(inline)]
 pub use object::*;
@@ -27,10 +31,6 @@ pub use shading::*;
 pub mod gui;
 #[doc(inline)]
 pub use gui::*;
-
-pub mod frame;
-#[doc(inline)]
-pub use frame::*;
 
 pub mod control;
 #[doc(inline)]
