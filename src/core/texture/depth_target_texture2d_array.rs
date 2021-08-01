@@ -94,7 +94,7 @@ impl DepthTargetTexture2DArray {
         )
     }
 
-    pub(crate) fn bind_as_depth_target(&self, layer: u32) {
+    pub(in crate::core) fn bind_as_depth_target(&self, layer: u32) {
         self.context.framebuffer_texture_layer(
             consts::DRAW_FRAMEBUFFER,
             consts::DEPTH_ATTACHMENT,

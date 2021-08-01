@@ -80,7 +80,7 @@ impl TextureCubeMap {
         Ok(())
     }
 
-    pub(crate) fn generate_mip_maps(&self) {
+    pub(in crate::core) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context
                 .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);

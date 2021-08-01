@@ -10,33 +10,8 @@ mod render_states;
 #[doc(inline)]
 pub use render_states::*;
 
-mod cpu_texture;
-#[doc(inline)]
-pub use cpu_texture::*;
-
-mod texture2d;
-#[doc(inline)]
-pub use texture2d::*;
-
-mod texture_cube_map;
-#[doc(inline)]
-pub use texture_cube_map::*;
-
-mod color_target_texture2d;
-#[doc(inline)]
-pub use color_target_texture2d::*;
-
-mod depth_target_texture2d;
-#[doc(inline)]
-pub use depth_target_texture2d::*;
-
-mod color_target_texture2d_array;
-#[doc(inline)]
-pub use color_target_texture2d_array::*;
-
-mod depth_target_texture2d_array;
-#[doc(inline)]
-pub use depth_target_texture2d_array::*;
+pub mod texture;
+pub use texture::*;
 
 mod element_buffer;
 #[doc(inline)]

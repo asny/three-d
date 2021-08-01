@@ -30,7 +30,6 @@ mod axes;
 #[doc(inline)]
 pub use axes::*;
 
-use crate::core::*;
 use crate::renderer::*;
 
 pub trait Geometry {

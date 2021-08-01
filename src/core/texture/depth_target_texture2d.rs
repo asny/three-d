@@ -97,7 +97,7 @@ impl DepthTargetTexture2D {
         )
     }
 
-    pub(super) fn bind_as_depth_target(&self) {
+    pub(in crate::core) fn bind_as_depth_target(&self) {
         self.context.framebuffer_texture_2d(
             consts::FRAMEBUFFER,
             consts::DEPTH_ATTACHMENT,

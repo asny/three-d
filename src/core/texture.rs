@@ -1,3 +1,27 @@
+mod texture2d;
+#[doc(inline)]
+pub use texture2d::*;
+
+mod texture_cube_map;
+#[doc(inline)]
+pub use texture_cube_map::*;
+
+mod color_target_texture2d;
+#[doc(inline)]
+pub use color_target_texture2d::*;
+
+mod depth_target_texture2d;
+#[doc(inline)]
+pub use depth_target_texture2d::*;
+
+mod color_target_texture2d_array;
+#[doc(inline)]
+pub use color_target_texture2d_array::*;
+
+mod depth_target_texture2d_array;
+#[doc(inline)]
+pub use depth_target_texture2d_array::*;
+
 ///
 /// Possible modes of interpolation which determines the texture output between texture pixels.
 ///

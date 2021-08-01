@@ -112,7 +112,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
         )
     }
 
-    pub(crate) fn generate_mip_maps(&self) {
+    pub(in crate::core) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context
                 .bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
@@ -120,7 +120,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
         }
     }
 
-    pub(crate) fn bind_as_color_target(&self, layer: u32, channel: u32) {
+    pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32) {
         self.context.framebuffer_texture_layer(
             consts::DRAW_FRAMEBUFFER,
             consts::COLOR_ATTACHMENT0 + channel,
