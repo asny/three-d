@@ -8,54 +8,14 @@
 
 pub mod context;
 
-pub mod math;
-#[doc(inline)]
-pub use math::*;
-
-pub mod definition;
-#[doc(inline)]
-pub use definition::*;
-
 pub mod core;
 #[doc(inline)]
 pub use crate::core::*;
 
-pub mod camera;
+pub mod renderer;
 #[doc(inline)]
-pub use camera::*;
-
-pub mod frame;
-#[doc(inline)]
-pub use frame::*;
-
-pub mod object;
-#[doc(inline)]
-pub use object::*;
-
-pub mod effect;
-#[doc(inline)]
-pub use effect::*;
-
-pub mod light;
-#[doc(inline)]
-pub use light::*;
-
-pub mod misc;
-#[doc(inline)]
-pub use misc::*;
-
-pub mod io;
-#[doc(inline)]
-pub use io::*;
-
-pub mod shading;
-#[doc(inline)]
-pub use shading::*;
+pub use renderer::*;
 
 pub mod window;
 #[doc(inline)]
 pub use window::*;
-
-pub mod gui;
-#[doc(inline)]
-pub use gui::*;

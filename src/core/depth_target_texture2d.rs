@@ -1,7 +1,5 @@
 use crate::context::{consts, Context};
 use crate::core::*;
-use crate::definition::*;
-use crate::math::*;
 
 ///
 /// Type of formats for depth render targets ([DepthTargetTexture2D](crate::DepthTargetTexture2D) and

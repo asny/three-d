@@ -1,6 +1,5 @@
 use crate::context::{consts, AttributeLocation, Context, ShaderType};
 use crate::core::{Error::ProgramError, *};
-use crate::math::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 

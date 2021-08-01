@@ -1,7 +1,5 @@
 use crate::context::{consts, Context};
 use crate::core::*;
-use crate::definition::*;
-use crate::math::*;
 
 ///
 /// A 2D color texture that can be rendered into and read from.

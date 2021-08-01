@@ -1,7 +1,5 @@
 use crate::context::{consts, Context};
 use crate::core::*;
-use crate::definition::*;
-use crate::math::*;
 
 ///
 /// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray](crate::RenderTargetArray).

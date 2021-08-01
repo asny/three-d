@@ -1,5 +1,5 @@
 use crate::frame::*;
-use crate::math::*;
+use crate::viewport::*;
 use crate::window::WindowSettings;
 use crate::Context;
 use glutin::event::{Event, WindowEvent};

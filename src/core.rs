@@ -10,6 +10,10 @@ mod render_states;
 #[doc(inline)]
 pub use render_states::*;
 
+mod cpu_texture;
+#[doc(inline)]
+pub use cpu_texture::*;
+
 mod texture2d;
 #[doc(inline)]
 pub use texture2d::*;
@@ -53,6 +57,22 @@ pub use render_target::*;
 mod program;
 #[doc(inline)]
 pub use program::*;
+
+pub mod math;
+#[doc(inline)]
+pub use math::*;
+
+pub mod aabb;
+#[doc(inline)]
+pub use aabb::*;
+
+pub mod color;
+#[doc(inline)]
+pub use color::*;
+
+pub mod viewport;
+#[doc(inline)]
+pub use viewport::*;
 
 ///
 /// Error in some part of the render engine.
@@ -135,8 +155,7 @@ impl ElementBufferDataType for u32 {
 
 pub(crate) mod internal {
     use crate::context::{consts, Context, DataType};
-    use crate::definition::*;
-    use crate::math::*;
+    use crate::core::*;
 
     pub trait BufferDataTypeExtension: Clone {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32);
@@ -333,8 +352,6 @@ pub(crate) mod internal {
 }
 
 use crate::context::consts;
-
-pub use crate::{Format, Interpolation, Wrapping};
 
 ///
 /// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).
