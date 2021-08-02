@@ -32,7 +32,8 @@ pub trait ShadedGeometry: Geometry {
     fn geometry_pass(
         &self,
         render_states: RenderStates,
-        camera: &Camera,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
         material: &Material,
     ) -> Result<(), Error>;
 

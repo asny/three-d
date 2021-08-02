@@ -5,13 +5,14 @@ impl ShadedGeometry for Mesh {
     fn geometry_pass(
         &self,
         render_states: RenderStates,
-        camera: &Camera,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
         material: &Material,
     ) -> Result<(), Error> {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
         material.bind(program)?;
-        self.render(program, render_states, camera)
+        self.render(program, render_states, camera_buffer, viewport)
     }
 
     fn render_with_lighting(
@@ -42,7 +43,12 @@ impl ShadedGeometry for Mesh {
             camera.position(),
         )?;
         material.bind(program)?;
-        self.render(program, render_states, camera)?;
+        self.render(
+            program,
+            render_states,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?;
         Ok(())
     }
 }

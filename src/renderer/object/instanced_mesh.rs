@@ -124,7 +124,12 @@ impl InstancedMesh {
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh_vertex_color.frag")
         ))?;
-        self.render(program, render_states, camera)
+        self.render(
+            program,
+            render_states,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )
     }
 
     ///
@@ -141,7 +146,12 @@ impl InstancedMesh {
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", &color.to_vec4())?;
-        self.render(program, render_states, camera)
+        self.render(
+            program,
+            render_states,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )
     }
 
     ///
@@ -161,7 +171,12 @@ impl InstancedMesh {
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture("tex", texture)?;
-        self.render(program, render_states, camera)
+        self.render(
+            program,
+            render_states,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )
     }
 
     ///
@@ -179,14 +194,15 @@ impl InstancedMesh {
         &self,
         program: &InstancedMeshProgram,
         render_states: RenderStates,
-        camera: &Camera,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
     ) -> Result<(), Error> {
         program.use_attribute_vec4_divisor("row1", &self.instance_buffer1, 1)?;
         program.use_attribute_vec4_divisor("row2", &self.instance_buffer2, 1)?;
         program.use_attribute_vec4_divisor("row3", &self.instance_buffer3, 1)?;
 
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-        program.use_uniform_block("Camera", camera.uniform_buffer());
+        program.use_uniform_block("Camera", camera_buffer);
 
         program.use_attribute_vec3("position", &self.position_buffer)?;
         if program.mesh_program.use_uvs {
@@ -216,7 +232,7 @@ impl InstancedMesh {
             program.draw_elements_instanced(
                 render_states,
                 self.cull,
-                camera.viewport(),
+                viewport,
                 index_buffer,
                 self.instance_count,
             );
@@ -224,7 +240,7 @@ impl InstancedMesh {
             program.draw_arrays_instanced(
                 render_states,
                 self.cull,
-                camera.viewport(),
+                viewport,
                 self.position_buffer.count() as u32 / 3,
                 self.instance_count,
             );
@@ -298,13 +314,23 @@ impl Geometry for InstancedMesh {
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
-        self.render(program, render_states, camera)?;
+        self.render(
+            program,
+            render_states,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?;
         Ok(())
     }
 
     fn render_depth(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program("void main() {}")?;
-        self.render(program, render_states, camera)
+        self.render(
+            program,
+            render_states,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )
     }
 
     fn aabb(&self) -> Option<AxisAlignedBoundingBox> {

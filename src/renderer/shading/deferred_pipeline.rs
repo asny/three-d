@@ -80,10 +80,11 @@ impl DeferredPipeline {
         camera: &Camera,
         geometries: &[(&dyn ShadedGeometry, &Material)],
     ) -> Result<(), Error> {
+        let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
-            camera.viewport().width,
-            camera.viewport().height,
+            viewport.width,
+            viewport.height,
             2,
             Interpolation::Nearest,
             Interpolation::Nearest,
@@ -94,8 +95,8 @@ impl DeferredPipeline {
         )?);
         self.geometry_pass_depth_texture = Some(DepthTargetTexture2DArray::new(
             &self.context,
-            camera.viewport().width,
-            camera.viewport().height,
+            viewport.width,
+            viewport.height,
             1,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
@@ -113,7 +114,12 @@ impl DeferredPipeline {
                     .map(|aabb| camera.in_frustum(&aabb))
                     .unwrap_or(true)
                 {
-                    geometry.geometry_pass(RenderStates::default(), camera, material)?;
+                    geometry.geometry_pass(
+                        RenderStates::default(),
+                        camera.uniform_buffer(),
+                        viewport,
+                        material,
+                    )?;
                 }
             }
             Ok(())
