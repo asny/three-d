@@ -1,5 +1,11 @@
 use three_d::*;
 
+#[derive(Debug, Eq, PartialEq)]
+enum Pipeline {
+    Forward,
+    Deferred,
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -40,7 +46,7 @@ fn main() {
                 albedo: vec4(0.5, 0.7, 0.3, 1.0),
                 ..Default::default()
             };
-            let plane = Mesh::new(
+            let mut plane = Mesh::new(
                 &context,
                 &CPUMesh {
                     positions: vec![
@@ -101,6 +107,8 @@ fn main() {
             let mut spot_enabled = true;
             let mut point_enabled = true;
 
+            let mut current_pipeline = Pipeline::Forward;
+
             window
                 .render_loop(move |mut frame_input| {
                     let mut change = frame_input.first_frame;
@@ -130,6 +138,19 @@ fn main() {
                                         Slider::f32(&mut plane_material.roughness, 0.0..=1.0)
                                             .text("Plane Roughness"),
                                     );
+
+                                    ui.label("Light options");
+                                    ui.checkbox(&mut ambient_enabled, "Ambient light");
+                                    ui.checkbox(&mut directional_enabled, "Directional lights");
+                                    ui.checkbox(&mut spot_enabled, "Spot lights");
+                                    ui.checkbox(&mut point_enabled, "Point lights");
+                                    if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
+                                        if !shadows_enabled {
+                                            spot_light.clear_shadow_map();
+                                            directional_light0.clear_shadow_map();
+                                            directional_light1.clear_shadow_map();
+                                        }
+                                    }
 
                                     ui.label("Lighting model");
                                     ui.radio_value(
@@ -166,60 +187,63 @@ fn main() {
                                         ),
                                         "Cook (Trowbridge-Reitz GGX)",
                                     );
+                                    monkey.lighting_model = pipeline.lighting_model;
+                                    plane.lighting_model = pipeline.lighting_model;
 
-                                    ui.label("Debug options");
+                                    ui.label("Pipeline");
                                     ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::NONE,
-                                        "None",
+                                        &mut current_pipeline,
+                                        Pipeline::Forward,
+                                        "Forward",
                                     );
                                     ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::POSITION,
-                                        "Position",
-                                    );
-                                    ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::NORMAL,
-                                        "Normal",
-                                    );
-                                    ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::COLOR,
-                                        "Color",
-                                    );
-                                    ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::DEPTH,
-                                        "Depth",
-                                    );
-                                    ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::DIFFUSE,
-                                        "Diffuse",
-                                    );
-                                    ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::SPECULAR,
-                                        "Specular",
-                                    );
-                                    ui.radio_value(
-                                        &mut pipeline.debug_type,
-                                        DebugType::POWER,
-                                        "Power",
+                                        &mut current_pipeline,
+                                        Pipeline::Deferred,
+                                        "Deferred",
                                     );
 
-                                    ui.label("Light options");
-                                    ui.checkbox(&mut ambient_enabled, "Ambient light");
-                                    ui.checkbox(&mut directional_enabled, "Directional lights");
-                                    ui.checkbox(&mut spot_enabled, "Spot lights");
-                                    ui.checkbox(&mut point_enabled, "Point lights");
-                                    if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
-                                        if !shadows_enabled {
-                                            spot_light.clear_shadow_map();
-                                            directional_light0.clear_shadow_map();
-                                            directional_light1.clear_shadow_map();
-                                        }
+                                    if current_pipeline == Pipeline::Deferred {
+                                        ui.label("Debug options");
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::NONE,
+                                            "None",
+                                        );
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::POSITION,
+                                            "Position",
+                                        );
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::NORMAL,
+                                            "Normal",
+                                        );
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::COLOR,
+                                            "Color",
+                                        );
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::DEPTH,
+                                            "Depth",
+                                        );
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::DIFFUSE,
+                                            "Diffuse",
+                                        );
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::SPECULAR,
+                                            "Specular",
+                                        );
+                                        ui.radio_value(
+                                            &mut pipeline.debug_type,
+                                            DebugType::POWER,
+                                            "Power",
+                                        );
                                     }
                                 },
                             );
@@ -276,7 +300,7 @@ fn main() {
                     }
 
                     // Geometry pass
-                    if change {
+                    if change && current_pipeline == Pipeline::Deferred {
                         pipeline
                             .geometry_pass(
                                 &camera,
@@ -287,29 +311,89 @@ fn main() {
 
                     // Light pass
                     Screen::write(&context, ClearState::default(), || {
-                        pipeline.light_pass(
-                            &camera,
-                            if ambient_enabled {
-                                Some(&ambient_light)
-                            } else {
-                                None
-                            },
-                            &if directional_enabled {
-                                vec![&directional_light0, &directional_light1]
-                            } else {
-                                vec![]
-                            },
-                            &if spot_enabled {
-                                vec![&spot_light]
-                            } else {
-                                vec![]
-                            },
-                            &if point_enabled {
-                                vec![&point_light0, &point_light1]
-                            } else {
-                                vec![]
-                            },
-                        )?;
+                        match current_pipeline {
+                            Pipeline::Forward => {
+                                monkey
+                                    .render_with_lighting(
+                                        RenderStates::default(),
+                                        &camera,
+                                        &monkey_material,
+                                        if ambient_enabled {
+                                            Some(&ambient_light)
+                                        } else {
+                                            None
+                                        },
+                                        &if directional_enabled {
+                                            vec![&directional_light0, &directional_light1]
+                                        } else {
+                                            vec![]
+                                        },
+                                        &if spot_enabled {
+                                            vec![&spot_light]
+                                        } else {
+                                            vec![]
+                                        },
+                                        &if point_enabled {
+                                            vec![&point_light0, &point_light1]
+                                        } else {
+                                            vec![]
+                                        },
+                                    )
+                                    .unwrap();
+                                plane
+                                    .render_with_lighting(
+                                        RenderStates::default(),
+                                        &camera,
+                                        &plane_material,
+                                        if ambient_enabled {
+                                            Some(&ambient_light)
+                                        } else {
+                                            None
+                                        },
+                                        &if directional_enabled {
+                                            vec![&directional_light0, &directional_light1]
+                                        } else {
+                                            vec![]
+                                        },
+                                        &if spot_enabled {
+                                            vec![&spot_light]
+                                        } else {
+                                            vec![]
+                                        },
+                                        &if point_enabled {
+                                            vec![&point_light0, &point_light1]
+                                        } else {
+                                            vec![]
+                                        },
+                                    )
+                                    .unwrap();
+                            }
+                            Pipeline::Deferred => {
+                                pipeline.light_pass(
+                                    &camera,
+                                    if ambient_enabled {
+                                        Some(&ambient_light)
+                                    } else {
+                                        None
+                                    },
+                                    &if directional_enabled {
+                                        vec![&directional_light0, &directional_light1]
+                                    } else {
+                                        vec![]
+                                    },
+                                    &if spot_enabled {
+                                        vec![&spot_light]
+                                    } else {
+                                        vec![]
+                                    },
+                                    &if point_enabled {
+                                        vec![&point_light0, &point_light1]
+                                    } else {
+                                        vec![]
+                                    },
+                                )?;
+                            }
+                        }
                         gui.render().unwrap();
                         Ok(())
                     })
