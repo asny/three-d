@@ -34,12 +34,16 @@ fn main() {
             let material = Material::new(&context, &cpu_materials[0]).unwrap();
             let mut model = Mesh::new(&context, &cpu_meshes[0]).unwrap();
             model.cull = CullType::Back;
+            model.lighting_model = LightingModel::Cook(
+                NormalDistributionFunction::Beckmann,
+                GeometryFunction::SmithSchlickGGX,
+            );
 
             let plane_material = Material {
                 albedo: vec4(0.5, 0.7, 0.3, 1.0),
                 ..Default::default()
             };
-            let plane = Mesh::new(
+            let mut plane = Mesh::new(
                 &context,
                 &CPUMesh {
                     positions: vec![
@@ -50,6 +54,7 @@ fn main() {
                 },
             )
             .unwrap();
+            plane.lighting_model = model.lighting_model;
 
             let ambient_light = AmbientLight {
                 color: Color::WHITE,
