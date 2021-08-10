@@ -105,7 +105,6 @@ fn main() {
                             ..Default::default()
                         },
                         &camera,
-                        camera.viewport(),
                     )
                     .unwrap();
                     Ok(())
