@@ -2,11 +2,13 @@
 //! Default windows for easy setup and event handling.
 //! Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop
 //! and canvas using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) for web, but
-//! can be replaced by any other window with similar functionality. Also contains event handling and camera control utilities.
+//! can be replaced by any other window with similar functionality. Also contains camera control utilities.
 //!
 
+#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 mod settings;
 #[doc(inline)]
+#[cfg(any(feature = "glutin-window", feature = "canvas"))]
 pub use settings::*;
 
 pub mod control;

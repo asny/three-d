@@ -1,6 +1,6 @@
-use crate::frame::*;
-use crate::window::WindowSettings;
-use crate::Context;
+use crate::context::Context;
+use crate::core::Viewport;
+use crate::window::*;
 use serde::Serialize;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -92,12 +92,12 @@ impl Window {
         Ok((canvas.width(), canvas.height()))
     }
 
-    pub fn viewport(&self) -> Result<crate::Viewport, WindowError> {
+    pub fn viewport(&self) -> Result<Viewport, WindowError> {
         let (w, h) = self.size()?;
-        Ok(crate::Viewport::new_at_origo(w, h))
+        Ok(Viewport::new_at_origo(w, h))
     }
 
-    pub fn gl(&self) -> Result<crate::Context, WindowError> {
+    pub fn gl(&self) -> Result<Context, WindowError> {
         let context_options = ContextOptions {
             antialias: self.settings.multisamples > 0,
         };
@@ -154,11 +154,11 @@ impl Window {
                 (canvas.width() as f64 / device_pixel_ratio) as u32,
                 (canvas.height() as f64 / device_pixel_ratio) as u32,
             );
-            let frame_input = crate::FrameInput {
+            let frame_input = FrameInput {
                 events,
                 elapsed_time,
                 accumulated_time,
-                viewport: crate::Viewport::new_at_origo(
+                viewport: Viewport::new_at_origo(
                     (device_pixel_ratio * width as f64) as u32,
                     (device_pixel_ratio * height as f64) as u32,
                 ),

@@ -1,4 +1,4 @@
-use crate::renderer::*;
+use crate::core::*;
 use crate::window::*;
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
@@ -139,7 +139,7 @@ impl Window {
                         events: events.clone(),
                         elapsed_time,
                         accumulated_time,
-                        viewport: crate::Viewport::new_at_origo(physical_width, physical_height),
+                        viewport: Viewport::new_at_origo(physical_width, physical_height),
                         window_width: width,
                         window_height: height,
                         device_pixel_ratio: device_pixel_ratio,
@@ -164,7 +164,7 @@ impl Window {
                     if let Some(ref path) = frame_output.screenshot {
                         let pixels = crate::Screen::read_color(
                             &context,
-                            crate::Viewport::new_at_origo(physical_width, physical_height),
+                            Viewport::new_at_origo(physical_width, physical_height),
                         )
                         .unwrap();
                         crate::Saver::save_pixels(path, &pixels, physical_width, physical_height)
