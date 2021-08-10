@@ -4,8 +4,8 @@ use crate::core::*;
 ///
 /// A 2D color texture that can be rendered into and read from.
 ///
-/// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture.
-/// Use a [RenderTarget](crate::RenderTarget) to write to both color and depth.
+/// **Note:** [DepthTestType] is disabled if not also writing to a depth texture.
+/// Use a [RenderTarget] to write to both color and depth.
 ///
 pub struct ColorTargetTexture2D<T: TextureDataType> {
     context: Context,
@@ -71,8 +71,8 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     /// Renders whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
-    /// **Note:** [Depth test](crate::DepthTestType) is disabled if not also writing to a depth texture.
-    /// Use a [RenderTarget](crate::RenderTarget) to write to both color and depth.
+    /// **Note:** [DepthTestType] is disabled if not also writing to a depth texture.
+    /// Use a [RenderTarget] to write to both color and depth.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(
         &self,
@@ -83,7 +83,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     }
 
     ///
-    /// Copies the content of the color texture to the specified [destination](crate::CopyDestination) at the given viewport.
+    /// Copies the content of the color texture to the specified destination at the given viewport.
     /// Will only copy the channels specified by the write mask.
     ///
     /// # Errors

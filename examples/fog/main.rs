@@ -1,4 +1,4 @@
-use three_d::*;
+use three_d::{core::*, *};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

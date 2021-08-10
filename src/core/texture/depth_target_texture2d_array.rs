@@ -2,7 +2,7 @@ use crate::context::{consts, Context};
 use crate::core::*;
 
 ///
-/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray](crate::RenderTargetArray).
+/// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray].
 ///
 pub struct DepthTargetTexture2DArray {
     context: Context,
@@ -74,7 +74,7 @@ impl DepthTargetTexture2DArray {
     }
 
     ///
-    /// Copies the content of the depth texture at the given layer to the specified [destination](crate::CopyDestination) at the given viewport.
+    /// Copies the content of the depth texture at the given layer to the specified destination at the given viewport.
     ///
     /// # Errors
     /// Will return an error if the destination is a color texture.

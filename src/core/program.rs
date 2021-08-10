@@ -201,7 +201,7 @@ impl Program {
     }
 
     ///
-    /// Use the given [Texture2D](crate::Texture2D) in this shader program and associate it with the given named variable.
+    /// Use the given [Texture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> Result<(), Error> {
@@ -212,7 +212,7 @@ impl Program {
     }
 
     ///
-    /// Use the given [TextureArray](crate::TextureArray) in this shader program and associate it with the given named variable.
+    /// Use the given [TextureArray] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
     pub fn use_texture_array(&self, name: &str, texture: &impl TextureArray) -> Result<(), Error> {
@@ -223,7 +223,7 @@ impl Program {
     }
 
     ///
-    /// Use the given [TextureCube](crate::TextureCube) in this shader program and associate it with the given named variable.
+    /// Use the given [TextureCube] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
     pub fn use_texture_cube(&self, name: &str, texture: &impl TextureCube) -> Result<(), Error> {

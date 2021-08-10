@@ -2,7 +2,7 @@ use crate::context::{consts, Context, DataType};
 use crate::core::{ElementBufferDataType, Error};
 
 ///
-/// A buffer containing indices for rendering, see for example [draw_elements](crate::Program::draw_elements).
+/// A buffer containing indices for rendering, see for example [draw_elements](crate::core::Program::draw_elements).
 /// Also known as an index buffer.
 ///
 pub struct ElementBuffer {

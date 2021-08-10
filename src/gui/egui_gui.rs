@@ -1,4 +1,5 @@
-use crate::*;
+use crate::core::*;
+use crate::window::*;
 #[doc(hidden)]
 pub use egui;
 

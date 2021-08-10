@@ -1,4 +1,4 @@
-use crate::renderer::*;
+use crate::core::*;
 use std::f32::consts::PI;
 
 const NO_VIEW_ANGLES: u32 = 8;

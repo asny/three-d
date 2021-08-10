@@ -4,9 +4,9 @@ use std::path::Path;
 
 impl Loaded {
     ///
-    /// Deserialize the loaded image resource at the given path into a [CPUTexture](crate::CPUTexture) using
+    /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [Texture2D](crate::Texture2D).
+    /// The CPUTexture can then be used to create a [Texture2D].
     ///
     /// # Feature
     /// Only available when the `image-io` feature is enabled.
@@ -16,9 +16,9 @@ impl Loaded {
     }
 
     ///
-    /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture](crate::CPUTexture) using
+    /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [TextureCubeMap](crate::TextureCubeMap).
+    /// The CPUTexture can then be used to create a [TextureCubeMap].
     ///
     /// # Feature
     /// Only available when the `image-io` feature is enabled.

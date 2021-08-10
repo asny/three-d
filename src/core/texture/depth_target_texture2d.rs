@@ -2,8 +2,8 @@ use crate::context::{consts, Context};
 use crate::core::*;
 
 ///
-/// Type of formats for depth render targets ([DepthTargetTexture2D](crate::DepthTargetTexture2D) and
-/// [DepthTargetTexture2DArray](crate::DepthTargetTexture2DArray)).
+/// Type of formats for depth render targets ([DepthTargetTexture2D] and
+/// [DepthTargetTexture2DArray]).
 ///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum DepthFormat {
@@ -13,7 +13,7 @@ pub enum DepthFormat {
 }
 
 ///
-/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget](crate::RenderTarget).
+/// A 2D depth texture that can be rendered into and read from. See also [RenderTarget].
 ///
 pub struct DepthTargetTexture2D {
     context: Context,
@@ -80,7 +80,7 @@ impl DepthTargetTexture2D {
     }
 
     ///
-    /// Copies the content of the depth texture to the specified [destination](crate::CopyDestination) at the given viewport.
+    /// Copies the content of the depth texture to the specified destination at the given viewport.
     ///
     /// # Errors
     /// Will return an error if the destination is a color texture.

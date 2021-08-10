@@ -22,6 +22,7 @@ mod instanced_mesh;
 #[doc(inline)]
 pub use instanced_mesh::*;
 
+use crate::core::*;
 use crate::renderer::*;
 
 pub trait ShadedGeometry: Geometry {
@@ -32,7 +33,7 @@ pub trait ShadedGeometry: Geometry {
     fn geometry_pass(
         &self,
         render_states: RenderStates,
-        camera_buffer: &UniformBuffer,
+        camera: &Camera,
         viewport: Viewport,
         material: &Material,
     ) -> Result<(), Error>;

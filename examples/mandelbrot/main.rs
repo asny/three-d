@@ -104,7 +104,7 @@ fn main() {
                             depth_test: DepthTestType::Always,
                             ..Default::default()
                         },
-                        camera.uniform_buffer(),
+                        &camera,
                         camera.viewport(),
                     )
                     .unwrap();

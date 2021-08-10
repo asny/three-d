@@ -3,14 +3,13 @@
 //! Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.
 //!
 
-pub use crate::core::*;
+pub use crate::context::Context;
+pub use crate::core::{
+    math::*, render_states::*, AxisAlignedBoundingBox, Camera, ClearState, Color, Error, Screen,
+    Viewport,
+};
 
-mod camera;
-#[doc(inline)]
-pub use camera::*;
-
-mod shading;
-#[doc(inline)]
+pub mod shading;
 pub use shading::*;
 
 pub mod effect;
@@ -25,6 +24,25 @@ pub use light::*;
 pub mod object;
 pub use object::*;
 
+impl crate::core::Camera {
+    ///
+    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+    /// Returns ```None``` if no geometry was hit before the given maximum depth.
+    ///
+    pub fn pick(
+        &self,
+        pixel: (f32, f32),
+        max_depth: f32,
+        objects: &[&dyn Geometry],
+    ) -> Result<Option<Vec3>, Error> {
+        let pos = self.position_at_pixel(pixel);
+        let dir = self.view_direction_at_pixel(pixel);
+        ray_intersect(&self.context, pos, dir, max_depth, objects)
+    }
+}
+
 pub fn ray_intersect(
     context: &Context,
     position: Vec3,
@@ -32,6 +50,7 @@ pub fn ray_intersect(
     max_depth: f32,
     geometries: &[&dyn Geometry],
 ) -> Result<Option<Vec3>, Error> {
+    use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {
         direction.cross(vec3(0.0, 1.0, 0.0))

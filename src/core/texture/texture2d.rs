@@ -3,7 +3,7 @@ use crate::core::*;
 
 ///
 /// A 2D texture, basically an image that is transferred to the GPU.
-/// For a texture that can be rendered into, see [ColorTargetTexture2D](crate::ColorTargetTexture2D).
+/// For a texture that can be rendered into, see [ColorTargetTexture2D].
 ///
 pub struct Texture2D {
     context: Context,

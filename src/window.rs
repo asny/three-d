@@ -180,7 +180,7 @@ pub struct FrameInput {
     pub accumulated_time: f64,
 
     /// Viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
-    pub viewport: crate::Viewport,
+    pub viewport: crate::core::Viewport,
 
     /// Width of the window in logical pixels.
     pub window_width: u32,

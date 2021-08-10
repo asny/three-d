@@ -14,7 +14,11 @@ pub use math::*;
 pub mod texture;
 pub use texture::*;
 
-mod render_states;
+mod camera;
+#[doc(inline)]
+pub use camera::*;
+
+pub(crate) mod render_states;
 #[doc(inline)]
 pub use render_states::*;
 
@@ -322,7 +326,7 @@ pub(crate) mod internal {
 use crate::context::consts;
 
 ///
-/// A texture that can be sampled in a fragment shader (see [use_texture](crate::Program::use_texture)).
+/// A texture that can be sampled in a fragment shader (see [use_texture](Program::use_texture)).
 ///
 pub trait Texture {
     /// Binds this texture to the current shader program.
@@ -334,7 +338,7 @@ pub trait Texture {
 }
 
 ///
-/// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::Program::use_texture_array)).
+/// A texture array that can be sampled in a fragment shader (see [use_texture_array](Program::use_texture_array)).
 ///
 pub trait TextureArray {
     /// Binds this texture array to the current shader program.
@@ -348,7 +352,7 @@ pub trait TextureArray {
 }
 
 ///
-/// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::Program::use_texture_cube)).
+/// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](Program::use_texture_cube)).
 ///
 pub trait TextureCube {
     /// Binds this texture cube to the current shader program.

@@ -73,8 +73,8 @@ impl Format {
 }
 
 ///
-/// A CPU-side version of a texture, for example [2D texture](crate::Texture2D).
-/// Can be constructed manually or loaded via [io](crate::io).
+/// A CPU-side version of a texture, for example [Texture2D].
+/// Can be constructed manually or loaded via [io](crate::renderer::io).
 ///
 pub struct CPUTexture<T: TextureDataType> {
     pub data: Vec<T>,

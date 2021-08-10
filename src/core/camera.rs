@@ -1,4 +1,4 @@
-use crate::renderer::*;
+use crate::core::*;
 
 pub(super) enum ProjectionType {
     Orthographic { width: f32, height: f32 },
@@ -9,7 +9,7 @@ pub(super) enum ProjectionType {
 /// Used in a render call to define how to view the 3D world.
 ///
 pub struct Camera {
-    context: Context,
+    pub(crate) context: Context,
     viewport: Viewport,
     projection_type: ProjectionType,
     z_near: f32,
@@ -122,7 +122,7 @@ impl Camera {
     }
 
     ///
-    /// Set the current [viewport](crate::Viewport).
+    /// Set the current viewport.
     /// Returns whether or not the viewport actually changed.
     ///
     pub fn set_viewport(&mut self, viewport: Viewport) -> Result<bool, Error> {
@@ -213,23 +213,6 @@ impl Camera {
         // TODO: Test the frustum corners against the box planes (http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm)
 
         true
-    }
-
-    ///
-    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
-    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
-    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
-    /// Returns ```None``` if no geometry was hit before the given maximum depth.
-    ///
-    pub fn pick(
-        &self,
-        pixel: (f32, f32),
-        max_depth: f32,
-        objects: &[&dyn Geometry],
-    ) -> Result<Option<Vec3>, Error> {
-        let pos = self.position_at_pixel(pixel);
-        let dir = self.view_direction_at_pixel(pixel);
-        ray_intersect(&self.context, pos, dir, max_depth, objects)
     }
 
     ///
@@ -366,7 +349,7 @@ impl Camera {
     ///
     /// Returns an uniform buffer containing camera information which makes it easy to transfer all necessary camera information to a shader.
     ///
-    /// Use this buffer in your [Program](crate::Program) like this `program.use_uniform_block(camera.uniform_buffer(), "Camera");` and add the following to your shader code:
+    /// Use this buffer in your [Program] like this `program.use_uniform_block(camera.uniform_buffer(), "Camera");` and add the following to your shader code:
     ///
     /// ```ignore
     /// layout (std140) uniform Camera
@@ -475,7 +458,7 @@ impl Camera {
     ///
     /// Rotate the camera around the given point while keeping the same distance to the point.
     /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
-    /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](crate::Camera::rotate_around_with_fixed_up) function instead.
+    /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](Camera::rotate_around_with_fixed_up) function instead.
     ///
     pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> Result<(), Error> {
         let dir = (point - self.position()).normalize();

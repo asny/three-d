@@ -3,7 +3,7 @@ use crate::core::{Error, VertexBufferDataType};
 
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors
-/// (see also [use_attribute](crate::Program::use_attribute), [use_attribute_vec2](crate::Program::use_attribute_vec2), etc.).
+/// (see also [use_attribute](crate::core::Program::use_attribute), [use_attribute_vec2](crate::core::Program::use_attribute_vec2), etc.).
 ///
 pub struct VertexBuffer {
     context: Context,
@@ -27,7 +27,7 @@ impl VertexBuffer {
 
     ///
     /// Creates a new vertex buffer and fills it with the given data.
-    /// Use this method instead of [new_with_dynamic](crate::VertexBuffer::new_with_dynamic)
+    /// Use this method instead of [new_with_dynamic](VertexBuffer::new_with_dynamic)
     /// when you do not expect the data to change often.
     ///
     pub fn new_with_static<T: VertexBufferDataType>(
@@ -43,7 +43,7 @@ impl VertexBuffer {
 
     ///
     /// Fills the vertex buffer with the given data.
-    /// Use this method instead of [fill_with_dynamic](crate::VertexBuffer::fill_with_dynamic)
+    /// Use this method instead of [fill_with_dynamic](VertexBuffer::fill_with_dynamic)
     /// when you do not expect the data to change often.
     ///
     pub fn fill_with_static<T: VertexBufferDataType>(&mut self, data: &[T]) {
@@ -61,7 +61,7 @@ impl VertexBuffer {
 
     ///
     /// Creates a new vertex buffer and fills it with the given data.
-    /// Use this method instead of [new_with_static](crate::VertexBuffer::new_with_static)
+    /// Use this method instead of [new_with_static](VertexBuffer::new_with_static)
     /// when you expect the data to change often.
     ///
     pub fn new_with_dynamic<T: VertexBufferDataType>(
@@ -77,7 +77,7 @@ impl VertexBuffer {
 
     ///
     /// Fills the vertex buffer with the given data.
-    /// Use this method instead of [fill_with_static](crate::VertexBuffer::fill_with_static)
+    /// Use this method instead of [fill_with_static](VertexBuffer::fill_with_static)
     /// when you expect the data to change often.
     ///
     pub fn fill_with_dynamic<T: VertexBufferDataType>(&mut self, data: &[T]) {
