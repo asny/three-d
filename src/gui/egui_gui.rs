@@ -31,12 +31,12 @@ impl GUI {
                 context,
                 &format!(
                     "{}{}",
-                    include_str!("../../core/shared.frag"),
+                    include_str!("../core/shared.frag"),
                     include_str!("shaders/egui.vert")
                 ),
                 &format!(
                     "{}{}",
-                    include_str!("../../core/shared.frag"),
+                    include_str!("../core/shared.frag"),
                     include_str!("shaders/egui.frag")
                 ),
             )?,

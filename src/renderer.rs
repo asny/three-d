@@ -13,10 +13,6 @@ mod shading;
 #[doc(inline)]
 pub use shading::*;
 
-mod gui;
-#[doc(inline)]
-pub use gui::*;
-
 pub mod effect;
 pub use effect::*;
 
