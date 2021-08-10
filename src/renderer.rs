@@ -17,14 +17,8 @@ mod gui;
 #[doc(inline)]
 pub use gui::*;
 
-pub mod control;
-pub use control::*;
-
 pub mod effect;
 pub use effect::*;
-
-pub mod frame;
-pub use frame::*;
 
 pub mod io;
 pub use io::*;

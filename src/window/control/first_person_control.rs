@@ -1,4 +1,5 @@
 use crate::renderer::*;
+use crate::window::*;
 
 pub struct FirstPersonControl {
     control: CameraControl,

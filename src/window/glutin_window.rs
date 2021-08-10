@@ -1,5 +1,5 @@
 use crate::renderer::*;
-use crate::window::WindowSettings;
+use crate::window::*;
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::{ControlFlow, EventLoop};
 use glutin::window::WindowBuilder;
