@@ -1,3 +1,8 @@
+//!
+//! High-level features for easy loading and rendering of different types of objects with different types of shading.
+//! Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.
+//!
+
 pub use crate::core::*;
 
 mod camera;
