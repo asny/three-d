@@ -12,7 +12,7 @@ impl ShadedGeometry for InstancedMesh {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
         material.bind(program)?;
-        self.render(program, render_states, camera, viewport)
+        self.render_internal(program, render_states, camera.uniform_buffer(), viewport)
     }
 
     fn render_with_lighting(
@@ -43,7 +43,7 @@ impl ShadedGeometry for InstancedMesh {
             camera.position(),
         )?;
         material.bind(program)?;
-        self.render(program, render_states, camera, camera.viewport())?;
+        self.render(program, render_states, camera)?;
         Ok(())
     }
 }
