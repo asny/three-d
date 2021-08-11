@@ -11,7 +11,7 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    // Renderer
+    let pipeline = ForwardPipeline::new(&context).unwrap();
     let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut camera = Camera::new_perspective(
@@ -89,28 +89,13 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
                             || {
-                                model.render_with_lighting(
-                                    RenderStates::default(),
+                                pipeline.light_pass(
                                     &camera,
-                                    &material,
-                                    Some(&ambient_light),
-                                    &[&directional_light0, &directional_light1],
-                                    &[],
-                                    &[],
-                                )?;
-                                vertices.render_with_lighting(
-                                    RenderStates::default(),
-                                    &camera,
-                                    &wireframe_material,
-                                    Some(&ambient_light),
-                                    &[&directional_light0, &directional_light1],
-                                    &[],
-                                    &[],
-                                )?;
-                                edges.render_with_lighting(
-                                    RenderStates::default(),
-                                    &camera,
-                                    &wireframe_material,
+                                    &[
+                                        (&model, &material),
+                                        (&vertices, &wireframe_material),
+                                        (&edges, &wireframe_material),
+                                    ],
                                     Some(&ambient_light),
                                     &[&directional_light0, &directional_light1],
                                     &[],

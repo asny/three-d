@@ -10,6 +10,10 @@ mod material;
 #[doc(inline)]
 pub use material::*;
 
+mod forward_pipeline;
+#[doc(inline)]
+pub use forward_pipeline::*;
+
 mod deferred_pipeline;
 #[doc(inline)]
 pub use deferred_pipeline::*;
