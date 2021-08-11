@@ -119,6 +119,7 @@ fn main() {
                                 RenderStates::default(),
                                 &camera,
                                 &penguin_material,
+                                LightingModel::Blinn,
                                 Some(&ambient_light),
                                 &[&directional_light],
                                 &[],

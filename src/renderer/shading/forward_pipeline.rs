@@ -6,7 +6,7 @@ use crate::renderer::*;
 /// amount of directional, point and spot lights with shadows.
 ///
 pub struct ForwardPipeline {
-    context: Context,
+    _context: Context,
     pub lighting_model: LightingModel,
 }
 
@@ -16,7 +16,7 @@ impl ForwardPipeline {
     ///
     pub fn new(context: &Context) -> Result<Self, Error> {
         Ok(Self {
-            context: context.clone(),
+            _context: context.clone(),
             lighting_model: LightingModel::Blinn,
         })
     }

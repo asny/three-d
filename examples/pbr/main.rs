@@ -12,6 +12,12 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
+    let mut pipeline = ForwardPipeline::new(&context).unwrap();
+    pipeline.lighting_model = LightingModel::Cook(
+        NormalDistributionFunction::Beckmann,
+        GeometryFunction::SmithSchlickGGX,
+    );
+
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -34,16 +40,12 @@ fn main() {
             let material = Material::new(&context, &cpu_materials[0]).unwrap();
             let mut model = Mesh::new(&context, &cpu_meshes[0]).unwrap();
             model.cull = CullType::Back;
-            model.lighting_model = LightingModel::Cook(
-                NormalDistributionFunction::Beckmann,
-                GeometryFunction::SmithSchlickGGX,
-            );
 
             let plane_material = Material {
                 albedo: vec4(0.5, 0.7, 0.3, 1.0),
                 ..Default::default()
             };
-            let mut plane = Mesh::new(
+            let plane = Mesh::new(
                 &context,
                 &CPUMesh {
                     positions: vec![
@@ -54,7 +56,6 @@ fn main() {
                 },
             )
             .unwrap();
-            plane.lighting_model = model.lighting_model;
 
             let ambient_light = AmbientLight {
                 color: Color::WHITE,
@@ -104,20 +105,9 @@ fn main() {
                         .generate_shadow_map(15.0, 1024, &[&model])
                         .unwrap();
                     Screen::write(&context, ClearState::default(), || {
-                        plane.render_with_lighting(
-                            RenderStates::default(),
+                        pipeline.light_pass(
                             &camera,
-                            &plane_material,
-                            Some(&ambient_light),
-                            &[&directional_light0, &directional_light1],
-                            &[&spot_light],
-                            &[],
-                        )?;
-
-                        model.render_with_lighting(
-                            RenderStates::default(),
-                            &camera,
-                            &material,
+                            &[(&plane, &plane_material), (&model, &material)],
                             Some(&ambient_light),
                             &[&directional_light0, &directional_light1],
                             &[&spot_light],

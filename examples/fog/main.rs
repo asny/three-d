@@ -125,6 +125,7 @@ fn main() {
                             },
                             &camera,
                             &monkey_material,
+                            LightingModel::Blinn,
                             Some(&ambient_light),
                             &[&directional_light],
                             &[],

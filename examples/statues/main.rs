@@ -11,7 +11,6 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    // Renderer
     let mut primary_camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -149,6 +148,7 @@ fn main() {
                                                 &secondary_camera
                                             },
                                             &statue_material,
+                                            LightingModel::Blinn,
                                             Some(&ambient_light),
                                             &[&directional_light],
                                             &[],
@@ -164,6 +164,7 @@ fn main() {
                                         &secondary_camera
                                     },
                                     &fountain_material,
+                                    LightingModel::Blinn,
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],
