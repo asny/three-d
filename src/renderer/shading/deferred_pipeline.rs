@@ -16,10 +16,12 @@ pub enum DebugType {
     POWER,
     NONE,
 }
-
 ///
-/// Deferred pipeline using physically based rendering (PBR) and supporting a performance-limited
-/// amount of directional, point and spot lights with shadows.
+/// Deferred render pipeline which can render objects implementing the [ShadedGeometry] trait with materials and lighting.
+/// Supports different types of lighting models by changing the [DeferredPipeline::lighting_model] field.
+/// Deferred rendering draws the geometry information into a buffer in the [DeferredPipeline::geometry_pass] and use that information in the [DeferredPipeline::light_pass].
+/// This means that the lighting is only calculated once per pixel since the depth testing is happening in the geometry pass.
+/// **Note:** Deferred rendering does not support blending and therefore does not support transparency!
 ///
 pub struct DeferredPipeline {
     context: Context,
@@ -71,9 +73,9 @@ impl DeferredPipeline {
     }
 
     ///
-    /// Render the geometry and surface material parameters of the given [shaded geometries](crate::ShadedGeometry).
+    /// Render the given geometry and material parameters to a buffer.
     /// This function must not be called in a render target render function and needs to be followed
-    /// by a call to [light_pass](Self::light_pass) which must be inside a render target render function.
+    /// by a call to [DeferredPipeline::light_pass].
     ///
     pub fn geometry_pass(
         &mut self,
@@ -123,10 +125,10 @@ impl DeferredPipeline {
     }
 
     ///
-    /// Uses the geometry and surface material parameters written in the last [geometry_pass](Self::geometry_pass) call
-    /// and all of the given lights to shade the [Shaded geometries](crate::ShadedGeometry).
+    /// Uses the geometry and surface material parameters written in the last [DeferredPipeline::geometry_pass] call
+    /// and all of the given lights to render the [ShadedGeometry].
     /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// for example in the callback function of [Screen::write].
     ///
     pub fn light_pass(
         &mut self,

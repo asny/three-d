@@ -1,5 +1,6 @@
 //!
-//! Adds functionality for physically based rendering (PBR).
+//! Adds functionality for rendering objects with lighting including support for physically based rendering (PBR).
+//! To render an object implementing the [ShadedGeometry] trait, either call the [ShadedGeometry::render_with_lighting] method or use the [ForwardPipeline] or [DeferredPipeline].
 //!
 
 mod cpu_material;

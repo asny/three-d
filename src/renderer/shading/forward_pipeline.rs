@@ -1,9 +1,9 @@
-use crate::renderer::shading::*;
 use crate::renderer::*;
 
 ///
-/// Forward pipeline using physically based rendering (PBR) and supporting a performance-limited
-/// amount of directional, point and spot lights with shadows.
+/// Forward render pipeline which can render objects implementing the [ShadedGeometry] trait with materials and lighting.
+/// Supports different types of lighting models by changing the [ForwardPipeline::lighting_model] field.
+/// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [ShadedGeometry::render_with_lighting] directly.
 ///
 pub struct ForwardPipeline {
     _context: Context,
@@ -22,8 +22,8 @@ impl ForwardPipeline {
     }
 
     ///
-    /// Render the [geometries](crate::ShadedGeometry) with the given surface materials and the given set of lights using physically based rendering (PBR).
-    /// This function must be called in a render target render function.
+    /// Render the geometries with the given surface materials and the given set of lights.
+    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     ///
     pub fn light_pass(
         &self,
