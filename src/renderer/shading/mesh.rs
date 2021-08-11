@@ -20,13 +20,14 @@ impl ShadedGeometry for Mesh {
         render_states: RenderStates,
         camera: &Camera,
         material: &Material,
+        lighting_model: LightingModel,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<(), Error> {
         let fragment_shader_source = shaded_fragment_shader(
-            self.lighting_model,
+            lighting_model,
             Some(material),
             directional_lights.len(),
             spot_lights.len(),

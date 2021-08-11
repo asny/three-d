@@ -86,7 +86,6 @@ pub struct Mesh {
     pub name: String,
     pub cull: CullType,
     pub transformation: Mat4,
-    pub lighting_model: LightingModel,
 }
 
 impl Mesh {
@@ -203,7 +202,6 @@ impl Mesh {
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
             cull: CullType::None,
-            lighting_model: LightingModel::Blinn,
         })
     }
 
@@ -428,7 +426,6 @@ impl Clone for Mesh {
             name: self.name.clone(),
             cull: self.cull.clone(),
             transformation: self.transformation.clone(),
-            lighting_model: self.lighting_model,
         }
     }
 }

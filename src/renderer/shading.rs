@@ -48,6 +48,7 @@ pub trait ShadedGeometry: Geometry {
         render_states: RenderStates,
         camera: &Camera,
         material: &Material,
+        lighting_model: LightingModel,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
