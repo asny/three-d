@@ -22,6 +22,20 @@ impl MeshProgram {
         Self::new_internal(context, fragment_shader_source, false)
     }
 
+    pub fn new_with_custom_vertex_shader(
+        context: &Context,
+        vertex_shader_source: &str,
+        fragment_shader_source: &str,
+    ) -> Result<Self, Error> {
+        let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
+        Ok(Self {
+            program,
+            use_normals: false,
+            use_uvs: false,
+            use_colors: false,
+        })
+    }
+
     pub(in crate::renderer::object) fn new_internal(
         context: &Context,
         fragment_shader_source: &str,
