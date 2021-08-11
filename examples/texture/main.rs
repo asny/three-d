@@ -116,7 +116,6 @@ fn main() {
                             )?;
                             penguin.transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
                             penguin.render_with_lighting(
-                                RenderStates::default(),
                                 &camera,
                                 &penguin_material,
                                 LightingModel::Blinn,

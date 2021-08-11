@@ -85,10 +85,6 @@ fn main() {
                             ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
                             || {
                                 monkey.render_with_lighting(
-                                    RenderStates {
-                                        depth_test: DepthTestType::LessOrEqual,
-                                        ..Default::default()
-                                    },
                                     &camera,
                                     &monkey_material,
                                     LightingModel::Blinn,
@@ -98,7 +94,6 @@ fn main() {
                                     &[],
                                 )?;
                                 pick_mesh.render_with_lighting(
-                                    RenderStates::default(),
                                     &camera,
                                     &pick_mesh_material,
                                     LightingModel::Blinn,

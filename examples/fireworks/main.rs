@@ -44,6 +44,15 @@ fn main() {
     let mut particles =
         Particles::new(&context, &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
     particles.cull = CullType::Back;
+    particles.blend = Some(BlendParameters {
+        rgb_equation: BlendEquationType::Add,
+        alpha_equation: BlendEquationType::Add,
+        source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+        source_alpha_multiplier: BlendMultiplierType::Zero,
+        destination_rgb_multiplier: BlendMultiplierType::One,
+        destination_alpha_multiplier: BlendMultiplierType::One,
+    });
+    particles.depth_test = DepthTestType::Always;
 
     // main loop
     let mut time = explosion_time + 100.0;
@@ -85,19 +94,6 @@ fn main() {
             }
 
             Screen::write(&context, ClearState::color(0.0, 0.0, 0.0, 1.0), || {
-                let render_states = RenderStates {
-                    blend: Some(BlendParameters {
-                        rgb_equation: BlendEquationType::Add,
-                        alpha_equation: BlendEquationType::Add,
-                        source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-                        source_alpha_multiplier: BlendMultiplierType::Zero,
-                        destination_rgb_multiplier: BlendMultiplierType::One,
-                        destination_alpha_multiplier: BlendMultiplierType::One,
-                    }),
-                    write_mask: WriteMask::COLOR,
-                    depth_test: DepthTestType::Always,
-                    ..Default::default()
-                };
                 let f = time / explosion_time.max(0.0);
                 let fade = 1.0 - f * f * f * f;
                 let color = colors[color_index];
@@ -105,7 +101,7 @@ fn main() {
                     "color",
                     &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0),
                 )?;
-                particles.render(&particles_program, render_states, &camera, time)?;
+                particles.render(&particles_program, WriteMask::COLOR, None, &camera, time)?;
                 Ok(())
             })
             .unwrap();

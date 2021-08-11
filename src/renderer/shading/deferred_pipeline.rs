@@ -114,7 +114,7 @@ impl DeferredPipeline {
                     .map(|aabb| camera.in_frustum(&aabb))
                     .unwrap_or(true)
                 {
-                    geometry.geometry_pass(RenderStates::default(), camera, viewport, material)?;
+                    geometry.geometry_pass(camera, viewport, material)?;
                 }
             }
             Ok(())

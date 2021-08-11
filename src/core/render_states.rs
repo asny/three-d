@@ -27,15 +27,18 @@ pub struct RenderStates {
     /// This is usually used to simulate transparency.
     ///
     pub blend: Option<BlendParameters>,
+
+    pub cull: CullType,
 }
 
 impl Default for RenderStates {
     fn default() -> Self {
         Self {
             write_mask: WriteMask::default(),
-            depth_test: DepthTestType::Less,
+            depth_test: DepthTestType::default(),
             blend: None,
             clip: None,
+            cull: CullType::default(),
         }
     }
 }
@@ -49,6 +52,12 @@ pub enum CullType {
     Back,
     Front,
     FrontAndBack,
+}
+
+impl Default for CullType {
+    fn default() -> Self {
+        Self::None
+    }
 }
 
 ///
@@ -70,6 +79,12 @@ pub enum DepthTestType {
     NotEqual,
     GreaterOrEqual,
     Always,
+}
+
+impl Default for DepthTestType {
+    fn default() -> Self {
+        Self::Less
+    }
 }
 
 ///

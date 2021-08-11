@@ -146,7 +146,6 @@ impl SpotLight {
                     .unwrap_or(true)
                 {
                     geometry.render_depth(
-                        RenderStates::default(),
                         self.shadow_camera.as_ref().unwrap(),
                     )?;
                 }

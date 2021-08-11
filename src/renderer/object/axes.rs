@@ -31,12 +31,9 @@ impl Axes {
     /// The transformation can be used to position, orientate and scale the axes.
     ///
     pub fn render(&self, camera: &Camera) -> Result<(), Error> {
-        self.x
-            .render_with_color(&Color::RED, RenderStates::default(), camera)?;
-        self.y
-            .render_with_color(&Color::GREEN, RenderStates::default(), camera)?;
-        self.z
-            .render_with_color(&Color::BLUE, RenderStates::default(), camera)?;
+        self.x.render_with_color(&Color::RED, camera)?;
+        self.y.render_with_color(&Color::GREEN, camera)?;
+        self.z.render_with_color(&Color::BLUE, camera)?;
 
         Ok(())
     }

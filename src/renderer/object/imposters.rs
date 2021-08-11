@@ -158,6 +158,7 @@ impl Imposters {
                 rgb_equation: BlendEquationType::Add,
                 alpha_equation: BlendEquationType::Add,
             }),
+            cull: CullType::Back,
             ..Default::default()
         };
         self.program
@@ -178,7 +179,6 @@ impl Imposters {
             .use_attribute_divisor("theta", &self.rotation_buffer, 1)?;
         self.program.draw_arrays_instanced(
             render_states,
-            CullType::Back,
             camera.viewport(),
             6,
             self.instance_count,

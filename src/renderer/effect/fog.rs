@@ -33,6 +33,7 @@ impl FogEffect {
                 destination_alpha_multiplier: BlendMultiplierType::One,
                 ..Default::default()
             }),
+            cull: CullType::Back,
             ..Default::default()
         };
 

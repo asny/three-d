@@ -39,6 +39,7 @@ fn main() {
     .unwrap();
     mesh.cull = CullType::Back;
     mesh.transformation = Mat4::from_scale(10.0);
+    mesh.depth_test = DepthTestType::Always;
     let program =
         MeshProgram::new(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
@@ -97,16 +98,7 @@ fn main() {
 
             if redraw {
                 Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-                    mesh.render(
-                        &program,
-                        RenderStates {
-                            write_mask: WriteMask::COLOR,
-                            depth_test: DepthTestType::Always,
-                            ..Default::default()
-                        },
-                        &camera,
-                    )
-                    .unwrap();
+                    mesh.render(&program, WriteMask::COLOR, None, &camera)?;
                     Ok(())
                 })
                 .unwrap();

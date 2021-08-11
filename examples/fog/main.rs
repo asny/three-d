@@ -111,7 +111,7 @@ fn main() {
                             .as_ref()
                             .unwrap()
                             .write(Some(1.0), &|| {
-                                monkey.render_depth(RenderStates::default(), &camera)?;
+                                monkey.render_depth(&camera)?;
                                 Ok(())
                             })
                             .unwrap();
@@ -119,10 +119,6 @@ fn main() {
 
                     Screen::write(&context, ClearState::default(), || {
                         monkey.render_with_lighting(
-                            RenderStates {
-                                depth_test: DepthTestType::LessOrEqual,
-                                ..Default::default()
-                            },
                             &camera,
                             &monkey_material,
                             LightingModel::Blinn,

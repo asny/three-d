@@ -59,7 +59,7 @@ fn main() {
             mesh.transformation = Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32));
 
             // Render the triangle with the per vertex colors defined at construction
-            mesh.render_color(RenderStates::default(), &camera)?;
+            mesh.render_color(&camera)?;
             Ok(())
         }).unwrap();
 

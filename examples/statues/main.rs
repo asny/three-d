@@ -141,7 +141,6 @@ fn main() {
                                         .unwrap_or(true)
                                     {
                                         statue.render_with_lighting(
-                                            RenderStates::default(),
                                             if is_primary_camera {
                                                 &primary_camera
                                             } else {
@@ -157,7 +156,6 @@ fn main() {
                                     }
                                 }
                                 fountain.render_with_lighting(
-                                    RenderStates::default(),
                                     if is_primary_camera {
                                         &primary_camera
                                     } else {

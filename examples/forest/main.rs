@@ -50,10 +50,6 @@ fn main() {
             let tree_material = Material::new(&context, &tree_cpu_material).unwrap();
             let mut tree_mesh = Mesh::new(&context, tree_cpu_mesh).unwrap();
             tree_mesh.cull = CullType::Back;
-            let tree_mesh_render_states = RenderStates {
-                depth_test: DepthTestType::LessOrEqual,
-                ..Default::default()
-            };
 
             let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
             let leaves_material = Material::new(
@@ -65,10 +61,6 @@ fn main() {
             )
             .unwrap();
             let leaves_mesh = Mesh::new(&context, leaves_cpu_mesh).unwrap();
-            let leaves_mesh_render_states = RenderStates {
-                depth_test: DepthTestType::LessOrEqual,
-                ..Default::default()
-            };
 
             // Lights
             let ambient_light = AmbientLight {
@@ -87,7 +79,6 @@ fn main() {
                 .update_texture(
                     |camera: &Camera| {
                         tree_mesh.render_with_lighting(
-                            tree_mesh_render_states,
                             camera,
                             &tree_material,
                             LightingModel::Blinn,
@@ -97,7 +88,6 @@ fn main() {
                             &[],
                         )?;
                         leaves_mesh.render_with_lighting(
-                            leaves_mesh_render_states,
                             camera,
                             &leaves_material,
                             LightingModel::Blinn,
@@ -176,10 +166,6 @@ fn main() {
                             ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                             || {
                                 plane.render_with_lighting(
-                                    RenderStates {
-                                        depth_test: DepthTestType::LessOrEqual,
-                                        ..Default::default()
-                                    },
                                     &camera,
                                     &plane_material,
                                     LightingModel::Blinn,
@@ -189,7 +175,6 @@ fn main() {
                                     &[],
                                 )?;
                                 tree_mesh.render_with_lighting(
-                                    tree_mesh_render_states,
                                     &camera,
                                     &tree_material,
                                     LightingModel::Blinn,
@@ -199,7 +184,6 @@ fn main() {
                                     &[],
                                 )?;
                                 leaves_mesh.render_with_lighting(
-                                    leaves_mesh_render_states,
                                     &camera,
                                     &leaves_material,
                                     LightingModel::Blinn,

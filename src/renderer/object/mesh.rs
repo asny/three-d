@@ -85,6 +85,8 @@ pub struct Mesh {
     aabb: AxisAlignedBoundingBox,
     pub name: String,
     pub cull: CullType,
+    pub depth_test: DepthTestType,
+    pub blend: Option<BlendParameters>,
     pub transformation: Mat4,
 }
 
@@ -201,7 +203,9 @@ impl Mesh {
             aabb: cpu_mesh.compute_aabb(),
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
-            cull: CullType::None,
+            cull: CullType::default(),
+            depth_test: DepthTestType::default(),
+            blend: None,
         })
     }
 
@@ -213,13 +217,13 @@ impl Mesh {
     /// # Errors
     /// Will return an error if the mesh has no colors.
     ///
-    pub fn render_color(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
+    pub fn render_color(&self, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(&format!(
             "{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh_vertex_color.frag")
         ))?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -227,15 +231,10 @@ impl Mesh {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render_with_color(
-        &self,
-        color: &Color,
-        render_states: RenderStates,
-        camera: &Camera,
-    ) -> Result<(), Error> {
+    pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", &color.to_vec4())?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -246,9 +245,9 @@ impl Mesh {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    pub fn render_uvs(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
+    pub fn render_uvs(&self, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_uvs.frag"))?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -259,13 +258,9 @@ impl Mesh {
     /// # Errors
     /// Will return an error if the mesh has no normals.
     ///
-    pub fn render_normals(
-        &self,
-        render_states: RenderStates,
-        camera: &Camera,
-    ) -> Result<(), Error> {
+    pub fn render_normals(&self, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_normals.frag"))?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -279,12 +274,11 @@ impl Mesh {
     pub fn render_with_texture(
         &self,
         texture: &impl Texture,
-        render_states: RenderStates,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture("tex", texture)?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -300,12 +294,19 @@ impl Mesh {
     pub fn render(
         &self,
         program: &MeshProgram,
-        render_states: RenderStates,
+        write_mask: WriteMask,
+        clip: Option<ClipParameters>,
         camera: &Camera,
     ) -> Result<(), Error> {
         self.render_internal(
+            RenderStates {
+                cull: self.cull,
+                write_mask,
+                clip,
+                blend: self.blend,
+                depth_test: self.depth_test,
+            },
             program,
-            render_states,
             camera.uniform_buffer(),
             camera.viewport(),
         )
@@ -313,8 +314,8 @@ impl Mesh {
 
     pub(crate) fn render_internal(
         &self,
-        program: &MeshProgram,
         render_states: RenderStates,
+        program: &MeshProgram,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> Result<(), Error> {
@@ -346,11 +347,10 @@ impl Mesh {
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(render_states, self.cull, viewport, index_buffer);
+            program.draw_elements(render_states, viewport, index_buffer);
         } else {
             program.draw_arrays(
                 render_states,
-                self.cull,
                 viewport,
                 self.position_buffer.count() as u32 / 3,
             );
@@ -386,21 +386,46 @@ impl Mesh {
 }
 
 impl Geometry for Mesh {
-    fn render_depth_to_red(
-        &self,
-        render_states: RenderStates,
-        camera: &Camera,
-        max_depth: f32,
-    ) -> Result<(), Error> {
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
-        self.render(program, render_states, camera)?;
+
+        let render_states = RenderStates {
+            write_mask: WriteMask {
+                red: true,
+                depth: true,
+                ..WriteMask::NONE
+            },
+            cull: self.cull,
+            clip: None,
+            blend: None,
+            depth_test: self.depth_test,
+        };
+        self.render_internal(
+            render_states,
+            program,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?;
         Ok(())
     }
 
-    fn render_depth(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
+    fn render_depth(&self, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program("void main() {}")?;
-        self.render(program, render_states, camera)
+        let render_states = RenderStates {
+            write_mask: WriteMask::DEPTH,
+            cull: self.cull,
+            clip: None,
+            blend: None,
+            depth_test: self.depth_test,
+        };
+        self.render_internal(
+            render_states,
+            program,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?;
+        Ok(())
     }
 
     fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
@@ -424,8 +449,10 @@ impl Clone for Mesh {
             color_buffer: self.color_buffer.clone(),
             aabb: self.aabb.clone(),
             name: self.name.clone(),
-            cull: self.cull.clone(),
             transformation: self.transformation.clone(),
+            cull: self.cull,
+            blend: self.blend,
+            depth_test: self.depth_test,
         }
     }
 }

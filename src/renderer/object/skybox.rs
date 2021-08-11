@@ -50,6 +50,7 @@ impl Skybox {
     pub fn render(&self, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
             depth_test: DepthTestType::LessOrEqual,
+            cull: CullType::Front,
             ..Default::default()
         };
 
@@ -61,7 +62,7 @@ impl Skybox {
             .use_attribute_vec3("position", &self.vertex_buffer)?;
 
         self.program
-            .draw_arrays(render_states, CullType::Front, camera.viewport(), 36);
+            .draw_arrays(render_states, camera.viewport(), 36);
         Ok(())
     }
 

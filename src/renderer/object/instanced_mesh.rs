@@ -45,6 +45,8 @@ pub struct InstancedMesh {
     instance_buffer3: VertexBuffer,
     pub name: String,
     pub cull: CullType,
+    pub depth_test: DepthTestType,
+    pub blend: Option<BlendParameters>,
     pub transformation: Mat4,
     pub lighting_model: LightingModel,
 }
@@ -99,7 +101,9 @@ impl InstancedMesh {
             instance_buffer1: VertexBuffer::new(context)?,
             instance_buffer2: VertexBuffer::new(context)?,
             instance_buffer3: VertexBuffer::new(context)?,
-            cull: CullType::None,
+            cull: CullType::default(),
+            depth_test: DepthTestType::default(),
+            blend: None,
             transformation: Mat4::identity(),
             lighting_model: LightingModel::Blinn,
         };
@@ -119,13 +123,13 @@ impl InstancedMesh {
     /// # Errors
     /// Will return an error if the instanced mesh has no colors.
     ///
-    pub fn render_color(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
+    pub fn render_color(&self, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(&format!(
             "{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh_vertex_color.frag")
         ))?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -134,15 +138,10 @@ impl InstancedMesh {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
-    pub fn render_with_color(
-        &self,
-        color: &Color,
-        render_states: RenderStates,
-        camera: &Camera,
-    ) -> Result<(), Error> {
+    pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", &color.to_vec4())?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -157,12 +156,11 @@ impl InstancedMesh {
     pub fn render_with_texture(
         &self,
         texture: &impl Texture,
-        render_states: RenderStates,
         camera: &Camera,
     ) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture("tex", texture)?;
-        self.render(program, render_states, camera)
+        self.render(program, WriteMask::default(), None, camera)
     }
 
     ///
@@ -179,12 +177,19 @@ impl InstancedMesh {
     pub fn render(
         &self,
         program: &InstancedMeshProgram,
-        render_states: RenderStates,
+        write_mask: WriteMask,
+        clip: Option<ClipParameters>,
         camera: &Camera,
     ) -> Result<(), Error> {
         self.render_internal(
+            RenderStates {
+                cull: self.cull,
+                clip,
+                write_mask,
+                blend: self.blend,
+                depth_test: self.depth_test,
+            },
             program,
-            render_states,
             camera.uniform_buffer(),
             camera.viewport(),
         )
@@ -192,8 +197,8 @@ impl InstancedMesh {
 
     pub(crate) fn render_internal(
         &self,
-        program: &InstancedMeshProgram,
         render_states: RenderStates,
+        program: &InstancedMeshProgram,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> Result<(), Error> {
@@ -231,7 +236,6 @@ impl InstancedMesh {
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements_instanced(
                 render_states,
-                self.cull,
                 viewport,
                 index_buffer,
                 self.instance_count,
@@ -239,7 +243,6 @@ impl InstancedMesh {
         } else {
             program.draw_arrays_instanced(
                 render_states,
-                self.cull,
                 viewport,
                 self.position_buffer.count() as u32 / 3,
                 self.instance_count,
@@ -306,21 +309,45 @@ impl InstancedMesh {
 }
 
 impl Geometry for InstancedMesh {
-    fn render_depth_to_red(
-        &self,
-        render_states: RenderStates,
-        camera: &Camera,
-        max_depth: f32,
-    ) -> Result<(), Error> {
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
-        self.render(program, render_states, camera)?;
+        let render_states = RenderStates {
+            write_mask: WriteMask {
+                red: true,
+                depth: true,
+                ..WriteMask::NONE
+            },
+            cull: self.cull,
+            clip: None,
+            blend: None,
+            depth_test: self.depth_test,
+        };
+        self.render_internal(
+            render_states,
+            program,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?;
         Ok(())
     }
 
-    fn render_depth(&self, render_states: RenderStates, camera: &Camera) -> Result<(), Error> {
+    fn render_depth(&self, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program("void main() {}")?;
-        self.render(program, render_states, camera)
+        let render_states = RenderStates {
+            write_mask: WriteMask::DEPTH,
+            cull: self.cull,
+            clip: None,
+            blend: None,
+            depth_test: self.depth_test,
+        };
+        self.render_internal(
+            render_states,
+            program,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?;
+        Ok(())
     }
 
     fn aabb(&self) -> Option<AxisAlignedBoundingBox> {

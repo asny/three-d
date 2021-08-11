@@ -36,7 +36,6 @@ pub trait ShadedGeometry: Geometry {
     ///
     fn geometry_pass(
         &self,
-        render_states: RenderStates,
         camera: &Camera,
         viewport: Viewport,
         material: &Material,
@@ -49,7 +48,6 @@ pub trait ShadedGeometry: Geometry {
     ///
     fn render_with_lighting(
         &self,
-        render_states: RenderStates,
         camera: &Camera,
         material: &Material,
         lighting_model: LightingModel,

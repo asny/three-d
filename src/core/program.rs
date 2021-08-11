@@ -352,15 +352,8 @@ impl Program {
         Ok(())
     }
 
-    pub fn draw_arrays(
-        &self,
-        render_states: RenderStates,
-        cull: CullType,
-        viewport: Viewport,
-        count: u32,
-    ) {
+    pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
         Self::set_viewport(&self.context, viewport);
-        Self::set_cull(&self.context, cull);
         Self::set_states(&self.context, render_states);
         self.set_used();
         self.context.draw_arrays(consts::TRIANGLES, 0, count);
@@ -373,13 +366,11 @@ impl Program {
     pub fn draw_arrays_instanced(
         &self,
         render_states: RenderStates,
-        cull: CullType,
         viewport: Viewport,
         count: u32,
         instance_count: u32,
     ) {
         Self::set_viewport(&self.context, viewport);
-        Self::set_cull(&self.context, cull);
         Self::set_states(&self.context, render_states);
         self.set_used();
         self.context
@@ -394,13 +385,11 @@ impl Program {
     pub fn draw_elements(
         &self,
         render_states: RenderStates,
-        cull: CullType,
         viewport: Viewport,
         element_buffer: &ElementBuffer,
     ) {
         self.draw_subset_of_elements(
             render_states,
-            cull,
             viewport,
             element_buffer,
             0,
@@ -411,14 +400,12 @@ impl Program {
     pub fn draw_subset_of_elements(
         &self,
         render_states: RenderStates,
-        cull: CullType,
         viewport: Viewport,
         element_buffer: &ElementBuffer,
         first: u32,
         count: u32,
     ) {
         Self::set_viewport(&self.context, viewport);
-        Self::set_cull(&self.context, cull);
         Self::set_states(&self.context, render_states);
         self.set_used();
         element_buffer.bind();
@@ -435,13 +422,11 @@ impl Program {
     pub fn draw_elements_instanced(
         &self,
         render_states: RenderStates,
-        cull: CullType,
         viewport: Viewport,
         element_buffer: &ElementBuffer,
         count: u32,
     ) {
         Self::set_viewport(&self.context, viewport);
-        Self::set_cull(&self.context, cull);
         Self::set_states(&self.context, render_states);
         self.set_used();
         element_buffer.bind();
@@ -478,6 +463,7 @@ impl Program {
     }
 
     fn set_states(context: &Context, render_states: RenderStates) {
+        Self::set_cull(context, render_states.cull);
         Self::set_write_mask(context, render_states.write_mask);
         Self::set_clip(context, render_states.clip);
         Self::set_depth(

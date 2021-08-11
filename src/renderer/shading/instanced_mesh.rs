@@ -4,7 +4,6 @@ use crate::renderer::*;
 impl ShadedGeometry for InstancedMesh {
     fn geometry_pass(
         &self,
-        render_states: RenderStates,
         camera: &Camera,
         viewport: Viewport,
         material: &Material,
@@ -12,12 +11,22 @@ impl ShadedGeometry for InstancedMesh {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
         material.bind(program)?;
-        self.render_internal(program, render_states, camera.uniform_buffer(), viewport)
+        self.render_internal(
+            RenderStates {
+                cull: self.cull,
+                clip: None,
+                write_mask: WriteMask::COLOR_AND_DEPTH,
+                blend: None,
+                depth_test: self.depth_test,
+            },
+            program,
+            camera.uniform_buffer(),
+            viewport,
+        )
     }
 
     fn render_with_lighting(
         &self,
-        render_states: RenderStates,
         camera: &Camera,
         material: &Material,
         lighting_model: LightingModel,
@@ -44,7 +53,7 @@ impl ShadedGeometry for InstancedMesh {
             camera.position(),
         )?;
         material.bind(program)?;
-        self.render(program, render_states, camera)?;
+        self.render(program, WriteMask::default(), None, camera)?;
         Ok(())
     }
 }

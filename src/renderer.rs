@@ -5,8 +5,8 @@
 
 pub use crate::context::Context;
 pub use crate::core::{
-    math::*, render_states::*, AxisAlignedBoundingBox, Camera, ClearState, Color, Error, Screen,
-    Viewport,
+    math::*, AxisAlignedBoundingBox, BlendEquationType, BlendMultiplierType, BlendParameters,
+    Camera, ClearState, Color, CullType, DepthTestType, Error, Screen, Viewport, WriteMask,
 };
 
 pub mod shading;
@@ -87,16 +87,6 @@ pub fn ray_intersect(
         DepthFormat::Depth32F,
     )?;
     let render_target = RenderTarget::new(context, &texture, &depth_texture)?;
-
-    let render_states = RenderStates {
-        write_mask: WriteMask {
-            red: true,
-            depth: true,
-            ..WriteMask::NONE
-        },
-        depth_test: DepthTestType::Less,
-        ..Default::default()
-    };
     render_target.write(
         ClearState {
             red: Some(1.0),
@@ -110,7 +100,7 @@ pub fn ray_intersect(
                     .map(|aabb| camera.in_frustum(&aabb))
                     .unwrap_or(true)
                 {
-                    geometry.render_depth_to_red(render_states, &camera, max_depth)?;
+                    geometry.render_depth_to_red(&camera, max_depth)?;
                 }
             }
             Ok(())

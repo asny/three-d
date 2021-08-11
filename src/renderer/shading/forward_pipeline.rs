@@ -22,7 +22,7 @@ impl ForwardPipeline {
     }
 
     ///
-    /// Render the [geometries](crate::ShadedGeometry) with the given surface materials and the given set of lights.
+    /// Render the [geometries](crate::ShadedGeometry) with the given surface materials and the given set of lights using physically based rendering (PBR).
     /// This function must be called in a render target render function.
     ///
     pub fn light_pass(
@@ -34,14 +34,8 @@ impl ForwardPipeline {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<(), Error> {
-        let render_states = RenderStates {
-            depth_test: DepthTestType::LessOrEqual,
-            ..Default::default()
-        };
-
         for (geometry, material) in geometries {
             geometry.render_with_lighting(
-                render_states,
                 camera,
                 material,
                 self.lighting_model,
