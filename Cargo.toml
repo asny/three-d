@@ -1,6 +1,6 @@
 [package]
 name = "three-d"
-version = "0.7.0" # Remember to update example links
+version = "0.8.0" # Remember to update example links
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
 description = "A renderer which compiles to both desktop (OpenGL) and web (WebAssembly + WebGL)."
