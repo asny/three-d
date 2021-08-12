@@ -145,9 +145,7 @@ impl SpotLight {
                     .map(|aabb| self.shadow_camera.as_ref().unwrap().in_frustum(&aabb))
                     .unwrap_or(true)
                 {
-                    geometry.render_depth(
-                        self.shadow_camera.as_ref().unwrap(),
-                    )?;
+                    geometry.render_depth(self.shadow_camera.as_ref().unwrap())?;
                 }
             }
             Ok(())
