@@ -11,12 +11,14 @@ A 3D renderer which enables out-of-the-box build to both desktop (Rust + OpenGL)
 (Rust to WebAssembly + WebGL2).
 This makes it possible to develop a 3D application on desktop and easily deploy it on both desktop and web!
 
-The crate consist of four main modules:
+The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and two optional utility modules, `io` and `window`:
+
 | Module           | Description                   
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 
 | [`context`](https://docs.rs/three-d/0.7.3/three_d/context/) | Low-level graphics abstraction layer which maps one-to-one with the OpenGL graphics API on desktop and WebGL2 bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate on web. Use this if you want to have complete control of a feature but be aware that there are no safety checks.                              
 | [`core`](https://docs.rs/three-d/0.7.3/three_d/core/) | Mid-level modular abstractions of common graphics concepts such as buffer, texture, program, render target and so on. Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.                                                                                                                           
 | [`renderer`](https://docs.rs/three-d/0.7.3/three_d/renderer/)  | High-level features for easy loading and rendering of different types of objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.             |
+| [`io`](https://docs.rs/three-d/0.7.3/three_d/io/) | Contains functionality to load any type of asset runtime on both desktop and web as well as parsers for different image and 3D model formats. Also includes functionality to save data which is limited to desktop.
 | [`window`](https://docs.rs/three-d/0.7.3/three_d/window/)  | Default windows for easy setup and event handling. Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop (requires the `"glutin-window"` feature) and canvas for web (requires the `"canvas"` feature). Can be replaced by anything that provides an OpenGL or WebGL2 graphics context. Also contains camera control utilities.
 
 
