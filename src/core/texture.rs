@@ -74,7 +74,7 @@ impl Format {
 
 ///
 /// A CPU-side version of a texture, for example [Texture2D].
-/// Can be constructed manually or loaded via [io](crate::renderer::io).
+/// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 pub struct CPUTexture<T: TextureDataType> {
     pub data: Vec<T>,
@@ -147,5 +147,90 @@ impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
             .field("wrap_t", &self.wrap_t)
             .field("wrap_r", &self.wrap_r)
             .finish()
+    }
+}
+
+use crate::io::*;
+use std::path::Path;
+
+#[cfg(feature = "image-io")]
+impl Loaded {
+    ///
+    /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
+    /// the [image](https://crates.io/crates/image/main.rs) crate.
+    /// The CPUTexture can then be used to create a [Texture2D].
+    ///
+    /// # Feature
+    /// Only available when the `image-io` feature is enabled.
+    ///
+    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>, IOError> {
+        image_from_bytes(&self.get_bytes(path)?)
+    }
+
+    ///
+    /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
+    /// the [image](https://crates.io/crates/image/main.rs) crate.
+    /// The CPUTexture can then be used to create a [TextureCubeMap].
+    ///
+    /// # Feature
+    /// Only available when the `image-io` feature is enabled.
+    ///
+    pub fn cube_image<P: AsRef<Path>>(
+        &mut self,
+        right_path: P,
+        left_path: P,
+        top_path: P,
+        bottom_path: P,
+        front_path: P,
+        back_path: P,
+    ) -> Result<CPUTexture<u8>, IOError> {
+        let mut right = self.image(right_path)?;
+        let left = self.image(left_path)?;
+        let top = self.image(top_path)?;
+        let bottom = self.image(bottom_path)?;
+        let front = self.image(front_path)?;
+        let back = self.image(back_path)?;
+
+        right.data.extend(left.data);
+        right.data.extend(top.data);
+        right.data.extend(bottom.data);
+        right.data.extend(front.data);
+        right.data.extend(back.data);
+        Ok(right)
+    }
+}
+
+#[cfg(all(feature = "image-io", not(target_arch = "wasm32")))]
+impl Saver {
+    ///
+    /// Saves the given RGB pixels as an image.
+    ///
+    /// # Feature
+    /// Only available when the `image-io` feature is enabled.
+    ///
+    pub fn save_pixels<P: AsRef<Path>>(
+        path: P,
+        pixels: &[u8],
+        width: u32,
+        height: u32,
+    ) -> Result<(), IOError> {
+        let mut pixels_out = vec![0u8; width as usize * height as usize * 4];
+        for row in 0..height as usize {
+            for col in 0..width as usize {
+                for i in 0..4 {
+                    pixels_out[4 * width as usize * (height as usize - row - 1) + 4 * col + i] =
+                        pixels[4 * width as usize * row + 4 * col + i];
+                }
+            }
+        }
+
+        image::save_buffer(
+            path,
+            &pixels_out,
+            width as u32,
+            height as u32,
+            image::ColorType::Rgba8,
+        )?;
+        Ok(())
     }
 }

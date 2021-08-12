@@ -16,6 +16,9 @@ pub use renderer::*;
 pub mod window;
 pub use window::*;
 
+pub mod io;
+pub use io::*;
+
 mod gui;
 #[doc(inline)]
 pub use gui::*;

@@ -15,8 +15,9 @@ pub use shading::*;
 pub mod effect;
 pub use effect::*;
 
-pub mod io;
-pub use io::*;
+mod parser;
+#[doc(inline)]
+pub use parser::*;
 
 pub mod light;
 pub use light::*;

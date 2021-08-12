@@ -13,30 +13,6 @@ mod saver;
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
 
-#[cfg(feature = "image-io")]
-mod texture;
-#[doc(inline)]
-#[cfg(feature = "image-io")]
-pub use texture::*;
-
-#[cfg(feature = "3d-io")]
-mod threed;
-#[doc(inline)]
-#[cfg(feature = "3d-io")]
-pub use threed::*;
-
-#[cfg(feature = "obj-io")]
-mod obj;
-#[doc(inline)]
-#[cfg(feature = "obj-io")]
-pub use obj::*;
-
-#[cfg(feature = "gltf-io")]
-mod gltf;
-#[doc(inline)]
-#[cfg(feature = "gltf-io")]
-pub use self::gltf::*;
-
 ///
 /// Error message from the [core](crate::io) module.
 ///
@@ -105,7 +81,7 @@ impl From<std::io::Error> for IOError {
 }
 
 #[cfg(feature = "image-io")]
-fn image_from_bytes(bytes: &[u8]) -> Result<crate::core::CPUTexture<u8>, IOError> {
+pub(crate) fn image_from_bytes(bytes: &[u8]) -> Result<crate::core::CPUTexture<u8>, IOError> {
     use crate::core::*;
     use image::DynamicImage;
     use image::GenericImageView;
