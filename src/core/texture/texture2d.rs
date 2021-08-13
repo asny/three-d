@@ -102,6 +102,9 @@ impl Texture for Texture2D {
     fn height(&self) -> u32 {
         self.height
     }
+    fn format(&self) -> Format {
+        self.format
+    }
 }
 
 impl Drop for Texture2D {

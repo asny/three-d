@@ -335,6 +335,8 @@ pub trait Texture {
     fn width(&self) -> u32;
     /// The height of this texture.
     fn height(&self) -> u32;
+    /// The format of this texture.
+    fn format(&self) -> Format;
 }
 
 ///
@@ -349,6 +351,8 @@ pub trait TextureArray {
     fn height(&self) -> u32;
     /// The depth of this texture, ie. the number of layers.
     fn depth(&self) -> u32;
+    /// The format of this texture.
+    fn format(&self) -> Format;
 }
 
 ///
@@ -361,6 +365,8 @@ pub trait TextureCube {
     fn width(&self) -> u32;
     /// The height of one of the sides of this texture.
     fn height(&self) -> u32;
+    /// The format of this texture.
+    fn format(&self) -> Format;
 }
 
 // COMMON TEXTURE FUNCTIONS

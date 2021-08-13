@@ -101,6 +101,9 @@ impl TextureCube for TextureCubeMap {
     fn height(&self) -> u32 {
         self.height
     }
+    fn format(&self) -> Format {
+        self.format
+    }
 }
 
 impl Drop for TextureCubeMap {

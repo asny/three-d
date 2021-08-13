@@ -118,6 +118,9 @@ impl TextureArray for DepthTargetTexture2DArray {
     fn depth(&self) -> u32 {
         self.depth
     }
+    fn format(&self) -> Format {
+        Format::R
+    }
 }
 
 impl Drop for DepthTargetTexture2DArray {

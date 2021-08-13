@@ -14,6 +14,7 @@ pub struct ColorTargetTexture2DArray<T: TextureDataType> {
     height: u32,
     depth: u32,
     number_of_mip_maps: u32,
+    format: Format,
     _dummy: T,
 }
 
@@ -63,6 +64,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
             height,
             depth,
             number_of_mip_maps,
+            format,
             _dummy: T::default(),
         })
     }
@@ -143,6 +145,9 @@ impl<T: TextureDataType> TextureArray for ColorTargetTexture2DArray<T> {
     }
     fn depth(&self) -> u32 {
         self.depth
+    }
+    fn format(&self) -> Format {
+        self.format
     }
 }
 

@@ -154,6 +154,9 @@ impl<T: TextureDataType> Texture for ColorTargetTexture2D<T> {
     fn height(&self) -> u32 {
         self.height
     }
+    fn format(&self) -> Format {
+        self.format
+    }
 }
 
 impl<T: TextureDataType> Drop for ColorTargetTexture2D<T> {

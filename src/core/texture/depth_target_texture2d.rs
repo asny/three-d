@@ -118,6 +118,9 @@ impl Texture for DepthTargetTexture2D {
     fn height(&self) -> u32 {
         self.height
     }
+    fn format(&self) -> Format {
+        Format::R
+    }
 }
 
 impl Drop for DepthTargetTexture2D {
