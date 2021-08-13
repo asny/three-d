@@ -11,14 +11,6 @@ mod deferred_pipeline;
 #[doc(inline)]
 pub use deferred_pipeline::*;
 
-mod model;
-#[doc(inline)]
-pub use model::*;
-
-mod instanced_model;
-#[doc(inline)]
-pub use instanced_model::*;
-
 use crate::core::*;
 use crate::renderer::*;
 
@@ -70,7 +62,7 @@ pub enum NormalDistributionFunction {
     TrowbridgeReitzGGX,
 }
 
-fn geometry_fragment_shader(material: &Material) -> String {
+pub(in crate::renderer) fn geometry_fragment_shader(material: &Material) -> String {
     format!(
         "in vec3 pos;\nin vec3 nor;\n{}{}",
         material_shader(material),
@@ -78,7 +70,7 @@ fn geometry_fragment_shader(material: &Material) -> String {
     )
 }
 
-fn shaded_fragment_shader(
+pub(in crate::renderer) fn shaded_fragment_shader(
     lighting_model: LightingModel,
     material: Option<&Material>,
     directional_lights: usize,
@@ -188,7 +180,7 @@ fn material_shader(material: &Material) -> String {
     output
 }
 
-fn bind_lights(
+pub(in crate::renderer) fn bind_lights(
     program: &Program,
     ambient_light: Option<&AmbientLight>,
     directional_lights: &[&DirectionalLight],
