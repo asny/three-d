@@ -1,6 +1,9 @@
 use crate::core::*;
 use crate::renderer::*;
 
+///
+/// A triangle mesh which can be rendered with one of the standard render functions. See [Mesh] if you need a custom render function.
+///
 pub struct Model {
     context: Context,
     pub(in crate::renderer) mesh: Mesh,
@@ -31,7 +34,7 @@ impl Model {
     ///
     /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh and are assumed to be in gamma color space (sRGBA).
     /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// for example in the callback function of [Screen::write].
     ///
     /// # Errors
     /// Will return an error if the mesh has no colors.
@@ -53,7 +56,7 @@ impl Model {
     ///
     /// Render the mesh with the given color. The color is assumed to be in gamma color space (sRGBA).
     /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// for example in the callback function of [Screen::write].
     ///
     pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
@@ -69,7 +72,7 @@ impl Model {
     ///
     /// Render the uv coordinates of the mesh in red (u) and green (v) for debug purposes.
     /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// for example in the callback function of [Screen::write].
     ///
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
@@ -87,7 +90,7 @@ impl Model {
     ///
     /// Render the normals of the mesh for debug purposes.
     /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// for example in the callback function of [Screen::write].
     ///
     /// # Errors
     /// Will return an error if the mesh has no normals.
@@ -105,7 +108,7 @@ impl Model {
     ///
     /// Render the mesh with the given texture which is assumed to be in sRGB color space with or without an alpha channel.
     /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// for example in the callback function of [Screen::write].
     ///
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.

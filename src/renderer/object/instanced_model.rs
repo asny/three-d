@@ -1,6 +1,9 @@
 use crate::core::*;
 use crate::renderer::*;
 
+///
+/// Similar to [Model], except it is possible to render many instances of the same model efficiently. See [InstancedMesh] if you need a custom render function.
+///
 pub struct InstancedModel {
     context: Context,
     pub(in crate::renderer) mesh: InstancedMesh,

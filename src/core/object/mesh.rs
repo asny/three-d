@@ -72,7 +72,7 @@ impl std::ops::Deref for MeshProgram {
 }
 
 ///
-/// A triangle mesh which can be rendered with one of the default render functions or with a custom [MeshProgram](MeshProgram).
+/// A triangle mesh which can be rendered with a custom [MeshProgram](MeshProgram).
 ///
 #[derive(Clone)]
 pub struct Mesh {
