@@ -28,6 +28,9 @@ pub struct RenderStates {
     ///
     pub blend: Option<BlendParameters>,
 
+    ///
+    /// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
+    ///
     pub cull: CullType,
 }
 
