@@ -67,7 +67,7 @@ pub(in crate::renderer) fn geometry_fragment_shader(material: &Material) -> Stri
     format!(
         "in vec3 pos;\nin vec3 nor;\n{}{}",
         material_shader(material),
-        include_str!("shading/shaders/deferred_objects.frag")
+        include_str!("shaders/deferred_objects.frag")
     )
 }
 
@@ -142,8 +142,8 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     format!(
         "{}\n{}\n{}\n{}\nin vec3 pos;\nin vec3 nor;\n{}\n{}",
         model,
-        include_str!("../core/shared.frag"),
-        include_str!("shading/shaders/light_shared.frag"),
+        include_str!("../../core/shared.frag"),
+        include_str!("shaders/light_shared.frag"),
         &format!(
             "
                 uniform vec3 ambientColor;
@@ -163,7 +163,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
             &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
         ),
         material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n".to_string()),
-        include_str!("shading/shaders/lighting.frag"),
+        include_str!("shaders/lighting.frag"),
     )
 }
 
