@@ -33,8 +33,8 @@ impl Model {
 
     ///
     /// Render the mesh with a color per triangle vertex. The colors are defined when constructing the mesh and are assumed to be in gamma color space (sRGBA).
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
+    /// Will render the model transparent if the colors contain alpha values below 255, you only need to render the model after all solid models.
     ///
     /// # Errors
     /// Will return an error if the mesh has no colors.
@@ -55,8 +55,8 @@ impl Model {
 
     ///
     /// Render the mesh with the given color. The color is assumed to be in gamma color space (sRGBA).
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
+    /// Will render the model transparent if the color contains an alpha value below 255, you only need to render the model after all solid models.
     ///
     pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<(), Error> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
@@ -89,8 +89,7 @@ impl Model {
 
     ///
     /// Render the normals of the mesh for debug purposes.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     ///
     /// # Errors
     /// Will return an error if the mesh has no normals.
@@ -107,8 +106,8 @@ impl Model {
 
     ///
     /// Render the mesh with the given texture which is assumed to be in sRGB color space with or without an alpha channel.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
+    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
+    /// Will render the model transparent if the texture contain an alpha channel (ie. the format is [Format::RGBA]), you only need to render the model after all solid models.
     ///
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
