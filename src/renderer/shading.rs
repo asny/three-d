@@ -3,14 +3,6 @@
 //! To render an object implementing the [ShadedGeometry] trait, either call the [ShadedGeometry::render_with_lighting] method or use the [ForwardPipeline] or [DeferredPipeline].
 //!
 
-mod cpu_material;
-#[doc(inline)]
-pub use cpu_material::*;
-
-mod material;
-#[doc(inline)]
-pub use material::*;
-
 mod forward_pipeline;
 #[doc(inline)]
 pub use forward_pipeline::*;

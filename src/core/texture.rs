@@ -43,7 +43,7 @@ pub enum Wrapping {
 }
 
 pub trait TextureDataType:
-    Default + std::fmt::Debug + Clone + crate::core::internal::TextureDataTypeExtension
+    Default + std::fmt::Debug + Clone + internal::TextureDataTypeExtension
 {
 }
 impl TextureDataType for u8 {}
@@ -150,87 +150,318 @@ impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
     }
 }
 
-use crate::io::*;
-use std::path::Path;
+pub(crate) mod internal {
+    use crate::context::{consts, Context, DataType};
+    use crate::core::*;
 
-#[cfg(feature = "image-io")]
-impl Loaded {
-    ///
-    /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
-    /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [Texture2D].
-    ///
-    /// # Feature
-    /// Only available when the `image-io` feature is enabled.
-    ///
-    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>, IOError> {
-        image_from_bytes(&self.get_bytes(path)?)
+    pub trait TextureDataTypeExtension: Clone {
+        fn internal_format(format: Format) -> Result<u32, crate::Error>;
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: u32,
+            height: u32,
+            format: Format,
+            data: &[Self],
+        );
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
     }
 
-    ///
-    /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
-    /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [TextureCubeMap].
-    ///
-    /// # Feature
-    /// Only available when the `image-io` feature is enabled.
-    ///
-    pub fn cube_image<P: AsRef<Path>>(
-        &mut self,
-        right_path: P,
-        left_path: P,
-        top_path: P,
-        bottom_path: P,
-        front_path: P,
-        back_path: P,
-    ) -> Result<CPUTexture<u8>, IOError> {
-        let mut right = self.image(right_path)?;
-        let left = self.image(left_path)?;
-        let top = self.image(top_path)?;
-        let bottom = self.image(bottom_path)?;
-        let front = self.image(front_path)?;
-        let back = self.image(back_path)?;
+    impl TextureDataTypeExtension for u8 {
+        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+            Ok(match format {
+                Format::R => crate::context::consts::R8,
+                Format::RG => crate::context::consts::RG8,
+                Format::RGB => crate::context::consts::RGB8,
+                Format::RGBA => crate::context::consts::RGBA8,
+            })
+        }
 
-        right.data.extend(left.data);
-        right.data.extend(top.data);
-        right.data.extend(bottom.data);
-        right.data.extend(front.data);
-        right.data.extend(back.data);
-        Ok(right)
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: u32,
+            height: u32,
+            format: Format,
+            data: &[Self],
+        ) {
+            context.tex_sub_image_2d_with_u8_data(
+                target,
+                0,
+                0,
+                0,
+                width,
+                height,
+                format_from(format),
+                DataType::UnsignedByte,
+                data,
+            );
+        }
+
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            context.read_pixels_with_u8_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width,
+                viewport.height,
+                format_from(format),
+                DataType::UnsignedByte,
+                pixels,
+            );
+        }
+    }
+    impl TextureDataTypeExtension for f32 {
+        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+            Ok(match format {
+                Format::R => crate::context::consts::R32F,
+                Format::RG => crate::context::consts::RG32F,
+                Format::RGB => crate::context::consts::RGB32F,
+                Format::RGBA => crate::context::consts::RGBA32F,
+            })
+        }
+
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: u32,
+            height: u32,
+            format: Format,
+            data: &[Self],
+        ) {
+            context.tex_sub_image_2d_with_f32_data(
+                target,
+                0,
+                0,
+                0,
+                width,
+                height,
+                format_from(format),
+                DataType::Float,
+                data,
+            );
+        }
+
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            context.read_pixels_with_f32_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width,
+                viewport.height,
+                format_from(format),
+                DataType::Float,
+                pixels,
+            );
+        }
+    }
+
+    impl TextureDataTypeExtension for u32 {
+        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+            Ok(match format {
+                Format::R => crate::context::consts::R32UI,
+                Format::RG => crate::context::consts::RG32UI,
+                Format::RGB => crate::context::consts::RGB32UI,
+                Format::RGBA => crate::context::consts::RGBA32UI,
+            })
+        }
+
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: u32,
+            height: u32,
+            format: Format,
+            data: &[Self],
+        ) {
+            context.tex_sub_image_2d_with_u32_data(
+                target,
+                0,
+                0,
+                0,
+                width,
+                height,
+                format_from(format),
+                DataType::UnsignedInt,
+                data,
+            );
+        }
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            context.read_pixels_with_u32_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width,
+                viewport.height,
+                format_from(format),
+                DataType::UnsignedInt,
+                pixels,
+            );
+        }
+    }
+
+    fn format_from(format: Format) -> u32 {
+        match format {
+            Format::R => consts::RED,
+            Format::RG => consts::RG,
+            Format::RGB => consts::RGB,
+            Format::RGBA => consts::RGBA,
+        }
     }
 }
 
-#[cfg(all(feature = "image-io", not(target_arch = "wasm32")))]
-impl Saver {
-    ///
-    /// Saves the given RGB pixels as an image.
-    ///
-    /// # Feature
-    /// Only available when the `image-io` feature is enabled.
-    ///
-    pub fn save_pixels<P: AsRef<Path>>(
-        path: P,
-        pixels: &[u8],
-        width: u32,
-        height: u32,
-    ) -> Result<(), IOError> {
-        let mut pixels_out = vec![0u8; width as usize * height as usize * 4];
-        for row in 0..height as usize {
-            for col in 0..width as usize {
-                for i in 0..4 {
-                    pixels_out[4 * width as usize * (height as usize - row - 1) + 4 * col + i] =
-                        pixels[4 * width as usize * row + 4 * col + i];
-                }
+use crate::context::{consts, Context};
+use crate::core::Error;
+
+///
+/// A texture that can be sampled in a fragment shader (see [use_texture](crate::core::Program::use_texture)).
+///
+pub trait Texture {
+    /// Binds this texture to the current shader program.
+    fn bind(&self, location: u32);
+    /// The width of this texture.
+    fn width(&self) -> u32;
+    /// The height of this texture.
+    fn height(&self) -> u32;
+    /// The format of this texture.
+    fn format(&self) -> Format;
+}
+
+///
+/// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::core::Program::use_texture_array)).
+///
+pub trait TextureArray {
+    /// Binds this texture array to the current shader program.
+    fn bind(&self, location: u32);
+    /// The width of this texture.
+    fn width(&self) -> u32;
+    /// The height of this texture.
+    fn height(&self) -> u32;
+    /// The depth of this texture, ie. the number of layers.
+    fn depth(&self) -> u32;
+    /// The format of this texture.
+    fn format(&self) -> Format;
+}
+
+///
+/// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::core::Program::use_texture_cube)).
+///
+pub trait TextureCube {
+    /// Binds this texture cube to the current shader program.
+    fn bind(&self, location: u32);
+    /// The width of one of the sides of this texture.
+    fn width(&self) -> u32;
+    /// The height of one of the sides of this texture.
+    fn height(&self) -> u32;
+    /// The format of this texture.
+    fn format(&self) -> Format;
+}
+
+// COMMON TEXTURE FUNCTIONS
+fn generate(context: &Context) -> Result<crate::context::Texture, Error> {
+    context.create_texture().ok_or_else(|| Error::TextureError {
+        message: "Failed to create texture".to_string(),
+    })
+}
+
+fn bind_at(context: &Context, id: &crate::context::Texture, target: u32, location: u32) {
+    context.active_texture(consts::TEXTURE0 + location);
+    context.bind_texture(target, id);
+}
+
+fn set_parameters(
+    context: &Context,
+    id: &crate::context::Texture,
+    target: u32,
+    min_filter: Interpolation,
+    mag_filter: Interpolation,
+    mip_map_filter: Option<Interpolation>,
+    wrap_s: Wrapping,
+    wrap_t: Wrapping,
+    wrap_r: Option<Wrapping>,
+) {
+    context.bind_texture(target, id);
+    match mip_map_filter {
+        None => context.tex_parameteri(
+            target,
+            consts::TEXTURE_MIN_FILTER,
+            interpolation_from(min_filter),
+        ),
+        Some(Interpolation::Nearest) => {
+            if min_filter == Interpolation::Nearest {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::NEAREST_MIPMAP_NEAREST as i32,
+                );
+            } else {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::LINEAR_MIPMAP_NEAREST as i32,
+                )
             }
         }
-
-        image::save_buffer(
-            path,
-            &pixels_out,
-            width as u32,
-            height as u32,
-            image::ColorType::Rgba8,
-        )?;
-        Ok(())
+        Some(Interpolation::Linear) => {
+            if min_filter == Interpolation::Nearest {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::NEAREST_MIPMAP_LINEAR as i32,
+                );
+            } else {
+                context.tex_parameteri(
+                    target,
+                    consts::TEXTURE_MIN_FILTER,
+                    consts::LINEAR_MIPMAP_LINEAR as i32,
+                )
+            }
+        }
     }
+    context.tex_parameteri(
+        target,
+        consts::TEXTURE_MAG_FILTER,
+        interpolation_from(mag_filter),
+    );
+    context.tex_parameteri(target, consts::TEXTURE_WRAP_S, wrapping_from(wrap_s));
+    context.tex_parameteri(target, consts::TEXTURE_WRAP_T, wrapping_from(wrap_t));
+    if let Some(r) = wrap_r {
+        context.tex_parameteri(target, consts::TEXTURE_WRAP_R, wrapping_from(r));
+    }
+}
+
+fn calculate_number_of_mip_maps(
+    mip_map_filter: Option<Interpolation>,
+    width: u32,
+    height: u32,
+    depth: u32,
+) -> u32 {
+    if mip_map_filter.is_some() {
+        let w = (width as f64).log2().ceil();
+        let h = (height as f64).log2().ceil();
+        let d = (depth as f64).log2().ceil();
+        w.max(h).max(d).floor() as u32 + 1
+    } else {
+        1
+    }
+}
+
+fn internal_format_from_depth(format: DepthFormat) -> u32 {
+    match format {
+        DepthFormat::Depth16 => consts::DEPTH_COMPONENT16,
+        DepthFormat::Depth24 => consts::DEPTH_COMPONENT24,
+        DepthFormat::Depth32F => consts::DEPTH_COMPONENT32F,
+    }
+}
+
+fn wrapping_from(wrapping: Wrapping) -> i32 {
+    (match wrapping {
+        Wrapping::Repeat => consts::REPEAT,
+        Wrapping::MirroredRepeat => consts::MIRRORED_REPEAT,
+        Wrapping::ClampToEdge => consts::CLAMP_TO_EDGE,
+    }) as i32
+}
+
+fn interpolation_from(interpolation: Interpolation) -> i32 {
+    (match interpolation {
+        Interpolation::Nearest => consts::NEAREST,
+        Interpolation::Linear => consts::LINEAR,
+    }) as i32
 }

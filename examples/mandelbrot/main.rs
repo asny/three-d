@@ -1,4 +1,5 @@
-use three_d::*;
+use three_d::core::*;
+use three_d::window::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -37,9 +38,7 @@ fn main() {
         },
     )
     .unwrap();
-    mesh.cull = CullType::Back;
     mesh.transformation = Mat4::from_scale(10.0);
-    mesh.depth_test = DepthTestType::Always;
     let program =
         MeshProgram::new(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
@@ -98,7 +97,17 @@ fn main() {
 
             if redraw {
                 Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-                    mesh.render(&program, WriteMask::COLOR, None, &camera)?;
+                    mesh.render(
+                        RenderStates {
+                            depth_test: DepthTestType::Always,
+                            write_mask: WriteMask::COLOR,
+                            cull: CullType::Back,
+                            ..Default::default()
+                        },
+                        &program,
+                        &camera.uniform_buffer(),
+                        camera.viewport(),
+                    )?;
                     Ok(())
                 })
                 .unwrap();

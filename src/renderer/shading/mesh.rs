@@ -11,13 +11,10 @@ impl ShadedGeometry for Mesh {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
         material.bind(program)?;
-        self.render_internal(
+        self.render(
             RenderStates {
                 cull: self.cull,
-                clip: None,
-                write_mask: WriteMask::COLOR_AND_DEPTH,
-                blend: None,
-                depth_test: self.depth_test,
+                ..Default::default()
             },
             program,
             camera.uniform_buffer(),
@@ -53,7 +50,19 @@ impl ShadedGeometry for Mesh {
             camera.position(),
         )?;
         material.bind(program)?;
-        self.render(program, WriteMask::default(), None, camera)?;
+        self.render(
+            self.render_states(
+                material.albedo[3] != 1.0
+                    || material
+                        .albedo_texture
+                        .as_ref()
+                        .map(|t| t.format() == Format::RGBA)
+                        .unwrap_or(false),
+            ),
+            program,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?;
         Ok(())
     }
 }

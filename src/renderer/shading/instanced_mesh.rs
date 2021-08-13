@@ -11,13 +11,10 @@ impl ShadedGeometry for InstancedMesh {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
         material.bind(program)?;
-        self.render_internal(
+        self.render(
             RenderStates {
                 cull: self.cull,
-                clip: None,
-                write_mask: WriteMask::COLOR_AND_DEPTH,
-                blend: None,
-                depth_test: self.depth_test,
+                ..Default::default()
             },
             program,
             camera.uniform_buffer(),
@@ -53,7 +50,14 @@ impl ShadedGeometry for InstancedMesh {
             camera.position(),
         )?;
         material.bind(program)?;
-        self.render(program, WriteMask::default(), None, camera)?;
-        Ok(())
+        self.render(
+            RenderStates {
+                cull: self.cull,
+                ..Default::default()
+            },
+            program,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )
     }
 }

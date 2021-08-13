@@ -7,6 +7,10 @@ mod loader;
 #[doc(inline)]
 pub use loader::*;
 
+mod parser;
+#[doc(inline)]
+pub use parser::*;
+
 #[cfg(not(target_arch = "wasm32"))]
 mod saver;
 #[doc(inline)]

@@ -1,4 +1,4 @@
-use crate::renderer::*;
+use crate::core::*;
 use crate::window::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]

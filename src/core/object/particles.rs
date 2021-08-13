@@ -1,5 +1,4 @@
 use crate::core::*;
-use crate::renderer::*;
 
 ///
 /// Shader program used for rendering [Particles](Particles).

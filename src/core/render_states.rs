@@ -214,7 +214,7 @@ impl Default for BlendParameters {
 }
 
 ///
-/// Value multiplied with the source or target color or alpha value in [blend parameters](crate::BlendParameters).
+/// Value multiplied with the source or target color or alpha value in [BlendParameters].
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum BlendMultiplierType {
@@ -232,7 +232,7 @@ pub enum BlendMultiplierType {
 }
 
 ///
-/// How the source and target color or alpha value are combined in [blend parameters](crate::BlendParameters).
+/// How the source and target color or alpha value are combined in [BlendParameters].
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum BlendEquationType {

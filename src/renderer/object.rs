@@ -2,9 +2,7 @@
 //! A collection of objects that can be rendered, for example a mesh.
 //!
 
-mod cpu_mesh;
-#[doc(inline)]
-pub use cpu_mesh::*;
+pub use crate::core::{CPUMesh, CullType, InstancedMesh, Mesh};
 
 mod mesh;
 #[doc(inline)]
@@ -22,15 +20,11 @@ mod imposters;
 #[doc(inline)]
 pub use imposters::*;
 
-mod particles;
-#[doc(inline)]
-pub use particles::*;
-
 mod axes;
 #[doc(inline)]
 pub use axes::*;
 
-use crate::renderer::*;
+use crate::core::*;
 
 pub trait Geometry {
     ///

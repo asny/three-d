@@ -1,5 +1,5 @@
 use crate::core::*;
-use crate::renderer::*;
+use crate::renderer::Geometry;
 
 ///
 /// A light which shines from the given position and in the given direction.

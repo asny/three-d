@@ -1,4 +1,4 @@
-use crate::renderer::*;
+use crate::core::*;
 use crate::window::*;
 
 pub struct OrbitControl {

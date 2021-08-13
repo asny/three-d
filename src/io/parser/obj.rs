@@ -1,5 +1,5 @@
+use crate::core::*;
 use crate::io::*;
-use crate::renderer::*;
 use std::collections::HashMap;
 use std::path::Path;
 

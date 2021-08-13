@@ -1,12 +1,12 @@
 //!
-//! High-level features for easy loading and rendering of different types of objects with different types of shading.
+//! High-level features for easy rendering of different types of objects with different types of shading.
 //! Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.
 //!
 
 pub use crate::context::Context;
 pub use crate::core::{
-    math::*, render_states::*, texture::*, AxisAlignedBoundingBox, Camera, ClearState, Color,
-    Error, Screen, Viewport,
+    material::*, math::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera, Color,
+    Error, Viewport,
 };
 
 pub mod shading;
@@ -14,10 +14,6 @@ pub use shading::*;
 
 pub mod effect;
 pub use effect::*;
-
-mod parser;
-#[doc(inline)]
-pub use parser::*;
 
 pub mod light;
 pub use light::*;
