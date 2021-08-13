@@ -11,9 +11,9 @@ mod deferred_pipeline;
 #[doc(inline)]
 pub use deferred_pipeline::*;
 
-mod mesh;
+mod model;
 #[doc(inline)]
-pub use mesh::*;
+pub use model::*;
 
 mod instanced_mesh;
 #[doc(inline)]

@@ -4,9 +4,9 @@
 
 pub use crate::core::{CPUMesh, CullType, InstancedMesh};
 
-mod mesh;
+mod model;
 #[doc(inline)]
-pub use mesh::*;
+pub use model::*;
 
 mod instanced_mesh;
 #[doc(inline)]
