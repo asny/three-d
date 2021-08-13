@@ -132,6 +132,10 @@ fn main() {
                                             .text("Monkey Roughness"),
                                     );
                                     ui.add(
+                                        Slider::f32(&mut monkey_material.albedo[3], 0.0..=1.0)
+                                            .text("Monkey opacity"),
+                                    );
+                                    ui.add(
                                         Slider::f32(&mut plane_material.metallic, 0.0..=1.0)
                                             .text("Plane Metallic"),
                                     );
@@ -316,7 +320,7 @@ fn main() {
                             Pipeline::Forward => {
                                 forward_pipeline.light_pass(
                                     &camera,
-                                    &[(&monkey, &monkey_material), (&plane, &plane_material)],
+                                    &[(&plane, &plane_material), (&monkey, &monkey_material)],
                                     if ambient_enabled {
                                         Some(&ambient_light)
                                     } else {
