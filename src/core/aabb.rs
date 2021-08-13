@@ -41,6 +41,14 @@ impl AxisAlignedBoundingBox {
         aabb
     }
 
+    pub fn new_infinite() -> Self {
+        Self::empty()
+    }
+
+    pub fn is_infinite(&self) -> bool {
+        self.min.x > self.max.x || self.min.y > self.max.y || self.min.z > self.max.z
+    }
+
     ///
     /// Get the minimum coordinate of the bounding box.
     ///

@@ -202,7 +202,7 @@ impl Geometry for Model {
         )
     }
 
-    fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
+    fn aabb(&self) -> AxisAlignedBoundingBox {
         self.mesh.aabb()
     }
 }

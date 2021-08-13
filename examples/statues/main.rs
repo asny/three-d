@@ -134,19 +134,21 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                             || {
-                                for statue in models.iter() {
-                                    if statue
-                                        .aabb()
-                                        .map(|aabb| primary_camera.in_frustum(&aabb))
-                                        .unwrap_or(true)
-                                    {
-                                        statue.render_with_lighting(
+                                let mut models_and_materials = models
+                                    .iter()
+                                    .map(|m| (m as &dyn ShadedGeometry, &statue_material))
+                                    .collect::<Vec<(&dyn ShadedGeometry, &Material)>>();
+                                models_and_materials.push((&fountain, &fountain_material));
+
+                                for (geometry, material) in models_and_materials {
+                                    if primary_camera.in_frustum(&geometry.aabb()) {
+                                        geometry.render_with_lighting(
                                             if is_primary_camera {
                                                 &primary_camera
                                             } else {
                                                 &secondary_camera
                                             },
-                                            &statue_material,
+                                            material,
                                             LightingModel::Blinn,
                                             Some(&ambient_light),
                                             &[&directional_light],
@@ -155,19 +157,6 @@ fn main() {
                                         )?;
                                     }
                                 }
-                                fountain.render_with_lighting(
-                                    if is_primary_camera {
-                                        &primary_camera
-                                    } else {
-                                        &secondary_camera
-                                    },
-                                    &fountain_material,
-                                    LightingModel::Blinn,
-                                    Some(&ambient_light),
-                                    &[&directional_light],
-                                    &[],
-                                    &[],
-                                )?;
                                 Ok(())
                             },
                         )

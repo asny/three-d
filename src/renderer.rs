@@ -92,11 +92,7 @@ pub fn ray_intersect(
         },
         || {
             for geometry in geometries {
-                if geometry
-                    .aabb()
-                    .map(|aabb| camera.in_frustum(&aabb))
-                    .unwrap_or(true)
-                {
+                if camera.in_frustum(&geometry.aabb()) {
                     geometry.render_depth_to_red(&camera, max_depth)?;
                 }
             }

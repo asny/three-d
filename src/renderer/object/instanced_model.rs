@@ -173,8 +173,8 @@ impl Geometry for InstancedModel {
         )
     }
 
-    fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
-        None // TODO: Compute bounding box
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
     }
 }
 

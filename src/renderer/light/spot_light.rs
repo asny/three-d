@@ -140,10 +140,11 @@ impl SpotLight {
         )?;
         self.shadow_texture.write(Some(1.0), || {
             for geometry in geometries {
-                if geometry
-                    .aabb()
-                    .map(|aabb| self.shadow_camera.as_ref().unwrap().in_frustum(&aabb))
-                    .unwrap_or(true)
+                if self
+                    .shadow_camera
+                    .as_ref()
+                    .unwrap()
+                    .in_frustum(&geometry.aabb())
                 {
                     geometry.render_depth(self.shadow_camera.as_ref().unwrap())?;
                 }

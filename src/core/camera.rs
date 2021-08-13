@@ -179,6 +179,9 @@ impl Camera {
     /// It returns false if it is fully outside and true if it is inside or intersects.
     ///
     pub fn in_frustum(&self, aabb: &AxisAlignedBoundingBox) -> bool {
+        if aabb.is_infinite() {
+            return true;
+        }
         // check box outside/inside of frustum
         for i in 0..6 {
             let mut out = 0;

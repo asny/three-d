@@ -111,11 +111,7 @@ impl DeferredPipeline {
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
             for (geometry, material) in geometries {
-                if geometry
-                    .aabb()
-                    .map(|aabb| camera.in_frustum(&aabb))
-                    .unwrap_or(true)
-                {
+                if camera.in_frustum(&geometry.aabb()) {
                     geometry.geometry_pass(camera, viewport, material)?;
                 }
             }

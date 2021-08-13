@@ -35,15 +35,17 @@ impl ForwardPipeline {
         point_lights: &[&PointLight],
     ) -> Result<(), Error> {
         for (geometry, material) in geometries {
-            geometry.render_with_lighting(
-                camera,
-                material,
-                self.lighting_model,
-                ambient_light,
-                directional_lights,
-                spot_lights,
-                point_lights,
-            )?;
+            if camera.in_frustum(&geometry.aabb()) {
+                geometry.render_with_lighting(
+                    camera,
+                    material,
+                    self.lighting_model,
+                    ambient_light,
+                    directional_lights,
+                    spot_lights,
+                    point_lights,
+                )?;
+            }
         }
 
         Ok(())

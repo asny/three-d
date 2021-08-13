@@ -271,9 +271,9 @@ impl Mesh {
         Ok(())
     }
 
-    pub fn aabb(&self) -> Option<AxisAlignedBoundingBox> {
+    pub fn aabb(&self) -> AxisAlignedBoundingBox {
         let mut aabb = self.aabb.clone();
         aabb.transform(&self.transformation);
-        Some(aabb)
+        aabb
     }
 }

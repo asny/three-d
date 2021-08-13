@@ -2,7 +2,7 @@
 //! A collection of objects that can be rendered, for example a mesh.
 //!
 
-pub use crate::core::{CPUMesh, CullType, InstancedMesh};
+pub use crate::core::{CPUMesh, CullType};
 
 mod model;
 #[doc(inline)]
@@ -41,5 +41,5 @@ pub trait Geometry {
     ///
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<(), Error>;
 
-    fn aabb(&self) -> Option<AxisAlignedBoundingBox>;
+    fn aabb(&self) -> AxisAlignedBoundingBox;
 }
