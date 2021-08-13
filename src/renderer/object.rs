@@ -8,9 +8,9 @@ mod model;
 #[doc(inline)]
 pub use model::*;
 
-mod instanced_mesh;
+mod instanced_model;
 #[doc(inline)]
-pub use instanced_mesh::*;
+pub use instanced_model::*;
 
 mod skybox;
 #[doc(inline)]
