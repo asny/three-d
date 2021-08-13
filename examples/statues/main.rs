@@ -54,7 +54,7 @@ fn main() {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let statue_material = Material::new(&context, &statue_cpu_materials[0]).unwrap();
-            let mut statue = Mesh::new(&context, &statue_cpu_meshes[0]).unwrap();
+            let mut statue = Model::new(&context, &statue_cpu_meshes[0]).unwrap();
             statue.cull = CullType::Back;
 
             let mut models = Vec::new();
@@ -68,16 +68,16 @@ fn main() {
                     (1.2 * std::f32::consts::PI - angle).cos() * 21.0 - 33.0,
                     angle.sin() * dist,
                 ));
-                statue.transformation = translation * scale * rotation;
+                statue.set_transformation(translation * scale * rotation);
                 models.push(statue.clone());
             }
 
             let (fountain_cpu_meshes, fountain_cpu_materials) =
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
             let fountain_material = Material::new(&context, &fountain_cpu_materials[0]).unwrap();
-            let mut fountain = Mesh::new(&context, &fountain_cpu_meshes[0]).unwrap();
+            let mut fountain = Model::new(&context, &fountain_cpu_meshes[0]).unwrap();
             fountain.cull = CullType::Back;
-            fountain.transformation = Mat4::from_angle_x(degrees(-90.0));
+            fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,

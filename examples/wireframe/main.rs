@@ -36,8 +36,8 @@ fn main() {
             let (mut meshes, materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let cpu_mesh = meshes.remove(0);
             let material = Material::new(&context, &materials[0]).unwrap();
-            let mut model = Mesh::new(&context, &cpu_mesh).unwrap();
-            model.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            let mut model = Model::new(&context, &cpu_mesh).unwrap();
+            model.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
             model.cull = CullType::Back;
 
             let wireframe_material = Material {

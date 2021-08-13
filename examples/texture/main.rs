@@ -54,7 +54,7 @@ fn main() {
                 albedo_texture: Some(std::rc::Rc::new(box_texture)),
                 ..Default::default()
             };
-            let mut box_mesh = Mesh::new(&context, &box_cpu_mesh).unwrap();
+            let mut box_mesh = Model::new(&context, &box_cpu_mesh).unwrap();
             box_mesh.cull = CullType::Back;
 
             let skybox = Skybox::new(
@@ -75,7 +75,7 @@ fn main() {
             let (penguin_cpu_meshes, penguin_cpu_materials) =
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
             let penguin_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
-            let mut penguin = Mesh::new(&context, &penguin_cpu_meshes[0]).unwrap();
+            let mut penguin = Model::new(&context, &penguin_cpu_meshes[0]).unwrap();
             penguin.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
@@ -98,7 +98,7 @@ fn main() {
                     // draw
                     if redraw {
                         // Geometry pass
-                        penguin.transformation = Mat4::from_translation(vec3(-0.5, 1.0, 0.0));
+                        penguin.set_transformation(Mat4::from_translation(vec3(-0.5, 1.0, 0.0)));
                         pipeline
                             .geometry_pass(
                                 &camera,
@@ -114,7 +114,7 @@ fn main() {
                                 &[],
                                 &[],
                             )?;
-                            penguin.transformation = Mat4::from_translation(vec3(0.5, 1.0, 0.0));
+                            penguin.set_transformation(Mat4::from_translation(vec3(0.5, 1.0, 0.0)));
                             penguin.render_with_lighting(
                                 &camera,
                                 &penguin_material,

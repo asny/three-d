@@ -28,14 +28,14 @@ fn main() {
         albedo: vec4(1.0, 0.0, 0.0, 1.0),
         ..Default::default()
     };
-    let mut pick_mesh = Mesh::new(&context, &CPUMesh::sphere(0.05)).unwrap();
+    let mut pick_mesh = Model::new(&context, &CPUMesh::sphere(0.05)).unwrap();
 
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |mut loaded| {
             let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             let monkey_material = Material::new(&context, &materials[0]).unwrap();
-            let mut monkey = Mesh::new(&context, &meshes[0]).unwrap();
+            let mut monkey = Model::new(&context, &meshes[0]).unwrap();
             monkey.cull = CullType::Back;
 
             let ambient_light = AmbientLight {
@@ -65,7 +65,7 @@ fn main() {
                                     if let Some(pick) =
                                         camera.pick(pixel, 100.0, &[&monkey]).unwrap()
                                     {
-                                        pick_mesh.transformation = Mat4::from_translation(pick);
+                                        pick_mesh.set_transformation(Mat4::from_translation(pick));
                                         change = true;
                                     }
                                 }

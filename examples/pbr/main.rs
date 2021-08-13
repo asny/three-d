@@ -38,14 +38,14 @@ fn main() {
                 .gltf("examples/assets/gltf/DamagedHelmet.glb")
                 .unwrap();
             let material = Material::new(&context, &cpu_materials[0]).unwrap();
-            let mut model = Mesh::new(&context, &cpu_meshes[0]).unwrap();
+            let mut model = Model::new(&context, &cpu_meshes[0]).unwrap();
             model.cull = CullType::Back;
 
             let plane_material = Material {
                 albedo: vec4(0.5, 0.7, 0.3, 1.0),
                 ..Default::default()
             };
-            let plane = Mesh::new(
+            let plane = Model::new(
                 &context,
                 &CPUMesh {
                     positions: vec![

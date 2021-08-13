@@ -40,14 +40,14 @@ fn main() {
             let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
             let mut monkey_material = Material::new(&context, &monkey_cpu_materials[0]).unwrap();
-            let mut monkey = Mesh::new(&context, &monkey_cpu_meshes[0]).unwrap();
+            let mut monkey = Model::new(&context, &monkey_cpu_meshes[0]).unwrap();
             monkey.cull = CullType::Back;
 
             let mut plane_material = Material {
                 albedo: vec4(0.5, 0.7, 0.3, 1.0),
                 ..Default::default()
             };
-            let plane = Mesh::new(
+            let plane = Model::new(
                 &context,
                 &CPUMesh {
                     positions: vec![

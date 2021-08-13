@@ -48,7 +48,7 @@ fn main() {
                 .find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap())
                 .unwrap();
             let tree_material = Material::new(&context, &tree_cpu_material).unwrap();
-            let mut tree_mesh = Mesh::new(&context, tree_cpu_mesh).unwrap();
+            let mut tree_mesh = Model::new(&context, tree_cpu_mesh).unwrap();
             tree_mesh.cull = CullType::Back;
 
             let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
@@ -60,7 +60,7 @@ fn main() {
                     .unwrap(),
             )
             .unwrap();
-            let leaves_mesh = Mesh::new(&context, leaves_cpu_mesh).unwrap();
+            let leaves_mesh = Model::new(&context, leaves_cpu_mesh).unwrap();
 
             // Lights
             let ambient_light = AmbientLight {
@@ -125,7 +125,7 @@ fn main() {
                 roughness: 1.0,
                 ..Default::default()
             };
-            let mut plane = Mesh::new(
+            let mut plane = Model::new(
                 &context,
                 &CPUMesh {
                     positions: vec![

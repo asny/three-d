@@ -6,9 +6,9 @@ use crate::renderer::*;
 ///
 #[derive(Clone)]
 pub struct Axes {
-    x: Mesh,
-    y: Mesh,
-    z: Mesh,
+    x: Model,
+    y: Model,
+    z: Model,
 }
 
 impl Axes {
@@ -16,11 +16,11 @@ impl Axes {
     /// Creates a new axes object consisting of three arrows with the given radius and length.
     ///
     pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self, Error> {
-        let x = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
-        let mut y = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
-        let mut z = Mesh::new(context, &CPUMesh::arrow(radius, length, 16))?;
-        y.transformation = Mat4::from_angle_z(degrees(90.0));
-        z.transformation = Mat4::from_angle_y(degrees(-90.0));
+        let x = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        let mut y = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        let mut z = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
+        y.set_transformation(Mat4::from_angle_z(degrees(90.0)));
+        z.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
         Ok(Self { x, y, z })
     }
 

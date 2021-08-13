@@ -74,6 +74,7 @@ impl std::ops::Deref for MeshProgram {
 ///
 /// A triangle mesh which can be rendered with one of the default render functions or with a custom [MeshProgram](MeshProgram).
 ///
+#[derive(Clone)]
 pub struct Mesh {
     context: Context,
     position_buffer: Rc<VertexBuffer>,
@@ -84,8 +85,7 @@ pub struct Mesh {
     pub(crate) transparent: bool,
     aabb: AxisAlignedBoundingBox,
     pub name: String,
-    pub cull: CullType,
-    pub transformation: Mat4,
+    transformation: Mat4,
 }
 
 impl Mesh {
@@ -195,9 +195,6 @@ impl Mesh {
         } else {
             None
         };
-        unsafe {
-            MESH_COUNT += 1;
-        }
         Ok(Mesh {
             context: context.clone(),
             position_buffer,
@@ -209,8 +206,15 @@ impl Mesh {
             aabb: cpu_mesh.compute_aabb(),
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
-            cull: CullType::default(),
         })
+    }
+
+    pub fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
+
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
     }
 
     ///
@@ -274,65 +278,4 @@ impl Mesh {
         aabb.transform(&self.transformation);
         Some(aabb)
     }
-
-    pub(crate) fn get_or_insert_program(
-        &self,
-        fragment_shader_source: &str,
-    ) -> Result<&MeshProgram, Error> {
-        unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            if !PROGRAMS
-                .as_ref()
-                .unwrap()
-                .contains_key(fragment_shader_source)
-            {
-                PROGRAMS.as_mut().unwrap().insert(
-                    fragment_shader_source.to_string(),
-                    MeshProgram::new(&self.context, fragment_shader_source)?,
-                );
-            };
-            Ok(PROGRAMS
-                .as_ref()
-                .unwrap()
-                .get(fragment_shader_source)
-                .unwrap())
-        }
-    }
 }
-
-impl Clone for Mesh {
-    fn clone(&self) -> Self {
-        unsafe {
-            MESH_COUNT += 1;
-        }
-        Self {
-            context: self.context.clone(),
-            position_buffer: self.position_buffer.clone(),
-            normal_buffer: self.normal_buffer.clone(),
-            index_buffer: self.index_buffer.clone(),
-            uv_buffer: self.uv_buffer.clone(),
-            color_buffer: self.color_buffer.clone(),
-            transparent: self.transparent,
-            aabb: self.aabb.clone(),
-            name: self.name.clone(),
-            transformation: self.transformation.clone(),
-            cull: self.cull,
-        }
-    }
-}
-
-impl Drop for Mesh {
-    fn drop(&mut self) {
-        unsafe {
-            MESH_COUNT -= 1;
-            if MESH_COUNT == 0 {
-                PROGRAMS = None;
-            }
-        }
-    }
-}
-
-static mut MESH_COUNT: u32 = 0;
-static mut PROGRAMS: Option<std::collections::HashMap<String, MeshProgram>> = None;
