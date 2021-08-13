@@ -1,8 +1,8 @@
 use crate::core::*;
 
 ///
-/// A shader program used for rendering one or more instances of a [InstancedMesh](InstancedMesh). It has a fixed vertex shader and
-/// customizable fragment shader for custom lighting. Use this in combination with [render](InstancedMesh::render).
+/// A shader program used for rendering one or more instances of a [InstancedMesh]. It has a fixed vertex shader and
+/// customizable fragment shader for custom lighting. Use this in combination with [InstancedMesh::render].
 ///
 pub struct InstancedMeshProgram {
     mesh_program: MeshProgram,
@@ -29,7 +29,7 @@ impl std::ops::Deref for InstancedMeshProgram {
 }
 
 ///
-/// Similar to [Mesh](crate::Mesh), except it is possible to render many instances of the same triangle mesh efficiently.
+/// Similar to [Mesh], except it is possible to render many instances of the same triangle mesh efficiently.
 ///
 pub struct InstancedMesh {
     context: Context,
@@ -50,7 +50,7 @@ pub struct InstancedMesh {
 
 impl InstancedMesh {
     ///
-    /// Constructs a new InstancedMesh from the given [CPUMesh](crate::CPUMesh). The mesh is rendered
+    /// Constructs a new InstancedMesh from the given [CPUMesh]. The mesh is rendered
     /// in as many instances as there are transformation matrices in the transformations parameter.
     /// Each instance is transformed with the given transformation before it is rendered.
     /// The transformations can be updated by the [update_transformations](Self::update_transformations) function.
@@ -117,7 +117,7 @@ impl InstancedMesh {
     }
 
     ///
-    /// Render the instanced mesh with the given [InstancedMeshProgram](InstancedMeshProgram).
+    /// Render the instanced mesh with the given [InstancedMeshProgram].
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced mesh.
