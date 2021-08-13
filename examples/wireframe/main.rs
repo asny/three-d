@@ -47,22 +47,22 @@ fn main() {
                 metallic: 0.9,
                 ..Default::default()
             };
-            let mut edges = InstancedMesh::new(
+            let mut edges = InstancedModel::new(
                 &context,
                 &edge_transformations(&cpu_mesh),
                 &CPUMesh::cylinder(0.007, 1.0, 10),
             )
             .unwrap();
-            edges.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            edges.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
             edges.cull = CullType::Back;
 
-            let mut vertices = InstancedMesh::new(
+            let mut vertices = InstancedModel::new(
                 &context,
                 &vertex_transformations(&cpu_mesh),
                 &CPUMesh::sphere(0.015),
             )
             .unwrap();
-            vertices.transformation = Mat4::from_translation(vec3(0.0, 2.0, 0.0));
+            vertices.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
             vertices.cull = CullType::Back;
 
             let ambient_light = AmbientLight {

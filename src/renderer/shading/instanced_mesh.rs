@@ -1,7 +1,7 @@
 use crate::renderer::shading::*;
 use crate::renderer::*;
 
-impl ShadedGeometry for InstancedMesh {
+impl ShadedGeometry for InstancedModel {
     fn geometry_pass(
         &self,
         camera: &Camera,
@@ -11,7 +11,7 @@ impl ShadedGeometry for InstancedMesh {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
         material.bind(program)?;
-        self.render(
+        self.mesh.render(
             RenderStates {
                 cull: self.cull,
                 ..Default::default()
@@ -50,7 +50,7 @@ impl ShadedGeometry for InstancedMesh {
             camera.position(),
         )?;
         material.bind(program)?;
-        self.render(
+        self.mesh.render(
             RenderStates {
                 cull: self.cull,
                 ..Default::default()

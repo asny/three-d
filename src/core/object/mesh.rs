@@ -76,7 +76,6 @@ impl std::ops::Deref for MeshProgram {
 ///
 #[derive(Clone)]
 pub struct Mesh {
-    context: Context,
     position_buffer: Rc<VertexBuffer>,
     normal_buffer: Option<Rc<VertexBuffer>>,
     index_buffer: Option<Rc<ElementBuffer>>,
@@ -195,8 +194,7 @@ impl Mesh {
         } else {
             None
         };
-        Ok(Mesh {
-            context: context.clone(),
+        Ok(Self {
             position_buffer,
             normal_buffer,
             index_buffer,

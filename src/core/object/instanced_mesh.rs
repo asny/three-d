@@ -32,7 +32,6 @@ impl std::ops::Deref for InstancedMeshProgram {
 /// Similar to [Mesh], except it is possible to render many instances of the same triangle mesh efficiently.
 ///
 pub struct InstancedMesh {
-    context: Context,
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
@@ -44,8 +43,7 @@ pub struct InstancedMesh {
     instance_buffer2: VertexBuffer,
     instance_buffer3: VertexBuffer,
     pub name: String,
-    pub cull: CullType,
-    pub transformation: Mat4,
+    transformation: Mat4,
 }
 
 impl InstancedMesh {
@@ -95,7 +93,6 @@ impl InstancedMesh {
 
         let mut mesh = Self {
             name: cpu_mesh.name.clone(),
-            context: context.clone(),
             instance_count: 0,
             position_buffer,
             normal_buffer,
@@ -106,14 +103,18 @@ impl InstancedMesh {
             instance_buffer1: VertexBuffer::new(context)?,
             instance_buffer2: VertexBuffer::new(context)?,
             instance_buffer3: VertexBuffer::new(context)?,
-            cull: CullType::default(),
             transformation: Mat4::identity(),
         };
         mesh.update_transformations(transformations);
-        unsafe {
-            MESH_COUNT += 1;
-        }
         Ok(mesh)
+    }
+
+    pub fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
+
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
     }
 
     ///
@@ -212,44 +213,4 @@ impl InstancedMesh {
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
     }
-
-    pub(crate) fn get_or_insert_program(
-        &self,
-        fragment_shader_source: &str,
-    ) -> Result<&InstancedMeshProgram, Error> {
-        unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            if !PROGRAMS
-                .as_ref()
-                .unwrap()
-                .contains_key(fragment_shader_source)
-            {
-                PROGRAMS.as_mut().unwrap().insert(
-                    fragment_shader_source.to_string(),
-                    InstancedMeshProgram::new(&self.context, fragment_shader_source)?,
-                );
-            };
-            Ok(PROGRAMS
-                .as_ref()
-                .unwrap()
-                .get(fragment_shader_source)
-                .unwrap())
-        }
-    }
 }
-
-impl Drop for InstancedMesh {
-    fn drop(&mut self) {
-        unsafe {
-            MESH_COUNT -= 1;
-            if MESH_COUNT == 0 {
-                PROGRAMS = None;
-            }
-        }
-    }
-}
-
-static mut PROGRAMS: Option<std::collections::HashMap<String, InstancedMeshProgram>> = None;
-static mut MESH_COUNT: u32 = 0;

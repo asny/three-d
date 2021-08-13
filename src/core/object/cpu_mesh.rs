@@ -18,7 +18,7 @@ impl Indices {
 }
 
 ///
-/// A CPU-side version of a triangle [Mesh].
+/// A CPU-side version of a triangle mesh.
 /// Can be constructed manually or loaded via [io](crate::io)
 /// or via the utility functions for generating simple triangle meshes.
 ///

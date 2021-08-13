@@ -3,7 +3,7 @@ use crate::renderer::Geometry;
 
 pub struct Model {
     context: Context,
-    pub(crate) mesh: Mesh,
+    pub(in crate::renderer) mesh: Mesh,
     pub cull: CullType,
 }
 
@@ -125,7 +125,7 @@ impl Model {
         )
     }
 
-    pub(crate) fn render_states(&self, transparent: bool) -> RenderStates {
+    pub(in crate::renderer) fn render_states(&self, transparent: bool) -> RenderStates {
         if transparent {
             RenderStates {
                 cull: self.cull,
@@ -141,7 +141,7 @@ impl Model {
         }
     }
 
-    pub(crate) fn get_or_insert_program(
+    pub(in crate::renderer) fn get_or_insert_program(
         &self,
         fragment_shader_source: &str,
     ) -> Result<&MeshProgram, Error> {
