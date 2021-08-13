@@ -4,7 +4,7 @@ uniform float roughness;
 
 uniform vec4 albedo;
 #ifdef USE_ALBEDO_TEXTURE
-uniform sampler2D tex;
+uniform sampler2D albedoTexture;
 #endif
 
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
@@ -19,7 +19,7 @@ void main()
 	vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
     vec4 color;
 #ifdef USE_ALBEDO_TEXTURE
-    color = albedo * texture(tex, vec2(uvs.x, 1.0 - uvs.y));
+    color = albedo * texture(albedoTexture, vec2(uvs.x, 1.0 - uvs.y));
 #else 
     color = albedo;
 #endif
