@@ -85,6 +85,7 @@ pub struct Mesh {
     aabb: AxisAlignedBoundingBox,
     pub name: String,
     transformation: Mat4,
+    normal_transformation: Mat4,
 }
 
 impl Mesh {
@@ -204,6 +205,7 @@ impl Mesh {
             aabb: cpu_mesh.compute_aabb(),
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
+            normal_transformation: Mat4::identity(),
         })
     }
 
@@ -213,6 +215,7 @@ impl Mesh {
 
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
+        self.normal_transformation = self.transformation.invert().unwrap().transpose();
     }
 
     ///
@@ -247,10 +250,7 @@ impl Mesh {
         if program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::MeshError {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.use_uniform_mat4(
-                "normalMatrix",
-                &self.transformation.invert().unwrap().transpose(),
-            )?;
+            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.use_colors {
