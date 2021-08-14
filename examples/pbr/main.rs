@@ -21,8 +21,8 @@ fn main() {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(2.0, 2.0, 5.0),
-        vec3(0.0, 0.0, 0.0),
+        vec3(3.0, 1.0, 2.5),
+        vec3(0.0, 0.0, -0.5),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
@@ -40,22 +40,7 @@ fn main() {
             let material = Material::new(&context, &cpu_materials[0]).unwrap();
             let mut model = Model::new(&context, &cpu_meshes[0]).unwrap();
             model.cull = CullType::Back;
-
-            let plane_material = Material {
-                albedo: vec4(0.5, 0.7, 0.3, 1.0),
-                ..Default::default()
-            };
-            let plane = Model::new(
-                &context,
-                &CPUMesh {
-                    positions: vec![
-                        -10000.0, -1.3, 10000.0, 10000.0, -1.3, 10000.0, 0.0, -1.3, -10000.0,
-                    ],
-                    normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                    ..Default::default()
-                },
-            )
-            .unwrap();
+            model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
             let ambient_light = AmbientLight {
                 color: Color::WHITE,
@@ -104,17 +89,21 @@ fn main() {
                     spot_light
                         .generate_shadow_map(15.0, 1024, &[&model])
                         .unwrap();
-                    Screen::write(&context, ClearState::default(), || {
-                        pipeline.light_pass(
-                            &camera,
-                            &[(&plane, &plane_material), (&model, &material)],
-                            Some(&ambient_light),
-                            &[&directional_light0, &directional_light1],
-                            &[&spot_light],
-                            &[],
-                        )?;
-                        Ok(())
-                    })
+                    Screen::write(
+                        &context,
+                        ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
+                        || {
+                            pipeline.light_pass(
+                                &camera,
+                                &[(&model, &material)],
+                                Some(&ambient_light),
+                                &[&directional_light0, &directional_light1],
+                                &[&spot_light],
+                                &[],
+                            )?;
+                            Ok(())
+                        },
+                    )
                     .unwrap();
 
                     if args.len() > 1 {
