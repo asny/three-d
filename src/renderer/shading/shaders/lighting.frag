@@ -48,7 +48,7 @@ void main()
 
     vec4 surface_color;
 #ifdef USE_ALBEDO_TEXTURE
-    vec4 c = texture(albedoTexture, vec2(uvs.x, 1.0 - uvs.y));
+    vec4 c = texture(albedoTexture, uvs);
     surface_color = vec4(rgb_from_srgb(albedo.rgb * c.rgb), albedo.a * c.a);
 #else 
     surface_color = vec4(rgb_from_srgb(albedo.rgb), albedo.a);
@@ -57,7 +57,7 @@ void main()
     float metallic_factor = metallic;
     float roughness_factor = roughness;
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
-    vec2 t = texture(metallicRoughnessTexture, vec2(uvs.x, 1.0 - uvs.y)).gb;
+    vec2 t = texture(metallicRoughnessTexture, uvs).gb;
     metallic_factor *= t.x;
     roughness_factor *= t.y;
 #endif

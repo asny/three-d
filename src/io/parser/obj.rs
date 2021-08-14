@@ -122,7 +122,7 @@ impl Loaded {
 
                         if let Some(tex) = uvw {
                             uvs.push(tex.u as f32);
-                            uvs.push(tex.v as f32);
+                            uvs.push(1.0 - tex.v as f32);
                         }
                         if let Some(n) = normal {
                             normals.push(n.x as f32);

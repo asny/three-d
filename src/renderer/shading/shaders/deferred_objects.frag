@@ -19,7 +19,7 @@ void main()
 	vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
     vec4 color;
 #ifdef USE_ALBEDO_TEXTURE
-    color = albedo * texture(albedoTexture, vec2(uvs.x, 1.0 - uvs.y));
+    color = albedo * texture(albedoTexture, uvs);
 #else 
     color = albedo;
 #endif
@@ -27,7 +27,7 @@ void main()
     float metallic_factor = metallic;
     float roughness_factor = roughness;
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
-    vec2 t = texture(metallicRoughnessTexture, vec2(uvs.x, 1.0 - uvs.y)).xy;
+    vec2 t = texture(metallicRoughnessTexture, uvs).xy;
     metallic_factor *= t.x;
     roughness_factor *= t.y;
 #endif
