@@ -16,53 +16,59 @@ mod gltf;
 #[cfg(feature = "gltf-io")]
 pub use self::gltf::*;
 
-use crate::core::*;
-use crate::io::*;
-use std::path::Path;
+#[cfg(feature = "image-io")]
+#[doc(inline)]
+pub use image_io::*;
 
 #[cfg(feature = "image-io")]
-impl Loaded {
-    ///
-    /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
-    /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [Texture2D].
-    ///
-    /// # Feature
-    /// Only available when the `image-io` feature is enabled.
-    ///
-    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>, IOError> {
-        image_from_bytes(&self.get_bytes(path)?)
-    }
+mod image_io {
+    use crate::core::*;
+    use crate::io::*;
+    use std::path::Path;
 
-    ///
-    /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
-    /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [TextureCubeMap].
-    ///
-    /// # Feature
-    /// Only available when the `image-io` feature is enabled.
-    ///
-    pub fn cube_image<P: AsRef<Path>>(
-        &mut self,
-        right_path: P,
-        left_path: P,
-        top_path: P,
-        bottom_path: P,
-        front_path: P,
-        back_path: P,
-    ) -> Result<CPUTexture<u8>, IOError> {
-        let mut right = self.image(right_path)?;
-        let left = self.image(left_path)?;
-        let top = self.image(top_path)?;
-        let bottom = self.image(bottom_path)?;
-        let front = self.image(front_path)?;
-        let back = self.image(back_path)?;
+    impl Loaded {
+        ///
+        /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
+        /// the [image](https://crates.io/crates/image/main.rs) crate.
+        /// The CPUTexture can then be used to create a [Texture2D].
+        ///
+        /// # Feature
+        /// Only available when the `image-io` feature is enabled.
+        ///
+        pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>, IOError> {
+            image_from_bytes(&self.get_bytes(path)?)
+        }
 
-        right.data.extend(left.data);
-        right.data.extend(top.data);
-        right.data.extend(bottom.data);
-        right.data.extend(front.data);
-        right.data.extend(back.data);
-        Ok(right)
+        ///
+        /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
+        /// the [image](https://crates.io/crates/image/main.rs) crate.
+        /// The CPUTexture can then be used to create a [TextureCubeMap].
+        ///
+        /// # Feature
+        /// Only available when the `image-io` feature is enabled.
+        ///
+        pub fn cube_image<P: AsRef<Path>>(
+            &mut self,
+            right_path: P,
+            left_path: P,
+            top_path: P,
+            bottom_path: P,
+            front_path: P,
+            back_path: P,
+        ) -> Result<CPUTexture<u8>, IOError> {
+            let mut right = self.image(right_path)?;
+            let left = self.image(left_path)?;
+            let top = self.image(top_path)?;
+            let bottom = self.image(bottom_path)?;
+            let front = self.image(front_path)?;
+            let back = self.image(back_path)?;
+
+            right.data.extend(left.data);
+            right.data.extend(top.data);
+            right.data.extend(bottom.data);
+            right.data.extend(front.data);
+            right.data.extend(back.data);
+            Ok(right)
+        }
     }
 }
