@@ -122,6 +122,9 @@ impl Texture for DepthTargetTexture2D {
     fn format(&self) -> Format {
         Format::R
     }
+    fn is_transparent(&self) -> bool {
+        false
+    }
 }
 
 impl Drop for DepthTargetTexture2D {

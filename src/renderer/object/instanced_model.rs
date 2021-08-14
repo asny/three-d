@@ -68,7 +68,7 @@ impl InstancedModel {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", &color.to_vec4())?;
         self.mesh.render(
-            self.render_states(color.a != 255),
+            self.render_states(color.a != 255u8),
             program,
             camera.uniform_buffer(),
             camera.viewport(),
@@ -92,7 +92,7 @@ impl InstancedModel {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture("tex", texture)?;
         self.mesh.render(
-            self.render_states(texture.format() == Format::RGBA),
+            self.render_states(texture.is_transparent()),
             program,
             camera.uniform_buffer(),
             camera.viewport(),
@@ -231,10 +231,14 @@ impl ShadedGeometry for InstancedModel {
         )?;
         material.bind(program)?;
         self.mesh.render(
-            RenderStates {
-                cull: self.cull,
-                ..Default::default()
-            },
+            self.render_states(
+                material.albedo[3] < 0.99
+                    || material
+                        .albedo_texture
+                        .as_ref()
+                        .map(|t| t.is_transparent())
+                        .unwrap_or(false),
+            ),
             program,
             camera.uniform_buffer(),
             camera.viewport(),

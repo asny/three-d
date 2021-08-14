@@ -43,7 +43,7 @@ pub enum Wrapping {
 }
 
 pub trait TextureDataType:
-    Default + std::fmt::Debug + Clone + internal::TextureDataTypeExtension
+    Default + std::fmt::Debug + Clone + Copy + internal::TextureDataTypeExtension
 {
 }
 impl TextureDataType for u8 {}
@@ -150,7 +150,7 @@ impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
     }
 }
 
-pub(crate) mod internal {
+pub(in crate::core) mod internal {
     use crate::context::{consts, Context, DataType};
     use crate::core::*;
 
@@ -165,6 +165,7 @@ pub(crate) mod internal {
             data: &[Self],
         );
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
+        fn is_max(value: Self) -> bool;
     }
 
     impl TextureDataTypeExtension for u8 {
@@ -209,6 +210,10 @@ pub(crate) mod internal {
                 pixels,
             );
         }
+
+        fn is_max(value: Self) -> bool {
+            value == 255u8
+        }
     }
     impl TextureDataTypeExtension for f32 {
         fn internal_format(format: Format) -> Result<u32, crate::Error> {
@@ -251,6 +256,10 @@ pub(crate) mod internal {
                 DataType::Float,
                 pixels,
             );
+        }
+
+        fn is_max(value: Self) -> bool {
+            value > 0.99
         }
     }
 
@@ -295,6 +304,10 @@ pub(crate) mod internal {
                 pixels,
             );
         }
+
+        fn is_max(_value: Self) -> bool {
+            true
+        }
     }
 
     fn format_from(format: Format) -> u32 {
@@ -322,6 +335,8 @@ pub trait Texture {
     fn height(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
+
+    fn is_transparent(&self) -> bool;
 }
 
 ///

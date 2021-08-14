@@ -15,6 +15,8 @@ pub struct ColorTargetTexture2D<T: TextureDataType> {
     height: u32,
     number_of_mip_maps: u32,
     format: Format,
+    /// Set this to true if you want to render some geometry with this texture and the texture contain alpha values and those alpha values are below maximum.
+    pub transparent: bool,
     _dummy: T,
 }
 
@@ -64,6 +66,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
             height,
             number_of_mip_maps,
             format,
+            transparent: format == Format::RGBA,
             _dummy: T::default(),
         })
     }
@@ -157,6 +160,9 @@ impl<T: TextureDataType> Texture for ColorTargetTexture2D<T> {
     }
     fn format(&self) -> Format {
         self.format
+    }
+    fn is_transparent(&self) -> bool {
+        self.transparent
     }
 }
 
