@@ -58,8 +58,8 @@ void main()
     float roughness_factor = roughness;
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
     vec2 t = texture(metallicRoughnessTexture, uvs).gb;
-    metallic_factor *= t.x;
-    roughness_factor *= t.y;
+    metallic_factor *= t.y;
+    roughness_factor *= t.x;
 #endif
 
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
