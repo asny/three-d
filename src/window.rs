@@ -27,6 +27,7 @@ mod canvas;
 pub use canvas::*;
 
 /// Type of mouse button.
+#[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
     Left,
@@ -81,6 +82,7 @@ pub enum Event {
 }
 
 /// Keyboard key input.
+#[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum Key {
     ArrowDown,
