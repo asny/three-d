@@ -81,8 +81,8 @@ impl Imposters {
             center + vec3(0.0, 0.0, -1.0),
             center,
             vec3(0.0, 1.0, 0.0),
-            width,
             height,
+            0.0,
             4.0 * (width + height),
         )?;
         self.texture = ColorTargetTexture2DArray::<u8>::new(
