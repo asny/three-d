@@ -239,7 +239,7 @@ impl Default for Blend {
 }
 
 ///
-/// Value multiplied with the source or target color or alpha value in [BlendParameters].
+/// Value multiplied with the source or target color or alpha value in [Blend].
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum BlendMultiplierType {
@@ -257,7 +257,7 @@ pub enum BlendMultiplierType {
 }
 
 ///
-/// How the source and target color or alpha value are combined in [BlendParameters].
+/// How the source and target color or alpha value are combined in [Blend].
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum BlendEquationType {
