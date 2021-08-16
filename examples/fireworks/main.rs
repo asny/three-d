@@ -104,7 +104,7 @@ fn main() {
                     },
                     depth_test: DepthTestType::Always,
                     write_mask: WriteMask::COLOR,
-                    clip: None,
+                    clip: Clip::Disabled,
                 };
                 particles.render(render_states, &particles_program, &camera, time)?;
                 Ok(())

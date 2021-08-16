@@ -152,7 +152,7 @@ impl GUI {
         for egui::ClippedMesh(rect, mesh) in clipped_meshes {
             let width = rect.max.x - rect.min.x;
             let height = rect.max.y - rect.min.y;
-            let clipping = ClipParameters {
+            let clipping = Clip::Enabled {
                 x: (rect.min.x * scale) as u32,
                 y: ((self.height as f32 - rect.max.y) * scale) as u32,
                 width: (width * scale) as u32,
@@ -173,7 +173,7 @@ impl GUI {
     fn paint_mesh(
         &self,
         viewport: Viewport,
-        clip: ClipParameters,
+        clip: Clip,
         width: u32,
         height: u32,
         mesh: &egui::paint::Mesh,
@@ -211,7 +211,7 @@ impl GUI {
                 alpha_equation: BlendEquationType::Add,
             },
             depth_test: DepthTestType::Always,
-            clip: Some(clip),
+            clip,
             ..Default::default()
         };
 

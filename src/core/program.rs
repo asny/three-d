@@ -474,18 +474,19 @@ impl Program {
         Self::set_blend(context, render_states.blend);
     }
 
-    fn set_clip(context: &Context, clip: Option<ClipParameters>) {
+    fn set_clip(context: &Context, clip: Clip) {
         unsafe {
-            static mut CURRENT: Option<ClipParameters> = None;
+            static mut CURRENT: Clip = Clip::Disabled;
             if clip != CURRENT {
-                if let Some(clip) = clip {
+                if let Clip::Enabled {
+                    x,
+                    y,
+                    width,
+                    height,
+                } = clip
+                {
                     context.enable(consts::SCISSOR_TEST);
-                    context.scissor(
-                        clip.x as i32,
-                        clip.y as i32,
-                        clip.width as i32,
-                        clip.height as i32,
-                    );
+                    context.scissor(x as i32, y as i32, width as i32, height as i32);
                 } else {
                     context.disable(consts::SCISSOR_TEST);
                 }

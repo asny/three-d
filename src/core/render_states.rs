@@ -11,7 +11,7 @@ pub struct RenderStates {
     ///
     /// Defines the rectangle of pixels to write to in a render call. If none, all pixels in the current render target are possibly written into.
     ///
-    pub clip: Option<ClipParameters>,
+    pub clip: Clip,
 
     ///
     /// Defines the depth test in a render call.
@@ -40,7 +40,7 @@ impl Default for RenderStates {
             write_mask: WriteMask::default(),
             depth_test: DepthTestType::default(),
             blend: Blend::default(),
-            clip: None,
+            clip: Clip::default(),
             cull: CullType::default(),
         }
     }
@@ -94,11 +94,20 @@ impl Default for DepthTestType {
 /// Defines the rectangle of pixels to write to in a render call.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct ClipParameters {
-    pub x: u32,
-    pub y: u32,
-    pub width: u32,
-    pub height: u32,
+pub enum Clip {
+    Enabled {
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    },
+    Disabled,
+}
+
+impl Default for Clip {
+    fn default() -> Self {
+        Self::Disabled
+    }
 }
 
 ///
