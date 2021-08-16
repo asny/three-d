@@ -150,7 +150,7 @@ impl Camera {
         self.position = position;
         self.target = target;
         self.up = up;
-        self.view = Mat4::look_at(
+        self.view = Mat4::look_at_rh(
             Point::from_vec(self.position),
             Point::from_vec(self.target),
             self.up,
