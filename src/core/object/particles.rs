@@ -103,9 +103,6 @@ pub struct Particles {
     index_buffer: Option<ElementBuffer>,
     pub acceleration: Vec3,
     instance_count: u32,
-    pub cull: CullType,
-    pub depth_test: DepthTestType,
-    pub blend: Blend,
     pub transformation: Mat4,
 }
 
@@ -141,9 +138,6 @@ impl Particles {
             start_velocity_buffer: VertexBuffer::new(context)?,
             acceleration: *acceleration,
             instance_count: 0,
-            cull: CullType::default(),
-            blend: Blend::default(),
-            depth_test: DepthTestType::default(),
             transformation: Mat4::identity(),
         })
     }
@@ -178,9 +172,8 @@ impl Particles {
     ///
     pub fn render(
         &self,
+        render_states: RenderStates,
         program: &ParticlesProgram,
-        write_mask: WriteMask,
-        clip: Option<ClipParameters>,
         camera: &Camera,
         time: f32,
     ) -> Result<(), Error> {
@@ -206,14 +199,6 @@ impl Particles {
             )?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
-
-        let render_states = RenderStates {
-            cull: self.cull,
-            depth_test: self.depth_test,
-            blend: self.blend,
-            write_mask,
-            clip,
-        };
 
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements_instanced(

@@ -44,16 +44,6 @@ fn main() {
         ParticlesProgram::new(&context, &include_str!("../assets/shaders/particles.frag")).unwrap();
     let mut particles =
         Particles::new(&context, &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
-    particles.cull = CullType::Back;
-    particles.blend = Blend::Enabled {
-        rgb_equation: BlendEquationType::Add,
-        alpha_equation: BlendEquationType::Add,
-        source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-        source_alpha_multiplier: BlendMultiplierType::Zero,
-        destination_rgb_multiplier: BlendMultiplierType::One,
-        destination_alpha_multiplier: BlendMultiplierType::One,
-    };
-    particles.depth_test = DepthTestType::Always;
 
     // main loop
     let mut time = explosion_time + 100.0;
@@ -102,7 +92,21 @@ fn main() {
                     "color",
                     &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0),
                 )?;
-                particles.render(&particles_program, WriteMask::COLOR, None, &camera, time)?;
+                let render_states = RenderStates {
+                    cull: CullType::Back,
+                    blend: Blend::Enabled {
+                        rgb_equation: BlendEquationType::Add,
+                        alpha_equation: BlendEquationType::Add,
+                        source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+                        source_alpha_multiplier: BlendMultiplierType::Zero,
+                        destination_rgb_multiplier: BlendMultiplierType::One,
+                        destination_alpha_multiplier: BlendMultiplierType::One,
+                    },
+                    depth_test: DepthTestType::Always,
+                    write_mask: WriteMask::COLOR,
+                    clip: None,
+                };
+                particles.render(render_states, &particles_program, &camera, time)?;
                 Ok(())
             })
             .unwrap();
