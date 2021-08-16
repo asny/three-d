@@ -5,7 +5,7 @@ use crate::core::*;
 ///
 /// A 2D color texture that can be rendered into and read from.
 ///
-/// **Note:** [DepthTestType] is disabled if not also writing to a depth texture.
+/// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
 /// Use a [RenderTarget] to write to both color and depth.
 ///
 pub struct ColorTargetTexture2D<T: TextureDataType> {
@@ -75,7 +75,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     /// Renders whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
-    /// **Note:** [DepthTestType] is disabled if not also writing to a depth texture.
+    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     /// Use a [RenderTarget] to write to both color and depth.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(

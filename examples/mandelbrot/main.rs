@@ -84,7 +84,7 @@ fn main() {
                 Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
                     mesh.render(
                         RenderStates {
-                            depth_test: DepthTestType::Always,
+                            depth_test: DepthTest::Always,
                             write_mask: WriteMask::COLOR,
                             cull: Cull::Back,
                             ..Default::default()

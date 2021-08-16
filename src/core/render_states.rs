@@ -18,7 +18,7 @@ pub struct RenderStates {
     /// The depth test determines whether or not a fragment from the current render call should be discarded
     /// when comparing its depth with the depth of the current fragment.
     ///
-    pub depth_test: DepthTestType,
+    pub depth_test: DepthTest,
 
     ///
     /// Defines which type of blending to use for a render call.
@@ -38,7 +38,7 @@ impl Default for RenderStates {
     fn default() -> Self {
         Self {
             write_mask: WriteMask::default(),
-            depth_test: DepthTestType::default(),
+            depth_test: DepthTest::default(),
             blend: Blend::default(),
             clip: Clip::default(),
             cull: Cull::default(),
@@ -73,7 +73,7 @@ impl Default for Cull {
 /// [DepthTargetTexture2D](crate::core::DepthTargetTexture2D) or [DepthTargetTexture2DArray](crate::core::DepthTargetTexture2DArray).
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum DepthTestType {
+pub enum DepthTest {
     Never,
     Less,
     Equal,
@@ -84,7 +84,7 @@ pub enum DepthTestType {
     Always,
 }
 
-impl Default for DepthTestType {
+impl Default for DepthTest {
     fn default() -> Self {
         Self::Less
     }

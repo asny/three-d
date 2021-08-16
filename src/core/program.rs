@@ -615,13 +615,13 @@ impl Program {
         }
     }
 
-    fn set_depth(context: &Context, depth_test: Option<DepthTestType>, depth_mask: bool) {
+    fn set_depth(context: &Context, depth_test: Option<DepthTest>, depth_mask: bool) {
         unsafe {
             static mut CURRENT_DEPTH_ENABLE: bool = false;
             static mut CURRENT_DEPTH_MASK: bool = true;
-            static mut CURRENT_DEPTH_TEST: DepthTestType = DepthTestType::Less;
+            static mut CURRENT_DEPTH_TEST: DepthTest = DepthTest::Less;
 
-            if depth_mask == false && depth_test == Some(DepthTestType::Always) {
+            if depth_mask == false && depth_test == Some(DepthTest::Always) {
                 if CURRENT_DEPTH_ENABLE {
                     context.disable(consts::DEPTH_TEST);
                     CURRENT_DEPTH_ENABLE = false;
@@ -641,28 +641,28 @@ impl Program {
 
             if depth_test.is_some() && depth_test.unwrap() != CURRENT_DEPTH_TEST {
                 match depth_test.unwrap() {
-                    DepthTestType::Never => {
+                    DepthTest::Never => {
                         context.depth_func(consts::NEVER);
                     }
-                    DepthTestType::Less => {
+                    DepthTest::Less => {
                         context.depth_func(consts::LESS);
                     }
-                    DepthTestType::Equal => {
+                    DepthTest::Equal => {
                         context.depth_func(consts::EQUAL);
                     }
-                    DepthTestType::LessOrEqual => {
+                    DepthTest::LessOrEqual => {
                         context.depth_func(consts::LEQUAL);
                     }
-                    DepthTestType::Greater => {
+                    DepthTest::Greater => {
                         context.depth_func(consts::GREATER);
                     }
-                    DepthTestType::NotEqual => {
+                    DepthTest::NotEqual => {
                         context.depth_func(consts::NOTEQUAL);
                     }
-                    DepthTestType::GreaterOrEqual => {
+                    DepthTest::GreaterOrEqual => {
                         context.depth_func(consts::GEQUAL);
                     }
-                    DepthTestType::Always => {
+                    DepthTest::Always => {
                         context.depth_func(consts::ALWAYS);
                     }
                 }

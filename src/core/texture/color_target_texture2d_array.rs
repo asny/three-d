@@ -5,7 +5,7 @@ use crate::core::*;
 ///
 /// A array of 2D color textures that can be rendered into.
 ///
-/// **Note:** [DepthTestType] is disabled if not also writing to a depth texture array.
+/// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
 /// Use a [RenderTargetArray] to write to both color and depth.
 ///
 pub struct ColorTargetTexture2DArray<T: TextureDataType> {
@@ -75,7 +75,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
     /// Output at location *i* defined in the fragment shader is written to the color texture layer at the *ith* index in `color_layers`.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
-    /// **Note:** [DepthTestType] is disabled if not also writing to a depth texture array.
+    /// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
     /// Use a [RenderTargetArray] to write to both color and depth.
     ///
     pub fn write<F: FnOnce() -> Result<(), Error>>(

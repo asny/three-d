@@ -135,7 +135,7 @@ impl DeferredPipeline {
         point_lights: &[&PointLight],
     ) -> Result<(), Error> {
         let render_states = RenderStates {
-            depth_test: DepthTestType::LessOrEqual,
+            depth_test: DepthTest::LessOrEqual,
             ..Default::default()
         };
 

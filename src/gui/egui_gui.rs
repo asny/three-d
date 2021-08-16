@@ -210,7 +210,7 @@ impl GUI {
                 rgb_equation: BlendEquationType::Add,
                 alpha_equation: BlendEquationType::Add,
             },
-            depth_test: DepthTestType::Always,
+            depth_test: DepthTest::Always,
             clip,
             ..Default::default()
         };

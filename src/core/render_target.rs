@@ -232,7 +232,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
             }
             effect.apply(
                 RenderStates {
-                    depth_test: DepthTestType::Always,
+                    depth_test: DepthTest::Always,
                     write_mask,
                     ..Default::default()
                 },
@@ -422,7 +422,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
             }
             effect.apply(
                 RenderStates {
-                    depth_test: DepthTestType::Always,
+                    depth_test: DepthTest::Always,
                     write_mask,
                     ..Default::default()
                 },

@@ -24,7 +24,7 @@ impl FXAAEffect {
     pub fn apply(&self, viewport: Viewport, color_texture: &impl Texture) -> Result<(), Error> {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
-            depth_test: DepthTestType::Always,
+            depth_test: DepthTest::Always,
             cull: Cull::Back,
             ..Default::default()
         };

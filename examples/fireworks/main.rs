@@ -102,7 +102,7 @@ fn main() {
                         destination_rgb_multiplier: BlendMultiplierType::One,
                         destination_alpha_multiplier: BlendMultiplierType::One,
                     },
-                    depth_test: DepthTestType::Always,
+                    depth_test: DepthTest::Always,
                     write_mask: WriteMask::COLOR,
                     clip: Clip::Disabled,
                 };
