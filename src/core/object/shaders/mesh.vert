@@ -46,16 +46,22 @@ void main()
     transform[2] = vec4(row1.z, row2.z, row3.z, 0.0);
     transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
     local2World *= transform;
+
+#ifdef USE_NORMALS 
+    nor = mat3(transpose(inverse(local2World))) * normal;
 #endif
+
+#else
+#ifdef USE_NORMALS 
+    nor = mat3(normalMatrix) * normal;
+#endif
+#endif
+
     vec4 worldPosition = local2World * vec4(position, 1.);
     gl_Position = camera.viewProjection * worldPosition;
 
 #ifdef USE_POSITIONS
     pos = worldPosition.xyz;
-#endif
-
-#ifdef USE_NORMALS 
-    nor = mat3(normalMatrix) * normal;
 #endif
 
 #ifdef USE_UVS 

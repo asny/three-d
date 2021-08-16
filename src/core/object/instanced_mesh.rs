@@ -44,7 +44,6 @@ pub struct InstancedMesh {
     instance_buffer3: VertexBuffer,
     pub name: String,
     transformation: Mat4,
-    normal_transformation: Mat4,
 }
 
 impl InstancedMesh {
@@ -105,7 +104,6 @@ impl InstancedMesh {
             instance_buffer2: VertexBuffer::new(context)?,
             instance_buffer3: VertexBuffer::new(context)?,
             transformation: Mat4::identity(),
-            normal_transformation: Mat4::identity(),
         };
         mesh.update_transformations(transformations);
         Ok(mesh)
@@ -117,7 +115,6 @@ impl InstancedMesh {
 
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        self.normal_transformation = self.transformation.invert().unwrap().transpose();
     }
 
     ///
@@ -157,7 +154,6 @@ impl InstancedMesh {
         if program.mesh_program.use_normals {
             let normal_buffer = self.normal_buffer.as_ref().ok_or(
                 Error::MeshError {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
-            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.mesh_program.use_colors {
