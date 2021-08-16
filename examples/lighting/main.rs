@@ -117,141 +117,133 @@ fn main() {
                     change |= gui
                         .update(&mut frame_input, |gui_context| {
                             use three_d::egui::*;
-                            SidePanel::left("side_panel", panel_width as f32).show(
-                                gui_context,
-                                |ui| {
-                                    ui.heading("Debug Panel");
+                            SidePanel::left("side_panel").show(gui_context, |ui| {
+                                ui.heading("Debug Panel");
 
-                                    ui.label("Surface parameters");
-                                    ui.add(
-                                        Slider::f32(&mut monkey_material.metallic, 0.0..=1.0)
-                                            .text("Monkey Metallic"),
-                                    );
-                                    ui.add(
-                                        Slider::f32(&mut monkey_material.roughness, 0.0..=1.0)
-                                            .text("Monkey Roughness"),
-                                    );
-                                    ui.add(
-                                        Slider::f32(&mut monkey_material.albedo[3], 0.0..=1.0)
-                                            .text("Monkey opacity"),
-                                    );
-                                    ui.add(
-                                        Slider::f32(&mut plane_material.metallic, 0.0..=1.0)
-                                            .text("Plane Metallic"),
-                                    );
-                                    ui.add(
-                                        Slider::f32(&mut plane_material.roughness, 0.0..=1.0)
-                                            .text("Plane Roughness"),
-                                    );
+                                ui.label("Surface parameters");
+                                ui.add(
+                                    Slider::new(&mut monkey_material.metallic, 0.0..=1.0)
+                                        .text("Monkey Metallic"),
+                                );
+                                ui.add(
+                                    Slider::new(&mut monkey_material.roughness, 0.0..=1.0)
+                                        .text("Monkey Roughness"),
+                                );
+                                ui.add(
+                                    Slider::new(&mut monkey_material.albedo[3], 0.0..=1.0)
+                                        .text("Monkey opacity"),
+                                );
+                                ui.add(
+                                    Slider::new(&mut plane_material.metallic, 0.0..=1.0)
+                                        .text("Plane Metallic"),
+                                );
+                                ui.add(
+                                    Slider::new(&mut plane_material.roughness, 0.0..=1.0)
+                                        .text("Plane Roughness"),
+                                );
 
-                                    ui.label("Light options");
-                                    ui.checkbox(&mut ambient_enabled, "Ambient light");
-                                    ui.checkbox(&mut directional_enabled, "Directional lights");
-                                    ui.checkbox(&mut spot_enabled, "Spot lights");
-                                    ui.checkbox(&mut point_enabled, "Point lights");
-                                    if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
-                                        if !shadows_enabled {
-                                            spot_light.clear_shadow_map();
-                                            directional_light0.clear_shadow_map();
-                                            directional_light1.clear_shadow_map();
-                                        }
+                                ui.label("Light options");
+                                ui.checkbox(&mut ambient_enabled, "Ambient light");
+                                ui.checkbox(&mut directional_enabled, "Directional lights");
+                                ui.checkbox(&mut spot_enabled, "Spot lights");
+                                ui.checkbox(&mut point_enabled, "Point lights");
+                                if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
+                                    if !shadows_enabled {
+                                        spot_light.clear_shadow_map();
+                                        directional_light0.clear_shadow_map();
+                                        directional_light1.clear_shadow_map();
                                     }
+                                }
 
-                                    ui.label("Lighting model");
-                                    ui.radio_value(
-                                        &mut forward_pipeline.lighting_model,
-                                        LightingModel::Phong,
-                                        "Phong",
-                                    );
-                                    ui.radio_value(
-                                        &mut forward_pipeline.lighting_model,
-                                        LightingModel::Blinn,
-                                        "Blinn",
-                                    );
-                                    ui.radio_value(
-                                        &mut forward_pipeline.lighting_model,
-                                        LightingModel::Cook(
-                                            NormalDistributionFunction::Blinn,
-                                            GeometryFunction::SmithSchlickGGX,
-                                        ),
-                                        "Cook (Blinn)",
-                                    );
-                                    ui.radio_value(
-                                        &mut forward_pipeline.lighting_model,
-                                        LightingModel::Cook(
-                                            NormalDistributionFunction::Beckmann,
-                                            GeometryFunction::SmithSchlickGGX,
-                                        ),
-                                        "Cook (Beckmann)",
-                                    );
-                                    ui.radio_value(
-                                        &mut forward_pipeline.lighting_model,
-                                        LightingModel::Cook(
-                                            NormalDistributionFunction::TrowbridgeReitzGGX,
-                                            GeometryFunction::SmithSchlickGGX,
-                                        ),
-                                        "Cook (Trowbridge-Reitz GGX)",
-                                    );
-                                    deferred_pipeline.lighting_model =
-                                        forward_pipeline.lighting_model;
+                                ui.label("Lighting model");
+                                ui.radio_value(
+                                    &mut forward_pipeline.lighting_model,
+                                    LightingModel::Phong,
+                                    "Phong",
+                                );
+                                ui.radio_value(
+                                    &mut forward_pipeline.lighting_model,
+                                    LightingModel::Blinn,
+                                    "Blinn",
+                                );
+                                ui.radio_value(
+                                    &mut forward_pipeline.lighting_model,
+                                    LightingModel::Cook(
+                                        NormalDistributionFunction::Blinn,
+                                        GeometryFunction::SmithSchlickGGX,
+                                    ),
+                                    "Cook (Blinn)",
+                                );
+                                ui.radio_value(
+                                    &mut forward_pipeline.lighting_model,
+                                    LightingModel::Cook(
+                                        NormalDistributionFunction::Beckmann,
+                                        GeometryFunction::SmithSchlickGGX,
+                                    ),
+                                    "Cook (Beckmann)",
+                                );
+                                ui.radio_value(
+                                    &mut forward_pipeline.lighting_model,
+                                    LightingModel::Cook(
+                                        NormalDistributionFunction::TrowbridgeReitzGGX,
+                                        GeometryFunction::SmithSchlickGGX,
+                                    ),
+                                    "Cook (Trowbridge-Reitz GGX)",
+                                );
+                                deferred_pipeline.lighting_model = forward_pipeline.lighting_model;
 
-                                    ui.label("Pipeline");
-                                    ui.radio_value(
-                                        &mut current_pipeline,
-                                        Pipeline::Forward,
-                                        "Forward",
-                                    );
-                                    ui.radio_value(
-                                        &mut current_pipeline,
-                                        Pipeline::Deferred,
-                                        "Deferred",
-                                    );
+                                ui.label("Pipeline");
+                                ui.radio_value(&mut current_pipeline, Pipeline::Forward, "Forward");
+                                ui.radio_value(
+                                    &mut current_pipeline,
+                                    Pipeline::Deferred,
+                                    "Deferred",
+                                );
 
-                                    if current_pipeline == Pipeline::Deferred {
-                                        ui.label("Debug options");
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::NONE,
-                                            "None",
-                                        );
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::POSITION,
-                                            "Position",
-                                        );
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::NORMAL,
-                                            "Normal",
-                                        );
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::COLOR,
-                                            "Color",
-                                        );
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::DEPTH,
-                                            "Depth",
-                                        );
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::DIFFUSE,
-                                            "Diffuse",
-                                        );
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::SPECULAR,
-                                            "Specular",
-                                        );
-                                        ui.radio_value(
-                                            &mut deferred_pipeline.debug_type,
-                                            DebugType::POWER,
-                                            "Power",
-                                        );
-                                    }
-                                },
-                            );
+                                if current_pipeline == Pipeline::Deferred {
+                                    ui.label("Debug options");
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::NONE,
+                                        "None",
+                                    );
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::POSITION,
+                                        "Position",
+                                    );
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::NORMAL,
+                                        "Normal",
+                                    );
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::COLOR,
+                                        "Color",
+                                    );
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::DEPTH,
+                                        "Depth",
+                                    );
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::DIFFUSE,
+                                        "Diffuse",
+                                    );
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::SPECULAR,
+                                        "Specular",
+                                    );
+                                    ui.radio_value(
+                                        &mut deferred_pipeline.debug_type,
+                                        DebugType::POWER,
+                                        "Power",
+                                    );
+                                }
+                            });
                             panel_width = gui_context.used_size().x as u32;
                         })
                         .unwrap();
