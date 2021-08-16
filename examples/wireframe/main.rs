@@ -38,7 +38,7 @@ fn main() {
             let material = Material::new(&context, &materials[0]).unwrap();
             let mut model = Model::new(&context, &cpu_mesh).unwrap();
             model.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            model.cull = CullType::Back;
+            model.cull = Cull::Back;
 
             let wireframe_material = Material {
                 name: "wireframe".to_string(),
@@ -54,7 +54,7 @@ fn main() {
             )
             .unwrap();
             edges.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            edges.cull = CullType::Back;
+            edges.cull = Cull::Back;
 
             let mut vertices = InstancedModel::new(
                 &context,
@@ -63,7 +63,7 @@ fn main() {
             )
             .unwrap();
             vertices.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            vertices.cull = CullType::Back;
+            vertices.cull = Cull::Back;
 
             let ambient_light = AmbientLight {
                 intensity: 0.7,

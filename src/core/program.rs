@@ -515,23 +515,23 @@ impl Program {
         }
     }
 
-    fn set_cull(context: &Context, cull: CullType) {
+    fn set_cull(context: &Context, cull: Cull) {
         unsafe {
-            static mut CURRENT_CULL: CullType = CullType::None;
+            static mut CURRENT_CULL: Cull = Cull::None;
             if cull != CURRENT_CULL {
                 match cull {
-                    CullType::None => {
+                    Cull::None => {
                         context.disable(consts::CULL_FACE);
                     }
-                    CullType::Back => {
+                    Cull::Back => {
                         context.enable(consts::CULL_FACE);
                         context.cull_face(consts::BACK);
                     }
-                    CullType::Front => {
+                    Cull::Front => {
                         context.enable(consts::CULL_FACE);
                         context.cull_face(consts::FRONT);
                     }
-                    CullType::FrontAndBack => {
+                    Cull::FrontAndBack => {
                         context.enable(consts::CULL_FACE);
                         context.cull_face(consts::FRONT_AND_BACK);
                     }

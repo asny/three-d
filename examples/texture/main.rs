@@ -55,7 +55,7 @@ fn main() {
                 ..Default::default()
             };
             let mut box_mesh = Model::new(&context, &box_cpu_mesh).unwrap();
-            box_mesh.cull = CullType::Back;
+            box_mesh.cull = Cull::Back;
 
             let skybox = Skybox::new(
                 &context,
@@ -76,7 +76,7 @@ fn main() {
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
             let penguin_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
             let mut penguin = Model::new(&context, &penguin_cpu_meshes[0]).unwrap();
-            penguin.cull = CullType::Back;
+            penguin.cull = Cull::Back;
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,

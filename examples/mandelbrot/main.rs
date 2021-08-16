@@ -86,7 +86,7 @@ fn main() {
                         RenderStates {
                             depth_test: DepthTestType::Always,
                             write_mask: WriteMask::COLOR,
-                            cull: CullType::Back,
+                            cull: Cull::Back,
                             ..Default::default()
                         },
                         &program,

@@ -55,7 +55,7 @@ fn main() {
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let statue_material = Material::new(&context, &statue_cpu_materials[0]).unwrap();
             let mut statue = Model::new(&context, &statue_cpu_meshes[0]).unwrap();
-            statue.cull = CullType::Back;
+            statue.cull = Cull::Back;
 
             let mut models = Vec::new();
             let scale = Mat4::from_scale(10.0);
@@ -76,7 +76,7 @@ fn main() {
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
             let fountain_material = Material::new(&context, &fountain_cpu_materials[0]).unwrap();
             let mut fountain = Model::new(&context, &fountain_cpu_meshes[0]).unwrap();
-            fountain.cull = CullType::Back;
+            fountain.cull = Cull::Back;
             fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
 
             let ambient_light = AmbientLight {

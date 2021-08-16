@@ -39,7 +39,7 @@ fn main() {
                 .unwrap();
             let material = Material::new(&context, &cpu_materials[0]).unwrap();
             let mut model = Model::new(&context, &cpu_meshes[0]).unwrap();
-            model.cull = CullType::Back;
+            model.cull = Cull::Back;
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
             let ambient_light = AmbientLight {

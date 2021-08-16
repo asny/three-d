@@ -49,7 +49,7 @@ fn main() {
                 .unwrap();
             let tree_material = Material::new(&context, &tree_cpu_material).unwrap();
             let mut tree_mesh = Model::new(&context, tree_cpu_mesh).unwrap();
-            tree_mesh.cull = CullType::Back;
+            tree_mesh.cull = Cull::Back;
 
             let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
             let leaves_material = Material::new(
@@ -136,7 +136,7 @@ fn main() {
                 },
             )
             .unwrap();
-            plane.cull = CullType::Back;
+            plane.cull = Cull::Back;
 
             // Shadows
             directional_light

@@ -50,7 +50,7 @@ impl Skybox {
     pub fn render(&self, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
             depth_test: DepthTestType::LessOrEqual,
-            cull: CullType::Front,
+            cull: Cull::Front,
             ..Default::default()
         };
 

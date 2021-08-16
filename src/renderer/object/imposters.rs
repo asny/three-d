@@ -151,7 +151,7 @@ impl Imposters {
     pub fn render(&self, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
             blend: Blend::TRANSPARENCY,
-            cull: CullType::Back,
+            cull: Cull::Back,
             ..Default::default()
         };
         self.program

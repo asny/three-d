@@ -38,7 +38,7 @@ fn main() {
             let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             let monkey_material = Material::new(&context, &materials[0]).unwrap();
             let mut monkey = Model::new(&context, &meshes[0]).unwrap();
-            monkey.cull = CullType::Back;
+            monkey.cull = Cull::Back;
 
             let ambient_light = AmbientLight {
                 intensity: 0.4,

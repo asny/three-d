@@ -25,7 +25,7 @@ impl FXAAEffect {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             depth_test: DepthTestType::Always,
-            cull: CullType::Back,
+            cull: Cull::Back,
             ..Default::default()
         };
 

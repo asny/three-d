@@ -7,7 +7,7 @@ use crate::renderer::*;
 pub struct Model {
     context: Context,
     pub(in crate::renderer) mesh: Mesh,
-    pub cull: CullType,
+    pub cull: Cull,
 }
 
 impl Model {
@@ -19,7 +19,7 @@ impl Model {
         Ok(Self {
             context: context.clone(),
             mesh,
-            cull: CullType::default(),
+            cull: Cull::default(),
         })
     }
 

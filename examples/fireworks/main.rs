@@ -93,7 +93,7 @@ fn main() {
                     &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0),
                 )?;
                 let render_states = RenderStates {
-                    cull: CullType::Back,
+                    cull: Cull::Back,
                     blend: Blend::Enabled {
                         rgb_equation: BlendEquationType::Add,
                         alpha_equation: BlendEquationType::Add,

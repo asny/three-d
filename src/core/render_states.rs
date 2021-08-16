@@ -31,7 +31,7 @@ pub struct RenderStates {
     ///
     /// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
     ///
-    pub cull: CullType,
+    pub cull: Cull,
 }
 
 impl Default for RenderStates {
@@ -41,7 +41,7 @@ impl Default for RenderStates {
             depth_test: DepthTestType::default(),
             blend: Blend::default(),
             clip: Clip::default(),
-            cull: CullType::default(),
+            cull: Cull::default(),
         }
     }
 }
@@ -50,14 +50,14 @@ impl Default for RenderStates {
 /// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum CullType {
+pub enum Cull {
     None,
     Back,
     Front,
     FrontAndBack,
 }
 
-impl Default for CullType {
+impl Default for Cull {
     fn default() -> Self {
         Self::None
     }

@@ -29,7 +29,7 @@ impl FogEffect {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             blend: Blend::TRANSPARENCY,
-            cull: CullType::Back,
+            cull: Cull::Back,
             ..Default::default()
         };
 
