@@ -134,13 +134,11 @@ impl Saver {
                 let number_of_channels =
                     cpu_texture.data.len() as u32 / (cpu_texture.width * cpu_texture.height);
                 let format = match number_of_channels {
-                    1 => Ok(image::ColorType::L8),
-                    3 => Ok(image::ColorType::Rgb8),
-                    4 => Ok(image::ColorType::Rgba8),
-                    _ => Err(IOError::FailedToSave {
-                        message: format!("Texture image could not be saved"),
-                    }),
-                }?;
+                    1 => image::ColorType::L8,
+                    3 => image::ColorType::Rgb8,
+                    4 => image::ColorType::Rgba8,
+                    _ => unimplemented!(),
+                };
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
                 image::save_buffer(
                     tex_path,

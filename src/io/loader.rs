@@ -29,20 +29,10 @@ impl Loaded {
         let bytes = self
             .loaded
             .remove_entry(path.as_ref())
-            .ok_or(IOError::FailedToLoad {
-                message: format!(
-                    "Tried to use a resource which was not loaded: {}",
-                    path.as_ref().to_str().unwrap()
-                ),
-            })?
-            .1
-            .map_err(|e| IOError::FailedToLoad {
-                message: format!(
-                    "Could not load resource {} due to: {}",
-                    path.as_ref().to_str().unwrap(),
-                    e
-                ),
-            })?;
+            .ok_or(IOError::NotLoaded(
+                path.as_ref().to_str().unwrap().to_owned(),
+            ))?
+            .1?;
         Ok(bytes)
     }
 
@@ -54,20 +44,11 @@ impl Loaded {
         let bytes = self
             .loaded
             .get(path.as_ref())
-            .ok_or(IOError::FailedToLoad {
-                message: format!(
-                    "Tried to use a resource which was not loaded: {}",
-                    path.as_ref().to_str().unwrap()
-                ),
-            })?
+            .ok_or(IOError::NotLoaded(
+                path.as_ref().to_str().unwrap().to_owned(),
+            ))?
             .as_ref()
-            .map_err(|e| IOError::FailedToLoad {
-                message: format!(
-                    "Could not load resource {} due to: {}",
-                    path.as_ref().to_str().unwrap(),
-                    e
-                ),
-            })?;
+            .map_err(|e| std::io::Error::from(e.kind()))?;
         Ok(bytes)
     }
 

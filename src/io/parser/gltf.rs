@@ -24,14 +24,10 @@ impl Loaded {
         for buffer in document.buffers() {
             let mut data = match buffer.source() {
                 ::gltf::buffer::Source::Uri(uri) => self.remove_bytes(base_path.join(uri))?,
-                ::gltf::buffer::Source::Bin => blob.take().ok_or(IOError::FailedToLoad {
-                    message: "Binary blob is missing!".to_string(),
-                })?,
+                ::gltf::buffer::Source::Bin => blob.take().ok_or(IOError::GltfMissingData)?,
             };
             if data.len() < buffer.length() {
-                return Err(IOError::FailedToLoad {
-                    message: "Buffer data is corrupt!".to_string(),
-                });
+                return Err(IOError::GltfCorruptData);
             }
             while data.len() % 4 != 0 {
                 data.push(0);
