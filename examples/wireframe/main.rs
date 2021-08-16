@@ -43,8 +43,8 @@ fn main() {
             let wireframe_material = Material {
                 name: "wireframe".to_string(),
                 albedo: vec4(0.9, 0.2, 0.2, 1.0),
-                roughness: 0.5,
-                metallic: 0.9,
+                roughness: 0.7,
+                metallic: 0.8,
                 ..Default::default()
             };
             let mut edges = InstancedModel::new(
@@ -70,10 +70,10 @@ fn main() {
                 color: Color::WHITE,
             };
             let directional_light0 =
-                DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
+                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
                     .unwrap();
             let directional_light1 =
-                DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
+                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
 
             // main loop
             window
