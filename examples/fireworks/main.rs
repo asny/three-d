@@ -45,14 +45,14 @@ fn main() {
     let mut particles =
         Particles::new(&context, &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
     particles.cull = CullType::Back;
-    particles.blend = Some(BlendParameters {
+    particles.blend = Blend::Enabled {
         rgb_equation: BlendEquationType::Add,
         alpha_equation: BlendEquationType::Add,
         source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
         source_alpha_multiplier: BlendMultiplierType::Zero,
         destination_rgb_multiplier: BlendMultiplierType::One,
         destination_alpha_multiplier: BlendMultiplierType::One,
-    });
+    };
     particles.depth_test = DepthTestType::Always;
 
     // main loop

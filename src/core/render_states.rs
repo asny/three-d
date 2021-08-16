@@ -26,7 +26,7 @@ pub struct RenderStates {
     /// color channels of the render target.
     /// This is usually used to simulate transparency.
     ///
-    pub blend: Option<BlendParameters>,
+    pub blend: Blend,
 
     ///
     /// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
@@ -39,7 +39,7 @@ impl Default for RenderStates {
         Self {
             write_mask: WriteMask::default(),
             depth_test: DepthTestType::default(),
-            blend: None,
+            blend: Blend::default(),
             clip: None,
             cull: CullType::default(),
         }
@@ -172,20 +172,24 @@ impl Default for WriteMask {
 /// This is usually used to simulate transparency.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct BlendParameters {
-    pub source_rgb_multiplier: BlendMultiplierType,
-    pub source_alpha_multiplier: BlendMultiplierType,
-    pub destination_rgb_multiplier: BlendMultiplierType,
-    pub destination_alpha_multiplier: BlendMultiplierType,
-    pub rgb_equation: BlendEquationType,
-    pub alpha_equation: BlendEquationType,
+pub enum Blend {
+    Enabled {
+        source_rgb_multiplier: BlendMultiplierType,
+        source_alpha_multiplier: BlendMultiplierType,
+        destination_rgb_multiplier: BlendMultiplierType,
+        destination_alpha_multiplier: BlendMultiplierType,
+        rgb_equation: BlendEquationType,
+        alpha_equation: BlendEquationType,
+    },
+    Disabled,
 }
 
-impl BlendParameters {
+impl Blend {
     ///
-    /// Usual transparency blending parameters.
+    /// Standard OpenGL transparency blending parameters which, for the usual case of being able to see through objects, does not work on web.
+    /// In that case, use [Blend::TRANSPARENCY] instead which works the same way on desktop and web.
     ///
-    pub const TRANSPARENCY: Self = Self {
+    pub const STANDARD_TRANSPARENCY: Self = Self::Enabled {
         source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
         source_alpha_multiplier: BlendMultiplierType::One,
         destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
@@ -195,9 +199,21 @@ impl BlendParameters {
     };
 
     ///
+    /// Transparency blending parameters that works on both desktop and web. For the standard OpenGL parameters, see [Blend::STANDARD_TRANSPARENCY].
+    ///
+    pub const TRANSPARENCY: Self = Self::Enabled {
+        source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+        source_alpha_multiplier: BlendMultiplierType::Zero,
+        destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
+        destination_alpha_multiplier: BlendMultiplierType::One,
+        rgb_equation: BlendEquationType::Add,
+        alpha_equation: BlendEquationType::Add,
+    };
+
+    ///
     /// Adds the color of the render target with the output color of the render call.
     ///
-    pub const ADD: Self = Self {
+    pub const ADD: Self = Self::Enabled {
         source_rgb_multiplier: BlendMultiplierType::One,
         source_alpha_multiplier: BlendMultiplierType::One,
         destination_rgb_multiplier: BlendMultiplierType::One,
@@ -207,9 +223,9 @@ impl BlendParameters {
     };
 }
 
-impl Default for BlendParameters {
+impl Default for Blend {
     fn default() -> Self {
-        Self::TRANSPARENCY
+        Self::Disabled
     }
 }
 

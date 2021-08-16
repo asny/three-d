@@ -105,7 +105,7 @@ pub struct Particles {
     instance_count: u32,
     pub cull: CullType,
     pub depth_test: DepthTestType,
-    pub blend: Option<BlendParameters>,
+    pub blend: Blend,
     pub transformation: Mat4,
 }
 
@@ -142,7 +142,7 @@ impl Particles {
             acceleration: *acceleration,
             instance_count: 0,
             cull: CullType::default(),
-            blend: None,
+            blend: Blend::default(),
             depth_test: DepthTestType::default(),
             transformation: Mat4::identity(),
         })

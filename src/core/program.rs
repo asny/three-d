@@ -540,25 +540,29 @@ impl Program {
         }
     }
 
-    fn set_blend(context: &Context, blend: Option<BlendParameters>) {
+    fn set_blend(context: &Context, blend: Blend) {
         unsafe {
-            static mut CURRENT: Option<BlendParameters> = None;
+            static mut CURRENT: Blend = Blend::Disabled;
             if blend != CURRENT {
-                if let Some(blend_parameters) = blend {
+                if let Blend::Enabled {
+                    source_rgb_multiplier,
+                    source_alpha_multiplier,
+                    destination_rgb_multiplier,
+                    destination_alpha_multiplier,
+                    rgb_equation,
+                    alpha_equation,
+                } = blend
+                {
                     context.enable(consts::BLEND);
                     context.blend_func_separate(
-                        Self::blend_const_from_multiplier(blend_parameters.source_rgb_multiplier),
-                        Self::blend_const_from_multiplier(
-                            blend_parameters.destination_rgb_multiplier,
-                        ),
-                        Self::blend_const_from_multiplier(blend_parameters.source_alpha_multiplier),
-                        Self::blend_const_from_multiplier(
-                            blend_parameters.destination_alpha_multiplier,
-                        ),
+                        Self::blend_const_from_multiplier(source_rgb_multiplier),
+                        Self::blend_const_from_multiplier(destination_rgb_multiplier),
+                        Self::blend_const_from_multiplier(source_alpha_multiplier),
+                        Self::blend_const_from_multiplier(destination_alpha_multiplier),
                     );
                     context.blend_equation_separate(
-                        Self::blend_const_from_equation(blend_parameters.rgb_equation),
-                        Self::blend_const_from_equation(blend_parameters.alpha_equation),
+                        Self::blend_const_from_equation(rgb_equation),
+                        Self::blend_const_from_equation(alpha_equation),
                     );
                 } else {
                     context.disable(consts::BLEND);

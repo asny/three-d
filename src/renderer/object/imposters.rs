@@ -150,14 +150,7 @@ impl Imposters {
     ///
     pub fn render(&self, camera: &Camera) -> Result<(), Error> {
         let render_states = RenderStates {
-            blend: Some(BlendParameters {
-                source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-                source_alpha_multiplier: BlendMultiplierType::Zero,
-                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
-                destination_alpha_multiplier: BlendMultiplierType::One,
-                rgb_equation: BlendEquationType::Add,
-                alpha_equation: BlendEquationType::Add,
-            }),
+            blend: Blend::TRANSPARENCY,
             cull: CullType::Back,
             ..Default::default()
         };

@@ -202,13 +202,14 @@ impl GUI {
         let index_buffer = ElementBuffer::new(&self.context, &indices)?;
 
         let render_states = RenderStates {
-            blend: Some(BlendParameters {
+            blend: Blend::Enabled {
                 source_rgb_multiplier: BlendMultiplierType::One,
-                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
                 source_alpha_multiplier: BlendMultiplierType::OneMinusDstAlpha,
+                destination_rgb_multiplier: BlendMultiplierType::OneMinusSrcAlpha,
                 destination_alpha_multiplier: BlendMultiplierType::One,
-                ..Default::default()
-            }),
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add,
+            },
             depth_test: DepthTestType::Always,
             clip: Some(clip),
             ..Default::default()
