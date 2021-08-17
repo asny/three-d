@@ -262,10 +262,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_mouseleave_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mouseleave_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -289,10 +286,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_mouseenter_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mouseenter_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -315,10 +309,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_mousedown_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mousedown_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -391,10 +382,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_mousemove_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mousemove_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -431,10 +419,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_mousewheel_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mousewheel_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -459,10 +444,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_touchstart_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_touchstart_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -509,10 +491,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_touchend_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_touchend_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -546,10 +525,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_touchmove_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_touchmove_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -611,10 +587,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_key_down_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_key_down_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
