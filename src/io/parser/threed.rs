@@ -9,10 +9,7 @@ impl Loaded {
     /// # Feature
     /// Only available when the `3d-io` feature is enabled.
     ///
-    pub fn three_d<P: AsRef<Path>>(
-        &mut self,
-        path: P,
-    ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
+    pub fn three_d<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
         let bytes = self.get_bytes(path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| Self::deserialize_version2(bytes))
@@ -71,45 +68,49 @@ impl Loaded {
         Ok((cpu_meshes, cpu_materials))
     }
 
-    fn deserialize_version2(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
-        bincode::deserialize::<ThreeDMeshV2>(bytes).map(|m| ThreeDMesh {
-            magic_number: m.magic_number,
-            version: 3,
-            meshes: m.meshes,
-            materials: m
-                .materials
-                .iter()
-                .map(|mat| ThreeDMaterial {
-                    name: mat.name.clone(),
-                    color: mat.color,
-                    texture_path: mat.texture_path.clone(),
-                    metallic: mat.specular_intensity,
-                    roughness: mat.specular_power.map(|power| (1.999 / power).sqrt()),
-                })
-                .collect(),
-        })
+    fn deserialize_version2(bytes: &[u8]) -> Result<ThreeDMesh> {
+        Ok(
+            bincode::deserialize::<ThreeDMeshV2>(bytes).map(|m| ThreeDMesh {
+                magic_number: m.magic_number,
+                version: 3,
+                meshes: m.meshes,
+                materials: m
+                    .materials
+                    .iter()
+                    .map(|mat| ThreeDMaterial {
+                        name: mat.name.clone(),
+                        color: mat.color,
+                        texture_path: mat.texture_path.clone(),
+                        metallic: mat.specular_intensity,
+                        roughness: mat.specular_power.map(|power| (1.999 / power).sqrt()),
+                    })
+                    .collect(),
+            })?,
+        )
     }
 
-    fn deserialize_version1(bytes: &[u8]) -> Result<ThreeDMesh, bincode::Error> {
-        bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
-            magic_number: m.magic_number,
-            version: 3,
-            meshes: vec![ThreeDMeshSubMesh {
-                indices: if m.indices.len() > 0 {
-                    Some(m.indices)
-                } else {
-                    None
-                },
-                positions: m.positions,
-                normals: if m.normals.len() > 0 {
-                    Some(m.normals)
-                } else {
-                    None
-                },
-                ..Default::default()
-            }],
-            materials: vec![],
-        })
+    fn deserialize_version1(bytes: &[u8]) -> Result<ThreeDMesh> {
+        Ok(
+            bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
+                magic_number: m.magic_number,
+                version: 3,
+                meshes: vec![ThreeDMeshSubMesh {
+                    indices: if m.indices.len() > 0 {
+                        Some(m.indices)
+                    } else {
+                        None
+                    },
+                    positions: m.positions,
+                    normals: if m.normals.len() > 0 {
+                        Some(m.normals)
+                    } else {
+                        None
+                    },
+                    ..Default::default()
+                }],
+                materials: vec![],
+            })?,
+        )
     }
 }
 
@@ -126,7 +127,7 @@ impl Saver {
         path: P,
         cpu_meshes: Vec<CPUMesh>,
         cpu_materials: Vec<CPUMaterial>,
-    ) -> Result<(), IOError> {
+    ) -> Result<()> {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
@@ -134,13 +135,11 @@ impl Saver {
                 let number_of_channels =
                     cpu_texture.data.len() as u32 / (cpu_texture.width * cpu_texture.height);
                 let format = match number_of_channels {
-                    1 => Ok(image::ColorType::L8),
-                    3 => Ok(image::ColorType::Rgb8),
-                    4 => Ok(image::ColorType::Rgba8),
-                    _ => Err(IOError::FailedToSave {
-                        message: format!("Texture image could not be saved"),
-                    }),
-                }?;
+                    1 => image::ColorType::L8,
+                    3 => image::ColorType::Rgb8,
+                    4 => image::ColorType::Rgba8,
+                    _ => unimplemented!(),
+                };
                 let tex_path = dir.join(format!("{}_{}.png", filename, cpu_material.name));
                 image::save_buffer(
                     tex_path,
@@ -160,7 +159,7 @@ impl Saver {
         filename: &str,
         cpu_meshes: Vec<CPUMesh>,
         cpu_materials: Vec<CPUMaterial>,
-    ) -> Result<Vec<u8>, IOError> {
+    ) -> Result<Vec<u8>> {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {
             let indices = cpu_mesh.indices.map(|indices| match indices {

@@ -34,7 +34,7 @@ impl DepthTargetTexture2D {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: DepthFormat,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         let id = generate(context)?;
         set_parameters(
             context,
@@ -66,11 +66,11 @@ impl DepthTargetTexture2D {
     /// Write the depth of whatever rendered in the `render` closure into the texture.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> Result<(), Error>>(
+    pub fn write<F: FnOnce() -> Result<()>>(
         &self,
         clear_state: Option<f32>,
         render: F,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         RenderTarget::<f32>::new_depth(&self.context, &self)?.write(
             ClearState {
                 depth: clear_state,
@@ -90,7 +90,7 @@ impl DepthTargetTexture2D {
         &self,
         destination: CopyDestination<T>,
         viewport: Viewport,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         RenderTarget::new_depth(&self.context, &self)?.copy_to(
             destination,
             viewport,

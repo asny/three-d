@@ -1,5 +1,5 @@
 use crate::context::{consts, Context, DataType};
-use crate::core::{Error, VertexBufferDataType};
+use crate::core::*;
 
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors
@@ -16,7 +16,7 @@ impl VertexBuffer {
     ///
     /// Creates a new empty vertex buffer.
     ///
-    pub fn new(context: &Context) -> Result<VertexBuffer, Error> {
+    pub fn new(context: &Context) -> Result<VertexBuffer> {
         Ok(VertexBuffer {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
@@ -33,7 +33,7 @@ impl VertexBuffer {
     pub fn new_with_static<T: VertexBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<VertexBuffer, Error> {
+    ) -> Result<VertexBuffer> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill_with_static(data);
@@ -67,7 +67,7 @@ impl VertexBuffer {
     pub fn new_with_dynamic<T: VertexBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<VertexBuffer, Error> {
+    ) -> Result<VertexBuffer> {
         let mut buffer = Self::new(context).unwrap();
         if data.len() > 0 {
             buffer.fill_with_dynamic(data);

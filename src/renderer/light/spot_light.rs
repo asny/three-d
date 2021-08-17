@@ -23,7 +23,7 @@ impl SpotLight {
         attenuation_constant: f32,
         attenuation_linear: f32,
         attenuation_exponential: f32,
-    ) -> Result<SpotLight, Error> {
+    ) -> Result<SpotLight> {
         let uniform_sizes = [3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16];
         let mut light = SpotLight {
             context: context.clone(),
@@ -108,7 +108,7 @@ impl SpotLight {
         frustrum_depth: f32,
         texture_size: u32,
         geometries: &[&dyn Geometry],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let position = self.position();
         let direction = self.direction();
         let up = compute_up_direction(direction);

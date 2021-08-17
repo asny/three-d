@@ -31,7 +31,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: Format,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, depth);
         set_parameters(
@@ -78,12 +78,12 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
     /// Use a [RenderTargetArray] to write to both color and depth.
     ///
-    pub fn write<F: FnOnce() -> Result<(), Error>>(
+    pub fn write<F: FnOnce() -> Result<()>>(
         &self,
         color_layers: &[u32],
         clear_state: ClearState,
         render: F,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         RenderTargetArray::new_color(&self.context, &self)?.write(
             color_layers,
             0,
@@ -105,7 +105,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         RenderTargetArray::<T>::new_color(&self.context, &self)?.copy_to(
             color_layer,
             0,

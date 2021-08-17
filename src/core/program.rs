@@ -1,5 +1,5 @@
 use crate::context::{consts, AttributeLocation, Context, ShaderType};
-use crate::core::{Error::ProgramError, *};
+use crate::core::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -26,17 +26,13 @@ impl Program {
         context: &Context,
         vertex_shader_source: &str,
         fragment_shader_source: &str,
-    ) -> Result<Program, Error> {
+    ) -> Result<Program> {
         let vert_shader = context
             .create_shader(ShaderType::Vertex)
-            .ok_or(ProgramError {
-                message: "Unable to create Vertex shader object".to_string(),
-            })?;
+            .ok_or(CoreError::ShaderCreation)?;
         let frag_shader = context
             .create_shader(ShaderType::Fragment)
-            .ok_or(ProgramError {
-                message: "Unable to create Fragment shader object".to_string(),
-            })?;
+            .ok_or(CoreError::ShaderCreation)?;
         context.compile_shader(vertex_shader_source, &vert_shader);
         context.compile_shader(fragment_shader_source, &frag_shader);
 
@@ -46,17 +42,16 @@ impl Program {
         let success = context.link_program(&id);
 
         if !success {
-            let mut message = "Failed to compile shader program:\n".to_string();
             if let Some(log) = context.get_program_info_log(&id) {
-                message = format!("{}\nLink error: {}", message, log);
+                Err(CoreError::ShaderLink(log))?;
             }
             if let Some(log) = context.get_shader_info_log(&vert_shader) {
-                message = format!("{}\nVertex shader error: {}", message, log);
+                Err(CoreError::ShaderCompilation("vertex".to_string(), log))?;
             }
             if let Some(log) = context.get_shader_info_log(&frag_shader) {
-                message = format!("{}\nFragment shader error: {}", message, log);
+                Err(CoreError::ShaderCompilation("fragment".to_string(), log))?;
             }
-            return Err(Error::ProgramError { message });
+            unreachable!();
         }
 
         context.detach_shader(&id, &vert_shader);
@@ -100,7 +95,7 @@ impl Program {
     /// Send the given integer value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_int(&self, name: &str, data: &i32) -> Result<(), Error> {
+    pub fn use_uniform_int(&self, name: &str, data: &i32) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1i(location, *data);
         self.context.unuse_program();
@@ -111,7 +106,7 @@ impl Program {
     /// Send the given float value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform float`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_float(&self, name: &str, data: &f32) -> Result<(), Error> {
+    pub fn use_uniform_float(&self, name: &str, data: &f32) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform1f(location, *data);
         self.context.unuse_program();
@@ -122,7 +117,7 @@ impl Program {
     /// Send the given [Vec2](crate::Vec2) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<(), Error> {
+    pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context.uniform2fv(location, &mut [data.x, data.y]);
         self.context.unuse_program();
@@ -133,7 +128,7 @@ impl Program {
     /// Send the given [Vec3](crate::Vec3) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<(), Error> {
+    pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context
             .uniform3fv(location, &mut [data.x, data.y, data.z]);
@@ -145,7 +140,7 @@ impl Program {
     /// Send the given [Vec4](crate::Vec4) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<(), Error> {
+    pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context
             .uniform4fv(location, &mut [data.x, data.y, data.z, data.w]);
@@ -157,7 +152,7 @@ impl Program {
     /// Send the given [Mat2](crate::Mat2) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<(), Error> {
+    pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context
             .uniform_matrix2fv(location, &mut data.to_slice());
@@ -169,7 +164,7 @@ impl Program {
     /// Send the given [Mat3](crate::Mat3) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<(), Error> {
+    pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context
             .uniform_matrix3fv(location, &mut data.to_slice());
@@ -181,7 +176,7 @@ impl Program {
     /// Send the given [Mat4](crate::Mat4) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
-    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<(), Error> {
+    pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> Result<()> {
         let location = self.get_uniform_location(name)?;
         self.context
             .uniform_matrix4fv(location, &mut data.to_slice());
@@ -189,14 +184,12 @@ impl Program {
         Ok(())
     }
 
-    fn get_uniform_location(&self, name: &str) -> Result<&crate::context::UniformLocation, Error> {
+    fn get_uniform_location(&self, name: &str) -> Result<&crate::context::UniformLocation> {
         self.set_used();
-        let loc = self.uniforms.get(name).ok_or_else(|| ProgramError {
-            message: format!(
-                "The uniform {} is sent to the shader but it is never used.",
-                name
-            ),
-        })?;
+        let loc = self
+            .uniforms
+            .get(name)
+            .ok_or_else(|| CoreError::UnusedUniform(name.to_string()))?;
         Ok(loc)
     }
 
@@ -204,7 +197,7 @@ impl Program {
     /// Use the given [Texture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture(&self, name: &str, texture: &impl Texture) -> Result<(), Error> {
+    pub fn use_texture(&self, name: &str, texture: &impl Texture) -> Result<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
         self.use_uniform_int(name, &(index as i32))?;
@@ -215,7 +208,7 @@ impl Program {
     /// Use the given [TextureArray] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture_array(&self, name: &str, texture: &impl TextureArray) -> Result<(), Error> {
+    pub fn use_texture_array(&self, name: &str, texture: &impl TextureArray) -> Result<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
         self.use_uniform_int(name, &(index as i32))?;
@@ -226,7 +219,7 @@ impl Program {
     /// Use the given [TextureCube] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture_cube(&self, name: &str, texture: &impl TextureCube) -> Result<(), Error> {
+    pub fn use_texture_cube(&self, name: &str, texture: &impl TextureCube) -> Result<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
         self.use_uniform_int(name, &(index as i32))?;
@@ -256,7 +249,7 @@ impl Program {
         self.context.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 
-    pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+    pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_divisor(name, buffer, 0)?;
         Ok(())
     }
@@ -266,7 +259,7 @@ impl Program {
         name: &str,
         buffer: &VertexBuffer,
         divisor: u32,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
@@ -280,7 +273,7 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+    pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_vec2_divisor(name, buffer, 0)?;
         Ok(())
     }
@@ -290,7 +283,7 @@ impl Program {
         name: &str,
         buffer: &VertexBuffer,
         divisor: u32,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
@@ -304,7 +297,7 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+    pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_vec3_divisor(name, buffer, 0)?;
         Ok(())
     }
@@ -314,7 +307,7 @@ impl Program {
         name: &str,
         buffer: &VertexBuffer,
         divisor: u32,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&name)?;
@@ -328,7 +321,7 @@ impl Program {
         Ok(())
     }
 
-    pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> Result<(), Error> {
+    pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_vec4_divisor(name, buffer, 0)?;
         Ok(())
     }
@@ -338,7 +331,7 @@ impl Program {
         name: &str,
         buffer: &VertexBuffer,
         divisor: u32,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
@@ -444,17 +437,12 @@ impl Program {
         self.context.unuse_program();
     }
 
-    fn location(&self, name: &str) -> Result<AttributeLocation, Error> {
+    fn location(&self, name: &str) -> Result<AttributeLocation> {
         self.set_used();
         let location = self
             .vertex_attributes
             .get(name)
-            .ok_or_else(|| ProgramError {
-                message: format!(
-                    "The attribute {} is sent to the shader but it is never used.",
-                    name
-                ),
-            })?;
+            .ok_or_else(|| CoreError::UnusedAttribute(name.to_string()))?;
         Ok(*location)
     }
 

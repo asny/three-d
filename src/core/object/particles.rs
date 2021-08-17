@@ -11,7 +11,7 @@ pub struct ParticlesProgram {
 }
 
 impl ParticlesProgram {
-    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
+    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
@@ -107,7 +107,8 @@ pub struct Particles {
 }
 
 impl Particles {
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self, Error> {
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self> {
+        cpu_mesh.validate()?;
         let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(VertexBuffer::new_with_static(context, normals)?)
@@ -176,7 +177,7 @@ impl Particles {
         program: &ParticlesProgram,
         camera: &Camera,
         time: f32,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_vec3("acceleration", &self.acceleration)?;
         program.use_uniform_float("time", &time)?;
@@ -186,13 +187,17 @@ impl Particles {
         program.use_attribute_vec3_divisor("start_velocity", &self.start_velocity_buffer, 1)?;
         program.use_attribute_vec3("position", &self.position_buffer)?;
         if program.use_uvs {
-            let uv_buffer = self.uv_buffer.as_ref().ok_or(
-                Error::MeshError {message: "The particles shader program needs uv coordinates, but the mesh does not have any.".to_string()})?;
+            let uv_buffer = self
+                .uv_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
             program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
         }
         if program.use_normals {
-            let normal_buffer = self.normal_buffer.as_ref().ok_or(
-                Error::MeshError {message: "The particles shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
+            let normal_buffer = self
+                .normal_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
             program.use_uniform_mat4(
                 "normalMatrix",
                 &self.transformation.invert().unwrap().transpose(),

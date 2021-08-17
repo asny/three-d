@@ -18,7 +18,7 @@ impl DirectionalLight {
         intensity: f32,
         color: Color,
         direction: &Vec3,
-    ) -> Result<DirectionalLight, Error> {
+    ) -> Result<DirectionalLight> {
         let mut light = DirectionalLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
@@ -80,7 +80,7 @@ impl DirectionalLight {
         texture_width: u32,
         texture_height: u32,
         geometries: &[&dyn Geometry],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 

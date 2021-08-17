@@ -18,75 +18,48 @@ mod saver;
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
 
+pub(crate) use crate::Result;
+use thiserror::Error;
 ///
-/// Error message from the [core](crate::io) module.
+/// Error from the [io](crate::io) module.
 ///
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum IOError {
-    /// An image error.
+    /// An image parsing error.
     #[cfg(feature = "image-io")]
-    Image(image::ImageError),
+    #[error("error while parsing an image file")]
+    Image(#[from] image::ImageError),
     /// A .3d parsing error.
     #[cfg(feature = "3d-io")]
-    Bincode(bincode::Error),
+    #[error("error while parsing a .3d file")]
+    ThreeD(#[from] bincode::Error),
     /// A .obj parsing error.
     #[cfg(feature = "obj-io")]
-    Obj(wavefront_obj::ParseError),
+    #[error("error while parsing an .obj file")]
+    Obj(#[from] wavefront_obj::ParseError),
     /// A .gltf parsing error.
     #[cfg(feature = "gltf-io")]
-    Gltf(::gltf::Error),
-    /// An IO error.
+    #[error("error while parsing a .gltf file")]
+    Gltf(#[from] ::gltf::Error),
+    /// A .gltf parsing error.
+    #[cfg(feature = "gltf-io")]
+    #[error("the .gltf file contain corrupt buffer data")]
+    GltfCorruptData,
+    /// A .gltf parsing error.
+    #[cfg(feature = "gltf-io")]
+    #[error("the .gltf file contain missing buffer data")]
+    GltfMissingData,
+    /// An loading error.
     #[cfg(not(target_arch = "wasm32"))]
-    IO(std::io::Error),
-    /// A loading error.
-    FailedToLoad {
-        /// Error message.
-        message: String,
-    },
-    /// A saving error.
-    FailedToSave {
-        /// Error message.
-        message: String,
-    },
+    #[error("error while loading a file")]
+    Load(#[from] std::io::Error),
+    /// An error when the resource was not loaded.
+    #[error("tried to use {0} which was not loaded")]
+    NotLoaded(String),
 }
 
 #[cfg(feature = "image-io")]
-impl From<image::ImageError> for IOError {
-    fn from(other: image::ImageError) -> Self {
-        IOError::Image(other)
-    }
-}
-
-#[cfg(feature = "3d-io")]
-impl From<bincode::Error> for IOError {
-    fn from(other: bincode::Error) -> Self {
-        IOError::Bincode(other)
-    }
-}
-
-#[cfg(feature = "obj-io")]
-impl From<wavefront_obj::ParseError> for IOError {
-    fn from(other: wavefront_obj::ParseError) -> Self {
-        IOError::Obj(other)
-    }
-}
-
-#[cfg(feature = "gltf-io")]
-impl From<::gltf::Error> for IOError {
-    fn from(other: ::gltf::Error) -> Self {
-        IOError::Gltf(other)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<std::io::Error> for IOError {
-    fn from(other: std::io::Error) -> Self {
-        IOError::IO(other)
-    }
-}
-
-#[cfg(feature = "image-io")]
-pub(crate) fn image_from_bytes(bytes: &[u8]) -> Result<crate::core::CPUTexture<u8>, IOError> {
+pub(crate) fn image_from_bytes(bytes: &[u8]) -> Result<crate::core::CPUTexture<u8>> {
     use crate::core::*;
     use image::DynamicImage;
     use image::GenericImageView;

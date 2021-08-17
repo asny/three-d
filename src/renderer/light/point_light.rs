@@ -16,7 +16,7 @@ impl PointLight {
         attenuation_constant: f32,
         attenuation_linear: f32,
         attenuation_exponential: f32,
-    ) -> Result<PointLight, Error> {
+    ) -> Result<PointLight> {
         let mut light = PointLight {
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1])?,
         };

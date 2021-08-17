@@ -155,7 +155,7 @@ pub(in crate::core) mod internal {
     use crate::core::*;
 
     pub trait TextureDataTypeExtension: Clone {
-        fn internal_format(format: Format) -> Result<u32, crate::Error>;
+        fn internal_format(format: Format) -> Result<u32>;
         fn fill(
             context: &Context,
             target: u32,
@@ -169,7 +169,7 @@ pub(in crate::core) mod internal {
     }
 
     impl TextureDataTypeExtension for u8 {
-        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+        fn internal_format(format: Format) -> Result<u32> {
             Ok(match format {
                 Format::R => crate::context::consts::R8,
                 Format::RG => crate::context::consts::RG8,
@@ -216,7 +216,7 @@ pub(in crate::core) mod internal {
         }
     }
     impl TextureDataTypeExtension for f32 {
-        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+        fn internal_format(format: Format) -> Result<u32> {
             Ok(match format {
                 Format::R => crate::context::consts::R32F,
                 Format::RG => crate::context::consts::RG32F,
@@ -264,7 +264,7 @@ pub(in crate::core) mod internal {
     }
 
     impl TextureDataTypeExtension for u32 {
-        fn internal_format(format: Format) -> Result<u32, crate::Error> {
+        fn internal_format(format: Format) -> Result<u32> {
             Ok(match format {
                 Format::R => crate::context::consts::R32UI,
                 Format::RG => crate::context::consts::RG32UI,
@@ -321,7 +321,8 @@ pub(in crate::core) mod internal {
 }
 
 use crate::context::{consts, Context};
-use crate::core::Error;
+use crate::core::CoreError;
+use crate::Result;
 
 ///
 /// A texture that can be sampled in a fragment shader (see [use_texture](crate::core::Program::use_texture)).
@@ -370,10 +371,10 @@ pub trait TextureCube {
 }
 
 // COMMON TEXTURE FUNCTIONS
-fn generate(context: &Context) -> Result<crate::context::Texture, Error> {
-    context.create_texture().ok_or_else(|| Error::TextureError {
-        message: "Failed to create texture".to_string(),
-    })
+fn generate(context: &Context) -> Result<crate::context::Texture> {
+    Ok(context
+        .create_texture()
+        .ok_or_else(|| CoreError::TextureCreation)?)
 }
 
 fn bind_at(context: &Context, id: &crate::context::Texture, target: u32, location: u32) {
@@ -479,4 +480,23 @@ fn interpolation_from(interpolation: Interpolation) -> i32 {
         Interpolation::Nearest => consts::NEAREST,
         Interpolation::Linear => consts::LINEAR,
     }) as i32
+}
+
+fn check_data_length(
+    width: u32,
+    height: u32,
+    depth: u32,
+    format: Format,
+    length: usize,
+) -> Result<()> {
+    let expected_pixels = width as usize * height as usize * depth as usize;
+    let actual_pixels = length / format.color_channel_count() as usize;
+
+    if expected_pixels != actual_pixels {
+        Err(CoreError::InvalidTextureLength(
+            actual_pixels,
+            expected_pixels,
+        ))?;
+    }
+    Ok(())
 }

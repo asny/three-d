@@ -18,11 +18,7 @@ impl FirstPersonControl {
         }
     }
 
-    pub fn handle_events(
-        &mut self,
-        camera: &mut Camera,
-        events: &mut [Event],
-    ) -> Result<bool, Error> {
+    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> Result<bool> {
         self.control.handle_events(camera, events)
     }
 }

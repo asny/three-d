@@ -26,6 +26,21 @@ mod canvas;
 #[cfg(all(feature = "canvas", target_arch = "wasm32"))]
 pub use canvas::*;
 
+use thiserror::Error;
+///
+/// Error from the [window](crate::window) module.
+///
+#[derive(Error, Debug)]
+#[allow(missing_docs)]
+pub enum WindowError {
+    #[error("failed creating a new window")]
+    WindowCreation(#[from] glutin::CreationError),
+    #[error("failed creating a new context")]
+    ContextCreation(#[from] glutin::ContextError),
+    #[error("the number of MSAA samples must be a power of two")]
+    InvalidNumberOfMSAASamples,
+}
+
 /// Type of mouse button.
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]

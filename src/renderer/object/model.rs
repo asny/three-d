@@ -11,7 +11,7 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
         let mesh = Mesh::new(context, cpu_mesh)?;
         unsafe {
             MESH_COUNT += 1;
@@ -39,18 +39,18 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no colors.
     ///
-    pub fn render_color(&self, camera: &Camera) -> Result<(), Error> {
+    pub fn render_color(&self, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(&format!(
             "{}{}",
             include_str!("../../core/shared.frag"),
             include_str!("shaders/mesh_vertex_color.frag")
         ))?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             self.render_states(self.mesh.transparent),
             program,
             camera.uniform_buffer(),
             camera.viewport(),
-        )
+        )?)
     }
 
     ///
@@ -58,15 +58,15 @@ impl Model {
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     /// Will render the model transparent if the color contains an alpha value below 255, you only need to render the model after all solid models.
     ///
-    pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<(), Error> {
+    pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", &color.to_vec4())?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             self.render_states(color.a != 255u8),
             program,
             camera.uniform_buffer(),
             camera.viewport(),
-        )
+        )?)
     }
 
     ///
@@ -77,14 +77,14 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    pub fn render_uvs(&self, camera: &Camera) -> Result<(), Error> {
+    pub fn render_uvs(&self, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_uvs.frag"))?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             self.render_states(false),
             program,
             camera.uniform_buffer(),
             camera.viewport(),
-        )
+        )?)
     }
 
     ///
@@ -94,14 +94,14 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no normals.
     ///
-    pub fn render_normals(&self, camera: &Camera) -> Result<(), Error> {
+    pub fn render_normals(&self, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_normals.frag"))?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             self.render_states(false),
             program,
             camera.uniform_buffer(),
             camera.viewport(),
-        )
+        )?)
     }
 
     ///
@@ -112,19 +112,15 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    pub fn render_with_texture(
-        &self,
-        texture: &impl Texture,
-        camera: &Camera,
-    ) -> Result<(), Error> {
+    pub fn render_with_texture(&self, texture: &impl Texture, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture("tex", texture)?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             self.render_states(texture.is_transparent()),
             program,
             camera.uniform_buffer(),
             camera.viewport(),
-        )
+        )?)
     }
 
     pub(in crate::renderer) fn render_states(&self, transparent: bool) -> RenderStates {
@@ -146,7 +142,7 @@ impl Model {
     pub(in crate::renderer) fn get_or_insert_program(
         &self,
         fragment_shader_source: &str,
-    ) -> Result<&MeshProgram, Error> {
+    ) -> Result<&MeshProgram> {
         unsafe {
             if PROGRAMS.is_none() {
                 PROGRAMS = Some(std::collections::HashMap::new());
@@ -171,10 +167,10 @@ impl Model {
 }
 
 impl Geometry for Model {
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<(), Error> {
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
         program.use_uniform_float("maxDistance", &max_depth)?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             RenderStates {
                 write_mask: WriteMask {
                     red: true,
@@ -187,12 +183,12 @@ impl Geometry for Model {
             program,
             camera.uniform_buffer(),
             camera.viewport(),
-        )
+        )?)
     }
 
-    fn render_depth(&self, camera: &Camera) -> Result<(), Error> {
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program("void main() {}")?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             RenderStates {
                 write_mask: WriteMask::DEPTH,
                 cull: self.cull,
@@ -201,7 +197,7 @@ impl Geometry for Model {
             program,
             camera.uniform_buffer(),
             camera.viewport(),
-        )
+        )?)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -215,11 +211,11 @@ impl ShadedGeometry for Model {
         camera: &Camera,
         viewport: Viewport,
         material: &Material,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
         material.bind(program)?;
-        self.mesh.render(
+        Ok(self.mesh.render(
             RenderStates {
                 cull: self.cull,
                 ..Default::default()
@@ -227,7 +223,7 @@ impl ShadedGeometry for Model {
             program,
             camera.uniform_buffer(),
             viewport,
-        )
+        )?)
     }
 
     fn render_with_lighting(
@@ -239,7 +235,7 @@ impl ShadedGeometry for Model {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let fragment_shader_source = shaded_fragment_shader(
             lighting_model,
             Some(material),

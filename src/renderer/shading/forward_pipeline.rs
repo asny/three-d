@@ -14,7 +14,7 @@ impl ForwardPipeline {
     ///
     /// Constructor.
     ///
-    pub fn new(context: &Context) -> Result<Self, Error> {
+    pub fn new(context: &Context) -> Result<Self> {
         Ok(Self {
             _context: context.clone(),
             lighting_model: LightingModel::Blinn,
@@ -33,7 +33,7 @@ impl ForwardPipeline {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         for (geometry, material) in geometries {
             if camera.in_frustum(&geometry.aabb()) {
                 geometry.render_with_lighting(

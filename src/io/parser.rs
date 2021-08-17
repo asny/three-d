@@ -35,7 +35,7 @@ mod image_io {
         /// # Feature
         /// Only available when the `image-io` feature is enabled.
         ///
-        pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>, IOError> {
+        pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>> {
             image_from_bytes(&self.get_bytes(path)?)
         }
 
@@ -55,7 +55,7 @@ mod image_io {
             bottom_path: P,
             front_path: P,
             back_path: P,
-        ) -> Result<CPUTexture<u8>, IOError> {
+        ) -> Result<CPUTexture<u8>> {
             let mut right = self.image(right_path)?;
             let left = self.image(left_path)?;
             let top = self.image(top_path)?;
