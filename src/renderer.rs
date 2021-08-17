@@ -28,10 +28,7 @@ use thiserror::Error;
 ///
 #[derive(Debug, Error)]
 #[allow(missing_docs)]
-pub enum RendererError {
-    #[error("error in the core module")]
-    Core(#[from] crate::core::CoreError),
-}
+pub enum RendererError {}
 
 impl crate::core::Camera {
     ///

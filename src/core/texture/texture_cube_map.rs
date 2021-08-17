@@ -1,6 +1,5 @@
 use crate::context::{consts, Context};
 use crate::core::texture::*;
-use crate::core::*;
 
 ///
 /// A texture that covers all 6 sides of a cube.

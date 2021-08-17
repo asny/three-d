@@ -361,7 +361,7 @@ fn main() {
                                 )?;
                             }
                         }
-                        gui.render().unwrap();
+                        gui.render()?;
                         Ok(())
                     })
                     .unwrap();
