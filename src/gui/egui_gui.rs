@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::window::*;
+use crate::Result;
 #[doc(hidden)]
 pub use egui;
 
@@ -20,7 +21,7 @@ impl GUI {
     ///
     /// Creates a new GUI.
     ///
-    pub fn new(context: &Context) -> Result<Self, Error> {
+    pub fn new(context: &Context) -> Result<Self> {
         Ok(GUI {
             egui_context: egui::CtxRef::default(),
             context: context.clone(),
@@ -53,7 +54,7 @@ impl GUI {
         &mut self,
         frame_input: &mut FrameInput,
         callback: F,
-    ) -> Result<bool, Error> {
+    ) -> Result<bool> {
         self.width = frame_input.window_width;
         self.height = frame_input.window_height;
         let input_state = construct_input_state(frame_input);
@@ -113,7 +114,7 @@ impl GUI {
     /// Render the GUI defined in the [update](Self::update) function. Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render(&mut self) -> Result<(), Error> {
+    pub fn render(&mut self) -> Result<()> {
         let (_, shapes) = self.egui_context.end_frame();
         let clipped_meshes = self.egui_context.tessellate(shapes);
 
@@ -178,7 +179,7 @@ impl GUI {
         height: u32,
         mesh: &egui::paint::Mesh,
         texture: &Texture2D,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         debug_assert!(mesh.is_valid());
 
         let mut positions = Vec::new();

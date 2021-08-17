@@ -40,7 +40,7 @@ impl DeferredPipeline {
     ///
     /// Constructor.
     ///
-    pub fn new(context: &Context) -> Result<Self, Error> {
+    pub fn new(context: &Context) -> Result<Self> {
         let renderer = Self {
             context: context.clone(),
             program_map: HashMap::new(),
@@ -81,7 +81,7 @@ impl DeferredPipeline {
         &mut self,
         camera: &Camera,
         geometries: &[(&dyn ShadedGeometry, &Material)],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
@@ -133,7 +133,7 @@ impl DeferredPipeline {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             ..Default::default()

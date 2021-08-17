@@ -13,7 +13,7 @@ impl Skybox {
     pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &mut CPUTexture<T>,
-    ) -> Result<Skybox, Error> {
+    ) -> Result<Skybox> {
         cpu_texture.wrap_t = Wrapping::ClampToEdge;
         cpu_texture.wrap_s = Wrapping::ClampToEdge;
         cpu_texture.wrap_r = Wrapping::ClampToEdge;
@@ -22,7 +22,7 @@ impl Skybox {
         Self::new_with_texture(context, texture)
     }
 
-    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> Result<Skybox, Error> {
+    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> Result<Skybox> {
         let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
@@ -47,7 +47,7 @@ impl Skybox {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render(&self, camera: &Camera) -> Result<(), Error> {
+    pub fn render(&self, camera: &Camera) -> Result<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             cull: Cull::Front,

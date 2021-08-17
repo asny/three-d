@@ -30,7 +30,7 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new(settings: WindowSettings) -> Result<Window, WindowError> {
+    pub fn new(settings: WindowSettings) -> Result<Window> {
         let websys_window = web_sys::window().ok_or(WindowError::WindowCreationError {
             message: "Unable to create web window".to_string(),
         })?;
@@ -70,7 +70,7 @@ impl Window {
     /// Get the canvas which is rendered to when using [Screen](crate::Screen).
     /// If there is no canvas specified using the set_canvas function and no default canvas is found, this will return an error.
     ///
-    pub fn canvas(&self) -> Result<&web_sys::HtmlCanvasElement, WindowError> {
+    pub fn canvas(&self) -> Result<&web_sys::HtmlCanvasElement> {
         self.canvas.as_ref().ok_or(WindowError::CanvasError {
             message: "Could not find a canvas.".to_string(),
         })
@@ -79,25 +79,25 @@ impl Window {
     ///
     /// Specifies the canvas to write to when using [Screen](crate::Screen). Will overwrite the default canvas if any has been found.
     ///
-    pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> Result<(), WindowError> {
+    pub fn set_canvas(&mut self, canvas: web_sys::HtmlCanvasElement) -> Result<()> {
         self.canvas = Some(canvas);
         self.set_canvas_size()?;
         Ok(())
     }
 
-    pub fn size(&self) -> Result<(u32, u32), WindowError> {
+    pub fn size(&self) -> Result<(u32, u32)> {
         let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
             message: "Could not find a canvas.".to_string(),
         })?;
         Ok((canvas.width(), canvas.height()))
     }
 
-    pub fn viewport(&self) -> Result<Viewport, WindowError> {
+    pub fn viewport(&self) -> Result<Viewport> {
         let (w, h) = self.size()?;
         Ok(Viewport::new_at_origo(w, h))
     }
 
-    pub fn gl(&self) -> Result<Context, WindowError> {
+    pub fn gl(&self) -> Result<Context> {
         let context_options = ContextOptions {
             antialias: self.settings.multisamples > 0,
         };
@@ -111,7 +111,7 @@ impl Window {
         Ok(Context::new(context))
     }
 
-    pub fn render_loop<F: 'static>(mut self, mut callback: F) -> Result<(), WindowError>
+    pub fn render_loop<F: 'static>(mut self, mut callback: F) -> Result<()>
     where
         F: FnMut(FrameInput) -> FrameOutput,
     {
@@ -188,7 +188,7 @@ impl Window {
         }
     }
 
-    fn set_canvas_size(&self) -> Result<(), WindowError> {
+    fn set_canvas_size(&self) -> Result<()> {
         let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
             message: "Could not find a canvas.".to_string(),
         })?;
@@ -238,7 +238,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_context_menu_event_listener(&mut self) -> Result<(), WindowError> {
+    fn add_context_menu_event_listener(&mut self) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
             event.prevent_default();
             event.stop_propagation();
@@ -249,7 +249,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_resize_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
+    fn add_resize_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move || {
             input.borrow_mut().request_animation_frame();
         }) as Box<dyn FnMut()>);
@@ -265,7 +265,7 @@ impl Window {
     fn add_mouseleave_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -292,7 +292,7 @@ impl Window {
     fn add_mouseenter_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -318,7 +318,7 @@ impl Window {
     fn add_mousedown_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -356,7 +356,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_mouseup_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
+    fn add_mouseup_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -394,7 +394,7 @@ impl Window {
     fn add_mousemove_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -434,7 +434,7 @@ impl Window {
     fn add_mousewheel_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -462,7 +462,7 @@ impl Window {
     fn add_touchstart_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -512,7 +512,7 @@ impl Window {
     fn add_touchend_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -549,7 +549,7 @@ impl Window {
     fn add_touchmove_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -614,7 +614,7 @@ impl Window {
     fn add_key_down_event_listener(
         &mut self,
         input: Rc<RefCell<Input>>,
-    ) -> Result<(), WindowError> {
+    ) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -656,7 +656,7 @@ impl Window {
         Ok(())
     }
 
-    fn add_key_up_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<(), WindowError> {
+    fn add_key_up_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();

@@ -10,7 +10,7 @@ impl Saver {
     ///
     /// Save the byte array as a file.
     ///
-    pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> Result<(), IOError> {
+    pub fn save_file<P: AsRef<Path>>(path: P, bytes: &[u8]) -> Result<()> {
         let mut file = std::fs::File::create(path)?;
         use std::io::prelude::*;
         file.write_all(bytes)?;
@@ -31,7 +31,7 @@ impl Saver {
         pixels: &[u8],
         width: u32,
         height: u32,
-    ) -> Result<(), IOError> {
+    ) -> Result<()> {
         let mut pixels_out = vec![0u8; width as usize * height as usize * 4];
         for row in 0..height as usize {
             for col in 0..width as usize {

@@ -45,7 +45,7 @@ impl Material {
     ///
     /// Constructor.
     ///
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self, Error> {
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
@@ -67,7 +67,7 @@ impl Material {
         })
     }
 
-    pub(crate) fn bind(&self, program: &Program) -> Result<(), Error> {
+    pub(crate) fn bind(&self, program: &Program) -> Result<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo)?;

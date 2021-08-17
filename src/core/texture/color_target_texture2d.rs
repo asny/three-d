@@ -34,7 +34,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: Format,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
         set_parameters(
@@ -78,11 +78,11 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     /// Use a [RenderTarget] to write to both color and depth.
     ///
-    pub fn write<F: FnOnce() -> Result<(), Error>>(
+    pub fn write<F: FnOnce() -> Result<()>>(
         &self,
         clear_state: ClearState,
         render: F,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         RenderTarget::<T>::new_color(&self.context, &self)?.write(clear_state, render)
     }
 
@@ -98,7 +98,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         RenderTarget::new_color(&self.context, &self)?.copy_to(destination, viewport, write_mask)
     }
 
@@ -110,11 +110,9 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     /// # Errors
     /// Will return an error if the color texture is not RGBA format.
     ///
-    pub fn read(&self, viewport: Viewport) -> Result<Vec<T>, Error> {
+    pub fn read(&self, viewport: Viewport) -> Result<Vec<T>> {
         if self.format != Format::RGBA {
-            Err(Error::TextureError {
-                message: "Cannot read color from anything else but an RGBA texture.".to_owned(),
-            })?;
+            Err(CoreError::ReadWrongFormat)?;
         }
 
         let mut pixels = vec![

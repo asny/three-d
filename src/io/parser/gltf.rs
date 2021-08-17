@@ -11,10 +11,7 @@ impl Loaded {
     /// # Feature
     /// Only available when the `gltf-io` feature is enabled.
     ///
-    pub fn gltf(
-        &mut self,
-        path: impl AsRef<Path>,
-    ) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>), IOError> {
+    pub fn gltf(&mut self, path: impl AsRef<Path>) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
         let mut cpu_meshes = Vec::new();
         let mut cpu_materials = Vec::new();
 
@@ -27,7 +24,7 @@ impl Loaded {
                 ::gltf::buffer::Source::Bin => blob.take().ok_or(IOError::GltfMissingData)?,
             };
             if data.len() < buffer.length() {
-                return Err(IOError::GltfCorruptData);
+                Err(IOError::GltfCorruptData)?;
             }
             while data.len() % 4 != 0 {
                 data.push(0);
@@ -58,7 +55,7 @@ fn parse_tree<'a>(
     buffers: &[::gltf::buffer::Data],
     cpu_meshes: &mut Vec<CPUMesh>,
     cpu_materials: &mut Vec<CPUMaterial>,
-) -> Result<(), IOError> {
+) -> Result<()> {
     if let Some(mesh) = node.mesh() {
         let name: String = mesh
             .name()
@@ -190,7 +187,7 @@ fn parse_texture<'a>(
     path: &Path,
     buffers: &[::gltf::buffer::Data],
     info: ::gltf::texture::Info,
-) -> Result<CPUTexture<u8>, IOError> {
+) -> Result<CPUTexture<u8>> {
     let gltf_texture = info.texture();
     let gltf_image = gltf_texture.source();
     let gltf_source = gltf_image.source();

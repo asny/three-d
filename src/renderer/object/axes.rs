@@ -15,7 +15,7 @@ impl Axes {
     ///
     /// Creates a new axes object consisting of three arrows with the given radius and length.
     ///
-    pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self, Error> {
+    pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self> {
         let x = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
         let mut y = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
         let mut z = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
@@ -30,7 +30,7 @@ impl Axes {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the axes.
     ///
-    pub fn render(&self, camera: &Camera) -> Result<(), Error> {
+    pub fn render(&self, camera: &Camera) -> Result<()> {
         self.x.render_with_color(&Color::RED, camera)?;
         self.y.render_with_color(&Color::GREEN, camera)?;
         self.z.render_with_color(&Color::BLUE, camera)?;

@@ -20,7 +20,7 @@ pub struct Imposters {
 }
 
 impl Imposters {
-    pub fn new(context: &Context) -> Result<Self, Error> {
+    pub fn new(context: &Context) -> Result<Self> {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0];
         let positions_buffer = VertexBuffer::new(&context)?;
         let uvs_buffer = VertexBuffer::new_with_static(&context, &uvs)?;
@@ -62,12 +62,12 @@ impl Imposters {
         })
     }
 
-    pub fn update_texture<F: Fn(&Camera) -> Result<(), Error>>(
+    pub fn update_texture(
         &mut self,
-        render: F,
+        render: impl Fn(&Camera) -> Result<()>,
         aabb: (Vec3, Vec3),
         max_texture_size: u32,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
@@ -148,7 +148,7 @@ impl Imposters {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    pub fn render(&self, camera: &Camera) -> Result<(), Error> {
+    pub fn render(&self, camera: &Camera) -> Result<()> {
         let render_states = RenderStates {
             blend: Blend::TRANSPARENCY,
             cull: Cull::Back,

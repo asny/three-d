@@ -19,12 +19,8 @@ pub trait ShadedGeometry: Geometry {
     /// Render the geometry and surface material parameters of the object.
     /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
-    fn geometry_pass(
-        &self,
-        camera: &Camera,
-        viewport: Viewport,
-        material: &Material,
-    ) -> Result<(), Error>;
+    fn geometry_pass(&self, camera: &Camera, viewport: Viewport, material: &Material)
+        -> Result<()>;
 
     ///
     /// Render the object shaded with the given lights using physically based rendering (PBR).
@@ -41,7 +37,7 @@ pub trait ShadedGeometry: Geometry {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<(), Error>;
+    ) -> Result<()>;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -188,7 +184,7 @@ pub(in crate::renderer) fn bind_lights(
     spot_lights: &[&SpotLight],
     point_lights: &[&PointLight],
     camera_position: &Vec3,
-) -> Result<(), Error> {
+) -> Result<()> {
     // Ambient light
     program.use_uniform_vec3(
         "ambientColor",

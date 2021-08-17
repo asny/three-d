@@ -1,5 +1,5 @@
 use crate::context::{consts, Context};
-use crate::core::Error;
+use crate::core::*;
 
 ///
 /// A buffer for transferring a set of uniform variables to the shader program
@@ -13,7 +13,7 @@ pub struct UniformBuffer {
 }
 
 impl UniformBuffer {
-    pub fn new(context: &Context, sizes: &[u32]) -> Result<UniformBuffer, Error> {
+    pub fn new(context: &Context, sizes: &[u32]) -> Result<UniformBuffer> {
         let id = context.create_buffer().unwrap();
 
         let mut offsets = Vec::new();
@@ -35,17 +35,14 @@ impl UniformBuffer {
             .bind_buffer_base(consts::UNIFORM_BUFFER, id, &self.id);
     }
 
-    pub fn update(&mut self, index: u32, data: &[f32]) -> Result<(), Error> {
+    pub fn update(&mut self, index: u32, data: &[f32]) -> Result<()> {
         let (offset, length) = self.offset_length(index as usize)?;
         if data.len() != length {
-            return Err(Error::BufferError {
-                message: format!(
-                    "The uniform buffer data for index {} has length {} but it must be {}.",
-                    index,
-                    data.len(),
-                    length
-                ),
-            });
+            Err(CoreError::InvalidUniformBufferElementLength(
+                index,
+                data.len(),
+                length,
+            ))?;
         }
         self.data
             .splice(offset..offset + length, data.iter().cloned());
@@ -54,20 +51,14 @@ impl UniformBuffer {
         Ok(())
     }
 
-    pub fn get(&self, index: u32) -> Result<&[f32], Error> {
+    pub fn get(&self, index: u32) -> Result<&[f32]> {
         let (offset, length) = self.offset_length(index as usize)?;
         Ok(&self.data[offset..offset + length])
     }
 
-    fn offset_length(&self, index: usize) -> Result<(usize, usize), Error> {
+    fn offset_length(&self, index: usize) -> Result<(usize, usize)> {
         if index >= self.offsets.len() {
-            return Err(Error::BufferError {
-                message: format!(
-                    "The uniform buffer index {} is outside the range 0-{}",
-                    index,
-                    self.offsets.len() - 1
-                ),
-            });
+            Err(CoreError::IndexOutOfRange(index, self.offsets.len() - 1))?;
         }
         let offset = self.offsets[index];
         let length = if index + 1 == self.offsets.len() {

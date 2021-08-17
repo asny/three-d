@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 ///
 #[derive(Default, Debug)]
 pub struct Loaded {
-    loaded: HashMap<PathBuf, Result<Vec<u8>, std::io::Error>>,
+    loaded: HashMap<PathBuf, std::result::Result<Vec<u8>, std::io::Error>>,
 }
 
 impl Loaded {
@@ -25,7 +25,7 @@ impl Loaded {
     /// Remove and returns the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn remove_bytes<P: AsRef<Path>>(&mut self, path: P) -> Result<Vec<u8>, IOError> {
+    pub fn remove_bytes<P: AsRef<Path>>(&mut self, path: P) -> Result<Vec<u8>> {
         let bytes = self
             .loaded
             .remove_entry(path.as_ref())
@@ -40,7 +40,7 @@ impl Loaded {
     /// Returns a reference to the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn get_bytes<P: AsRef<Path>>(&mut self, path: P) -> Result<&[u8], IOError> {
+    pub fn get_bytes<P: AsRef<Path>>(&mut self, path: P) -> Result<&[u8]> {
         let bytes = self
             .loaded
             .get(path.as_ref())

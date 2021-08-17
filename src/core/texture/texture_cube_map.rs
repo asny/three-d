@@ -18,7 +18,7 @@ impl TextureCubeMap {
     pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &CPUTexture<T>,
-    ) -> Result<TextureCubeMap, Error> {
+    ) -> Result<TextureCubeMap> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -62,7 +62,7 @@ impl TextureCubeMap {
     }
 
     // data contains 6 images in the following order; right, left, top, bottom, front, back
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<(), Error> {
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<()> {
         let offset = data.len() / 6;
         check_data_length(self.width, self.height, 1, self.format, offset)?;
         self.context

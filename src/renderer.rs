@@ -6,7 +6,7 @@
 pub use crate::context::Context;
 pub use crate::core::{
     material::*, math::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera, Color,
-    Error, Viewport,
+    Viewport,
 };
 
 pub mod shading;
@@ -21,6 +21,18 @@ pub use light::*;
 pub mod object;
 pub use object::*;
 
+pub(crate) use crate::Result;
+use thiserror::Error;
+///
+/// Error in the [renderer](crate::renderer) module.
+///
+#[derive(Debug, Error)]
+#[allow(missing_docs)]
+pub enum RendererError {
+    #[error("error in the core module")]
+    Core(#[from] crate::core::CoreError),
+}
+
 impl crate::core::Camera {
     ///
     /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
@@ -33,7 +45,7 @@ impl crate::core::Camera {
         pixel: (f32, f32),
         max_depth: f32,
         objects: &[&dyn Geometry],
-    ) -> Result<Option<Vec3>, Error> {
+    ) -> Result<Option<Vec3>> {
         let pos = self.position_at_pixel(pixel);
         let dir = self.view_direction_at_pixel(pixel);
         ray_intersect(&self.context, pos, dir, max_depth, objects)
@@ -46,7 +58,7 @@ pub fn ray_intersect(
     direction: Vec3,
     max_depth: f32,
     geometries: &[&dyn Geometry],
-) -> Result<Option<Vec3>, Error> {
+) -> Result<Option<Vec3>> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {

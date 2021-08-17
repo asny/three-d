@@ -7,31 +7,6 @@ use glutin::ContextBuilder;
 use glutin::*;
 
 ///
-/// Error message from the [window](crate::window) module.
-///
-#[derive(Debug)]
-pub enum WindowError {
-    /// See glutin [CreationError](glutin::CreationError).
-    WindowCreationError(glutin::CreationError),
-    /// See glutin [ContextError](glutin::ContextError).
-    ContextError(glutin::ContextError),
-    /// The number of samples must be a power of two.
-    InvalidNumberOfSamples,
-}
-
-impl From<glutin::CreationError> for WindowError {
-    fn from(other: glutin::CreationError) -> Self {
-        WindowError::WindowCreationError(other)
-    }
-}
-
-impl From<glutin::ContextError> for WindowError {
-    fn from(other: glutin::ContextError) -> Self {
-        WindowError::ContextError(other)
-    }
-}
-
-///
 /// Default window and event handler for easy setup.
 ///
 pub struct Window {
@@ -44,7 +19,7 @@ impl Window {
     ///
     /// Constructs a new window with the given settings.
     ///
-    pub fn new(mut settings: WindowSettings) -> Result<Window, WindowError> {
+    pub fn new(mut settings: WindowSettings) -> Result<Window> {
         let event_loop = EventLoop::new();
         let mut wc = Self::new_windowed_context(&settings, &event_loop);
         if wc.is_err() {
@@ -66,9 +41,9 @@ impl Window {
     fn new_windowed_context(
         settings: &WindowSettings,
         event_loop: &EventLoop<()>,
-    ) -> Result<WindowedContext<NotCurrent>, WindowError> {
+    ) -> Result<WindowedContext<NotCurrent>> {
         if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
-            return Err(WindowError::InvalidNumberOfSamples);
+            Err(WindowError::InvalidNumberOfMSAASamples)?;
         }
         let window_builder = if let Some((width, height)) = settings.max_size {
             WindowBuilder::new()
@@ -98,7 +73,7 @@ impl Window {
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<(), WindowError>
+    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<()>
     where
         F: FnMut(FrameInput) -> FrameOutput,
     {
@@ -319,7 +294,7 @@ impl Window {
     ///
     /// Return the current logical size of the window.
     ///
-    pub fn size(&self) -> Result<(u32, u32), WindowError> {
+    pub fn size(&self) -> Result<(u32, u32)> {
         Ok(self
             .windowed_context
             .window()
@@ -331,7 +306,7 @@ impl Window {
     ///
     /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
     ///
-    pub fn viewport(&self) -> Result<Viewport, WindowError> {
+    pub fn viewport(&self) -> Result<Viewport> {
         let (w, h): (u32, u32) = self.windowed_context.window().inner_size().into();
         Ok(Viewport::new_at_origo(w, h))
     }
@@ -339,7 +314,7 @@ impl Window {
     ///
     /// Returns the graphics context for this window.
     ///
-    pub fn gl(&self) -> Result<crate::Context, WindowError> {
+    pub fn gl(&self) -> Result<crate::Context> {
         Ok(self.gl.clone())
     }
 }

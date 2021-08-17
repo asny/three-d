@@ -91,11 +91,11 @@ impl Screen {
     /// in the `render` closure to render something to the screen.
     /// Before writing, the screen is cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> Result<(), Error>>(
+    pub fn write<F: FnOnce() -> Result<()>>(
         context: &Context,
         clear_state: ClearState,
         render: F,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
         clear(context, &clear_state);
         render()?;
@@ -105,7 +105,7 @@ impl Screen {
     ///
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
-    pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>, Error> {
+    pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(
@@ -125,7 +125,7 @@ impl Screen {
     /// Only available on desktop.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth(context: &Context, viewport: Viewport) -> Result<Vec<f32>, Error> {
+    pub fn read_depth(context: &Context, viewport: Viewport) -> Result<Vec<f32>> {
         let mut pixels = vec![0f32; viewport.width as usize * viewport.height as usize];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_f32_data(
@@ -176,7 +176,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         context: &Context,
         color_texture: &'a ColorTargetTexture2D<T>,
         depth_texture: &'b DepthTargetTexture2D,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -189,11 +189,11 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Renders whatever rendered in the `render` closure into the textures defined at construction.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> Result<(), Error>>(
+    pub fn write<F: FnOnce() -> Result<()>>(
         &self,
         clear_state: ClearState,
         render: F,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         self.bind(consts::DRAW_FRAMEBUFFER)?;
         clear(
             &self.context,
@@ -221,7 +221,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let copy = || {
             let effect = get_copy_effect(&self.context)?;
             if let Some(tex) = self.color_texture {
@@ -249,17 +249,19 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
             }
             CopyDestination::ColorTexture(tex) => {
                 if self.color_texture.is_none() {
-                    Err(Error::RenderTargetError {
-                        message: "Cannot copy color from a depth texture.".to_owned(),
-                    })?;
+                    Err(CoreError::RenderTargetCopy(
+                        "color".to_string(),
+                        "depth".to_string(),
+                    ))?;
                 }
                 tex.write(ClearState::none(), copy)?;
             }
             CopyDestination::DepthTexture(tex) => {
                 if self.depth_texture.is_none() {
-                    Err(Error::RenderTargetError {
-                        message: "Cannot copy depth from a color texture.".to_owned(),
-                    })?;
+                    Err(CoreError::RenderTargetCopy(
+                        "depth".to_string(),
+                        "color".to_string(),
+                    ))?;
                 }
                 tex.write(None, copy)?;
             }
@@ -270,7 +272,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     pub(super) fn new_color(
         context: &Context,
         color_texture: &'a ColorTargetTexture2D<T>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -282,7 +284,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     pub(super) fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2D,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -291,7 +293,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         })
     }
 
-    pub(super) fn bind(&self, target: u32) -> Result<(), Error> {
+    pub(super) fn bind(&self, target: u32) -> Result<()> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
@@ -333,7 +335,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         context: &Context,
         color_texture: &'a ColorTargetTexture2DArray<T>,
         depth_texture: &'b DepthTargetTexture2DArray,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -345,7 +347,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     pub(super) fn new_color(
         context: &Context,
         color_texture: &'a ColorTargetTexture2DArray<T>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -357,7 +359,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     pub(super) fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2DArray,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -373,13 +375,13 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     /// The depth is written to the depth texture defined by `depth_layer`.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> Result<(), Error>>(
+    pub fn write(
         &self,
         color_layers: &[u32],
         depth_layer: u32,
         clear_state: ClearState,
-        render: F,
-    ) -> Result<(), Error> {
+        render: impl FnOnce() -> Result<()>,
+    ) -> Result<()> {
         self.bind(Some(color_layers), Some(depth_layer))?;
         clear(
             &self.context,
@@ -409,7 +411,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let copy = || {
             let effect = get_copy_array_effect(&self.context)?;
             if let Some(tex) = self.color_texture {
@@ -439,17 +441,19 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
             }
             CopyDestination::ColorTexture(tex) => {
                 if self.color_texture.is_none() {
-                    Err(Error::RenderTargetError {
-                        message: "Cannot copy color from a depth texture.".to_owned(),
-                    })?;
+                    Err(CoreError::RenderTargetCopy(
+                        "color".to_string(),
+                        "depth".to_string(),
+                    ))?;
                 }
                 tex.write(ClearState::none(), copy)?;
             }
             CopyDestination::DepthTexture(tex) => {
                 if self.depth_texture.is_none() {
-                    Err(Error::RenderTargetError {
-                        message: "Cannot copy depth from a color texture.".to_owned(),
-                    })?;
+                    Err(CoreError::RenderTargetCopy(
+                        "depth".to_string(),
+                        "color".to_string(),
+                    ))?;
                 }
                 tex.write(None, copy)?;
             }
@@ -457,7 +461,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         Ok(())
     }
 
-    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> Result<(), Error> {
+    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> Result<()> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
@@ -489,21 +493,17 @@ impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     }
 }
 
-fn new_framebuffer(context: &Context) -> Result<crate::context::Framebuffer, Error> {
+fn new_framebuffer(context: &Context) -> Result<crate::context::Framebuffer> {
     Ok(context
         .create_framebuffer()
-        .ok_or_else(|| Error::RenderTargetError {
-            message: "Failed to create framebuffer".to_string(),
-        })?)
+        .ok_or(CoreError::RenderTargetCreation)?)
 }
 
 #[cfg(feature = "debug")]
-fn check(context: &Context) -> Result<(), Error> {
-    context.check_framebuffer_status().or_else(|status| {
-        Err(Error::RenderTargetError {
-            message: format!("Failed to create frame buffer: {}", status),
-        })
-    })
+fn check(context: &Context) -> Result<()> {
+    context
+        .check_framebuffer_status()
+        .or_else(|status| Err(CoreError::RenderTargetCreation))
 }
 
 fn clear(context: &Context, clear_state: &ClearState) {
@@ -543,7 +543,7 @@ fn clear(context: &Context, clear_state: &ClearState) {
     });
 }
 
-fn get_copy_effect(context: &Context) -> Result<&ImageEffect, Error> {
+fn get_copy_effect(context: &Context) -> Result<&ImageEffect> {
     unsafe {
         static mut COPY_EFFECT: Option<ImageEffect> = None;
         if COPY_EFFECT.is_none() {
@@ -565,7 +565,7 @@ fn get_copy_effect(context: &Context) -> Result<&ImageEffect, Error> {
     }
 }
 
-fn get_copy_array_effect(context: &Context) -> Result<&ImageEffect, Error> {
+fn get_copy_array_effect(context: &Context) -> Result<&ImageEffect> {
     unsafe {
         static mut COPY_EFFECT: Option<ImageEffect> = None;
         if COPY_EFFECT.is_none() {

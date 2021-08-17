@@ -17,7 +17,7 @@ impl MeshProgram {
     /// Constructs a new shader program for rendering meshes. The fragment shader can use the fragments position in world space by adding `in vec3 pos;`,
     /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
     ///
-    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
+    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
         Self::new_internal(context, fragment_shader_source, false)
     }
 
@@ -25,7 +25,7 @@ impl MeshProgram {
         context: &Context,
         fragment_shader_source: &str,
         instanced: bool,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
@@ -89,79 +89,12 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    fn validate(cpu_mesh: &CPUMesh) -> Result<(), Error> {
-        if let Some(ref indices) = cpu_mesh.indices {
-            let index_count = match indices {
-                Indices::U8(ind) => ind.len(),
-                Indices::U16(ind) => ind.len(),
-                Indices::U32(ind) => ind.len(),
-            };
-            if index_count % 3 != 0 {
-                return Err(Error::MeshError {
-                    message: format!(
-                        "element count in indices of mesh `{}` \
-                            must be divisible by 3, actual count is {}",
-                        cpu_mesh.name, index_count
-                    ),
-                });
-            }
-            if cpu_mesh.positions.len() % 3 != 0 {
-                return Err(Error::MeshError {
-                    message: format!(
-                        "when indices specified, element count in positions of mesh `{}` \
-                            must be divisible by 3, actual count is {}",
-                        cpu_mesh.name,
-                        cpu_mesh.positions.len()
-                    ),
-                });
-            }
-            if cfg!(debug) {
-                let indices_valid = match indices {
-                    Indices::U8(ind) => {
-                        let len = cpu_mesh.positions.len();
-                        ind.iter().all(|&i| (i as usize) < len)
-                    }
-                    Indices::U16(ind) => {
-                        let len = cpu_mesh.positions.len();
-                        ind.iter().all(|&i| (i as usize) < len)
-                    }
-                    Indices::U32(ind) => {
-                        let len = cpu_mesh.positions.len();
-                        ind.iter().all(|&i| (i as usize) < len)
-                    }
-                };
-                if !indices_valid {
-                    return Err(Error::MeshError {
-                        message: format!(
-                            "some indices of mesh `{}` \
-                                are outside of valid number of positions, which is {}",
-                            cpu_mesh.name,
-                            cpu_mesh.positions.len()
-                        ),
-                    });
-                }
-            }
-        } else {
-            if cpu_mesh.positions.len() % 9 != 0 {
-                return Err(Error::MeshError {
-                    message: format!(
-                        "when indices unspecified, element count in positions of mesh `{}` \
-                            must be divisible by 9, actual count is {}",
-                        cpu_mesh.name,
-                        cpu_mesh.positions.len()
-                    ),
-                });
-            }
-        };
-        Ok(())
-    }
-
     ///
     /// Copies the per vertex data defined in the given [CPUMesh](crate::CPUMesh) to the GPU, thereby
     /// making it possible to render the mesh.
     ///
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self, Error> {
-        Self::validate(cpu_mesh)?;
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
+        cpu_mesh.validate()?;
 
         let position_buffer = Rc::new(VertexBuffer::new_with_static(context, &cpu_mesh.positions)?);
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
@@ -234,28 +167,31 @@ impl Mesh {
         program: &MeshProgram,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block("Camera", camera_buffer);
 
         program.use_attribute_vec3("position", &self.position_buffer)?;
         if program.use_uvs {
-            let uv_buffer = self.uv_buffer.as_ref().ok_or(Error::MeshError {
-                message:
-                    "The mesh shader program needs uv coordinates, but the mesh does not have any."
-                        .to_string(),
-            })?;
+            let uv_buffer = self
+                .uv_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
             program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
         }
         if program.use_normals {
-            let normal_buffer = self.normal_buffer.as_ref().ok_or(
-                Error::MeshError {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
+            let normal_buffer = self
+                .normal_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
             program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.use_colors {
-            let color_buffer = self.color_buffer.as_ref().ok_or(
-                Error::MeshError {message: "The mesh shader program needs per vertex colors, but the mesh does not have any.".to_string()})?;
+            let color_buffer = self
+                .color_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
             program.use_attribute_vec4("color", color_buffer)?;
         }
 

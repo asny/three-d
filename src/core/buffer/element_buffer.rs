@@ -1,5 +1,5 @@
 use crate::context::{consts, Context, DataType};
-use crate::core::{ElementBufferDataType, Error};
+use crate::core::*;
 
 ///
 /// A buffer containing indices for rendering, see for example [draw_elements](crate::core::Program::draw_elements).
@@ -16,10 +16,7 @@ impl ElementBuffer {
     ///
     /// Creates a new element buffer and fills it with the given indices.
     ///
-    pub fn new<T: ElementBufferDataType>(
-        context: &Context,
-        data: &[T],
-    ) -> Result<ElementBuffer, Error> {
+    pub fn new<T: ElementBufferDataType>(context: &Context, data: &[T]) -> Result<ElementBuffer> {
         let id = context.create_buffer().unwrap();
         let mut buffer = ElementBuffer {
             context: context.clone(),

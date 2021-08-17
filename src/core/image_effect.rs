@@ -11,7 +11,7 @@ pub struct ImageEffect {
 }
 
 impl ImageEffect {
-    pub fn new(context: &Context, fragment_shader: &str) -> Result<Self, Error> {
+    pub fn new(context: &Context, fragment_shader: &str) -> Result<Self> {
         let program = Program::from_source(
             &context,
             "in vec3 position;
@@ -37,7 +37,7 @@ impl ImageEffect {
         })
     }
 
-    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> Result<(), Error> {
+    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> Result<()> {
         self.program
             .use_attribute_vec3("position", &self.positions)?;
         self.program

@@ -23,7 +23,7 @@ impl Texture2D {
     pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &CPUTexture<T>,
-    ) -> Result<Texture2D, Error> {
+    ) -> Result<Texture2D> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -72,7 +72,7 @@ impl Texture2D {
     /// # Errors
     /// Return an error if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<(), Error> {
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<()> {
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
         self.transparent = if self.format == Format::RGBA {
             let mut transparent = false;

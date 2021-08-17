@@ -32,14 +32,14 @@ pub trait Geometry {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    fn render_depth(&self, camera: &Camera) -> Result<(), Error>;
+    fn render_depth(&self, camera: &Camera) -> Result<()>;
 
     ///
     /// Render the depth (scaled such that a value of 1 corresponds to max_depth) into the red channel of the current color render target which for example is used for picking.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<(), Error>;
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 
     fn aabb(&self) -> AxisAlignedBoundingBox;
 }

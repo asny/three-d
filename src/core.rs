@@ -50,73 +50,48 @@ mod viewport;
 #[doc(inline)]
 pub use viewport::*;
 
+pub(crate) use crate::Result;
+use thiserror::Error;
 ///
-/// Error in some part of the render engine.
+/// Error in the [core](crate::core) module.
 ///
-#[derive(Debug)]
-pub enum Error {
-    /// An error in a shader program.
-    ProgramError {
-        /// Error message
-        message: String,
-    },
-    /// An error when using a render target.
-    RenderTargetError {
-        /// Error message
-        message: String,
-    },
-    /// An error when using a texture.
-    TextureError {
-        /// Error message
-        message: String,
-    },
-    /// An error when using a buffer.
-    BufferError {
-        /// Error message
-        message: String,
-    },
-    /// An error when using a mesh.
-    MeshError {
-        /// Error message
-        message: String,
-    },
-    /// An error when using a camera.
-    CameraError {
-        /// Error message
-        message: String,
-    },
-}
-
-impl Error {
-    pub fn message(&self) -> &String {
-        return match self {
-            Error::ProgramError { message } => message,
-            Error::RenderTargetError { message } => message,
-            Error::TextureError { message } => message,
-            Error::BufferError { message } => message,
-            Error::MeshError { message } => message,
-            Error::CameraError { message } => message,
-        };
-    }
-}
-
-fn check_data_length(
-    width: u32,
-    height: u32,
-    depth: u32,
-    format: Format,
-    length: usize,
-) -> Result<(), Error> {
-    let expected_pixels = width as usize * height as usize * depth as usize;
-    let actual_pixels = length / format.color_channel_count() as usize;
-
-    if expected_pixels != actual_pixels {
-        Err(Error::TextureError {
-            message: format!(
-                "Wrong size of data for the texture (got {} pixels but expected {} pixels)",
-                actual_pixels, expected_pixels
-            ),
-        })?;
-    }
-    Ok(())
+#[derive(Debug, Error)]
+#[allow(missing_docs)]
+pub enum CoreError {
+    #[error("failed creating a new shader")]
+    ShaderCreation,
+    #[error("failed compiling {0} shader: {1}")]
+    ShaderCompilation(String, String),
+    #[error("failed to link shader program: {0}")]
+    ShaderLink(String),
+    #[error("the uniform {0} is sent to the shader but never used")]
+    UnusedUniform(String),
+    #[error("the attribute {0} is sent to the shader but never used")]
+    UnusedAttribute(String),
+    #[error("failed creating a new render target")]
+    RenderTargetCreation,
+    #[error("cannot copy {0} from a {1} texture")]
+    RenderTargetCopy(String, String),
+    #[error("cannot read color from anything else but an RGBA texture")]
+    ReadWrongFormat,
+    #[error("failed creating a new texture")]
+    TextureCreation,
+    #[error("invalid size of texture data (got {0} pixels but expected {1} pixels)")]
+    InvalidTextureLength(usize, usize),
+    #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
+    MissingMeshBuffer(String),
+    #[error("{0} buffer length must be divisible by 3 for the mesh `{1}`, actual count is {2}")]
+    InvalidMeshBufferLength(String, String, usize),
+    #[error("index buffer for the mesh `{0}` contains values larger than the length of the buffer which is {1}")]
+    InvalidMeshIndexBuffer(String, usize),
+    #[error("when indices unspecified, positions length of mesh `{0}` must be divisible by 9, actual count is {1}")]
+    InvalidMeshPositionBuffer(String, usize),
+    #[error("data for element at index {0} has length {1} but a length of {2} was expected")]
+    InvalidUniformBufferElementLength(u32, usize, usize),
+    #[error("the index {0} is outside the expected range [0, {1}]")]
+    IndexOutOfRange(usize, usize),
+    #[error("cannot take as input a negative minimum distance")]
+    NegativeDistance,
+    #[error("a minimum must be smaller than a maximum")]
+    MinimumLargerThanMaximum,
 }

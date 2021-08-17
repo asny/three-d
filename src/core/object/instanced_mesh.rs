@@ -13,7 +13,7 @@ impl InstancedMeshProgram {
     /// Constructs a new shader program for rendering instanced meshes. The fragment shader can use the fragments position by adding `in vec3 pos;`,
     /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
     ///
-    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self, Error> {
+    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
         Ok(Self {
             mesh_program: MeshProgram::new_internal(context, fragment_shader_source, true)?,
         })
@@ -53,11 +53,8 @@ impl InstancedMesh {
     /// Each instance is transformed with the given transformation before it is rendered.
     /// The transformations can be updated by the [update_transformations](Self::update_transformations) function.
     ///
-    pub fn new(
-        context: &Context,
-        transformations: &[Mat4],
-        cpu_mesh: &CPUMesh,
-    ) -> Result<Self, Error> {
+    pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self> {
+        cpu_mesh.validate()?;
         let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(VertexBuffer::new_with_static(context, normals)?)
@@ -134,7 +131,7 @@ impl InstancedMesh {
         program: &InstancedMeshProgram,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         program.use_attribute_vec4_divisor("row1", &self.instance_buffer1, 1)?;
         program.use_attribute_vec4_divisor("row2", &self.instance_buffer2, 1)?;
         program.use_attribute_vec4_divisor("row3", &self.instance_buffer3, 1)?;
@@ -144,21 +141,24 @@ impl InstancedMesh {
 
         program.use_attribute_vec3("position", &self.position_buffer)?;
         if program.mesh_program.use_uvs {
-            let uv_buffer = self.uv_buffer.as_ref().ok_or(Error::MeshError {
-                message:
-                    "The mesh shader program needs uv coordinates, but the mesh does not have any."
-                        .to_string(),
-            })?;
+            let uv_buffer = self
+                .uv_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
             program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
         }
         if program.mesh_program.use_normals {
-            let normal_buffer = self.normal_buffer.as_ref().ok_or(
-                Error::MeshError {message: "The mesh shader program needs normals, but the mesh does not have any. Consider calculating the normals on the CPUMesh.".to_string()})?;
+            let normal_buffer = self
+                .normal_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.mesh_program.use_colors {
-            let color_buffer = self.color_buffer.as_ref().ok_or(
-                Error::MeshError {message: "The mesh shader program needs per vertex colors, but the mesh does not have any.".to_string()})?;
+            let color_buffer = self
+                .color_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
             program.use_attribute_vec4("color", color_buffer)?;
         }
 

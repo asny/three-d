@@ -217,6 +217,60 @@ impl CPUMesh {
     pub fn compute_aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new_with_positions(&self.positions)
     }
+
+    pub(in crate::core) fn validate(&self) -> Result<()> {
+        if let Some(ref indices) = self.indices {
+            let index_count = match indices {
+                Indices::U8(ind) => ind.len(),
+                Indices::U16(ind) => ind.len(),
+                Indices::U32(ind) => ind.len(),
+            };
+            if index_count % 3 != 0 {
+                Err(CoreError::InvalidMeshBufferLength(
+                    "index".to_string(),
+                    self.name.to_string(),
+                    index_count,
+                ))?;
+            }
+            if self.positions.len() % 3 != 0 {
+                Err(CoreError::InvalidMeshBufferLength(
+                    "position".to_string(),
+                    self.name.to_string(),
+                    index_count,
+                ))?;
+            }
+            if cfg!(debug) {
+                let indices_valid = match indices {
+                    Indices::U8(ind) => {
+                        let len = self.positions.len();
+                        ind.iter().all(|&i| (i as usize) < len)
+                    }
+                    Indices::U16(ind) => {
+                        let len = self.positions.len();
+                        ind.iter().all(|&i| (i as usize) < len)
+                    }
+                    Indices::U32(ind) => {
+                        let len = self.positions.len();
+                        ind.iter().all(|&i| (i as usize) < len)
+                    }
+                };
+                if !indices_valid {
+                    Err(CoreError::InvalidMeshIndexBuffer(
+                        self.name.to_string(),
+                        self.positions.len(),
+                    ))?;
+                }
+            }
+        } else {
+            if self.positions.len() % 9 != 0 {
+                Err(CoreError::InvalidMeshPositionBuffer(
+                    self.name.to_string(),
+                    self.positions.len(),
+                ))?;
+            }
+        };
+        Ok(())
+    }
 }
 
 fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
