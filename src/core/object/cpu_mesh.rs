@@ -1,13 +1,22 @@
 use crate::core::*;
 
+///
+/// An array of indices. Supports different data types.
+///
 #[derive(Debug)]
 pub enum Indices {
+    /// Uses unsigned 8 bit integer for each index.
     U8(Vec<u8>),
+    /// Uses unsigned 16 bit integer for each index.
     U16(Vec<u16>),
+    /// Uses unsigned 32 bit integer for each index.
     U32(Vec<u32>),
 }
 
 impl Indices {
+    ///
+    /// Returns all the indices as an `u32` data type. Clones all of the indices, so do not use it too often.
+    ///
     pub fn into_u32(&self) -> Vec<u32> {
         match self {
             Self::U8(ind) => ind.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
@@ -24,19 +33,61 @@ impl Indices {
 ///
 #[derive(Default, Debug)]
 pub struct CPUMesh {
+    /// Name.
     pub name: String,
+    /// Name of the associated material, use this to match with [Material::name].
     pub material_name: Option<String>,
+    /// The positions of the vertices. Three contiguous floats defines a 3D position `(x, y, z)`, therefore the length must be divisable by 3.
+    /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must also be divisable by 9.
     pub positions: Vec<f32>,
+    /// The indices into the positions, normals, uvs and colors arrays which defines the three vertices of a triangle. Three contiguous indices defines a triangle, therefore the length must be divisable by 3.
     pub indices: Option<Indices>,
+    /// The normals of the vertices. Three contiguous floats defines a normal `(x, y, z)`, therefore the length must be divisable by 3.
     pub normals: Option<Vec<f32>>,
+    /// The uv coordinates of the vertices. Two contiguous floats defines a coordinate `(u, v)`, therefore the length must be divisable by 2.
     pub uvs: Option<Vec<f32>>,
+    /// The colors of the vertices. Four contiguous bytes defines a color `(r, g, b, a)`, therefore the length must be divisable by 4.
     pub colors: Option<Vec<u8>>,
 }
 
 impl CPUMesh {
-    pub fn square(size: f32) -> Self {
+    ///
+    /// Transforms the mesh by the given transformation.
+    ///
+    pub fn transform(&mut self, transform: &Mat4) {
+        for i in 0..self.positions.len() / 3 {
+            let p = (transform
+                * vec4(
+                    self.positions[i * 3],
+                    self.positions[i * 3 + 1],
+                    self.positions[i * 3 + 2],
+                    1.0,
+                ))
+            .truncate();
+            self.positions[i * 3] = p.x;
+            self.positions[i * 3 + 1] = p.y;
+            self.positions[i * 3 + 2] = p.z;
+        }
+        let normal_transform = transform.invert().unwrap().transpose();
+
+        if let Some(ref mut normals) = self.normals {
+            for i in 0..normals.len() / 3 {
+                let p = (normal_transform
+                    * vec4(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2], 1.0))
+                .truncate();
+                normals[i * 3] = p.x;
+                normals[i * 3 + 1] = p.y;
+                normals[i * 3 + 2] = p.z;
+            }
+        }
+    }
+
+    ///
+    /// Returns a square mesh spanning the xy-plane with positions in the range `[-1..1]` in the x and y axes.
+    ///
+    pub fn square() -> Self {
         let indices = vec![0u8, 1, 2, 2, 3, 0];
-        let halfsize = 0.5 * size;
+        let halfsize = 1.0;
         let positions = vec![
             -halfsize, -halfsize, 0.0, halfsize, -halfsize, 0.0, halfsize, halfsize, 0.0,
             -halfsize, halfsize, 0.0,
@@ -53,15 +104,18 @@ impl CPUMesh {
         }
     }
 
-    pub fn circle(radius: f32, angle_subdivisions: u32) -> Self {
+    ///
+    /// Returns a circle mesh spanning the xy-plane with radius 1 and center in `(0, 0, 0)`.
+    ///
+    pub fn circle(angle_subdivisions: u32) -> Self {
         let mut positions = Vec::new();
         let mut indices = Vec::new();
         let mut normals = Vec::new();
         for j in 0..angle_subdivisions {
             let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-            positions.push(radius * angle.cos());
-            positions.push(radius * angle.sin());
+            positions.push(angle.cos());
+            positions.push(angle.sin());
             positions.push(0.0);
 
             normals.push(0.0);
@@ -83,9 +137,12 @@ impl CPUMesh {
         }
     }
 
-    pub fn sphere(radius: f32) -> Self {
-        let x = radius * 0.525731112119133606f32;
-        let z = radius * 0.850650808352039932f32;
+    ///
+    /// Returns a sphere mesh with radius 1 and center in `(0, 0, 0)`.
+    ///
+    pub fn sphere() -> Self {
+        let x = 0.525731112119133606f32;
+        let z = 0.850650808352039932f32;
         let positions = vec![
             -x, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0, -z, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0,
             -z, -x, z, x, 0.0, -z, x, 0.0, z, -x, 0.0, -z, -x, 0.0,
@@ -105,6 +162,9 @@ impl CPUMesh {
         mesh
     }
 
+    ///
+    /// Returns an axis aligned unconnected cube mesh with positions in the range `[-1..1]` in all axes.
+    ///
     pub fn cube() -> Self {
         let positions = vec![
             1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
@@ -131,7 +191,10 @@ impl CPUMesh {
         mesh
     }
 
-    pub fn cylinder(radius: f32, length: f32, angle_subdivisions: u32) -> Self {
+    ///
+    /// Returns a cylinder mesh around the x-axis in the range `[0..1]` and with radius 1.
+    ///
+    pub fn cylinder(angle_subdivisions: u32) -> Self {
         let length_subdivisions = 1;
         let mut positions = Vec::new();
         let mut indices = Vec::new();
@@ -140,9 +203,9 @@ impl CPUMesh {
             for j in 0..angle_subdivisions {
                 let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-                positions.push(length * x);
-                positions.push(radius * angle.cos());
-                positions.push(radius * angle.sin());
+                positions.push(x);
+                positions.push(angle.cos());
+                positions.push(angle.sin());
             }
         }
         for i in 0..length_subdivisions {
@@ -166,7 +229,10 @@ impl CPUMesh {
         mesh
     }
 
-    pub fn cone(radius: f32, length: f32, angle_subdivisions: u32) -> Self {
+    ///
+    /// Returns a cone mesh around the x-axis in the range `[0..1]` and with radius 1 at -1.0.
+    ///
+    pub fn cone(angle_subdivisions: u32) -> Self {
         let length_subdivisions = 1;
         let mut positions = Vec::new();
         let mut indices = Vec::new();
@@ -175,9 +241,9 @@ impl CPUMesh {
             for j in 0..angle_subdivisions {
                 let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-                positions.push(length * x);
-                positions.push(radius * angle.cos() * (1.0 - x));
-                positions.push(radius * angle.sin() * (1.0 - x));
+                positions.push(x);
+                positions.push(angle.cos() * (1.0 - x));
+                positions.push(angle.sin() * (1.0 - x));
             }
         }
         for i in 0..length_subdivisions {
@@ -201,14 +267,23 @@ impl CPUMesh {
         mesh
     }
 
-    pub fn arrow(radius: f32, length: f32, angle_subdivisions: u32) -> Self {
-        let cylinder_length = length * 0.7;
-        let mut arrow = Self::cylinder(radius * 0.5, cylinder_length, angle_subdivisions);
+    ///
+    /// Returns an arrow mesh around the x-axis in the range `[0..1]` and with radius 1.
+    /// The tail length and radius should be in the range `]0..1[`.
+    ///
+    pub fn arrow(tail_length: f32, tail_radius: f32, angle_subdivisions: u32) -> Self {
+        let mut arrow = Self::cylinder(angle_subdivisions);
+        arrow.transform(&Mat4::from_nonuniform_scale(
+            tail_length,
+            tail_radius,
+            tail_radius,
+        ));
         arrow.name = "arrow".to_string();
-        let mut cone = Self::cone(radius, length - cylinder_length, angle_subdivisions);
-        for i in 0..cone.positions.len() / 3 {
-            cone.positions[i * 3] += cylinder_length;
-        }
+        let mut cone = Self::cone(angle_subdivisions);
+        cone.transform(
+            &(Mat4::from_translation(vec3(tail_length, 0.0, 0.0))
+                * Mat4::from_nonuniform_scale(1.0 - tail_length, 1.0, 1.0)),
+        );
         let mut indices = arrow.indices.unwrap().into_u32();
         let cone_indices = cone.indices.unwrap().into_u32();
         let offset = indices.iter().max().unwrap() + 1;
@@ -244,7 +319,10 @@ impl CPUMesh {
         AxisAlignedBoundingBox::new_with_positions(&self.positions)
     }
 
-    pub(in crate::core) fn validate(&self) -> Result<()> {
+    ///
+    /// Returns an error if the mesh is not valid.
+    ///
+    pub fn validate(&self) -> Result<()> {
         if let Some(ref indices) = self.indices {
             let index_count = match indices {
                 Indices::U8(ind) => ind.len(),
@@ -264,6 +342,33 @@ impl CPUMesh {
                     self.name.to_string(),
                     index_count,
                 ))?;
+            }
+            if let Some(ref data) = self.normals {
+                if data.len() % 3 != 0 {
+                    Err(CoreError::InvalidMeshBufferLength(
+                        "normal".to_string(),
+                        self.name.to_string(),
+                        index_count,
+                    ))?;
+                }
+            }
+            if let Some(ref data) = self.colors {
+                if data.len() % 4 != 0 {
+                    Err(CoreError::InvalidMeshBufferLength(
+                        "color".to_string(),
+                        self.name.to_string(),
+                        index_count,
+                    ))?;
+                }
+            }
+            if let Some(ref data) = self.uvs {
+                if data.len() % 2 != 0 {
+                    Err(CoreError::InvalidMeshBufferLength(
+                        "uv coordinate".to_string(),
+                        self.name.to_string(),
+                        index_count,
+                    ))?;
+                }
             }
             if cfg!(debug) {
                 let indices_valid = match indices {

@@ -20,6 +20,9 @@ pub struct ColorTargetTexture2DArray<T: TextureDataType> {
 }
 
 impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
+    ///
+    /// Creates a new array of color target textures.
+    ///
     pub fn new(
         context: &Context,
         width: u32,

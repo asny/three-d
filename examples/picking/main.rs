@@ -28,7 +28,9 @@ fn main() {
         albedo: vec4(1.0, 0.0, 0.0, 1.0),
         ..Default::default()
     };
-    let mut pick_mesh = Model::new(&context, &CPUMesh::sphere(0.05)).unwrap();
+    let mut sphere = CPUMesh::sphere();
+    sphere.transform(&Mat4::from_scale(0.05));
+    let mut pick_mesh = Model::new(&context, &sphere).unwrap();
 
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],

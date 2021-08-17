@@ -1,3 +1,7 @@
+//!
+//! Definitions of the input state needed for any draw call.
+//!
+
 ///
 /// A set of render specific states that has to be specified at each render call.
 ///
@@ -47,13 +51,17 @@ impl Default for RenderStates {
 }
 
 ///
-/// Defines whether the triangles that are backfacing, frontfacing or both should be skipped in a render call.
+/// Defines whether the triangles that are backfacing, frontfacing, both or none should be rendered in a render call.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Cull {
+    /// Render both front- and backfacing triangles.
     None,
+    /// Render only frontfacing triangles.
     Back,
+    /// Render only backfacing triangles.
     Front,
+    /// Render nothing.
     FrontAndBack,
 }
 
@@ -72,6 +80,7 @@ impl Default for Cull {
 /// but do work when writing to the [Screen](crate::core::Screen), a [RenderTarget](crate::core::RenderTarget), [RenderTargetArray](crate::core::RenderTargetArray),
 /// [DepthTargetTexture2D](crate::core::DepthTargetTexture2D) or [DepthTargetTexture2DArray](crate::core::DepthTargetTexture2DArray).
 ///
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum DepthTest {
     Never,
@@ -95,12 +104,18 @@ impl Default for DepthTest {
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Clip {
+    /// Only render inside the defined rectangle of the screen/render target.
     Enabled {
+        /// The distance in pixels from the left edge of the screen/render target.
         x: u32,
+        /// The distance in pixels from the top edge of the screen/render target.
         y: u32,
+        /// The width of the rectangle.
         width: u32,
+        /// The height of the rectangle.
         height: u32,
     },
+    /// Render inside the entire screen/render target.
     Disabled,
 }
 
@@ -113,6 +128,7 @@ impl Default for Clip {
 ///
 /// Defines which channels (red, green, blue, alpha and depth) to write to in a render call.
 ///
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct WriteMask {
     pub red: bool,
@@ -180,6 +196,7 @@ impl Default for WriteMask {
 /// color channels of the render target.
 /// This is usually used to simulate transparency.
 ///
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Blend {
     Enabled {
@@ -241,6 +258,7 @@ impl Default for Blend {
 ///
 /// Value multiplied with the source or target color or alpha value in [Blend].
 ///
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum BlendMultiplierType {
     Zero,
@@ -259,6 +277,7 @@ pub enum BlendMultiplierType {
 ///
 /// How the source and target color or alpha value are combined in [Blend].
 ///
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum BlendEquationType {
     Add,

@@ -235,6 +235,9 @@ impl Program {
         self.textures.borrow().get(name).unwrap().clone()
     }
 
+    ///
+    /// Use the given [UniformBuffer] in this shader program and associate it with the given named variable.
+    ///
     pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) {
         if !self.uniform_blocks.borrow().contains_key(name) {
             let mut map = self.uniform_blocks.borrow_mut();
@@ -249,6 +252,10 @@ impl Program {
         self.context.unbind_buffer(consts::UNIFORM_BUFFER);
     }
 
+    ///
+    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// The buffer must contain one float value per vertex.
+    ///
     pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_divisor(name, buffer, 0)?;
         Ok(())
@@ -273,6 +280,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// The buffer must contain two float values (a [Vec2]) per vertex.
+    ///
     pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_vec2_divisor(name, buffer, 0)?;
         Ok(())
@@ -297,6 +308,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// The buffer must contain three float values (a [Vec3]) per vertex.
+    ///
     pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_vec3_divisor(name, buffer, 0)?;
         Ok(())
@@ -321,6 +336,10 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// The buffer must contain four float values (a [Vec4]) per vertex.
+    ///
     pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
         self.use_attribute_vec4_divisor(name, buffer, 0)?;
         Ok(())
@@ -345,6 +364,12 @@ impl Program {
         Ok(())
     }
 
+    ///
+    /// Draws `count` number of triangles with the given render states and viewport using this shader program.
+    /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
+    /// Assumes that the data for the three vertices in a triangle is defined contiguous in each vertex buffer.
+    /// If you want to use an [ElementBuffer], see [Program::draw_elements].
+    ///
     pub fn draw_arrays(&self, render_states: RenderStates, viewport: Viewport, count: u32) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
@@ -375,6 +400,11 @@ impl Program {
         self.context.unuse_program();
     }
 
+    ///
+    /// Draws the triangles defined by the given [ElementBuffer] with the given render states and viewport using this shader program.
+    /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
+    /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays]. If you only want to draw a subset of the triangles in the given [ElementBuffer], see [Program::draw_subset_of_elements].
+    ///
     pub fn draw_elements(
         &self,
         render_states: RenderStates,
@@ -390,6 +420,11 @@ impl Program {
         );
     }
 
+    ///
+    /// Draws a subset of the triangles defined by the given [ElementBuffer] with the given render states and viewport using this shader program.
+    /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
+    /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays].
+    ///
     pub fn draw_subset_of_elements(
         &self,
         render_states: RenderStates,

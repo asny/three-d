@@ -14,6 +14,9 @@ pub struct DepthTargetTexture2DArray {
 }
 
 impl DepthTargetTexture2DArray {
+    ///
+    /// Creates a new array of depth target textures.
+    ///
     pub fn new(
         context: &Context,
         width: u32,

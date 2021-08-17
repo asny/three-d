@@ -42,8 +42,9 @@ fn main() {
     ];
     let particles_program =
         ParticlesProgram::new(&context, &include_str!("../assets/shaders/particles.frag")).unwrap();
-    let mut particles =
-        Particles::new(&context, &CPUMesh::square(1.2), &vec3(0.0, -9.82, 0.0)).unwrap();
+    let mut square = CPUMesh::square();
+    square.transform(&Mat4::from_scale(1.2));
+    let mut particles = Particles::new(&context, &square, &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop
     let mut time = explosion_time + 100.0;

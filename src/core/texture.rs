@@ -1,3 +1,6 @@
+//!
+//! Different types of textures used by the GPU to read from and write to.
+//!
 mod texture2d;
 #[doc(inline)]
 pub use texture2d::*;
@@ -25,6 +28,7 @@ pub use depth_target_texture2d_array::*;
 ///
 /// Possible modes of interpolation which determines the texture output between texture pixels.
 ///
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Interpolation {
     Nearest,
@@ -35,6 +39,7 @@ pub enum Interpolation {
 /// Possible wrapping modes for a texture which determines how the texture is applied outside of the
 /// [0..1] uv coordinate range.
 ///
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Wrapping {
     Repeat,
@@ -42,6 +47,7 @@ pub enum Wrapping {
     ClampToEdge,
 }
 
+/// The basic data type used for each channel of each pixel in a texture.
 pub trait TextureDataType:
     Default + std::fmt::Debug + Clone + Copy + internal::TextureDataTypeExtension
 {
@@ -53,6 +59,7 @@ impl TextureDataType for u32 {}
 ///
 /// Possible formats for pixels in a texture.
 ///
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
     R,
@@ -62,6 +69,7 @@ pub enum Format {
 }
 
 impl Format {
+    /// Returns the number of channels for the given format.
     pub fn color_channel_count(&self) -> u32 {
         match self {
             Format::R => 1,
@@ -76,6 +84,7 @@ impl Format {
 /// A CPU-side version of a texture, for example [Texture2D].
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
+#[allow(missing_docs)]
 pub struct CPUTexture<T: TextureDataType> {
     pub data: Vec<T>,
     pub width: u32,

@@ -47,21 +47,21 @@ fn main() {
                 metallic: 0.8,
                 ..Default::default()
             };
+            let mut cylinder = CPUMesh::cylinder(10);
+            cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
             let mut edges = InstancedModel::new(
                 &context,
                 &edge_transformations(&cpu_mesh),
-                &CPUMesh::cylinder(0.007, 1.0, 10),
+                &CPUMesh::cylinder(10),
             )
             .unwrap();
             edges.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
             edges.cull = Cull::Back;
 
-            let mut vertices = InstancedModel::new(
-                &context,
-                &vertex_transformations(&cpu_mesh),
-                &CPUMesh::sphere(0.015),
-            )
-            .unwrap();
+            let mut sphere = CPUMesh::sphere();
+            sphere.transform(&Mat4::from_scale(0.015));
+            let mut vertices =
+                InstancedModel::new(&context, &vertex_transformations(&cpu_mesh), &sphere).unwrap();
             vertices.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
             vertices.cull = Cull::Back;
 

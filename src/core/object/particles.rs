@@ -103,7 +103,7 @@ pub struct Particles {
     index_buffer: Option<ElementBuffer>,
     pub acceleration: Vec3,
     instance_count: u32,
-    pub transformation: Mat4,
+    transformation: Mat4,
 }
 
 impl Particles {
@@ -141,6 +141,20 @@ impl Particles {
             instance_count: 0,
             transformation: Mat4::identity(),
         })
+    }
+
+    ///
+    /// Returns the local to world transformation applied to all particles.
+    ///
+    pub fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
+
+    ///
+    /// Set the local to world transformation applied to all particles.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
     }
 
     ///

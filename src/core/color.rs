@@ -15,24 +15,24 @@ pub struct Color {
 }
 
 impl Color {
+    ///
+    /// Creates a new color with the given values.
+    ///
     pub const fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
         Self { r, g, b, a }
     }
 
-    pub const fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+    ///
+    /// Creates a new color with the given r, g and b values and an alpha value of 255.
+    ///
+    pub const fn new_opaque(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b, a: 255 }
     }
 
-    pub fn from_rgb_slice(rgba: &[f32; 3]) -> Self {
-        Self {
-            r: (rgba[0] * 255.0) as u8,
-            g: (rgba[1] * 255.0) as u8,
-            b: (rgba[2] * 255.0) as u8,
-            a: 255,
-        }
-    }
-
-    pub fn from_rgba_slice(rgba: &[f32; 4]) -> Self {
+    ///
+    /// Creates a new color from four float elements where each element are in the range `0.0..=1.0`.
+    ///
+    pub fn new_from_rgba_slice(rgba: &[f32; 4]) -> Self {
         Self {
             r: (rgba[0] * 255.0) as u8,
             g: (rgba[1] * 255.0) as u8,
@@ -42,13 +42,13 @@ impl Color {
     }
 
     /// Opaque red
-    pub const RED: Color = Color::from_rgb(255, 0, 0);
+    pub const RED: Color = Color::new_opaque(255, 0, 0);
     /// Opaque green
-    pub const GREEN: Color = Color::from_rgb(0, 255, 0);
+    pub const GREEN: Color = Color::new_opaque(0, 255, 0);
     /// Opaque blue
-    pub const BLUE: Color = Color::from_rgb(0, 0, 255);
+    pub const BLUE: Color = Color::new_opaque(0, 0, 255);
     /// Opaque white
-    pub const WHITE: Color = Color::from_rgb(255, 255, 255);
+    pub const WHITE: Color = Color::new_opaque(255, 255, 255);
 
     /// Convert to [`Vec3`] by mapping the red, green and blue component to the range `0.0..=1.0`.
     pub fn to_vec3(&self) -> Vec3 {

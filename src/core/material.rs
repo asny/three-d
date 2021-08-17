@@ -1,3 +1,6 @@
+//!
+//! Definitions for a CPU- and GPU-side material.
+//!
 use crate::core::*;
 use std::rc::Rc;
 
@@ -7,11 +10,17 @@ use std::rc::Rc;
 /// Textures are assumed to be in sRGB with or without an alpha channel.
 ///
 pub struct CPUMaterial {
+    /// Name. Used for matching geometry and material.
     pub name: String,
+    /// Albedo base color, also called diffuse color.
     pub albedo: Color,
+    /// Texture with albedo base colors, also called diffuse color.
     pub albedo_texture: Option<CPUTexture<u8>>,
+    /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
+    /// A value in the range `[0..1]` specifying how rough the material surface is.
     pub roughness: f32,
+    /// Texture containing the metallic and roughness parameters.
     pub metallic_roughness_texture: Option<CPUTexture<u8>>,
 }
 
@@ -29,15 +38,21 @@ impl Default for CPUMaterial {
 }
 
 ///
-/// A material used for shading an object using physically based rendering (PBR).
+/// A material used for shading an object.
 ///
 #[derive(Clone)]
 pub struct Material {
+    /// Name. Used for matching geometry and material.
     pub name: String,
+    /// Albedo base color, also called diffuse color.
     pub albedo: Vec4,
+    /// Texture with albedo base colors, also called diffuse color.
     pub albedo_texture: Option<Rc<Texture2D>>,
+    /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
+    /// A value in the range `[0..1]` specifying how rough the material surface is.
     pub roughness: f32,
+    /// Texture containing the metallic and roughness parameters.
     pub metallic_roughness_texture: Option<Rc<Texture2D>>,
 }
 

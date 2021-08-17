@@ -6,9 +6,7 @@ use crate::renderer::*;
 ///
 #[derive(Clone)]
 pub struct Axes {
-    x: Model,
-    y: Model,
-    z: Model,
+    model: Model,
 }
 
 impl Axes {
@@ -16,12 +14,11 @@ impl Axes {
     /// Creates a new axes object consisting of three arrows with the given radius and length.
     ///
     pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self> {
-        let x = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
-        let mut y = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
-        let mut z = Model::new(context, &CPUMesh::arrow(radius, length, 16))?;
-        y.set_transformation(Mat4::from_angle_z(degrees(90.0)));
-        z.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
-        Ok(Self { x, y, z })
+        let mut mesh = CPUMesh::arrow(0.9, 0.6, 16);
+        mesh.transform(&Mat4::from_nonuniform_scale(length, radius, radius));
+        Ok(Self {
+            model: Model::new(context, &mesh)?,
+        })
     }
 
     ///
@@ -31,10 +28,12 @@ impl Axes {
     /// The transformation can be used to position, orientate and scale the axes.
     ///
     pub fn render(&self, camera: &Camera) -> Result<()> {
-        self.x.render_with_color(&Color::RED, camera)?;
-        self.y.render_with_color(&Color::GREEN, camera)?;
-        self.z.render_with_color(&Color::BLUE, camera)?;
-
+        let mut model = self.model.clone();
+        model.render_with_color(&Color::RED, camera)?;
+        model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
+        model.render_with_color(&Color::GREEN, camera)?;
+        model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
+        model.render_with_color(&Color::BLUE, camera)?;
         Ok(())
     }
 }

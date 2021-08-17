@@ -41,10 +41,16 @@ impl AxisAlignedBoundingBox {
         aabb
     }
 
+    ///
+    /// Creates a new infinitely large bounding box.
+    ///
     pub fn new_infinite() -> Self {
         Self::empty()
     }
 
+    ///
+    /// Returns true if the bounding box is infinitely large (ie. constructed by [AxisAlignedBoundingBox::new_infinite]).
+    ///
     pub fn is_infinite(&self) -> bool {
         self.min.x > self.max.x || self.min.y > self.max.y || self.min.z > self.max.z
     }
@@ -131,7 +137,7 @@ impl AxisAlignedBoundingBox {
     /// Transforms the bounding box by the given transformation.
     ///
     /// **Note:** Use [new_with_transformed_positions](crate::AxisAlignedBoundingBox::new_with_transformed_positions) instead of
-    /// [new_with_positions](crate::AxisAlignedBoundingBox::new_with_positions) followed by this method to create a smaller bounding box.
+    /// [new_with_positions](crate::AxisAlignedBoundingBox::new_with_positions) followed by this method to create a more tight bounding box.
     ///
     pub fn transform(&mut self, transformation: &Mat4) {
         let aabb = Self::new_with_transformed_positions(
