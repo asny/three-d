@@ -43,7 +43,7 @@ fn main() {
     let particles_program =
         ParticlesProgram::new(&context, &include_str!("../assets/shaders/particles.frag")).unwrap();
     let mut square = CPUMesh::square();
-    square.transform(&Mat4::from_scale(1.2));
+    square.transform(&Mat4::from_scale(0.6));
     let mut particles = Particles::new(&context, &square, &vec3(0.0, -9.82, 0.0)).unwrap();
 
     // main loop

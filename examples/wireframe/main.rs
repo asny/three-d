@@ -49,12 +49,8 @@ fn main() {
             };
             let mut cylinder = CPUMesh::cylinder(10);
             cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
-            let mut edges = InstancedModel::new(
-                &context,
-                &edge_transformations(&cpu_mesh),
-                &CPUMesh::cylinder(10),
-            )
-            .unwrap();
+            let mut edges =
+                InstancedModel::new(&context, &edge_transformations(&cpu_mesh), &cylinder).unwrap();
             edges.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
             edges.cull = Cull::Back;
 
