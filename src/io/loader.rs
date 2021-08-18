@@ -112,15 +112,12 @@ impl Loader {
                     .unwrap()
                     .url()
                     .unwrap();
-                reqwest::Url::parse(
-                    std::path::PathBuf::from(u)
-                        .parent()
-                        .unwrap()
-                        .join(path)
-                        .to_str()
-                        .unwrap(),
-                )
-                .unwrap()
+                let p = if !u.ends_with("/") {
+                    std::path::PathBuf::from(u).parent().unwrap().join(path)
+                } else {
+                    std::path::PathBuf::from(u.clone()).join(path)
+                };
+                reqwest::Url::parse(p.to_str().unwrap()).unwrap()
             });
             let data = reqwest::get(url).await.unwrap().bytes().await.unwrap();
             loads.loaded.insert(path.clone(), Ok((*data).to_vec()));
