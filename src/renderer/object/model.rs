@@ -23,10 +23,16 @@ impl Model {
         })
     }
 
+    ///
+    /// Returns the local to world transformation of this model.
+    ///
     pub fn transformation(&self) -> &Mat4 {
         self.mesh.transformation()
     }
 
+    ///
+    /// Set the local to world transformation of this model.
+    ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.mesh.set_transformation(transformation);
     }

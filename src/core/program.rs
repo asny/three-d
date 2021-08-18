@@ -253,20 +253,23 @@ impl Program {
     }
 
     ///
-    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// The buffer must contain one float value per vertex.
     ///
     pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
-        self.use_attribute_divisor(name, buffer, 0)?;
-        Ok(())
+        self.use_attribute_divisor(name, buffer, 0)
     }
 
-    pub fn use_attribute_divisor(
-        &self,
-        name: &str,
-        buffer: &VertexBuffer,
-        divisor: u32,
-    ) -> Result<()> {
+    ///
+    /// Uses the given buffer data in this shader program and associates it with the given named variable.
+    /// Each float in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
+    /// Therefore the buffer must contain the same number of elements as the number of instances specified in those draw calls.
+    ///
+    pub fn use_attribute_instanced(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
+        self.use_attribute_divisor(name, buffer, 1)
+    }
+
+    fn use_attribute_divisor(&self, name: &str, buffer: &VertexBuffer, divisor: u32) -> Result<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
@@ -281,15 +284,23 @@ impl Program {
     }
 
     ///
-    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// The buffer must contain two float values (a [Vec2]) per vertex.
     ///
     pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
-        self.use_attribute_vec2_divisor(name, buffer, 0)?;
-        Ok(())
+        self.use_attribute_vec2_divisor(name, buffer, 0)
     }
 
-    pub fn use_attribute_vec2_divisor(
+    ///
+    /// Uses the given buffer data in this shader program and associates it with the given named variable.
+    /// Each [Vec2] in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
+    /// Therefore the buffer must contain the same number of elements as the number of instances specified in those draw calls.
+    ///
+    pub fn use_attribute_vec2_instanced(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
+        self.use_attribute_vec2_divisor(name, buffer, 1)
+    }
+
+    fn use_attribute_vec2_divisor(
         &self,
         name: &str,
         buffer: &VertexBuffer,
@@ -309,15 +320,23 @@ impl Program {
     }
 
     ///
-    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// The buffer must contain three float values (a [Vec3]) per vertex.
     ///
     pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
-        self.use_attribute_vec3_divisor(name, buffer, 0)?;
-        Ok(())
+        self.use_attribute_vec3_divisor(name, buffer, 0)
     }
 
-    pub fn use_attribute_vec3_divisor(
+    ///
+    /// Uses the given buffer data in this shader program and associates it with the given named variable.
+    /// Each [Vec3] in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
+    /// Therefore the buffer must contain the same number of elements as the number of instances specified in those draw calls.
+    ///
+    pub fn use_attribute_vec3_instanced(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
+        self.use_attribute_vec3_divisor(name, buffer, 1)
+    }
+
+    fn use_attribute_vec3_divisor(
         &self,
         name: &str,
         buffer: &VertexBuffer,
@@ -337,15 +356,23 @@ impl Program {
     }
 
     ///
-    /// Use the given [VertexBuffer] in this shader program and associate it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// The buffer must contain four float values (a [Vec4]) per vertex.
     ///
     pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
-        self.use_attribute_vec4_divisor(name, buffer, 0)?;
-        Ok(())
+        self.use_attribute_vec4_divisor(name, buffer, 0)
     }
 
-    pub fn use_attribute_vec4_divisor(
+    ///
+    /// Uses the given buffer data in this shader program and associates it with the given named variable.
+    /// Each [Vec4] in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
+    /// Therefore the buffer must contain the same number of elements as the number of instances specified in those draw calls.
+    ///
+    pub fn use_attribute_vec4_instanced(&self, name: &str, buffer: &VertexBuffer) -> Result<()> {
+        self.use_attribute_vec4_divisor(name, buffer, 1)
+    }
+
+    fn use_attribute_vec4_divisor(
         &self,
         name: &str,
         buffer: &VertexBuffer,

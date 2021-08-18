@@ -14,6 +14,11 @@ pub struct TextureCubeMap {
 }
 
 impl TextureCubeMap {
+    ///
+    /// Creates a new texture curbe map from the given cpu texture.
+    /// The cpu texture data must contain 6 images all with the width and height specified in the cpu texture.
+    /// The images are used in the following order; right, left, top, bottom, front, back.
+    ///
     pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &CPUTexture<T>,
@@ -60,7 +65,12 @@ impl TextureCubeMap {
         Ok(texture)
     }
 
-    // data contains 6 images in the following order; right, left, top, bottom, front, back
+    ///
+    /// Fills the cube map texture with the given data which should contain pixel data for 6 images in the following order; right, left, top, bottom, front, back.
+    ///
+    /// # Errors
+    /// Returns an error if the length of the data does not correspond to 6 images with the width, height and format specified at construction.
+    ///
     pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<()> {
         let offset = data.len() / 6;
         check_data_length(self.width, self.height, 1, self.format, offset)?;

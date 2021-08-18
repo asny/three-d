@@ -23,10 +23,16 @@ impl InstancedModel {
         })
     }
 
+    ///
+    /// Returns the local to world transformation applied to all instances.
+    ///
     pub fn transformation(&self) -> &Mat4 {
         self.mesh.transformation()
     }
 
+    ///
+    /// Set the local to world transformation applied to all instances.
+    ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.mesh.set_transformation(transformation);
     }

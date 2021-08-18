@@ -345,7 +345,7 @@ pub trait Texture {
     fn height(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
-
+    /// Whether this texture contain pixels with alpha value less than maximum.
     fn is_transparent(&self) -> bool;
 }
 

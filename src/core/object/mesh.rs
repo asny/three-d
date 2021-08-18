@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 ///
 /// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
-/// customizable fragment shader for custom lighting. Use this in combination with [render](Mesh::render).
+/// customizable fragment shader for custom lighting. Use this in combination with [Mesh::render].
 ///
 pub struct MeshProgram {
     program: Program,
