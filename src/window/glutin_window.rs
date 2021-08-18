@@ -6,6 +6,21 @@ use glutin::window::WindowBuilder;
 use glutin::ContextBuilder;
 use glutin::*;
 
+use thiserror::Error;
+///
+/// Error from the [window](crate::window) module.
+///
+#[derive(Error, Debug)]
+#[allow(missing_docs)]
+pub enum WindowError {
+    #[error("failed creating a new window")]
+    WindowCreation(#[from] glutin::CreationError),
+    #[error("failed creating a new context")]
+    ContextCreation(#[from] glutin::ContextError),
+    #[error("the number of MSAA samples must be a power of two")]
+    InvalidNumberOfMSAASamples,
+}
+
 ///
 /// Default window and event handler for easy setup.
 ///
