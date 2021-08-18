@@ -7,19 +7,18 @@
 
 ### What is it?
 
-A 3D renderer which enables out-of-the-box build to both desktop (Rust + OpenGL) and web
-(Rust to WebAssembly + WebGL2).
+A 3D renderer which enables out-of-the-box build to both desktop (Rust + OpenGL) and web (Rust to WebAssembly + WebGL2).
 This makes it possible to develop a 3D application on desktop and easily deploy it on both desktop and web!
 
 The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and two optional utility modules, `io` and `window`:
 
 | Module           | Description                   
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 
-| [`context`](https://docs.rs/three-d/0.7.3/three_d/context/) | Low-level graphics abstraction layer which maps one-to-one with the OpenGL graphics API on desktop and WebGL2 bindings provided by the [web-sys](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate on web. Use this if you want to have complete control of a feature but be aware that there are no safety checks.                              
-| [`core`](https://docs.rs/three-d/0.7.3/three_d/core/) | Mid-level modular abstractions of common graphics concepts such as buffer, texture, program, render target and so on. Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.                                                                                                                           
-| [`renderer`](https://docs.rs/three-d/0.7.3/three_d/renderer/)  | High-level features for easy rendering of different types of objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.             |
+| [`context`](https://docs.rs/three-d/0.7.3/three_d/context/) | Low-level rendering module - requires a solid understanding of graphics concepts. Gives you complete control over both setup and rendering.                             
+| [`core`](https://docs.rs/three-d/0.7.3/three_d/core/) | Mid-level rendering module - requires at least some knowledge about graphics concepts. Use this if you want to write your own shaders and but don't want to spend time on setup and error handling. Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.                                                                                                                           
+| [`renderer`](https://docs.rs/three-d/0.7.3/three_d/renderer/)  | High-level rendering module - requires no knowledge about graphics concepts. Use this if you just want to draw something on the screen. Features include methods for rendering different types of standard objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.             |
 | [`io`](https://docs.rs/three-d/0.7.3/three_d/io/) | Contains functionality to load any type of asset runtime on both desktop and web as well as parsers for different image and 3D model formats. Also includes functionality to save data which is limited to desktop.
-| [`window`](https://docs.rs/three-d/0.7.3/three_d/window/)  | Default windows for easy setup and event handling. Currently [glutin](https://crates.io/crates/glutin/main.rs) for cross-platform desktop (requires the `"glutin-window"` feature) and canvas for web (requires the `"canvas"` feature). Can be replaced by anything that provides an OpenGL or WebGL2 graphics context. Also contains camera control utilities.
+| [`window`](https://docs.rs/three-d/0.7.3/three_d/window/)  | Contains functionality for creating a window on both cross-platform desktop (requires the `"glutin-window"` feature) and web (requires the `"canvas"` feature). Also contain render loop, event handling and camera control functionality. Can be replaced by anything that provides an OpenGL or WebGL2 graphics context. 
 
 
 ### Supported browsers

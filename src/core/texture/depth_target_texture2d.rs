@@ -8,8 +8,11 @@ use crate::core::*;
 ///
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum DepthFormat {
+    /// 16 bit per pixel.
     Depth16,
+    /// 24 bit per pixel.
     Depth24,
+    /// 32 bit per pixel.
     Depth32F,
 }
 

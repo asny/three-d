@@ -1,3 +1,6 @@
+//!
+//! Different types of buffers used for sending data (primarily geometry data) to the GPU.
+//!
 mod element_buffer;
 #[doc(inline)]
 pub use element_buffer::*;
@@ -10,6 +13,7 @@ mod uniform_buffer;
 #[doc(inline)]
 pub use uniform_buffer::*;
 
+/// The basic data type used for each element in a vertex buffer.
 pub trait VertexBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
@@ -18,9 +22,13 @@ impl VertexBufferDataType for u8 {}
 impl VertexBufferDataType for u16 {}
 impl VertexBufferDataType for f32 {}
 
+/// The basic data type used for each index in an element buffer.
 pub trait ElementBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
+    ///
+    /// Converts the index to `u32`.
+    ///
     fn into_u32(&self) -> u32;
 }
 impl ElementBufferDataType for u8 {

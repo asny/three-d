@@ -42,6 +42,7 @@ pub struct InstancedMesh {
     instance_buffer1: VertexBuffer,
     instance_buffer2: VertexBuffer,
     instance_buffer3: VertexBuffer,
+    /// Optional name of the instanced mesh.
     pub name: String,
     transformation: Mat4,
 }
@@ -106,10 +107,16 @@ impl InstancedMesh {
         Ok(mesh)
     }
 
+    ///
+    /// Returns the local to world transformation applied to all instances.
+    ///
     pub fn transformation(&self) -> &Mat4 {
         &self.transformation
     }
 
+    ///
+    /// Set the local to world transformation applied to all instances.
+    ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
     }
@@ -132,9 +139,9 @@ impl InstancedMesh {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> Result<()> {
-        program.use_attribute_vec4_divisor("row1", &self.instance_buffer1, 1)?;
-        program.use_attribute_vec4_divisor("row2", &self.instance_buffer2, 1)?;
-        program.use_attribute_vec4_divisor("row3", &self.instance_buffer3, 1)?;
+        program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
+        program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
+        program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
 
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block("Camera", camera_buffer);

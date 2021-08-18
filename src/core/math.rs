@@ -1,5 +1,6 @@
+#![allow(missing_docs)]
 //!
-//! Contain basic math functionality. Mostly just an re-export of [cgmath](https://crates.io/crates/cgmath).
+//! Basic math functionality. Mostly just an re-export of [cgmath](https://crates.io/crates/cgmath).
 //!
 
 pub(crate) use cgmath::ortho;

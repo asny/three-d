@@ -11,11 +11,14 @@ use web_sys::WebGl2RenderingContext;
 
 use thiserror::Error;
 
+///
+/// Error related to the canvas.
+///
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum CanvasError {
     #[error("failed creating a new window")]
-    WindowMissing,
+    WindowCreation,
     #[error("unable to get document from canvas")]
     DocumentMissing,
     #[error("unable to get canvas")]
@@ -48,7 +51,7 @@ pub struct Window {
 
 impl Window {
     pub fn new(settings: WindowSettings) -> Result<Window> {
-        let websys_window = web_sys::window().ok_or(CanvasError::WindowMissing)?;
+        let websys_window = web_sys::window().ok_or(CanvasError::WindowCreation)?;
         let document = websys_window
             .document()
             .ok_or(CanvasError::DocumentMissing)?;

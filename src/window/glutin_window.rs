@@ -8,7 +8,7 @@ use glutin::*;
 
 use thiserror::Error;
 ///
-/// Error from the [window](crate::window) module.
+/// Error from the glutin window.
 ///
 #[derive(Error, Debug)]
 #[allow(missing_docs)]

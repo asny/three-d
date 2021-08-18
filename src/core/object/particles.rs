@@ -1,8 +1,8 @@
 use crate::core::*;
 
 ///
-/// Shader program used for rendering [Particles](Particles).
-/// The fragment shader code can use position (`in vec3 pos;`) normal (`in vec3 nor;`) and uv coordinates (`in vec2 uvs;`).
+/// Shader program used for rendering [Particles](Particles). It has a fixed vertex shader and
+/// customizable fragment shader for custom shading. Use this in combination with [Particles::render].
 ///
 pub struct ParticlesProgram {
     program: Program,
@@ -11,6 +11,10 @@ pub struct ParticlesProgram {
 }
 
 impl ParticlesProgram {
+    ///
+    /// Creates a new program which can be used to render particles.
+    /// The fragment shader code can use position (`in vec3 pos;`), normal (`in vec3 nor;`) and uv coordinates (`in vec2 uvs;`).
+    ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -83,7 +87,9 @@ impl std::ops::Deref for ParticlesProgram {
 /// Used to define the initial position and velocity of a particle in [Particles](Particles).
 ///
 pub struct ParticleData {
+    /// Initial position of the particle.
     pub start_position: Vec3,
+    /// Initial velocity of the particle.
     pub start_velocity: Vec3,
 }
 
@@ -101,13 +107,17 @@ pub struct Particles {
     normal_buffer: Option<VertexBuffer>,
     uv_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
+    /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,
     instance_count: u32,
-    pub transformation: Mat4,
+    transformation: Mat4,
 }
 
 impl Particles {
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh, acceleration: &Vec3) -> Result<Self> {
+    ///
+    /// Creates a new set of particles with geometry defined by the given cpu mesh.
+    ///
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
         cpu_mesh.validate()?;
         let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
@@ -137,10 +147,24 @@ impl Particles {
             uv_buffer,
             start_position_buffer: VertexBuffer::new(context)?,
             start_velocity_buffer: VertexBuffer::new(context)?,
-            acceleration: *acceleration,
+            acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),
         })
+    }
+
+    ///
+    /// Returns the local to world transformation applied to all particles.
+    ///
+    pub fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
+
+    ///
+    /// Set the local to world transformation applied to all particles.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
     }
 
     ///
@@ -183,8 +207,8 @@ impl Particles {
         program.use_uniform_float("time", &time)?;
         program.use_uniform_block("Camera", camera.uniform_buffer());
 
-        program.use_attribute_vec3_divisor("start_position", &self.start_position_buffer, 1)?;
-        program.use_attribute_vec3_divisor("start_velocity", &self.start_velocity_buffer, 1)?;
+        program.use_attribute_vec3_instanced("start_position", &self.start_position_buffer)?;
+        program.use_attribute_vec3_instanced("start_velocity", &self.start_velocity_buffer)?;
         program.use_attribute_vec3("position", &self.position_buffer)?;
         if program.use_uvs {
             let uv_buffer = self

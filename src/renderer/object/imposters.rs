@@ -167,9 +167,9 @@ impl Imposters {
             .use_attribute_vec2("uv_coordinate", &self.uvs_buffer)?;
 
         self.program
-            .use_attribute_vec3_divisor("center", &self.center_buffer, 1)?;
+            .use_attribute_vec3_instanced("center", &self.center_buffer)?;
         self.program
-            .use_attribute_divisor("theta", &self.rotation_buffer, 1)?;
+            .use_attribute_instanced("theta", &self.rotation_buffer)?;
         self.program.draw_arrays_instanced(
             render_states,
             camera.viewport(),

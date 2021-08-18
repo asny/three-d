@@ -2,7 +2,7 @@ use crate::core::*;
 
 ///
 /// A customizable 2D effect.
-/// Can for example be used for adding an effect on top of the rendered 3D scene, like [fog](crate::FogEffect).
+/// Can for example be used for adding an effect on top of a rendered image.
 ///
 pub struct ImageEffect {
     program: Program,
@@ -11,6 +11,9 @@ pub struct ImageEffect {
 }
 
 impl ImageEffect {
+    ///
+    /// Creates a new image effect which applies the calculations defined in the given fragment shader source when calling the [ImageEffect::apply] function.
+    ///
     pub fn new(context: &Context, fragment_shader: &str) -> Result<Self> {
         let program = Program::from_source(
             &context,
@@ -37,6 +40,11 @@ impl ImageEffect {
         })
     }
 
+    ///
+    /// Applies the calculations defined in the fragment shader given at construction and output it to the current screen/render target.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write].
+    ///
     pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> Result<()> {
         self.program
             .use_attribute_vec3("position", &self.positions)?;

@@ -1,3 +1,6 @@
+//!
+//! Functionality for rendering to the screen or into textures.
+//!
 use crate::context::{consts, Context, DataType};
 use crate::core::*;
 

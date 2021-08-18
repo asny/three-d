@@ -86,7 +86,7 @@ fn main() {
             let mut directional_light = DirectionalLight::new(
                 &context,
                 10.0,
-                Color::from_rgb(204, 178, 127),
+                Color::new_opaque(204, 178, 127),
                 &vec3(0.0, -1.0, -1.0),
             )
             .unwrap();

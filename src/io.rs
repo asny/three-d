@@ -24,36 +24,29 @@ use thiserror::Error;
 /// Error from the [io](crate::io) module.
 ///
 #[derive(Error, Debug)]
+#[allow(missing_docs)]
 pub enum IOError {
-    /// An image parsing error.
     #[cfg(feature = "image-io")]
     #[error("error while parsing an image file")]
     Image(#[from] image::ImageError),
-    /// A .3d parsing error.
     #[cfg(feature = "3d-io")]
     #[error("error while parsing a .3d file")]
     ThreeD(#[from] bincode::Error),
-    /// A .obj parsing error.
     #[cfg(feature = "obj-io")]
     #[error("error while parsing an .obj file")]
     Obj(#[from] wavefront_obj::ParseError),
-    /// A .gltf parsing error.
     #[cfg(feature = "gltf-io")]
     #[error("error while parsing a .gltf file")]
     Gltf(#[from] ::gltf::Error),
-    /// A .gltf parsing error.
     #[cfg(feature = "gltf-io")]
     #[error("the .gltf file contain corrupt buffer data")]
     GltfCorruptData,
-    /// A .gltf parsing error.
     #[cfg(feature = "gltf-io")]
     #[error("the .gltf file contain missing buffer data")]
     GltfMissingData,
-    /// An loading error.
     #[cfg(not(target_arch = "wasm32"))]
     #[error("error while loading a file")]
     Load(#[from] std::io::Error),
-    /// An error when the resource was not loaded.
     #[error("tried to use {0} which was not loaded")]
     NotLoaded(String),
 }

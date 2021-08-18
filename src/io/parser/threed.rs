@@ -50,7 +50,7 @@ impl Loaded {
                 name: material.name,
                 albedo: material
                     .color
-                    .map(|color| Color::from_rgba_slice(&[color.0, color.1, color.2, color.3]))
+                    .map(|color| Color::new_from_rgba_slice(&[color.0, color.1, color.2, color.3]))
                     .unwrap_or(Color::WHITE),
                 albedo_texture: if let Some(filename) = material.texture_path {
                     let texture_path = path

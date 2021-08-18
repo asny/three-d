@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 ///
 /// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
-/// customizable fragment shader for custom lighting. Use this in combination with [render](Mesh::render).
+/// customizable fragment shader for custom lighting. Use this in combination with [Mesh::render].
 ///
 pub struct MeshProgram {
     program: Program,
@@ -83,6 +83,7 @@ pub struct Mesh {
     color_buffer: Option<Rc<VertexBuffer>>,
     pub(crate) transparent: bool,
     aabb: AxisAlignedBoundingBox,
+    /// Optional name of the mesh.
     pub name: String,
     transformation: Mat4,
     normal_transformation: Mat4,
@@ -142,10 +143,16 @@ impl Mesh {
         })
     }
 
+    ///
+    /// Returns the local to world transformation of this mesh.
+    ///
     pub fn transformation(&self) -> &Mat4 {
         &self.transformation
     }
 
+    ///
+    /// Set the local to world transformation of this mesh.
+    ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
@@ -207,6 +214,9 @@ impl Mesh {
         Ok(())
     }
 
+    ///
+    /// Computes the axis aligned bounding box for this mesh.
+    ///
     pub fn aabb(&self) -> AxisAlignedBoundingBox {
         let mut aabb = self.aabb.clone();
         aabb.transform(&self.transformation);

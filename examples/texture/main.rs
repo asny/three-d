@@ -39,12 +39,6 @@ fn main() {
             "examples/assets/skybox_evening/right.jpg",
         ],
         move |mut loaded| {
-            let mut box_cpu_mesh = CPUMesh {
-                positions: cube_positions(),
-                uvs: Some(cube_uvs()),
-                ..Default::default()
-            };
-            box_cpu_mesh.compute_normals();
             let box_texture = Texture2D::new(
                 &context,
                 &loaded.image("examples/assets/test_texture.jpg").unwrap(),
@@ -54,7 +48,7 @@ fn main() {
                 albedo_texture: Some(std::rc::Rc::new(box_texture)),
                 ..Default::default()
             };
-            let mut box_mesh = Model::new(&context, &box_cpu_mesh).unwrap();
+            let mut box_mesh = Model::new(&context, &CPUMesh::cube()).unwrap();
             box_mesh.cull = Cull::Back;
 
             let skybox = Skybox::new(
@@ -149,25 +143,4 @@ fn main() {
                 .unwrap();
         },
     );
-}
-
-fn cube_positions() -> Vec<f32> {
-    vec![
-        1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
-        -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
-        -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0,
-        1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-        -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-        1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0,
-        -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0,
-    ]
-}
-
-fn cube_uvs() -> Vec<f32> {
-    vec![
-        1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,
-        1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,
-        1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0,
-    ]
 }

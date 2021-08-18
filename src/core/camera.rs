@@ -425,6 +425,9 @@ impl Camera {
         Ok(())
     }
 
+    ///
+    /// Rotates the camera by the angle delta around the 'right' direction.
+    ///
     pub fn pitch(&mut self, delta: impl Into<Radians>) -> Result<()> {
         let target = (self.view.invert().unwrap()
             * Mat4::from_angle_x(delta)
@@ -437,6 +440,9 @@ impl Camera {
         Ok(())
     }
 
+    ///
+    /// Rotates the camera by the angle delta around the 'up' direction.
+    ///
     pub fn yaw(&mut self, delta: impl Into<Radians>) -> Result<()> {
         let target = (self.view.invert().unwrap()
             * Mat4::from_angle_y(delta)
@@ -447,6 +453,9 @@ impl Camera {
         Ok(())
     }
 
+    ///
+    /// Rotates the camera by the angle delta around the 'view' direction.
+    ///
     pub fn roll(&mut self, delta: impl Into<Radians>) -> Result<()> {
         let up = (self.view.invert().unwrap()
             * Mat4::from_angle_z(delta)

@@ -1,3 +1,6 @@
+//!
+//! Different types of textures used by the GPU to read from and write to.
+//!
 mod texture2d;
 #[doc(inline)]
 pub use texture2d::*;
@@ -25,6 +28,7 @@ pub use depth_target_texture2d_array::*;
 ///
 /// Possible modes of interpolation which determines the texture output between texture pixels.
 ///
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Interpolation {
     Nearest,
@@ -35,6 +39,7 @@ pub enum Interpolation {
 /// Possible wrapping modes for a texture which determines how the texture is applied outside of the
 /// [0..1] uv coordinate range.
 ///
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Wrapping {
     Repeat,
@@ -42,6 +47,7 @@ pub enum Wrapping {
     ClampToEdge,
 }
 
+/// The basic data type used for each channel of each pixel in a texture.
 pub trait TextureDataType:
     Default + std::fmt::Debug + Clone + Copy + internal::TextureDataTypeExtension
 {
@@ -53,6 +59,7 @@ impl TextureDataType for u32 {}
 ///
 /// Possible formats for pixels in a texture.
 ///
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Format {
     R,
@@ -62,6 +69,7 @@ pub enum Format {
 }
 
 impl Format {
+    /// Returns the number of channels for the given format.
     pub fn color_channel_count(&self) -> u32 {
         match self {
             Format::R => 1,
@@ -76,6 +84,7 @@ impl Format {
 /// A CPU-side version of a texture, for example [Texture2D].
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
+#[allow(missing_docs)]
 pub struct CPUTexture<T: TextureDataType> {
     pub data: Vec<T>,
     pub width: u32,
@@ -91,15 +100,19 @@ pub struct CPUTexture<T: TextureDataType> {
 }
 
 impl<T: TextureDataType> CPUTexture<T> {
-    pub fn add_padding(&mut self, x0: u32, x1: u32, y0: u32, y1: u32) {
+    ///
+    /// Adds a padding of default values to the texture.
+    /// 'left' number of pixels are added to the left of the original texture, 'right' number of pixels to the right and so on.
+    ///
+    pub fn add_padding(&mut self, left: u32, right: u32, top: u32, bottom: u32) {
         let channels = self.format.color_channel_count();
-        let width = x0 + self.width + x1;
-        let height = y0 + self.height + y1;
+        let width = left + self.width + right;
+        let height = top + self.height + bottom;
         let mut new_data = vec![T::default(); width as usize * height as usize * channels as usize];
         for x in 0..self.width {
             for y in 0..self.height {
-                let x_ = x + x0;
-                let y_ = y + y0;
+                let x_ = x + left;
+                let y_ = y + top;
                 let source_index = (y * self.width + x) * channels;
                 let dest_index = (y_ * width + x_) * channels;
                 for i in 0..channels {
@@ -336,7 +349,7 @@ pub trait Texture {
     fn height(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
-
+    /// Whether this texture contain pixels with alpha value less than maximum.
     fn is_transparent(&self) -> bool;
 }
 
