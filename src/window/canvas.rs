@@ -1,6 +1,7 @@
 use crate::context::Context;
 use crate::core::Viewport;
 use crate::window::*;
+use crate::Result;
 use serde::Serialize;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -8,13 +9,29 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
-#[derive(Debug)]
-pub enum WindowError {
-    WindowCreationError { message: String },
-    ContextError { message: String },
-    PerformanceError { message: String },
-    EventListenerError { message: String },
-    CanvasError { message: String },
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+#[allow(missing_docs)]
+pub enum CanvasError {
+    #[error("failed creating a new window")]
+    WindowMissing,
+    #[error("unable to get document from canvas")]
+    DocumentMissing,
+    #[error("unable to get canvas")]
+    CanvasMissing,
+    #[error("unable to convert canvas to html canvas: {0}")]
+    CanvasConvertFailed(String),
+    #[error("unable to get webgl2 context for the given canvas, maybe the browser doesn't support WebGL2{0}")]
+    WebGL2NotSupported(String),
+    #[error("unable to get EXT_color_buffer_float extension for the given canvas, maybe the browser doesn't support EXT_color_buffer_float: {0}")]
+    ColorBufferFloatNotSupported(String),
+    #[error("unable to get OES_texture_float extension for the given canvas, maybe the browser doesn't support OES_texture_float: {0}")]
+    OESTextureFloatNotSupported(String),
+    #[error("performance (for timing) is not found on the window")]
+    PerformanceMissing,
+    #[error("unable to add {0} event listener: {1}")]
+    EventListenerFail(String, String),
 }
 
 pub struct Window {
@@ -31,14 +48,10 @@ pub struct Window {
 
 impl Window {
     pub fn new(settings: WindowSettings) -> Result<Window> {
-        let websys_window = web_sys::window().ok_or(WindowError::WindowCreationError {
-            message: "Unable to create web window".to_string(),
-        })?;
+        let websys_window = web_sys::window().ok_or(CanvasError::WindowMissing)?;
         let document = websys_window
             .document()
-            .ok_or(WindowError::WindowCreationError {
-                message: "Unable to get document".to_string(),
-            })?;
+            .ok_or(CanvasError::DocumentMissing)?;
 
         let mut window = Window {
             canvas: None,
@@ -55,12 +68,7 @@ impl Window {
             window.set_canvas(
                 canvas
                     .dyn_into::<web_sys::HtmlCanvasElement>()
-                    .map_err(|e| WindowError::WindowCreationError {
-                        message: format!(
-                            "Unable to convert to HtmlCanvasElement. Error code: {:?}",
-                            e
-                        ),
-                    })?,
+                    .map_err(|e| CanvasError::CanvasConvertFailed(format!("{:?}", e)))?,
             )?;
         };
         Ok(window)
@@ -71,9 +79,9 @@ impl Window {
     /// If there is no canvas specified using the set_canvas function and no default canvas is found, this will return an error.
     ///
     pub fn canvas(&self) -> Result<&web_sys::HtmlCanvasElement> {
-        self.canvas.as_ref().ok_or(WindowError::CanvasError {
-            message: "Could not find a canvas.".to_string(),
-        })
+        self.canvas
+            .as_ref()
+            .ok_or(Box::new(CanvasError::CanvasMissing))
     }
 
     ///
@@ -86,9 +94,7 @@ impl Window {
     }
 
     pub fn size(&self) -> Result<(u32, u32)> {
-        let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
-            message: "Could not find a canvas.".to_string(),
-        })?;
+        let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
         Ok((canvas.width(), canvas.height()))
     }
 
@@ -101,13 +107,24 @@ impl Window {
         let context_options = ContextOptions {
             antialias: self.settings.multisamples > 0,
         };
-        let context = self.canvas.as_ref().ok_or(WindowError::CanvasError {message: "Could not find a canvas.".to_string()})?
-            .get_context_with_context_options("webgl2", &JsValue::from_serde(&context_options).unwrap())
-            .map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?
-            .ok_or(WindowError::ContextError {message: "Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2?".to_string()})?
-            .dyn_into::<WebGl2RenderingContext>().map_err(|e| WindowError::ContextError {message: format!("Unable to get webgl2 context for the given canvas. Maybe your browser doesn't support WebGL2? Error code: {:?}", e)})?;
-        context.get_extension("EXT_color_buffer_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get EXT_color_buffer_float extension for the given context. Maybe your browser doesn't support the get color_buffer_float extension? Error code: {:?}", e)})?;
-        context.get_extension("OES_texture_float").map_err(|e| WindowError::ContextError {message: format!("Unable to get OES_texture_float extension for the given context. Maybe your browser doesn't support the get OES_texture_float extension? Error code: {:?}", e)})?;
+        let context = self
+            .canvas
+            .as_ref()
+            .ok_or(CanvasError::CanvasMissing)?
+            .get_context_with_context_options(
+                "webgl2",
+                &JsValue::from_serde(&context_options).unwrap(),
+            )
+            .map_err(|e| CanvasError::WebGL2NotSupported(format!(": {:?}", e)))?
+            .ok_or(CanvasError::WebGL2NotSupported("".to_string()))?
+            .dyn_into::<WebGl2RenderingContext>()
+            .map_err(|e| CanvasError::WebGL2NotSupported(format!(": {:?}", e)))?;
+        context
+            .get_extension("EXT_color_buffer_float")
+            .map_err(|e| CanvasError::ColorBufferFloatNotSupported(format!("{:?}", e)))?;
+        context
+            .get_extension("OES_texture_float")
+            .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
         Ok(Context::new(context))
     }
 
@@ -118,9 +135,7 @@ impl Window {
         let performance = self
             .window
             .performance()
-            .ok_or(WindowError::PerformanceError {
-                message: "Performance (for timing) is not found on the window.".to_string(),
-            })?;
+            .ok_or(CanvasError::PerformanceMissing)?;
         let mut last_time = performance.now();
         let mut accumulated_time = 0.0;
         let mut first_frame = true;
@@ -189,9 +204,7 @@ impl Window {
     }
 
     fn set_canvas_size(&self) -> Result<()> {
-        let canvas = self.canvas.as_ref().ok_or(WindowError::CanvasError {
-            message: "Could not find a canvas.".to_string(),
-        })?;
+        let canvas = self.canvas.as_ref().ok_or(CanvasError::CanvasMissing)?;
         let (window_width, window_height) = (
             self.window.inner_width().unwrap().as_f64().unwrap() as u32,
             self.window.inner_height().unwrap().as_f64().unwrap() as u32,
@@ -255,17 +268,14 @@ impl Window {
         }) as Box<dyn FnMut()>);
         self.canvas()?
             .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!("Unable to add resize event listener. Error code: {:?}", e),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("resize".to_string(), format!("{:?}", e))
             })?;
         self.closures.push(closure);
         Ok(())
     }
 
-    fn add_mouseleave_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mouseleave_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -279,20 +289,14 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("mouseleave", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!(
-                    "Unable to add mouse leave event listener. Error code: {:?}",
-                    e
-                ),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("mouseleave".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
-    fn add_mouseenter_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mouseenter_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -305,20 +309,14 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("mouseenter", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!(
-                    "Unable to add mouse enter event listener. Error code: {:?}",
-                    e
-                ),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("mouseenter".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
-    fn add_mousedown_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mousedown_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -346,11 +344,8 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!(
-                    "Unable to add mouse down event listener. Error code: {:?}",
-                    e
-                ),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("mousedown".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_mouseevent.push(closure);
         Ok(())
@@ -384,17 +379,14 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("mouseup", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!("Unable to add mouse up event listener. Error code: {:?}", e),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("mouseup".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
-    fn add_mousemove_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mousemove_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -421,20 +413,14 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("mousemove", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!(
-                    "Unable to add mouse move event listener. Error code: {:?}",
-                    e
-                ),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("mousemove".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_mouseevent.push(closure);
         Ok(())
     }
 
-    fn add_mousewheel_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_mousewheel_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -452,17 +438,12 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("wheel", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!("Unable to add wheel event listener. Error code: {:?}", e),
-            })?;
+            .map_err(|e| CanvasError::EventListenerFail("wheel".to_string(), format!("{:?}", e)))?;
         self.closures_with_wheelevent.push(closure);
         Ok(())
     }
 
-    fn add_touchstart_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_touchstart_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -499,20 +480,14 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("touchstart", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!(
-                    "Unable to add touch start event listener. Error code: {:?}",
-                    e
-                ),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("touchstart".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
-    fn add_touchend_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_touchend_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -536,20 +511,14 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("touchend", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!(
-                    "Unable to add touch end event listener. Error code: {:?}",
-                    e
-                ),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("touchend".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
-    fn add_touchmove_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_touchmove_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::TouchEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -601,20 +570,14 @@ impl Window {
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
             .add_event_listener_with_callback("touchmove", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!(
-                    "Unable to add touch move event listener. Error code: {:?}",
-                    e
-                ),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("touchmove".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_touchevent.push(closure);
         Ok(())
     }
 
-    fn add_key_down_event_listener(
-        &mut self,
-        input: Rc<RefCell<Input>>,
-    ) -> Result<()> {
+    fn add_key_down_event_listener(&mut self, input: Rc<RefCell<Input>>) -> Result<()> {
         let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             if !event.default_prevented() {
                 let mut input = input.borrow_mut();
@@ -649,8 +612,8 @@ impl Window {
             .document()
             .unwrap()
             .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!("Unable to add key down event listener. Error code: {:?}", e),
+            .map_err(|e| {
+                CanvasError::EventListenerFail("keydown".to_string(), format!("{:?}", e))
             })?;
         self.closures_with_keyboardevent.push(closure);
         Ok(())
@@ -685,9 +648,7 @@ impl Window {
             .document()
             .unwrap()
             .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
-            .map_err(|e| WindowError::EventListenerError {
-                message: format!("Unable to add key up event listener. Error code: {:?}", e),
-            })?;
+            .map_err(|e| CanvasError::EventListenerFail("keyup".to_string(), format!("{:?}", e)))?;
         self.closures_with_keyboardevent.push(closure);
         Ok(())
     }
