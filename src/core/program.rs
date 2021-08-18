@@ -408,6 +408,10 @@ impl Program {
         self.context.unuse_program();
     }
 
+    ///
+    /// Same as [Program::draw_arrays] except it renders 'instance_count' instances of the same set of triangles.
+    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
+    ///
     pub fn draw_arrays_instanced(
         &self,
         render_states: RenderStates,
@@ -474,6 +478,10 @@ impl Program {
         self.context.unuse_program();
     }
 
+    ///
+    /// Same as [Program::draw_elements] except it renders 'instance_count' instances of the same set of triangles.
+    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
+    ///
     pub fn draw_elements_instanced(
         &self,
         render_states: RenderStates,

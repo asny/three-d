@@ -100,15 +100,19 @@ pub struct CPUTexture<T: TextureDataType> {
 }
 
 impl<T: TextureDataType> CPUTexture<T> {
-    pub fn add_padding(&mut self, x0: u32, x1: u32, y0: u32, y1: u32) {
+    ///
+    /// Adds a padding of default values to the texture.
+    /// 'left' number of pixels are added to the left of the original texture, 'right' number of pixels to the right and so on.
+    ///
+    pub fn add_padding(&mut self, left: u32, right: u32, top: u32, bottom: u32) {
         let channels = self.format.color_channel_count();
-        let width = x0 + self.width + x1;
-        let height = y0 + self.height + y1;
+        let width = left + self.width + right;
+        let height = top + self.height + bottom;
         let mut new_data = vec![T::default(); width as usize * height as usize * channels as usize];
         for x in 0..self.width {
             for y in 0..self.height {
-                let x_ = x + x0;
-                let y_ = y + y0;
+                let x_ = x + left;
+                let y_ = y + top;
                 let source_index = (y * self.width + x) * channels;
                 let dest_index = (y_ * width + x_) * channels;
                 for i in 0..channels {
