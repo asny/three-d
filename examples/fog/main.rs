@@ -11,6 +11,7 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
+    let pipeline = ForwardPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -118,10 +119,9 @@ fn main() {
                     }
 
                     Screen::write(&context, ClearState::default(), || {
-                        monkey.render_with_lighting(
+                        pipeline.light_pass(
                             &camera,
-                            &monkey_material,
-                            LightingModel::Blinn,
+                            &[(&monkey, &monkey_material)],
                             Some(&ambient_light),
                             &[&directional_light],
                             &[],

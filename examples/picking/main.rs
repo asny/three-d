@@ -11,6 +11,7 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
+    let pipeline = ForwardPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -86,19 +87,12 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
                             || {
-                                monkey.render_with_lighting(
+                                pipeline.light_pass(
                                     &camera,
-                                    &monkey_material,
-                                    LightingModel::Blinn,
-                                    Some(&ambient_light),
-                                    &[&directional_light],
-                                    &[],
-                                    &[],
-                                )?;
-                                pick_mesh.render_with_lighting(
-                                    &camera,
-                                    &pick_mesh_material,
-                                    LightingModel::Blinn,
+                                    &[
+                                        (&monkey, &monkey_material),
+                                        (&pick_mesh, &pick_mesh_material),
+                                    ],
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],

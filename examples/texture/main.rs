@@ -12,7 +12,7 @@ fn main() {
     let context = window.gl().unwrap();
 
     // Renderer
-    let mut pipeline = DeferredPipeline::new(&context).unwrap();
+    let pipeline = ForwardPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -70,6 +70,7 @@ fn main() {
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
             let penguin_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
             let mut penguin = Model::new(&context, &penguin_cpu_meshes[0]).unwrap();
+            penguin.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
             penguin.cull = Cull::Back;
 
             let ambient_light = AmbientLight {
@@ -91,28 +92,10 @@ fn main() {
 
                     // draw
                     if redraw {
-                        // Geometry pass
-                        penguin.set_transformation(Mat4::from_translation(vec3(-0.5, 1.0, 0.0)));
-                        pipeline
-                            .geometry_pass(
-                                &camera,
-                                &[(&box_mesh, &box_material), (&penguin, &penguin_material)],
-                            )
-                            .unwrap();
-
                         Screen::write(&context, ClearState::default(), || {
                             pipeline.light_pass(
                                 &camera,
-                                Some(&ambient_light),
-                                &[&directional_light],
-                                &[],
-                                &[],
-                            )?;
-                            penguin.set_transformation(Mat4::from_translation(vec3(0.5, 1.0, 0.0)));
-                            penguin.render_with_lighting(
-                                &camera,
-                                &penguin_material,
-                                LightingModel::Blinn,
+                                &[(&box_mesh, &box_material), (&penguin, &penguin_material)],
                                 Some(&ambient_light),
                                 &[&directional_light],
                                 &[],

@@ -10,6 +10,7 @@ fn main() {
     })
     .unwrap();
     let context = window.gl().unwrap();
+    let pipeline = ForwardPipeline::new(&context).unwrap();
 
     let mut camera = Camera::new_perspective(
         &context,
@@ -78,19 +79,12 @@ fn main() {
             imposters
                 .update_texture(
                     |camera: &Camera| {
-                        tree_mesh.render_with_lighting(
-                            camera,
-                            &tree_material,
-                            LightingModel::Blinn,
-                            Some(&ambient_light),
-                            &[&directional_light],
-                            &[],
-                            &[],
-                        )?;
-                        leaves_mesh.render_with_lighting(
-                            camera,
-                            &leaves_material,
-                            LightingModel::Blinn,
+                        pipeline.light_pass(
+                            &camera,
+                            &[
+                                (&tree_mesh, &tree_material),
+                                (&leaves_mesh, &leaves_material),
+                            ],
                             Some(&ambient_light),
                             &[&directional_light],
                             &[],
@@ -165,28 +159,13 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                             || {
-                                plane.render_with_lighting(
+                                pipeline.light_pass(
                                     &camera,
-                                    &plane_material,
-                                    LightingModel::Blinn,
-                                    Some(&ambient_light),
-                                    &[&directional_light],
-                                    &[],
-                                    &[],
-                                )?;
-                                tree_mesh.render_with_lighting(
-                                    &camera,
-                                    &tree_material,
-                                    LightingModel::Blinn,
-                                    Some(&ambient_light),
-                                    &[&directional_light],
-                                    &[],
-                                    &[],
-                                )?;
-                                leaves_mesh.render_with_lighting(
-                                    &camera,
-                                    &leaves_material,
-                                    LightingModel::Blinn,
+                                    &[
+                                        (&plane, &plane_material),
+                                        (&tree_mesh, &tree_material),
+                                        (&leaves_mesh, &leaves_material),
+                                    ],
                                     Some(&ambient_light),
                                     &[&directional_light],
                                     &[],
