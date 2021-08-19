@@ -6,7 +6,7 @@ use crate::renderer::*;
 /// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [ShadedGeometry::render_with_lighting] directly.
 ///
 pub struct ForwardPipeline {
-    _context: Context,
+    context: Context,
     pub lighting_model: LightingModel,
 }
 
@@ -16,7 +16,7 @@ impl ForwardPipeline {
     ///
     pub fn new(context: &Context) -> Result<Self> {
         Ok(Self {
-            _context: context.clone(),
+            context: context.clone(),
             lighting_model: LightingModel::Blinn,
         })
     }
@@ -49,5 +49,31 @@ impl ForwardPipeline {
         }
 
         Ok(())
+    }
+
+    pub fn depth_pass(&self, camera: &Camera, geometries: &[&dyn Geometry]) -> Result<()> {
+        for geometry in geometries {
+            if camera.in_frustum(&geometry.aabb()) {
+                geometry.render_depth(&camera)?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn depth_pass_texture(
+        &self,
+        camera: &Camera,
+        geometries: &[&dyn Geometry],
+    ) -> Result<DepthTargetTexture2D> {
+        let depth_texture = DepthTargetTexture2D::new(
+            &self.context,
+            camera.viewport().width,
+            camera.viewport().height,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            DepthFormat::Depth32F,
+        )?;
+        depth_texture.write(Some(1.0), || self.depth_pass(&camera, geometries))?;
+        Ok(depth_texture)
     }
 }

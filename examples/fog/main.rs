@@ -76,19 +76,6 @@ fn main() {
                 .render_loop(move |mut frame_input| {
                     let mut change = frame_input.first_frame;
                     change |= camera.set_viewport(frame_input.viewport).unwrap();
-                    if change {
-                        depth_texture = Some(
-                            DepthTargetTexture2D::new(
-                                &context,
-                                frame_input.viewport.width,
-                                frame_input.viewport.height,
-                                Wrapping::ClampToEdge,
-                                Wrapping::ClampToEdge,
-                                DepthFormat::Depth32F,
-                            )
-                            .unwrap(),
-                        );
-                    }
                     change |= control
                         .handle_events(&mut camera, &mut frame_input.events)
                         .unwrap();
@@ -107,15 +94,9 @@ fn main() {
                     }
 
                     // draw
-                    if change {
-                        depth_texture
-                            .as_ref()
-                            .unwrap()
-                            .write(Some(1.0), &|| {
-                                monkey.render_depth(&camera)?;
-                                Ok(())
-                            })
-                            .unwrap();
+                    if change && fog_enabled {
+                        depth_texture =
+                            Some(pipeline.depth_pass_texture(&camera, &[&monkey]).unwrap());
                     }
 
                     Screen::write(&context, ClearState::default(), || {
