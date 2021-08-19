@@ -601,7 +601,7 @@ impl Window {
                     event.stop_propagation();
                     event.prevent_default();
                 }
-                if modifiers.ctrl && modifiers.command && !should_ignore_key(&key) {
+                if !modifiers.ctrl && !modifiers.command && !should_ignore_key(&key) {
                     input.events.push(Event::Text(key));
                     event.stop_propagation();
                     event.prevent_default();

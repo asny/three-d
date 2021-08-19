@@ -288,7 +288,7 @@ impl Window {
                         cursor_pos = Some((p.x, p.y));
                     }
                     WindowEvent::ReceivedCharacter(ch) => {
-                        if is_printable_char(*ch) && modifiers.ctrl && modifiers.command {
+                        if is_printable_char(*ch) && !modifiers.ctrl && !modifiers.command {
                             events.push(crate::Event::Text(ch.to_string()));
                         }
                     }
