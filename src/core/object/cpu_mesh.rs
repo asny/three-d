@@ -330,42 +330,37 @@ impl CPUMesh {
                 Indices::U32(ind) => ind.len(),
             };
             if index_count % 3 != 0 {
-                Err(CoreError::InvalidMeshBufferLength(
+                Err(CoreError::InvalidBufferLength(
                     "index".to_string(),
-                    self.name.to_string(),
                     index_count,
                 ))?;
             }
             if self.positions.len() % 3 != 0 {
-                Err(CoreError::InvalidMeshBufferLength(
+                Err(CoreError::InvalidBufferLength(
                     "position".to_string(),
-                    self.name.to_string(),
                     index_count,
                 ))?;
             }
             if let Some(ref data) = self.normals {
                 if data.len() % 3 != 0 {
-                    Err(CoreError::InvalidMeshBufferLength(
+                    Err(CoreError::InvalidBufferLength(
                         "normal".to_string(),
-                        self.name.to_string(),
                         index_count,
                     ))?;
                 }
             }
             if let Some(ref data) = self.colors {
                 if data.len() % 4 != 0 {
-                    Err(CoreError::InvalidMeshBufferLength(
+                    Err(CoreError::InvalidBufferLength(
                         "color".to_string(),
-                        self.name.to_string(),
                         index_count,
                     ))?;
                 }
             }
             if let Some(ref data) = self.uvs {
                 if data.len() % 2 != 0 {
-                    Err(CoreError::InvalidMeshBufferLength(
+                    Err(CoreError::InvalidBufferLength(
                         "uv coordinate".to_string(),
-                        self.name.to_string(),
                         index_count,
                     ))?;
                 }
@@ -386,18 +381,12 @@ impl CPUMesh {
                     }
                 };
                 if !indices_valid {
-                    Err(CoreError::InvalidMeshIndexBuffer(
-                        self.name.to_string(),
-                        self.positions.len(),
-                    ))?;
+                    Err(CoreError::InvalidIndexBuffer(self.positions.len()))?;
                 }
             }
         } else {
             if self.positions.len() % 9 != 0 {
-                Err(CoreError::InvalidMeshPositionBuffer(
-                    self.name.to_string(),
-                    self.positions.len(),
-                ))?;
+                Err(CoreError::InvalidPositionBuffer(self.positions.len()))?;
             }
         };
         Ok(())

@@ -81,12 +81,14 @@ pub enum CoreError {
     InvalidTextureLength(usize, usize),
     #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
     MissingMeshBuffer(String),
-    #[error("{0} buffer length must be divisible by 3 for the mesh `{1}`, actual count is {2}")]
-    InvalidMeshBufferLength(String, String, usize),
-    #[error("index buffer for the mesh `{0}` contains values larger than the length of the buffer which is {1}")]
-    InvalidMeshIndexBuffer(String, usize),
-    #[error("when indices unspecified, positions length of mesh `{0}` must be divisible by 9, actual count is {1}")]
-    InvalidMeshPositionBuffer(String, usize),
+    #[error("{0} buffer length must be divisible by 3, actual count is {1}")]
+    InvalidBufferLength(String, usize),
+    #[error("index buffer contains values larger than the length of the buffer which is {0}")]
+    InvalidIndexBuffer(usize),
+    #[error(
+        "when indices unspecified, positions length must be divisible by 9, actual count is {0}"
+    )]
+    InvalidPositionBuffer(usize),
     #[error("data for element at index {0} has length {1} but a length of {2} was expected")]
     InvalidUniformBufferElementLength(u32, usize, usize),
     #[error("the index {0} is outside the expected range [0, {1}]")]

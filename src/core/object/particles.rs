@@ -101,8 +101,8 @@ pub struct ParticleData {
 /// `new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time`
 ///
 pub struct Particles {
-    start_position_buffer: VertexBuffer,
-    start_velocity_buffer: VertexBuffer,
+    start_position_buffer: InstanceBuffer,
+    start_velocity_buffer: InstanceBuffer,
     position_buffer: VertexBuffer,
     normal_buffer: Option<VertexBuffer>,
     uv_buffer: Option<VertexBuffer>,
@@ -127,9 +127,9 @@ impl Particles {
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
             Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U8(ind) => ElementBuffer::new_with(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new_with(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new_with(context, ind)?,
             })
         } else {
             None
@@ -145,8 +145,8 @@ impl Particles {
             index_buffer,
             normal_buffer,
             uv_buffer,
-            start_position_buffer: VertexBuffer::new(context)?,
-            start_velocity_buffer: VertexBuffer::new(context)?,
+            start_position_buffer: InstanceBuffer::new(context)?,
+            start_velocity_buffer: InstanceBuffer::new(context)?,
             acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),

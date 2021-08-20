@@ -1,33 +1,32 @@
 use crate::context::{consts, Context, DataType};
 use crate::core::*;
 
-/// The basic data type used for each element in a [VertexBuffer].
-pub trait VertexBufferDataType:
+/// The basic data type used for each element in a [InstanceBuffer].
+pub trait InstanceBufferDataType:
     Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
 }
-impl VertexBufferDataType for u8 {}
-impl VertexBufferDataType for u16 {}
-impl VertexBufferDataType for f32 {}
+impl InstanceBufferDataType for u8 {}
+impl InstanceBufferDataType for u16 {}
+impl InstanceBufferDataType for f32 {}
 
 ///
-/// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors.
-/// Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each vertex.
-/// Bind this using the [Program::use_attribute], [Program::use_attribute_vec2], etc. functionality.
+/// A buffer containing per instance data. Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each instance.
+/// To send this data to a shader, use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], etc. functionality.
 ///
-pub struct VertexBuffer {
+pub struct InstanceBuffer {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
     data_type: DataType,
 }
 
-impl VertexBuffer {
+impl InstanceBuffer {
     ///
-    /// Creates a new empty vertex buffer.
+    /// Creates a new empty instance buffer.
     ///
-    pub fn new(context: &Context) -> Result<VertexBuffer> {
-        Ok(VertexBuffer {
+    pub fn new(context: &Context) -> Result<Self> {
+        Ok(Self {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
             count: 0,
@@ -36,14 +35,15 @@ impl VertexBuffer {
     }
 
     ///
-    /// Creates a new vertex buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_dynamic](VertexBuffer::new_with_dynamic)
+    /// Creates a new instance buffer and fills it with the given data.
+    /// The given data slice must contain between 1 and 4 contiguous values for each instance.
+    /// Use this method instead of [new_with_dynamic](InstanceBuffer::new_with_dynamic)
     /// when you do not expect the data to change often.
     ///
-    pub fn new_with_static<T: VertexBufferDataType>(
+    pub fn new_with_static<T: InstanceBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<VertexBuffer> {
+    ) -> Result<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill_with_static(data);
@@ -52,11 +52,12 @@ impl VertexBuffer {
     }
 
     ///
-    /// Fills the vertex buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_dynamic](VertexBuffer::fill_with_dynamic)
+    /// Fills the instance buffer with the given data.
+    /// The given data slice must contain between 1 and 4 contiguous values for each instance.
+    /// Use this method instead of [fill_with_dynamic](InstanceBuffer::fill_with_dynamic)
     /// when you do not expect the data to change often.
     ///
-    pub fn fill_with_static<T: VertexBufferDataType>(&mut self, data: &[T]) {
+    pub fn fill_with_static<T: InstanceBufferDataType>(&mut self, data: &[T]) {
         self.bind();
         T::buffer_data(
             &self.context,
@@ -70,14 +71,15 @@ impl VertexBuffer {
     }
 
     ///
-    /// Creates a new vertex buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_static](VertexBuffer::new_with_static)
+    /// Creates a new instance buffer and fills it with the given data.
+    /// The given data slice must contain between 1 and 4 contiguous values for each instance.
+    /// Use this method instead of [new_with_static](InstanceBuffer::new_with_static)
     /// when you expect the data to change often.
     ///
-    pub fn new_with_dynamic<T: VertexBufferDataType>(
+    pub fn new_with_dynamic<T: InstanceBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<VertexBuffer> {
+    ) -> Result<Self> {
         let mut buffer = Self::new(context).unwrap();
         if data.len() > 0 {
             buffer.fill_with_dynamic(data);
@@ -86,11 +88,12 @@ impl VertexBuffer {
     }
 
     ///
-    /// Fills the vertex buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_static](VertexBuffer::fill_with_static)
+    /// Fills the instance buffer with the given data.
+    /// The given data slice must contain between 1 and 4 contiguous values for each instance.
+    /// Use this method instead of [fill_with_static](InstanceBuffer::fill_with_static)
     /// when you expect the data to change often.
     ///
-    pub fn fill_with_dynamic<T: VertexBufferDataType>(&mut self, data: &[T]) {
+    pub fn fill_with_dynamic<T: InstanceBufferDataType>(&mut self, data: &[T]) {
         self.bind();
         T::buffer_data(
             &self.context,
@@ -119,7 +122,7 @@ impl VertexBuffer {
     }
 }
 
-impl Drop for VertexBuffer {
+impl Drop for InstanceBuffer {
     fn drop(&mut self) {
         self.context.delete_buffer(&self.id);
     }

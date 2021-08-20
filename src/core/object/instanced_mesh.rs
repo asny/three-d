@@ -39,9 +39,9 @@ pub struct InstancedMesh {
     color_buffer: Option<VertexBuffer>,
     pub(crate) transparent: bool,
     instance_count: u32,
-    instance_buffer1: VertexBuffer,
-    instance_buffer2: VertexBuffer,
-    instance_buffer3: VertexBuffer,
+    instance_buffer1: InstanceBuffer,
+    instance_buffer2: InstanceBuffer,
+    instance_buffer3: InstanceBuffer,
     /// Optional name of the instanced mesh.
     pub name: String,
     transformation: Mat4,
@@ -64,9 +64,9 @@ impl InstancedMesh {
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
             Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new(context, ind)?,
+                Indices::U8(ind) => ElementBuffer::new_with(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new_with(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new_with(context, ind)?,
             })
         } else {
             None
@@ -98,9 +98,9 @@ impl InstancedMesh {
             uv_buffer,
             color_buffer,
             transparent,
-            instance_buffer1: VertexBuffer::new(context)?,
-            instance_buffer2: VertexBuffer::new(context)?,
-            instance_buffer3: VertexBuffer::new(context)?,
+            instance_buffer1: InstanceBuffer::new(context)?,
+            instance_buffer2: InstanceBuffer::new(context)?,
+            instance_buffer3: InstanceBuffer::new(context)?,
             transformation: Mat4::identity(),
         };
         mesh.update_transformations(transformations);

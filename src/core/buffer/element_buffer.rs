@@ -1,9 +1,35 @@
 use crate::context::{consts, Context, DataType};
 use crate::core::*;
 
+/// The basic data type used for each index in an element buffer.
+pub trait ElementBufferDataType:
+    Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
+{
+    ///
+    /// Converts the index to `u32`.
+    ///
+    fn into_u32(&self) -> u32;
+}
+impl ElementBufferDataType for u8 {
+    fn into_u32(&self) -> u32 {
+        *self as u32
+    }
+}
+impl ElementBufferDataType for u16 {
+    fn into_u32(&self) -> u32 {
+        *self as u32
+    }
+}
+impl ElementBufferDataType for u32 {
+    fn into_u32(&self) -> u32 {
+        *self
+    }
+}
+
 ///
-/// A buffer containing indices for rendering, see for example [draw_elements](crate::core::Program::draw_elements).
-/// Also known as an index buffer.
+/// A buffer containing 3 indices for each triangle to be rendered, which is why it is also known as an index buffer.
+/// The three indices refer to three places in a set of [VertexBuffer] where the data (position, normal etc.) is found for the three vertices of the triangle.
+/// See for example [Program::draw_elements] to use this for drawing.
 ///
 pub struct ElementBuffer {
     context: Context,
@@ -14,26 +40,42 @@ pub struct ElementBuffer {
 
 impl ElementBuffer {
     ///
-    /// Creates a new element buffer and fills it with the given indices.
+    /// Creates a new empty element buffer.
     ///
-    pub fn new<T: ElementBufferDataType>(context: &Context, data: &[T]) -> Result<ElementBuffer> {
+    pub fn new<T: ElementBufferDataType>(context: &Context) -> Result<ElementBuffer> {
         let id = context.create_buffer().unwrap();
-        let mut buffer = ElementBuffer {
+        Ok(ElementBuffer {
             context: context.clone(),
             id,
             count: 0,
             data_type: T::data_type(),
-        };
-        if data.len() > 0 {
-            buffer.fill_with(data);
-        }
-        Ok(buffer)
+        })
     }
 
     ///
-    /// Fills the buffer with the given indices.
+    /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
     ///
-    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) {
+    pub fn new_with<T: ElementBufferDataType>(
+        context: &Context,
+        data: &[T],
+    ) -> Result<ElementBuffer> {
+        let mut buffer = Self::new::<T>(context)?;
+        if data.len() > 0 {
+            buffer.fill_with(data)?;
+        }
+        Ok(buffer)
+    }
+    ///
+    /// Fills the buffer with the given indices which must be divisable by 3.
+    ///
+    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> Result<()> {
+        if data.len() % 3 != 0 {
+            Err(CoreError::InvalidBufferLength(
+                "index".to_string(),
+                data.len(),
+            ))?;
+        }
+
         self.bind();
         T::buffer_data(
             &self.context,
@@ -44,6 +86,7 @@ impl ElementBuffer {
         self.data_type = T::data_type();
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         self.count = data.len();
+        Ok(())
     }
 
     ///

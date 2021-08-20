@@ -11,8 +11,8 @@ const NO_VIEW_ANGLES: u32 = 8;
 pub struct Imposters {
     context: Context,
     program: Program,
-    center_buffer: VertexBuffer,
-    rotation_buffer: VertexBuffer,
+    center_buffer: InstanceBuffer,
+    rotation_buffer: InstanceBuffer,
     positions_buffer: VertexBuffer,
     uvs_buffer: VertexBuffer,
     instance_count: u32,
@@ -35,8 +35,8 @@ impl Imposters {
             ),
         )?;
 
-        let center_buffer = VertexBuffer::new(context)?;
-        let rotation_buffer = VertexBuffer::new(context)?;
+        let center_buffer = InstanceBuffer::new(context)?;
+        let rotation_buffer = InstanceBuffer::new(context)?;
         let texture = ColorTargetTexture2DArray::<u8>::new(
             context,
             1,
