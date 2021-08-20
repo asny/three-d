@@ -14,11 +14,11 @@ The crate consist of three main modules for drawing, `context`, `core` and `rend
 
 | Module           | Description                   
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 
-| [`context`](https://docs.rs/three-d/0/three_d/context/) | Low-level rendering module - requires a solid understanding of graphics concepts. Gives you complete control over both setup and rendering.                             
-| [`core`](https://docs.rs/three-d/0/three_d/core/) | Mid-level rendering module - requires at least some knowledge about graphics concepts. Use this if you want to write your own shaders and but don't want to spend time on setup and error handling. Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.                                                                                                                           
-| [`renderer`](https://docs.rs/three-d/0/three_d/renderer/)  | High-level rendering module - requires no knowledge about graphics concepts. Use this if you just want to draw something on the screen. Features include methods for rendering different types of standard objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.             |
-| [`io`](https://docs.rs/three-d/0/three_d/io/) | Contains functionality to load any type of asset runtime on both desktop and web as well as parsers for different image and 3D model formats. Also includes functionality to save data which is limited to desktop.
-| [`window`](https://docs.rs/three-d/0/three_d/window/)  | Contains functionality for creating a window on both cross-platform desktop (requires the `"glutin-window"` feature) and web (requires the `"canvas"` feature). Also contain render loop, event handling and camera control functionality. Can be replaced by anything that provides an OpenGL or WebGL2 graphics context. 
+| [`context`](https://docs.rs/three-d/0.8/three_d/context/) | Low-level rendering module - requires a solid understanding of graphics concepts. Gives you complete control over both setup and rendering.                             
+| [`core`](https://docs.rs/three-d/0.8/three_d/core/) | Mid-level rendering module - requires at least some knowledge about graphics concepts. Use this if you want to write your own shaders and but don't want to spend time on setup and error handling. Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.                                                                                                                           
+| [`renderer`](https://docs.rs/three-d/0.8/three_d/renderer/)  | High-level rendering module - requires no knowledge about graphics concepts. Use this if you just want to draw something on the screen. Features include methods for rendering different types of standard objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.             |
+| [`io`](https://docs.rs/three-d/0.8/three_d/io/) | Contains functionality to load any type of asset runtime on both desktop and web as well as parsers for different image and 3D model formats. Also includes functionality to save data which is limited to desktop.
+| [`window`](https://docs.rs/three-d/0.8/three_d/window/)  | Contains functionality for creating a window on both cross-platform desktop (requires the `"glutin-window"` feature) and web (requires the `"canvas"` feature). Also contain render loop, event handling and camera control functionality. Can be replaced by anything that provides an OpenGL or WebGL2 graphics context. 
 
 
 ### Supported browsers
@@ -27,8 +27,8 @@ Chrome, Firefox, Edge and Safari (Safari might requires enabling the "WebGL 2.0"
 
 ### Examples
 
-Several examples covering most features can be found [here](https://github.com/asny/three-d/tree/master/examples) and the examples from the latest release are also live at [asny.github.io/three-d/](https://asny.github.io/three-d/).
-Take a look at the [triangle example](https://github.com/asny/three-d/blob/master/examples/triangle/main.rs) for a gentle introduction.
+Several examples covering most features can be found [here](https://github.com/asny/three-d/tree/0.8/examples) for this release and the examples from the latest release are also live at [asny.github.io/three-d/](https://asny.github.io/three-d/).
+Take a look at the [triangle example](https://github.com/asny/three-d/blob/0.8/examples/triangle/main.rs) for a gentle introduction.
 
 ![Lighting example](https://asny.github.io/three-d/lighting.png)
 ![Statues example](https://asny.github.io/three-d/statues.png)
