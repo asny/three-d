@@ -65,7 +65,7 @@ $ http-server
 
 ### Other
 
-Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request.
+Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [development branch](https://github.com/asny/three-d/tree/development).
 
 [all]: https://github.com/asny/three-d/tree/master/examples/
 [lighting]: https://github.com/asny/three-d/tree/master/examples/lighting/main.rs
