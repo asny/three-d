@@ -36,13 +36,13 @@ impl Camera {
         position: Vec3,
         target: Vec3,
         up: Vec3,
-        width: f32,
         height: f32,
-        depth: f32,
+        z_near: f32,
+        z_far: f32,
     ) -> Result<Camera> {
         let mut camera = Camera::new(context, viewport);
         camera.set_view(position, target, up)?;
-        camera.set_orthographic_projection(width, height, depth)?;
+        camera.set_orthographic_projection(height, z_near, z_far)?;
         Ok(camera)
     }
 
