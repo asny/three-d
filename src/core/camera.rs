@@ -40,7 +40,7 @@ impl Camera {
         z_near: f32,
         z_far: f32,
     ) -> Result<Camera> {
-        let mut camera = Camera::new(context, viewport);
+        let mut camera = Camera::new(context, viewport)?;
         camera.set_view(position, target, up)?;
         camera.set_orthographic_projection(height, z_near, z_far)?;
         Ok(camera)
@@ -59,7 +59,7 @@ impl Camera {
         z_near: f32,
         z_far: f32,
     ) -> Result<Camera> {
-        let mut camera = Camera::new(context, viewport);
+        let mut camera = Camera::new(context, viewport)?;
         camera.set_view(position, target, up)?;
         camera.set_perspective_projection(field_of_view_y, z_near, z_far)?;
         Ok(camera)
@@ -369,8 +369,8 @@ impl Camera {
         &self.uniform_buffer
     }
 
-    fn new(context: &Context, viewport: Viewport) -> Camera {
-        Camera {
+    fn new(context: &Context, viewport: Viewport) -> Result<Camera> {
+        Ok(Camera {
             context: context.clone(),
             viewport,
             projection_type: ProjectionType::Orthographic {
@@ -379,7 +379,7 @@ impl Camera {
             },
             z_near: 0.0,
             z_far: 0.0,
-            uniform_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1]).unwrap(),
+            uniform_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1])?,
             frustrum: [vec4(0.0, 0.0, 0.0, 0.0); 6],
             position: vec3(0.0, 0.0, 5.0),
             target: vec3(0.0, 0.0, 0.0),
@@ -387,7 +387,7 @@ impl Camera {
             view: Mat4::identity(),
             projection: Mat4::identity(),
             screen2ray: Mat4::identity(),
-        }
+        })
     }
 
     fn update_screen2ray(&mut self) {
