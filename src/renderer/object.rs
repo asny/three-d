@@ -8,9 +8,17 @@ mod model;
 #[doc(inline)]
 pub use model::*;
 
+mod model2d;
+#[doc(inline)]
+pub use model2d::*;
+
 mod instanced_model;
 #[doc(inline)]
 pub use instanced_model::*;
+
+mod line;
+#[doc(inline)]
+pub use line::*;
 
 mod skybox;
 #[doc(inline)]
