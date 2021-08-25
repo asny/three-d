@@ -64,7 +64,7 @@ impl Model {
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     /// Will render the model transparent if the color contains an alpha value below 255, you only need to render the model after all solid models.
     ///
-    pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<()> {
+    pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", &color.to_vec4())?;
         Ok(self.mesh.render(

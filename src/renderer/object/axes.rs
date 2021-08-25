@@ -29,11 +29,11 @@ impl Axes {
     ///
     pub fn render(&self, camera: &Camera) -> Result<()> {
         let mut model = self.model.clone();
-        model.render_with_color(&Color::RED, camera)?;
+        model.render_with_color(Color::RED, camera)?;
         model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
-        model.render_with_color(&Color::GREEN, camera)?;
+        model.render_with_color(Color::GREEN, camera)?;
         model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
-        model.render_with_color(&Color::BLUE, camera)?;
+        model.render_with_color(Color::BLUE, camera)?;
         Ok(())
     }
 }

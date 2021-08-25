@@ -66,7 +66,7 @@ impl InstancedModel {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced model.
     ///
-    pub fn render_with_color(&self, color: &Color, camera: &Camera) -> Result<()> {
+    pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
         program.use_uniform_vec4("color", &color.to_vec4())?;
         Ok(self.mesh.render(
