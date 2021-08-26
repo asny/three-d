@@ -67,44 +67,35 @@ impl Model2D {
 
     fn camera2d(&self, viewport: Viewport) -> Result<&Camera> {
         unsafe {
-            if let Some(ref mut camera) = CAMERA2D {
-                camera.set_viewport(viewport)?;
-                camera.set_orthographic_projection(viewport.height as f32, 0.0, 10.0)?;
-                camera.set_view(
-                    vec3(
-                        viewport.width as f32 * 0.5,
-                        viewport.height as f32 * 0.5,
-                        -1.0,
-                    ),
-                    vec3(
-                        viewport.width as f32 * 0.5,
-                        viewport.height as f32 * 0.5,
-                        0.0,
-                    ),
-                    vec3(0.0, -1.0, 0.0),
-                )?;
-                Ok(camera)
-            } else {
+            if CAMERA2D.is_none() {
                 CAMERA2D = Some(Camera::new_orthographic(
                     &self.context,
                     viewport,
-                    vec3(
-                        viewport.width as f32 * 0.5,
-                        viewport.height as f32 * 0.5,
-                        -1.0,
-                    ),
-                    vec3(
-                        viewport.width as f32 * 0.5,
-                        viewport.height as f32 * 0.5,
-                        0.0,
-                    ),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, 0.0, 0.0),
                     vec3(0.0, -1.0, 0.0),
-                    viewport.height as f32,
+                    1.0,
                     0.0,
                     10.0,
                 )?);
-                Ok(CAMERA2D.as_ref().unwrap())
             }
+            let camera = CAMERA2D.as_mut().unwrap();
+            camera.set_viewport(viewport)?;
+            camera.set_orthographic_projection(viewport.height as f32, 0.0, 10.0)?;
+            camera.set_view(
+                vec3(
+                    viewport.width as f32 * 0.5,
+                    viewport.height as f32 * 0.5,
+                    -1.0,
+                ),
+                vec3(
+                    viewport.width as f32 * 0.5,
+                    viewport.height as f32 * 0.5,
+                    0.0,
+                ),
+                vec3(0.0, -1.0, 0.0),
+            )?;
+            Ok(camera)
         }
     }
 }
