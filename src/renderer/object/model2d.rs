@@ -35,7 +35,12 @@ impl Model2D {
 
     pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
         self.model
-            .render_with_color(color, Self::camera2d(&self.context, viewport)?)
+            .render_with_color(color, self.camera2d(viewport)?)
+    }
+
+    pub fn render_with_texture(&self, texture: &impl Texture, viewport: Viewport) -> Result<()> {
+        self.model
+            .render_with_texture(texture, self.camera2d(viewport)?)
     }
 
     fn uniform_buffer(&self) -> Result<UniformBuffer> {
@@ -47,7 +52,7 @@ impl Model2D {
         Ok(uniform_buffer)
     }
 
-    fn camera2d(context: &Context, viewport: Viewport) -> Result<&Camera> {
+    fn camera2d(&self, viewport: Viewport) -> Result<&Camera> {
         unsafe {
             if let Some(ref mut camera) = CAMERA2D {
                 camera.set_viewport(viewport)?;
@@ -56,31 +61,31 @@ impl Model2D {
                     vec3(
                         viewport.width as f32 * 0.5,
                         viewport.height as f32 * 0.5,
-                        1.0,
+                        -1.0,
                     ),
                     vec3(
                         viewport.width as f32 * 0.5,
                         viewport.height as f32 * 0.5,
                         0.0,
                     ),
-                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
                 )?;
                 Ok(camera)
             } else {
                 CAMERA2D = Some(Camera::new_orthographic(
-                    context,
+                    &self.context,
                     viewport,
                     vec3(
                         viewport.width as f32 * 0.5,
                         viewport.height as f32 * 0.5,
-                        1.0,
+                        -1.0,
                     ),
                     vec3(
                         viewport.width as f32 * 0.5,
                         viewport.height as f32 * 0.5,
                         0.0,
                     ),
-                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
                     viewport.height as f32,
                     0.0,
                     10.0,

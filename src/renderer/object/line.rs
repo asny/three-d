@@ -16,18 +16,27 @@ impl Line {
         })
     }
 
-    pub fn set_transformation(&mut self, p0: Vec2, p1: Vec2, width: f32) {
+    ///
+    /// Define the line by the two end points and the width of the line.
+    /// Both the pixel coordinates and width must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+    ///
+    pub fn set_transformation(&mut self, pixel0: (f32, f32), pixel1: (f32, f32), width: f32) {
+        let dx = pixel1.0 - pixel0.0;
+        let dy = pixel1.1 - pixel0.1;
+        let length = (dx * dx + dy * dy).sqrt();
         self.model.set_transformation(
-            Mat4::from_translation(vec3(p0.x, p0.y, 0.0))
-                * rotation_matrix_from_dir_to_dir(
-                    vec3(1.0, 0.0, 0.0),
-                    vec3(p1.x - p0.x, p1.y - p0.y, 0.0).normalize(),
-                )
-                * Mat4::from_nonuniform_scale(p1.distance(p0), width, 1.0),
+            Mat4::from_translation(vec3(pixel0.0, pixel0.1, 0.0))
+                * rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), vec3(dx, dy, 0.0) / length)
+                * Mat4::from_nonuniform_scale(length, width, 1.0),
         );
     }
+}
 
-    pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
-        self.model.render_with_color(color, viewport)
+impl std::ops::Deref for Line {
+    type Target = Model2D;
+
+    fn deref(&self) -> &Self::Target {
+        &self.model
     }
 }
