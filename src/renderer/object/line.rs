@@ -25,10 +25,14 @@ impl Line {
         let dx = pixel1.0 - pixel0.0;
         let dy = pixel1.1 - pixel0.1;
         let length = (dx * dx + dy * dy).sqrt();
+
+        let c = dx / length;
+        let s = dy / length;
+        let rot = Mat3::new(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0);
         self.model.set_transformation(
-            Mat4::from_translation(vec3(pixel0.0, pixel0.1, 0.0))
-                * rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), vec3(dx, dy, 0.0) / length)
-                * Mat4::from_nonuniform_scale(length, width, 1.0),
+            Mat3::from_translation(vec2(pixel0.0, pixel0.1))
+                * rot
+                * Mat3::from_nonuniform_scale(length, width),
         );
     }
 }
