@@ -20,17 +20,30 @@ impl Model2D {
     }
 
     ///
-    /// Returns the local to world transformation of this mesh.
-    ///
-    pub fn transformation(&self) -> &Mat4 {
-        self.model.transformation()
-    }
-
-    ///
     /// Set the local to world transformation of this mesh.
     ///
-    pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.model.set_transformation(transformation);
+    pub fn set_transformation(&mut self, transformation: Mat3) {
+        self.model.set_transformation(Mat4::from_cols(
+            vec4(
+                transformation.x.x,
+                transformation.x.y,
+                0.0,
+                transformation.x.z,
+            ),
+            vec4(
+                transformation.y.x,
+                transformation.y.y,
+                0.0,
+                transformation.y.z,
+            ),
+            vec4(0.0, 0.0, 1.0, 0.0),
+            vec4(
+                transformation.z.x,
+                transformation.z.y,
+                0.0,
+                transformation.z.z,
+            ),
+        ));
     }
 
     pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
