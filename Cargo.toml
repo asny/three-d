@@ -12,6 +12,10 @@ categories = ["graphics", "rendering", "visualization", "wasm", "web-programming
 keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 exclude = ["/examples", ".gitignore", "index.html"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [features]
 default = ["glutin-window", "canvas", "egui-gui", "3d-io", "obj-io", "gltf-io", "image-io"]
 glutin-window = ["glutin"] # Default window for desktop (only available when NOT building for the wasm32 architecture)

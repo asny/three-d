@@ -6,9 +6,6 @@ impl Loaded {
     ///
     /// Deserialize a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
     ///
-    /// # Feature
-    /// Only available when the `3d-io` feature is enabled.
-    ///
     pub fn three_d<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
         let bytes = self.get_bytes(path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
@@ -119,10 +116,6 @@ impl Saver {
     ///
     /// Saves the given meshes and materials as a .3d file.
     ///
-    /// # Feature
-    /// Only available when the `3d-io` and `image-io` features are enabled.
-    ///
-    #[cfg(feature = "image-io")]
     pub fn save_3d_file<P: AsRef<Path>>(
         path: P,
         cpu_meshes: Vec<CPUMesh>,

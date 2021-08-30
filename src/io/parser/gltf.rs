@@ -8,9 +8,6 @@ impl Loaded {
     /// Deserialize a loaded .gltf file and related .bin resource file and related texture resources or a loaded .glb file into a list of meshes and materials.
     /// It uses the [gltf](https://crates.io/crates/gltf/main.rs) crate.
     ///
-    /// # Feature
-    /// Only available when the `gltf-io` feature is enabled.
-    ///
     pub fn gltf(&mut self, path: impl AsRef<Path>) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
         let mut cpu_meshes = Vec::new();
         let mut cpu_materials = Vec::new();

@@ -1,16 +1,19 @@
 #[cfg(feature = "3d-io")]
+#[cfg_attr(docsrs, doc(cfg(feature = "3d-io")))]
 mod threed;
 #[doc(inline)]
 #[cfg(feature = "3d-io")]
 pub use threed::*;
 
 #[cfg(feature = "obj-io")]
+#[cfg_attr(docsrs, doc(cfg(feature = "obj-io")))]
 mod obj;
 #[doc(inline)]
 #[cfg(feature = "obj-io")]
 pub use obj::*;
 
 #[cfg(feature = "gltf-io")]
+#[cfg_attr(docsrs, doc(cfg(feature = "gltf-io")))]
 mod gltf;
 #[doc(inline)]
 #[cfg(feature = "gltf-io")]
@@ -21,6 +24,7 @@ pub use self::gltf::*;
 pub use image_io::*;
 
 #[cfg(feature = "image-io")]
+#[cfg_attr(docsrs, doc(cfg(feature = "image-io")))]
 mod image_io {
     use crate::core::*;
     use crate::io::*;
@@ -32,9 +36,6 @@ mod image_io {
         /// the [image](https://crates.io/crates/image/main.rs) crate.
         /// The CPUTexture can then be used to create a [Texture2D].
         ///
-        /// # Feature
-        /// Only available when the `image-io` feature is enabled.
-        ///
         pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>> {
             image_from_bytes(&self.get_bytes(path)?)
         }
@@ -43,9 +44,6 @@ mod image_io {
         /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
         /// the [image](https://crates.io/crates/image/main.rs) crate.
         /// The CPUTexture can then be used to create a [TextureCubeMap].
-        ///
-        /// # Feature
-        /// Only available when the `image-io` feature is enabled.
         ///
         pub fn cube_image<P: AsRef<Path>>(
             &mut self,
@@ -69,6 +67,38 @@ mod image_io {
             right.data.extend(front.data);
             right.data.extend(back.data);
             Ok(right)
+        }
+    }
+
+    impl Saver {
+        ///
+        /// Saves the given RGB pixels as an image.
+        ///
+        pub fn save_pixels<P: AsRef<Path>>(
+            path: P,
+            pixels: &[u8],
+            width: u32,
+            height: u32,
+        ) -> Result<()> {
+            let mut pixels_out = vec![0u8; width as usize * height as usize * 4];
+            for row in 0..height as usize {
+                for col in 0..width as usize {
+                    for i in 0..4 {
+                        pixels_out
+                            [4 * width as usize * (height as usize - row - 1) + 4 * col + i] =
+                            pixels[4 * width as usize * row + 4 * col + i];
+                    }
+                }
+            }
+
+            image::save_buffer(
+                path,
+                &pixels_out,
+                width as u32,
+                height as u32,
+                image::ColorType::Rgba8,
+            )?;
+            Ok(())
         }
     }
 }

@@ -1,3 +1,4 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
 //#![warn(clippy::all)]
 //#![warn(missing_docs)]
 //!
