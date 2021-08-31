@@ -13,8 +13,8 @@ fn main() {
 
     let mut model = Line::new(
         &context,
-        (0.0, 0.0),
-        (
+        vec2(0.0, 0.0),
+        vec2(
             window.viewport().unwrap().width as f32,
             window.viewport().unwrap().height as f32,
         ),
@@ -28,7 +28,7 @@ fn main() {
                     Event::MousePress {
                         button, position, ..
                     } => {
-                        let pos = (
+                        let pos = vec2(
                             (frame_input.device_pixel_ratio * position.0) as f32,
                             (frame_input.device_pixel_ratio * position.1) as f32,
                         );
