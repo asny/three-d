@@ -13,6 +13,7 @@ fn main() {
 
     let mut rectangle =
         Rectangle::new(&context, vec2(200.0, 200.0), degrees(45.0), 100.0, 200.0).unwrap();
+    let mut circle = Circle::new(&context, vec2(500.0, 500.0), 200.0).unwrap();
     window
         .render_loop(move |frame_input: FrameInput| {
             for event in frame_input.events.iter() {
@@ -27,6 +28,9 @@ fn main() {
                         if *button == MouseButton::Left {
                             rectangle.set_center(pos);
                         }
+                        if *button == MouseButton::Right {
+                            circle.set_center(pos);
+                        }
                     }
                     _ => {}
                 }
@@ -36,6 +40,7 @@ fn main() {
                 ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                 || {
                     rectangle.render_with_color(Color::RED, frame_input.viewport)?;
+                    circle.render_with_color(Color::BLUE, frame_input.viewport)?;
                     Ok(())
                 },
             )

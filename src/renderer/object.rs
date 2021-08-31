@@ -24,6 +24,10 @@ mod rectangle;
 #[doc(inline)]
 pub use rectangle::*;
 
+mod circle;
+#[doc(inline)]
+pub use circle::*;
+
 mod skybox;
 #[doc(inline)]
 pub use skybox::*;
