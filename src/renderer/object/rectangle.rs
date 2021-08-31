@@ -38,14 +38,26 @@ impl Rectangle {
         self.update();
     }
 
+    pub fn size(&self) -> (f32, f32) {
+        (self.width, self.height)
+    }
+
     pub fn set_center(&mut self, center: Vec2) {
         self.center = center;
         self.update();
     }
 
+    pub fn center(&self) -> &Vec2 {
+        &self.center
+    }
+
     pub fn set_rotation(&mut self, rotation: impl Into<Radians>) {
         self.rotation = rotation.into();
         self.update();
+    }
+
+    pub fn rotation(&self) -> Radians {
+        self.rotation
     }
 
     fn update(&mut self) {
