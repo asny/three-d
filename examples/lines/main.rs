@@ -4,7 +4,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let window = Window::new(WindowSettings {
-        title: "Simple!".to_string(),
+        title: "Lines!".to_string(),
         max_size: Some((1280, 720)),
         ..Default::default()
     })
@@ -14,7 +14,10 @@ fn main() {
     let mut model = Line::new(&context).unwrap();
 
     let mut p0 = (0.0, 0.0);
-    let mut p1 = (1000.0, 1000.0);
+    let mut p1 = (
+        window.viewport().unwrap().width as f32,
+        window.viewport().unwrap().height as f32,
+    );
     model.set_transformation(p0, p1, 5.0);
     window
         .render_loop(move |frame_input: FrameInput| {
@@ -23,20 +26,17 @@ fn main() {
                     Event::MousePress {
                         button, position, ..
                     } => {
+                        let pos = (
+                            (frame_input.device_pixel_ratio * position.0) as f32,
+                            (frame_input.device_pixel_ratio * position.1) as f32,
+                        );
                         if *button == MouseButton::Left {
-                            p0 = (
-                                (frame_input.device_pixel_ratio * position.0) as f32,
-                                (frame_input.device_pixel_ratio * position.1) as f32,
-                            );
-                            model.set_transformation(p0, p1, 5.0);
+                            p0 = pos;
                         }
                         if *button == MouseButton::Right {
-                            p1 = (
-                                (frame_input.device_pixel_ratio * position.0) as f32,
-                                (frame_input.device_pixel_ratio * position.1) as f32,
-                            );
-                            model.set_transformation(p0, p1, 5.0);
+                            p1 = pos;
                         }
+                        model.set_transformation(p0, p1, 5.0);
                     }
                     _ => {}
                 }
