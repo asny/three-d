@@ -11,14 +11,16 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let mut model = Line::new(&context).unwrap();
-
-    let mut p0 = (0.0, 0.0);
-    let mut p1 = (
-        window.viewport().unwrap().width as f32,
-        window.viewport().unwrap().height as f32,
-    );
-    model.set_transformation(p0, p1, 5.0);
+    let mut model = Line::new(
+        &context,
+        (0.0, 0.0),
+        (
+            window.viewport().unwrap().width as f32,
+            window.viewport().unwrap().height as f32,
+        ),
+        5.0,
+    )
+    .unwrap();
     window
         .render_loop(move |frame_input: FrameInput| {
             for event in frame_input.events.iter() {
@@ -31,12 +33,11 @@ fn main() {
                             (frame_input.device_pixel_ratio * position.1) as f32,
                         );
                         if *button == MouseButton::Left {
-                            p0 = pos;
+                            model.set_endpoints(pos, model.end_point1());
                         }
                         if *button == MouseButton::Right {
-                            p1 = pos;
+                            model.set_endpoints(model.end_point0(), pos);
                         }
-                        model.set_transformation(p0, p1, 5.0);
                     }
                     _ => {}
                 }
