@@ -70,6 +70,7 @@ mod image_io {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     impl Saver {
         ///
         /// Saves the given RGB pixels as an image.
