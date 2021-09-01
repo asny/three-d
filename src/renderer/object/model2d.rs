@@ -56,15 +56,6 @@ impl Model2D {
             .render_with_texture(texture, self.camera2d(viewport)?)
     }
 
-    fn uniform_buffer(&self) -> Result<UniformBuffer> {
-        let mut uniform_buffer = UniformBuffer::new(&self.context, &[16, 16, 16, 3, 1])?;
-        uniform_buffer.update(0, &Mat4::identity().to_slice())?;
-        uniform_buffer.update(1, &Mat4::identity().to_slice())?;
-        uniform_buffer.update(2, &Mat4::identity().to_slice())?;
-        uniform_buffer.update(3, &vec3(0.0, 0.0, 0.0).to_slice())?;
-        Ok(uniform_buffer)
-    }
-
     fn camera2d(&self, viewport: Viewport) -> Result<&Camera> {
         unsafe {
             if CAMERA2D.is_none() {
