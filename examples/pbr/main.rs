@@ -30,6 +30,7 @@ fn main() {
     )
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    let mut gui = three_d::GUI::new(&context).unwrap();
 
     Loader::load(
         &["examples/assets/gltf/DamagedHelmet.glb"],
@@ -64,9 +65,61 @@ fn main() {
             .unwrap();
 
             // main loop
+            let mut normal_map_enabled = true;
+            let mut occlusion_map_enabled = true;
+            let mut metallic_roughness_enabled = true;
+            let mut albedo_map_enabled = true;
             window
                 .render_loop(move |mut frame_input| {
-                    camera.set_viewport(frame_input.viewport).unwrap();
+                    let mut panel_width = 0;
+                    gui.update(&mut frame_input, |gui_context| {
+                        use three_d::egui::*;
+                        SidePanel::left("side_panel").show(gui_context, |ui| {
+                            ui.heading("Debug Panel");
+                            ui.checkbox(&mut albedo_map_enabled, "Albedo map");
+                            ui.checkbox(&mut metallic_roughness_enabled, "Metallic roughness map");
+                            ui.checkbox(&mut normal_map_enabled, "Normal map");
+                            ui.checkbox(&mut occlusion_map_enabled, "Occlusion map");
+                        });
+                        panel_width = gui_context.used_size().x as u32;
+                    })
+                    .unwrap();
+                    let material = Material {
+                        name: material.name.clone(),
+                        albedo: material.albedo,
+                        albedo_texture: if albedo_map_enabled {
+                            material.albedo_texture.clone()
+                        } else {
+                            None
+                        },
+                        metallic: material.metallic,
+                        roughness: material.roughness,
+                        metallic_roughness_texture: if metallic_roughness_enabled {
+                            material.metallic_roughness_texture.clone()
+                        } else {
+                            None
+                        },
+                        normal_scale: material.normal_scale,
+                        normal_texture: if normal_map_enabled {
+                            material.normal_texture.clone()
+                        } else {
+                            None
+                        },
+                        occlusion_strength: material.occlusion_strength,
+                        occlusion_texture: if occlusion_map_enabled {
+                            material.occlusion_texture.clone()
+                        } else {
+                            None
+                        },
+                    };
+
+                    let viewport = Viewport {
+                        x: panel_width as i32,
+                        y: 0,
+                        width: frame_input.viewport.width - panel_width,
+                        height: frame_input.viewport.height,
+                    };
+                    camera.set_viewport(viewport).unwrap();
                     control
                         .handle_events(&mut camera, &mut frame_input.events)
                         .unwrap();
@@ -101,6 +154,7 @@ fn main() {
                                 &[&spot_light],
                                 &[],
                             )?;
+                            gui.render()?;
                             Ok(())
                         },
                     )
