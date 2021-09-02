@@ -80,7 +80,13 @@ void main()
 
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
 #ifdef USE_NORMAL_TEXTURE
-    vec3 binormal = cross(normal, vec3(1.0, 0.0, 0.0));
+    vec3 binormal;
+    if(normal.x < 0.9) {
+        binormal = cross(normal, vec3(1.0, 0.0, 0.0));
+    } 
+    else {
+        binormal = cross(normal, vec3(0.0, 1.0, 0.0));
+    }
     mat3 tbn = mat3(binormal, cross(normal, binormal), normal);
     normal = tbn * ((2.0 * texture(normalTexture, uvs).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
 #endif
