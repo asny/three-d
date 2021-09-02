@@ -19,6 +19,16 @@ uniform sampler2D albedoTexture;
 uniform sampler2D metallicRoughnessTexture;
 #endif
 
+#ifdef USE_OCCLUSION_TEXTURE
+uniform sampler2D occlusionTexture;
+uniform float occlusionStrength;
+#endif
+
+#ifdef USE_NORMAL_TEXTURE
+uniform sampler2D normalTexture;
+uniform float normalScale;
+#endif
+
 #endif
 
 layout (location = 0) out vec4 outColor;
@@ -54,6 +64,12 @@ void main()
     surface_color = vec4(rgb_from_srgb(albedo.rgb), albedo.a);
 #endif
 
+#ifdef USE_OCCLUSION_TEXTURE
+    float occlusion = texture(occlusionTexture, uvs).r;
+    surface_color.rgb = mix(surface_color.rgb, surface_color.rgb * occlusion, occlusionStrength);
+#endif
+
+
     float metallic_factor = metallic;
     float roughness_factor = roughness;
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
@@ -63,6 +79,12 @@ void main()
 #endif
 
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
+#ifdef USE_NORMAL_TEXTURE
+    vec3 binormal = cross(normal, vec3(1.0, 0.0, 0.0));
+    mat3 tbn = mat3(binormal, cross(normal, binormal), normal);
+    normal = tbn * ((2.0 * texture(normalTexture, uvs).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
+#endif
+
     vec3 position = pos;
 
 #endif

@@ -121,15 +121,33 @@ fn parse_tree<'a>(
                     let pbr = material.pbr_metallic_roughness();
                     let color = pbr.base_color_factor();
                     let albedo_texture = if let Some(info) = pbr.base_color_texture() {
-                        Some(parse_texture(loaded, path, buffers, info)?)
+                        Some(parse_texture(loaded, path, buffers, info.texture())?)
                     } else {
                         None
                     };
                     let metallic_roughness_texture =
                         if let Some(info) = pbr.metallic_roughness_texture() {
-                            Some(parse_texture(loaded, path, buffers, info)?)
+                            Some(parse_texture(loaded, path, buffers, info.texture())?)
                         } else {
                             None
+                        };
+                    let (normal_texture, normal_scale) =
+                        if let Some(normal) = material.normal_texture() {
+                            (
+                                Some(parse_texture(loaded, path, buffers, normal.texture())?),
+                                normal.scale(),
+                            )
+                        } else {
+                            (None, 1.0)
+                        };
+                    let (occlusion_texture, occlusion_strength) =
+                        if let Some(occlusion) = material.occlusion_texture() {
+                            (
+                                Some(parse_texture(loaded, path, buffers, occlusion.texture())?),
+                                occlusion.strength(),
+                            )
+                        } else {
+                            (None, 1.0)
                         };
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
@@ -138,6 +156,10 @@ fn parse_tree<'a>(
                         metallic: pbr.metallic_factor(),
                         roughness: pbr.roughness_factor(),
                         metallic_roughness_texture,
+                        normal_texture,
+                        normal_scale,
+                        occlusion_texture,
+                        occlusion_strength,
                     });
                 }
 
@@ -183,9 +205,8 @@ fn parse_texture<'a>(
     loaded: &mut Loaded,
     path: &Path,
     buffers: &[::gltf::buffer::Data],
-    info: ::gltf::texture::Info,
+    gltf_texture: ::gltf::texture::Texture,
 ) -> Result<CPUTexture<u8>> {
-    let gltf_texture = info.texture();
     let gltf_image = gltf_texture.source();
     let gltf_source = gltf_image.source();
     let tex = match gltf_source {
