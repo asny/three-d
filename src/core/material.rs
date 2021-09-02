@@ -22,6 +22,12 @@ pub struct CPUMaterial {
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters.
     pub metallic_roughness_texture: Option<CPUTexture<u8>>,
+
+    pub occlusion_strength: f32,
+    pub occlusion_texture: Option<CPUTexture<u8>>,
+
+    pub normal_scale: f32,
+    pub normal_texture: Option<CPUTexture<u8>>,
 }
 
 impl Default for CPUMaterial {
@@ -33,6 +39,10 @@ impl Default for CPUMaterial {
             metallic_roughness_texture: None,
             metallic: 0.0,
             roughness: 1.0,
+            normal_texture: None,
+            normal_scale: 1.0,
+            occlusion_texture: None,
+            occlusion_strength: 1.0,
         }
     }
 }
@@ -54,6 +64,12 @@ pub struct Material {
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters.
     pub metallic_roughness_texture: Option<Rc<Texture2D>>,
+
+    pub occlusion_strength: f32,
+    pub occlusion_texture: Option<Rc<Texture2D>>,
+
+    pub normal_scale: f32,
+    pub normal_texture: Option<Rc<Texture2D>>,
 }
 
 impl Material {
@@ -72,6 +88,16 @@ impl Material {
             } else {
                 None
             };
+        let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
+        let occlusion_texture = if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
         Ok(Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo.to_vec4(),
@@ -79,6 +105,10 @@ impl Material {
             metallic: cpu_material.metallic,
             roughness: cpu_material.roughness,
             metallic_roughness_texture,
+            normal_texture,
+            normal_scale: cpu_material.normal_scale,
+            occlusion_texture,
+            occlusion_strength: cpu_material.occlusion_strength,
         })
     }
 
@@ -91,6 +121,14 @@ impl Material {
         }
         if let Some(ref texture) = self.metallic_roughness_texture {
             program.use_texture("metallicRoughnessTexture", texture.as_ref())?;
+        }
+        if let Some(ref texture) = self.occlusion_texture {
+            program.use_uniform_float("occlusionStrength", &self.occlusion_strength)?;
+            program.use_texture("occlusionTexture", texture.as_ref())?;
+        }
+        if let Some(ref texture) = self.normal_texture {
+            program.use_uniform_float("normalScale", &self.normal_scale)?;
+            program.use_texture("normalTexture", texture.as_ref())?;
         }
         Ok(())
     }
@@ -105,6 +143,10 @@ impl Default for Material {
             metallic: 0.0,
             roughness: 1.0,
             metallic_roughness_texture: None,
+            normal_texture: None,
+            normal_scale: 1.0,
+            occlusion_texture: None,
+            occlusion_strength: 1.0,
         }
     }
 }

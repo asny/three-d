@@ -165,13 +165,23 @@ pub(in crate::renderer) fn shaded_fragment_shader(
 
 fn material_shader(material: &Material) -> String {
     let mut output = String::new();
-    if material.albedo_texture.is_some() || material.metallic_roughness_texture.is_some() {
+    if material.albedo_texture.is_some()
+        || material.metallic_roughness_texture.is_some()
+        || material.normal_texture.is_some()
+        || material.occlusion_texture.is_some()
+    {
         output.push_str("in vec2 uvs;\n");
         if material.albedo_texture.is_some() {
             output.push_str("#define USE_ALBEDO_TEXTURE;\n");
         }
         if material.metallic_roughness_texture.is_some() {
             output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+        }
+        if material.occlusion_texture.is_some() {
+            output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+        }
+        if material.normal_texture.is_some() {
+            output.push_str("#define USE_NORMAL_TEXTURE;\n");
         }
     }
     output
