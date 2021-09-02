@@ -42,14 +42,14 @@ impl Program {
         let success = context.link_program(&id);
 
         if !success {
-            if let Some(log) = context.get_program_info_log(&id) {
-                Err(CoreError::ShaderLink(log))?;
-            }
             if let Some(log) = context.get_shader_info_log(&vert_shader) {
                 Err(CoreError::ShaderCompilation("vertex".to_string(), log))?;
             }
             if let Some(log) = context.get_shader_info_log(&frag_shader) {
                 Err(CoreError::ShaderCompilation("fragment".to_string(), log))?;
+            }
+            if let Some(log) = context.get_program_info_log(&id) {
+                Err(CoreError::ShaderLink(log))?;
             }
             unreachable!();
         }
