@@ -51,9 +51,14 @@ void main()
     float metallic_factor = c.w;
 
     vec4 n = texture(gbuffer, vec3(uv, 1));
-    vec3 normal = normalize(n.xyz*2.0 - 1.0);
+    vec2 n2 = n.xy*2.0 - 1.0;
+    float z = 1.0 - n2.x * n2.x - n2.y * n2.y;
+    if (z > 0.0001) {
+        z = sqrt(z);
+    }
+    vec3 normal = normalize(vec3(n2.x, n2.y, z));
     float roughness_factor = n.w;
-    float occlusion = 1.0;
+    float occlusion = n.z;
 
 #else 
 
@@ -80,14 +85,7 @@ void main()
 
     vec3 normal = normalize(gl_FrontFacing ? nor : -nor);
 #ifdef USE_NORMAL_TEXTURE
-    vec3 binormal;
-    if(normal.x < 0.9) {
-        binormal = cross(normal, vec3(1.0, 0.0, 0.0));
-    } 
-    else {
-        binormal = cross(normal, vec3(0.0, 1.0, 0.0));
-    }
-    mat3 tbn = mat3(binormal, cross(normal, binormal), normal);
+    mat3 tbn = basis(normal);
     normal = tbn * ((2.0 * texture(normalTexture, uvs).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
 #endif
 
