@@ -53,6 +53,7 @@ void main()
     vec4 n = texture(gbuffer, vec3(uv, 1));
     vec3 normal = normalize(n.xyz*2.0 - 1.0);
     float roughness_factor = n.w;
+    float occlusion = 1.0;
 
 #else 
 
@@ -64,11 +65,10 @@ void main()
     surface_color = vec4(rgb_from_srgb(albedo.rgb), albedo.a);
 #endif
 
+    float occlusion = 1.0;
 #ifdef USE_OCCLUSION_TEXTURE
-    float occlusion = texture(occlusionTexture, uvs).r;
-    surface_color.rgb = mix(surface_color.rgb, surface_color.rgb * occlusion, occlusionStrength);
+    occlusion = mix(1.0, texture(occlusionTexture, uvs).r, occlusionStrength);
 #endif
-
 
     float metallic_factor = metallic;
     float roughness_factor = roughness;
@@ -95,6 +95,6 @@ void main()
 
 #endif
 
-    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor));
+    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion));
     outColor.a = surface_color.a;
 }

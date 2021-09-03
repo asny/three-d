@@ -137,7 +137,7 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
     return specular_fresnel * G * D;
 }
 
-vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position, vec3 N, float metallic, float roughness)
+vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position, vec3 N, float metallic, float roughness, float occlusion)
 {
     vec3 V = normalize(eyePosition - position);
 
@@ -176,10 +176,10 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
     vec3 diffuse_light = diffuse_fresnel * mix(surface_color, vec3(0.0), metallic) / PI;
     
     // final result
-    return (diffuse_light + reflected_light) * light_color * NdL;
+    return (occlusion * diffuse_light + reflected_light) * light_color * NdL;
 }
 
-vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
+vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
 {
     vec3 light_direction = light_position - position;
     float distance = length(light_direction);
@@ -189,7 +189,7 @@ vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 
         attenuation.linear * distance +
         attenuation.exp * distance * distance;
 
-    return calculate_light(light_color / max(1.0, att), light_direction, surface_color, position, normal, metallic, roughness);
+    return calculate_light(light_color / max(1.0, att), light_direction, surface_color, position, normal, metallic, roughness, occlusion);
 }
 
 float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
@@ -222,10 +222,10 @@ float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
 }
 
 vec3 calculate_directional_light(DirectionalLight directionalLight, vec3 surface_color, vec3 position, vec3 normal,
-    float metallic, float roughness, sampler2D shadowMap)
+    float metallic, float roughness, float occlusion, sampler2D shadowMap)
 {
     vec3 light_color = directionalLight.base.intensity * directionalLight.base.color;
-    vec3 light = calculate_light(light_color, -directionalLight.direction, surface_color, position, normal, metallic, roughness);
+    vec3 light = calculate_light(light_color, -directionalLight.direction, surface_color, position, normal, metallic, roughness, occlusion);
     if(directionalLight.shadowEnabled > 0.5) {
         light *= calculate_shadow(shadowMap, directionalLight.shadowMVP, position);
     }
@@ -233,15 +233,15 @@ vec3 calculate_directional_light(DirectionalLight directionalLight, vec3 surface
 }
 
 vec3 calculate_point_light(PointLight pointLight, vec3 surface_color, vec3 position, vec3 normal,
-    float metallic, float roughness)
+    float metallic, float roughness, float occlusion)
 {
     vec3 light_color = pointLight.base.intensity * pointLight.base.color;
     return calculate_attenuated_light(light_color, pointLight.attenuation, pointLight.position, surface_color, position, normal,
-        metallic, roughness);
+        metallic, roughness, occlusion);
 }
 
 vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position, vec3 normal,
-    float metallic, float roughness, sampler2D shadowMap)
+    float metallic, float roughness, float occlusion, sampler2D shadowMap)
 {
     vec3 light_color = spotLight.base.intensity * spotLight.base.color;
     vec3 light_direction = normalize(position - spotLight.position);
@@ -251,7 +251,7 @@ vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position
     vec3 light = vec3(0.0);
     if (angle < cutoff) {
         light = calculate_attenuated_light(light_color, spotLight.attenuation, spotLight.position, surface_color, position, normal, 
-            metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+            metallic, roughness, occlusion) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
         if(spotLight.shadowEnabled > 0.5) {
             light *= calculate_shadow(shadowMap, spotLight.shadowMVP, position);
         }
