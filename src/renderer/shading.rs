@@ -87,7 +87,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
             i, i, i
         ));
         dir_fun.push_str(&format!("
-                    color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, directionalShadowMap{});", i, i));
+                    color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, occlusion, directionalShadowMap{});", i, i));
     }
     let mut spot_uniform = String::new();
     let mut spot_fun = String::new();
@@ -103,7 +103,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
         ));
         spot_fun.push_str(&format!(
             "
-                    color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, spotShadowMap{});",
+                    color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, occlusion, spotShadowMap{});",
             i, i
         ));
     }
@@ -120,7 +120,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
         ));
         point_fun.push_str(&format!(
             "
-                    color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness);",
+                    color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness, occlusion);",
             i
         ));
     }
@@ -147,9 +147,9 @@ pub(in crate::renderer) fn shaded_fragment_shader(
                 {} // Spot lights
                 {} // Point lights
 
-                vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
+                vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
                 {{
-                    vec3 color = ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
+                    vec3 color = occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
                     {} // Directional lights
                     {} // Spot lights
                     {} // Point lights
