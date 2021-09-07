@@ -119,7 +119,7 @@ impl Program {
     ///
     pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> Result<()> {
         let location = self.get_uniform_location(name)?;
-        self.context.uniform2fv(location, &mut [data.x, data.y]);
+        self.context.uniform2fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
@@ -130,8 +130,7 @@ impl Program {
     ///
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<()> {
         let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform3fv(location, &mut [data.x, data.y, data.z]);
+        self.context.uniform3fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
@@ -142,8 +141,18 @@ impl Program {
     ///
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<()> {
         let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform4fv(location, &mut [data.x, data.y, data.z, data.w]);
+        self.context.uniform4fv(location, &mut data.to_slice());
+        self.context.unuse_program();
+        Ok(())
+    }
+
+    ///
+    /// Send the given [Quat](crate::Quat) value to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
+    ///
+    pub fn use_uniform_quat(&self, name: &str, data: &Quat) -> Result<()> {
+        let location = self.get_uniform_location(name)?;
+        self.context.uniform4fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
