@@ -130,8 +130,7 @@ impl Program {
     ///
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> Result<()> {
         let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform3fv(location, &mut data.to_slice());
+        self.context.uniform3fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
@@ -142,8 +141,7 @@ impl Program {
     ///
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> Result<()> {
         let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform4fv(location, &mut data.to_slice());
+        self.context.uniform4fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
@@ -154,8 +152,7 @@ impl Program {
     ///
     pub fn use_uniform_quat(&self, name: &str, data: &Quat) -> Result<()> {
         let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform4fv(location, &mut data.to_slice());
+        self.context.uniform4fv(location, &mut data.to_slice());
         self.context.unuse_program();
         Ok(())
     }
