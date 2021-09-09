@@ -35,6 +35,18 @@ impl Loaded {
                 } else {
                     material.color_diffuse
                 };
+
+                let normal_texture = if let Some(ref texture_name) = material.bump_map {
+                    Some(self.image(p.join(texture_name))?)
+                } else {
+                    None
+                };
+                let albedo_texture = if let Some(ref texture_name) = material.diffuse_map {
+                    Some(self.image(p.join(texture_name))?)
+                } else {
+                    None
+                };
+
                 cpu_materials.push(CPUMaterial {
                     name: material.name,
                     albedo: Color::new_from_rgba_slice(&[
@@ -43,15 +55,7 @@ impl Loaded {
                         color.b as f32,
                         material.alpha as f32,
                     ]),
-                    albedo_texture: if let Some(path) = material
-                        .diffuse_map
-                        .as_ref()
-                        .map(|texture_name| p.join(texture_name).to_str().unwrap().to_owned())
-                    {
-                        Some(self.image(&path)?)
-                    } else {
-                        None
-                    },
+                    albedo_texture,
                     metallic: ((material.color_specular.r
                         + material.color_specular.g
                         + material.color_specular.b)
@@ -61,6 +65,7 @@ impl Loaded {
                     } else {
                         1.0
                     },
+                    normal_texture,
                     ..Default::default()
                 });
             }
