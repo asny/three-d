@@ -160,6 +160,7 @@ fn parse_tree<'a>(
                         normal_scale,
                         occlusion_texture,
                         occlusion_strength,
+                        occlusion_metallic_roughness_texture: None,
                     });
                 }
 
