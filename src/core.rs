@@ -4,7 +4,23 @@
 //! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
 //!
 
-pub use crate::context::Context;
+#[derive(Clone)]
+pub struct Context {
+    context: crate::context::Context,
+}
+
+impl Context {
+    pub fn new(context: crate::context::Context) -> Self {
+        Self { context }
+    }
+}
+
+impl std::ops::Deref for Context {
+    type Target = crate::context::Context;
+    fn deref(&self) -> &Self::Target {
+        &self.context
+    }
+}
 
 pub mod buffer;
 pub use buffer::*;

@@ -3,10 +3,9 @@
 //! Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.
 //!
 
-pub use crate::context::Context;
 pub use crate::core::{
     material::*, math::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera, Color,
-    Viewport,
+    Context, Viewport,
 };
 
 pub mod shading;

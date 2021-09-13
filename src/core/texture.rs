@@ -164,7 +164,7 @@ impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
 }
 
 pub(in crate::core) mod internal {
-    use crate::context::{consts, Context, DataType};
+    use crate::context::{consts, DataType};
     use crate::core::*;
 
     pub trait TextureDataTypeExtension: Clone {
@@ -333,8 +333,8 @@ pub(in crate::core) mod internal {
     }
 }
 
-use crate::context::{consts, Context};
-use crate::core::CoreError;
+use crate::context::consts;
+use crate::core::*;
 use crate::Result;
 
 ///

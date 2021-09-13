@@ -1,4 +1,4 @@
-use crate::context::{consts, AttributeLocation, Context, ShaderType};
+use crate::context::{consts, AttributeLocation, ShaderType};
 use crate::core::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
