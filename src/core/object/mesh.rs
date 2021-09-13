@@ -76,6 +76,7 @@ impl std::ops::Deref for MeshProgram {
 ///
 #[derive(Clone)]
 pub struct Mesh {
+    context: Context,
     position_buffer: Rc<VertexBuffer>,
     normal_buffer: Option<Rc<VertexBuffer>>,
     index_buffer: Option<Rc<ElementBuffer>>,
@@ -130,6 +131,7 @@ impl Mesh {
             None
         };
         Ok(Self {
+            context: context.clone(),
             position_buffer,
             normal_buffer,
             index_buffer,
@@ -156,6 +158,82 @@ impl Mesh {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
+    }
+
+    pub fn render2(
+        &self,
+        render_states: RenderStates,
+        fragment_shader_source: &str,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+    ) -> Result<()> {
+        let instanced = false;
+        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
+        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
+        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
+        let vertex_shader_source = format!(
+            "{}{}{}{}{}{}{}",
+            if use_positions {
+                "#define USE_POSITIONS\n"
+            } else {
+                ""
+            },
+            if use_normals {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if use_uvs { "#define USE_UVS\n" } else { "" },
+            if use_colors {
+                "#define USE_COLORS\n"
+            } else {
+                ""
+            },
+            if instanced { "#define INSTANCED\n" } else { "" },
+            include_str!("../shared.frag"),
+            include_str!("shaders/mesh.vert"),
+        );
+        self.context
+            .program(fragment_shader_source, &vertex_shader_source, |program| {
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                program.use_uniform_block("Camera", camera_buffer);
+
+                program.use_attribute_vec3("position", &self.position_buffer)?;
+                if use_uvs {
+                    let uv_buffer = self
+                        .uv_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
+                    program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+                }
+                if use_normals {
+                    let normal_buffer = self
+                        .normal_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
+                    program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+                    program.use_attribute_vec3("normal", normal_buffer)?;
+                }
+                if use_colors {
+                    let color_buffer = self
+                        .color_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
+                    program.use_attribute_vec4("color", color_buffer)?;
+                }
+
+                if let Some(ref index_buffer) = self.index_buffer {
+                    program.draw_elements(render_states, viewport, index_buffer);
+                } else {
+                    program.draw_arrays(
+                        render_states,
+                        viewport,
+                        self.position_buffer.count() as u32 / 3,
+                    );
+                }
+                Ok(())
+            })
     }
 
     ///

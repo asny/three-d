@@ -4,14 +4,37 @@
 //! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
 //!
 
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
 #[derive(Clone)]
 pub struct Context {
     context: crate::context::Context,
+    programs: Rc<RefCell<HashMap<String, Program>>>,
 }
 
 impl Context {
     pub fn new(context: crate::context::Context) -> Self {
-        Self { context }
+        Self {
+            context,
+            programs: Rc::new(RefCell::new(HashMap::new())),
+        }
+    }
+
+    pub fn program(
+        &self,
+        vertex_shader_source: &str,
+        fragment_shader_source: &str,
+        callback: impl FnOnce(&Program) -> Result<()>,
+    ) -> Result<()> {
+        let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
+        if !self.programs.borrow().contains_key(&key) {
+            self.programs.borrow_mut().insert(
+                key.clone(),
+                Program::from_source(&self, vertex_shader_source, fragment_shader_source)?,
+            );
+        };
+        callback(self.programs.borrow().get(&key).unwrap())
     }
 }
 
