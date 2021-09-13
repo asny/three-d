@@ -18,7 +18,8 @@ mod uniform_buffer;
 pub use uniform_buffer::*;
 
 pub(crate) mod internal {
-    use crate::context::{Context, DataType};
+    use crate::context::DataType;
+    use crate::core::*;
 
     pub trait BufferDataTypeExtension: Clone {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32);

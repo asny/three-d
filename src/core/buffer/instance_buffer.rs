@@ -1,4 +1,4 @@
-use crate::context::{consts, Context, DataType};
+use crate::context::{consts, DataType};
 use crate::core::*;
 
 /// The basic data type used for each element in a [InstanceBuffer].

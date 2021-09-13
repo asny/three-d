@@ -1,5 +1,4 @@
-use crate::context::Context;
-use crate::core::Viewport;
+use crate::core::{Context, Viewport};
 use crate::window::*;
 use crate::Result;
 use serde::Serialize;
@@ -128,7 +127,9 @@ impl Window {
         context
             .get_extension("OES_texture_float")
             .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
-        Ok(Context::new(context))
+        Ok(crate::core::Context::new(crate::context::Context::new(
+            context,
+        )))
     }
 
     pub fn render_loop<F: 'static>(mut self, mut callback: F) -> Result<()>
