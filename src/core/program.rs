@@ -529,6 +529,14 @@ impl Program {
         self.context.unuse_program();
     }
 
+    pub fn requires_uniform(&self, name: &str) -> bool {
+        self.uniforms.contains_key(name)
+    }
+
+    pub fn requires_attribute(&self, name: &str) -> bool {
+        self.vertex_attributes.contains_key(name)
+    }
+
     fn location(&self, name: &str) -> Result<AttributeLocation> {
         self.set_used();
         let location = self
