@@ -4,8 +4,9 @@ use crate::core::*;
 /// A shader program used for rendering one or more instances of a [InstancedMesh]. It has a fixed vertex shader and
 /// customizable fragment shader for custom lighting. Use this in combination with [InstancedMesh::render].
 ///
+#[deprecated]
 pub struct InstancedMeshProgram {
-    mesh_program: MeshProgram,
+    program: Program,
 }
 
 impl InstancedMeshProgram {
@@ -15,7 +16,11 @@ impl InstancedMeshProgram {
     ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
         Ok(Self {
-            mesh_program: MeshProgram::new_internal(context, fragment_shader_source, true)?,
+            program: Program::from_source(
+                context,
+                &InstancedMesh::vertex_shader_source(&fragment_shader_source),
+                fragment_shader_source,
+            )?,
         })
     }
 }
@@ -24,7 +29,7 @@ impl std::ops::Deref for InstancedMeshProgram {
     type Target = Program;
 
     fn deref(&self) -> &Program {
-        &self.mesh_program
+        &self.program
     }
 }
 
@@ -122,20 +127,19 @@ impl InstancedMesh {
     }
 
     ///
-    /// Render the instanced mesh with the given [InstancedMeshProgram].
+    /// Render the instanced mesh with the given [Program].
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the instanced mesh.
     ///
     /// # Errors
-    /// Will return an error if the instanced mesh shader program requires a certain attribute and the instanced mesh does not have that attribute.
+    /// Will return an error if the program requires a certain attribute and the instanced mesh does not have that attribute.
     /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
     /// function will return an error.
     ///
     pub fn render(
         &self,
         render_states: RenderStates,
-        program: &InstancedMeshProgram,
+        program: &Program,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> Result<()> {
@@ -146,22 +150,24 @@ impl InstancedMesh {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block("Camera", camera_buffer);
 
-        program.use_attribute_vec3("position", &self.position_buffer)?;
-        if program.mesh_program.use_uvs {
+        if program.requires_attribute("position") {
+            program.use_attribute_vec3("position", &self.position_buffer)?;
+        }
+        if program.requires_attribute("uv_coordinates") {
             let uv_buffer = self
                 .uv_buffer
                 .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
+                .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
             program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
         }
-        if program.mesh_program.use_normals {
+        if program.requires_attribute("normal") {
             let normal_buffer = self
                 .normal_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
-        if program.mesh_program.use_colors {
+        if program.requires_attribute("color") {
             let color_buffer = self
                 .color_buffer
                 .as_ref()
@@ -215,5 +221,33 @@ impl InstancedMesh {
         self.instance_buffer1.fill_with_dynamic(&row1);
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
+    }
+
+    pub fn vertex_shader_source(fragment_shader_source: &str) -> String {
+        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
+        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
+        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
+        format!(
+            "#define INSTANCED\n{}{}{}{}{}{}",
+            if use_positions {
+                "#define USE_POSITIONS\n"
+            } else {
+                ""
+            },
+            if use_normals {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if use_uvs { "#define USE_UVS\n" } else { "" },
+            if use_colors {
+                "#define USE_COLORS\n"
+            } else {
+                ""
+            },
+            include_str!("../shared.frag"),
+            include_str!("shaders/mesh.vert"),
+        )
     }
 }
