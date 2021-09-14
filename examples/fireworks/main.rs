@@ -40,8 +40,13 @@ fn main() {
         vec3(0.3, 0.93, 0.15),
         vec3(0.16, 0.07, 0.87),
     ];
-    let particles_program =
-        ParticlesProgram::new(&context, &include_str!("../assets/shaders/particles.frag")).unwrap();
+    let fragment_shader_source = include_str!("../assets/shaders/particles.frag");
+    let particles_program = Program::from_source(
+        &context,
+        &Particles::vertex_shader_source(&fragment_shader_source),
+        &fragment_shader_source,
+    )
+    .unwrap();
     let mut square = CPUMesh::square();
     square.transform(&Mat4::from_scale(0.6));
     let mut particles = Particles::new(&context, &square).unwrap();

@@ -4,10 +4,9 @@ use crate::core::*;
 /// Shader program used for rendering [Particles](Particles). It has a fixed vertex shader and
 /// customizable fragment shader for custom shading. Use this in combination with [Particles::render].
 ///
+#[deprecated]
 pub struct ParticlesProgram {
     program: Program,
-    use_normals: bool,
-    use_uvs: bool,
 }
 
 impl ParticlesProgram {
@@ -16,61 +15,12 @@ impl ParticlesProgram {
     /// The fragment shader code can use position (`in vec3 pos;`), normal (`in vec3 nor;`) and uv coordinates (`in vec2 uvs;`).
     ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
-        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
-        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
-        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        let vertex_shader_source = &format!("
-                layout (std140) uniform Camera
-                {{
-                    mat4 viewProjection;
-                    mat4 view;
-                    mat4 projection;
-                    vec3 position;
-                    float padding;
-                }} camera;
-
-                uniform float time;
-                uniform vec3 acceleration;
-
-                in vec3 start_position;
-                in vec3 start_velocity;
-
-                uniform mat4 modelMatrix;
-                in vec3 position;
-
-                {} // Positions out
-                {} // Normals in/out
-                {} // UV coordinates in/out
-
-                void main()
-                {{
-                    vec3 p = start_position + start_velocity * time + 0.5 * acceleration * time * time;
-                    gl_Position = camera.projection * (camera.view * modelMatrix * vec4(p, 1.0) + vec4(position, 0.0));
-                    {} // Position
-                    {} // Normal
-                    {} // UV coordinates
-                }}
-                ",
-                if use_positions {"out vec3 pos;"} else {""},
-                if use_normals {
-                    "uniform mat4 normalMatrix;
-                    in vec3 normal;
-                    out vec3 nor;"
-                    } else {""},
-                if use_uvs {
-                    "in vec2 uv_coordinates;
-                    out vec2 uvs;"
-                    } else {""},
-                if use_positions {"pos = worldPosition.xyz;"} else {""},
-                if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
-                if use_uvs { "uvs = uv_coordinates;" } else {""}
-        );
-
-        let program = Program::from_source(context, vertex_shader_source, fragment_shader_source)?;
         Ok(Self {
-            program,
-            use_normals,
-            use_uvs,
+            program: Program::from_source(
+                context,
+                &Particles::vertex_shader_source(fragment_shader_source),
+                fragment_shader_source,
+            )?,
         })
     }
 }
@@ -190,15 +140,14 @@ impl Particles {
     }
 
     ///
-    /// Render all defined particles with the given [ParticlesProgram](ParticlesProgram).
+    /// Render all defined particles with the given [Program].
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// The transformation can be used to position, orientate and scale the particles.
     ///
     pub fn render(
         &self,
         render_states: RenderStates,
-        program: &ParticlesProgram,
+        program: &Program,
         camera: &Camera,
         time: f32,
     ) -> Result<()> {
@@ -209,15 +158,17 @@ impl Particles {
 
         program.use_attribute_vec3_instanced("start_position", &self.start_position_buffer)?;
         program.use_attribute_vec3_instanced("start_velocity", &self.start_velocity_buffer)?;
-        program.use_attribute_vec3("position", &self.position_buffer)?;
-        if program.use_uvs {
+        if program.requires_attribute("position") {
+            program.use_attribute_vec3("position", &self.position_buffer)?;
+        }
+        if program.requires_attribute("uv_coordinates") {
             let uv_buffer = self
                 .uv_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
             program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
         }
-        if program.use_normals {
+        if program.requires_attribute("normal") {
             let normal_buffer = self
                 .normal_buffer
                 .as_ref()
@@ -245,5 +196,57 @@ impl Particles {
             );
         }
         Ok(())
+    }
+
+    pub fn vertex_shader_source(fragment_shader_source: &str) -> String {
+        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
+        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
+        format!("
+                layout (std140) uniform Camera
+                {{
+                    mat4 viewProjection;
+                    mat4 view;
+                    mat4 projection;
+                    vec3 position;
+                    float padding;
+                }} camera;
+
+                uniform float time;
+                uniform vec3 acceleration;
+
+                in vec3 start_position;
+                in vec3 start_velocity;
+
+                uniform mat4 modelMatrix;
+                in vec3 position;
+
+                {} // Positions out
+                {} // Normals in/out
+                {} // UV coordinates in/out
+
+                void main()
+                {{
+                    vec3 p = start_position + start_velocity * time + 0.5 * acceleration * time * time;
+                    gl_Position = camera.projection * (camera.view * modelMatrix * vec4(p, 1.0) + vec4(position, 0.0));
+                    {} // Position
+                    {} // Normal
+                    {} // UV coordinates
+                }}
+                ",
+                if use_positions {"out vec3 pos;"} else {""},
+                if use_normals {
+                    "uniform mat4 normalMatrix;
+                    in vec3 normal;
+                    out vec3 nor;"
+                    } else {""},
+                if use_uvs {
+                    "in vec2 uv_coordinates;
+                    out vec2 uvs;"
+                    } else {""},
+                if use_positions {"pos = worldPosition.xyz;"} else {""},
+                if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
+                if use_uvs { "uvs = uv_coordinates;" } else {""}
+        )
     }
 }
