@@ -1,5 +1,6 @@
 use crate::renderer::*;
 
+#[derive(Clone)]
 pub struct ColorMaterial {
     pub color: Color,
 }
