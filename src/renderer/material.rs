@@ -3,8 +3,12 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 pub use crate::core::{
-    CPUMaterial, Color, GeometryFunction, LightingModel, NormalDistributionFunction,
+    CPUMaterial, Color, GeometryFunction, LightingModel, NormalDistributionFunction, Program,
 };
+
+mod color_material;
+#[doc(inline)]
+pub use color_material::*;
 
 ///
 /// A physically-based material used for shading an object.

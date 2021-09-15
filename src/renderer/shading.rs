@@ -60,34 +60,6 @@ pub trait Paint {
     ) -> Result<()>;
     fn transparent(&self) -> bool;
 }
-
-impl Paint for Color {
-    fn fragment_shader_source(
-        &self,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> String {
-        include_str!("object/shaders/mesh_color.frag").to_owned()
-    }
-    fn bind(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> Result<()> {
-        program.use_uniform_vec4("color", &self.to_vec4())
-    }
-
-    fn transparent(&self) -> bool {
-        self.a != 255u8
-    }
-}
-
 impl Paint for Texture2D {
     fn fragment_shader_source(
         &self,
