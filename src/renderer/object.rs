@@ -53,6 +53,9 @@ pub trait Object: Geometry {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()>;
+
+    fn render_deferred(&self, paint: &dyn Paint, camera: &Camera, viewport: Viewport)
+        -> Result<()>;
 }
 
 pub trait Geometry {

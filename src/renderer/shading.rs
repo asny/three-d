@@ -145,27 +145,6 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     )
 }
 
-pub(crate) fn bind_material(material: &Material, program: &Program) -> Result<()> {
-    program.use_uniform_float("metallic", &material.metallic)?;
-    program.use_uniform_float("roughness", &material.roughness)?;
-    program.use_uniform_vec4("albedo", &material.albedo)?;
-    if let Some(ref texture) = material.albedo_texture {
-        program.use_texture("albedoTexture", texture.as_ref())?;
-    }
-    if let Some(ref texture) = material.metallic_roughness_texture {
-        program.use_texture("metallicRoughnessTexture", texture.as_ref())?;
-    }
-    if let Some(ref texture) = material.occlusion_texture {
-        program.use_uniform_float("occlusionStrength", &material.occlusion_strength)?;
-        program.use_texture("occlusionTexture", texture.as_ref())?;
-    }
-    if let Some(ref texture) = material.normal_texture {
-        program.use_uniform_float("normalScale", &material.normal_scale)?;
-        program.use_texture("normalTexture", texture.as_ref())?;
-    }
-    Ok(())
-}
-
 fn material_shader(material: &Material) -> String {
     let mut output = String::new();
     if material.albedo_texture.is_some()

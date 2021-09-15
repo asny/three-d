@@ -26,6 +26,12 @@ impl Paint for ColorMaterial {
     ) -> Result<()> {
         program.use_uniform_vec4("color", &self.color.to_vec4())
     }
+    fn fragment_shader_source_deferred(&self) -> String {
+        unimplemented!();
+    }
+    fn bind_deferred(&self, program: &Program) -> Result<()> {
+        unimplemented!();
+    }
 
     fn transparent(&self) -> bool {
         self.color.a != 255u8
