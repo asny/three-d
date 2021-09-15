@@ -61,7 +61,7 @@ impl Model2D {
     #[deprecated = "Use 'render' instead."]
     pub fn render_with_texture(&self, texture: &Texture2D, viewport: Viewport) -> Result<()> {
         self.model
-            .render(texture, self.camera2d(viewport)?, None, &[], &[], &[])
+            .render_with_texture(texture, self.camera2d(viewport)?)
     }
 
     pub fn camera2d(&self, viewport: Viewport) -> Result<&Camera> {

@@ -41,33 +41,6 @@ pub trait ShadedGeometry: Geometry {
     ) -> Result<()>;
 }
 
-impl Paint for Texture2D {
-    fn fragment_shader_source(
-        &self,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> String {
-        include_str!("object/shaders/mesh_texture.frag").to_owned()
-    }
-    fn bind(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> Result<()> {
-        program.use_texture("tex", self)
-    }
-
-    fn transparent(&self) -> bool {
-        self.is_transparent()
-    }
-}
-
 pub(in crate::renderer) fn geometry_fragment_shader(material: &Material) -> String {
     format!(
         "in vec3 pos;\nin vec3 nor;\n{}{}",
