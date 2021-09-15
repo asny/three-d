@@ -1,9 +1,9 @@
 use crate::renderer::*;
 
 ///
-/// Forward render pipeline which can render objects implementing the [ShadedGeometry] trait with materials and lighting.
+/// Forward render pipeline which can render objects implementing the [Object] trait with materials and lighting.
 /// Supports different types of lighting models by changing the [ForwardPipeline::lighting_model] field.
-/// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [ShadedGeometry::render_with_lighting] directly.
+/// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Object::render] directly.
 ///
 pub struct ForwardPipeline {
     context: Context,
