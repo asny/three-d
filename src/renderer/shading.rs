@@ -115,51 +115,7 @@ impl Paint for Texture2D {
     }
 }
 
-impl Paint for Material {
-    fn fragment_shader_source(
-        &self,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> String {
-        shaded_fragment_shader(
-            self.lighting_model,
-            Some(self),
-            directional_lights.len(),
-            spot_lights.len(),
-            point_lights.len(),
-        )
-    }
-    fn bind(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> Result<()> {
-        bind_lights(
-            program,
-            ambient_light,
-            directional_lights,
-            spot_lights,
-            point_lights,
-            camera.position(),
-        )?;
-        bind_material(self, program)
-    }
 
-    fn transparent(&self) -> bool {
-        self.albedo[3] < 0.99
-            || self
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false)
-    }
-}
 
 pub(in crate::renderer) fn geometry_fragment_shader(material: &Material) -> String {
     format!(
