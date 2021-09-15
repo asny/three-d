@@ -41,25 +41,6 @@ pub trait ShadedGeometry: Geometry {
     ) -> Result<()>;
 }
 
-pub trait Paint {
-    fn fragment_shader_source(
-        &self,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> String;
-    fn bind(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> Result<()>;
-    fn transparent(&self) -> bool;
-}
 impl Paint for Texture2D {
     fn fragment_shader_source(
         &self,
