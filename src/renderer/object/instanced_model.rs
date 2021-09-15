@@ -229,6 +229,31 @@ impl Object for InstancedModel {
             },
         )
     }
+
+    fn render_deferred(
+        &self,
+        paint: &dyn Paint,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        let fragment_shader_source = paint.fragment_shader_source_deferred();
+        self.context.program(
+            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                paint.bind_deferred(program)?;
+                self.mesh.render(
+                    RenderStates {
+                        cull: self.cull,
+                        ..Default::default()
+                    },
+                    program,
+                    camera.uniform_buffer(),
+                    viewport,
+                )
+            },
+        )
+    }
 }
 
 impl ShadedGeometry for InstancedModel {
@@ -238,18 +263,7 @@ impl ShadedGeometry for InstancedModel {
         viewport: Viewport,
         material: &Material,
     ) -> Result<()> {
-        let fragment_shader_source = geometry_fragment_shader(material);
-        let program = self.get_or_insert_program(&fragment_shader_source)?;
-        bind_material(material, program)?;
-        Ok(self.mesh.render(
-            RenderStates {
-                cull: self.cull,
-                ..Default::default()
-            },
-            program,
-            camera.uniform_buffer(),
-            viewport,
-        )?)
+        self.render_deferred(material, camera, viewport)
     }
 
     fn render_with_lighting(
@@ -262,37 +276,14 @@ impl ShadedGeometry for InstancedModel {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        let fragment_shader_source = shaded_fragment_shader(
-            lighting_model,
-            Some(material),
-            directional_lights.len(),
-            spot_lights.len(),
-            point_lights.len(),
-        );
-        let program = self.get_or_insert_program(&fragment_shader_source)?;
-
-        bind_lights(
-            program,
+        self.render(
+            material,
+            camera,
             ambient_light,
             directional_lights,
             spot_lights,
             point_lights,
-            camera.position(),
-        )?;
-        bind_material(material, program)?;
-        Ok(self.mesh.render(
-            self.render_states(
-                material.albedo[3] < 0.99
-                    || material
-                        .albedo_texture
-                        .as_ref()
-                        .map(|t| t.is_transparent())
-                        .unwrap_or(false),
-            ),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+        )
     }
 }
 

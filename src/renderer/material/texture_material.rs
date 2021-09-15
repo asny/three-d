@@ -27,6 +27,12 @@ impl Paint for TextureMaterial {
     ) -> Result<()> {
         program.use_texture("tex", &*self.texture)
     }
+    fn fragment_shader_source_deferred(&self) -> String {
+        unimplemented!();
+    }
+    fn bind_deferred(&self, program: &Program) -> Result<()> {
+        unimplemented!();
+    }
 
     fn transparent(&self) -> bool {
         self.texture.is_transparent()

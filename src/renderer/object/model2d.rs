@@ -132,6 +132,14 @@ impl Object for Model2D {
             point_lights,
         )
     }
+    fn render_deferred(
+        &self,
+        paint: &dyn Paint,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        self.model.render_deferred(paint, camera, viewport)
+    }
 }
 
 impl Drop for Model2D {

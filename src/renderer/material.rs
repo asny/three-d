@@ -34,5 +34,7 @@ pub trait Paint {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()>;
+    fn fragment_shader_source_deferred(&self) -> String;
+    fn bind_deferred(&self, program: &Program) -> Result<()>;
     fn transparent(&self) -> bool;
 }

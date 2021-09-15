@@ -256,6 +256,31 @@ impl Object for Model {
             },
         )
     }
+
+    fn render_deferred(
+        &self,
+        paint: &dyn Paint,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        let fragment_shader_source = paint.fragment_shader_source_deferred();
+        self.context.program(
+            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                paint.bind_deferred(program)?;
+                self.mesh.render(
+                    RenderStates {
+                        cull: self.cull,
+                        ..Default::default()
+                    },
+                    program,
+                    camera.uniform_buffer(),
+                    viewport,
+                )
+            },
+        )
+    }
 }
 
 impl ShadedGeometry for Model {
@@ -265,18 +290,7 @@ impl ShadedGeometry for Model {
         viewport: Viewport,
         material: &Material,
     ) -> Result<()> {
-        let fragment_shader_source = geometry_fragment_shader(material);
-        let program = self.get_or_insert_program(&fragment_shader_source)?;
-        bind_material(material, program)?;
-        Ok(self.mesh.render(
-            RenderStates {
-                cull: self.cull,
-                ..Default::default()
-            },
-            program,
-            camera.uniform_buffer(),
-            viewport,
-        )?)
+        self.render_deferred(material, camera, viewport)
     }
 
     fn render_with_lighting(

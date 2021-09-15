@@ -116,7 +116,30 @@ impl Paint for Material {
             point_lights,
             camera.position(),
         )?;
-        bind_material(self, program)
+        self.bind_deferred(program)
+    }
+    fn fragment_shader_source_deferred(&self) -> String {
+        geometry_fragment_shader(self)
+    }
+    fn bind_deferred(&self, program: &Program) -> Result<()> {
+        program.use_uniform_float("metallic", &self.metallic)?;
+        program.use_uniform_float("roughness", &self.roughness)?;
+        program.use_uniform_vec4("albedo", &self.albedo)?;
+        if let Some(ref texture) = self.albedo_texture {
+            program.use_texture("albedoTexture", texture.as_ref())?;
+        }
+        if let Some(ref texture) = self.metallic_roughness_texture {
+            program.use_texture("metallicRoughnessTexture", texture.as_ref())?;
+        }
+        if let Some(ref texture) = self.occlusion_texture {
+            program.use_uniform_float("occlusionStrength", &self.occlusion_strength)?;
+            program.use_texture("occlusionTexture", texture.as_ref())?;
+        }
+        if let Some(ref texture) = self.normal_texture {
+            program.use_uniform_float("normalScale", &self.normal_scale)?;
+            program.use_texture("normalTexture", texture.as_ref())?;
+        }
+        Ok(())
     }
 
     fn transparent(&self) -> bool {
