@@ -68,8 +68,6 @@ impl Paint for Texture2D {
     }
 }
 
-
-
 pub(in crate::renderer) fn geometry_fragment_shader(material: &Material) -> String {
     format!(
         "in vec3 pos;\nin vec3 nor;\n{}{}",
