@@ -12,11 +12,7 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let mut pipeline = ForwardPipeline::new(&context).unwrap();
-    pipeline.lighting_model = LightingModel::Cook(
-        NormalDistributionFunction::Beckmann,
-        GeometryFunction::SmithSchlickGGX,
-    );
+    let pipeline = ForwardPipeline::new(&context).unwrap();
 
     let mut camera = Camera::new_perspective(
         &context,
@@ -111,6 +107,7 @@ fn main() {
                         } else {
                             None
                         },
+                        lighting_model: material.lighting_model,
                     };
 
                     let viewport = Viewport {

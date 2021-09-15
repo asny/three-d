@@ -64,15 +64,9 @@ impl Model {
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     /// Will render the model transparent if the color contains an alpha value below 255, you only need to render the model after all solid models.
     ///
+    #[deprecated = "Use 'render' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
-        program.use_uniform_vec4("color", &color.to_vec4())?;
-        Ok(self.mesh.render(
-            self.render_states(color.a != 255u8),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+        self.render(&color, camera, None, &[], &[], &[])
     }
 
     ///
@@ -118,15 +112,9 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    pub fn render_with_texture(&self, texture: &impl Texture, camera: &Camera) -> Result<()> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
-        program.use_texture("tex", texture)?;
-        Ok(self.mesh.render(
-            self.render_states(texture.is_transparent()),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+    #[deprecated = "Use 'render' instead"]
+    pub fn render_with_texture(&self, texture: &Texture2D, camera: &Camera) -> Result<()> {
+        self.render(texture, camera, None, &[], &[], &[])
     }
 
     pub(in crate::renderer) fn render_states(&self, transparent: bool) -> RenderStates {
@@ -211,6 +199,58 @@ impl Geometry for Model {
     }
 }
 
+impl Object for Model {
+    fn render(
+        &self,
+        paint: &dyn Paint,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<()> {
+        let render_states = if paint.transparent() {
+            RenderStates {
+                cull: self.cull,
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            }
+        } else {
+            RenderStates {
+                cull: self.cull,
+                ..Default::default()
+            }
+        };
+        let fragment_shader_source = paint.fragment_shader_source(
+            ambient_light,
+            directional_lights,
+            spot_lights,
+            point_lights,
+        );
+        self.context.program(
+            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                paint.bind(
+                    program,
+                    camera,
+                    ambient_light,
+                    directional_lights,
+                    spot_lights,
+                    point_lights,
+                )?;
+                self.mesh.render(
+                    render_states,
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                )
+            },
+        )
+    }
+}
+
 impl ShadedGeometry for Model {
     fn geometry_pass(
         &self,
@@ -220,7 +260,7 @@ impl ShadedGeometry for Model {
     ) -> Result<()> {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
-        material.bind(program)?;
+        bind_material(material, program)?;
         Ok(self.mesh.render(
             RenderStates {
                 cull: self.cull,
@@ -242,38 +282,14 @@ impl ShadedGeometry for Model {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        let fragment_shader_source = shaded_fragment_shader(
-            lighting_model,
-            Some(material),
-            directional_lights.len(),
-            spot_lights.len(),
-            point_lights.len(),
-        );
-        let program = self.get_or_insert_program(&fragment_shader_source)?;
-
-        bind_lights(
-            program,
+        self.render(
+            material,
+            camera,
             ambient_light,
             directional_lights,
             spot_lights,
             point_lights,
-            camera.position(),
-        )?;
-        material.bind(program)?;
-        self.mesh.render(
-            self.render_states(
-                material.albedo[3] < 0.99
-                    || material
-                        .albedo_texture
-                        .as_ref()
-                        .map(|t| t.is_transparent())
-                        .unwrap_or(false),
-            ),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?;
-        Ok(())
+        )
     }
 }
 

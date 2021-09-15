@@ -161,6 +161,10 @@ fn parse_tree<'a>(
                         occlusion_texture,
                         occlusion_strength,
                         occlusion_metallic_roughness_texture: None,
+                        lighting_model: LightingModel::Cook(
+                            NormalDistributionFunction::TrowbridgeReitzGGX,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
                     });
                 }
 

@@ -46,17 +46,19 @@ impl Model2D {
         ));
     }
 
+    #[deprecated = "Use 'render' instead."]
     pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
         self.model
-            .render_with_color(color, self.camera2d(viewport)?)
+            .render(&color, self.camera2d(viewport)?, None, &[], &[], &[])
     }
 
-    pub fn render_with_texture(&self, texture: &impl Texture, viewport: Viewport) -> Result<()> {
+    #[deprecated = "Use 'render' instead."]
+    pub fn render_with_texture(&self, texture: &Texture2D, viewport: Viewport) -> Result<()> {
         self.model
-            .render_with_texture(texture, self.camera2d(viewport)?)
+            .render(texture, self.camera2d(viewport)?, None, &[], &[], &[])
     }
 
-    fn camera2d(&self, viewport: Viewport) -> Result<&Camera> {
+    pub fn camera2d(&self, viewport: Viewport) -> Result<&Camera> {
         unsafe {
             if CAMERA2D.is_none() {
                 CAMERA2D = Some(Camera::new_orthographic(
@@ -88,6 +90,41 @@ impl Model2D {
             )?;
             Ok(camera)
         }
+    }
+}
+
+impl Geometry for Model2D {
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        self.model.render_depth(camera)
+    }
+
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        self.model.render_depth_to_red(camera, max_depth)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.model.aabb()
+    }
+}
+
+impl Object for Model2D {
+    fn render(
+        &self,
+        paint: &dyn Paint,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<()> {
+        self.model.render(
+            paint,
+            camera,
+            ambient_light,
+            directional_lights,
+            spot_lights,
+            point_lights,
+        )
     }
 }
 

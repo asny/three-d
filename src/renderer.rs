@@ -8,6 +8,10 @@ pub use crate::core::{
     Context, Viewport,
 };
 
+mod material;
+#[doc(inline)]
+pub use material::*;
+
 pub mod shading;
 pub use shading::*;
 

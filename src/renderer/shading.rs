@@ -28,6 +28,7 @@ pub trait ShadedGeometry: Geometry {
     /// Will render transparent if the material contain an albedo color with alpha value below 255 or if the albedo texture contain an alpha channel (ie. the format is [Format::RGBA]),
     /// you only need to render the model after all solid models.
     ///
+    #[deprecated = "Use 'render' instead"]
     fn render_with_lighting(
         &self,
         camera: &Camera,
@@ -40,23 +41,124 @@ pub trait ShadedGeometry: Geometry {
     ) -> Result<()>;
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum LightingModel {
-    Phong,
-    Blinn,
-    Cook(NormalDistributionFunction, GeometryFunction),
+pub trait Paint {
+    fn fragment_shader_source(
+        &self,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> String;
+    fn bind(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<()>;
+    fn transparent(&self) -> bool;
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum GeometryFunction {
-    SmithSchlickGGX,
+impl Paint for Color {
+    fn fragment_shader_source(
+        &self,
+        _ambient_light: Option<&AmbientLight>,
+        _directional_lights: &[&DirectionalLight],
+        _spot_lights: &[&SpotLight],
+        _point_lights: &[&PointLight],
+    ) -> String {
+        include_str!("object/shaders/mesh_color.frag").to_owned()
+    }
+    fn bind(
+        &self,
+        program: &Program,
+        _camera: &Camera,
+        _ambient_light: Option<&AmbientLight>,
+        _directional_lights: &[&DirectionalLight],
+        _spot_lights: &[&SpotLight],
+        _point_lights: &[&PointLight],
+    ) -> Result<()> {
+        program.use_uniform_vec4("color", &self.to_vec4())
+    }
+
+    fn transparent(&self) -> bool {
+        self.a != 255u8
+    }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum NormalDistributionFunction {
-    Blinn,
-    Beckmann,
-    TrowbridgeReitzGGX,
+impl Paint for Texture2D {
+    fn fragment_shader_source(
+        &self,
+        _ambient_light: Option<&AmbientLight>,
+        _directional_lights: &[&DirectionalLight],
+        _spot_lights: &[&SpotLight],
+        _point_lights: &[&PointLight],
+    ) -> String {
+        include_str!("object/shaders/mesh_texture.frag").to_owned()
+    }
+    fn bind(
+        &self,
+        program: &Program,
+        _camera: &Camera,
+        _ambient_light: Option<&AmbientLight>,
+        _directional_lights: &[&DirectionalLight],
+        _spot_lights: &[&SpotLight],
+        _point_lights: &[&PointLight],
+    ) -> Result<()> {
+        program.use_texture("tex", self)
+    }
+
+    fn transparent(&self) -> bool {
+        self.is_transparent()
+    }
+}
+
+impl Paint for Material {
+    fn fragment_shader_source(
+        &self,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> String {
+        shaded_fragment_shader(
+            self.lighting_model,
+            Some(self),
+            directional_lights.len(),
+            spot_lights.len(),
+            point_lights.len(),
+        )
+    }
+    fn bind(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<()> {
+        bind_lights(
+            program,
+            ambient_light,
+            directional_lights,
+            spot_lights,
+            point_lights,
+            camera.position(),
+        )?;
+        bind_material(self, program)
+    }
+
+    fn transparent(&self) -> bool {
+        self.albedo[3] < 0.99
+            || self
+                .albedo_texture
+                .as_ref()
+                .map(|t| t.is_transparent())
+                .unwrap_or(false)
+    }
 }
 
 pub(in crate::renderer) fn geometry_fragment_shader(material: &Material) -> String {
@@ -161,6 +263,27 @@ pub(in crate::renderer) fn shaded_fragment_shader(
         material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n".to_string()),
         include_str!("shading/shaders/lighting.frag"),
     )
+}
+
+pub(crate) fn bind_material(material: &Material, program: &Program) -> Result<()> {
+    program.use_uniform_float("metallic", &material.metallic)?;
+    program.use_uniform_float("roughness", &material.roughness)?;
+    program.use_uniform_vec4("albedo", &material.albedo)?;
+    if let Some(ref texture) = material.albedo_texture {
+        program.use_texture("albedoTexture", texture.as_ref())?;
+    }
+    if let Some(ref texture) = material.metallic_roughness_texture {
+        program.use_texture("metallicRoughnessTexture", texture.as_ref())?;
+    }
+    if let Some(ref texture) = material.occlusion_texture {
+        program.use_uniform_float("occlusionStrength", &material.occlusion_strength)?;
+        program.use_texture("occlusionTexture", texture.as_ref())?;
+    }
+    if let Some(ref texture) = material.normal_texture {
+        program.use_uniform_float("normalScale", &material.normal_scale)?;
+        program.use_texture("normalTexture", texture.as_ref())?;
+    }
+    Ok(())
 }
 
 fn material_shader(material: &Material) -> String {

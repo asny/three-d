@@ -7,7 +7,6 @@ use crate::renderer::*;
 ///
 pub struct ForwardPipeline {
     context: Context,
-    pub lighting_model: LightingModel,
 }
 
 impl ForwardPipeline {
@@ -17,7 +16,6 @@ impl ForwardPipeline {
     pub fn new(context: &Context) -> Result<Self> {
         Ok(Self {
             context: context.clone(),
-            lighting_model: LightingModel::Blinn,
         })
     }
 
@@ -28,7 +26,7 @@ impl ForwardPipeline {
     pub fn light_pass(
         &self,
         camera: &Camera,
-        geometries: &[(&dyn ShadedGeometry, &Material)],
+        geometries: &[(&dyn Object, &dyn Paint)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
@@ -36,10 +34,9 @@ impl ForwardPipeline {
     ) -> Result<()> {
         for (geometry, material) in geometries {
             if camera.in_frustum(&geometry.aabb()) {
-                geometry.render_with_lighting(
+                geometry.render(
+                    *material,
                     camera,
-                    material,
-                    self.lighting_model,
                     ambient_light,
                     directional_lights,
                     spot_lights,

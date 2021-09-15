@@ -18,7 +18,7 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let mut forward_pipeline = ForwardPipeline::new(&context).unwrap();
+    let forward_pipeline = ForwardPipeline::new(&context).unwrap();
     let mut deferred_pipeline = DeferredPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
         &context,
@@ -157,17 +157,17 @@ fn main() {
 
                                 ui.label("Lighting model");
                                 ui.radio_value(
-                                    &mut forward_pipeline.lighting_model,
+                                    &mut deferred_pipeline.lighting_model,
                                     LightingModel::Phong,
                                     "Phong",
                                 );
                                 ui.radio_value(
-                                    &mut forward_pipeline.lighting_model,
+                                    &mut deferred_pipeline.lighting_model,
                                     LightingModel::Blinn,
                                     "Blinn",
                                 );
                                 ui.radio_value(
-                                    &mut forward_pipeline.lighting_model,
+                                    &mut deferred_pipeline.lighting_model,
                                     LightingModel::Cook(
                                         NormalDistributionFunction::Blinn,
                                         GeometryFunction::SmithSchlickGGX,
@@ -175,7 +175,7 @@ fn main() {
                                     "Cook (Blinn)",
                                 );
                                 ui.radio_value(
-                                    &mut forward_pipeline.lighting_model,
+                                    &mut deferred_pipeline.lighting_model,
                                     LightingModel::Cook(
                                         NormalDistributionFunction::Beckmann,
                                         GeometryFunction::SmithSchlickGGX,
@@ -183,14 +183,15 @@ fn main() {
                                     "Cook (Beckmann)",
                                 );
                                 ui.radio_value(
-                                    &mut forward_pipeline.lighting_model,
+                                    &mut deferred_pipeline.lighting_model,
                                     LightingModel::Cook(
                                         NormalDistributionFunction::TrowbridgeReitzGGX,
                                         GeometryFunction::SmithSchlickGGX,
                                     ),
                                     "Cook (Trowbridge-Reitz GGX)",
                                 );
-                                deferred_pipeline.lighting_model = forward_pipeline.lighting_model;
+                                monkey_material.lighting_model = deferred_pipeline.lighting_model;
+                                plane_material.lighting_model = deferred_pipeline.lighting_model;
 
                                 ui.label("Pipeline");
                                 ui.radio_value(&mut current_pipeline, Pipeline::Forward, "Forward");
