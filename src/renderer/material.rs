@@ -10,6 +10,10 @@ mod color_material;
 #[doc(inline)]
 pub use color_material::*;
 
+mod texture_material;
+#[doc(inline)]
+pub use texture_material::*;
+
 pub trait Paint {
     fn fragment_shader_source(
         &self,

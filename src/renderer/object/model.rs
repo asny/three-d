@@ -114,7 +114,14 @@ impl Model {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_with_texture(&self, texture: &Texture2D, camera: &Camera) -> Result<()> {
-        self.render(texture, camera, None, &[], &[], &[])
+        let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
+        program.use_texture("tex", texture)?;
+        Ok(self.mesh.render(
+            self.render_states(texture.is_transparent()),
+            program,
+            camera.uniform_buffer(),
+            camera.viewport(),
+        )?)
     }
 
     pub(in crate::renderer) fn render_states(&self, transparent: bool) -> RenderStates {
