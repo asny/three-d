@@ -2,7 +2,7 @@
 //! A collection of objects that can be rendered, for example a mesh.
 //!
 
-pub use crate::core::{CPUMesh, Cull};
+pub use crate::core::{AxisAlignedBoundingBox, CPUMesh, Cull};
 
 mod model;
 #[doc(inline)]
