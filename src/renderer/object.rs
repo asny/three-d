@@ -41,6 +41,19 @@ mod axes;
 pub use axes::*;
 
 use crate::core::*;
+use crate::renderer::*;
+
+pub trait Object: Geometry {
+    fn render(
+        &self,
+        paint: &dyn Paint,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<()>;
+}
 
 pub trait Geometry {
     ///

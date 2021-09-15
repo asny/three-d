@@ -179,6 +179,58 @@ impl Geometry for InstancedModel {
     }
 }
 
+impl Object for InstancedModel {
+    fn render(
+        &self,
+        paint: &dyn Paint,
+        camera: &Camera,
+        ambient_light: Option<&AmbientLight>,
+        directional_lights: &[&DirectionalLight],
+        spot_lights: &[&SpotLight],
+        point_lights: &[&PointLight],
+    ) -> Result<()> {
+        let render_states = if paint.transparent() {
+            RenderStates {
+                cull: self.cull,
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            }
+        } else {
+            RenderStates {
+                cull: self.cull,
+                ..Default::default()
+            }
+        };
+        let fragment_shader_source = paint.fragment_shader_source(
+            ambient_light,
+            directional_lights,
+            spot_lights,
+            point_lights,
+        );
+        self.context.program(
+            &InstancedMesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                paint.bind(
+                    program,
+                    camera,
+                    ambient_light,
+                    directional_lights,
+                    spot_lights,
+                    point_lights,
+                )?;
+                self.mesh.render(
+                    render_states,
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                )
+            },
+        )
+    }
+}
+
 impl ShadedGeometry for InstancedModel {
     fn geometry_pass(
         &self,
@@ -188,7 +240,7 @@ impl ShadedGeometry for InstancedModel {
     ) -> Result<()> {
         let fragment_shader_source = geometry_fragment_shader(material);
         let program = self.get_or_insert_program(&fragment_shader_source)?;
-        material.bind(program)?;
+        bind_material(material, program)?;
         Ok(self.mesh.render(
             RenderStates {
                 cull: self.cull,
@@ -227,7 +279,7 @@ impl ShadedGeometry for InstancedModel {
             point_lights,
             camera.position(),
         )?;
-        material.bind(program)?;
+        bind_material(material, program)?;
         Ok(self.mesh.render(
             self.render_states(
                 material.albedo[3] < 0.99
