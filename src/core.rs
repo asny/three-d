@@ -54,7 +54,8 @@ pub use math::*;
 pub mod texture;
 pub use texture::*;
 
-pub mod object;
+mod object;
+#[doc(inline)]
 pub use object::*;
 
 pub mod render_states;
@@ -63,8 +64,9 @@ pub use render_states::*;
 pub mod render_target;
 pub use render_target::*;
 
-pub mod material;
-pub use material::*;
+mod cpu_material;
+#[doc(inline)]
+pub use cpu_material::*;
 
 mod camera;
 #[doc(inline)]
