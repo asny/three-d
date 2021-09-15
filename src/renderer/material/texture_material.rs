@@ -1,6 +1,7 @@
 use crate::renderer::*;
 use std::rc::Rc;
 
+#[derive(Clone)]
 pub struct TextureMaterial {
     pub texture: Rc<Texture2D>,
 }
