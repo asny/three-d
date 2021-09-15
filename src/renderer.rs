@@ -8,7 +8,8 @@ pub use crate::core::{math::*, render_target::*, texture::*, Camera, Context, Vi
 pub mod material;
 pub use material::*;
 
-pub mod shading;
+mod shading;
+#[doc(inline)]
 pub use shading::*;
 
 pub mod effect;
