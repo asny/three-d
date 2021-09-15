@@ -136,8 +136,8 @@ fn main() {
                             || {
                                 let mut models_and_materials = models
                                     .iter()
-                                    .map(|m| (m as &dyn ShadedGeometry, &statue_material))
-                                    .collect::<Vec<(&dyn ShadedGeometry, &Material)>>();
+                                    .map(|m| (m, &statue_material))
+                                    .collect::<Vec<(&Model, &Material)>>();
                                 models_and_materials.push((&fountain, &fountain_material));
 
                                 for (geometry, material) in models_and_materials {
