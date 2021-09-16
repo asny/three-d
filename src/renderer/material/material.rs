@@ -119,7 +119,11 @@ impl Paint for Material {
         self.bind_deferred(program)
     }
     fn fragment_shader_source_deferred(&self) -> String {
-        geometry_fragment_shader(self)
+        format!(
+            "in vec3 pos;\nin vec3 nor;\n{}{}",
+            material_shader(self),
+            include_str!("shaders/deferred_objects.frag")
+        )
     }
     fn bind_deferred(&self, program: &Program) -> Result<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
@@ -168,14 +172,6 @@ impl Default for Material {
             lighting_model: LightingModel::Blinn,
         }
     }
-}
-
-fn geometry_fragment_shader(material: &Material) -> String {
-    format!(
-        "in vec3 pos;\nin vec3 nor;\n{}{}",
-        material_shader(material),
-        include_str!("shaders/deferred_objects.frag")
-    )
 }
 
 pub(in crate::renderer) fn shaded_fragment_shader(
