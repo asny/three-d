@@ -9,10 +9,6 @@ mod color_material;
 #[doc(inline)]
 pub use color_material::*;
 
-mod texture_material;
-#[doc(inline)]
-pub use texture_material::*;
-
 mod depth_material;
 #[doc(inline)]
 pub use depth_material::*;
