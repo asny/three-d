@@ -1,3 +1,4 @@
+use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
@@ -27,14 +28,15 @@ impl Paint for TextureMaterial {
     ) -> Result<()> {
         program.use_texture("tex", &*self.texture)
     }
-    fn fragment_shader_source_deferred(&self) -> String {
-        unimplemented!();
-    }
-    fn bind_deferred(&self, program: &Program) -> Result<()> {
-        unimplemented!();
-    }
-
-    fn transparent(&self) -> bool {
-        self.texture.is_transparent()
+    fn render_states(&self) -> RenderStates {
+        if self.texture.is_transparent() {
+            RenderStates {
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            }
+        } else {
+            RenderStates::default()
+        }
     }
 }

@@ -209,27 +209,16 @@ impl Geometry for Model {
 impl Object for Model {
     fn render(
         &self,
-        paint: &dyn Paint,
+        material: &dyn Paint,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        let render_states = if paint.transparent() {
-            RenderStates {
-                cull: self.cull,
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
-            }
-        } else {
-            RenderStates {
-                cull: self.cull,
-                ..Default::default()
-            }
-        };
-        let fragment_shader_source = paint.fragment_shader_source(
+        let mut render_states = material.render_states();
+        render_states.cull = self.cull;
+        let fragment_shader_source = material.fragment_shader_source(
             ambient_light,
             directional_lights,
             spot_lights,
@@ -239,7 +228,7 @@ impl Object for Model {
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                paint.bind(
+                material.bind(
                     program,
                     camera,
                     ambient_light,
@@ -259,25 +248,20 @@ impl Object for Model {
 
     fn render_deferred(
         &self,
-        paint: &dyn Paint,
+        material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()> {
-        let fragment_shader_source = paint.fragment_shader_source_deferred();
+        let mut render_states = material.render_states();
+        render_states.cull = self.cull;
+        let fragment_shader_source = material.fragment_shader_source();
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                paint.bind_deferred(program)?;
-                self.mesh.render(
-                    RenderStates {
-                        cull: self.cull,
-                        ..Default::default()
-                    },
-                    program,
-                    camera.uniform_buffer(),
-                    viewport,
-                )
+                material.bind(program)?;
+                self.mesh
+                    .render(render_states, program, camera.uniform_buffer(), viewport)
             },
         )
     }

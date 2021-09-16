@@ -1,3 +1,4 @@
+use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
@@ -116,16 +117,48 @@ impl Paint for Material {
             point_lights,
             camera.position(),
         )?;
-        self.bind_deferred(program)
+        self.bind_internal(program)
     }
-    fn fragment_shader_source_deferred(&self) -> String {
+
+    fn render_states(&self) -> RenderStates {
+        let transparent = self.albedo[3] < 0.99
+            || self
+                .albedo_texture
+                .as_ref()
+                .map(|t| t.is_transparent())
+                .unwrap_or(false);
+
+        if transparent {
+            RenderStates {
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            }
+        } else {
+            RenderStates::default()
+        }
+    }
+}
+
+impl DeferredMaterial for Material {
+    fn fragment_shader_source(&self) -> String {
         format!(
             "in vec3 pos;\nin vec3 nor;\n{}{}",
             material_shader(self),
             include_str!("shaders/deferred_objects.frag")
         )
     }
-    fn bind_deferred(&self, program: &Program) -> Result<()> {
+    fn bind(&self, program: &Program) -> Result<()> {
+        self.bind_internal(program)
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates::default()
+    }
+}
+
+impl Material {
+    fn bind_internal(&self, program: &Program) -> Result<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo)?;
@@ -144,15 +177,6 @@ impl Paint for Material {
             program.use_texture("normalTexture", texture.as_ref())?;
         }
         Ok(())
-    }
-
-    fn transparent(&self) -> bool {
-        self.albedo[3] < 0.99
-            || self
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false)
     }
 }
 
