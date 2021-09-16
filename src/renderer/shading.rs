@@ -14,11 +14,13 @@ pub use deferred_pipeline::*;
 use crate::core::*;
 use crate::renderer::*;
 
+#[deprecated]
 pub trait ShadedGeometry: Geometry {
     ///
     /// Render the geometry and surface material parameters of the object.
     /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
+    #[deprecated = "Use 'render_deferred' instead"]
     fn geometry_pass(&self, camera: &Camera, viewport: Viewport, material: &Material)
         -> Result<()>;
 
