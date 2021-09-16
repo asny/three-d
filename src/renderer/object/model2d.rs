@@ -116,7 +116,7 @@ impl Geometry for Model2D {
 impl Object for Model2D {
     fn render(
         &self,
-        paint: &dyn Paint,
+        material: &dyn Paint,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
@@ -124,7 +124,7 @@ impl Object for Model2D {
         point_lights: &[&PointLight],
     ) -> Result<()> {
         self.model.render(
-            paint,
+            material,
             camera,
             ambient_light,
             directional_lights,
@@ -134,11 +134,11 @@ impl Object for Model2D {
     }
     fn render_deferred(
         &self,
-        paint: &dyn Paint,
+        material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()> {
-        self.model.render_deferred(paint, camera, viewport)
+        self.model.render_deferred(material, camera, viewport)
     }
 }
 

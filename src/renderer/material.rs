@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 pub use crate::core::{
-    CPUMaterial, Color, GeometryFunction, LightingModel, NormalDistributionFunction, Program,
+    CPUMaterial, Color, GeometryFunction, LightingModel, NormalDistributionFunction,
 };
 
 mod color_material;
@@ -34,7 +34,11 @@ pub trait Paint {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()>;
-    fn fragment_shader_source_deferred(&self) -> String;
-    fn bind_deferred(&self, program: &Program) -> Result<()>;
-    fn transparent(&self) -> bool;
+    fn render_states(&self) -> RenderStates;
+}
+
+pub trait DeferredMaterial {
+    fn render_states(&self) -> RenderStates;
+    fn fragment_shader_source(&self) -> String;
+    fn bind(&self, program: &Program) -> Result<()>;
 }

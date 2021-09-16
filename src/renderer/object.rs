@@ -46,7 +46,7 @@ use crate::renderer::*;
 pub trait Object: Geometry {
     fn render(
         &self,
-        paint: &dyn Paint,
+        material: &dyn Paint,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
@@ -54,8 +54,12 @@ pub trait Object: Geometry {
         point_lights: &[&PointLight],
     ) -> Result<()>;
 
-    fn render_deferred(&self, paint: &dyn Paint, camera: &Camera, viewport: Viewport)
-        -> Result<()>;
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()>;
 }
 
 #[deprecated]

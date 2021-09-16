@@ -1,3 +1,4 @@
+use crate::core::*;
 use crate::renderer::*;
 
 #[derive(Clone)]
@@ -26,14 +27,15 @@ impl Paint for ColorMaterial {
     ) -> Result<()> {
         program.use_uniform_vec4("color", &self.color.to_vec4())
     }
-    fn fragment_shader_source_deferred(&self) -> String {
-        unimplemented!();
-    }
-    fn bind_deferred(&self, program: &Program) -> Result<()> {
-        unimplemented!();
-    }
-
-    fn transparent(&self) -> bool {
-        self.color.a != 255u8
+    fn render_states(&self) -> RenderStates {
+        if self.color.a != 255u8 {
+            RenderStates {
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            }
+        } else {
+            RenderStates::default()
+        }
     }
 }
