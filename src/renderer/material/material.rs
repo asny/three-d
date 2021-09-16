@@ -169,3 +169,131 @@ impl Default for Material {
         }
     }
 }
+
+fn geometry_fragment_shader(material: &Material) -> String {
+    format!(
+        "in vec3 pos;\nin vec3 nor;\n{}{}",
+        material_shader(material),
+        include_str!("shaders/deferred_objects.frag")
+    )
+}
+
+pub(in crate::renderer) fn shaded_fragment_shader(
+    lighting_model: LightingModel,
+    material: Option<&Material>,
+    directional_lights: usize,
+    spot_lights: usize,
+    point_lights: usize,
+) -> String {
+    let mut dir_uniform = String::new();
+    let mut dir_fun = String::new();
+    for i in 0..directional_lights {
+        dir_uniform.push_str(&format!(
+            "
+                uniform sampler2D directionalShadowMap{};
+                layout (std140) uniform DirectionalLightUniform{}
+                {{
+                    DirectionalLight directionalLight{};
+                }};",
+            i, i, i
+        ));
+        dir_fun.push_str(&format!("
+                    color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, occlusion, directionalShadowMap{});", i, i));
+    }
+    let mut spot_uniform = String::new();
+    let mut spot_fun = String::new();
+    for i in 0..spot_lights {
+        spot_uniform.push_str(&format!(
+            "
+                uniform sampler2D spotShadowMap{};
+                layout (std140) uniform SpotLightUniform{}
+                {{
+                    SpotLight spotLight{};
+                }};",
+            i, i, i
+        ));
+        spot_fun.push_str(&format!(
+            "
+                    color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, occlusion, spotShadowMap{});",
+            i, i
+        ));
+    }
+    let mut point_uniform = String::new();
+    let mut point_fun = String::new();
+    for i in 0..point_lights {
+        point_uniform.push_str(&format!(
+            "
+                layout (std140) uniform PointLightUniform{}
+                {{
+                    PointLight pointLight{};
+                }};",
+            i, i
+        ));
+        point_fun.push_str(&format!(
+            "
+                    color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness, occlusion);",
+            i
+        ));
+    }
+
+    let model = match lighting_model {
+        LightingModel::Phong => "#define PHONG",
+        LightingModel::Blinn => "#define BLINN",
+        LightingModel::Cook(normal, _) => match normal {
+            NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+            NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+            NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
+        },
+    };
+
+    format!(
+        "{}\n{}\n{}\n{}\nin vec3 pos;\nin vec3 nor;\n{}\n{}",
+        model,
+        include_str!("../../core/shared.frag"),
+        include_str!("shaders/light_shared.frag"),
+        &format!(
+            "
+                uniform vec3 ambientColor;
+                {} // Directional lights
+                {} // Spot lights
+                {} // Point lights
+
+                vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+                {{
+                    vec3 color = occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
+                    {} // Directional lights
+                    {} // Spot lights
+                    {} // Point lights
+                    return color;
+                }}
+                ",
+            &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
+        ),
+        material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n".to_string()),
+        include_str!("shaders/lighting.frag"),
+    )
+}
+
+fn material_shader(material: &Material) -> String {
+    let mut output = String::new();
+    if material.albedo_texture.is_some()
+        || material.metallic_roughness_texture.is_some()
+        || material.normal_texture.is_some()
+        || material.occlusion_texture.is_some()
+    {
+        output.push_str("in vec2 uvs;\n");
+        if material.albedo_texture.is_some() {
+            output.push_str("#define USE_ALBEDO_TEXTURE;\n");
+        }
+        if material.metallic_roughness_texture.is_some() {
+            output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+        }
+        if material.occlusion_texture.is_some() {
+            output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+        }
+        if material.normal_texture.is_some() {
+            output.push_str("#define USE_NORMAL_TEXTURE;\n");
+        }
+    }
+    output
+}
