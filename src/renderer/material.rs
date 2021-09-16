@@ -13,6 +13,10 @@ mod texture_material;
 #[doc(inline)]
 pub use texture_material::*;
 
+mod depth_material;
+#[doc(inline)]
+pub use depth_material::*;
+
 mod material;
 #[doc(inline)]
 pub use material::*;
