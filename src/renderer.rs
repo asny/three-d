@@ -8,9 +8,13 @@ pub use crate::core::{math::*, render_target::*, texture::*, Camera, Context, Vi
 pub mod material;
 pub use material::*;
 
-mod shading;
+mod forward_pipeline;
 #[doc(inline)]
-pub use shading::*;
+pub use forward_pipeline::*;
+
+mod deferred_pipeline;
+#[doc(inline)]
+pub use deferred_pipeline::*;
 
 pub mod effect;
 pub use effect::*;

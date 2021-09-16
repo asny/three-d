@@ -1,5 +1,5 @@
 use crate::core::*;
-use crate::renderer::shading::*;
+use crate::renderer::*;
 use std::collections::HashMap;
 
 ///
@@ -142,7 +142,8 @@ impl DeferredPipeline {
         if self.debug_type != DebugType::NONE {
             if self.debug_effect.is_none() {
                 self.debug_effect = Some(
-                    ImageEffect::new(&self.context, include_str!("shaders/debug.frag")).unwrap(),
+                    ImageEffect::new(&self.context, include_str!("material/shaders/debug.frag"))
+                        .unwrap(),
                 );
             }
             self.debug_effect.as_ref().unwrap().use_uniform_mat4(
