@@ -303,8 +303,10 @@ impl ShadedGeometry for Model {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
+        let mut mat = material.clone();
+        mat.lighting_model = lighting_model;
         self.render(
-            material,
+            &mat,
             camera,
             ambient_light,
             directional_lights,
