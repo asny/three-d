@@ -66,15 +66,19 @@ impl InstancedModel {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced model.
     ///
+    #[deprecated = "Use 'render' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_color.frag"))?;
-        program.use_uniform_vec4("color", &color.to_vec4())?;
-        Ok(self.mesh.render(
-            self.render_states(color.a != 255u8),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+        self.render(
+            &ColorMaterial {
+                color,
+                ..Default::default()
+            },
+            camera,
+            None,
+            &[],
+            &[],
+            &[],
+        )
     }
 
     ///
@@ -86,6 +90,7 @@ impl InstancedModel {
     /// # Errors
     /// Will return an error if the instanced model has no uv coordinates.
     ///
+    #[deprecated = "Use 'render' instead"]
     pub fn render_with_texture(&self, texture: &impl Texture, camera: &Camera) -> Result<()> {
         let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
         program.use_texture("tex", texture)?;

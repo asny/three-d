@@ -88,3 +88,9 @@ impl Color {
         ]
     }
 }
+
+impl Default for Color {
+    fn default() -> Self {
+        Color::WHITE
+    }
+}

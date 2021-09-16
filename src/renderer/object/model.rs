@@ -66,7 +66,17 @@ impl Model {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
-        self.render(&ColorMaterial { color }, camera, None, &[], &[], &[])
+        self.render(
+            &ColorMaterial {
+                color,
+                ..Default::default()
+            },
+            camera,
+            None,
+            &[],
+            &[],
+            &[],
+        )
     }
 
     ///

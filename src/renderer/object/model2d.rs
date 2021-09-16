@@ -49,7 +49,10 @@ impl Model2D {
     #[deprecated = "Use 'render' instead."]
     pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
         self.model.render(
-            &ColorMaterial { color },
+            &ColorMaterial {
+                color,
+                ..Default::default()
+            },
             self.camera2d(viewport)?,
             None,
             &[],

@@ -1,9 +1,24 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::rc::Rc;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ColorMaterial {
     pub color: Color,
+    pub texture: Option<Rc<Texture2D>>,
+}
+impl ColorMaterial {
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
+        let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
+        Ok(Self {
+            color: cpu_material.albedo,
+            texture,
+        })
+    }
 }
 
 impl Paint for ColorMaterial {
@@ -14,7 +29,12 @@ impl Paint for ColorMaterial {
         _spot_lights: &[&SpotLight],
         _point_lights: &[&PointLight],
     ) -> String {
-        include_str!("../object/shaders/mesh_color.frag").to_owned()
+        let mut shader = String::new();
+        if self.texture.is_some() {
+            shader.push_str("#define USE_TEXTURE\n");
+        }
+        shader.push_str(include_str!("shaders/color_material.frag"));
+        shader
     }
     fn bind(
         &self,
@@ -25,7 +45,11 @@ impl Paint for ColorMaterial {
         _spot_lights: &[&SpotLight],
         _point_lights: &[&PointLight],
     ) -> Result<()> {
-        program.use_uniform_vec4("color", &self.color.to_vec4())
+        program.use_uniform_vec4("color", &self.color.to_vec4())?;
+        if let Some(ref tex) = self.texture {
+            program.use_texture("tex", &**tex)?
+        }
+        Ok(())
     }
     fn render_states(&self) -> RenderStates {
         if self.color.a != 255u8 {
