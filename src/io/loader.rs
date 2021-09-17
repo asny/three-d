@@ -25,7 +25,7 @@ impl Loaded {
     /// Remove and returns the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn remove_bytes<P: AsRef<Path>>(&mut self, path: P) -> Result<Vec<u8>> {
+    pub fn remove_bytes(&mut self, path: impl AsRef<Path>) -> Result<Vec<u8>> {
         let bytes = self
             .loaded
             .remove_entry(path.as_ref())
@@ -40,7 +40,7 @@ impl Loaded {
     /// Returns a reference to the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn get_bytes<P: AsRef<Path>>(&mut self, path: P) -> Result<&[u8]> {
+    pub fn get_bytes(&mut self, path: impl AsRef<Path>) -> Result<&[u8]> {
         let bytes = self
             .loaded
             .get(path.as_ref())
@@ -56,7 +56,7 @@ impl Loaded {
     /// Inserts the given bytes into the set of loaded files which is useful if you want to load the data from an unsuported source.
     /// The files can then be parsed as usual using the functionality on Loaded.
     ///
-    pub fn insert_bytes<P: AsRef<Path>>(&mut self, path: P, bytes: Vec<u8>) {
+    pub fn insert_bytes(&mut self, path: impl AsRef<Path>, bytes: Vec<u8>) {
         self.loaded.insert(path.as_ref().to_path_buf(), Ok(bytes));
     }
 }
@@ -70,10 +70,7 @@ impl Loader {
     ///
     /// Loads all of the resources in the given paths then calls `on_done` with all of the [loaded resources](crate::Loaded).
     ///
-    pub fn load<F, P: AsRef<Path>>(paths: &[P], on_done: F)
-    where
-        F: 'static + FnOnce(Loaded),
-    {
+    pub fn load<F: 'static + FnOnce(Loaded)>(paths: &[impl AsRef<Path>], on_done: F) {
         #[cfg(target_arch = "wasm32")]
         {
             wasm_bindgen_futures::spawn_local(Self::load_files_async(
@@ -99,10 +96,7 @@ impl Loader {
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load_files_async<F>(paths: Vec<PathBuf>, on_done: F)
-    where
-        F: 'static + FnOnce(Loaded),
-    {
+    async fn load_files_async<F: 'static + FnOnce(Loaded)>(paths: Vec<PathBuf>, on_done: F) {
         let mut loads = Loaded::new();
         for path in paths.iter() {
             let url = reqwest::Url::parse(path.to_str().unwrap()).unwrap_or_else(|_| {

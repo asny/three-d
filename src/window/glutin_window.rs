@@ -88,10 +88,10 @@ impl Window {
     ///
     /// Start the main render loop which calls the `callback` closure each frame.
     ///
-    pub fn render_loop<F: 'static>(self, mut callback: F) -> Result<()>
-    where
-        F: FnMut(FrameInput) -> FrameOutput,
-    {
+    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
+        self,
+        mut callback: F,
+    ) -> Result<()> {
         let windowed_context = self.windowed_context;
         let mut last_time = std::time::Instant::now();
         let mut accumulated_time = 0.0;
