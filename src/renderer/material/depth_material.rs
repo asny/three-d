@@ -1,7 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct DepthMaterial {}
 
 impl Paint for DepthMaterial {
@@ -16,7 +16,7 @@ impl Paint for DepthMaterial {
     }
     fn bind(
         &self,
-        program: &Program,
+        _program: &Program,
         _camera: &Camera,
         _ambient_light: Option<&AmbientLight>,
         _directional_lights: &[&DirectionalLight],
