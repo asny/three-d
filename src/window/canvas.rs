@@ -132,10 +132,10 @@ impl Window {
         )))
     }
 
-    pub fn render_loop<F: 'static>(mut self, mut callback: F) -> Result<()>
-    where
-        F: FnMut(FrameInput) -> FrameOutput,
-    {
+    pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
+        mut self,
+        mut callback: F,
+    ) -> Result<()> {
         let performance = self
             .window
             .performance()
