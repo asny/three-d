@@ -169,22 +169,17 @@ impl Model {
 
 impl Geometry for Model {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_pick.frag"))?;
-        program.use_uniform_float("maxDistance", &max_depth)?;
-        Ok(self.mesh.render(
-            RenderStates {
-                write_mask: WriteMask {
-                    red: true,
-                    depth: true,
-                    ..WriteMask::NONE
-                },
-                cull: self.cull,
+        self.render(
+            &PickMaterial {
+                max_distance: Some(max_depth),
                 ..Default::default()
             },
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+            camera,
+            None,
+            &[],
+            &[],
+            &[],
+        )
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
