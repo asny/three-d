@@ -198,17 +198,7 @@ impl Geometry for Model {
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
-        let program = self.get_or_insert_program("void main() {}")?;
-        Ok(self.mesh.render(
-            RenderStates {
-                write_mask: WriteMask::DEPTH,
-                cull: self.cull,
-                ..Default::default()
-            },
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+        self.render(&DepthMaterial {}, camera, None, &[], &[], &[])
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
