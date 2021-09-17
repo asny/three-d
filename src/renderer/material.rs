@@ -13,6 +13,10 @@ mod depth_material;
 #[doc(inline)]
 pub use depth_material::*;
 
+mod pick_material;
+#[doc(inline)]
+pub use pick_material::*;
+
 mod normal_material;
 #[doc(inline)]
 pub use normal_material::*;

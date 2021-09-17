@@ -8,6 +8,7 @@ layout (std140) uniform Camera
     float padding;
 } camera;
 
+uniform float minDistance;
 uniform float maxDistance;
 
 in vec3 pos;
@@ -16,5 +17,5 @@ layout (location = 0) out vec4 outColor;
 
 void main()
 {
-    outColor = vec4(distance(pos, camera.position) / maxDistance, 0.0, 0.0, 0.0);
+    outColor = vec4((distance(pos, camera.position) - minDistance) / (maxDistance - minDistance), 0.0, 0.0, 0.0);
 }
