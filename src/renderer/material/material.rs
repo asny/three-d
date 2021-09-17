@@ -10,7 +10,7 @@ pub struct Material {
     /// Name. Used for matching geometry and material.
     pub name: String,
     /// Albedo base color, also called diffuse color.
-    pub albedo: Vec4,
+    pub albedo: Color,
     /// Texture with albedo base colors, also called diffuse color.
     pub albedo_texture: Option<Rc<Texture2D>>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
@@ -70,7 +70,7 @@ impl Material {
         };
         Ok(Self {
             name: cpu_material.name.clone(),
-            albedo: cpu_material.albedo.to_vec4(),
+            albedo: cpu_material.albedo,
             albedo_texture,
             metallic: cpu_material.metallic,
             roughness: cpu_material.roughness,
@@ -86,7 +86,7 @@ impl Material {
     fn bind_internal(&self, program: &Program) -> Result<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
-        program.use_uniform_vec4("albedo", &self.albedo)?;
+        program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture.as_ref())?;
         }
@@ -142,7 +142,7 @@ impl Paint for Material {
     }
 
     fn render_states(&self) -> RenderStates {
-        let transparent = self.albedo[3] < 0.99
+        let transparent = self.albedo.a != 255
             || self
                 .albedo_texture
                 .as_ref()
@@ -182,7 +182,7 @@ impl Default for Material {
     fn default() -> Self {
         Self {
             name: "default".to_string(),
-            albedo: vec4(1.0, 1.0, 1.0, 1.0),
+            albedo: Color::WHITE,
             albedo_texture: None,
             metallic: 0.0,
             roughness: 1.0,

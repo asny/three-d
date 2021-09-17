@@ -44,7 +44,7 @@ fn main() {
             monkey.cull = Cull::Back;
 
             let mut plane_material = Material {
-                albedo: vec4(0.5, 0.7, 0.3, 1.0),
+                albedo: Color::new_opaque(128, 200, 70),
                 ..Default::default()
             };
             let plane = Model::new(
@@ -130,7 +130,7 @@ fn main() {
                                         .text("Monkey Roughness"),
                                 );
                                 ui.add(
-                                    Slider::new(&mut monkey_material.albedo[3], 0.0..=1.0)
+                                    Slider::new(&mut monkey_material.albedo.a, 0..=255)
                                         .text("Monkey opacity"),
                                 );
                                 ui.add(

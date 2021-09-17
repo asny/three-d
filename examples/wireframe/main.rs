@@ -42,7 +42,7 @@ fn main() {
 
             let wireframe_material = Material {
                 name: "wireframe".to_string(),
-                albedo: vec4(0.9, 0.2, 0.2, 1.0),
+                albedo: Color::new_opaque(220, 50, 50),
                 roughness: 0.7,
                 metallic: 0.8,
                 ..Default::default()
