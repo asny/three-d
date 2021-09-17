@@ -9,12 +9,8 @@ pub struct Model2D {
 
 impl Model2D {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
-        let model = Model::new(context, cpu_mesh)?;
-        unsafe {
-            COUNT += 1;
-        }
         Ok(Self {
-            model,
+            model: Model::new(context, cpu_mesh)?,
             context: context.clone(),
         })
     }
@@ -48,57 +44,26 @@ impl Model2D {
 
     #[deprecated = "Use 'render' instead."]
     pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
-        self.model.render(
-            &ColorMaterial {
-                color,
-                ..Default::default()
-            },
-            self.camera2d(viewport)?,
-            None,
-            &[],
-            &[],
-            &[],
-        )
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render(
+                &ColorMaterial {
+                    color,
+                    ..Default::default()
+                },
+                camera2d,
+                None,
+                &[],
+                &[],
+                &[],
+            )
+        })
     }
 
     #[deprecated = "Use 'render' instead."]
     pub fn render_with_texture(&self, texture: &Texture2D, viewport: Viewport) -> Result<()> {
-        self.model
-            .render_with_texture(texture, self.camera2d(viewport)?)
-    }
-
-    pub fn camera2d(&self, viewport: Viewport) -> Result<&Camera> {
-        unsafe {
-            if CAMERA2D.is_none() {
-                CAMERA2D = Some(Camera::new_orthographic(
-                    &self.context,
-                    viewport,
-                    vec3(0.0, 0.0, -1.0),
-                    vec3(0.0, 0.0, 0.0),
-                    vec3(0.0, -1.0, 0.0),
-                    1.0,
-                    0.0,
-                    10.0,
-                )?);
-            }
-            let camera = CAMERA2D.as_mut().unwrap();
-            camera.set_viewport(viewport)?;
-            camera.set_orthographic_projection(viewport.height as f32, 0.0, 10.0)?;
-            camera.set_view(
-                vec3(
-                    viewport.width as f32 * 0.5,
-                    viewport.height as f32 * 0.5,
-                    -1.0,
-                ),
-                vec3(
-                    viewport.width as f32 * 0.5,
-                    viewport.height as f32 * 0.5,
-                    0.0,
-                ),
-                vec3(0.0, -1.0, 0.0),
-            )?;
-            Ok(camera)
-        }
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render_with_texture(texture, camera2d)
+        })
     }
 }
 
@@ -134,17 +99,3 @@ impl Object for Model2D {
         self.model.aabb()
     }
 }
-
-impl Drop for Model2D {
-    fn drop(&mut self) {
-        unsafe {
-            COUNT -= 1;
-            if COUNT == 0 {
-                CAMERA2D = None;
-            }
-        }
-    }
-}
-
-static mut COUNT: u32 = 0;
-static mut CAMERA2D: Option<Camera> = None;
