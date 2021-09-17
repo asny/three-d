@@ -11,6 +11,7 @@ use std::rc::Rc;
 pub struct Context {
     context: crate::context::Context,
     programs: Rc<RefCell<HashMap<String, Program>>>,
+    effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
 }
 
 impl Context {
@@ -18,6 +19,7 @@ impl Context {
         Self {
             context,
             programs: Rc::new(RefCell::new(HashMap::new())),
+            effects: Rc::new(RefCell::new(HashMap::new())),
         }
     }
 
@@ -35,6 +37,20 @@ impl Context {
             );
         };
         callback(self.programs.borrow().get(&key).unwrap())
+    }
+
+    pub fn effect(
+        &self,
+        fragment_shader_source: &str,
+        callback: impl FnOnce(&ImageEffect) -> Result<()>,
+    ) -> Result<()> {
+        if !self.effects.borrow().contains_key(fragment_shader_source) {
+            self.effects.borrow_mut().insert(
+                fragment_shader_source.to_string(),
+                ImageEffect::new(&self, fragment_shader_source)?,
+            );
+        };
+        callback(self.effects.borrow().get(fragment_shader_source).unwrap())
     }
 }
 
