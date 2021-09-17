@@ -104,14 +104,9 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no normals.
     ///
+    #[deprecated = "Use 'render' instead"]
     pub fn render_normals(&self, camera: &Camera) -> Result<()> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_normals.frag"))?;
-        Ok(self.mesh.render(
-            self.render_states(false),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+        self.render(&NormalMaterial {}, camera, None, &[], &[], &[])
     }
 
     ///
