@@ -163,10 +163,6 @@ impl Geometry for InstancedModel {
     fn render_depth(&self, camera: &Camera) -> Result<()> {
         self.render(&DepthMaterial {}, camera, None, &[], &[], &[])
     }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
-    }
 }
 
 impl Object for InstancedModel {
@@ -227,6 +223,10 @@ impl Object for InstancedModel {
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
         )
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
     }
 }
 

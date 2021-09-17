@@ -100,8 +100,8 @@ fn main() {
                     1024,
                     &models
                         .iter()
-                        .map(|model| model as &dyn Geometry)
-                        .collect::<Vec<&dyn Geometry>>(),
+                        .map(|model| model as &dyn Object)
+                        .collect::<Vec<&dyn Object>>(),
                 )
                 .unwrap();
 

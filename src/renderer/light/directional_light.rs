@@ -1,5 +1,5 @@
 use crate::core::*;
-use crate::renderer::Geometry;
+use crate::renderer::*;
 
 ///
 /// A light which shines in the given direction.
@@ -79,7 +79,7 @@ impl DirectionalLight {
         frustrum_depth: f32,
         texture_width: u32,
         texture_height: u32,
-        geometries: &[&dyn Geometry],
+        objects: &[&dyn Object],
     ) -> Result<()> {
         let direction = self.direction();
         let up = compute_up_direction(direction);
@@ -110,14 +110,21 @@ impl DirectionalLight {
         )
         .unwrap();
         self.shadow_texture.write(Some(1.0), || {
-            for geometry in geometries {
+            for object in objects {
                 if self
                     .shadow_camera
                     .as_ref()
                     .unwrap()
-                    .in_frustum(&geometry.aabb())
+                    .in_frustum(&object.aabb())
                 {
-                    geometry.render_depth(self.shadow_camera.as_ref().unwrap())?;
+                    object.render(
+                        &DepthMaterial::default(),
+                        self.shadow_camera.as_ref().unwrap(),
+                        None,
+                        &[],
+                        &[],
+                        &[],
+                    )?;
                 }
             }
             Ok(())

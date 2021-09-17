@@ -1,5 +1,5 @@
 use crate::core::*;
-use crate::renderer::Geometry;
+use crate::renderer::*;
 
 ///
 /// A light which shines from the given position and in the given direction.
@@ -107,7 +107,7 @@ impl SpotLight {
         &mut self,
         frustrum_depth: f32,
         texture_size: u32,
-        geometries: &[&dyn Geometry],
+        objects: &[&dyn Object],
     ) -> Result<()> {
         let position = self.position();
         let direction = self.direction();
@@ -139,14 +139,21 @@ impl SpotLight {
             DepthFormat::Depth32F,
         )?;
         self.shadow_texture.write(Some(1.0), || {
-            for geometry in geometries {
+            for object in objects {
                 if self
                     .shadow_camera
                     .as_ref()
                     .unwrap()
-                    .in_frustum(&geometry.aabb())
+                    .in_frustum(&object.aabb())
                 {
-                    geometry.render_depth(self.shadow_camera.as_ref().unwrap())?;
+                    object.render(
+                        &DepthMaterial::default(),
+                        self.shadow_camera.as_ref().unwrap(),
+                        None,
+                        &[],
+                        &[],
+                        &[],
+                    )?;
                 }
             }
             Ok(())
