@@ -12,6 +12,7 @@ pub struct Context {
     context: crate::context::Context,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
+    camera2d: Rc<RefCell<Option<Camera>>>,
 }
 
 impl Context {
@@ -20,6 +21,7 @@ impl Context {
             context,
             programs: Rc::new(RefCell::new(HashMap::new())),
             effects: Rc::new(RefCell::new(HashMap::new())),
+            camera2d: Rc::new(RefCell::new(None)),
         }
     }
 
@@ -33,7 +35,7 @@ impl Context {
         if !self.programs.borrow().contains_key(&key) {
             self.programs.borrow_mut().insert(
                 key.clone(),
-                Program::from_source(&self, vertex_shader_source, fragment_shader_source)?,
+                Program::from_source(self, vertex_shader_source, fragment_shader_source)?,
             );
         };
         callback(self.programs.borrow().get(&key).unwrap())
@@ -47,10 +49,50 @@ impl Context {
         if !self.effects.borrow().contains_key(fragment_shader_source) {
             self.effects.borrow_mut().insert(
                 fragment_shader_source.to_string(),
-                ImageEffect::new(&self, fragment_shader_source)?,
+                ImageEffect::new(self, fragment_shader_source)?,
             );
         };
         callback(self.effects.borrow().get(fragment_shader_source).unwrap())
+    }
+
+    pub fn camera2d(
+        &self,
+        viewport: Viewport,
+        callback: impl FnOnce(&Camera) -> Result<()>,
+    ) -> Result<()> {
+        if self.camera2d.borrow().is_none() {
+            *self.camera2d.borrow_mut() = Some(Camera::new_orthographic(
+                self,
+                viewport,
+                vec3(0.0, 0.0, -1.0),
+                vec3(0.0, 0.0, 0.0),
+                vec3(0.0, -1.0, 0.0),
+                1.0,
+                0.0,
+                10.0,
+            )?)
+        }
+        let mut camera2d = self.camera2d.borrow_mut();
+        camera2d.as_mut().unwrap().set_viewport(viewport)?;
+        camera2d.as_mut().unwrap().set_orthographic_projection(
+            viewport.height as f32,
+            0.0,
+            10.0,
+        )?;
+        camera2d.as_mut().unwrap().set_view(
+            vec3(
+                viewport.width as f32 * 0.5,
+                viewport.height as f32 * 0.5,
+                -1.0,
+            ),
+            vec3(
+                viewport.width as f32 * 0.5,
+                viewport.height as f32 * 0.5,
+                0.0,
+            ),
+            vec3(0.0, -1.0, 0.0),
+        )?;
+        callback(camera2d.as_ref().unwrap())
     }
 }
 
