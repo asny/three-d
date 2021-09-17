@@ -9,14 +9,14 @@ use std::collections::HashMap;
 use std::rc::Rc;
 #[derive(Clone)]
 pub struct Context {
-    context: crate::context::Context,
+    context: crate::context::GLContext,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
 }
 
 impl Context {
-    pub fn new(context: crate::context::Context) -> Self {
+    pub fn new_from_gl_context(context: crate::context::GLContext) -> Self {
         Self {
             context,
             programs: Rc::new(RefCell::new(HashMap::new())),
@@ -97,7 +97,7 @@ impl Context {
 }
 
 impl std::ops::Deref for Context {
-    type Target = crate::context::Context;
+    type Target = crate::context::GLContext;
     fn deref(&self) -> &Self::Target {
         &self.context
     }

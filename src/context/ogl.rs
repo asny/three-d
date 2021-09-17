@@ -53,16 +53,16 @@ impl ActiveInfo {
 /// Calls to this API can be combined with higher level features.
 ///
 #[derive(Clone)]
-pub struct Context {
+pub struct GLContext {
     inner: Rc<InnerGl>,
 }
 
-impl Context {
-    pub fn load_with<F>(loadfn: F) -> Context
+impl GLContext {
+    pub fn load_with<F>(loadfn: F) -> Self
     where
         for<'r> F: FnMut(&'r str) -> *const consts::types::GLvoid,
     {
-        let gl = Context {
+        let gl = Self {
             inner: Rc::new(InnerGl::load_with(loadfn)),
         };
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());

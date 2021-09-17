@@ -127,9 +127,9 @@ impl Window {
         context
             .get_extension("OES_texture_float")
             .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
-        Ok(crate::core::Context::new(crate::context::Context::new(
-            context,
-        )))
+        Ok(crate::core::Context::new_from_gl_context(
+            crate::context::GLContext::new(context),
+        ))
     }
 
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
