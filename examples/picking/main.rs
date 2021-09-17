@@ -26,7 +26,7 @@ fn main() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let pick_mesh_material = Material {
-        albedo: vec4(1.0, 0.0, 0.0, 1.0),
+        albedo: Color::RED,
         ..Default::default()
     };
     let mut sphere = CPUMesh::sphere();

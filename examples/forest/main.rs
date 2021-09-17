@@ -114,7 +114,7 @@ fn main() {
 
             // Plane
             let plane_material = Material {
-                albedo: vec4(0.5, 0.7, 0.3, 1.0),
+                albedo: Color::new_opaque(128, 200, 70),
                 metallic: 0.0,
                 roughness: 1.0,
                 ..Default::default()
