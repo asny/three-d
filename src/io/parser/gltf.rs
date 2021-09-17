@@ -165,6 +165,7 @@ fn parse_tree<'a>(
                             NormalDistributionFunction::TrowbridgeReitzGGX,
                             GeometryFunction::SmithSchlickGGX,
                         ),
+                        vertex_colors: false,
                     });
                 }
 
