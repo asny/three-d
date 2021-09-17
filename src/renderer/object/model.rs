@@ -4,6 +4,7 @@ use crate::renderer::*;
 ///
 /// A triangle mesh which can be rendered with one of the standard render functions. See [Mesh] if you need a custom render function.
 ///
+#[derive(Clone)]
 pub struct Model {
     context: Context,
     pub(in crate::renderer) mesh: Mesh,
@@ -12,13 +13,9 @@ pub struct Model {
 
 impl Model {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
-        let mesh = Mesh::new(context, cpu_mesh)?;
-        unsafe {
-            MESH_COUNT += 1;
-        }
         Ok(Self {
             context: context.clone(),
-            mesh,
+            mesh: Mesh::new(context, cpu_mesh)?,
             cull: Cull::default(),
         })
     }
@@ -115,18 +112,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_with_texture(&self, texture: &Texture2D, camera: &Camera) -> Result<()> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_texture.frag"))?;
-        program.use_texture("tex", texture)?;
-        Ok(self.mesh.render(
-            self.render_states(texture.is_transparent()),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
-    }
-
-    pub(in crate::renderer) fn render_states(&self, transparent: bool) -> RenderStates {
-        if transparent {
+        let render_states = if texture.is_transparent() {
             RenderStates {
                 cull: self.cull,
                 write_mask: WriteMask::COLOR,
@@ -138,53 +124,21 @@ impl Model {
                 cull: self.cull,
                 ..Default::default()
             }
-        }
-    }
-
-    pub(in crate::renderer) fn get_or_insert_program(
-        &self,
-        fragment_shader_source: &str,
-    ) -> Result<&MeshProgram> {
-        unsafe {
-            if PROGRAMS.is_none() {
-                PROGRAMS = Some(std::collections::HashMap::new());
-            }
-            if !PROGRAMS
-                .as_ref()
-                .unwrap()
-                .contains_key(fragment_shader_source)
-            {
-                PROGRAMS.as_mut().unwrap().insert(
-                    fragment_shader_source.to_string(),
-                    MeshProgram::new(&self.context, fragment_shader_source)?,
-                );
-            };
-            Ok(PROGRAMS
-                .as_ref()
-                .unwrap()
-                .get(fragment_shader_source)
-                .unwrap())
-        }
-    }
-}
-
-impl Geometry for Model {
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        self.render(
-            &PickMaterial {
-                max_distance: Some(max_depth),
-                ..Default::default()
+        };
+        let fragment_shader_source = include_str!("shaders/mesh_texture.frag");
+        self.context.program(
+            &Mesh::vertex_shader_source(fragment_shader_source),
+            fragment_shader_source,
+            |program| {
+                program.use_texture("tex", texture)?;
+                self.mesh.render(
+                    render_states,
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                )
             },
-            camera,
-            None,
-            &[],
-            &[],
-            &[],
         )
-    }
-
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.render(&DepthMaterial {}, camera, None, &[], &[], &[])
     }
 }
 
@@ -253,6 +207,26 @@ impl Object for Model {
     }
 }
 
+impl Geometry for Model {
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        self.render(
+            &PickMaterial {
+                max_distance: Some(max_depth),
+                ..Default::default()
+            },
+            camera,
+            None,
+            &[],
+            &[],
+            &[],
+        )
+    }
+
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        self.render(&DepthMaterial {}, camera, None, &[], &[], &[])
+    }
+}
+
 impl ShadedGeometry for Model {
     fn geometry_pass(
         &self,
@@ -285,30 +259,3 @@ impl ShadedGeometry for Model {
         )
     }
 }
-
-impl Clone for Model {
-    fn clone(&self) -> Self {
-        unsafe {
-            MESH_COUNT += 1;
-        }
-        Self {
-            context: self.context.clone(),
-            mesh: self.mesh.clone(),
-            cull: self.cull,
-        }
-    }
-}
-
-impl Drop for Model {
-    fn drop(&mut self) {
-        unsafe {
-            MESH_COUNT -= 1;
-            if MESH_COUNT == 0 {
-                PROGRAMS = None;
-            }
-        }
-    }
-}
-
-static mut MESH_COUNT: u32 = 0;
-static mut PROGRAMS: Option<std::collections::HashMap<String, MeshProgram>> = None;
