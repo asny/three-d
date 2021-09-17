@@ -87,14 +87,9 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
+    #[deprecated = "Use 'render' instead"]
     pub fn render_uvs(&self, camera: &Camera) -> Result<()> {
-        let program = self.get_or_insert_program(include_str!("shaders/mesh_uvs.frag"))?;
-        Ok(self.mesh.render(
-            self.render_states(false),
-            program,
-            camera.uniform_buffer(),
-            camera.viewport(),
-        )?)
+        self.render(&UVMaterial {}, camera, None, &[], &[], &[])
     }
 
     ///
