@@ -226,30 +226,36 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         write_mask: WriteMask,
     ) -> Result<()> {
         let copy = || {
-            let effect = get_copy_effect(&self.context)?;
-            if let Some(tex) = self.color_texture {
-                effect.use_texture("colorMap", tex)?;
-            }
-            if let Some(tex) = self.depth_texture {
-                effect.use_texture("depthMap", tex)?;
-            }
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTest::Always,
-                    write_mask,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
+            let fragment_shader_source = "
+            uniform sampler2D colorMap;
+            uniform sampler2D depthMap;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                color = texture(colorMap, uv);
+                gl_FragDepth = texture(depthMap, uv).r;
+            }";
+            self.context.effect(fragment_shader_source, |effect| {
+                if let Some(tex) = self.color_texture {
+                    effect.use_texture("colorMap", tex)?;
+                }
+                if let Some(tex) = self.depth_texture {
+                    effect.use_texture("depthMap", tex)?;
+                }
+                effect.apply(
+                    RenderStates {
+                        depth_test: DepthTest::Always,
+                        write_mask,
+                        ..Default::default()
+                    },
+                    viewport,
+                )
+            })
         };
         match destination {
-            CopyDestination::RenderTarget(other) => {
-                other.write(ClearState::none(), copy)?;
-            }
-            CopyDestination::Screen => {
-                Screen::write(&self.context, ClearState::none(), copy)?;
-            }
+            CopyDestination::RenderTarget(other) => other.write(ClearState::none(), copy),
+            CopyDestination::Screen => Screen::write(&self.context, ClearState::none(), copy),
             CopyDestination::ColorTexture(tex) => {
                 if self.color_texture.is_none() {
                     Err(CoreError::RenderTargetCopy(
@@ -257,7 +263,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
                         "depth".to_string(),
                     ))?;
                 }
-                tex.write(ClearState::none(), copy)?;
+                tex.write(ClearState::none(), copy)
             }
             CopyDestination::DepthTexture(tex) => {
                 if self.depth_texture.is_none() {
@@ -266,10 +272,9 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
                         "color".to_string(),
                     ))?;
                 }
-                tex.write(None, copy)?;
+                tex.write(None, copy)
             }
         }
-        Ok(())
     }
 
     pub(super) fn new_color(
@@ -416,24 +421,36 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         write_mask: WriteMask,
     ) -> Result<()> {
         let copy = || {
-            let effect = get_copy_array_effect(&self.context)?;
-            if let Some(tex) = self.color_texture {
-                effect.use_texture_array("colorMap", tex)?;
-                effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
-            }
-            if let Some(tex) = self.depth_texture {
-                effect.use_texture_array("depthMap", tex)?;
-                effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
-            }
-            effect.apply(
-                RenderStates {
-                    depth_test: DepthTest::Always,
-                    write_mask,
-                    ..Default::default()
-                },
-                viewport,
-            )?;
-            Ok(())
+            let fragment_shader_source = "
+            uniform sampler2DArray colorMap;
+            uniform sampler2DArray depthMap;
+            uniform int colorLayer;
+            uniform int depthLayer;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                color = texture(colorMap, vec3(uv, colorLayer));
+                gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
+            }";
+            self.context.effect(fragment_shader_source, |effect| {
+                if let Some(tex) = self.color_texture {
+                    effect.use_texture_array("colorMap", tex)?;
+                    effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
+                }
+                if let Some(tex) = self.depth_texture {
+                    effect.use_texture_array("depthMap", tex)?;
+                    effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
+                }
+                effect.apply(
+                    RenderStates {
+                        depth_test: DepthTest::Always,
+                        write_mask,
+                        ..Default::default()
+                    },
+                    viewport,
+                )
+            })
         };
         match destination {
             CopyDestination::RenderTarget(other) => {
@@ -544,50 +561,4 @@ fn clear(context: &Context, clear_state: &ClearState) {
             consts::DEPTH_BUFFER_BIT
         }
     });
-}
-
-fn get_copy_effect(context: &Context) -> Result<&ImageEffect> {
-    unsafe {
-        static mut COPY_EFFECT: Option<ImageEffect> = None;
-        if COPY_EFFECT.is_none() {
-            COPY_EFFECT = Some(ImageEffect::new(
-                context,
-                &"
-                uniform sampler2D colorMap;
-                uniform sampler2D depthMap;
-                in vec2 uv;
-                layout (location = 0) out vec4 color;
-                void main()
-                {
-                    color = texture(colorMap, uv);
-                    gl_FragDepth = texture(depthMap, uv).r;
-                }",
-            )?);
-        }
-        Ok(COPY_EFFECT.as_ref().unwrap())
-    }
-}
-
-fn get_copy_array_effect(context: &Context) -> Result<&ImageEffect> {
-    unsafe {
-        static mut COPY_EFFECT: Option<ImageEffect> = None;
-        if COPY_EFFECT.is_none() {
-            COPY_EFFECT = Some(ImageEffect::new(
-                context,
-                &"
-                uniform sampler2DArray colorMap;
-                uniform sampler2DArray depthMap;
-                uniform int colorLayer;
-                uniform int depthLayer;
-                in vec2 uv;
-                layout (location = 0) out vec4 color;
-                void main()
-                {
-                    color = texture(colorMap, vec3(uv, colorLayer));
-                    gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
-                }",
-            )?);
-        }
-        Ok(COPY_EFFECT.as_ref().unwrap())
-    }
 }
