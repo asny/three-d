@@ -57,6 +57,8 @@ pub struct CPUMaterial {
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<CPUTexture<u8>>,
 
+    pub vertex_colors: bool,
+
     pub lighting_model: LightingModel,
 }
 
@@ -74,6 +76,7 @@ impl Default for CPUMaterial {
             occlusion_strength: 1.0,
             normal_texture: None,
             normal_scale: 1.0,
+            vertex_colors: false,
             lighting_model: LightingModel::Blinn,
         }
     }

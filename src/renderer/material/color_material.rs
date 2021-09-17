@@ -6,6 +6,7 @@ use std::rc::Rc;
 pub struct ColorMaterial {
     pub color: Color,
     pub texture: Option<Rc<Texture2D>>,
+    pub vertex_colors: bool,
 }
 impl ColorMaterial {
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
@@ -17,6 +18,7 @@ impl ColorMaterial {
         Ok(Self {
             color: cpu_material.albedo,
             texture,
+            vertex_colors: cpu_material.vertex_colors,
         })
     }
 }
@@ -31,7 +33,11 @@ impl Paint for ColorMaterial {
     ) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
-            shader.push_str("#define USE_TEXTURE\n");
+            shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
+        }
+        if self.vertex_colors {
+            shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
+            shader.push_str(include_str!("../../core/shared.frag"));
         }
         shader.push_str(include_str!("shaders/color_material.frag"));
         shader
@@ -52,7 +58,13 @@ impl Paint for ColorMaterial {
         Ok(())
     }
     fn render_states(&self) -> RenderStates {
-        if self.color.a != 255u8 {
+        if self.color.a != 255u8
+            || self
+                .texture
+                .as_ref()
+                .map(|t| t.is_transparent())
+                .unwrap_or(false)
+        {
             RenderStates {
                 write_mask: WriteMask::COLOR,
                 blend: Blend::TRANSPARENCY,
