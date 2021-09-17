@@ -43,13 +43,13 @@ impl Window {
         }
 
         let windowed_context = unsafe { wc?.make_current().unwrap() };
-        let context = crate::context::Context::load_with(|s| {
+        let context = crate::context::GLContext::load_with(|s| {
             windowed_context.get_proc_address(s) as *const std::os::raw::c_void
         });
         Ok(Window {
             windowed_context,
             event_loop,
-            gl: crate::core::Context::new(context),
+            gl: crate::core::Context::new_from_gl_context(context),
         })
     }
 

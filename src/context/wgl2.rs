@@ -16,11 +16,11 @@ pub use web_sys::WebGlUniformLocation as UniformLocation;
 pub use web_sys::WebGlVertexArrayObject as VertexArrayObject;
 
 #[derive(Clone)]
-pub struct Context {
+pub struct GLContext {
     inner: std::rc::Rc<InnerGl>,
 }
 
-impl Context {
+impl GLContext {
     pub fn new(webgl_context: InnerGl) -> Self {
         Self {
             inner: std::rc::Rc::new(webgl_context),
@@ -711,7 +711,7 @@ impl Context {
     }
 }
 
-impl std::ops::Deref for Context {
+impl std::ops::Deref for GLContext {
     type Target = InnerGl;
 
     fn deref(&self) -> &InnerGl {
