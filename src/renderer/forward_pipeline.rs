@@ -48,10 +48,10 @@ impl ForwardPipeline {
         Ok(())
     }
 
-    pub fn depth_pass(&self, camera: &Camera, geometries: &[&dyn Geometry]) -> Result<()> {
-        for geometry in geometries {
-            if camera.in_frustum(&geometry.aabb()) {
-                geometry.render_depth(&camera)?;
+    pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
+        for object in objects {
+            if camera.in_frustum(&object.aabb()) {
+                object.render(&DepthMaterial::default(), camera, None, &[], &[], &[])?;
             }
         }
         Ok(())
@@ -60,7 +60,7 @@ impl ForwardPipeline {
     pub fn depth_pass_texture(
         &self,
         camera: &Camera,
-        geometries: &[&dyn Geometry],
+        objects: &[&dyn Object],
     ) -> Result<DepthTargetTexture2D> {
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,
@@ -70,7 +70,7 @@ impl ForwardPipeline {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?;
-        depth_texture.write(Some(1.0), || self.depth_pass(&camera, geometries))?;
+        depth_texture.write(Some(1.0), || self.depth_pass(&camera, objects))?;
         Ok(depth_texture)
     }
 }

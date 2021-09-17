@@ -43,7 +43,7 @@ pub use axes::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub trait Object: Geometry {
+pub trait Object {
     fn render(
         &self,
         material: &dyn Paint,
@@ -60,6 +60,8 @@ pub trait Object: Geometry {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()>;
+
+    fn aabb(&self) -> AxisAlignedBoundingBox;
 }
 
 #[deprecated]
@@ -91,12 +93,14 @@ pub trait ShadedGeometry: Geometry {
     ) -> Result<()>;
 }
 
+#[deprecated = "Replaced by Object"]
 pub trait Geometry {
     ///
     /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
+    #[deprecated = "Use 'render' instead"]
     fn render_depth(&self, camera: &Camera) -> Result<()>;
 
     ///
@@ -104,7 +108,6 @@ pub trait Geometry {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
+    #[deprecated = "Use 'render' instead"]
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
-
-    fn aabb(&self) -> AxisAlignedBoundingBox;
 }
