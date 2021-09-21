@@ -84,7 +84,7 @@ pub trait ShadedGeometry: Geometry {
     /// Will render transparent if the material contain an albedo color with alpha value below 255 or if the albedo texture contain an alpha channel (ie. the format is [Format::RGBA]),
     /// you only need to render the model after all solid models.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     fn render_with_lighting(
         &self,
         camera: &Camera,

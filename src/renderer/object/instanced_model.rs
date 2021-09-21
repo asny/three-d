@@ -42,7 +42,7 @@ impl InstancedModel {
     /// # Errors
     /// Will return an error if the instanced model has no colors.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_color(&self, camera: &Camera) -> Result<()> {
         self.render_forward(
             &ColorMaterial {
@@ -63,7 +63,7 @@ impl InstancedModel {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// The transformation can be used to position, orientate and scale the instanced model.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
         self.render_forward(
             &ColorMaterial {
@@ -87,7 +87,7 @@ impl InstancedModel {
     /// # Errors
     /// Will return an error if the instanced model has no uv coordinates.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_with_texture(&self, texture: &impl Texture, camera: &Camera) -> Result<()> {
         let render_states = if texture.is_transparent() {
             RenderStates {
