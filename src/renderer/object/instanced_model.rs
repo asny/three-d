@@ -209,7 +209,7 @@ impl ShadedGeometry for InstancedModel {
         &self,
         camera: &Camera,
         viewport: Viewport,
-        material: &Material,
+        material: &PhysicalMaterial,
     ) -> Result<()> {
         self.render_deferred(material, camera, viewport)
     }
@@ -217,7 +217,7 @@ impl ShadedGeometry for InstancedModel {
     fn render_with_lighting(
         &self,
         camera: &Camera,
-        material: &Material,
+        material: &PhysicalMaterial,
         lighting_model: LightingModel,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],

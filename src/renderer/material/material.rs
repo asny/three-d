@@ -2,11 +2,14 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
+#[deprecated = "Use 'PhysicalMaterial' instead."]
+pub type Material = PhysicalMaterial;
+
 ///
 /// A physically-based material used for shading an object.
 ///
 #[derive(Clone)]
-pub struct Material {
+pub struct PhysicalMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,
     /// Albedo base color, also called diffuse color.
@@ -32,7 +35,7 @@ pub struct Material {
     pub lighting_model: LightingModel,
 }
 
-impl Material {
+impl PhysicalMaterial {
     ///
     /// Moves the material information from the [CPUMaterial] to the GPU.
     /// If the input contains an [CPUMaterial::occlusion_metallic_roughness_texture], this texture is used for both
@@ -105,7 +108,7 @@ impl Material {
     }
 }
 
-impl Paint for Material {
+impl Paint for PhysicalMaterial {
     fn fragment_shader_source(
         &self,
         _ambient_light: Option<&AmbientLight>,
@@ -161,7 +164,7 @@ impl Paint for Material {
     }
 }
 
-impl DeferredMaterial for Material {
+impl DeferredMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self) -> String {
         format!(
             "in vec3 pos;\nin vec3 nor;\n{}{}",
@@ -178,7 +181,7 @@ impl DeferredMaterial for Material {
     }
 }
 
-impl Default for Material {
+impl Default for PhysicalMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),
@@ -243,7 +246,7 @@ pub(in crate::renderer) fn bind_lights(
 
 pub(in crate::renderer) fn shaded_fragment_shader(
     lighting_model: LightingModel,
-    material: Option<&Material>,
+    material: Option<&PhysicalMaterial>,
     directional_lights: usize,
     spot_lights: usize,
     point_lights: usize,
@@ -337,7 +340,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     )
 }
 
-fn material_shader(material: &Material) -> String {
+fn material_shader(material: &PhysicalMaterial) -> String {
     let mut output = String::new();
     if material.albedo_texture.is_some()
         || material.metallic_roughness_texture.is_some()

@@ -232,7 +232,7 @@ impl ShadedGeometry for Model {
         &self,
         camera: &Camera,
         viewport: Viewport,
-        material: &Material,
+        material: &PhysicalMaterial,
     ) -> Result<()> {
         self.render_deferred(material, camera, viewport)
     }
@@ -240,7 +240,7 @@ impl ShadedGeometry for Model {
     fn render_with_lighting(
         &self,
         camera: &Camera,
-        material: &Material,
+        material: &PhysicalMaterial,
         lighting_model: LightingModel,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
