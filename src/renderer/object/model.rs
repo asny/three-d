@@ -99,7 +99,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_normals(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&NormalMaterial {}, camera, None, &[], &[], &[])
+        self.render_forward(&NormalMaterial::default(), camera, None, &[], &[], &[])
     }
 
     ///
