@@ -25,9 +25,9 @@ mod uv_material;
 #[doc(inline)]
 pub use uv_material::*;
 
-mod material;
+mod physical_material;
 #[doc(inline)]
-pub use material::*;
+pub use physical_material::*;
 
 pub trait ForwardMaterial {
     fn fragment_shader_source(
