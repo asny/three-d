@@ -1,8 +1,7 @@
 use crate::renderer::*;
 
 ///
-/// Forward render pipeline which can render objects implementing the [Object] trait with materials and lighting.
-/// Supports different types of lighting models by changing the [ForwardPipeline::lighting_model] field.
+/// Forward render pipeline which can render objects (implementing the [Object] trait) with materials (implementing the [ForwardMaterial] trait) and lighting.
 /// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Object::render] directly.
 ///
 pub struct ForwardPipeline {
@@ -26,7 +25,7 @@ impl ForwardPipeline {
     pub fn light_pass(
         &self,
         camera: &Camera,
-        geometries: &[(&dyn Object, &dyn Paint)],
+        geometries: &[(&dyn Object, &dyn ForwardMaterial)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],

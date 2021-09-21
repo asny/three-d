@@ -7,7 +7,7 @@ pub struct PickMaterial {
     pub max_distance: Option<f32>,
 }
 
-impl Paint for PickMaterial {
+impl ForwardMaterial for PickMaterial {
     fn fragment_shader_source(
         &self,
         _ambient_light: Option<&AmbientLight>,

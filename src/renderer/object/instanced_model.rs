@@ -142,7 +142,7 @@ impl Geometry for InstancedModel {
 impl Object for InstancedModel {
     fn render(
         &self,
-        material: &dyn Paint,
+        material: &dyn ForwardMaterial,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
