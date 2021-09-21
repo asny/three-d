@@ -43,7 +43,27 @@ pub use axes::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub trait Object {
+pub trait Geometry {
+    ///
+    /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    #[deprecated = "Use 'render_forward' instead"]
+    fn render_depth(&self, camera: &Camera) -> Result<()>;
+
+    ///
+    /// Render the depth (scaled such that a value of 1 corresponds to max_depth) into the red channel of the current color render target which for example is used for picking.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    #[deprecated = "Use 'render_forward' instead"]
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
+
+    fn aabb(&self) -> AxisAlignedBoundingBox;
+}
+
+pub trait Object: Geometry {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -60,8 +80,6 @@ pub trait Object {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()>;
-
-    fn aabb(&self) -> AxisAlignedBoundingBox;
 }
 
 #[deprecated]
@@ -95,23 +113,4 @@ pub trait ShadedGeometry: Geometry {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()>;
-}
-
-#[deprecated = "Replaced by Object"]
-pub trait Geometry {
-    ///
-    /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    #[deprecated = "Use 'render' instead"]
-    fn render_depth(&self, camera: &Camera) -> Result<()>;
-
-    ///
-    /// Render the depth (scaled such that a value of 1 corresponds to max_depth) into the red channel of the current color render target which for example is used for picking.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    #[deprecated = "Use 'render' instead"]
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 }
