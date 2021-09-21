@@ -42,7 +42,7 @@ impl Model2D {
         ));
     }
 
-    #[deprecated = "Use 'render' instead."]
+    #[deprecated = "Use 'render_forward' instead."]
     pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render_forward(
@@ -59,7 +59,7 @@ impl Model2D {
         })
     }
 
-    #[deprecated = "Use 'render' instead."]
+    #[deprecated = "Use 'render_forward' instead."]
     pub fn render_with_texture(&self, texture: &Texture2D, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render_with_texture(texture, camera2d)

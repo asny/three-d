@@ -42,7 +42,7 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no colors.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_color(&self, camera: &Camera) -> Result<()> {
         self.render_forward(
             &ColorMaterial {
@@ -62,7 +62,7 @@ impl Model {
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     /// Will render the model transparent if the color contains an alpha value below 255, you only need to render the model after all solid models.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
         self.render_forward(
             &ColorMaterial {
@@ -85,7 +85,7 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_uvs(&self, camera: &Camera) -> Result<()> {
         self.render_forward(&UVMaterial {}, camera, None, &[], &[], &[])
     }
@@ -97,7 +97,7 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no normals.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_normals(&self, camera: &Camera) -> Result<()> {
         self.render_forward(&NormalMaterial {}, camera, None, &[], &[], &[])
     }
@@ -110,7 +110,7 @@ impl Model {
     /// # Errors
     /// Will return an error if the mesh has no uv coordinates.
     ///
-    #[deprecated = "Use 'render' instead"]
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render_with_texture(&self, texture: &Texture2D, camera: &Camera) -> Result<()> {
         let render_states = if texture.is_transparent() {
             RenderStates {
