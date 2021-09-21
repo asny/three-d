@@ -94,6 +94,16 @@ impl Object for Model2D {
     ) -> Result<()> {
         self.model.render_deferred(material, camera, viewport)
     }
+}
+
+impl Geometry for Model2D {
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        unimplemented!()
+    }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.model.aabb()

@@ -201,10 +201,6 @@ impl Object for Model {
             },
         )
     }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.mesh.aabb()
-    }
 }
 
 impl Geometry for Model {
@@ -224,6 +220,10 @@ impl Geometry for Model {
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
         self.render_forward(&DepthMaterial {}, camera, None, &[], &[], &[])
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.mesh.aabb()
     }
 }
 
