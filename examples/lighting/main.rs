@@ -109,6 +109,7 @@ fn main() {
             let mut point_enabled = true;
 
             let mut current_pipeline = Pipeline::Forward;
+            let mut debug_material = None;
 
             window
                 .render_loop(move |mut frame_input| {
@@ -200,49 +201,55 @@ fn main() {
                                     Pipeline::Deferred,
                                     "Deferred",
                                 );
+                                ui.label("Debug options");
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::NONE,
+                                    "None",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::POSITION,
+                                    "Position",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::NORMAL,
+                                    "Normal",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::COLOR,
+                                    "Color",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::DEPTH,
+                                    "Depth",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::DIFFUSE,
+                                    "Diffuse",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::SPECULAR,
+                                    "Specular",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
+                                    DebugType::POWER,
+                                    "Power",
+                                );
 
-                                if current_pipeline == Pipeline::Deferred {
-                                    ui.label("Debug options");
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::NONE,
-                                        "None",
-                                    );
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::POSITION,
-                                        "Position",
-                                    );
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::NORMAL,
-                                        "Normal",
-                                    );
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::COLOR,
-                                        "Color",
-                                    );
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::DEPTH,
-                                        "Depth",
-                                    );
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::DIFFUSE,
-                                        "Diffuse",
-                                    );
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::SPECULAR,
-                                        "Specular",
-                                    );
-                                    ui.radio_value(
-                                        &mut deferred_pipeline.debug_type,
-                                        DebugType::POWER,
-                                        "Power",
-                                    );
+                                debug_material = match deferred_pipeline.debug_type {
+                                    DebugType::NORMAL => {
+                                        Some(NormalMaterial::new_from_physical_material(
+                                            &monkey_material,
+                                        ))
+                                    }
+                                    _ => None,
                                 }
                             });
                             panel_width = gui_context.used_size().x as u32;
@@ -313,7 +320,16 @@ fn main() {
                             Pipeline::Forward => {
                                 forward_pipeline.light_pass(
                                     &camera,
-                                    &[(&plane, &plane_material), (&monkey, &monkey_material)],
+                                    &[
+                                        (&plane, &plane_material),
+                                        (
+                                            &monkey,
+                                            debug_material
+                                                .as_ref()
+                                                .map(|m| m as &dyn ForwardMaterial)
+                                                .unwrap_or(&monkey_material),
+                                        ),
+                                    ],
                                     if ambient_enabled {
                                         Some(&ambient_light)
                                     } else {

@@ -10,6 +10,15 @@ pub struct NormalMaterial {
     pub normal_texture: Option<Rc<Texture2D>>,
 }
 
+impl NormalMaterial {
+    pub fn new_from_physical_material(physical_material: &PhysicalMaterial) -> Self {
+        Self {
+            normal_scale: physical_material.normal_scale,
+            normal_texture: physical_material.normal_texture.clone(),
+        }
+    }
+}
+
 impl ForwardMaterial for NormalMaterial {
     fn fragment_shader_source(
         &self,
