@@ -108,7 +108,7 @@ impl PhysicalMaterial {
     }
 }
 
-impl Paint for PhysicalMaterial {
+impl ForwardMaterial for PhysicalMaterial {
     fn fragment_shader_source(
         &self,
         _ambient_light: Option<&AmbientLight>,

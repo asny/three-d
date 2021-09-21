@@ -23,7 +23,7 @@ impl ColorMaterial {
     }
 }
 
-impl Paint for ColorMaterial {
+impl ForwardMaterial for ColorMaterial {
     fn fragment_shader_source(
         &self,
         _ambient_light: Option<&AmbientLight>,

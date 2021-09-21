@@ -4,7 +4,7 @@ use crate::renderer::*;
 #[derive(Clone, Default)]
 pub struct DepthMaterial {}
 
-impl Paint for DepthMaterial {
+impl ForwardMaterial for DepthMaterial {
     fn fragment_shader_source(
         &self,
         _ambient_light: Option<&AmbientLight>,

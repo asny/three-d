@@ -145,7 +145,7 @@ impl Model {
 impl Object for Model {
     fn render(
         &self,
-        material: &dyn Paint,
+        material: &dyn ForwardMaterial,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],

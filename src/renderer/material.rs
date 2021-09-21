@@ -29,7 +29,7 @@ mod material;
 #[doc(inline)]
 pub use material::*;
 
-pub trait Paint {
+pub trait ForwardMaterial {
     fn fragment_shader_source(
         &self,
         ambient_light: Option<&AmbientLight>,

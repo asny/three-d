@@ -46,7 +46,7 @@ use crate::renderer::*;
 pub trait Object {
     fn render(
         &self,
-        material: &dyn Paint,
+        material: &dyn ForwardMaterial,
         camera: &Camera,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],

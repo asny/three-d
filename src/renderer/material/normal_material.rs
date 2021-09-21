@@ -4,7 +4,7 @@ use crate::renderer::*;
 #[derive(Clone, Default)]
 pub struct NormalMaterial {}
 
-impl Paint for NormalMaterial {
+impl ForwardMaterial for NormalMaterial {
     fn fragment_shader_source(
         &self,
         _ambient_light: Option<&AmbientLight>,
