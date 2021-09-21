@@ -146,7 +146,7 @@ impl SpotLight {
                     .unwrap()
                     .in_frustum(&object.aabb())
                 {
-                    object.render(
+                    object.render_forward(
                         &DepthMaterial::default(),
                         self.shadow_camera.as_ref().unwrap(),
                         None,

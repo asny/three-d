@@ -44,7 +44,7 @@ impl InstancedModel {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_color(&self, camera: &Camera) -> Result<()> {
-        self.render(
+        self.render_forward(
             &ColorMaterial {
                 vertex_colors: true,
                 ..Default::default()
@@ -65,7 +65,7 @@ impl InstancedModel {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
-        self.render(
+        self.render_forward(
             &ColorMaterial {
                 color,
                 ..Default::default()
@@ -121,7 +121,7 @@ impl InstancedModel {
 
 impl Geometry for InstancedModel {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        self.render(
+        self.render_forward(
             &PickMaterial {
                 max_distance: Some(max_depth),
                 ..Default::default()
@@ -135,12 +135,12 @@ impl Geometry for InstancedModel {
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.render(&DepthMaterial {}, camera, None, &[], &[], &[])
+        self.render_forward(&DepthMaterial {}, camera, None, &[], &[], &[])
     }
 }
 
 impl Object for InstancedModel {
-    fn render(
+    fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
@@ -226,7 +226,7 @@ impl ShadedGeometry for InstancedModel {
     ) -> Result<()> {
         let mut mat = material.clone();
         mat.lighting_model = lighting_model;
-        self.render(
+        self.render_forward(
             &mat,
             camera,
             ambient_light,
