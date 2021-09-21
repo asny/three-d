@@ -111,12 +111,7 @@ impl DirectionalLight {
         .unwrap();
         self.shadow_texture.write(Some(1.0), || {
             for object in objects {
-                if self
-                    .shadow_camera
-                    .as_ref()
-                    .unwrap()
-                    .in_frustum(&object.aabb())
-                {
+                if in_frustum(self.shadow_camera.as_ref().unwrap(), object) {
                     object.render_forward(
                         &DepthMaterial::default(),
                         self.shadow_camera.as_ref().unwrap(),

@@ -32,7 +32,7 @@ impl ForwardPipeline {
         point_lights: &[&PointLight],
     ) -> Result<()> {
         for (object, material) in objects {
-            if camera.in_frustum(&object.aabb()) {
+            if in_frustum(camera, object) {
                 object.render_forward(
                     *material,
                     camera,
@@ -49,7 +49,7 @@ impl ForwardPipeline {
 
     pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
         for object in objects {
-            if camera.in_frustum(&object.aabb()) {
+            if in_frustum(camera, object) {
                 object.render_forward(&DepthMaterial::default(), camera, None, &[], &[], &[])?;
             }
         }

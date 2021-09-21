@@ -53,6 +53,10 @@ impl crate::core::Camera {
     }
 }
 
+pub fn in_frustum(camera: &Camera, geometry: &dyn Geometry) -> bool {
+    camera.in_frustum(&geometry.aabb())
+}
+
 pub fn ray_intersect(
     context: &Context,
     position: Vec3,
@@ -105,7 +109,7 @@ pub fn ray_intersect(
         },
         || {
             for geometry in geometries {
-                if camera.in_frustum(&geometry.aabb()) {
+                if in_frustum(&camera, geometry) {
                     geometry.render_forward(
                         &PickMaterial::default(),
                         &camera,

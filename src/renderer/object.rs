@@ -43,6 +43,20 @@ pub use axes::*;
 use crate::core::*;
 use crate::renderer::*;
 
+impl Geometry for &dyn Object {
+    fn render_depth(&self, _camera: &Camera) -> Result<()> {
+        unimplemented!();
+    }
+
+    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
+        unimplemented!();
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        (self as &dyn Geometry).aabb()
+    }
+}
+
 pub trait Geometry {
     ///
     /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
