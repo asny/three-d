@@ -53,7 +53,7 @@ impl Geometry for &dyn Object {
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        (self as &dyn Geometry).aabb()
+        (*self).aabb()
     }
 }
 
