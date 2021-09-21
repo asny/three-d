@@ -44,7 +44,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 pub trait Object {
-    fn render(
+    fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,

@@ -44,7 +44,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_color(&self, camera: &Camera) -> Result<()> {
-        self.render(
+        self.render_forward(
             &ColorMaterial {
                 vertex_colors: true,
                 ..Default::default()
@@ -64,7 +64,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
-        self.render(
+        self.render_forward(
             &ColorMaterial {
                 color,
                 ..Default::default()
@@ -87,7 +87,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_uvs(&self, camera: &Camera) -> Result<()> {
-        self.render(&UVMaterial {}, camera, None, &[], &[], &[])
+        self.render_forward(&UVMaterial {}, camera, None, &[], &[], &[])
     }
 
     ///
@@ -99,7 +99,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render' instead"]
     pub fn render_normals(&self, camera: &Camera) -> Result<()> {
-        self.render(&NormalMaterial {}, camera, None, &[], &[], &[])
+        self.render_forward(&NormalMaterial {}, camera, None, &[], &[], &[])
     }
 
     ///
@@ -143,7 +143,7 @@ impl Model {
 }
 
 impl Object for Model {
-    fn render(
+    fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
@@ -209,7 +209,7 @@ impl Object for Model {
 
 impl Geometry for Model {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        self.render(
+        self.render_forward(
             &PickMaterial {
                 max_distance: Some(max_depth),
                 ..Default::default()
@@ -223,7 +223,7 @@ impl Geometry for Model {
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.render(&DepthMaterial {}, camera, None, &[], &[], &[])
+        self.render_forward(&DepthMaterial {}, camera, None, &[], &[], &[])
     }
 }
 
@@ -249,7 +249,7 @@ impl ShadedGeometry for Model {
     ) -> Result<()> {
         let mut mat = material.clone();
         mat.lighting_model = lighting_model;
-        self.render(
+        self.render_forward(
             &mat,
             camera,
             ambient_light,

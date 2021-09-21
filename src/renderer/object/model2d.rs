@@ -45,7 +45,7 @@ impl Model2D {
     #[deprecated = "Use 'render' instead."]
     pub fn render_with_color(&self, color: Color, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
-            self.model.render(
+            self.model.render_forward(
                 &ColorMaterial {
                     color,
                     ..Default::default()
@@ -68,7 +68,7 @@ impl Model2D {
 }
 
 impl Object for Model2D {
-    fn render(
+    fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
@@ -77,7 +77,7 @@ impl Object for Model2D {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        self.model.render(
+        self.model.render_forward(
             material,
             camera,
             ambient_light,

@@ -19,21 +19,21 @@ impl ForwardPipeline {
     }
 
     ///
-    /// Render the geometries with the given surface materials and the given set of lights.
+    /// Render the objects with the given surface materials and the given set of lights.
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     ///
     pub fn light_pass(
         &self,
         camera: &Camera,
-        geometries: &[(&dyn Object, &dyn ForwardMaterial)],
+        objects: &[(&dyn Object, &dyn ForwardMaterial)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        for (geometry, material) in geometries {
-            if camera.in_frustum(&geometry.aabb()) {
-                geometry.render(
+        for (object, material) in objects {
+            if camera.in_frustum(&object.aabb()) {
+                object.render_forward(
                     *material,
                     camera,
                     ambient_light,
@@ -50,7 +50,7 @@ impl ForwardPipeline {
     pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
         for object in objects {
             if camera.in_frustum(&object.aabb()) {
-                object.render(&DepthMaterial::default(), camera, None, &[], &[], &[])?;
+                object.render_forward(&DepthMaterial::default(), camera, None, &[], &[], &[])?;
             }
         }
         Ok(())
