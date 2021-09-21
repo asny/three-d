@@ -97,11 +97,11 @@ impl Object for Model2D {
 }
 
 impl Geometry for Model2D {
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
+    fn render_depth(&self, _camera: &Camera) -> Result<()> {
         unimplemented!()
     }
 
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
         unimplemented!()
     }
 
