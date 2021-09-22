@@ -28,6 +28,11 @@ vec3 WorldPosFromDepth(float depth, vec2 uv) {
 
 void main()
 {
+    float depth = texture(depthMap, vec3(uv,0)).r;
+    if(depth > 0.99999)
+    {
+        discard;
+    }
     if(type == 0) // Position
     {
         float depth = texture(depthMap, vec3(uv, 0)).x;
@@ -36,7 +41,14 @@ void main()
     }
     else if(type == 1) // Normal
     {
-        color = vec4(texture(gbuffer, vec3(uv, 1)).xyz, 1.);
+        vec4 n = texture(gbuffer, vec3(uv, 1));
+        vec2 n2 = n.xy*2.0 - 1.0;
+        float z = 1.0 - n2.x * n2.x - n2.y * n2.y;
+        if (z > 0.0001) {
+            z = sqrt(z);
+        }
+        vec3 normal = normalize(vec3(n2.x, n2.y, z));
+        color = vec4(normal * 0.5 + 0.5, 1.);
     }
     else if(type == 2) // Color
     {
@@ -44,7 +56,7 @@ void main()
     }
     else if(type == 3) // Depth
     {
-        float depth = linear_depth(texture(depthMap, vec3(uv, 0)).x);
+        depth = linear_depth(depth);
         color = vec4(depth, depth, depth, 1.);
     }
     else if(type == 4) // Diffuse
