@@ -59,25 +59,14 @@ void main()
         depth = linear_depth(depth);
         color = vec4(depth, depth, depth, 1.);
     }
-    else if(type == 4) // Diffuse
+    else if(type == 4) // ORM
     {
-        float val = texture(gbuffer, vec3(uv, 0)).w;
-        color = vec4(val, val, val, 1.);
-    }
-    else if(type == 5) // Specular
-    {
-        float nw = texture(gbuffer, vec3(uv, 1)).w;
-        int t = int(floor(nw*255.0));
-        float val = float(t & 15) / 15.0;
-        color = vec4(val, val, val, 1.);
-    }
-    else if(type == 6) // Specular power
-    {
-        float nw = texture(gbuffer, vec3(uv, 1)).w;
-        int t = int(floor(nw*255.0));
-        float val = 2.0 * float((t & 240) >> 4);
-        val /= 30.0;
-        color = vec4(val, val, val, 1.);
+        vec4 c = texture(gbuffer, vec3(uv, 0));
+        float metallic = c.w;
+        vec4 n = texture(gbuffer, vec3(uv, 1));
+        float roughness = n.w;
+        float occlusion = n.z;
+        color = vec4(occlusion, roughness, metallic, 1.0);
     }
     else {
         color = vec4(0., 0., 0., 0.);

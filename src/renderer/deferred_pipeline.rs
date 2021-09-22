@@ -11,9 +11,7 @@ pub enum DebugType {
     NORMAL,
     COLOR,
     DEPTH,
-    DIFFUSE,
-    SPECULAR,
-    POWER,
+    ORM,
     NONE,
 }
 ///
