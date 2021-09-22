@@ -11,10 +11,13 @@ void main()
     outColor = color;
     
     #ifdef USE_VERTEX_COLORS
-    outColor *= vec4(srgb_from_rgb(col.rgb), col.a);
+    outColor *= col;
     #endif
     
     #ifdef USE_TEXTURE
-    outColor *= texture(tex, uvs);
+    vec4 tex_color = texture(tex, uvs);
+    outColor *= vec4(rgb_from_srgb(tex_color.rgb), tex_color.a);
     #endif
+
+    outColor.rgb = srgb_from_rgb(outColor.rgb);
 }
