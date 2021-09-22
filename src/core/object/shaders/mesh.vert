@@ -69,6 +69,6 @@ void main()
 #endif
 
 #ifdef USE_COLORS 
-    col = vec4(rgb_from_srgb(color.rgb/255.0), color.a/255.0);
+    col = color/255.0;
 #endif
 }
