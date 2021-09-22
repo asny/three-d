@@ -109,7 +109,6 @@ fn main() {
             let mut point_enabled = true;
 
             let mut current_pipeline = Pipeline::Forward;
-            let mut debug_material = None;
 
             window
                 .render_loop(move |mut frame_input| {
@@ -229,28 +228,9 @@ fn main() {
                                 );
                                 ui.radio_value(
                                     &mut deferred_pipeline.debug_type,
-                                    DebugType::DIFFUSE,
-                                    "Diffuse",
+                                    DebugType::ORM,
+                                    "ORM",
                                 );
-                                ui.radio_value(
-                                    &mut deferred_pipeline.debug_type,
-                                    DebugType::SPECULAR,
-                                    "Specular",
-                                );
-                                ui.radio_value(
-                                    &mut deferred_pipeline.debug_type,
-                                    DebugType::POWER,
-                                    "Power",
-                                );
-
-                                debug_material = match deferred_pipeline.debug_type {
-                                    DebugType::NORMAL => {
-                                        Some(NormalMaterial::new_from_physical_material(
-                                            &monkey_material,
-                                        ))
-                                    }
-                                    _ => None,
-                                }
                             });
                             panel_width = gui_context.used_size().x as u32;
                         })
@@ -320,16 +300,7 @@ fn main() {
                             Pipeline::Forward => {
                                 forward_pipeline.light_pass(
                                     &camera,
-                                    &[
-                                        (&plane, &plane_material),
-                                        (
-                                            &monkey,
-                                            debug_material
-                                                .as_ref()
-                                                .map(|m| m as &dyn ForwardMaterial)
-                                                .unwrap_or(&monkey_material),
-                                        ),
-                                    ],
+                                    &[(&plane, &plane_material), (&monkey, &monkey_material)],
                                     if ambient_enabled {
                                         Some(&ambient_light)
                                     } else {
