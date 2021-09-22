@@ -47,6 +47,7 @@ pub struct CPUMesh {
     /// The uv coordinates of the vertices. Two contiguous floats defines a coordinate `(u, v)`, therefore the length must be divisable by 2.
     pub uvs: Option<Vec<f32>>,
     /// The colors of the vertices. Four contiguous bytes defines a color `(r, g, b, a)`, therefore the length must be divisable by 4.
+    /// The colors are assumed to be in linear space.
     pub colors: Option<Vec<u8>>,
 }
 

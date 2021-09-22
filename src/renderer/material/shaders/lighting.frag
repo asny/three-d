@@ -47,7 +47,7 @@ void main()
     vec3 position = world_pos_from_depth(viewProjectionInverse, depth, uv);
    	
     vec4 c = texture(gbuffer, vec3(uv, 0));
-    vec4 surface_color = vec4(rgb_from_srgb(c.rgb), 1.0);
+    vec4 surface_color = vec4(c.rgb, 1.0);
     float metallic_factor = c.w;
 
     vec4 n = texture(gbuffer, vec3(uv, 1));
@@ -62,12 +62,10 @@ void main()
 
 #else 
 
-    vec4 surface_color;
+    vec4 surface_color = albedo;
 #ifdef USE_ALBEDO_TEXTURE
     vec4 c = texture(albedoTexture, uvs);
-    surface_color = vec4(rgb_from_srgb(albedo.rgb * c.rgb), albedo.a * c.a);
-#else 
-    surface_color = vec4(rgb_from_srgb(albedo.rgb), albedo.a);
+    surface_color *= vec4(rgb_from_srgb(c.rgb), c.a);
 #endif
 
     float occlusion = 1.0;

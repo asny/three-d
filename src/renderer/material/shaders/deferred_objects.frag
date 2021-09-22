@@ -26,11 +26,10 @@ layout (location = 1) out vec4 out_normal;
 
 void main()
 {
-    vec4 color;
+    vec4 surface_color = albedo;
 #ifdef USE_ALBEDO_TEXTURE
-    color = albedo * texture(albedoTexture, uvs);
-#else 
-    color = albedo;
+    vec4 c = texture(albedoTexture, uvs);
+    surface_color *= vec4(rgb_from_srgb(c.rgb), c.a);
 #endif
 
     float metallic_factor = metallic;
@@ -52,6 +51,6 @@ void main()
     normal = tbn * ((2.0 * texture(normalTexture, uvs).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
 #endif
 
-    out_color = vec4(color.rgb, metallic_factor);
+    out_color = vec4(surface_color.rgb, metallic_factor);
     out_normal = vec4(0.5 * normal.xy + 0.5, occlusion, roughness_factor);
 }
