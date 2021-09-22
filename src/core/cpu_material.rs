@@ -25,14 +25,13 @@ pub enum NormalDistributionFunction {
 ///
 /// A CPU-side version of a [material](crate::Material).
 /// Can be constructed manually or loaded via [io](crate::io).
-/// Textures are assumed to be in sRGB with or without an alpha channel.
 ///
 pub struct CPUMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,
-    /// Albedo base color, also called diffuse color.
+    /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
-    /// Texture with albedo base colors, also called diffuse color.
+    /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
     pub albedo_texture: Option<CPUTexture<u8>>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
