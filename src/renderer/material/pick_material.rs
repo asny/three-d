@@ -31,13 +31,6 @@ impl ForwardMaterial for PickMaterial {
         Ok(())
     }
     fn render_states(&self) -> RenderStates {
-        RenderStates {
-            write_mask: WriteMask {
-                red: true,
-                depth: true,
-                ..WriteMask::NONE
-            },
-            ..Default::default()
-        }
+        RenderStates::default()
     }
 }
