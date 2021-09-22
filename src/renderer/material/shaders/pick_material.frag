@@ -17,5 +17,6 @@ layout (location = 0) out vec4 outColor;
 
 void main()
 {
-    outColor = vec4((distance(pos, camera.position) - minDistance) / (maxDistance - minDistance), 0.0, 0.0, 0.0);
+    float dist = (distance(pos, camera.position) - minDistance) / (maxDistance - minDistance);
+    outColor = vec4(dist, dist, dist, 1.0);
 }
