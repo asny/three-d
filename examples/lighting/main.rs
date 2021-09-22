@@ -109,6 +109,11 @@ fn main() {
             let mut point_enabled = true;
 
             let mut current_pipeline = Pipeline::Forward;
+            let normal_material = NormalMaterial::default();
+            let depth_material = PickMaterial {
+                min_distance: Some(0.1),
+                max_distance: Some(10.0),
+            };
 
             window
                 .render_loop(move |mut frame_input| {
@@ -298,9 +303,23 @@ fn main() {
                     Screen::write(&context, ClearState::default(), || {
                         match current_pipeline {
                             Pipeline::Forward => {
+                                let objects: [(&dyn Object, &dyn ForwardMaterial); 2] =
+                                    match deferred_pipeline.debug_type {
+                                        DebugType::NORMAL => [
+                                            (&plane, &normal_material),
+                                            (&monkey, &normal_material),
+                                        ],
+                                        DebugType::DEPTH => {
+                                            [(&plane, &depth_material), (&monkey, &depth_material)]
+                                        }
+                                        _ => {
+                                            [(&plane, &plane_material), (&monkey, &monkey_material)]
+                                        }
+                                    };
+
                                 forward_pipeline.light_pass(
                                     &camera,
-                                    &[(&plane, &plane_material), (&monkey, &monkey_material)],
+                                    &objects,
                                     if ambient_enabled {
                                         Some(&ambient_light)
                                     } else {
