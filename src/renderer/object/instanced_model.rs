@@ -50,10 +50,7 @@ impl InstancedModel {
                 ..Default::default()
             },
             camera,
-            None,
-            &[],
-            &[],
-            &[],
+            &Lights::NONE,
         )
     }
 
@@ -71,10 +68,7 @@ impl InstancedModel {
                 ..Default::default()
             },
             camera,
-            None,
-            &[],
-            &[],
-            &[],
+            &Lights::NONE,
         )
     }
 
@@ -127,15 +121,12 @@ impl Geometry for InstancedModel {
                 ..Default::default()
             },
             camera,
-            None,
-            &[],
-            &[],
-            &[],
+            &Lights::NONE,
         )
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&DepthMaterial {}, camera, None, &[], &[], &[])
+        self.render_forward(&DepthMaterial {}, camera, &Lights::NONE)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -148,31 +139,16 @@ impl Object for InstancedModel {
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
+        lights: &Lights,
     ) -> Result<()> {
         let mut render_states = material.render_states();
         render_states.cull = self.cull;
-        let fragment_shader_source = material.fragment_shader_source(
-            ambient_light,
-            directional_lights,
-            spot_lights,
-            point_lights,
-        );
+        let fragment_shader_source = material.fragment_shader_source(lights);
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.bind(
-                    program,
-                    camera,
-                    ambient_light,
-                    directional_lights,
-                    spot_lights,
-                    point_lights,
-                )?;
+                material.bind(program, camera, lights)?;
                 self.mesh.render(
                     render_states,
                     program,
@@ -229,10 +205,12 @@ impl ShadedGeometry for InstancedModel {
         self.render_forward(
             &mat,
             camera,
-            ambient_light,
-            directional_lights,
-            spot_lights,
-            point_lights,
+            &Lights {
+                ambient_light: ambient_light.map(|l| l.clone()),
+                directional_lights: directional_lights.iter().map(|l| (*l).clone()).collect(),
+                spot_lights: spot_lights.iter().map(|l| (*l).clone()).collect(),
+                point_lights: point_lights.iter().map(|l| (*l).clone()).collect(),
+            },
         )
     }
 }

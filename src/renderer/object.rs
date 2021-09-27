@@ -82,10 +82,7 @@ pub trait Object: Geometry {
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
+        lights: &Lights,
     ) -> Result<()>;
 
     fn render_deferred(
