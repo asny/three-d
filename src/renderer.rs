@@ -110,14 +110,7 @@ pub fn ray_intersect(
         || {
             for geometry in geometries {
                 if in_frustum(&camera, geometry) {
-                    geometry.render_forward(
-                        &PickMaterial::default(),
-                        &camera,
-                        None,
-                        &[],
-                        &[],
-                        &[],
-                    )?;
+                    geometry.render_forward(&PickMaterial::default(), &camera, &Lights::NONE)?;
                 }
             }
             Ok(())

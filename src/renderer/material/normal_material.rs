@@ -20,13 +20,7 @@ impl NormalMaterial {
 }
 
 impl ForwardMaterial for NormalMaterial {
-    fn fragment_shader_source(
-        &self,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> String {
+    fn fragment_shader_source(&self, _lights: &Lights) -> String {
         let mut shader = String::new();
         if self.normal_texture.is_some() {
             shader.push_str(include_str!("../../core/shared.frag"));
@@ -35,15 +29,7 @@ impl ForwardMaterial for NormalMaterial {
         shader.push_str(include_str!("shaders/normal_material.frag"));
         shader
     }
-    fn bind(
-        &self,
-        program: &Program,
-        _camera: &Camera,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> Result<()> {
+    fn bind(&self, program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
             program.use_texture("normalTexture", &**tex)?;

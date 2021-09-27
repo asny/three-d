@@ -5,24 +5,10 @@ use crate::renderer::*;
 pub struct DepthMaterial {}
 
 impl ForwardMaterial for DepthMaterial {
-    fn fragment_shader_source(
-        &self,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> String {
+    fn fragment_shader_source(&self, _lights: &Lights) -> String {
         "void main() {}".to_string()
     }
-    fn bind(
-        &self,
-        _program: &Program,
-        _camera: &Camera,
-        _ambient_light: Option<&AmbientLight>,
-        _directional_lights: &[&DirectionalLight],
-        _spot_lights: &[&SpotLight],
-        _point_lights: &[&PointLight],
-    ) -> Result<()> {
+    fn bind(&self, _program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
         Ok(())
     }
     fn render_states(&self) -> RenderStates {

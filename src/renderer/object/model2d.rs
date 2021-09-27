@@ -51,10 +51,7 @@ impl Model2D {
                     ..Default::default()
                 },
                 camera2d,
-                None,
-                &[],
-                &[],
-                &[],
+                &Lights::NONE,
             )
         })
     }
@@ -72,19 +69,9 @@ impl Object for Model2D {
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
+        lights: &Lights,
     ) -> Result<()> {
-        self.model.render_forward(
-            material,
-            camera,
-            ambient_light,
-            directional_lights,
-            spot_lights,
-            point_lights,
-        )
+        self.model.render_forward(material, camera, lights)
     }
     fn render_deferred(
         &self,

@@ -30,6 +30,18 @@ impl Color {
     }
 
     ///
+    /// Creates a new color from three float elements where each element are in the range `0.0..=1.0`.
+    ///
+    pub fn new_from_rgb_slice(rgba: &[f32; 3]) -> Self {
+        Self {
+            r: (rgba[0] * 255.0) as u8,
+            g: (rgba[1] * 255.0) as u8,
+            b: (rgba[2] * 255.0) as u8,
+            ..Default::default()
+        }
+    }
+
+    ///
     /// Creates a new color from four float elements where each element are in the range `0.0..=1.0`.
     ///
     pub fn new_from_rgba_slice(rgba: &[f32; 4]) -> Self {
