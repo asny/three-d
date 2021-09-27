@@ -43,8 +43,17 @@ impl DirectionalLight {
         self.light_buffer.update(0, &color.to_rgb_slice()).unwrap();
     }
 
+    pub fn color(&self) -> Color {
+        let c = self.light_buffer.get(0).unwrap();
+        Color::new_from_rgb_slice(&[c[0], c[1], c[2]])
+    }
+
     pub fn set_intensity(&mut self, intensity: f32) {
         self.light_buffer.update(1, &[intensity]).unwrap();
+    }
+
+    pub fn intensity(&self) -> f32 {
+        self.light_buffer.get(1).unwrap()[0]
     }
 
     pub fn set_direction(&mut self, direction: &Vec3) {
@@ -115,10 +124,7 @@ impl DirectionalLight {
                     object.render_forward(
                         &DepthMaterial::default(),
                         self.shadow_camera.as_ref().unwrap(),
-                        None,
-                        &[],
-                        &[],
-                        &[],
+                        &Lights::NONE,
                     )?;
                 }
             }
@@ -134,6 +140,18 @@ impl DirectionalLight {
 
     pub fn buffer(&self) -> &UniformBuffer {
         &self.light_buffer
+    }
+}
+
+impl Clone for DirectionalLight {
+    fn clone(&self) -> Self {
+        Self::new(
+            &self.context,
+            self.intensity(),
+            self.color(),
+            &self.direction(),
+        )
+        .unwrap()
     }
 }
 

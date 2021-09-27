@@ -19,3 +19,25 @@ pub use point_light::*;
 mod ambient_light;
 #[doc(inline)]
 pub use ambient_light::*;
+
+pub struct Lights {
+    pub ambient_light: Option<AmbientLight>,
+    pub directional_lights: Vec<DirectionalLight>,
+    pub spot_lights: Vec<SpotLight>,
+    pub point_lights: Vec<PointLight>,
+}
+
+impl Lights {
+    pub const NONE: Self = Self {
+        ambient_light: None,
+        directional_lights: Vec::new(),
+        spot_lights: Vec::new(),
+        point_lights: Vec::new(),
+    };
+}
+
+impl Default for Lights {
+    fn default() -> Self {
+        Self::NONE
+    }
+}

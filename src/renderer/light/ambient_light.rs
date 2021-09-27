@@ -3,6 +3,7 @@ use crate::Color;
 ///
 /// A light which shines equally on all parts of any surface.
 ///
+#[derive(Clone, Debug)]
 pub struct AmbientLight {
     pub color: Color,
     pub intensity: f32,

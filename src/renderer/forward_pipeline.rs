@@ -36,11 +36,31 @@ impl ForwardPipeline {
                 object.render_forward(
                     *material,
                     camera,
-                    ambient_light,
-                    directional_lights,
-                    spot_lights,
-                    point_lights,
+                    &Lights {
+                        ambient_light: ambient_light.map(|l| l.clone()),
+                        directional_lights: directional_lights
+                            .iter()
+                            .map(|l| (*l).clone())
+                            .collect(),
+                        spot_lights: spot_lights.iter().map(|l| (*l).clone()).collect(),
+                        point_lights: point_lights.iter().map(|l| (*l).clone()).collect(),
+                    },
                 )?;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn light_pass2(
+        &self,
+        camera: &Camera,
+        objects: &[(&dyn Object, &dyn ForwardMaterial)],
+        lights: &Lights,
+    ) -> Result<()> {
+        for (object, material) in objects {
+            if in_frustum(camera, object) {
+                object.render_forward(*material, camera, lights)?;
             }
         }
 
@@ -50,7 +70,7 @@ impl ForwardPipeline {
     pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
         for object in objects {
             if in_frustum(camera, object) {
-                object.render_forward(&DepthMaterial::default(), camera, None, &[], &[], &[])?;
+                object.render_forward(&DepthMaterial::default(), camera, &Lights::NONE)?;
             }
         }
         Ok(())

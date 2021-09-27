@@ -55,14 +55,31 @@ impl SpotLight {
         self.light_buffer.update(0, &color.to_rgb_slice()).unwrap();
     }
 
+    pub fn color(&self) -> Color {
+        let c = self.light_buffer.get(0).unwrap();
+        Color::new_from_rgb_slice(&[c[0], c[1], c[2]])
+    }
+
     pub fn set_intensity(&mut self, intensity: f32) {
         self.light_buffer.update(1, &[intensity]).unwrap();
+    }
+
+    pub fn intensity(&self) -> f32 {
+        self.light_buffer.get(1).unwrap()[0]
     }
 
     pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) {
         self.light_buffer.update(2, &[constant]).unwrap();
         self.light_buffer.update(3, &[linear]).unwrap();
         self.light_buffer.update(4, &[exponential]).unwrap();
+    }
+
+    pub fn attenuation(&self) -> (f32, f32, f32) {
+        (
+            self.light_buffer.get(2).unwrap()[0],
+            self.light_buffer.get(3).unwrap()[0],
+            self.light_buffer.get(4).unwrap()[0],
+        )
     }
 
     pub fn set_position(&mut self, position: &Vec3) {
@@ -76,6 +93,10 @@ impl SpotLight {
 
     pub fn set_cutoff(&mut self, cutoff: f32) {
         self.light_buffer.update(7, &[cutoff]).unwrap();
+    }
+
+    pub fn cutoff(&self) -> f32 {
+        self.light_buffer.get(7).unwrap()[0]
     }
 
     pub fn set_direction(&mut self, direction: &Vec3) {
@@ -144,10 +165,7 @@ impl SpotLight {
                     object.render_forward(
                         &DepthMaterial::default(),
                         self.shadow_camera.as_ref().unwrap(),
-                        None,
-                        &[],
-                        &[],
-                        &[],
+                        &Lights::NONE,
                     )?;
                 }
             }
@@ -163,6 +181,25 @@ impl SpotLight {
 
     pub fn buffer(&self) -> &UniformBuffer {
         &self.light_buffer
+    }
+}
+
+impl Clone for SpotLight {
+    fn clone(&self) -> Self {
+        let (attenuation_constant, attenuation_linear, attenuation_exponential) =
+            self.attenuation();
+        Self::new(
+            &self.context,
+            self.intensity(),
+            self.color(),
+            &self.position(),
+            &self.direction(),
+            self.cutoff(),
+            attenuation_constant,
+            attenuation_linear,
+            attenuation_exponential,
+        )
+        .unwrap()
     }
 }
 

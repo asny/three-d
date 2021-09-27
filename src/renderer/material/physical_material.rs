@@ -109,38 +109,17 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(
-        &self,
-        _ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> String {
+    fn fragment_shader_source(&self, lights: &Lights) -> String {
         shaded_fragment_shader(
             self.lighting_model,
             Some(self),
-            directional_lights.len(),
-            spot_lights.len(),
-            point_lights.len(),
+            lights.directional_lights.len(),
+            lights.spot_lights.len(),
+            lights.point_lights.len(),
         )
     }
-    fn bind(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> Result<()> {
-        bind_lights(
-            program,
-            ambient_light,
-            directional_lights,
-            spot_lights,
-            point_lights,
-            camera.position(),
-        )?;
+    fn bind(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+        bind_lights(program, lights, camera.position())?;
         self.bind_internal(program)
     }
 
@@ -201,45 +180,56 @@ impl Default for PhysicalMaterial {
 
 pub(in crate::renderer) fn bind_lights(
     program: &Program,
-    ambient_light: Option<&AmbientLight>,
-    directional_lights: &[&DirectionalLight],
-    spot_lights: &[&SpotLight],
-    point_lights: &[&PointLight],
+    lights: &Lights,
     camera_position: &Vec3,
 ) -> Result<()> {
     // Ambient light
     program.use_uniform_vec3(
         "ambientColor",
-        &ambient_light
+        &lights
+            .ambient_light
+            .as_ref()
             .map(|light| light.color.to_vec3() * light.intensity)
             .unwrap_or(vec3(0.0, 0.0, 0.0)),
     )?;
 
-    if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
+    if !lights.directional_lights.is_empty()
+        || !lights.spot_lights.is_empty()
+        || !lights.point_lights.is_empty()
+    {
         program.use_uniform_vec3("eyePosition", camera_position)?;
     }
 
     // Directional light
-    for i in 0..directional_lights.len() {
+    for i in 0..lights.directional_lights.len() {
         program.use_texture(
             &format!("directionalShadowMap{}", i),
-            directional_lights[i].shadow_map(),
+            lights.directional_lights[i].shadow_map(),
         )?;
         program.use_uniform_block(
             &format!("DirectionalLightUniform{}", i),
-            directional_lights[i].buffer(),
+            lights.directional_lights[i].buffer(),
         );
     }
 
     // Spot light
-    for i in 0..spot_lights.len() {
-        program.use_texture(&format!("spotShadowMap{}", i), spot_lights[i].shadow_map())?;
-        program.use_uniform_block(&format!("SpotLightUniform{}", i), spot_lights[i].buffer());
+    for i in 0..lights.spot_lights.len() {
+        program.use_texture(
+            &format!("spotShadowMap{}", i),
+            lights.spot_lights[i].shadow_map(),
+        )?;
+        program.use_uniform_block(
+            &format!("SpotLightUniform{}", i),
+            lights.spot_lights[i].buffer(),
+        );
     }
 
     // Point light
-    for i in 0..point_lights.len() {
-        program.use_uniform_block(&format!("PointLightUniform{}", i), point_lights[i].buffer());
+    for i in 0..lights.point_lights.len() {
+        program.use_uniform_block(
+            &format!("PointLightUniform{}", i),
+            lights.point_lights[i].buffer(),
+        );
     }
     Ok(())
 }
