@@ -167,7 +167,19 @@ impl DeferredPipeline {
             return Ok(());
         }
 
-        let mut fragment_shader = shaded_fragment_shader(self.lighting_model);
+        let mut fragment_shader = match self.lighting_model {
+            LightingModel::Phong => "#define PHONG",
+            LightingModel::Blinn => "#define BLINN",
+            LightingModel::Cook(normal, _) => match normal {
+                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+                NormalDistributionFunction::TrowbridgeReitzGGX => {
+                    "#define COOK\n#define COOK_GGX\n"
+                }
+            },
+        }
+        .to_string();
+        fragment_shader.push_str(&shaded_fragment_shader());
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         if !self.program_map.contains_key(&fragment_shader) {
