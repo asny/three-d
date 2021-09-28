@@ -21,6 +21,9 @@ uniform sampler2D normalTexture;
 uniform float normalScale;
 #endif
 
+in vec3 pos;
+in vec3 nor;
+
 layout (location = 0) out vec4 outColor;
 
 void main()

@@ -325,8 +325,6 @@ pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel)
             ",
         &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
     ));
-
-    shader_source.push_str("in vec3 pos;\nin vec3 nor;\n");
     shader_source
 }
 
