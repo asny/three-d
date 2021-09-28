@@ -150,7 +150,7 @@ impl DeferredMaterial for PhysicalMaterial {
         format!(
             "in vec3 pos;\nin vec3 nor;\n{}{}",
             material_shader(self),
-            include_str!("shaders/deferred_objects.frag")
+            include_str!("shaders/physical_material_deferred.frag")
         )
     }
     fn bind(&self, program: &Program) -> Result<()> {
@@ -327,33 +327,6 @@ pub(in crate::renderer) fn shaded_fragment_shader(
 
     shader_source.push_str("in vec3 pos;\nin vec3 nor;\n");
     shader_source
-
-    /*format!(
-        "{}\n{}\n{}\n{}\nin vec3 pos;\nin vec3 nor;\n{}\n{}",
-        model,
-        include_str!("../../core/shared.frag"),
-        include_str!("shaders/light_shared.frag"),
-        &format!(
-            "
-                uniform vec3 ambientColor;
-                {} // Directional lights
-                {} // Spot lights
-                {} // Point lights
-
-                vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
-                {{
-                    vec3 color = occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
-                    {} // Directional lights
-                    {} // Spot lights
-                    {} // Point lights
-                    return color;
-                }}
-                ",
-            &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
-        ),
-        material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n".to_string()),
-        include_str!("shaders/lighting.frag"),
-    )*/
 }
 
 fn material_shader(material: &PhysicalMaterial) -> String {
