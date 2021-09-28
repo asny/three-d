@@ -187,9 +187,9 @@ impl Default for PhysicalMaterial {
     }
 }
 
-static MAX_DIRECTIONAL_LIGHTS: usize = 5;
-static MAX_SPOT_LIGHTS: usize = 5;
-static MAX_POINT_LIGHTS: usize = 5;
+const MAX_DIRECTIONAL_LIGHTS: usize = 5;
+const MAX_SPOT_LIGHTS: usize = 5;
+const MAX_POINT_LIGHTS: usize = 5;
 
 pub(in crate::renderer) fn bind_lights(
     program: &Program,
