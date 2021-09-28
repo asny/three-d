@@ -167,13 +167,14 @@ impl DeferredPipeline {
             return Ok(());
         }
 
-        let fragment_shader = shaded_fragment_shader(
+        let mut fragment_shader = shaded_fragment_shader(
             self.lighting_model,
-            None,
             directional_lights.len(),
             spot_lights.len(),
             point_lights.len(),
         );
+        fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
+
         if !self.program_map.contains_key(&fragment_shader) {
             self.program_map.insert(
                 fragment_shader.clone(),
