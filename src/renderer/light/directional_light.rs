@@ -9,7 +9,6 @@ pub struct DirectionalLight {
     context: Context,
     light_buffer: UniformBuffer,
     shadow_texture: Option<DepthTargetTexture2D>,
-    shadow_camera: Option<Camera>,
 }
 
 impl DirectionalLight {
@@ -23,7 +22,6 @@ impl DirectionalLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
             shadow_texture: None,
-            shadow_camera: None,
         };
 
         light.set_intensity(intensity);
@@ -61,7 +59,6 @@ impl DirectionalLight {
     }
 
     pub fn clear_shadow_map(&mut self) {
-        self.shadow_camera = None;
         self.shadow_texture = None;
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
@@ -79,7 +76,7 @@ impl DirectionalLight {
         let up = compute_up_direction(direction);
 
         let viewport = Viewport::new_at_origo(texture_width, texture_height);
-        self.shadow_camera = Some(Camera::new_orthographic(
+        let shadow_camera = Camera::new_orthographic(
             &self.context,
             viewport,
             target - direction.normalize() * 0.5 * frustrum_depth,
@@ -88,11 +85,9 @@ impl DirectionalLight {
             frustrum_height,
             0.0,
             frustrum_depth,
-        )?);
-        self.light_buffer.update(
-            4,
-            &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice(),
         )?;
+        self.light_buffer
+            .update(4, &shadow_matrix(&shadow_camera).to_slice())?;
 
         let shadow_texture = DepthTargetTexture2D::new(
             &self.context,
@@ -104,10 +99,10 @@ impl DirectionalLight {
         )?;
         shadow_texture.write(Some(1.0), || {
             for object in objects {
-                if in_frustum(self.shadow_camera.as_ref().unwrap(), object) {
+                if in_frustum(&shadow_camera, object) {
                     object.render_forward(
                         &DepthMaterial::default(),
-                        self.shadow_camera.as_ref().unwrap(),
+                        &shadow_camera,
                         &Lights::NONE,
                     )?;
                 }

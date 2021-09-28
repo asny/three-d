@@ -9,7 +9,6 @@ pub struct SpotLight {
     context: Context,
     light_buffer: UniformBuffer,
     shadow_texture: Option<DepthTargetTexture2D>,
-    shadow_camera: Option<Camera>,
 }
 
 impl SpotLight {
@@ -29,7 +28,6 @@ impl SpotLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &uniform_sizes)?,
             shadow_texture: None,
-            shadow_camera: None,
         };
         light.set_intensity(intensity);
         light.set_color(color);
@@ -104,7 +102,6 @@ impl SpotLight {
     }
 
     pub fn clear_shadow_map(&mut self) {
-        self.shadow_camera = None;
         self.shadow_texture = None;
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
@@ -121,7 +118,7 @@ impl SpotLight {
         let cutoff = self.light_buffer.get(7).unwrap()[0];
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
-        self.shadow_camera = Some(Camera::new_perspective(
+        let shadow_camera = Camera::new_perspective(
             &self.context,
             viewport,
             position,
@@ -130,11 +127,9 @@ impl SpotLight {
             degrees(cutoff),
             0.1,
             frustrum_depth,
-        )?);
-        self.light_buffer.update(
-            10,
-            &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice(),
         )?;
+        self.light_buffer
+            .update(10, &shadow_matrix(&shadow_camera).to_slice())?;
 
         let shadow_texture = DepthTargetTexture2D::new(
             &self.context,
@@ -146,10 +141,10 @@ impl SpotLight {
         )?;
         shadow_texture.write(Some(1.0), || {
             for object in objects {
-                if in_frustum(self.shadow_camera.as_ref().unwrap(), object) {
+                if in_frustum(&shadow_camera, object) {
                     object.render_forward(
                         &DepthMaterial::default(),
-                        self.shadow_camera.as_ref().unwrap(),
+                        &shadow_camera,
                         &Lights::NONE,
                     )?;
                 }
