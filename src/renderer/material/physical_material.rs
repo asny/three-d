@@ -202,10 +202,9 @@ pub(in crate::renderer) fn bind_lights(
 
     // Directional light
     for i in 0..lights.directional_lights.len() {
-        program.use_texture(
-            &format!("directionalShadowMap{}", i),
-            lights.directional_lights[i].shadow_map(),
-        )?;
+        if let Some(tex) = lights.directional_lights[i].shadow_map() {
+            program.use_texture(&format!("directionalShadowMap{}", i), tex)?;
+        }
         program.use_uniform_block(
             &format!("DirectionalLightUniform{}", i),
             lights.directional_lights[i].buffer(),
