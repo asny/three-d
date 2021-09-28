@@ -202,10 +202,6 @@ float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
 
 float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
 {
-    if(shadowMVP[3][3] < 0.1) // Shadow disabled
-    {
-        return 1.0;
-    }
     vec4 shadow_coord = shadowMVP * vec4(position, 1.);
     float visibility = 0.0;
     vec2 poissonDisk[4] = vec2[](

@@ -226,7 +226,9 @@ pub(in crate::renderer) fn bind_lights(
     // Spot light
     for i in 0..MAX_SPOT_LIGHTS {
         if let Some(light) = lights.spot.get(i) {
-            program.use_texture(&format!("spotShadowMap{}", i), light.shadow_map())?;
+            if let Some(tex) = light.shadow_map() {
+                program.use_texture(&format!("spotShadowMap{}", i), tex)?;
+            }
             program.use_uniform_block(&format!("SpotLightUniform{}", i), light.buffer());
             program.use_uniform_float(&format!("useSpotLight{}", i), &1.0)?;
         } else {
