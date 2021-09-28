@@ -8,7 +8,7 @@ use crate::renderer::*;
 pub struct SpotLight {
     context: Context,
     light_buffer: UniformBuffer,
-    shadow_texture: DepthTargetTexture2D,
+    shadow_texture: Option<DepthTargetTexture2D>,
     shadow_camera: Option<Camera>,
 }
 
@@ -28,14 +28,7 @@ impl SpotLight {
         let mut light = SpotLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &uniform_sizes)?,
-            shadow_texture: DepthTargetTexture2D::new(
-                context,
-                1,
-                1,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
-            )?,
+            shadow_texture: None,
             shadow_camera: None,
         };
         light.set_intensity(intensity);
@@ -112,15 +105,7 @@ impl SpotLight {
 
     pub fn clear_shadow_map(&mut self) {
         self.shadow_camera = None;
-        self.shadow_texture = DepthTargetTexture2D::new(
-            &self.context,
-            1,
-            1,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            DepthFormat::Depth32F,
-        )
-        .unwrap();
+        self.shadow_texture = None;
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
@@ -151,7 +136,7 @@ impl SpotLight {
             &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice(),
         )?;
 
-        self.shadow_texture = DepthTargetTexture2D::new(
+        let shadow_texture = DepthTargetTexture2D::new(
             &self.context,
             texture_size,
             texture_size,
@@ -159,7 +144,7 @@ impl SpotLight {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?;
-        self.shadow_texture.write(Some(1.0), || {
+        shadow_texture.write(Some(1.0), || {
             for object in objects {
                 if in_frustum(self.shadow_camera.as_ref().unwrap(), object) {
                     object.render_forward(
@@ -171,12 +156,13 @@ impl SpotLight {
             }
             Ok(())
         })?;
+        self.shadow_texture = Some(shadow_texture);
         self.light_buffer.update(9, &[1.0])?;
         Ok(())
     }
 
-    pub fn shadow_map(&self) -> &DepthTargetTexture2D {
-        &self.shadow_texture
+    pub fn shadow_map(&self) -> Option<&DepthTargetTexture2D> {
+        self.shadow_texture.as_ref()
     }
 
     pub fn buffer(&self) -> &UniformBuffer {
