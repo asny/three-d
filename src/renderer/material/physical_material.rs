@@ -155,7 +155,7 @@ impl ForwardMaterial for PhysicalMaterial {
 impl DeferredMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self) -> String {
         format!(
-            "in vec3 pos;\nin vec3 nor;\n{}{}",
+            "{}{}",
             material_shader(self),
             include_str!("shaders/physical_material_deferred.frag")
         )
