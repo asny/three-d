@@ -8,7 +8,7 @@ pub struct PickMaterial {
 }
 
 impl ForwardMaterial for PickMaterial {
-    fn fragment_shader_source(&self, _lights: &Lights) -> String {
+    fn fragment_shader_source(&self) -> String {
         include_str!("shaders/pick_material.frag").to_string()
     }
     fn bind(&self, program: &Program, camera: &Camera, _lights: &Lights) -> Result<()> {

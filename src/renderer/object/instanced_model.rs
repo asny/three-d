@@ -143,7 +143,7 @@ impl Object for InstancedModel {
     ) -> Result<()> {
         let mut render_states = material.render_states();
         render_states.cull = self.cull;
-        let fragment_shader_source = material.fragment_shader_source(lights);
+        let fragment_shader_source = material.fragment_shader_source();
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
