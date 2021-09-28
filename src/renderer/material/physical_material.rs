@@ -110,13 +110,15 @@ impl PhysicalMaterial {
 
 impl ForwardMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self, lights: &Lights) -> String {
-        shaded_fragment_shader(
+        let mut shader_source = shaded_fragment_shader(
             self.lighting_model,
-            Some(self),
             lights.directional_lights.len(),
             lights.spot_lights.len(),
             lights.point_lights.len(),
-        )
+        );
+        shader_source.push_str(&material_shader(self));
+        shader_source.push_str(include_str!("shaders/physical_material_forward.frag"));
+        shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
         bind_lights(program, lights, camera.position())?;
@@ -235,7 +237,6 @@ pub(in crate::renderer) fn bind_lights(
 
 pub(in crate::renderer) fn shaded_fragment_shader(
     lighting_model: LightingModel,
-    material: Option<&PhysicalMaterial>,
     directional_lights: usize,
     spot_lights: usize,
     point_lights: usize,
@@ -291,7 +292,8 @@ pub(in crate::renderer) fn shaded_fragment_shader(
         ));
     }
 
-    let model = match lighting_model {
+    let mut shader_source = String::new();
+    shader_source.push_str(match lighting_model {
         LightingModel::Phong => "#define PHONG",
         LightingModel::Blinn => "#define BLINN",
         LightingModel::Cook(normal, _) => match normal {
@@ -299,9 +301,34 @@ pub(in crate::renderer) fn shaded_fragment_shader(
             NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
             NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
         },
-    };
+    });
 
-    format!(
+    shader_source.push_str(include_str!("../../core/shared.frag"));
+    shader_source.push_str(include_str!("shaders/light_shared.frag"));
+
+    shader_source.push_str(&format!(
+        "
+            uniform vec3 ambientColor;
+            {} // Directional lights
+            {} // Spot lights
+            {} // Point lights
+
+            vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            {{
+                vec3 color = occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
+                {} // Directional lights
+                {} // Spot lights
+                {} // Point lights
+                return color;
+            }}
+            ",
+        &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
+    ));
+
+    shader_source.push_str("in vec3 pos;\nin vec3 nor;\n");
+    shader_source
+
+    /*format!(
         "{}\n{}\n{}\n{}\nin vec3 pos;\nin vec3 nor;\n{}\n{}",
         model,
         include_str!("../../core/shared.frag"),
@@ -326,7 +353,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
         ),
         material.map(|m| material_shader(m)).unwrap_or("#define DEFERRED\nin vec2 uv;\n".to_string()),
         include_str!("shaders/lighting.frag"),
-    )
+    )*/
 }
 
 fn material_shader(material: &PhysicalMaterial) -> String {
