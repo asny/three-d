@@ -188,22 +188,19 @@ pub(in crate::renderer) fn bind_lights(
     program.use_uniform_vec3(
         "ambientColor",
         &lights
-            .ambient_light
+            .ambient
             .as_ref()
             .map(|light| light.color.to_vec3() * light.intensity)
             .unwrap_or(vec3(0.0, 0.0, 0.0)),
     )?;
 
-    if !lights.directional_lights.is_empty()
-        || !lights.spot_lights.is_empty()
-        || !lights.point_lights.is_empty()
-    {
+    if !lights.directional.is_empty() || !lights.spot.is_empty() || !lights.point.is_empty() {
         program.use_uniform_vec3("eyePosition", camera_position)?;
     }
 
     // Directional light
     for i in 0..MAX_DIRECTIONAL_LIGHTS {
-        if let Some(light) = lights.directional_lights.get(i) {
+        if let Some(light) = lights.directional.get(i) {
             if let Some(tex) = light.shadow_map() {
                 program.use_texture(&format!("directionalShadowMap{}", i), tex)?;
             }
@@ -216,15 +213,9 @@ pub(in crate::renderer) fn bind_lights(
 
     // Spot light
     for i in 0..MAX_SPOT_LIGHTS {
-        if let Some(light) = lights.spot_lights.get(i) {
-            program.use_texture(
-                &format!("spotShadowMap{}", i),
-                lights.spot_lights[i].shadow_map(),
-            )?;
-            program.use_uniform_block(
-                &format!("SpotLightUniform{}", i),
-                lights.spot_lights[i].buffer(),
-            );
+        if let Some(light) = lights.spot.get(i) {
+            program.use_texture(&format!("spotShadowMap{}", i), light.shadow_map())?;
+            program.use_uniform_block(&format!("SpotLightUniform{}", i), light.buffer());
             program.use_uniform_float(&format!("useSpotLight{}", i), &1.0)?;
         } else {
             program.use_uniform_float(&format!("useSpotLight{}", i), &0.0)?;
@@ -233,11 +224,8 @@ pub(in crate::renderer) fn bind_lights(
 
     // Point light
     for i in 0..MAX_POINT_LIGHTS {
-        if let Some(light) = lights.point_lights.get(i) {
-            program.use_uniform_block(
-                &format!("PointLightUniform{}", i),
-                lights.point_lights[i].buffer(),
-            );
+        if let Some(light) = lights.point.get(i) {
+            program.use_uniform_block(&format!("PointLightUniform{}", i), light.buffer());
             program.use_uniform_float(&format!("usePointLight{}", i), &1.0)?;
         } else {
             program.use_uniform_float(&format!("usePointLight{}", i), &0.0)?;

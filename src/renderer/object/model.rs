@@ -229,10 +229,10 @@ impl ShadedGeometry for Model {
             &mat,
             camera,
             &Lights {
-                ambient_light: ambient_light.map(|l| l.clone()),
-                directional_lights: directional_lights.iter().map(|l| (*l).clone()).collect(),
-                spot_lights: spot_lights.iter().map(|l| (*l).clone()).collect(),
-                point_lights: point_lights.iter().map(|l| (*l).clone()).collect(),
+                ambient: ambient_light.map(|l| l.clone()),
+                directional: directional_lights.iter().map(|l| (*l).clone()).collect(),
+                spot: spot_lights.iter().map(|l| (*l).clone()).collect(),
+                point: point_lights.iter().map(|l| (*l).clone()).collect(),
             },
         )
     }
