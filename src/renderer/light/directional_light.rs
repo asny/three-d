@@ -8,7 +8,7 @@ use crate::renderer::*;
 pub struct DirectionalLight {
     context: Context,
     light_buffer: UniformBuffer,
-    shadow_texture: DepthTargetTexture2D,
+    shadow_texture: Option<DepthTargetTexture2D>,
     shadow_camera: Option<Camera>,
 }
 
@@ -22,14 +22,7 @@ impl DirectionalLight {
         let mut light = DirectionalLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
-            shadow_texture: DepthTargetTexture2D::new(
-                context,
-                1,
-                1,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
-            )?,
+            shadow_texture: None,
             shadow_camera: None,
         };
 
@@ -69,15 +62,7 @@ impl DirectionalLight {
 
     pub fn clear_shadow_map(&mut self) {
         self.shadow_camera = None;
-        self.shadow_texture = DepthTargetTexture2D::new(
-            &self.context,
-            1,
-            1,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            DepthFormat::Depth32F,
-        )
-        .unwrap();
+        self.shadow_texture = None;
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
@@ -109,16 +94,15 @@ impl DirectionalLight {
             &shadow_matrix(self.shadow_camera.as_ref().unwrap()).to_slice(),
         )?;
 
-        self.shadow_texture = DepthTargetTexture2D::new(
+        let shadow_texture = DepthTargetTexture2D::new(
             &self.context,
             texture_width,
             texture_height,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
-        )
-        .unwrap();
-        self.shadow_texture.write(Some(1.0), || {
+        )?;
+        shadow_texture.write(Some(1.0), || {
             for object in objects {
                 if in_frustum(self.shadow_camera.as_ref().unwrap(), object) {
                     object.render_forward(
@@ -130,12 +114,13 @@ impl DirectionalLight {
             }
             Ok(())
         })?;
+        self.shadow_texture = Some(shadow_texture);
         self.light_buffer.update(3, &[1.0])?;
         Ok(())
     }
 
-    pub fn shadow_map(&self) -> &DepthTargetTexture2D {
-        &self.shadow_texture
+    pub fn shadow_map(&self) -> Option<&DepthTargetTexture2D> {
+        self.shadow_texture.as_ref()
     }
 
     pub fn buffer(&self) -> &UniformBuffer {
@@ -145,13 +130,33 @@ impl DirectionalLight {
 
 impl Clone for DirectionalLight {
     fn clone(&self) -> Self {
-        Self::new(
+        let mut light = Self::new(
             &self.context,
             self.intensity(),
             self.color(),
             &self.direction(),
         )
-        .unwrap()
+        .unwrap();
+        if let Some(ref shadow_texture) = self.shadow_texture {
+            light.shadow_texture = Some(
+                DepthTargetTexture2D::new(
+                    &self.context,
+                    shadow_texture.width(),
+                    shadow_texture.height(),
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                    DepthFormat::Depth32F,
+                )
+                .unwrap(),
+            );
+            shadow_texture
+                .copy_to::<f32>(
+                    CopyDestination::DepthTexture(light.shadow_texture.as_ref().unwrap()),
+                    Viewport::new_at_origo(shadow_texture.width(), shadow_texture.height()),
+                )
+                .unwrap();
+        }
+        light
     }
 }
 
