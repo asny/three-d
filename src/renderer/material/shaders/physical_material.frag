@@ -24,8 +24,10 @@ uniform float normalScale;
 in vec3 pos;
 in vec3 nor;
 
-layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 out_normal;
+layout (location = 0) out vec4 outColor;
+#ifdef DEFERRED
+layout (location = 1) out vec4 outNormal;
+#endif
 
 void main()
 {
@@ -54,6 +56,11 @@ void main()
     normal = tbn * ((2.0 * texture(normalTexture, uvs).xyz - 1.0) * vec3(normalScale, normalScale, 1.0));
 #endif
 
-    out_color = vec4(surface_color.rgb, metallic_factor);
-    out_normal = vec4(0.5 * normal.xy + 0.5, occlusion, roughness_factor);
+#ifdef DEFERRED
+    outColor = vec4(surface_color.rgb, metallic_factor);
+    outNormal = vec4(0.5 * normal.xy + 0.5, occlusion, roughness_factor);
+#else
+    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, pos, normal, metallic_factor, roughness_factor, occlusion));
+    outColor.a = surface_color.a;
+#endif
 }
