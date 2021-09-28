@@ -5,7 +5,7 @@ use crate::renderer::*;
 pub struct DepthMaterial {}
 
 impl ForwardMaterial for DepthMaterial {
-    fn fragment_shader_source(&self, _lights: &Lights) -> String {
+    fn fragment_shader_source(&self) -> String {
         "void main() {}".to_string()
     }
     fn bind(&self, _program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {

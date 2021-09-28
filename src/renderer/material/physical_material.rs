@@ -109,13 +109,8 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, lights: &Lights) -> String {
-        let mut shader_source = shaded_fragment_shader(
-            self.lighting_model,
-            lights.directional_lights.len(),
-            lights.spot_lights.len(),
-            lights.point_lights.len(),
-        );
+    fn fragment_shader_source(&self) -> String {
+        let mut shader_source = shaded_fragment_shader(self.lighting_model);
         shader_source.push_str(&material_shader(self));
         shader_source.push_str(include_str!("shaders/physical_material_forward.frag"));
         shader_source
@@ -181,6 +176,8 @@ impl Default for PhysicalMaterial {
 }
 
 static MAX_DIRECTIONAL_LIGHTS: usize = 5;
+static MAX_SPOT_LIGHTS: usize = 5;
+static MAX_POINT_LIGHTS: usize = 5;
 
 pub(in crate::renderer) fn bind_lights(
     program: &Program,
@@ -218,33 +215,38 @@ pub(in crate::renderer) fn bind_lights(
     }
 
     // Spot light
-    for i in 0..lights.spot_lights.len() {
-        program.use_texture(
-            &format!("spotShadowMap{}", i),
-            lights.spot_lights[i].shadow_map(),
-        )?;
-        program.use_uniform_block(
-            &format!("SpotLightUniform{}", i),
-            lights.spot_lights[i].buffer(),
-        );
+    for i in 0..MAX_SPOT_LIGHTS {
+        if let Some(light) = lights.spot_lights.get(i) {
+            program.use_texture(
+                &format!("spotShadowMap{}", i),
+                lights.spot_lights[i].shadow_map(),
+            )?;
+            program.use_uniform_block(
+                &format!("SpotLightUniform{}", i),
+                lights.spot_lights[i].buffer(),
+            );
+            program.use_uniform_float(&format!("useSpotLight{}", i), &1.0)?;
+        } else {
+            program.use_uniform_float(&format!("useSpotLight{}", i), &0.0)?;
+        }
     }
 
     // Point light
-    for i in 0..lights.point_lights.len() {
-        program.use_uniform_block(
-            &format!("PointLightUniform{}", i),
-            lights.point_lights[i].buffer(),
-        );
+    for i in 0..MAX_POINT_LIGHTS {
+        if let Some(light) = lights.point_lights.get(i) {
+            program.use_uniform_block(
+                &format!("PointLightUniform{}", i),
+                lights.point_lights[i].buffer(),
+            );
+            program.use_uniform_float(&format!("usePointLight{}", i), &1.0)?;
+        } else {
+            program.use_uniform_float(&format!("usePointLight{}", i), &0.0)?;
+        }
     }
     Ok(())
 }
 
-pub(in crate::renderer) fn shaded_fragment_shader(
-    lighting_model: LightingModel,
-    directional_lights: usize,
-    spot_lights: usize,
-    point_lights: usize,
-) -> String {
+pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel) -> String {
     let mut dir_uniform = String::new();
     let mut dir_fun = String::new();
     for i in 0..MAX_DIRECTIONAL_LIGHTS {
@@ -265,37 +267,41 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     }
     let mut spot_uniform = String::new();
     let mut spot_fun = String::new();
-    for i in 0..spot_lights {
+    for i in 0..MAX_SPOT_LIGHTS {
         spot_uniform.push_str(&format!(
             "
+                uniform float useSpotLight{};
                 uniform sampler2D spotShadowMap{};
                 layout (std140) uniform SpotLightUniform{}
                 {{
                     SpotLight spotLight{};
                 }};",
-            i, i, i
+            i, i, i, i
         ));
         spot_fun.push_str(&format!(
-            "
-                    color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, occlusion, spotShadowMap{});",
-            i, i
+            "if(useSpotLight{} > 0.5) {{
+                    color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, occlusion, spotShadowMap{});
+            }}",
+            i, i, i
         ));
     }
     let mut point_uniform = String::new();
     let mut point_fun = String::new();
-    for i in 0..point_lights {
+    for i in 0..MAX_POINT_LIGHTS {
         point_uniform.push_str(&format!(
             "
+                uniform float usePointLight{};
                 layout (std140) uniform PointLightUniform{}
                 {{
                     PointLight pointLight{};
                 }};",
-            i, i
+            i, i, i
         ));
         point_fun.push_str(&format!(
-            "
-                    color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness, occlusion);",
-            i
+            "if(usePointLight{} > 0.5) {{
+                    color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness, occlusion);
+            }}",
+            i, i
         ));
     }
 

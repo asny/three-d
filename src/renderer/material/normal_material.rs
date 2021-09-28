@@ -20,7 +20,7 @@ impl NormalMaterial {
 }
 
 impl ForwardMaterial for NormalMaterial {
-    fn fragment_shader_source(&self, _lights: &Lights) -> String {
+    fn fragment_shader_source(&self) -> String {
         let mut shader = String::new();
         if self.normal_texture.is_some() {
             shader.push_str(include_str!("../../core/shared.frag"));

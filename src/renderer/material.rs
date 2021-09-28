@@ -30,7 +30,7 @@ mod physical_material;
 pub use physical_material::*;
 
 pub trait ForwardMaterial {
-    fn fragment_shader_source(&self, lights: &Lights) -> String;
+    fn fragment_shader_source(&self) -> String;
     fn bind(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()>;
     fn render_states(&self) -> RenderStates;
 }
