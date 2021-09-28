@@ -180,6 +180,8 @@ impl Default for PhysicalMaterial {
     }
 }
 
+static MAX_DIRECTIONAL_LIGHTS: usize = 5;
+
 pub(in crate::renderer) fn bind_lights(
     program: &Program,
     lights: &Lights,
@@ -203,14 +205,16 @@ pub(in crate::renderer) fn bind_lights(
     }
 
     // Directional light
-    for i in 0..lights.directional_lights.len() {
-        if let Some(tex) = lights.directional_lights[i].shadow_map() {
-            program.use_texture(&format!("directionalShadowMap{}", i), tex)?;
+    for i in 0..MAX_DIRECTIONAL_LIGHTS {
+        if let Some(light) = lights.directional_lights.get(i) {
+            if let Some(tex) = light.shadow_map() {
+                program.use_texture(&format!("directionalShadowMap{}", i), tex)?;
+            }
+            program.use_uniform_block(&format!("DirectionalLightUniform{}", i), light.buffer());
+            program.use_uniform_float(&format!("useDirectionalLight{}", i), &1.0)?;
+        } else {
+            program.use_uniform_float(&format!("useDirectionalLight{}", i), &0.0)?;
         }
-        program.use_uniform_block(
-            &format!("DirectionalLightUniform{}", i),
-            lights.directional_lights[i].buffer(),
-        );
     }
 
     // Spot light
@@ -243,18 +247,21 @@ pub(in crate::renderer) fn shaded_fragment_shader(
 ) -> String {
     let mut dir_uniform = String::new();
     let mut dir_fun = String::new();
-    for i in 0..directional_lights {
+    for i in 0..MAX_DIRECTIONAL_LIGHTS {
         dir_uniform.push_str(&format!(
             "
                 uniform sampler2D directionalShadowMap{};
+                uniform float useDirectionalLight{};
                 layout (std140) uniform DirectionalLightUniform{}
                 {{
                     DirectionalLight directionalLight{};
                 }};",
-            i, i, i
+            i, i, i, i
         ));
         dir_fun.push_str(&format!("
-                    color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, occlusion, directionalShadowMap{});", i, i));
+            if(useDirectionalLight{} > 0.5) {{
+                    color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, occlusion, directionalShadowMap{});
+                }}", i, i, i));
     }
     let mut spot_uniform = String::new();
     let mut spot_fun = String::new();
