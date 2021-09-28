@@ -182,16 +182,13 @@ impl DeferredPipeline {
         };
         let effect = self.program_map.get(&fragment_shader).unwrap();
 
-        bind_lights(
-            effect,
-            &Lights {
-                ambient_light: ambient_light.map(|l| l.clone()),
-                directional_lights: directional_lights.iter().map(|l| (*l).clone()).collect(),
-                spot_lights: spot_lights.iter().map(|l| (*l).clone()).collect(),
-                point_lights: point_lights.iter().map(|l| (*l).clone()).collect(),
-            },
-            camera.position(),
-        )?;
+        let lights = Lights {
+            ambient_light: ambient_light.map(|l| l.clone()),
+            directional_lights: directional_lights.iter().map(|l| (*l).clone()).collect(),
+            spot_lights: spot_lights.iter().map(|l| (*l).clone()).collect(),
+            point_lights: point_lights.iter().map(|l| (*l).clone()).collect(),
+        };
+        bind_lights(effect, &lights, camera.position())?;
 
         effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
         effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
