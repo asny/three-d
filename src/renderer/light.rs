@@ -21,18 +21,18 @@ mod ambient_light;
 pub use ambient_light::*;
 
 pub struct Lights {
-    pub ambient_light: Option<AmbientLight>,
-    pub directional_lights: Vec<DirectionalLight>,
-    pub spot_lights: Vec<SpotLight>,
-    pub point_lights: Vec<PointLight>,
+    pub ambient: Option<AmbientLight>,
+    pub directional: Vec<DirectionalLight>,
+    pub spot: Vec<SpotLight>,
+    pub point: Vec<PointLight>,
 }
 
 impl Lights {
     pub const NONE: Self = Self {
-        ambient_light: None,
-        directional_lights: Vec::new(),
-        spot_lights: Vec::new(),
-        point_lights: Vec::new(),
+        ambient: None,
+        directional: Vec::new(),
+        spot: Vec::new(),
+        point: Vec::new(),
     };
 }
 
