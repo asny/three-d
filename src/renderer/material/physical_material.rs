@@ -110,19 +110,7 @@ impl PhysicalMaterial {
 
 impl ForwardMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self) -> String {
-        let mut shader_source = match self.lighting_model {
-            LightingModel::Phong => "#define PHONG",
-            LightingModel::Blinn => "#define BLINN",
-            LightingModel::Cook(normal, _) => match normal {
-                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
-                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
-                NormalDistributionFunction::TrowbridgeReitzGGX => {
-                    "#define COOK\n#define COOK_GGX\n"
-                }
-            },
-        }
-        .to_string();
-        shader_source.push_str(&shaded_fragment_shader());
+        let mut shader_source = shaded_fragment_shader(self.lighting_model);
         shader_source.push_str(&material_shader(self));
         shader_source.push_str(include_str!("shaders/physical_material.frag"));
         shader_source
@@ -255,7 +243,7 @@ pub(in crate::renderer) fn bind_lights(
     Ok(())
 }
 
-pub(in crate::renderer) fn shaded_fragment_shader() -> String {
+pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel) -> String {
     let mut dir_uniform = String::new();
     let mut dir_fun = String::new();
     for i in 0..MAX_DIRECTIONAL_LIGHTS {
@@ -314,7 +302,16 @@ pub(in crate::renderer) fn shaded_fragment_shader() -> String {
         ));
     }
 
-    let mut shader_source = String::new();
+    let mut shader_source = match lighting_model {
+        LightingModel::Phong => "#define PHONG",
+        LightingModel::Blinn => "#define BLINN",
+        LightingModel::Cook(normal, _) => match normal {
+            NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+            NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+            NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
+        },
+    }
+    .to_string();
     shader_source.push_str(include_str!("../../core/shared.frag"));
     shader_source.push_str(include_str!("shaders/light_shared.frag"));
     shader_source.push_str(&format!(
