@@ -196,6 +196,13 @@ pub(in crate::renderer) fn bind_lights(
     lights: &Lights,
     camera_position: &Vec3,
 ) -> Result<()> {
+    if lights.directional.len() > MAX_DIRECTIONAL_LIGHTS
+        || lights.spot.len() > MAX_SPOT_LIGHTS
+        || lights.point.len() > MAX_POINT_LIGHTS
+    {
+        Err(RendererError::TooManyLights)?;
+    }
+
     // Ambient light
     program.use_uniform_vec3(
         "ambientColor",
