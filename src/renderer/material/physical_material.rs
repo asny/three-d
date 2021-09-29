@@ -112,7 +112,6 @@ impl ForwardMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self) -> String {
         let mut shader_source = shaded_fragment_shader(self.lighting_model);
         shader_source.push_str(&material_shader(self));
-        shader_source.push_str(include_str!("shaders/physical_material.frag"));
         shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
@@ -142,11 +141,7 @@ impl ForwardMaterial for PhysicalMaterial {
 
 impl DeferredMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self) -> String {
-        format!(
-            "#define DEFERRED\n{}{}",
-            material_shader(self),
-            include_str!("shaders/physical_material.frag")
-        )
+        format!("#define DEFERRED\n{}", material_shader(self),)
     }
     fn bind(&self, program: &Program) -> Result<()> {
         self.bind_internal(program)
@@ -356,5 +351,6 @@ fn material_shader(material: &PhysicalMaterial) -> String {
             output.push_str("#define USE_NORMAL_TEXTURE;\n");
         }
     }
+    output.push_str(include_str!("shaders/physical_material.frag"));
     output
 }
