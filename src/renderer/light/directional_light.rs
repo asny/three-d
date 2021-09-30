@@ -137,7 +137,7 @@ impl Light for DirectionalLight {
             }};
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
-                if(base{}.intensity > 0.0) {{
+                if(base{}.intensity > 0.001) {{
                     vec3 light_color = base{}.intensity * base{}.color;
                     vec3 result = calculate_light(light_color, -direction{}, surface_color, position, normal, metallic, roughness, occlusion);
                     if(shadowEnabled{} > 0.5) {{
@@ -146,7 +146,7 @@ impl Light for DirectionalLight {
                     return result;
                 }}
                 else {{
-                    return vec3(1.0, 1.0, 1.0);
+                    return vec3(0.0, 0.0, 0.0);
                 }}
             }}
         
