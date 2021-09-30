@@ -145,7 +145,7 @@ impl Object for Model {
     ) -> Result<()> {
         let mut render_states = material.render_states();
         render_states.cull = self.cull;
-        let fragment_shader_source = material.fragment_shader_source();
+        let fragment_shader_source = material.fragment_shader_source(lights);
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,

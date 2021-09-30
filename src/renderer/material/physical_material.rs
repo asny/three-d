@@ -109,8 +109,8 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self) -> String {
-        let mut shader_source = shaded_fragment_shader(self.lighting_model);
+    fn fragment_shader_source(&self, lights: &Lights) -> String {
+        let mut shader_source = shaded_fragment_shader(self.lighting_model, lights);
         shader_source.push_str(&material_shader(self));
         shader_source
     }
@@ -202,18 +202,8 @@ pub(in crate::renderer) fn bind_lights(
     }
 
     // Directional light
-    for i in 0..MAX_DIRECTIONAL_LIGHTS {
-        if let Some(light) = lights.directional.get(i) {
-            if let Some(tex) = light.shadow_map() {
-                program.use_texture(&format!("directionalShadowMap{}", i), tex)?;
-            }
-            program.use_uniform_block(&format!("DirectionalLightUniform{}", i), light.buffer());
-        } else {
-            program.use_uniform_block(
-                &format!("DirectionalLightUniform{}", i),
-                &UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
-            );
-        }
+    for (i, light) in lights.directional.iter().enumerate() {
+        light.bind(program, i as u32)?;
     }
 
     // Spot light
@@ -245,24 +235,10 @@ pub(in crate::renderer) fn bind_lights(
     Ok(())
 }
 
-pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel) -> String {
-    let mut dir_uniform = String::new();
-    let mut dir_fun = String::new();
-    for i in 0..MAX_DIRECTIONAL_LIGHTS {
-        dir_uniform.push_str(&format!(
-            "
-                uniform sampler2D directionalShadowMap{};
-                layout (std140) uniform DirectionalLightUniform{}
-                {{
-                    DirectionalLight directionalLight{};
-                }};",
-            i, i, i
-        ));
-        dir_fun.push_str(&format!("
-            if(directionalLight{}.base.intensity > 0.0) {{
-                    color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, occlusion, directionalShadowMap{});
-                }}", i, i, i));
-    }
+pub(in crate::renderer) fn shaded_fragment_shader(
+    lighting_model: LightingModel,
+    lights: &Lights,
+) -> String {
     let mut spot_uniform = String::new();
     let mut spot_fun = String::new();
     for i in 0..MAX_SPOT_LIGHTS {
@@ -313,10 +289,14 @@ pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel)
     .to_string();
     shader_source.push_str(include_str!("../../core/shared.frag"));
     shader_source.push_str(include_str!("shaders/light_shared.frag"));
+    let mut dir_fun = String::new();
+    for (i, light) in lights.directional.iter().enumerate() {
+        shader_source.push_str(&light.shader_source(i as u32));
+        dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, metallic, roughness, occlusion);", i))
+    }
     shader_source.push_str(&format!(
         "
             uniform vec3 ambientColor;
-            {} // Directional lights
             {} // Spot lights
             {} // Point lights
 
@@ -329,7 +309,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel)
                 return color;
             }}
             ",
-        &dir_uniform, &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
+        &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
     ));
     shader_source
 }
