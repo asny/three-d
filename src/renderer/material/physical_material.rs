@@ -110,8 +110,8 @@ impl PhysicalMaterial {
 
 impl ForwardMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
-        let mut shader_source = shaded_fragment_shader(self.lighting_model, lights);
-        shader_source.push_str(&material_shader(self));
+        let mut shader_source = lights_shader_source(self.lighting_model, lights);
+        shader_source.push_str(&material_shader_source(self));
         shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()> {
@@ -143,7 +143,7 @@ impl ForwardMaterial for PhysicalMaterial {
 
 impl DeferredMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self) -> String {
-        format!("#define DEFERRED\n{}", material_shader(self),)
+        format!("#define DEFERRED\n{}", material_shader_source(self),)
     }
     fn bind(&self, program: &Program) -> Result<()> {
         self.bind_internal(program)
@@ -172,7 +172,7 @@ impl Default for PhysicalMaterial {
     }
 }
 
-pub(in crate::renderer) fn shaded_fragment_shader(
+pub(in crate::renderer) fn lights_shader_source(
     lighting_model: LightingModel,
     lights: &[&dyn Light],
 ) -> String {
@@ -207,7 +207,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     shader_source
 }
 
-fn material_shader(material: &PhysicalMaterial) -> String {
+fn material_shader_source(material: &PhysicalMaterial) -> String {
     let mut output = String::new();
     if material.albedo_texture.is_some()
         || material.metallic_roughness_texture.is_some()
