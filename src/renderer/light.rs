@@ -20,6 +20,13 @@ mod ambient_light;
 #[doc(inline)]
 pub use ambient_light::*;
 
+use crate::core::*;
+
+pub trait Light {
+    fn shader_source(&self, i: u32) -> String;
+    fn bind(&self, program: &Program, i: u32) -> Result<()>;
+}
+
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
     pub directional: Vec<DirectionalLight>,
