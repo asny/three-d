@@ -166,12 +166,20 @@ impl DeferredPipeline {
                 .apply(render_states, camera.viewport())?;
             return Ok(());
         }
+        let mut lights = Vec::new();
+        for light in directional_lights {
+            lights.push(*light as &dyn Light);
+        }
+        for light in spot_lights {
+            lights.push(*light as &dyn Light);
+        }
+        for light in point_lights {
+            lights.push(*light as &dyn Light);
+        }
 
         let lights = Lights {
             ambient: ambient_light.map(|l| l.clone()),
-            directional: directional_lights.iter().map(|l| (*l).clone()).collect(),
-            spot: spot_lights.iter().map(|l| (*l).clone()).collect(),
-            point: point_lights.iter().map(|l| (*l).clone()).collect(),
+            lights: &lights,
         };
 
         let mut fragment_shader = shaded_fragment_shader(self.lighting_model, &lights);
@@ -184,7 +192,7 @@ impl DeferredPipeline {
             );
         };
         let effect = self.program_map.get(&fragment_shader).unwrap();
-        bind_lights(&self.context, effect, &lights, camera.position())?;
+        bind_lights(&self.context, effect, &lights, camera)?;
 
         effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
         effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
