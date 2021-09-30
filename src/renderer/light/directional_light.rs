@@ -158,38 +158,6 @@ impl Light for DirectionalLight {
     }
 }
 
-impl Clone for DirectionalLight {
-    fn clone(&self) -> Self {
-        let mut light = Self::new(
-            &self.context,
-            self.intensity(),
-            self.color(),
-            &self.direction(),
-        )
-        .unwrap();
-        if let Some(ref shadow_texture) = self.shadow_texture {
-            light.shadow_texture = Some(
-                DepthTargetTexture2D::new(
-                    &self.context,
-                    shadow_texture.width(),
-                    shadow_texture.height(),
-                    Wrapping::ClampToEdge,
-                    Wrapping::ClampToEdge,
-                    DepthFormat::Depth32F,
-                )
-                .unwrap(),
-            );
-            shadow_texture
-                .copy_to::<f32>(
-                    CopyDestination::DepthTexture(light.shadow_texture.as_ref().unwrap()),
-                    Viewport::new_at_origo(shadow_texture.width(), shadow_texture.height()),
-                )
-                .unwrap();
-        }
-        light
-    }
-}
-
 fn shadow_matrix(camera: &Camera) -> Mat4 {
     let bias_matrix = crate::Mat4::new(
         0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0,

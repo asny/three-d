@@ -211,25 +211,6 @@ impl Light for SpotLight {
     }
 }
 
-impl Clone for SpotLight {
-    fn clone(&self) -> Self {
-        let (attenuation_constant, attenuation_linear, attenuation_exponential) =
-            self.attenuation();
-        Self::new(
-            &self.context,
-            self.intensity(),
-            self.color(),
-            &self.position(),
-            &self.direction(),
-            self.cutoff(),
-            attenuation_constant,
-            attenuation_linear,
-            attenuation_exponential,
-        )
-        .unwrap()
-    }
-}
-
 fn shadow_matrix(camera: &Camera) -> Mat4 {
     let bias_matrix = crate::Mat4::new(
         0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0,

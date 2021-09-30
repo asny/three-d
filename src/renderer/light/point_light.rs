@@ -5,7 +5,6 @@ use crate::renderer::*;
 /// A light which shines from the given position in all directions.
 ///
 pub struct PointLight {
-    context: Context,
     light_buffer: UniformBuffer,
 }
 
@@ -20,7 +19,6 @@ impl PointLight {
         attenuation_exponential: f32,
     ) -> Result<PointLight> {
         let mut light = PointLight {
-            context: context.clone(),
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1])?,
         };
 
@@ -109,22 +107,5 @@ impl Light for PointLight {
         program.use_uniform_vec3("eyePosition", camera.position())?;
         program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
         Ok(())
-    }
-}
-
-impl Clone for PointLight {
-    fn clone(&self) -> Self {
-        let (attenuation_constant, attenuation_linear, attenuation_exponential) =
-            self.attenuation();
-        Self::new(
-            &self.context,
-            self.intensity(),
-            self.color(),
-            &self.position(),
-            attenuation_constant,
-            attenuation_linear,
-            attenuation_exponential,
-        )
-        .unwrap()
     }
 }
