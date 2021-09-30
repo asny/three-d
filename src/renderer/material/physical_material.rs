@@ -115,7 +115,7 @@ impl ForwardMaterial for PhysicalMaterial {
         shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
-        bind_lights(&camera.context, program, lights, camera.position())?;
+        bind_lights(&camera.context, program, lights, camera)?;
         self.bind_internal(program)
     }
 
@@ -170,20 +170,15 @@ impl Default for PhysicalMaterial {
     }
 }
 
-const MAX_DIRECTIONAL_LIGHTS: usize = 5;
-const MAX_SPOT_LIGHTS: usize = 5;
-const MAX_POINT_LIGHTS: usize = 5;
+const MAX_LIGHTS: usize = 16;
 
 pub(in crate::renderer) fn bind_lights(
     context: &Context,
     program: &Program,
     lights: &Lights,
-    camera_position: &Vec3,
+    camera: &Camera,
 ) -> Result<()> {
-    if lights.directional.len() > MAX_DIRECTIONAL_LIGHTS
-        || lights.spot.len() > MAX_SPOT_LIGHTS
-        || lights.point.len() > MAX_POINT_LIGHTS
-    {
+    if lights.lights.len() > MAX_LIGHTS {
         Err(RendererError::TooManyLights)?;
     }
 
@@ -197,40 +192,8 @@ pub(in crate::renderer) fn bind_lights(
             .unwrap_or(vec3(0.0, 0.0, 0.0)),
     )?;
 
-    if !lights.directional.is_empty() || !lights.spot.is_empty() || !lights.point.is_empty() {
-        program.use_uniform_vec3("eyePosition", camera_position)?;
-    }
-
-    // Directional light
-    for (i, light) in lights.directional.iter().enumerate() {
-        light.bind(program, i as u32)?;
-    }
-
-    // Spot light
-    for i in 0..MAX_SPOT_LIGHTS {
-        if let Some(light) = lights.spot.get(i) {
-            if let Some(tex) = light.shadow_map() {
-                program.use_texture(&format!("spotShadowMap{}", i), tex)?;
-            }
-            program.use_uniform_block(&format!("SpotLightUniform{}", i), light.buffer());
-        } else {
-            program.use_uniform_block(
-                &format!("SpotLightUniform{}", i),
-                &UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16])?,
-            );
-        }
-    }
-
-    // Point light
-    for i in 0..MAX_POINT_LIGHTS {
-        if let Some(light) = lights.point.get(i) {
-            program.use_uniform_block(&format!("PointLightUniform{}", i), light.buffer());
-        } else {
-            program.use_uniform_block(
-                &format!("PointLightUniform{}", i),
-                &UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1])?,
-            );
-        }
+    for (i, light) in lights.lights.iter().enumerate() {
+        light.bind(program, camera, i as u32)?;
     }
     Ok(())
 }
@@ -239,44 +202,6 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     lighting_model: LightingModel,
     lights: &Lights,
 ) -> String {
-    let mut spot_uniform = String::new();
-    let mut spot_fun = String::new();
-    for i in 0..MAX_SPOT_LIGHTS {
-        spot_uniform.push_str(&format!(
-            "
-                uniform sampler2D spotShadowMap{};
-                layout (std140) uniform SpotLightUniform{}
-                {{
-                    SpotLight spotLight{};
-                }};",
-            i, i, i
-        ));
-        spot_fun.push_str(&format!(
-            "if(spotLight{}.base.intensity > 0.0) {{
-                    color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, occlusion, spotShadowMap{});
-            }}",
-            i, i, i
-        ));
-    }
-    let mut point_uniform = String::new();
-    let mut point_fun = String::new();
-    for i in 0..MAX_POINT_LIGHTS {
-        point_uniform.push_str(&format!(
-            "
-                layout (std140) uniform PointLightUniform{}
-                {{
-                    PointLight pointLight{};
-                }};",
-            i, i
-        ));
-        point_fun.push_str(&format!(
-            "if(pointLight{}.base.intensity > 0.0) {{
-                    color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness, occlusion);
-            }}",
-            i, i
-        ));
-    }
-
     let mut shader_source = match lighting_model {
         LightingModel::Phong => "#define PHONG",
         LightingModel::Blinn => "#define BLINN",
@@ -290,26 +215,21 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     shader_source.push_str(include_str!("../../core/shared.frag"));
     shader_source.push_str(include_str!("shaders/light_shared.frag"));
     let mut dir_fun = String::new();
-    for (i, light) in lights.directional.iter().enumerate() {
+    for (i, light) in lights.lights.iter().enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
         dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, metallic, roughness, occlusion);", i))
     }
     shader_source.push_str(&format!(
         "
             uniform vec3 ambientColor;
-            {} // Spot lights
-            {} // Point lights
-
             vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
                 vec3 color = occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
-                {} // Directional lights
-                {} // Spot lights
-                {} // Point lights
+                {}
                 return color;
             }}
             ",
-        &spot_uniform, &point_uniform, &dir_fun, &spot_fun, &point_fun
+        &dir_fun
     ));
     shader_source
 }

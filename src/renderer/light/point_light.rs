@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// A light which shines from the given position in all directions.
@@ -76,6 +77,33 @@ impl PointLight {
 
     pub fn buffer(&self) -> &UniformBuffer {
         &self.light_buffer
+    }
+}
+
+impl Light for PointLight {
+    fn shader_source(&self, i: u32) -> String {
+        format!(
+        "
+            layout (std140) uniform LightUniform{}
+            {{
+                PointLight light{};
+            }};
+            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            {{
+                if(light{}.base.intensity > 0.0) {{
+                    return calculate_point_light(light{}, surface_color, position, normal, metallic, roughness, occlusion);
+                }}
+                else {{
+                    return vec3(1.0, 1.0, 1.0);
+                }}
+            }}
+        
+        ", i, i, i, i, i)
+    }
+    fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+        program.use_uniform_vec3("eyePosition", camera.position())?;
+        program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
+        Ok(())
     }
 }
 

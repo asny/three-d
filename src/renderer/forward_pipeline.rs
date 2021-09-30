@@ -32,14 +32,22 @@ impl ForwardPipeline {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
+        let mut lights = Vec::new();
+        for light in directional_lights {
+            lights.push(*light as &dyn Light);
+        }
+        for light in spot_lights {
+            lights.push(*light as &dyn Light);
+        }
+        for light in point_lights {
+            lights.push(*light as &dyn Light);
+        }
         self.render_pass(
             camera,
             objects,
             &Lights {
                 ambient: ambient_light.map(|l| l.clone()),
-                directional: directional_lights.iter().map(|l| (*l).clone()).collect(),
-                spot: spot_lights.iter().map(|l| (*l).clone()).collect(),
-                point: point_lights.iter().map(|l| (*l).clone()).collect(),
+                lights: &lights,
             },
         )
     }
