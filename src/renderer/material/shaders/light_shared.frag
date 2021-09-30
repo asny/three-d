@@ -15,14 +15,6 @@ struct Attenuation
     float padding;
 };
 
-struct PointLight
-{
-    BaseLight base;
-    Attenuation attenuation;
-    vec3 position;
-    float padding;
-};
-
 struct SpotLight
 {
     BaseLight base;
@@ -207,14 +199,6 @@ float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
         visibility += is_visible(shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
-}
-
-vec3 calculate_point_light(PointLight pointLight, vec3 surface_color, vec3 position, vec3 normal,
-    float metallic, float roughness, float occlusion)
-{
-    vec3 light_color = pointLight.base.intensity * pointLight.base.color;
-    return calculate_attenuated_light(light_color, pointLight.attenuation, pointLight.position, surface_color, position, normal,
-        metallic, roughness, occlusion);
 }
 
 vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position, vec3 normal,
