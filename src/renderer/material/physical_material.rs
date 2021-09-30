@@ -115,7 +115,9 @@ impl ForwardMaterial for PhysicalMaterial {
         shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()> {
-        bind_lights(&camera.context, program, lights, camera)?;
+        for (i, light) in lights.iter().enumerate() {
+            light.bind(program, camera, i as u32)?;
+        }
         self.bind_internal(program)
     }
 
@@ -168,24 +170,6 @@ impl Default for PhysicalMaterial {
             lighting_model: LightingModel::Blinn,
         }
     }
-}
-
-const MAX_LIGHTS: usize = 16;
-
-pub(in crate::renderer) fn bind_lights(
-    context: &Context,
-    program: &Program,
-    lights: &[&dyn Light],
-    camera: &Camera,
-) -> Result<()> {
-    if lights.len() > MAX_LIGHTS {
-        Err(RendererError::TooManyLights)?;
-    }
-
-    for (i, light) in lights.iter().enumerate() {
-        light.bind(program, camera, i as u32)?;
-    }
-    Ok(())
 }
 
 pub(in crate::renderer) fn shaded_fragment_shader(
