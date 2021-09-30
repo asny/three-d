@@ -86,19 +86,24 @@ impl Light for PointLight {
         "
             layout (std140) uniform LightUniform{}
             {{
-                PointLight light{};
+                BaseLight base{};
+                Attenuation attenuation{};
+                vec3 position{};
+                float padding{};
             }};
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
-                if(light{}.base.intensity > 0.0) {{
-                    return calculate_point_light(light{}, surface_color, position, normal, metallic, roughness, occlusion);
+                if(base{}.intensity > 0.0) {{
+                    vec3 light_color = base{}.intensity * base{}.color;
+                    return calculate_attenuated_light(light_color, attenuation{}, position{}, surface_color, position, normal,
+                        metallic, roughness, occlusion);
                 }}
                 else {{
                     return vec3(1.0, 1.0, 1.0);
                 }}
             }}
         
-        ", i, i, i, i, i)
+        ", i, i, i, i, i, i, i, i, i, i, i)
     }
     fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
         program.use_uniform_vec3("eyePosition", camera.position())?;
