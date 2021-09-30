@@ -5,10 +5,10 @@ use crate::renderer::*;
 pub struct UVMaterial {}
 
 impl ForwardMaterial for UVMaterial {
-    fn fragment_shader_source(&self, _lights: &Lights) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         include_str!("shaders/uv_material.frag").to_string()
     }
-    fn bind(&self, _program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
+    fn bind(&self, _program: &Program, _camera: &Camera, _lights: &[&dyn Light]) -> Result<()> {
         Ok(())
     }
     fn render_states(&self) -> RenderStates {

@@ -50,7 +50,7 @@ impl Model {
                 ..Default::default()
             },
             camera,
-            &Lights::NONE,
+            &[],
         )
     }
 
@@ -67,7 +67,7 @@ impl Model {
                 ..Default::default()
             },
             camera,
-            &Lights::NONE,
+            &[],
         )
     }
 
@@ -81,7 +81,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_uvs(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&UVMaterial {}, camera, &Lights::NONE)
+        self.render_forward(&UVMaterial {}, camera, &[])
     }
 
     ///
@@ -93,7 +93,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_normals(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&NormalMaterial::default(), camera, &Lights::NONE)
+        self.render_forward(&NormalMaterial::default(), camera, &[])
     }
 
     ///
@@ -141,7 +141,7 @@ impl Object for Model {
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> Result<()> {
         let mut render_states = material.render_states();
         render_states.cull = self.cull;
@@ -190,12 +190,12 @@ impl Geometry for Model {
                 ..Default::default()
             },
             camera,
-            &Lights::NONE,
+            &[],
         )
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&DepthMaterial {}, camera, &Lights::NONE)
+        self.render_forward(&DepthMaterial {}, camera, &[])
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -227,6 +227,9 @@ impl ShadedGeometry for Model {
         mat.lighting_model = lighting_model;
 
         let mut lights = Vec::new();
+        if let Some(light) = ambient_light {
+            lights.push(light as &dyn Light)
+        }
         for light in directional_lights {
             lights.push(*light as &dyn Light);
         }
@@ -237,13 +240,6 @@ impl ShadedGeometry for Model {
             lights.push(*light as &dyn Light);
         }
 
-        self.render_forward(
-            &mat,
-            camera,
-            &Lights {
-                ambient: ambient_light.map(|l| l.clone()),
-                lights: &lights,
-            },
-        )
+        self.render_forward(&mat, camera, &lights)
     }
 }
