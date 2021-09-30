@@ -144,10 +144,11 @@ impl Light for DirectionalLight {
         
         ", i, i, i, i, i, i, i)
     }
-    fn bind(&self, program: &Program, i: u32) -> Result<()> {
+    fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
         if let Some(tex) = self.shadow_map() {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
         }
+        program.use_uniform_vec3("eyePosition", camera.position())?;
         program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
         Ok(())
     }
