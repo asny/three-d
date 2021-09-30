@@ -167,7 +167,14 @@ impl DeferredPipeline {
             return Ok(());
         }
 
-        let mut fragment_shader = shaded_fragment_shader(self.lighting_model);
+        let lights = Lights {
+            ambient: ambient_light.map(|l| l.clone()),
+            directional: directional_lights.iter().map(|l| (*l).clone()).collect(),
+            spot: spot_lights.iter().map(|l| (*l).clone()).collect(),
+            point: point_lights.iter().map(|l| (*l).clone()).collect(),
+        };
+
+        let mut fragment_shader = shaded_fragment_shader(self.lighting_model, &lights);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         if !self.program_map.contains_key(&fragment_shader) {
@@ -177,13 +184,6 @@ impl DeferredPipeline {
             );
         };
         let effect = self.program_map.get(&fragment_shader).unwrap();
-
-        let lights = Lights {
-            ambient: ambient_light.map(|l| l.clone()),
-            directional: directional_lights.iter().map(|l| (*l).clone()).collect(),
-            spot: spot_lights.iter().map(|l| (*l).clone()).collect(),
-            point: point_lights.iter().map(|l| (*l).clone()).collect(),
-        };
         bind_lights(&self.context, effect, &lights, camera.position())?;
 
         effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;

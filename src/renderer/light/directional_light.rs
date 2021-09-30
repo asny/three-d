@@ -123,6 +123,36 @@ impl DirectionalLight {
     }
 }
 
+impl Light for DirectionalLight {
+    fn shader_source(&self, i: u32) -> String {
+        format!(
+        "
+            uniform sampler2D shadowMap{};
+            layout (std140) uniform LightUniform{}
+            {{
+                DirectionalLight light{};
+            }};
+            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            {{
+                if(light{}.base.intensity > 0.0) {{
+                    return calculate_directional_light(light{}, surface_color, position, normal, metallic, roughness, occlusion, shadowMap{});
+                }}
+                else {{
+                    return vec3(1.0, 1.0, 1.0);
+                }}
+            }}
+        
+        ", i, i, i, i, i, i, i)
+    }
+    fn bind(&self, program: &Program, i: u32) -> Result<()> {
+        if let Some(tex) = self.shadow_map() {
+            program.use_texture(&format!("shadowMap{}", i), tex)?;
+        }
+        program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
+        Ok(())
+    }
+}
+
 impl Clone for DirectionalLight {
     fn clone(&self) -> Self {
         let mut light = Self::new(
