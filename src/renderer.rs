@@ -32,10 +32,7 @@ use thiserror::Error;
 ///
 #[derive(Debug, Error)]
 #[allow(missing_docs)]
-pub enum RendererError {
-    #[error("tried rendering with more lights than supported")]
-    TooManyLights,
-}
+pub enum RendererError {}
 
 impl crate::core::Camera {
     ///
