@@ -15,14 +15,6 @@ struct Attenuation
     float padding;
 };
 
-struct DirectionalLight
-{
-    BaseLight base;
-    vec3 direction;
-    float shadowEnabled;
-    mat4 shadowMVP;
-};
-
 struct PointLight
 {
     BaseLight base;
@@ -215,17 +207,6 @@ float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
         visibility += is_visible(shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
-}
-
-vec3 calculate_directional_light(DirectionalLight directionalLight, vec3 surface_color, vec3 position, vec3 normal,
-    float metallic, float roughness, float occlusion, sampler2D shadowMap)
-{
-    vec3 light_color = directionalLight.base.intensity * directionalLight.base.color;
-    vec3 light = calculate_light(light_color, -directionalLight.direction, surface_color, position, normal, metallic, roughness, occlusion);
-    if(directionalLight.shadowEnabled > 0.5) {
-        light *= calculate_shadow(shadowMap, directionalLight.shadowMVP, position);
-    }
-    return light;
 }
 
 vec3 calculate_point_light(PointLight pointLight, vec3 surface_color, vec3 position, vec3 normal,

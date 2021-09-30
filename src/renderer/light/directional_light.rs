@@ -130,19 +130,27 @@ impl Light for DirectionalLight {
             uniform sampler2D shadowMap{};
             layout (std140) uniform LightUniform{}
             {{
-                DirectionalLight light{};
+                BaseLight base{};
+                vec3 direction{};
+                float shadowEnabled{};
+                mat4 shadowMVP{};
             }};
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
-                if(light{}.base.intensity > 0.0) {{
-                    return calculate_directional_light(light{}, surface_color, position, normal, metallic, roughness, occlusion, shadowMap{});
+                if(base{}.intensity > 0.0) {{
+                    vec3 light_color = base{}.intensity * base{}.color;
+                    vec3 result = calculate_light(light_color, -direction{}, surface_color, position, normal, metallic, roughness, occlusion);
+                    if(shadowEnabled{} > 0.5) {{
+                        result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
+                    }}
+                    return result;
                 }}
                 else {{
                     return vec3(1.0, 1.0, 1.0);
                 }}
             }}
         
-        ", i, i, i, i, i, i, i)
+        ", i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
     fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
         if let Some(tex) = self.shadow_map() {
