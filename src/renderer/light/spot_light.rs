@@ -172,19 +172,38 @@ impl Light for SpotLight {
             uniform sampler2D shadowMap{};
             layout (std140) uniform LightUniform{}
             {{
-                SpotLight light{};
+                BaseLight base{};
+                Attenuation attenuation{};
+                vec3 position{};
+                float cutoff{};
+                vec3 direction{};
+                float shadowEnabled{};
+                mat4 shadowMVP{};
             }};
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
-                if(light{}.base.intensity > 0.0) {{
-                    return calculate_spot_light(light{}, surface_color, position, normal, metallic, roughness, occlusion, shadowMap{});
+                if(base{}.intensity > 0.001) {{
+                    vec3 light_color = base{}.intensity * base{}.color;
+                    vec3 light_direction = normalize(position - position{});
+                    float angle = acos(dot(light_direction, normalize(direction{})));
+                    float cutoff = 3.14 * cutoff{} / 180.0;
+                
+                    vec3 result = vec3(0.0);
+                    if (angle < cutoff) {{
+                        result = calculate_attenuated_light(light_color, attenuation{}, position{}, surface_color, position, normal, 
+                            metallic, roughness, occlusion) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+                        if(shadowEnabled{} > 0.5) {{
+                            result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
+                        }}
+                    }}
+                    return result;
                 }}
                 else {{
-                    return vec3(1.0, 1.0, 1.0);
+                    return vec3(0.0, 0.0, 0.0);
                 }}
             }}
         
-        ", i, i, i, i, i, i, i)
+        ", i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
     fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
         if let Some(tex) = self.shadow_map() {
