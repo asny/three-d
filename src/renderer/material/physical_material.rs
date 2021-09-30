@@ -182,16 +182,6 @@ pub(in crate::renderer) fn bind_lights(
         Err(RendererError::TooManyLights)?;
     }
 
-    // Ambient light
-    program.use_uniform_vec3(
-        "ambientColor",
-        &lights
-            .ambient
-            .as_ref()
-            .map(|light| light.color.to_vec3() * light.intensity)
-            .unwrap_or(vec3(0.0, 0.0, 0.0)),
-    )?;
-
     for (i, light) in lights.lights.iter().enumerate() {
         light.bind(program, camera, i as u32)?;
     }
@@ -221,10 +211,9 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     }
     shader_source.push_str(&format!(
         "
-            uniform vec3 ambientColor;
             vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
-                vec3 color = occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic); // Ambient light
+                vec3 color = vec3(0.0, 0.0, 0.0);
                 {}
                 return color;
             }}
