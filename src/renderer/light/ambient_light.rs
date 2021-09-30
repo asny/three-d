@@ -17,10 +17,10 @@ impl Light for AmbientLight {
             uniform vec3 ambientColor{};
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
-                occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic);
+                return occlusion * ambientColor{} * mix(surface_color, vec3(0.0), metallic);
             }}
         
-        ", i, i)
+        ", i, i, i)
     }
     fn bind(&self, program: &Program, _camera: &Camera, i: u32) -> Result<()> {
         program.use_uniform_vec3(

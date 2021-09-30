@@ -82,7 +82,7 @@ pub trait Object: Geometry {
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> Result<()>;
 
     fn render_deferred(
