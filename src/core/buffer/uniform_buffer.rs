@@ -28,12 +28,14 @@ impl UniformBuffer {
             offsets.push(length);
             length += *size as usize;
         }
-        Ok(UniformBuffer {
+        let buffer = UniformBuffer {
             context: context.clone(),
             id,
             offsets,
             data: vec![0.0; length as usize],
-        })
+        };
+        buffer.send();
+        Ok(buffer)
     }
 
     pub(crate) fn bind(&self, id: u32) {
