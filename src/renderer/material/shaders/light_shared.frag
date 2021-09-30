@@ -15,17 +15,6 @@ struct Attenuation
     float padding;
 };
 
-struct SpotLight
-{
-    BaseLight base;
-    Attenuation attenuation;
-    vec3 position;
-    float cutoff;
-    vec3 direction;
-    float shadowEnabled;
-    mat4 shadowMVP;
-};
-
 #define PI 3.1415926
 
 // handy value clamping to 0 - 1 range
@@ -199,23 +188,4 @@ float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)
         visibility += is_visible(shadowMap, shadow_coord, poissonDisk[i] * 0.001f);
     }
     return visibility * 0.25;
-}
-
-vec3 calculate_spot_light(SpotLight spotLight, vec3 surface_color, vec3 position, vec3 normal,
-    float metallic, float roughness, float occlusion, sampler2D shadowMap)
-{
-    vec3 light_color = spotLight.base.intensity * spotLight.base.color;
-    vec3 light_direction = normalize(position - spotLight.position);
-    float angle = acos(dot(light_direction, normalize(spotLight.direction)));
-    float cutoff = 3.14 * spotLight.cutoff / 180.0;
-
-    vec3 light = vec3(0.0);
-    if (angle < cutoff) {
-        light = calculate_attenuated_light(light_color, spotLight.attenuation, spotLight.position, surface_color, position, normal, 
-            metallic, roughness, occlusion) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
-        if(spotLight.shadowEnabled > 0.5) {
-            light *= calculate_shadow(shadowMap, spotLight.shadowMVP, position);
-        }
-    }
-    return light;
 }
