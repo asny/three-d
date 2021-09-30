@@ -100,11 +100,7 @@ impl DirectionalLight {
         shadow_texture.write(Some(1.0), || {
             for object in objects {
                 if in_frustum(&shadow_camera, object) {
-                    object.render_forward(
-                        &DepthMaterial::default(),
-                        &shadow_camera,
-                        &Lights::NONE,
-                    )?;
+                    object.render_forward(&DepthMaterial::default(), &shadow_camera, &[])?;
                 }
             }
             Ok(())

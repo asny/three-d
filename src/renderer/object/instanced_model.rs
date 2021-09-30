@@ -50,7 +50,7 @@ impl InstancedModel {
                 ..Default::default()
             },
             camera,
-            &Lights::NONE,
+            &[],
         )
     }
 
@@ -68,7 +68,7 @@ impl InstancedModel {
                 ..Default::default()
             },
             camera,
-            &Lights::NONE,
+            &[],
         )
     }
 
@@ -121,12 +121,12 @@ impl Geometry for InstancedModel {
                 ..Default::default()
             },
             camera,
-            &Lights::NONE,
+            &[],
         )
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&DepthMaterial {}, camera, &Lights::NONE)
+        self.render_forward(&DepthMaterial {}, camera, &[])
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -139,7 +139,7 @@ impl Object for InstancedModel {
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> Result<()> {
         let mut render_states = material.render_states();
         render_states.cull = self.cull;
@@ -203,6 +203,9 @@ impl ShadedGeometry for InstancedModel {
         let mut mat = material.clone();
         mat.lighting_model = lighting_model;
         let mut lights = Vec::new();
+        if let Some(light) = ambient_light {
+            lights.push(light as &dyn Light)
+        }
         for light in directional_lights {
             lights.push(*light as &dyn Light);
         }
@@ -212,13 +215,6 @@ impl ShadedGeometry for InstancedModel {
         for light in point_lights {
             lights.push(*light as &dyn Light);
         }
-        self.render_forward(
-            &mat,
-            camera,
-            &Lights {
-                ambient: ambient_light.map(|l| l.clone()),
-                lights: &lights,
-            },
-        )
+        self.render_forward(&mat, camera, &lights)
     }
 }

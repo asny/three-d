@@ -51,7 +51,7 @@ impl Model2D {
                     ..Default::default()
                 },
                 camera2d,
-                &Lights::NONE,
+                &[],
             )
         })
     }
@@ -69,7 +69,7 @@ impl Object for Model2D {
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> Result<()> {
         self.model.render_forward(material, camera, lights)
     }

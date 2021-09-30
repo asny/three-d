@@ -167,6 +167,9 @@ impl DeferredPipeline {
             return Ok(());
         }
         let mut lights = Vec::new();
+        if let Some(light) = ambient_light {
+            lights.push(light as &dyn Light)
+        }
         for light in directional_lights {
             lights.push(*light as &dyn Light);
         }
@@ -176,11 +179,6 @@ impl DeferredPipeline {
         for light in point_lights {
             lights.push(*light as &dyn Light);
         }
-
-        let lights = Lights {
-            ambient: ambient_light.map(|l| l.clone()),
-            lights: &lights,
-        };
 
         let mut fragment_shader = shaded_fragment_shader(self.lighting_model, &lights);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));

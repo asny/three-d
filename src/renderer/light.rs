@@ -26,21 +26,3 @@ pub trait Light {
     fn shader_source(&self, i: u32) -> String;
     fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()>;
 }
-
-pub struct Lights<'a> {
-    pub ambient: Option<AmbientLight>,
-    pub lights: &'a [&'a dyn Light],
-}
-
-impl<'a> Lights<'a> {
-    pub const NONE: Self = Self {
-        ambient: None,
-        lights: &[],
-    };
-}
-
-impl<'a> Default for Lights<'a> {
-    fn default() -> Self {
-        Self::NONE
-    }
-}

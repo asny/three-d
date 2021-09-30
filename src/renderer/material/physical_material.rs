@@ -109,12 +109,12 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, lights: &Lights) -> String {
+    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
         let mut shader_source = shaded_fragment_shader(self.lighting_model, lights);
         shader_source.push_str(&material_shader(self));
         shader_source
     }
-    fn bind(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()> {
         bind_lights(&camera.context, program, lights, camera)?;
         self.bind_internal(program)
     }
@@ -175,14 +175,14 @@ const MAX_LIGHTS: usize = 16;
 pub(in crate::renderer) fn bind_lights(
     context: &Context,
     program: &Program,
-    lights: &Lights,
+    lights: &[&dyn Light],
     camera: &Camera,
 ) -> Result<()> {
-    if lights.lights.len() > MAX_LIGHTS {
+    if lights.len() > MAX_LIGHTS {
         Err(RendererError::TooManyLights)?;
     }
 
-    for (i, light) in lights.lights.iter().enumerate() {
+    for (i, light) in lights.iter().enumerate() {
         light.bind(program, camera, i as u32)?;
     }
     Ok(())
@@ -190,7 +190,7 @@ pub(in crate::renderer) fn bind_lights(
 
 pub(in crate::renderer) fn shaded_fragment_shader(
     lighting_model: LightingModel,
-    lights: &Lights,
+    lights: &[&dyn Light],
 ) -> String {
     let mut shader_source = match lighting_model {
         LightingModel::Phong => "#define PHONG",
@@ -205,7 +205,7 @@ pub(in crate::renderer) fn shaded_fragment_shader(
     shader_source.push_str(include_str!("../../core/shared.frag"));
     shader_source.push_str(include_str!("shaders/light_shared.frag"));
     let mut dir_fun = String::new();
-    for (i, light) in lights.lights.iter().enumerate() {
+    for (i, light) in lights.iter().enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
         dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, metallic, roughness, occlusion);", i))
     }
