@@ -115,7 +115,7 @@ impl ForwardMaterial for PhysicalMaterial {
         shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
-        bind_lights(program, lights, camera.position())?;
+        bind_lights(&camera.context, program, lights, camera.position())?;
         self.bind_internal(program)
     }
 
@@ -175,6 +175,7 @@ const MAX_SPOT_LIGHTS: usize = 5;
 const MAX_POINT_LIGHTS: usize = 5;
 
 pub(in crate::renderer) fn bind_lights(
+    context: &Context,
     program: &Program,
     lights: &Lights,
     camera_position: &Vec3,
@@ -207,9 +208,11 @@ pub(in crate::renderer) fn bind_lights(
                 program.use_texture(&format!("directionalShadowMap{}", i), tex)?;
             }
             program.use_uniform_block(&format!("DirectionalLightUniform{}", i), light.buffer());
-            program.use_uniform_float(&format!("useDirectionalLight{}", i), &1.0)?;
         } else {
-            program.use_uniform_float(&format!("useDirectionalLight{}", i), &0.0)?;
+            program.use_uniform_block(
+                &format!("DirectionalLightUniform{}", i),
+                &UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
+            );
         }
     }
 
@@ -220,9 +223,11 @@ pub(in crate::renderer) fn bind_lights(
                 program.use_texture(&format!("spotShadowMap{}", i), tex)?;
             }
             program.use_uniform_block(&format!("SpotLightUniform{}", i), light.buffer());
-            program.use_uniform_float(&format!("useSpotLight{}", i), &1.0)?;
         } else {
-            program.use_uniform_float(&format!("useSpotLight{}", i), &0.0)?;
+            program.use_uniform_block(
+                &format!("SpotLightUniform{}", i),
+                &UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16])?,
+            );
         }
     }
 
@@ -230,9 +235,11 @@ pub(in crate::renderer) fn bind_lights(
     for i in 0..MAX_POINT_LIGHTS {
         if let Some(light) = lights.point.get(i) {
             program.use_uniform_block(&format!("PointLightUniform{}", i), light.buffer());
-            program.use_uniform_float(&format!("usePointLight{}", i), &1.0)?;
         } else {
-            program.use_uniform_float(&format!("usePointLight{}", i), &0.0)?;
+            program.use_uniform_block(
+                &format!("PointLightUniform{}", i),
+                &UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1])?,
+            );
         }
     }
     Ok(())
@@ -245,15 +252,14 @@ pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel)
         dir_uniform.push_str(&format!(
             "
                 uniform sampler2D directionalShadowMap{};
-                uniform float useDirectionalLight{};
                 layout (std140) uniform DirectionalLightUniform{}
                 {{
                     DirectionalLight directionalLight{};
                 }};",
-            i, i, i, i
+            i, i, i
         ));
         dir_fun.push_str(&format!("
-            if(useDirectionalLight{} > 0.5) {{
+            if(directionalLight{}.base.intensity > 0.0) {{
                     color += calculate_directional_light(directionalLight{}, surface_color, position, normal, metallic, roughness, occlusion, directionalShadowMap{});
                 }}", i, i, i));
     }
@@ -262,16 +268,15 @@ pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel)
     for i in 0..MAX_SPOT_LIGHTS {
         spot_uniform.push_str(&format!(
             "
-                uniform float useSpotLight{};
                 uniform sampler2D spotShadowMap{};
                 layout (std140) uniform SpotLightUniform{}
                 {{
                     SpotLight spotLight{};
                 }};",
-            i, i, i, i
+            i, i, i
         ));
         spot_fun.push_str(&format!(
-            "if(useSpotLight{} > 0.5) {{
+            "if(spotLight{}.base.intensity > 0.0) {{
                     color += calculate_spot_light(spotLight{}, surface_color, position, normal, metallic, roughness, occlusion, spotShadowMap{});
             }}",
             i, i, i
@@ -282,15 +287,14 @@ pub(in crate::renderer) fn shaded_fragment_shader(lighting_model: LightingModel)
     for i in 0..MAX_POINT_LIGHTS {
         point_uniform.push_str(&format!(
             "
-                uniform float usePointLight{};
                 layout (std140) uniform PointLightUniform{}
                 {{
                     PointLight pointLight{};
                 }};",
-            i, i, i
+            i, i
         ));
         point_fun.push_str(&format!(
-            "if(usePointLight{} > 0.5) {{
+            "if(pointLight{}.base.intensity > 0.0) {{
                     color += calculate_point_light(pointLight{}, surface_color, position, normal, metallic, roughness, occlusion);
             }}",
             i, i
