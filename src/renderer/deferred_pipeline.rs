@@ -180,7 +180,7 @@ impl DeferredPipeline {
             lights.push(*light as &dyn Light);
         }
 
-        let mut fragment_shader = shaded_fragment_shader(self.lighting_model, &lights);
+        let mut fragment_shader = lights_shader_source(self.lighting_model, &lights);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         if !self.program_map.contains_key(&fragment_shader) {
