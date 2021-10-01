@@ -36,6 +36,9 @@ void main()
     vec4 c = texture(albedoTexture, uvs);
     surface_color *= vec4(rgb_from_srgb(c.rgb), c.a);
 #endif
+#ifdef USE_VERTEX_COLORS
+    surface_color *= col;
+#endif
 
     float metallic_factor = metallic;
     float roughness_factor = roughness;
