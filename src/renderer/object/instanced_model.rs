@@ -7,6 +7,7 @@ use crate::renderer::*;
 pub struct InstancedModel {
     context: Context,
     mesh: InstancedMesh,
+    #[deprecated = "set in render states on material instead"]
     pub cull: Cull,
 }
 
@@ -44,7 +45,10 @@ impl InstancedModel {
     ///
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_color(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&ColorMaterial::default(), camera, &[])
+        let mut mat = ColorMaterial::default();
+        mat.render_states.cull = self.cull;
+        mat.transparent_render_states.cull = self.cull;
+        self.render_forward(&mat, camera, &[])
     }
 
     ///
@@ -55,14 +59,13 @@ impl InstancedModel {
     ///
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
-        self.render_forward(
-            &ColorMaterial {
-                color,
-                ..Default::default()
-            },
-            camera,
-            &[],
-        )
+        let mut mat = ColorMaterial {
+            color,
+            ..Default::default()
+        };
+        mat.render_states.cull = self.cull;
+        mat.transparent_render_states.cull = self.cull;
+        self.render_forward(&mat, camera, &[])
     }
 
     ///
@@ -108,18 +111,18 @@ impl InstancedModel {
 
 impl Geometry for InstancedModel {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        self.render_forward(
-            &PickMaterial {
-                max_distance: Some(max_depth),
-                ..Default::default()
-            },
-            camera,
-            &[],
-        )
+        let mut mat = PickMaterial {
+            max_distance: Some(max_depth),
+            ..Default::default()
+        };
+        mat.render_states.cull = self.cull;
+        self.render_forward(&mat, camera, &[])
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(&DepthMaterial {}, camera, &[])
+        let mut mat = DepthMaterial::default();
+        mat.render_states.cull = self.cull;
+        self.render_forward(&mat, camera, &[])
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -134,14 +137,13 @@ impl Object for InstancedModel {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> Result<()> {
-        let mut render_states = material.render_states(
+        let render_states = material.render_states(
             self.mesh
                 .color_buffer
                 .as_ref()
                 .map(|(_, transparent)| *transparent)
                 .unwrap_or(false),
         );
-        render_states.cull = self.cull;
         let fragment_shader_source =
             material.fragment_shader_source(lights, self.mesh.color_buffer.is_some());
         self.context.program(
@@ -165,8 +167,7 @@ impl Object for InstancedModel {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()> {
-        let mut render_states = material.render_states();
-        render_states.cull = self.cull;
+        let render_states = material.render_states();
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some());
         self.context.program(
@@ -203,6 +204,8 @@ impl ShadedGeometry for InstancedModel {
     ) -> Result<()> {
         let mut mat = material.clone();
         mat.lighting_model = lighting_model;
+        mat.render_states.cull = self.cull;
+        mat.transparent_render_states.cull = self.cull;
         let mut lights = Vec::new();
         if let Some(light) = ambient_light {
             lights.push(light as &dyn Light)

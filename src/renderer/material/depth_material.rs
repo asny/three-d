@@ -1,8 +1,10 @@
 use crate::core::*;
 use crate::renderer::*;
 
-#[derive(Clone, Default)]
-pub struct DepthMaterial {}
+#[derive(Clone)]
+pub struct DepthMaterial {
+    pub render_states: RenderStates,
+}
 
 impl ForwardMaterial for DepthMaterial {
     fn fragment_shader_source(&self, _lights: &[&dyn Light], _use_vertex_colors: bool) -> String {
@@ -12,9 +14,17 @@ impl ForwardMaterial for DepthMaterial {
         Ok(())
     }
     fn render_states(&self, _transparent: bool) -> RenderStates {
-        RenderStates {
-            write_mask: WriteMask::DEPTH,
-            ..Default::default()
+        self.render_states
+    }
+}
+
+impl Default for DepthMaterial {
+    fn default() -> Self {
+        Self {
+            render_states: RenderStates {
+                write_mask: WriteMask::DEPTH,
+                ..Default::default()
+            },
         }
     }
 }

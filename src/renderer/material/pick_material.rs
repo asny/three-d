@@ -5,6 +5,7 @@ use crate::renderer::*;
 pub struct PickMaterial {
     pub min_distance: Option<f32>,
     pub max_distance: Option<f32>,
+    pub render_states: RenderStates,
 }
 
 impl ForwardMaterial for PickMaterial {
@@ -17,6 +18,6 @@ impl ForwardMaterial for PickMaterial {
         Ok(())
     }
     fn render_states(&self, _transparent: bool) -> RenderStates {
-        RenderStates::default()
+        self.render_states
     }
 }

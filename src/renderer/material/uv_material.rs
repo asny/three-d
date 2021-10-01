@@ -2,7 +2,9 @@ use crate::core::*;
 use crate::renderer::*;
 
 #[derive(Clone, Default)]
-pub struct UVMaterial {}
+pub struct UVMaterial {
+    pub render_states: RenderStates,
+}
 
 impl ForwardMaterial for UVMaterial {
     fn fragment_shader_source(&self, _lights: &[&dyn Light], _use_vertex_colors: bool) -> String {
@@ -12,6 +14,6 @@ impl ForwardMaterial for UVMaterial {
         Ok(())
     }
     fn render_states(&self, _transparent: bool) -> RenderStates {
-        RenderStates::default()
+        self.render_states
     }
 }
