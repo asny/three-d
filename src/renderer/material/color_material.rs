@@ -22,16 +22,12 @@ impl ColorMaterial {
 }
 
 impl ForwardMaterial for ColorMaterial {
-    fn fragment_shader_source(
-        &self,
-        _lights: &[&dyn Light],
-        vertex_colors: VertexColors,
-    ) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light], use_vertex_colors: bool) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
         }
-        if vertex_colors != VertexColors::None {
+        if use_vertex_colors {
             shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         shader.push_str(include_str!("../../core/shared.frag"));
@@ -45,8 +41,8 @@ impl ForwardMaterial for ColorMaterial {
         }
         Ok(())
     }
-    fn render_states(&self, vertex_colors: VertexColors) -> RenderStates {
-        if vertex_colors == VertexColors::Transparent
+    fn render_states(&self, transparent: bool) -> RenderStates {
+        if transparent
             || self.color.a != 255u8
             || self
                 .texture
