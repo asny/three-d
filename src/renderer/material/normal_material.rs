@@ -20,11 +20,7 @@ impl NormalMaterial {
 }
 
 impl ForwardMaterial for NormalMaterial {
-    fn fragment_shader_source(
-        &self,
-        _lights: &[&dyn Light],
-        _vertex_colors: VertexColors,
-    ) -> String {
+    fn fragment_shader_source(&self, _lights: &[&dyn Light], _use_vertex_colors: bool) -> String {
         let mut shader = String::new();
         if self.normal_texture.is_some() {
             shader.push_str(include_str!("../../core/shared.frag"));
@@ -40,7 +36,7 @@ impl ForwardMaterial for NormalMaterial {
         }
         Ok(())
     }
-    fn render_states(&self, _vertex_colors: VertexColors) -> RenderStates {
+    fn render_states(&self, _transparent: bool) -> RenderStates {
         RenderStates::default()
     }
 }

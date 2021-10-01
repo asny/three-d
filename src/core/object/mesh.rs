@@ -34,13 +34,6 @@ impl std::ops::Deref for MeshProgram {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum VertexColors {
-    None,
-    Transparent,
-    Opaque,
-}
-
 ///
 /// A triangle mesh which can be rendered with a custom [MeshProgram](MeshProgram).
 ///
@@ -51,8 +44,7 @@ pub struct Mesh {
     normal_buffer: Option<Rc<VertexBuffer>>,
     index_buffer: Option<Rc<ElementBuffer>>,
     uv_buffer: Option<Rc<VertexBuffer>>,
-    color_buffer: Option<Rc<VertexBuffer>>,
-    pub vertex_colors: VertexColors,
+    pub color_buffer: Option<(Rc<VertexBuffer>, bool)>,
     aabb: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
     pub name: String,
@@ -88,18 +80,18 @@ impl Mesh {
         } else {
             None
         };
-        let mut vertex_colors = VertexColors::None;
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
+            let mut transparent = false;
             for i in 0..colors.len() / 4 {
                 if colors[i * 4] != 255 {
-                    vertex_colors = VertexColors::Transparent;
+                    transparent = true;
                     break;
                 }
             }
-            if vertex_colors == VertexColors::None {
-                vertex_colors = VertexColors::Opaque;
-            }
-            Some(Rc::new(VertexBuffer::new_with_static(context, colors)?))
+            Some((
+                Rc::new(VertexBuffer::new_with_static(context, colors)?),
+                transparent,
+            ))
         } else {
             None
         };
@@ -110,7 +102,6 @@ impl Mesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            vertex_colors,
             aabb: cpu_mesh.compute_aabb(),
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
@@ -172,7 +163,7 @@ impl Mesh {
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.requires_attribute("color") {
-            let color_buffer = self
+            let (color_buffer, _) = self
                 .color_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;

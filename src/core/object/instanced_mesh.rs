@@ -41,8 +41,7 @@ pub struct InstancedMesh {
     normal_buffer: Option<VertexBuffer>,
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
-    color_buffer: Option<VertexBuffer>,
-    pub vertex_colors: VertexColors,
+    pub color_buffer: Option<(VertexBuffer, bool)>,
     instance_count: u32,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
@@ -81,18 +80,15 @@ impl InstancedMesh {
         } else {
             None
         };
-        let mut vertex_colors = VertexColors::None;
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
+            let mut transparent = false;
             for i in 0..colors.len() / 4 {
                 if colors[i * 4] != 255 {
-                    vertex_colors = VertexColors::Transparent;
+                    transparent = true;
                     break;
                 }
             }
-            if vertex_colors == VertexColors::None {
-                vertex_colors = VertexColors::Opaque;
-            }
-            Some(VertexBuffer::new_with_static(context, colors)?)
+            Some((VertexBuffer::new_with_static(context, colors)?, transparent))
         } else {
             None
         };
@@ -105,7 +101,6 @@ impl InstancedMesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            vertex_colors,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
@@ -171,7 +166,7 @@ impl InstancedMesh {
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.requires_attribute("color") {
-            let color_buffer = self
+            let (color_buffer, _) = self
                 .color_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;

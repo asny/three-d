@@ -30,13 +30,13 @@ mod physical_material;
 pub use physical_material::*;
 
 pub trait ForwardMaterial {
-    fn fragment_shader_source(&self, lights: &[&dyn Light], vertex_colors: VertexColors) -> String;
+    fn fragment_shader_source(&self, lights: &[&dyn Light], use_vertex_colors: bool) -> String;
     fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()>;
-    fn render_states(&self, vertex_colors: VertexColors) -> RenderStates;
+    fn render_states(&self, transparent: bool) -> RenderStates;
 }
 
 pub trait DeferredMaterial {
-    fn fragment_shader_source(&self, vertex_colors: VertexColors) -> String;
+    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String;
     fn bind(&self, program: &Program) -> Result<()>;
     fn render_states(&self) -> RenderStates;
 }

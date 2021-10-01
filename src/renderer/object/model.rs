@@ -136,10 +136,16 @@ impl Object for Model {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> Result<()> {
-        let mut render_states = material.render_states(self.mesh.vertex_colors);
+        let mut render_states = material.render_states(
+            self.mesh
+                .color_buffer
+                .as_ref()
+                .map(|(_, transparent)| *transparent)
+                .unwrap_or(false),
+        );
         render_states.cull = self.cull;
         let fragment_shader_source =
-            material.fragment_shader_source(lights, self.mesh.vertex_colors);
+            material.fragment_shader_source(lights, self.mesh.color_buffer.is_some());
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
@@ -163,7 +169,8 @@ impl Object for Model {
     ) -> Result<()> {
         let mut render_states = material.render_states();
         render_states.cull = self.cull;
-        let fragment_shader_source = material.fragment_shader_source(self.mesh.vertex_colors);
+        let fragment_shader_source =
+            material.fragment_shader_source(self.mesh.color_buffer.is_some());
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
