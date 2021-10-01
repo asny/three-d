@@ -42,7 +42,7 @@ pub struct InstancedMesh {
     index_buffer: Option<ElementBuffer>,
     uv_buffer: Option<VertexBuffer>,
     color_buffer: Option<VertexBuffer>,
-    pub(crate) transparent: bool,
+    pub vertex_colors: VertexColors,
     instance_count: u32,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
@@ -81,13 +81,16 @@ impl InstancedMesh {
         } else {
             None
         };
-        let mut transparent = false;
+        let mut vertex_colors = VertexColors::None;
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
             for i in 0..colors.len() / 4 {
                 if colors[i * 4] != 255 {
-                    transparent = true;
+                    vertex_colors = VertexColors::Transparent;
                     break;
                 }
+            }
+            if vertex_colors == VertexColors::None {
+                vertex_colors = VertexColors::Opaque;
             }
             Some(VertexBuffer::new_with_static(context, colors)?)
         } else {
@@ -102,7 +105,7 @@ impl InstancedMesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            transparent,
+            vertex_colors,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
