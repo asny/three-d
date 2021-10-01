@@ -23,7 +23,7 @@ pub enum NormalDistributionFunction {
 }
 
 ///
-/// A CPU-side version of a [material](crate::Material).
+/// A CPU-side version of a [material](crate::renderer::material).
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
 pub struct CPUMaterial {
