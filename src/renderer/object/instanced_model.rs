@@ -6,7 +6,7 @@ use crate::renderer::*;
 ///
 pub struct InstancedModel {
     context: Context,
-    pub(in crate::renderer) mesh: InstancedMesh,
+    mesh: InstancedMesh,
     pub cull: Cull,
 }
 

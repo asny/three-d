@@ -7,7 +7,7 @@ use crate::renderer::*;
 #[derive(Clone)]
 pub struct Model {
     context: Context,
-    pub(in crate::renderer) mesh: Mesh,
+    mesh: Mesh,
     pub cull: Cull,
 }
 
