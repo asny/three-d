@@ -109,9 +109,9 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, lights: &[&dyn Light], vertex_colors: VertexColors) -> String {
+    fn fragment_shader_source(&self, lights: &[&dyn Light], use_vertex_colors: bool) -> String {
         let mut shader_source = lights_shader_source(self.lighting_model, lights);
-        shader_source.push_str(&material_shader_source(self, vertex_colors));
+        shader_source.push_str(&material_shader_source(self, use_vertex_colors));
         shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()> {
@@ -121,8 +121,8 @@ impl ForwardMaterial for PhysicalMaterial {
         self.bind_internal(program)
     }
 
-    fn render_states(&self, vertex_colors: VertexColors) -> RenderStates {
-        let transparent = vertex_colors == VertexColors::Transparent
+    fn render_states(&self, transparent: bool) -> RenderStates {
+        let transparent = transparent
             || self.albedo.a != 255
             || self
                 .albedo_texture
@@ -143,10 +143,10 @@ impl ForwardMaterial for PhysicalMaterial {
 }
 
 impl DeferredMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, vertex_colors: VertexColors) -> String {
+    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
         format!(
             "#define DEFERRED\n{}",
-            material_shader_source(self, vertex_colors)
+            material_shader_source(self, use_vertex_colors)
         )
     }
     fn bind(&self, program: &Program) -> Result<()> {
@@ -211,7 +211,7 @@ pub(in crate::renderer) fn lights_shader_source(
     shader_source
 }
 
-fn material_shader_source(material: &PhysicalMaterial, vertex_colors: VertexColors) -> String {
+fn material_shader_source(material: &PhysicalMaterial, use_vertex_colors: bool) -> String {
     let mut output = String::new();
     if material.albedo_texture.is_some()
         || material.metallic_roughness_texture.is_some()
@@ -232,7 +232,7 @@ fn material_shader_source(material: &PhysicalMaterial, vertex_colors: VertexColo
             output.push_str("#define USE_NORMAL_TEXTURE;\n");
         }
     }
-    if vertex_colors != VertexColors::None {
+    if use_vertex_colors {
         output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
     }
     output.push_str(include_str!("shaders/physical_material.frag"));
