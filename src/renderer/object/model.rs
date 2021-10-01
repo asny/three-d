@@ -44,14 +44,7 @@ impl Model {
     ///
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_color(&self, camera: &Camera) -> Result<()> {
-        self.render_forward(
-            &ColorMaterial {
-                vertex_colors: true,
-                ..Default::default()
-            },
-            camera,
-            &[],
-        )
+        self.render_forward(&ColorMaterial::default(), camera, &[])
     }
 
     ///
@@ -143,9 +136,10 @@ impl Object for Model {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> Result<()> {
-        let mut render_states = material.render_states();
+        let mut render_states = material.render_states(self.mesh.vertex_colors);
         render_states.cull = self.cull;
-        let fragment_shader_source = material.fragment_shader_source(lights);
+        let fragment_shader_source =
+            material.fragment_shader_source(lights, self.mesh.vertex_colors);
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,

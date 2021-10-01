@@ -6,7 +6,6 @@ use std::rc::Rc;
 pub struct ColorMaterial {
     pub color: Color,
     pub texture: Option<Rc<Texture2D>>,
-    pub vertex_colors: bool,
 }
 impl ColorMaterial {
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
@@ -18,18 +17,21 @@ impl ColorMaterial {
         Ok(Self {
             color: cpu_material.albedo,
             texture,
-            vertex_colors: cpu_material.vertex_colors,
         })
     }
 }
 
 impl ForwardMaterial for ColorMaterial {
-    fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        _lights: &[&dyn Light],
+        vertex_colors: VertexColors,
+    ) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
         }
-        if self.vertex_colors {
+        if vertex_colors != VertexColors::None {
             shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
         shader.push_str(include_str!("../../core/shared.frag"));
@@ -43,8 +45,9 @@ impl ForwardMaterial for ColorMaterial {
         }
         Ok(())
     }
-    fn render_states(&self) -> RenderStates {
-        if self.color.a != 255u8
+    fn render_states(&self, vertex_colors: VertexColors) -> RenderStates {
+        if vertex_colors == VertexColors::Transparent
+            || self.color.a != 255u8
             || self
                 .texture
                 .as_ref()
