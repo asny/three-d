@@ -2,7 +2,7 @@ use crate::renderer::*;
 
 ///
 /// Forward render pipeline which can render objects (implementing the [Object] trait) with materials (implementing the [ForwardMaterial] trait) and lighting.
-/// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Object::render] directly.
+/// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Object::render_forward] directly.
 ///
 pub struct ForwardPipeline {
     context: Context,
