@@ -35,7 +35,7 @@ impl Indices {
 pub struct CPUMesh {
     /// Name.
     pub name: String,
-    /// Name of the associated material, use this to match with [Material::name].
+    /// Name of the associated material, use this to match with [CPUMaterial::name].
     pub material_name: Option<String>,
     /// The positions of the vertices. Three contiguous floats defines a 3D position `(x, y, z)`, therefore the length must be divisable by 3.
     /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must also be divisable by 9.
