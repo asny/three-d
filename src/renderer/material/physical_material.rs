@@ -109,7 +109,11 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, lights: &[&dyn Light]) -> String {
+    fn fragment_shader_source(
+        &self,
+        lights: &[&dyn Light],
+        _vertex_colors: VertexColors,
+    ) -> String {
         let mut shader_source = lights_shader_source(self.lighting_model, lights);
         shader_source.push_str(&material_shader_source(self));
         shader_source
@@ -121,8 +125,9 @@ impl ForwardMaterial for PhysicalMaterial {
         self.bind_internal(program)
     }
 
-    fn render_states(&self) -> RenderStates {
-        let transparent = self.albedo.a != 255
+    fn render_states(&self, vertex_colors: VertexColors) -> RenderStates {
+        let transparent = vertex_colors == VertexColors::Transparent
+            || self.albedo.a != 255
             || self
                 .albedo_texture
                 .as_ref()

@@ -34,6 +34,13 @@ impl std::ops::Deref for MeshProgram {
     }
 }
 
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub enum VertexColors {
+    None,
+    Transparent,
+    Opaque,
+}
+
 ///
 /// A triangle mesh which can be rendered with a custom [MeshProgram](MeshProgram).
 ///
@@ -45,7 +52,7 @@ pub struct Mesh {
     index_buffer: Option<Rc<ElementBuffer>>,
     uv_buffer: Option<Rc<VertexBuffer>>,
     color_buffer: Option<Rc<VertexBuffer>>,
-    pub(crate) transparent: bool,
+    pub vertex_colors: VertexColors,
     aabb: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
     pub name: String,
@@ -81,13 +88,16 @@ impl Mesh {
         } else {
             None
         };
-        let mut transparent = false;
+        let mut vertex_colors = VertexColors::None;
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
             for i in 0..colors.len() / 4 {
                 if colors[i * 4] != 255 {
-                    transparent = true;
+                    vertex_colors = VertexColors::Transparent;
                     break;
                 }
+            }
+            if vertex_colors == VertexColors::None {
+                vertex_colors = VertexColors::Opaque;
             }
             Some(Rc::new(VertexBuffer::new_with_static(context, colors)?))
         } else {
@@ -100,7 +110,7 @@ impl Mesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            transparent,
+            vertex_colors,
             aabb: cpu_mesh.compute_aabb(),
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
