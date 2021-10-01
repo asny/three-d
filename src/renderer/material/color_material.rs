@@ -2,10 +2,12 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct ColorMaterial {
     pub color: Color,
     pub texture: Option<Rc<Texture2D>>,
+    pub render_states: RenderStates,
+    pub transparent_render_states: RenderStates,
 }
 impl ColorMaterial {
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
@@ -17,6 +19,7 @@ impl ColorMaterial {
         Ok(Self {
             color: cpu_material.albedo,
             texture,
+            ..Default::default()
         })
     }
 }
@@ -50,13 +53,24 @@ impl ForwardMaterial for ColorMaterial {
                 .map(|t| t.is_transparent())
                 .unwrap_or(false)
         {
-            RenderStates {
+            self.transparent_render_states
+        } else {
+            self.render_states
+        }
+    }
+}
+
+impl Default for ColorMaterial {
+    fn default() -> Self {
+        Self {
+            color: Color::default(),
+            texture: None,
+            render_states: RenderStates::default(),
+            transparent_render_states: RenderStates {
                 write_mask: WriteMask::COLOR,
                 blend: Blend::TRANSPARENCY,
                 ..Default::default()
-            }
-        } else {
-            RenderStates::default()
+            },
         }
     }
 }

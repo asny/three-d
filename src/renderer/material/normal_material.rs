@@ -8,6 +8,7 @@ pub struct NormalMaterial {
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<Rc<Texture2D>>,
+    pub render_states: RenderStates,
 }
 
 impl NormalMaterial {
@@ -15,6 +16,7 @@ impl NormalMaterial {
         Self {
             normal_scale: physical_material.normal_scale,
             normal_texture: physical_material.normal_texture.clone(),
+            render_states: RenderStates::default(),
         }
     }
 }
@@ -37,7 +39,7 @@ impl ForwardMaterial for NormalMaterial {
         Ok(())
     }
     fn render_states(&self, _transparent: bool) -> RenderStates {
-        RenderStates::default()
+        self.render_states
     }
 }
 
@@ -46,6 +48,7 @@ impl Default for NormalMaterial {
         Self {
             normal_texture: None,
             normal_scale: 1.0,
+            render_states: RenderStates::default(),
         }
     }
 }
