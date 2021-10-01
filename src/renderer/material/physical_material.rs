@@ -33,6 +33,8 @@ pub struct PhysicalMaterial {
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<Rc<Texture2D>>,
     pub lighting_model: LightingModel,
+    pub render_states: RenderStates,
+    pub transparent_render_states: RenderStates,
 }
 
 impl PhysicalMaterial {
@@ -83,6 +85,7 @@ impl PhysicalMaterial {
             occlusion_texture,
             occlusion_strength: cpu_material.occlusion_strength,
             lighting_model: LightingModel::Blinn,
+            ..Default::default()
         })
     }
 
@@ -122,22 +125,17 @@ impl ForwardMaterial for PhysicalMaterial {
     }
 
     fn render_states(&self, transparent: bool) -> RenderStates {
-        let transparent = transparent
+        if transparent
             || self.albedo.a != 255
             || self
                 .albedo_texture
                 .as_ref()
                 .map(|t| t.is_transparent())
-                .unwrap_or(false);
-
-        if transparent {
-            RenderStates {
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
-            }
+                .unwrap_or(false)
+        {
+            self.transparent_render_states
         } else {
-            RenderStates::default()
+            self.render_states
         }
     }
 }
@@ -154,7 +152,7 @@ impl DeferredMaterial for PhysicalMaterial {
     }
 
     fn render_states(&self) -> RenderStates {
-        RenderStates::default()
+        self.render_states
     }
 }
 
@@ -172,6 +170,12 @@ impl Default for PhysicalMaterial {
             occlusion_texture: None,
             occlusion_strength: 1.0,
             lighting_model: LightingModel::Blinn,
+            render_states: RenderStates::default(),
+            transparent_render_states: RenderStates {
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            },
         }
     }
 }
