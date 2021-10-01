@@ -36,7 +36,7 @@ pub trait ForwardMaterial {
 }
 
 pub trait DeferredMaterial {
-    fn render_states(&self) -> RenderStates;
-    fn fragment_shader_source(&self) -> String;
+    fn fragment_shader_source(&self, vertex_colors: VertexColors) -> String;
     fn bind(&self, program: &Program) -> Result<()>;
+    fn render_states(&self) -> RenderStates;
 }

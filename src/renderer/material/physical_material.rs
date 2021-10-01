@@ -109,13 +109,9 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(
-        &self,
-        lights: &[&dyn Light],
-        _vertex_colors: VertexColors,
-    ) -> String {
+    fn fragment_shader_source(&self, lights: &[&dyn Light], vertex_colors: VertexColors) -> String {
         let mut shader_source = lights_shader_source(self.lighting_model, lights);
-        shader_source.push_str(&material_shader_source(self));
+        shader_source.push_str(&material_shader_source(self, vertex_colors));
         shader_source
     }
     fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()> {
@@ -147,8 +143,11 @@ impl ForwardMaterial for PhysicalMaterial {
 }
 
 impl DeferredMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self) -> String {
-        format!("#define DEFERRED\n{}", material_shader_source(self),)
+    fn fragment_shader_source(&self, vertex_colors: VertexColors) -> String {
+        format!(
+            "#define DEFERRED\n{}",
+            material_shader_source(self, vertex_colors)
+        )
     }
     fn bind(&self, program: &Program) -> Result<()> {
         self.bind_internal(program)
@@ -212,7 +211,7 @@ pub(in crate::renderer) fn lights_shader_source(
     shader_source
 }
 
-fn material_shader_source(material: &PhysicalMaterial) -> String {
+fn material_shader_source(material: &PhysicalMaterial, vertex_colors: VertexColors) -> String {
     let mut output = String::new();
     if material.albedo_texture.is_some()
         || material.metallic_roughness_texture.is_some()
@@ -232,6 +231,9 @@ fn material_shader_source(material: &PhysicalMaterial) -> String {
         if material.normal_texture.is_some() {
             output.push_str("#define USE_NORMAL_TEXTURE;\n");
         }
+    }
+    if vertex_colors != VertexColors::None {
+        output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
     }
     output.push_str(include_str!("shaders/physical_material.frag"));
     output
