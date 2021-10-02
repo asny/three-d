@@ -16,6 +16,9 @@ impl ForwardMaterial for DepthMaterial {
     fn render_states(&self, _transparent: bool) -> RenderStates {
         self.render_states
     }
+    fn is_transparent(&self) -> bool {
+        false
+    }
 }
 
 impl Default for DepthMaterial {

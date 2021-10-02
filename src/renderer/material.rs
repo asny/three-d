@@ -33,6 +33,7 @@ pub trait ForwardMaterial {
     fn fragment_shader_source(&self, lights: &[&dyn Light], use_vertex_colors: bool) -> String;
     fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()>;
     fn render_states(&self, transparent: bool) -> RenderStates;
+    fn is_transparent(&self) -> bool;
 }
 
 pub trait DeferredMaterial {

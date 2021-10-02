@@ -45,18 +45,19 @@ impl ForwardMaterial for ColorMaterial {
         Ok(())
     }
     fn render_states(&self, transparent: bool) -> RenderStates {
-        if transparent
-            || self.color.a != 255u8
+        if transparent || self.is_transparent() {
+            self.transparent_render_states
+        } else {
+            self.render_states
+        }
+    }
+    fn is_transparent(&self) -> bool {
+        self.color.a != 255u8
             || self
                 .texture
                 .as_ref()
                 .map(|t| t.is_transparent())
                 .unwrap_or(false)
-        {
-            self.transparent_render_states
-        } else {
-            self.render_states
-        }
     }
 }
 
