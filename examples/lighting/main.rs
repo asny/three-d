@@ -113,6 +113,7 @@ fn main() {
             let depth_material = PickMaterial {
                 min_distance: Some(0.1),
                 max_distance: Some(10.0),
+                ..Default::default()
             };
 
             window

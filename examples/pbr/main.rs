@@ -108,6 +108,7 @@ fn main() {
                             None
                         },
                         lighting_model: material.lighting_model,
+                        ..Default::default()
                     };
 
                     let viewport = Viewport {
