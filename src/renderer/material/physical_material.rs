@@ -125,18 +125,19 @@ impl ForwardMaterial for PhysicalMaterial {
     }
 
     fn render_states(&self, transparent: bool) -> RenderStates {
-        if transparent
-            || self.albedo.a != 255
+        if transparent || self.is_transparent() {
+            self.transparent_render_states
+        } else {
+            self.render_states
+        }
+    }
+    fn is_transparent(&self) -> bool {
+        self.albedo.a != 255
             || self
                 .albedo_texture
                 .as_ref()
                 .map(|t| t.is_transparent())
                 .unwrap_or(false)
-        {
-            self.transparent_render_states
-        } else {
-            self.render_states
-        }
     }
 }
 
