@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::renderer::light::*;
 use crate::renderer::*;
 
 ///
@@ -165,20 +166,5 @@ impl Light for DirectionalLight {
         program.use_uniform_vec3("eyePosition", camera.position())?;
         program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
         Ok(())
-    }
-}
-
-fn shadow_matrix(camera: &Camera) -> Mat4 {
-    let bias_matrix = crate::Mat4::new(
-        0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0,
-    );
-    bias_matrix * camera.projection() * camera.view()
-}
-
-fn compute_up_direction(direction: Vec3) -> Vec3 {
-    if vec3(1.0, 0.0, 0.0).dot(direction).abs() > 0.9 {
-        (vec3(0.0, 1.0, 0.0).cross(direction)).normalize()
-    } else {
-        (vec3(1.0, 0.0, 0.0).cross(direction)).normalize()
     }
 }
