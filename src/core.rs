@@ -13,6 +13,7 @@ pub struct Context {
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
+    dummy_tex: Rc<RefCell<Option<Texture2D>>>,
 }
 
 impl Context {
@@ -22,6 +23,7 @@ impl Context {
             programs: Rc::new(RefCell::new(HashMap::new())),
             effects: Rc::new(RefCell::new(HashMap::new())),
             camera2d: Rc::new(RefCell::new(None)),
+            dummy_tex: Rc::new(RefCell::new(None)),
         }
     }
 
@@ -93,6 +95,14 @@ impl Context {
             vec3(0.0, -1.0, 0.0),
         )?;
         callback(camera2d.as_ref().unwrap())
+    }
+
+    pub(crate) fn use_texture_dummy(&self, program: &Program, name: &str) -> Result<()> {
+        if self.dummy_tex.borrow().is_none() {
+            *self.dummy_tex.borrow_mut() =
+                Some(Texture2D::new(&self, &CPUTexture::<u8>::default())?);
+        }
+        program.use_texture(name, (*self.dummy_tex.borrow()).as_ref().unwrap())
     }
 }
 
