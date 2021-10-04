@@ -37,18 +37,11 @@ impl std::ops::Deref for InstancedMeshProgram {
 /// Similar to [Mesh], except it is possible to render many instances of the same triangle mesh efficiently.
 ///
 pub struct InstancedMesh {
-    position_buffer: VertexBuffer,
-    normal_buffer: Option<VertexBuffer>,
-    index_buffer: Option<ElementBuffer>,
-    uv_buffer: Option<VertexBuffer>,
-    pub color_buffer: Option<(VertexBuffer, bool)>,
+    pub(crate) mesh: Mesh,
     instance_count: u32,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
-    /// Optional name of the instanced mesh.
-    pub name: String,
-    transformation: Mat4,
 }
 
 impl InstancedMesh {
@@ -59,69 +52,15 @@ impl InstancedMesh {
     /// The transformations can be updated by the [update_transformations](Self::update_transformations) function.
     ///
     pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self> {
-        cpu_mesh.validate()?;
-        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
-        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static(context, normals)?)
-        } else {
-            None
-        };
-        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with(context, ind)?,
-            })
-        } else {
-            None
-        };
-        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static(context, uvs)?)
-        } else {
-            None
-        };
-        let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            let mut transparent = false;
-            for i in 0..colors.len() / 4 {
-                if colors[i * 4] != 255 {
-                    transparent = true;
-                    break;
-                }
-            }
-            Some((VertexBuffer::new_with_static(context, colors)?, transparent))
-        } else {
-            None
-        };
-
         let mut mesh = Self {
-            name: cpu_mesh.name.clone(),
             instance_count: 0,
-            position_buffer,
-            normal_buffer,
-            index_buffer,
-            uv_buffer,
-            color_buffer,
+            mesh: Mesh::new(context, cpu_mesh)?,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
-            transformation: Mat4::identity(),
         };
         mesh.update_transformations(transformations);
         Ok(mesh)
-    }
-
-    ///
-    /// Returns the local to world transformation applied to all instances.
-    ///
-    pub fn transformation(&self) -> &Mat4 {
-        &self.transformation
-    }
-
-    ///
-    /// Set the local to world transformation applied to all instances.
-    ///
-    pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
     }
 
     ///
@@ -145,35 +84,9 @@ impl InstancedMesh {
         program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
 
-        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-        program.use_uniform_block("Camera", camera_buffer);
+        self.mesh.use_attributes(program, camera_buffer)?;
 
-        if program.requires_attribute("position") {
-            program.use_attribute_vec3("position", &self.position_buffer)?;
-        }
-        if program.requires_attribute("uv_coordinates") {
-            let uv_buffer = self
-                .uv_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
-            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
-        }
-        if program.requires_attribute("normal") {
-            let normal_buffer = self
-                .normal_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-            program.use_attribute_vec3("normal", normal_buffer)?;
-        }
-        if program.requires_attribute("color") {
-            let (color_buffer, _) = self
-                .color_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-            program.use_attribute_vec4("color", color_buffer)?;
-        }
-
-        if let Some(ref index_buffer) = self.index_buffer {
+        if let Some(ref index_buffer) = self.mesh.index_buffer {
             program.draw_elements_instanced(
                 render_states,
                 viewport,
@@ -184,7 +97,7 @@ impl InstancedMesh {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
-                self.position_buffer.count() as u32 / 3,
+                self.mesh.position_buffer.count() as u32 / 3,
                 self.instance_count,
             );
         }
@@ -221,31 +134,27 @@ impl InstancedMesh {
         self.instance_buffer3.fill_with_dynamic(&row3);
     }
 
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
+    }
+
     pub fn vertex_shader_source(fragment_shader_source: &str) -> String {
-        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
-        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
-        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
-        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         format!(
-            "#define INSTANCED\n{}{}{}{}{}{}",
-            if use_positions {
-                "#define USE_POSITIONS\n"
-            } else {
-                ""
-            },
-            if use_normals {
-                "#define USE_NORMALS\n"
-            } else {
-                ""
-            },
-            if use_uvs { "#define USE_UVS\n" } else { "" },
-            if use_colors {
-                "#define USE_COLORS\n"
-            } else {
-                ""
-            },
-            include_str!("../shared.frag"),
-            include_str!("shaders/mesh.vert"),
+            "#define INSTANCED\n{}",
+            Mesh::vertex_shader_source(fragment_shader_source)
         )
+    }
+}
+
+impl std::ops::Deref for InstancedMesh {
+    type Target = Mesh;
+    fn deref(&self) -> &Self::Target {
+        &self.mesh
+    }
+}
+
+impl std::ops::DerefMut for InstancedMesh {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.mesh
     }
 }

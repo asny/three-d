@@ -40,11 +40,11 @@ impl std::ops::Deref for MeshProgram {
 #[derive(Clone)]
 pub struct Mesh {
     context: Context,
-    position_buffer: Rc<VertexBuffer>,
+    pub(crate) position_buffer: Rc<VertexBuffer>,
     normal_buffer: Option<Rc<VertexBuffer>>,
-    index_buffer: Option<Rc<ElementBuffer>>,
+    pub(crate) index_buffer: Option<Rc<ElementBuffer>>,
     uv_buffer: Option<Rc<VertexBuffer>>,
-    pub color_buffer: Option<(Rc<VertexBuffer>, bool)>,
+    pub(crate) color_buffer: Option<(Rc<VertexBuffer>, bool)>,
     aabb: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
     pub name: String,
@@ -124,22 +124,10 @@ impl Mesh {
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
     }
 
-    ///
-    /// Render the mesh with the given [Program].
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
-    ///
-    /// # Errors
-    /// Will return an error if the program requires a certain attribute and the mesh does not have that attribute data.
-    /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
-    /// function will return an error.
-    ///
-    pub fn render(
+    pub(crate) fn use_attributes(
         &self,
-        render_states: RenderStates,
         program: &Program,
         camera_buffer: &UniformBuffer,
-        viewport: Viewport,
     ) -> Result<()> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block("Camera", camera_buffer);
@@ -159,7 +147,6 @@ impl Mesh {
                 .normal_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.requires_attribute("color") {
@@ -169,7 +156,30 @@ impl Mesh {
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
             program.use_attribute_vec4("color", color_buffer)?;
         }
+        Ok(())
+    }
 
+    ///
+    /// Render the mesh with the given [Program].
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write].
+    ///
+    /// # Errors
+    /// Will return an error if the program requires a certain attribute and the mesh does not have that attribute data.
+    /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
+    /// function will return an error.
+    ///
+    pub fn render(
+        &self,
+        render_states: RenderStates,
+        program: &Program,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+    ) -> Result<()> {
+        self.use_attributes(program, camera_buffer)?;
+        if program.requires_attribute("normal") {
+            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+        }
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements(render_states, viewport, index_buffer);
         } else {
