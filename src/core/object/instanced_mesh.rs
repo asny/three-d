@@ -138,7 +138,7 @@ impl InstancedMesh {
         AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
     }
 
-    pub fn vertex_shader_source(fragment_shader_source: &str) -> String {
+    pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
         format!(
             "#define INSTANCED\n{}",
             Mesh::vertex_shader_source(fragment_shader_source)

@@ -201,7 +201,7 @@ impl Mesh {
         aabb
     }
 
-    pub fn vertex_shader_source(fragment_shader_source: &str) -> String {
+    pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
