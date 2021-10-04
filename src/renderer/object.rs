@@ -36,6 +36,10 @@ mod axes;
 #[doc(inline)]
 pub use axes::*;
 
+mod particles;
+#[doc(inline)]
+pub use particles::*;
+
 use crate::core::*;
 use crate::renderer::*;
 
