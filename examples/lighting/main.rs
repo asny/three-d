@@ -110,7 +110,7 @@ fn main() {
 
             let mut current_pipeline = Pipeline::Forward;
             let normal_material = NormalMaterial::default();
-            let depth_material = PickMaterial {
+            let depth_material = DepthMaterial {
                 min_distance: Some(0.1),
                 max_distance: Some(10.0),
                 ..Default::default()

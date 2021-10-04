@@ -139,10 +139,17 @@ impl SpotLight {
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
         )?;
+        let depth_material = DepthMaterial {
+            render_states: RenderStates {
+                write_mask: WriteMask::DEPTH,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
         shadow_texture.write(Some(1.0), || {
             for object in objects {
                 if in_frustum(&shadow_camera, object) {
-                    object.render_forward(&DepthMaterial::default(), &shadow_camera, &[])?;
+                    object.render_forward(&depth_material, &shadow_camera, &[])?;
                 }
             }
             Ok(())

@@ -1,3 +1,4 @@
+use crate::core::*;
 use crate::renderer::*;
 
 ///
@@ -64,9 +65,16 @@ impl ForwardPipeline {
     }
 
     pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
+        let depth_material = DepthMaterial {
+            render_states: RenderStates {
+                write_mask: WriteMask::DEPTH,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
         for object in objects {
             if in_frustum(camera, object) {
-                object.render_forward(&DepthMaterial::default(), camera, &[])?;
+                object.render_forward(&depth_material, camera, &[])?;
             }
         }
         Ok(())

@@ -100,6 +100,16 @@ pub fn ray_intersect(
         Wrapping::ClampToEdge,
         DepthFormat::Depth32F,
     )?;
+    let depth_material = DepthMaterial {
+        render_states: RenderStates {
+            write_mask: WriteMask {
+                red: true,
+                ..WriteMask::DEPTH
+            },
+            ..Default::default()
+        },
+        ..Default::default()
+    };
     let render_target = RenderTarget::new(context, &texture, &depth_texture)?;
     render_target.write(
         ClearState {
@@ -110,7 +120,7 @@ pub fn ray_intersect(
         || {
             for geometry in geometries {
                 if in_frustum(&camera, geometry) {
-                    geometry.render_forward(&PickMaterial::default(), &camera, &[])?;
+                    geometry.render_forward(&depth_material, &camera, &[])?;
                 }
             }
             Ok(())
