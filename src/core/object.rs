@@ -13,7 +13,3 @@ pub use mesh::*;
 mod instanced_mesh;
 #[doc(inline)]
 pub use instanced_mesh::*;
-
-mod particles;
-#[doc(inline)]
-pub use particles::*;
