@@ -8,10 +8,6 @@ mod model;
 #[doc(inline)]
 pub use model::*;
 
-mod model2d;
-#[doc(inline)]
-pub use model2d::*;
-
 mod instanced_model;
 #[doc(inline)]
 pub use instanced_model::*;
@@ -75,6 +71,15 @@ pub trait Geometry {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 
     fn aabb(&self) -> AxisAlignedBoundingBox;
+}
+
+pub trait Object2D: Geometry {
+    fn render(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+        lights: &[&dyn Light],
+    ) -> Result<()>;
 }
 
 pub trait Object: Geometry {

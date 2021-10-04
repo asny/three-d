@@ -2,8 +2,8 @@ use crate::renderer::*;
 
 #[derive(Clone)]
 pub struct Circle {
-    model: Model2D,
     context: Context,
+    model: Model,
     radius: f32,
     center: Vec2,
 }
@@ -12,8 +12,8 @@ impl Circle {
     pub fn new(context: &Context, center: Vec2, radius: f32) -> Result<Self> {
         let mesh = CPUMesh::circle(64);
         let mut circle = Self {
-            model: Model2D::new(context, &mesh)?,
             context: context.clone(),
+            model: Model::new(context, &mesh)?,
             center,
             radius,
         };
@@ -41,15 +41,34 @@ impl Circle {
 
     fn update(&mut self) {
         self.model.set_transformation(
-            Mat3::from_translation(self.center) * Mat3::from_scale(self.radius),
+            Mat4::from_translation(self.center.extend(0.0)) * Mat4::from_scale(self.radius),
         );
     }
 }
 
-impl std::ops::Deref for Circle {
-    type Target = Model2D;
+impl Geometry for Circle {
+    fn render_depth(&self, _camera: &Camera) -> Result<()> {
+        unimplemented!()
+    }
 
-    fn deref(&self) -> &Self::Target {
-        &self.model
+    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.model.aabb()
+    }
+}
+
+impl Object2D for Circle {
+    fn render(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+        lights: &[&dyn Light],
+    ) -> Result<()> {
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render_forward(material, camera2d, lights)
+        })
     }
 }

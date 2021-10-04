@@ -59,9 +59,30 @@ fn main() {
                 &context,
                 ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                 || {
-                    line.render_with_color(Color::GREEN, frame_input.viewport)?;
-                    rectangle.render_with_color(Color::RED, frame_input.viewport)?;
-                    circle.render_with_color(Color::BLUE, frame_input.viewport)?;
+                    line.render(
+                        &ColorMaterial {
+                            color: Color::GREEN,
+                            ..Default::default()
+                        },
+                        frame_input.viewport,
+                        &[],
+                    )?;
+                    rectangle.render(
+                        &ColorMaterial {
+                            color: Color::RED,
+                            ..Default::default()
+                        },
+                        frame_input.viewport,
+                        &[],
+                    )?;
+                    circle.render(
+                        &ColorMaterial {
+                            color: Color::BLUE,
+                            ..Default::default()
+                        },
+                        frame_input.viewport,
+                        &[],
+                    )?;
                     Ok(())
                 },
             )

@@ -2,8 +2,8 @@ use crate::renderer::*;
 
 #[derive(Clone)]
 pub struct Line {
-    model: Model2D,
     context: Context,
+    model: Model,
     pixel0: Vec2,
     pixel1: Vec2,
     width: f32,
@@ -14,8 +14,8 @@ impl Line {
         let mut mesh = CPUMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))));
         let mut line = Self {
-            model: Model2D::new(context, &mesh)?,
             context: context.clone(),
+            model: Model::new(context, &mesh)?,
             pixel0,
             pixel1,
             width,
@@ -54,19 +54,40 @@ impl Line {
         let length = (dx * dx + dy * dy).sqrt();
         let c = dx / length;
         let s = dy / length;
-        let rot = Mat3::new(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0);
+        let rot = Mat4::new(
+            c, s, 0.0, 0.0, -s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+        );
         self.model.set_transformation(
-            Mat3::from_translation(self.pixel0)
+            Mat4::from_translation(self.pixel0.extend(0.0))
                 * rot
-                * Mat3::from_nonuniform_scale(length, self.width),
+                * Mat4::from_nonuniform_scale(length, self.width, 1.0),
         );
     }
 }
 
-impl std::ops::Deref for Line {
-    type Target = Model2D;
+impl Geometry for Line {
+    fn render_depth(&self, _camera: &Camera) -> Result<()> {
+        unimplemented!()
+    }
 
-    fn deref(&self) -> &Self::Target {
-        &self.model
+    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.model.aabb()
+    }
+}
+
+impl Object2D for Line {
+    fn render(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+        lights: &[&dyn Light],
+    ) -> Result<()> {
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render_forward(material, camera2d, lights)
+        })
     }
 }

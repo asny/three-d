@@ -2,7 +2,7 @@ use crate::renderer::*;
 
 #[derive(Clone)]
 pub struct Rectangle {
-    model: Model2D,
+    model: Model,
     context: Context,
     width: f32,
     height: f32,
@@ -21,7 +21,7 @@ impl Rectangle {
         let mut mesh = CPUMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5)));
         let mut rectangle = Self {
-            model: Model2D::new(context, &mesh)?,
+            model: Model::new(context, &mesh)?,
             context: context.clone(),
             width,
             height,
@@ -62,17 +62,36 @@ impl Rectangle {
 
     fn update(&mut self) {
         self.model.set_transformation(
-            Mat3::from_translation(self.center)
-                * Mat3::from_angle_z(self.rotation)
-                * Mat3::from_nonuniform_scale(self.width, self.height),
+            Mat4::from_translation(self.center.extend(0.0))
+                * Mat4::from_angle_z(self.rotation)
+                * Mat4::from_nonuniform_scale(self.width, self.height, 1.0),
         );
     }
 }
 
-impl std::ops::Deref for Rectangle {
-    type Target = Model2D;
+impl Geometry for Rectangle {
+    fn render_depth(&self, _camera: &Camera) -> Result<()> {
+        unimplemented!()
+    }
 
-    fn deref(&self) -> &Self::Target {
-        &self.model
+    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.model.aabb()
+    }
+}
+
+impl Object2D for Rectangle {
+    fn render(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+        lights: &[&dyn Light],
+    ) -> Result<()> {
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render_forward(material, camera2d, lights)
+        })
     }
 }
