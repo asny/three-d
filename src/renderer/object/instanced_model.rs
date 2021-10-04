@@ -182,7 +182,7 @@ impl Object for InstancedModel {
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.mesh.color_buffer.is_some());
         self.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.bind(program)?;
