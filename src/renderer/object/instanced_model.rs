@@ -149,13 +149,14 @@ impl Object for InstancedModel {
     ) -> Result<()> {
         let render_states = material.render_states(
             self.mesh
+                .mesh
                 .color_buffer
                 .as_ref()
                 .map(|(_, transparent)| *transparent)
                 .unwrap_or(false),
         );
         let fragment_shader_source =
-            material.fragment_shader_source(lights, self.mesh.color_buffer.is_some());
+            material.fragment_shader_source(lights, self.mesh.mesh.color_buffer.is_some());
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
@@ -179,7 +180,7 @@ impl Object for InstancedModel {
     ) -> Result<()> {
         let render_states = material.render_states();
         let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some());
+            material.fragment_shader_source(self.mesh.mesh.color_buffer.is_some());
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
