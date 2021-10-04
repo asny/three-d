@@ -1,6 +1,6 @@
 use rand::prelude::*;
-use three_d::core::*;
 use three_d::window::*;
+use three_d::*;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -41,12 +41,7 @@ fn main() {
         vec3(0.16, 0.07, 0.87),
     ];
     let fragment_shader_source = include_str!("../assets/shaders/particles.frag");
-    let particles_program = Program::from_source(
-        &context,
-        &Particles::vertex_shader_source(&fragment_shader_source),
-        &fragment_shader_source,
-    )
-    .unwrap();
+    let particles_program = ParticlesProgram::new(&context, &fragment_shader_source).unwrap();
     let mut square = CPUMesh::square();
     square.transform(&Mat4::from_scale(0.6));
     let mut particles = Particles::new(&context, &square).unwrap();
