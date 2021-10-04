@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// Shader program used for rendering [Particles](Particles). It has a fixed vertex shader and
@@ -51,6 +52,7 @@ pub struct ParticleData {
 /// `new_position = start_position + start_velocity * time + 0.5 * acceleration * time * time`
 ///
 pub struct Particles {
+    context: Context,
     start_position_buffer: InstanceBuffer,
     start_velocity_buffer: InstanceBuffer,
     position_buffer: VertexBuffer,
@@ -61,6 +63,7 @@ pub struct Particles {
     pub acceleration: Vec3,
     instance_count: u32,
     transformation: Mat4,
+    time: f32,
 }
 
 impl Particles {
@@ -91,6 +94,7 @@ impl Particles {
         };
 
         Ok(Self {
+            context: context.clone(),
             position_buffer,
             index_buffer,
             normal_buffer,
@@ -100,6 +104,7 @@ impl Particles {
             acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),
+            time: 0.0,
         })
     }
 
@@ -115,6 +120,10 @@ impl Particles {
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
+    }
+
+    pub fn set_time(&mut self, time: f32) {
+        self.time = time;
     }
 
     ///
@@ -144,6 +153,7 @@ impl Particles {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
+    #[deprecated = "Use 'render_forward' instead"]
     pub fn render(
         &self,
         render_states: RenderStates,
@@ -248,5 +258,48 @@ impl Particles {
                 if use_normals { "nor = mat3(normalMatrix) * normal;" } else {""},
                 if use_uvs { "uvs = uv_coordinates;" } else {""}
         )
+    }
+}
+
+impl Geometry for Particles {
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
+    }
+}
+
+impl Object for Particles {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> Result<()> {
+        let render_states = material.render_states(false);
+        let fragment_shader_source = material.fragment_shader_source(lights, false);
+        self.context.program(
+            &Particles::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                material.bind(program, camera, lights)?;
+                self.render(render_states, program, camera, self.time)
+            },
+        )
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        unimplemented!()
     }
 }
