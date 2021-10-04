@@ -61,10 +61,10 @@ impl Rectangle {
     }
 
     fn update(&mut self) {
-        self.model.set_transformation(
-            Mat4::from_translation(self.center.extend(0.0))
-                * Mat4::from_angle_z(self.rotation)
-                * Mat4::from_nonuniform_scale(self.width, self.height, 1.0),
+        self.model.set_transformation_2d(
+            Mat3::from_translation(self.center)
+                * Mat3::from_angle_z(self.rotation)
+                * Mat3::from_nonuniform_scale(self.width, self.height),
         );
     }
 }

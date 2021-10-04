@@ -40,8 +40,8 @@ impl Circle {
     }
 
     fn update(&mut self) {
-        self.model.set_transformation(
-            Mat4::from_translation(self.center.extend(0.0)) * Mat4::from_scale(self.radius),
+        self.model.set_transformation_2d(
+            Mat3::from_translation(self.center) * Mat3::from_scale(self.radius),
         );
     }
 }

@@ -54,13 +54,11 @@ impl Line {
         let length = (dx * dx + dy * dy).sqrt();
         let c = dx / length;
         let s = dy / length;
-        let rot = Mat4::new(
-            c, s, 0.0, 0.0, -s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-        );
-        self.model.set_transformation(
-            Mat4::from_translation(self.pixel0.extend(0.0))
+        let rot = Mat3::new(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0);
+        self.model.set_transformation_2d(
+            Mat3::from_translation(self.pixel0)
                 * rot
-                * Mat4::from_nonuniform_scale(length, self.width, 1.0),
+                * Mat3::from_nonuniform_scale(length, self.width),
         );
     }
 }
