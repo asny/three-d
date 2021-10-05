@@ -108,20 +108,6 @@ impl Particles {
         })
     }
 
-    ///
-    /// Returns the local to world transformation applied to all particles.
-    ///
-    pub fn transformation(&self) -> &Mat4 {
-        &self.transformation
-    }
-
-    ///
-    /// Set the local to world transformation applied to all particles.
-    ///
-    pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-    }
-
     pub fn set_time(&mut self, time: f32) {
         self.time = time;
     }
@@ -262,12 +248,20 @@ impl Particles {
 }
 
 impl Geometry for Particles {
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
         unimplemented!()
     }
 
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
+    fn render_depth(&self, _camera: &Camera) -> Result<()> {
         unimplemented!()
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
+
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

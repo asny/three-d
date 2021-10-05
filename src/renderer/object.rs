@@ -55,6 +55,20 @@ impl Geometry for &dyn Object {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (*self).aabb()
     }
+
+    ///
+    /// Returns the local to world transformation applied to this geometry.
+    ///
+    fn transformation(&self) -> &Mat4 {
+        (*self).transformation()
+    }
+
+    ///
+    /// Set the local to world transformation applied to this geometry.
+    ///
+    fn set_transformation(&mut self, transformation: Mat4) {
+        (*self).set_transformation(transformation);
+    }
 }
 
 pub trait Geometry {
@@ -75,9 +89,19 @@ pub trait Geometry {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 
     fn aabb(&self) -> AxisAlignedBoundingBox;
+
+    ///
+    /// Returns the local to world transformation applied to this geometry.
+    ///
+    fn transformation(&self) -> &Mat4;
+
+    ///
+    /// Set the local to world transformation applied to this geometry.
+    ///
+    fn set_transformation(&mut self, transformation: Mat4);
 }
 
-pub trait Object2D: Geometry {
+pub trait Object2D {
     fn render(
         &self,
         material: &dyn ForwardMaterial,

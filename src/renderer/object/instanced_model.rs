@@ -21,20 +21,6 @@ impl InstancedModel {
     }
 
     ///
-    /// Returns the local to world transformation applied to all instances.
-    ///
-    pub fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
-    }
-
-    ///
-    /// Set the local to world transformation applied to all instances.
-    ///
-    pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
-    }
-
-    ///
     /// Render the instanced model with a color per triangle vertex. The colors are defined when constructing the instanced model.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
@@ -133,6 +119,14 @@ impl Geometry for InstancedModel {
         };
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera, &[])
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        self.mesh.transformation()
+    }
+
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.mesh.set_transformation(transformation);
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
