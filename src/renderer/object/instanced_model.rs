@@ -121,14 +121,6 @@ impl Geometry for InstancedModel {
         self.render_forward(&mat, camera, &[])
     }
 
-    fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
-    }
-
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
-    }
-
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
     }
@@ -184,6 +176,18 @@ impl Object for InstancedModel {
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
         )
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        self.mesh.transformation()
+    }
+
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.mesh.set_transformation(transformation);
+    }
+
+    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox {
+        &AxisAlignedBoundingBox::INFINITE // TODO: Compute bounding box
     }
 }
 

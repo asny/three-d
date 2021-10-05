@@ -109,7 +109,7 @@ impl DeferredPipeline {
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
             for (object, material) in objects {
-                if in_frustum(&camera, object) {
+                if in_frustum(&camera, *object) {
                     object.render_deferred(*material, camera, viewport)?;
                 }
             }

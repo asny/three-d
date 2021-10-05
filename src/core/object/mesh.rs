@@ -46,7 +46,7 @@ pub struct Mesh {
     pub(crate) index_buffer: Option<Rc<ElementBuffer>>,
     uv_buffer: Option<Rc<VertexBuffer>>,
     pub(crate) color_buffer: Option<(Rc<VertexBuffer>, bool)>,
-    aabb: AxisAlignedBoundingBox,
+    pub(crate) aabb: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
     pub name: String,
     transformation: Mat4,

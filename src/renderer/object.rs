@@ -43,34 +43,7 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-impl Geometry for &dyn Object {
-    fn render_depth(&self, _camera: &Camera) -> Result<()> {
-        unimplemented!();
-    }
-
-    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
-        unimplemented!();
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        (*self).aabb()
-    }
-
-    ///
-    /// Returns the local to world transformation applied to this geometry.
-    ///
-    fn transformation(&self) -> &Mat4 {
-        (*self).transformation()
-    }
-
-    ///
-    /// Set the local to world transformation applied to this geometry.
-    ///
-    fn set_transformation(&mut self, transformation: Mat4) {
-        (*self).set_transformation(transformation);
-    }
-}
-
+#[deprecated]
 pub trait Geometry {
     ///
     /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
@@ -88,17 +61,8 @@ pub trait Geometry {
     #[deprecated = "Use 'render_forward' instead"]
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 
+    #[deprecated = "Use 'axis_aligned_bounding_box' instead"]
     fn aabb(&self) -> AxisAlignedBoundingBox;
-
-    ///
-    /// Returns the local to world transformation applied to this geometry.
-    ///
-    fn transformation(&self) -> &Mat4;
-
-    ///
-    /// Set the local to world transformation applied to this geometry.
-    ///
-    fn set_transformation(&mut self, transformation: Mat4);
 }
 
 pub trait Object2D {
@@ -110,7 +74,7 @@ pub trait Object2D {
     ) -> Result<()>;
 }
 
-pub trait Object: Geometry {
+pub trait Object {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -124,6 +88,18 @@ pub trait Object: Geometry {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()>;
+
+    ///
+    /// Returns the local to world transformation applied to this geometry.
+    ///
+    fn transformation(&self) -> &Mat4;
+
+    ///
+    /// Set the local to world transformation applied to this geometry.
+    ///
+    fn set_transformation(&mut self, transformation: Mat4);
+
+    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox;
 }
 
 #[deprecated]
