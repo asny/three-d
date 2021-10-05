@@ -1,6 +1,6 @@
 use crate::core::*;
-use crate::renderer::*;
 use crate::renderer::light::*;
+use crate::renderer::*;
 
 ///
 /// A light which shines from the given position and in the given direction.
