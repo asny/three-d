@@ -36,6 +36,7 @@ impl std::ops::Deref for InstancedMeshProgram {
 ///
 /// Similar to [Mesh], except it is possible to render many instances of the same triangle mesh efficiently.
 ///
+#[deprecated = "Use InstancedModel instead"]
 pub struct InstancedMesh {
     pub(crate) mesh: Mesh,
     instance_count: u32,
