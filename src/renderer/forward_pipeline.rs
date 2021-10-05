@@ -56,7 +56,7 @@ impl ForwardPipeline {
         lights: &[&dyn Light],
     ) -> Result<()> {
         for (object, material) in objects {
-            if in_frustum(camera, object) {
+            if in_frustum(camera, *object) {
                 object.render_forward(*material, camera, lights)?;
             }
         }
@@ -73,7 +73,7 @@ impl ForwardPipeline {
             ..Default::default()
         };
         for object in objects {
-            if in_frustum(camera, object) {
+            if in_frustum(camera, *object) {
                 object.render_forward(&depth_material, camera, &[])?;
             }
         }

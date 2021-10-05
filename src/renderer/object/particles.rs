@@ -243,28 +243,6 @@ impl Particles {
     }
 }
 
-impl Geometry for Particles {
-    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
-        unimplemented!()
-    }
-
-    fn render_depth(&self, _camera: &Camera) -> Result<()> {
-        unimplemented!()
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        &self.transformation
-    }
-
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
-    }
-}
-
 impl Object for Particles {
     fn render_forward(
         &self,
@@ -286,10 +264,22 @@ impl Object for Particles {
 
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
+        _material: &dyn DeferredMaterial,
+        _camera: &Camera,
+        _viewport: Viewport,
     ) -> Result<()> {
         unimplemented!()
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
+
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+    }
+
+    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox {
+        &AxisAlignedBoundingBox::INFINITE // TODO: Compute bounding box
     }
 }

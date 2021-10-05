@@ -194,6 +194,18 @@ impl Object for Model {
             },
         )
     }
+
+    fn transformation(&self) -> &Mat4 {
+        self.mesh.transformation()
+    }
+
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.mesh.set_transformation(transformation);
+    }
+
+    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox {
+        &self.mesh.aabb
+    }
 }
 
 impl Geometry for Model {
@@ -220,14 +232,6 @@ impl Geometry for Model {
         };
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera, &[])
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
-    }
-
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

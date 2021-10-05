@@ -55,8 +55,10 @@ impl crate::core::Camera {
     }
 }
 
-pub fn in_frustum(camera: &Camera, geometry: &dyn Geometry) -> bool {
-    camera.in_frustum(&geometry.aabb())
+pub fn in_frustum(camera: &Camera, object: &dyn Object) -> bool {
+    let mut aabb = object.axis_aligned_bounding_box().clone();
+    aabb.transform(object.transformation());
+    camera.in_frustum(&aabb)
 }
 
 pub fn ray_intersect(
@@ -64,7 +66,7 @@ pub fn ray_intersect(
     position: Vec3,
     direction: Vec3,
     max_depth: f32,
-    geometries: &[&dyn Object],
+    objects: &[&dyn Object],
 ) -> Result<Option<Vec3>> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
@@ -120,9 +122,9 @@ pub fn ray_intersect(
             ..ClearState::none()
         },
         || {
-            for geometry in geometries {
-                if in_frustum(&camera, geometry) {
-                    geometry.render_forward(&depth_material, &camera, &[])?;
+            for object in objects {
+                if in_frustum(&camera, *object) {
+                    object.render_forward(&depth_material, &camera, &[])?;
                 }
             }
             Ok(())
