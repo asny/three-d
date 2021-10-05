@@ -63,7 +63,7 @@ pub struct Particles {
     pub acceleration: Vec3,
     instance_count: u32,
     transformation: Mat4,
-    time: f32,
+    pub time: f32,
 }
 
 impl Particles {
@@ -106,10 +106,6 @@ impl Particles {
             transformation: Mat4::identity(),
             time: 0.0,
         })
-    }
-
-    pub fn set_time(&mut self, time: f32) {
-        self.time = time;
     }
 
     ///
