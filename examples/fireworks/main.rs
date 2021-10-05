@@ -47,7 +47,7 @@ fn main() {
     let mut particles = Particles::new(&context, &square).unwrap();
 
     // main loop
-    let mut time = explosion_time + 100.0;
+    particles.time = explosion_time + 100.0;
     let mut color_index = 0;
     window
         .render_loop(move |mut frame_input| {
@@ -57,9 +57,9 @@ fn main() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
             let elapsed_time = (frame_input.elapsed_time * 0.001) as f32;
-            time += elapsed_time;
-            if time > explosion_time {
-                time = 0.0;
+            particles.time += elapsed_time;
+            if particles.time > explosion_time {
+                particles.time = 0.0;
                 color_index = (color_index + 1) % colors.len();
                 let start_position = vec3(
                     10.0 * rng.gen::<f32>() - 5.0,
@@ -86,7 +86,7 @@ fn main() {
             }
 
             Screen::write(&context, ClearState::color(0.0, 0.0, 0.0, 1.0), || {
-                let f = time / explosion_time.max(0.0);
+                let f = particles.time / explosion_time.max(0.0);
                 let fade = 1.0 - f * f * f * f;
                 let color = colors[color_index];
                 particles_program.use_uniform_vec4(
@@ -107,12 +107,12 @@ fn main() {
                     write_mask: WriteMask::COLOR,
                     clip: Clip::Disabled,
                 };
-                particles.render(render_states, &particles_program, &camera, time)?;
+                particles.render(render_states, &particles_program, &camera, particles.time)?;
                 Ok(())
             })
             .unwrap();
 
-            if args.len() > 1 && time > explosion_time * 0.5 {
+            if args.len() > 1 && particles.time > explosion_time * 0.5 {
                 // To automatically generate screenshots of the examples, can safely be ignored.
                 FrameOutput {
                     screenshot: Some(args[1].clone().into()),
