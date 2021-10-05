@@ -21,20 +21,6 @@ impl Model {
         })
     }
 
-    ///
-    /// Returns the local to world transformation of this model.
-    ///
-    pub fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
-    }
-
-    ///
-    /// Set the local to world transformation of this model.
-    ///
-    pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
-    }
-
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
         self.set_transformation(Mat4::new(
             transformation.x.x,
@@ -234,6 +220,14 @@ impl Geometry for Model {
         };
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera, &[])
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        self.mesh.transformation()
+    }
+
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.mesh.set_transformation(transformation);
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

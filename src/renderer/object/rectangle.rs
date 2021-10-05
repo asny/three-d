@@ -69,20 +69,6 @@ impl Rectangle {
     }
 }
 
-impl Geometry for Rectangle {
-    fn render_depth(&self, _camera: &Camera) -> Result<()> {
-        unimplemented!()
-    }
-
-    fn render_depth_to_red(&self, _camera: &Camera, _max_depth: f32) -> Result<()> {
-        unimplemented!()
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.model.aabb()
-    }
-}
-
 impl Object2D for Rectangle {
     fn render(
         &self,
