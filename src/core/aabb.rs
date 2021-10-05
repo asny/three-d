@@ -10,23 +10,23 @@ pub struct AxisAlignedBoundingBox {
 }
 
 impl AxisAlignedBoundingBox {
-    fn empty() -> Self {
-        Self {
-            min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
-            max: vec3(
-                std::f32::NEG_INFINITY,
-                std::f32::NEG_INFINITY,
-                std::f32::NEG_INFINITY,
-            ),
-        }
-    }
+    const EMPTY: Self = Self {
+        min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
+        max: vec3(
+            std::f32::NEG_INFINITY,
+            std::f32::NEG_INFINITY,
+            std::f32::NEG_INFINITY,
+        ),
+    };
+
+    pub const INFINITE: Self = Self::EMPTY;
 
     ///
     /// Constructs a new bounding box and expands it such that all of the given positions are contained inside the bounding box.
     /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
     ///
     pub fn new_with_positions(positions: &[f32]) -> Self {
-        let mut aabb = Self::empty();
+        let mut aabb = Self::EMPTY;
         aabb.expand(positions);
         aabb
     }
@@ -36,7 +36,7 @@ impl AxisAlignedBoundingBox {
     /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
     ///
     pub fn new_with_transformed_positions(positions: &[f32], transformation: &Mat4) -> Self {
-        let mut aabb = Self::empty();
+        let mut aabb = Self::EMPTY;
         aabb.expand_with_transformation(positions, transformation);
         aabb
     }
@@ -45,7 +45,7 @@ impl AxisAlignedBoundingBox {
     /// Creates a new infinitely large bounding box.
     ///
     pub fn new_infinite() -> Self {
-        Self::empty()
+        Self::EMPTY
     }
 
     ///
