@@ -51,7 +51,7 @@ impl ForwardPipeline {
             .map(|(obj, mat)| {
                 (
                     *obj,
-                    LitMaterial {
+                    LitForwardMaterial {
                         material: &mat,
                         lights: &lights,
                     },
