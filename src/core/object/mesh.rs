@@ -40,7 +40,7 @@ impl std::ops::Deref for MeshProgram {
 #[deprecated = "Use Model instead"]
 #[derive(Clone)]
 pub struct Mesh {
-    context: Context,
+    pub(crate) context: Context,
     pub(crate) position_buffer: Rc<VertexBuffer>,
     normal_buffer: Option<Rc<VertexBuffer>>,
     pub(crate) index_buffer: Option<Rc<ElementBuffer>>,
