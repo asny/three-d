@@ -265,15 +265,6 @@ impl Geometry for Particles {
         )
     }
 
-    fn render_deferred(
-        &self,
-        _material: &dyn DeferredMaterial,
-        _camera: &Camera,
-        _viewport: Viewport,
-    ) -> Result<()> {
-        unimplemented!()
-    }
-
     fn transformation(&self) -> &Mat4 {
         &self.transformation
     }

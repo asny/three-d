@@ -67,15 +67,6 @@ impl<'a> Geometry for Glue<'a> {
         self.geometry.render_forward(material, camera)
     }
 
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()> {
-        self.geometry.render_deferred(material, camera, viewport)
-    }
-
     fn transformation(&self) -> &Mat4 {
         self.geometry.transformation()
     }
@@ -104,13 +95,6 @@ pub trait Geometry {
 
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
 
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()>;
-
     ///
     /// Returns the local to world transformation applied to this geometry.
     ///
@@ -123,14 +107,29 @@ pub trait Object2D {
     fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
 }
 
-pub trait Object: Geometry {
+pub trait Object {
+    ///
+    /// Render the object.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
     fn render(&self, camera: &Camera) -> Result<()>;
 }
 
-impl Geometry for &dyn Object {
+pub trait DeferredGeometry: Geometry {
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()>;
+}
+
+impl Geometry for &dyn DeferredGeometry {
     fn render_depth(&self, camera: &Camera) -> Result<()> {
         (*self).render_depth(camera)
     }
+
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
         (*self).render_depth_to_red(camera, max_depth)
     }
@@ -139,20 +138,12 @@ impl Geometry for &dyn Object {
         (*self).render_forward(material, camera)
     }
 
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()> {
-        (*self).render_deferred(material, camera, viewport)
+    fn transformation(&self) -> &Mat4 {
+        (*self).transformation()
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (*self).aabb()
-    }
-    fn transformation(&self) -> &Mat4 {
-        (*self).transformation()
     }
 }
 
