@@ -62,7 +62,7 @@ pub struct Particles {
     /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,
     instance_count: u32,
-    transformation: Mat4,
+    pub transformation: Mat4,
     pub time: f32,
 }
 
@@ -263,10 +263,6 @@ impl Geometry for Particles {
                 self.render(render_states, program, camera, self.time)
             },
         )
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        &self.transformation
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
