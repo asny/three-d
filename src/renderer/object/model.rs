@@ -55,7 +55,7 @@ impl Model {
         let mut mat = ColorMaterial::default();
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     ///
@@ -71,7 +71,7 @@ impl Model {
         };
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     ///
@@ -86,7 +86,7 @@ impl Model {
     pub fn render_uvs(&self, camera: &Camera) -> Result<()> {
         let mut mat = UVMaterial::default();
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     ///
@@ -100,7 +100,7 @@ impl Model {
     pub fn render_normals(&self, camera: &Camera) -> Result<()> {
         let mut mat = NormalMaterial::default();
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     ///
@@ -144,12 +144,7 @@ impl Model {
 }
 
 impl Object for Model {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> Result<()> {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(
             self.mesh
                 .color_buffer
@@ -158,12 +153,12 @@ impl Object for Model {
                 .unwrap_or(false),
         );
         let fragment_shader_source =
-            material.fragment_shader_source(lights, self.mesh.color_buffer.is_some());
+            material.fragment_shader_source(self.mesh.color_buffer.is_some());
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.bind(program, camera, lights)?;
+                material.bind(program, camera)?;
                 self.mesh.render(
                     render_states,
                     program,
@@ -219,7 +214,7 @@ impl Geometry for Model {
             ..WriteMask::DEPTH
         };
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
@@ -231,7 +226,7 @@ impl Geometry for Model {
             ..Default::default()
         };
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -278,6 +273,12 @@ impl ShadedGeometry for Model {
             lights.push(*light as &dyn Light);
         }
 
-        self.render_forward(&mat, camera, &lights)
+        self.render_forward(
+            &LitMaterial {
+                material: &mat,
+                lights: &lights,
+            },
+            camera,
+        )
     }
 }
