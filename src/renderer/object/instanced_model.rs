@@ -224,7 +224,7 @@ impl ShadedGeometry for InstancedModel {
             lights.push(*light as &dyn Light);
         }
         self.render_forward(
-            &LitMaterial {
+            &LitForwardMaterial {
                 material: &mat,
                 lights: &lights,
             },

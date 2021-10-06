@@ -65,7 +65,6 @@ fn main() {
                             ..Default::default()
                         },
                         frame_input.viewport,
-                        &[],
                     )?;
                     rectangle.render(
                         &ColorMaterial {
@@ -73,7 +72,6 @@ fn main() {
                             ..Default::default()
                         },
                         frame_input.viewport,
-                        &[],
                     )?;
                     circle.render(
                         &ColorMaterial {
@@ -81,7 +79,6 @@ fn main() {
                             ..Default::default()
                         },
                         frame_input.viewport,
-                        &[],
                     )?;
                     Ok(())
                 },
