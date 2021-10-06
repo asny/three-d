@@ -21,6 +21,13 @@ impl InstancedModel {
     }
 
     ///
+    /// Returns the local to world transformation applied to this geometry.
+    ///
+    fn transformation(&self) -> &Mat4 {
+        &self.mesh.transformation()
+    }
+
+    ///
     /// Set the local to world transformation applied to this geometry.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
@@ -152,10 +159,6 @@ impl Geometry for InstancedModel {
                 )
             },
         )
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

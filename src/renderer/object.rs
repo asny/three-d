@@ -67,10 +67,6 @@ impl<'a> Geometry for Glue<'a> {
         self.geometry.render_forward(material, camera)
     }
 
-    fn transformation(&self) -> &Mat4 {
-        self.geometry.transformation()
-    }
-
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.geometry.aabb()
     }
@@ -94,11 +90,6 @@ pub trait Geometry {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
-
-    ///
-    /// Returns the local to world transformation applied to this geometry.
-    ///
-    fn transformation(&self) -> &Mat4;
 
     fn aabb(&self) -> AxisAlignedBoundingBox;
 }
@@ -136,10 +127,6 @@ impl Geometry for &dyn DeferredGeometry {
 
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         (*self).render_forward(material, camera)
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        (*self).transformation()
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

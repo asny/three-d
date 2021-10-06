@@ -46,10 +46,6 @@ impl Geometry for Axes {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE // TODO
     }
-
-    fn transformation(&self) -> &Mat4 {
-        &self.transformation
-    }
 }
 
 impl Object for Axes {
