@@ -27,7 +27,7 @@ impl ForwardPipeline {
     pub fn light_pass(
         &self,
         camera: &Camera,
-        objects: &[(&dyn Object, &PhysicalMaterial)],
+        objects: &[(&dyn Geometry, &PhysicalMaterial)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
@@ -48,9 +48,9 @@ impl ForwardPipeline {
         }
         let objects = objects
             .iter()
-            .map(|(obj, mat)| {
+            .map(|(geo, mat)| {
                 (
-                    *obj,
+                    *geo,
                     LitForwardMaterial {
                         material: &mat,
                         lights: &lights,
@@ -58,30 +58,33 @@ impl ForwardPipeline {
                 )
             })
             .collect::<Vec<_>>();
+        let objects = objects
+            .iter()
+            .map(|(geo, mat)| Glue {
+                geometry: *geo,
+                material: mat,
+            })
+            .collect::<Vec<_>>();
         self.render_pass(
             camera,
             &objects
                 .iter()
-                .map(|(obj, mat)| (*obj, mat as &dyn ForwardMaterial))
+                .map(|obj| obj as &dyn Object)
                 .collect::<Vec<_>>(),
         )
     }
 
-    pub fn render_pass(
-        &self,
-        camera: &Camera,
-        objects: &[(&dyn Object, &dyn ForwardMaterial)],
-    ) -> Result<()> {
-        for (object, material) in objects {
-            if in_frustum(camera, *object) {
-                object.render_forward(*material, camera)?;
+    pub fn render_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
+        for object in objects {
+            if in_frustum(camera, object) {
+                object.render(camera)?;
             }
         }
 
         Ok(())
     }
 
-    pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
+    pub fn depth_pass(&self, camera: &Camera, geometries: &[&dyn Geometry]) -> Result<()> {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -89,9 +92,9 @@ impl ForwardPipeline {
             },
             ..Default::default()
         };
-        for object in objects {
-            if in_frustum(camera, *object) {
-                object.render_forward(&depth_material, camera)?;
+        for geometry in geometries {
+            if in_frustum(camera, *geometry) {
+                geometry.render_forward(&depth_material, camera)?;
             }
         }
         Ok(())
@@ -100,7 +103,7 @@ impl ForwardPipeline {
     pub fn depth_pass_texture(
         &self,
         camera: &Camera,
-        objects: &[&dyn Object],
+        objects: &[&dyn Geometry],
     ) -> Result<DepthTargetTexture2D> {
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,
