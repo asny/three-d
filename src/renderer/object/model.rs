@@ -180,15 +180,15 @@ impl Object for Model {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()> {
-        let mut render_states = material.render_states();
+        let mut render_states = material.render_states_deferred();
         render_states.cull = self.cull;
         let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some());
+            material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.bind(program)?;
+                material.use_deferred(program)?;
                 self.mesh
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
