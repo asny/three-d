@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::renderer::*;
 use std::f32::consts::PI;
 
 const NO_VIEW_ANGLES: u32 = 8;
@@ -142,13 +143,10 @@ impl Imposters {
         self.rotation_buffer.fill_with_dynamic(angles_in_radians);
         self.instance_count = positions.len() as u32 / 3;
     }
+}
 
-    ///
-    /// Render the imposters.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    pub fn render(&self, camera: &Camera) -> Result<()> {
+impl Object for Imposters {
+    fn render(&self, camera: &Camera) -> Result<()> {
         let render_states = RenderStates {
             blend: Blend::TRANSPARENCY,
             cull: Cull::Back,

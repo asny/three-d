@@ -154,6 +154,16 @@ impl Geometry for InstancedModel {
         )
     }
 
+    fn transformation(&self) -> &Mat4 {
+        self.mesh.transformation()
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
+    }
+}
+
+impl DeferredGeometry for InstancedModel {
     fn render_deferred(
         &self,
         material: &dyn DeferredMaterial,
@@ -172,14 +182,6 @@ impl Geometry for InstancedModel {
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
         )
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
     }
 }
 
