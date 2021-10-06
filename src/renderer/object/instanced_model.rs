@@ -21,6 +21,13 @@ impl InstancedModel {
     }
 
     ///
+    /// Set the local to world transformation applied to this geometry.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.mesh.set_transformation(transformation);
+    }
+
+    ///
     /// Render the instanced model with a color per triangle vertex. The colors are defined when constructing the instanced model.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
@@ -121,12 +128,6 @@ impl Geometry for InstancedModel {
         self.render_forward(&mat, camera)
     }
 
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
-    }
-}
-
-impl Object for InstancedModel {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(
             self.mesh
@@ -177,12 +178,8 @@ impl Object for InstancedModel {
         self.mesh.transformation()
     }
 
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
-    }
-
-    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox {
-        &AxisAlignedBoundingBox::INFINITE // TODO: Compute bounding box
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
     }
 }
 

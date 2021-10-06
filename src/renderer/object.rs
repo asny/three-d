@@ -43,7 +43,48 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-#[deprecated]
+pub struct Glue<'a> {
+    pub geometry: &'a dyn Geometry,
+    pub material: &'a dyn ForwardMaterial,
+}
+
+impl<'a> Object for Glue<'a> {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        self.geometry.render_forward(self.material, camera)
+    }
+}
+
+impl<'a> Geometry for Glue<'a> {
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        self.geometry.render_depth(camera)
+    }
+
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        self.geometry.render_depth_to_red(camera, max_depth)
+    }
+
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        self.geometry.render_forward(material, camera)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        self.geometry.render_deferred(material, camera, viewport)
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        self.geometry.transformation()
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.geometry.aabb()
+    }
+}
+
 pub trait Geometry {
     ///
     /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
@@ -61,15 +102,6 @@ pub trait Geometry {
     #[deprecated = "Use 'render_forward' instead"]
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 
-    #[deprecated = "Use 'axis_aligned_bounding_box' instead"]
-    fn aabb(&self) -> AxisAlignedBoundingBox;
-}
-
-pub trait Object2D {
-    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
-}
-
-pub trait Object {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
 
     fn render_deferred(
@@ -84,12 +116,44 @@ pub trait Object {
     ///
     fn transformation(&self) -> &Mat4;
 
-    ///
-    /// Set the local to world transformation applied to this geometry.
-    ///
-    fn set_transformation(&mut self, transformation: Mat4);
+    fn aabb(&self) -> AxisAlignedBoundingBox;
+}
 
-    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox;
+pub trait Object2D {
+    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
+}
+
+pub trait Object: Geometry {
+    fn render(&self, camera: &Camera) -> Result<()>;
+}
+
+impl Geometry for &dyn Object {
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        (*self).render_depth(camera)
+    }
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        (*self).render_depth_to_red(camera, max_depth)
+    }
+
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        (*self).render_forward(material, camera)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+    fn transformation(&self) -> &Mat4 {
+        (*self).transformation()
+    }
 }
 
 #[deprecated]

@@ -111,7 +111,7 @@ impl SpotLight {
         &mut self,
         frustrum_depth: f32,
         texture_size: u32,
-        objects: &[&dyn Object],
+        geometries: &[&dyn Geometry],
     ) -> Result<()> {
         let position = self.position();
         let direction = self.direction();
@@ -148,9 +148,9 @@ impl SpotLight {
             ..Default::default()
         };
         shadow_texture.write(Some(1.0), || {
-            for object in objects {
-                if in_frustum(&shadow_camera, *object) {
-                    object.render_forward(&depth_material, &shadow_camera)?;
+            for geometry in geometries {
+                if in_frustum(&shadow_camera, *geometry) {
+                    geometry.render_forward(&depth_material, &shadow_camera)?;
                 }
             }
             Ok(())
