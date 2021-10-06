@@ -70,14 +70,9 @@ impl Rectangle {
 }
 
 impl Object2D for Rectangle {
-    fn render(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-        lights: &[&dyn Light],
-    ) -> Result<()> {
+    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
-            self.model.render_forward(material, camera2d, lights)
+            self.model.render_forward(material, camera2d)
         })
     }
 }

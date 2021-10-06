@@ -34,7 +34,7 @@ impl InstancedModel {
         let mut mat = ColorMaterial::default();
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     ///
@@ -51,7 +51,7 @@ impl InstancedModel {
         };
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     ///
@@ -106,7 +106,7 @@ impl Geometry for InstancedModel {
             ..WriteMask::DEPTH
         };
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     fn render_depth(&self, camera: &Camera) -> Result<()> {
@@ -118,7 +118,7 @@ impl Geometry for InstancedModel {
             ..Default::default()
         };
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera, &[])
+        self.render_forward(&mat, camera)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -127,12 +127,7 @@ impl Geometry for InstancedModel {
 }
 
 impl Object for InstancedModel {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> Result<()> {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(
             self.mesh
                 .mesh
@@ -142,12 +137,12 @@ impl Object for InstancedModel {
                 .unwrap_or(false),
         );
         let fragment_shader_source =
-            material.fragment_shader_source(lights, self.mesh.mesh.color_buffer.is_some());
+            material.fragment_shader_source(self.mesh.mesh.color_buffer.is_some());
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.bind(program, camera, lights)?;
+                material.bind(program, camera)?;
                 self.mesh.render(
                     render_states,
                     program,
@@ -228,6 +223,12 @@ impl ShadedGeometry for InstancedModel {
         for light in point_lights {
             lights.push(*light as &dyn Light);
         }
-        self.render_forward(&mat, camera, &lights)
+        self.render_forward(
+            &LitMaterial {
+                material: &mat,
+                lights: &lights,
+            },
+            camera,
+        )
     }
 }

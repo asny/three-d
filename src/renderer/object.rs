@@ -66,21 +66,11 @@ pub trait Geometry {
 }
 
 pub trait Object2D {
-    fn render(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-        lights: &[&dyn Light],
-    ) -> Result<()>;
+    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
 }
 
 pub trait Object {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> Result<()>;
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
 
     fn render_deferred(
         &self,

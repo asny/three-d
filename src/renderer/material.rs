@@ -26,8 +26,8 @@ mod physical_material;
 pub use physical_material::*;
 
 pub trait ForwardMaterial {
-    fn fragment_shader_source(&self, lights: &[&dyn Light], use_vertex_colors: bool) -> String;
-    fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()>;
+    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String;
+    fn bind(&self, program: &Program, camera: &Camera) -> Result<()>;
     fn render_states(&self, transparent: bool) -> RenderStates;
     fn is_transparent(&self) -> bool;
 }
@@ -38,18 +38,18 @@ pub trait DeferredMaterial {
     fn render_states_deferred(&self) -> RenderStates;
 }
 
-pub struct LitForwardMaterial<'a> {
+pub struct LitMaterial<'a> {
     pub material: &'a PhysicalMaterial,
     pub lights: &'a [&'a dyn Light],
 }
 
-impl<'a> ForwardMaterial for LitForwardMaterial<'a> {
-    fn fragment_shader_source(&self, lights: &[&dyn Light], use_vertex_colors: bool) -> String {
+impl<'a> ForwardMaterial for LitMaterial<'a> {
+    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
         self.material
             .fragment_shader_source(self.lights, use_vertex_colors)
     }
 
-    fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()> {
+    fn bind(&self, program: &Program, camera: &Camera) -> Result<()> {
         self.material.bind(program, camera, self.lights)
     }
     fn render_states(&self, transparent: bool) -> RenderStates {
