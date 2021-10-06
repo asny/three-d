@@ -124,7 +124,7 @@ pub fn ray_intersect(
         || {
             for object in objects {
                 if in_frustum(&camera, *object) {
-                    object.render_forward(&depth_material, &camera, &[])?;
+                    object.render_forward(&depth_material, &camera)?;
                 }
             }
             Ok(())

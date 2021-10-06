@@ -9,10 +9,10 @@ pub struct DepthMaterial {
 }
 
 impl ForwardMaterial for DepthMaterial {
-    fn fragment_shader_source(&self, _lights: &[&dyn Light], _use_vertex_colors: bool) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool) -> String {
         include_str!("shaders/depth_material.frag").to_string()
     }
-    fn bind(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) -> Result<()> {
+    fn bind(&self, program: &Program, camera: &Camera) -> Result<()> {
         program.use_uniform_float("minDistance", &self.min_distance.unwrap_or(camera.z_near()))?;
         program.use_uniform_float("maxDistance", &self.max_distance.unwrap_or(camera.z_far()))?;
         Ok(())

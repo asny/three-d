@@ -150,7 +150,7 @@ impl SpotLight {
         shadow_texture.write(Some(1.0), || {
             for object in objects {
                 if in_frustum(&shadow_camera, *object) {
-                    object.render_forward(&depth_material, &shadow_camera, &[])?;
+                    object.render_forward(&depth_material, &shadow_camera)?;
                 }
             }
             Ok(())

@@ -27,7 +27,7 @@ impl ForwardPipeline {
     pub fn light_pass(
         &self,
         camera: &Camera,
-        objects: &[(&dyn Object, &dyn ForwardMaterial)],
+        objects: &[(&dyn Object, &PhysicalMaterial)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
@@ -46,18 +46,35 @@ impl ForwardPipeline {
         for light in point_lights {
             lights.push(*light as &dyn Light);
         }
-        self.render_pass(camera, objects, &lights)
+        let objects = objects
+            .iter()
+            .map(|(obj, mat)| {
+                (
+                    *obj,
+                    LitMaterial {
+                        material: &mat,
+                        lights: &lights,
+                    },
+                )
+            })
+            .collect::<Vec<_>>();
+        self.render_pass(
+            camera,
+            &objects
+                .iter()
+                .map(|(obj, mat)| (*obj, mat as &dyn ForwardMaterial))
+                .collect::<Vec<_>>(),
+        )
     }
 
     pub fn render_pass(
         &self,
         camera: &Camera,
         objects: &[(&dyn Object, &dyn ForwardMaterial)],
-        lights: &[&dyn Light],
     ) -> Result<()> {
         for (object, material) in objects {
             if in_frustum(camera, *object) {
-                object.render_forward(*material, camera, lights)?;
+                object.render_forward(*material, camera)?;
             }
         }
 
@@ -74,7 +91,7 @@ impl ForwardPipeline {
         };
         for object in objects {
             if in_frustum(camera, *object) {
-                object.render_forward(&depth_material, camera, &[])?;
+                object.render_forward(&depth_material, camera)?;
             }
         }
         Ok(())
