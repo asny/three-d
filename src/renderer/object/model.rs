@@ -19,6 +19,13 @@ impl Model {
         })
     }
 
+    ///
+    /// Set the local to world transformation applied to this geometry.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.mesh.set_transformation(transformation);
+    }
+
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
         self.set_transformation(Mat4::new(
             transformation.x.x,
@@ -141,7 +148,32 @@ impl Model {
     }
 }
 
-impl Object for Model {
+impl Geometry for Model {
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        let mut mat = DepthMaterial {
+            max_distance: Some(max_depth),
+            ..Default::default()
+        };
+        mat.render_states.write_mask = WriteMask {
+            red: true,
+            ..WriteMask::DEPTH
+        };
+        mat.render_states.cull = self.cull;
+        self.render_forward(&mat, camera)
+    }
+
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        let mut mat = DepthMaterial {
+            render_states: RenderStates {
+                write_mask: WriteMask::DEPTH,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        mat.render_states.cull = self.cull;
+        self.render_forward(&mat, camera)
+    }
+
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(
             self.mesh
@@ -188,47 +220,12 @@ impl Object for Model {
         )
     }
 
-    fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
-    }
-
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
-    }
-
-    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox {
-        &self.mesh.aabb
-    }
-}
-
-impl Geometry for Model {
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        let mut mat = DepthMaterial {
-            max_distance: Some(max_depth),
-            ..Default::default()
-        };
-        mat.render_states.write_mask = WriteMask {
-            red: true,
-            ..WriteMask::DEPTH
-        };
-        mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
-    }
-
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
-        let mut mat = DepthMaterial {
-            render_states: RenderStates {
-                write_mask: WriteMask::DEPTH,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
-    }
-
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.mesh.aabb()
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        self.mesh.transformation()
     }
 }
 

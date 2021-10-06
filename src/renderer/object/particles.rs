@@ -243,7 +243,15 @@ impl Particles {
     }
 }
 
-impl Object for Particles {
+impl Geometry for Particles {
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        unimplemented!()
+    }
+
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(false);
         let fragment_shader_source = material.fragment_shader_source(false);
@@ -270,11 +278,7 @@ impl Object for Particles {
         &self.transformation
     }
 
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-    }
-
-    fn axis_aligned_bounding_box(&self) -> &AxisAlignedBoundingBox {
-        &AxisAlignedBoundingBox::INFINITE // TODO: Compute bounding box
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::INFINITE // TODO: Compute bounding box
     }
 }
