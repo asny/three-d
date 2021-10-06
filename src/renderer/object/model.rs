@@ -274,7 +274,7 @@ impl ShadedGeometry for Model {
         }
 
         self.render_forward(
-            &LitMaterial {
+            &LitForwardMaterial {
                 material: &mat,
                 lights: &lights,
             },
