@@ -142,17 +142,17 @@ impl ForwardMaterial for PhysicalMaterial {
 }
 
 impl DeferredMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
+    fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
         format!(
             "#define DEFERRED\n{}",
             material_shader_source(self, use_vertex_colors)
         )
     }
-    fn bind(&self, program: &Program) -> Result<()> {
+    fn use_deferred(&self, program: &Program) -> Result<()> {
         self.bind_internal(program)
     }
 
-    fn render_states(&self) -> RenderStates {
+    fn render_states_deferred(&self) -> RenderStates {
         self.render_states
     }
 }
