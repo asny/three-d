@@ -65,18 +65,12 @@ impl ForwardPipeline {
                 material: mat,
             })
             .collect::<Vec<_>>();
-        self.render_pass(
-            camera,
-            &objects
-                .iter()
-                .map(|obj| obj as &dyn Object)
-                .collect::<Vec<_>>(),
-        )
+        self.render_pass(camera, &objects.iter().map(|obj| obj).collect::<Vec<_>>())
     }
 
-    pub fn render_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
+    pub fn render_pass<T: Object + Geometry>(&self, camera: &Camera, objects: &[&T]) -> Result<()> {
         for object in objects {
-            if in_frustum(camera, object) {
+            if in_frustum(camera, *object) {
                 object.render(camera)?;
             }
         }

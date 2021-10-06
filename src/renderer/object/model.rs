@@ -199,6 +199,16 @@ impl Geometry for Model {
         )
     }
 
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.mesh.aabb()
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        self.mesh.transformation()
+    }
+}
+
+impl DeferredGeometry for Model {
     fn render_deferred(
         &self,
         material: &dyn DeferredMaterial,
@@ -218,14 +228,6 @@ impl Geometry for Model {
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
         )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.mesh.aabb()
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        self.mesh.transformation()
     }
 }
 
