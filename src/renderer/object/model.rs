@@ -6,7 +6,6 @@ use crate::renderer::*;
 ///
 #[derive(Clone)]
 pub struct Model {
-    context: Context,
     mesh: Mesh,
     #[deprecated = "set in render states on material instead"]
     pub cull: Cull,
@@ -15,7 +14,6 @@ pub struct Model {
 impl Model {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
         Ok(Self {
-            context: context.clone(),
             mesh: Mesh::new(context, cpu_mesh)?,
             cull: Cull::default(),
         })
@@ -127,7 +125,7 @@ impl Model {
             }
         };
         let fragment_shader_source = include_str!("shaders/mesh_texture.frag");
-        self.context.program(
+        self.mesh.context.program(
             &Mesh::vertex_shader_source(fragment_shader_source),
             fragment_shader_source,
             |program| {
@@ -154,7 +152,7 @@ impl Object for Model {
         );
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some());
-        self.context.program(
+        self.mesh.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
@@ -179,7 +177,7 @@ impl Object for Model {
         render_states.cull = self.cull;
         let fragment_shader_source =
             material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
-        self.context.program(
+        self.mesh.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
