@@ -255,6 +255,8 @@ impl Model {
     }
 }
 
+impl Geometry for Model {}
+
 impl Cullable for Model {
     fn in_frustum(&self, camera: &Camera) -> bool {
         camera.in_frustum(&self.mesh.aabb())
