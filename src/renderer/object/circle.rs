@@ -47,9 +47,17 @@ impl Circle {
 }
 
 impl Shadable2D for Circle {
-    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render_forward(material, camera2d)
         })
     }
 }
+
+impl Cullable2D for Circle {
+    fn in_frustum(&self, _viewport: Viewport) -> bool {
+        unimplemented!();
+    }
+}
+
+impl Geometry2D for Circle {}

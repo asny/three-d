@@ -81,10 +81,6 @@ pub trait Cullable {
     fn in_frustum(&self, camera: &Camera) -> bool;
 }
 
-pub trait Shadable2D {
-    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
-}
-
 pub trait Drawable {
     ///
     /// Render the object.
@@ -97,3 +93,13 @@ pub trait Drawable {
 pub trait Object: Drawable + Cullable {}
 
 pub trait Geometry: Shadable + Cullable {}
+
+pub trait Shadable2D {
+    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
+}
+
+pub trait Cullable2D {
+    fn in_frustum(&self, viewport: Viewport) -> bool;
+}
+
+pub trait Geometry2D: Shadable2D + Cullable2D {}
