@@ -107,11 +107,11 @@ impl SpotLight {
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map(
+    pub fn generate_shadow_map<T: Shadable>(
         &mut self,
         frustrum_depth: f32,
         texture_size: u32,
-        geometries: &[&dyn Shadable],
+        geometries: &[T],
     ) -> Result<()> {
         let position = self.position();
         let direction = self.direction();
