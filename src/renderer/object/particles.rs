@@ -247,7 +247,7 @@ impl Geometry for Particles {}
 
 impl Cullable for Particles {
     fn in_frustum(&self, _camera: &Camera) -> bool {
-        true // TODO
+        unimplemented!();
     }
 }
 
