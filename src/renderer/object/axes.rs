@@ -24,15 +24,7 @@ impl Axes {
     }
 }
 
-impl Geometry for Axes {
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        unimplemented!()
-    }
-
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
-        unimplemented!()
-    }
-
+impl Shadable for Axes {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let mut model = self.model.clone();
         model.set_transformation(self.transformation);
@@ -42,13 +34,15 @@ impl Geometry for Axes {
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_forward(material, camera)
     }
+}
 
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::INFINITE // TODO
+impl Cullable for Axes {
+    fn in_frustum(&self, _camera: &Camera) -> bool {
+        true
     }
 }
 
-impl Object for Axes {
+impl Drawable for Axes {
     fn render(&self, camera: &Camera) -> Result<()> {
         let mut model = self.model.clone();
         model.render_with_color(Color::RED, camera)?;

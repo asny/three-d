@@ -145,7 +145,7 @@ impl Imposters {
     }
 }
 
-impl Object for Imposters {
+impl Drawable for Imposters {
     fn render(&self, camera: &Camera) -> Result<()> {
         let render_states = RenderStates {
             blend: Blend::TRANSPARENCY,
