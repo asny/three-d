@@ -63,7 +63,7 @@ impl Line {
     }
 }
 
-impl Object2D for Line {
+impl Shadable2D for Line {
     fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render_forward(material, camera2d)

@@ -79,7 +79,7 @@ pub trait Cullable {
     fn in_frustum(&self, camera: &Camera) -> bool;
 }
 
-pub trait Object2D {
+pub trait Shadable2D {
     fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
 }
 
