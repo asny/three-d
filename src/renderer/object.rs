@@ -62,6 +62,17 @@ impl<'a, T: Shadable + Cullable> Cullable for Glue<'a, T> {
 
 pub trait Shadable {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
+
+    ///
+    /// Render the geometry and surface material parameters of the object.
+    /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
+    ///
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()>;
 }
 
 pub trait Cullable {
@@ -79,17 +90,4 @@ pub trait Drawable {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
     fn render(&self, camera: &Camera) -> Result<()>;
-}
-
-pub trait DeferredGeometry {
-    ///
-    /// Render the geometry and surface material parameters of the object.
-    /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
-    ///
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()>;
 }

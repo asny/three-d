@@ -78,7 +78,7 @@ impl DeferredPipeline {
     pub fn geometry_pass(
         &mut self,
         camera: &Camera,
-        objects: &[(&dyn DeferredGeometry, &dyn DeferredMaterial)],
+        objects: &[(&dyn Shadable, &dyn DeferredMaterial)],
     ) -> Result<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(

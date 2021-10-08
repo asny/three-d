@@ -256,4 +256,13 @@ impl Shadable for Particles {
             },
         )
     }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        unimplemented!();
+    }
 }

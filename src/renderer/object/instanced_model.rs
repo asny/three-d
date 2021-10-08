@@ -233,9 +233,7 @@ impl Shadable for InstancedModel {
             },
         )
     }
-}
 
-impl DeferredGeometry for InstancedModel {
     fn render_deferred(
         &self,
         material: &dyn DeferredMaterial,
