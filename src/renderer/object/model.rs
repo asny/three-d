@@ -160,7 +160,7 @@ impl Model {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+    pub fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
         let mut mat = DepthMaterial {
             max_distance: Some(max_depth),
             ..Default::default()
@@ -179,7 +179,7 @@ impl Model {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
+    pub fn render_depth(&self, camera: &Camera) -> Result<()> {
         let mut mat = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -196,7 +196,7 @@ impl Model {
     /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
     #[deprecated = "Use 'render_deferred' instead"]
-    fn geometry_pass(
+    pub fn geometry_pass(
         &self,
         camera: &Camera,
         viewport: Viewport,
@@ -212,7 +212,7 @@ impl Model {
     /// you only need to render the model after all solid models.
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    fn render_with_lighting(
+    pub fn render_with_lighting(
         &self,
         camera: &Camera,
         material: &PhysicalMaterial,
@@ -250,7 +250,7 @@ impl Model {
         )
     }
 
-    fn aabb(&self) -> AxisAlignedBoundingBox {
+    pub fn aabb(&self) -> AxisAlignedBoundingBox {
         self.mesh.aabb()
     }
 }
