@@ -109,9 +109,7 @@ impl DeferredPipeline {
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
             for (geometry, material) in objects {
-                if in_frustum(camera, geometry) {
-                    geometry.render_deferred(*material, camera, viewport)?;
-                }
+                geometry.render_deferred(*material, camera, viewport)?;
             }
             Ok(())
         })?;

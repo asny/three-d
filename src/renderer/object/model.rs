@@ -155,6 +155,39 @@ impl Model {
     }
 }
 
+impl Cullable for Model {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        camera.in_frustum(&self.mesh.aabb())
+    }
+}
+
+impl Shadable for Model {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        let render_states = material.render_states(
+            self.mesh
+                .color_buffer
+                .as_ref()
+                .map(|(_, transparent)| *transparent)
+                .unwrap_or(false),
+        );
+        let fragment_shader_source =
+            material.fragment_shader_source(self.mesh.color_buffer.is_some());
+        self.mesh.context.program(
+            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                material.bind(program, camera)?;
+                self.mesh.render(
+                    render_states,
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                )
+            },
+        )
+    }
+}
+
 impl Geometry for Model {
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
         let mut mat = DepthMaterial {
@@ -179,31 +212,6 @@ impl Geometry for Model {
         };
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera)
-    }
-
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        let render_states = material.render_states(
-            self.mesh
-                .color_buffer
-                .as_ref()
-                .map(|(_, transparent)| *transparent)
-                .unwrap_or(false),
-        );
-        let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some());
-        self.mesh.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source),
-            &fragment_shader_source,
-            |program| {
-                material.bind(program, camera)?;
-                self.mesh.render(
-                    render_states,
-                    program,
-                    camera.uniform_buffer(),
-                    camera.viewport(),
-                )
-            },
-        )
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

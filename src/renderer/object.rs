@@ -43,35 +43,54 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub struct Glue<'a> {
-    pub geometry: &'a dyn Geometry,
+pub struct Glue<'a, T: Shadable + Cullable> {
+    pub geometry: &'a T,
     pub material: &'a dyn ForwardMaterial,
 }
 
-impl<'a> Object for Glue<'a> {
+impl<'a, T: Shadable + Cullable> Drawable for Glue<'a, T> {
     fn render(&self, camera: &Camera) -> Result<()> {
         self.geometry.render_forward(self.material, camera)
     }
 }
 
-impl<'a> Geometry for Glue<'a> {
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
-        self.geometry.render_depth(camera)
-    }
-
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        self.geometry.render_depth_to_red(camera, max_depth)
-    }
-
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        self.geometry.render_forward(material, camera)
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.geometry.aabb()
+impl<'a, T: Shadable + Cullable> Cullable for Glue<'a, T> {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        self.geometry.in_frustum(camera)
     }
 }
 
+pub trait Shadable {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
+}
+
+pub trait Cullable {
+    fn in_frustum(&self, camera: &Camera) -> bool;
+}
+
+pub trait Object2D {
+    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
+}
+
+pub trait Drawable {
+    ///
+    /// Render the object.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    fn render(&self, camera: &Camera) -> Result<()>;
+}
+
+pub trait DeferredGeometry {
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()>;
+}
+
+#[deprecated]
 pub trait Geometry {
     ///
     /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
@@ -89,49 +108,8 @@ pub trait Geometry {
     #[deprecated = "Use 'render_forward' instead"]
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()>;
 
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
-
+    #[deprecated]
     fn aabb(&self) -> AxisAlignedBoundingBox;
-}
-
-pub trait Object2D {
-    fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
-}
-
-pub trait Object {
-    ///
-    /// Render the object.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    fn render(&self, camera: &Camera) -> Result<()>;
-}
-
-pub trait DeferredGeometry: Geometry {
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()>;
-}
-
-impl Geometry for &dyn DeferredGeometry {
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
-        (*self).render_depth(camera)
-    }
-
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        (*self).render_depth_to_red(camera, max_depth)
-    }
-
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        (*self).render_forward(material, camera)
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        (*self).aabb()
-    }
 }
 
 #[deprecated]
