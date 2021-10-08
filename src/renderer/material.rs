@@ -38,12 +38,12 @@ pub trait DeferredMaterial {
     fn render_states_deferred(&self) -> RenderStates;
 }
 
-pub struct LitForwardMaterial<'a> {
+pub struct LitForwardMaterial<'a, L> {
     pub material: &'a PhysicalMaterial,
-    pub lights: &'a [&'a dyn Light],
+    pub lights: &'a [L],
 }
 
-impl<'a> ForwardMaterial for LitForwardMaterial<'a> {
+impl<'a, L: Light> ForwardMaterial for LitForwardMaterial<'a, L> {
     fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
         self.material
             .fragment_shader_source(self.lights, use_vertex_colors)

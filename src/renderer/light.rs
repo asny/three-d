@@ -27,6 +27,15 @@ pub trait Light {
     fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()>;
 }
 
+impl Light for &dyn Light {
+    fn shader_source(&self, i: u32) -> String {
+        (*self).shader_source(i)
+    }
+    fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+        (*self).bind(program, camera, i)
+    }
+}
+
 fn shadow_matrix(camera: &Camera) -> Mat4 {
     let bias_matrix = crate::Mat4::new(
         0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0,

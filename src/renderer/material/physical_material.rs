@@ -110,12 +110,16 @@ impl PhysicalMaterial {
         Ok(())
     }
 
-    pub fn fragment_shader_source(&self, lights: &[&dyn Light], use_vertex_colors: bool) -> String {
+    pub fn fragment_shader_source<L: Light>(
+        &self,
+        lights: &[L],
+        use_vertex_colors: bool,
+    ) -> String {
         let mut shader_source = lights_shader_source(self.lighting_model, lights);
         shader_source.push_str(&material_shader_source(self, use_vertex_colors));
         shader_source
     }
-    pub fn bind(&self, program: &Program, camera: &Camera, lights: &[&dyn Light]) -> Result<()> {
+    pub fn bind<L: Light>(&self, program: &Program, camera: &Camera, lights: &[L]) -> Result<()> {
         for (i, light) in lights.iter().enumerate() {
             light.bind(program, camera, i as u32)?;
         }
@@ -179,9 +183,9 @@ impl Default for PhysicalMaterial {
     }
 }
 
-pub(in crate::renderer) fn lights_shader_source(
+pub(in crate::renderer) fn lights_shader_source<L: Light>(
     lighting_model: LightingModel,
-    lights: &[&dyn Light],
+    lights: &[L],
 ) -> String {
     let mut shader_source = match lighting_model {
         LightingModel::Phong => "#define PHONG",
