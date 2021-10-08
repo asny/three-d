@@ -64,14 +64,14 @@ impl DirectionalLight {
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map(
+    pub fn generate_shadow_map<T: Shadable>(
         &mut self,
         target: &Vec3,
         frustrum_height: f32,
         frustrum_depth: f32,
         texture_width: u32,
         texture_height: u32,
-        geometries: &[&dyn Shadable],
+        geometries: &[T],
     ) -> Result<()> {
         let direction = self.direction();
         let up = compute_up_direction(direction);
