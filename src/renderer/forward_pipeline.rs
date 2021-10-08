@@ -24,10 +24,10 @@ impl ForwardPipeline {
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     ///
     #[deprecated = "Use render_pass instead"]
-    pub fn light_pass<T: Shadable + Cullable>(
+    pub fn light_pass(
         &self,
         camera: &Camera,
-        objects: &[(&T, &PhysicalMaterial)],
+        objects: &[(&dyn Geometry, &PhysicalMaterial)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
@@ -71,11 +71,7 @@ impl ForwardPipeline {
         Ok(())
     }
 
-    pub fn render_pass<T: Cullable + Drawable>(
-        &self,
-        camera: &Camera,
-        objects: &[&T],
-    ) -> Result<()> {
+    pub fn render_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> Result<()> {
         for object in objects.iter().filter(|o| o.in_frustum(&camera)) {
             object.render(camera)?;
         }

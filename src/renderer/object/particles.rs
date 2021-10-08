@@ -243,6 +243,14 @@ impl Particles {
     }
 }
 
+impl Geometry for Particles {}
+
+impl Cullable for Particles {
+    fn in_frustum(&self, _camera: &Camera) -> bool {
+        true // TODO
+    }
+}
+
 impl Shadable for Particles {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(false);

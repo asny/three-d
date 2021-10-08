@@ -43,22 +43,24 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub struct Glue<'a, T: Shadable + Cullable> {
-    pub geometry: &'a T,
+pub struct Glue<'a> {
+    pub geometry: &'a dyn Geometry,
     pub material: &'a dyn ForwardMaterial,
 }
 
-impl<'a, T: Shadable + Cullable> Drawable for Glue<'a, T> {
+impl<'a> Drawable for Glue<'a> {
     fn render(&self, camera: &Camera) -> Result<()> {
         self.geometry.render_forward(self.material, camera)
     }
 }
 
-impl<'a, T: Shadable + Cullable> Cullable for Glue<'a, T> {
+impl<'a> Cullable for Glue<'a> {
     fn in_frustum(&self, camera: &Camera) -> bool {
         self.geometry.in_frustum(camera)
     }
 }
+
+impl<'a> Object for Glue<'a> {}
 
 pub trait Shadable {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
@@ -91,3 +93,7 @@ pub trait Drawable {
     ///
     fn render(&self, camera: &Camera) -> Result<()>;
 }
+
+pub trait Object: Drawable + Cullable {}
+
+pub trait Geometry: Shadable + Cullable {}
