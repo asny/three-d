@@ -24,10 +24,10 @@ impl ForwardPipeline {
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     ///
     #[deprecated = "Use render_pass instead"]
-    pub fn light_pass(
+    pub fn light_pass<T: Shadable + Cullable>(
         &self,
         camera: &Camera,
-        objects: &[(&dyn Geometry, &PhysicalMaterial)],
+        objects: &[(&T, &PhysicalMaterial)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
@@ -65,20 +65,24 @@ impl ForwardPipeline {
                 material: mat,
             })
             .collect::<Vec<_>>();
-        self.render_pass(camera, &objects.iter().map(|obj| obj).collect::<Vec<_>>())
-    }
-
-    pub fn render_pass<T: Object + Geometry>(&self, camera: &Camera, objects: &[&T]) -> Result<()> {
-        for object in objects {
-            if in_frustum(camera, *object) {
-                object.render(camera)?;
-            }
+        for object in objects.iter().filter(|o| o.in_frustum(&camera)) {
+            object.render(camera)?;
         }
-
         Ok(())
     }
 
-    pub fn depth_pass(&self, camera: &Camera, geometries: &[&dyn Geometry]) -> Result<()> {
+    pub fn render_pass<T: Cullable + Drawable>(
+        &self,
+        camera: &Camera,
+        objects: &[&T],
+    ) -> Result<()> {
+        for object in objects.iter().filter(|o| o.in_frustum(&camera)) {
+            object.render(camera)?;
+        }
+        Ok(())
+    }
+
+    pub fn depth_pass(&self, camera: &Camera, geometries: &[&dyn Shadable]) -> Result<()> {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -87,9 +91,7 @@ impl ForwardPipeline {
             ..Default::default()
         };
         for geometry in geometries {
-            if in_frustum(camera, *geometry) {
-                geometry.render_forward(&depth_material, camera)?;
-            }
+            geometry.render_forward(&depth_material, camera)?;
         }
         Ok(())
     }
@@ -97,7 +99,7 @@ impl ForwardPipeline {
     pub fn depth_pass_texture(
         &self,
         camera: &Camera,
-        objects: &[&dyn Geometry],
+        objects: &[&dyn Shadable],
     ) -> Result<DepthTargetTexture2D> {
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,

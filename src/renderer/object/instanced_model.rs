@@ -109,32 +109,7 @@ impl InstancedModel {
     }
 }
 
-impl Geometry for InstancedModel {
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        let mut mat = DepthMaterial {
-            max_distance: Some(max_depth),
-            ..Default::default()
-        };
-        mat.render_states.write_mask = WriteMask {
-            red: true,
-            ..WriteMask::DEPTH
-        };
-        mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
-    }
-
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
-        let mut mat = DepthMaterial {
-            render_states: RenderStates {
-                write_mask: WriteMask::DEPTH,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
-    }
-
+impl Shadable for InstancedModel {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(
             self.mesh
@@ -159,6 +134,33 @@ impl Geometry for InstancedModel {
                 )
             },
         )
+    }
+}
+
+impl Geometry for InstancedModel {
+    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+        let mut mat = DepthMaterial {
+            max_distance: Some(max_depth),
+            ..Default::default()
+        };
+        mat.render_states.write_mask = WriteMask {
+            red: true,
+            ..WriteMask::DEPTH
+        };
+        mat.render_states.cull = self.cull;
+        self.render_forward(&mat, camera)
+    }
+
+    fn render_depth(&self, camera: &Camera) -> Result<()> {
+        let mut mat = DepthMaterial {
+            render_states: RenderStates {
+                write_mask: WriteMask::DEPTH,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        mat.render_states.cull = self.cull;
+        self.render_forward(&mat, camera)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {

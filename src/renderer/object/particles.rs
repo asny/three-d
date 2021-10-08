@@ -243,15 +243,7 @@ impl Particles {
     }
 }
 
-impl Geometry for Particles {
-    fn render_depth(&self, camera: &Camera) -> Result<()> {
-        unimplemented!()
-    }
-
-    fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
-        unimplemented!()
-    }
-
+impl Shadable for Particles {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(false);
         let fragment_shader_source = material.fragment_shader_source(false);
@@ -263,9 +255,5 @@ impl Geometry for Particles {
                 self.render(render_states, program, camera, self.time)
             },
         )
-    }
-
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::INFINITE // TODO: Compute bounding box
     }
 }

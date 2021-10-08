@@ -71,7 +71,7 @@ impl DirectionalLight {
         frustrum_depth: f32,
         texture_width: u32,
         texture_height: u32,
-        geometries: &[&dyn Geometry],
+        geometries: &[&dyn Shadable],
     ) -> Result<()> {
         let direction = self.direction();
         let up = compute_up_direction(direction);
@@ -107,9 +107,7 @@ impl DirectionalLight {
         };
         shadow_texture.write(Some(1.0), || {
             for geometry in geometries {
-                if in_frustum(&shadow_camera, *geometry) {
-                    geometry.render_forward(&depth_material, &shadow_camera)?;
-                }
+                geometry.render_forward(&depth_material, &shadow_camera)?;
             }
             Ok(())
         })?;
