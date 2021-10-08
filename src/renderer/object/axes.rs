@@ -68,3 +68,7 @@ impl Drawable for Axes {
         Ok(())
     }
 }
+
+impl Object for Axes {}
+
+impl Geometry for Axes {}

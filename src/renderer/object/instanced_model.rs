@@ -207,6 +207,14 @@ impl InstancedModel {
     }
 }
 
+impl Geometry for InstancedModel {}
+
+impl Cullable for InstancedModel {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        camera.in_frustum(&self.mesh.aabb())
+    }
+}
+
 impl Shadable for InstancedModel {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(
