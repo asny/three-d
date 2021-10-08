@@ -46,32 +46,23 @@ impl ForwardPipeline {
         for light in point_lights {
             lights.push(*light as &dyn Light);
         }
-        let objects = objects
+        for object in objects
             .iter()
-            .map(|(geo, mat)| {
-                (
-                    *geo,
-                    LitForwardMaterial {
-                        material: &mat,
-                        lights: &lights,
-                    },
-                )
-            })
-            .collect::<Vec<_>>();
-        let objects = objects
-            .iter()
+            .filter(|(g, _)| g.in_frustum(&camera))
             .map(|(geo, mat)| Glue {
                 geometry: *geo,
-                material: mat,
+                material: LitForwardMaterial {
+                    material: &mat,
+                    lights: &lights,
+                },
             })
-            .collect::<Vec<_>>();
-        for object in objects.iter().filter(|o| o.in_frustum(&camera)) {
+        {
             object.render(camera)?;
         }
         Ok(())
     }
 
-    pub fn render_pass(&self, camera: &Camera, objects: &[&dyn Drawable]) -> Result<()> {
+    pub fn render_pass<T: Drawable>(&self, camera: &Camera, objects: &[T]) -> Result<()> {
         for object in objects.iter() {
             object.render(camera)?;
         }

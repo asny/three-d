@@ -43,24 +43,39 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub struct Glue<'a> {
-    pub geometry: &'a dyn Geometry,
-    pub material: &'a dyn ForwardMaterial,
+pub struct Glue<M: ForwardMaterial, G: Geometry> {
+    pub geometry: G,
+    pub material: M,
 }
 
-impl<'a> Drawable for Glue<'a> {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        self.geometry.render_forward(self.material, camera)
+impl<M: ForwardMaterial, G: Geometry> Shadable for Glue<M, G> {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        self.geometry.render_forward(material, camera)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        self.geometry.render_deferred(material, camera, viewport)
     }
 }
 
-impl<'a> Cullable for Glue<'a> {
+impl<M: ForwardMaterial, G: Geometry> Drawable for Glue<M, G> {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        self.geometry.render_forward(&self.material, camera)
+    }
+}
+
+impl<M: ForwardMaterial, G: Geometry> Cullable for Glue<M, G> {
     fn in_frustum(&self, camera: &Camera) -> bool {
         self.geometry.in_frustum(camera)
     }
 }
 
-impl<'a> Object for Glue<'a> {}
+impl<M: ForwardMaterial, G: Geometry> Object for Glue<M, G> {}
 
 pub trait Shadable {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
@@ -77,8 +92,56 @@ pub trait Shadable {
     ) -> Result<()>;
 }
 
+impl Shadable for &dyn Shadable {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        (*self).render_forward(material, camera)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
+    }
+}
+
+impl Shadable for &dyn Geometry {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        (*self).render_forward(material, camera)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
+    }
+}
+
 pub trait Cullable {
     fn in_frustum(&self, camera: &Camera) -> bool;
+}
+
+impl Cullable for &dyn Cullable {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
+    }
+}
+
+impl Cullable for &dyn Object {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
+    }
+}
+
+impl Cullable for &dyn Geometry {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
+    }
 }
 
 pub trait Drawable {
@@ -90,9 +153,25 @@ pub trait Drawable {
     fn render(&self, camera: &Camera) -> Result<()>;
 }
 
+impl Drawable for &dyn Drawable {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        (*self).render(camera)
+    }
+}
+
+impl Drawable for &dyn Object {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        (*self).render(camera)
+    }
+}
+
 pub trait Object: Drawable + Cullable {}
 
+impl Object for &dyn Object {}
+
 pub trait Geometry: Shadable + Cullable {}
+
+impl Geometry for &dyn Geometry {}
 
 pub trait Shadable2D {
     fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;

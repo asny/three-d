@@ -256,10 +256,30 @@ impl Model {
 }
 
 impl Geometry for Model {}
+impl Geometry for &Model {}
+
+impl Cullable for &Model {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
+    }
+}
 
 impl Cullable for Model {
     fn in_frustum(&self, camera: &Camera) -> bool {
         camera.in_frustum(&self.mesh.aabb())
+    }
+}
+impl Shadable for &Model {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        (*self).render_forward(material, camera)
+    }
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
     }
 }
 
