@@ -46,7 +46,7 @@ impl Circle {
     }
 }
 
-impl Object2D for Circle {
+impl Shadable2D for Circle {
     fn render(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render_forward(material, camera2d)
