@@ -34,6 +34,21 @@ impl Shadable for Axes {
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_forward(material, camera)
     }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        let mut model = self.model.clone();
+        model.set_transformation(self.transformation);
+        model.render_deferred(material, camera, viewport)?;
+        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
+        model.render_deferred(material, camera, viewport)?;
+        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
+        model.render_deferred(material, camera, viewport)
+    }
 }
 
 impl Cullable for Axes {

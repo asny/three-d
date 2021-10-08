@@ -286,8 +286,7 @@ impl Shadable for Model {
             },
         )
     }
-}
-impl DeferredGeometry for Model {
+
     fn render_deferred(
         &self,
         material: &dyn DeferredMaterial,
