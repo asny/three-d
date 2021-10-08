@@ -153,42 +153,13 @@ impl Model {
             },
         )
     }
-}
 
-impl Cullable for Model {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        camera.in_frustum(&self.mesh.aabb())
-    }
-}
-
-impl Shadable for Model {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        let render_states = material.render_states(
-            self.mesh
-                .color_buffer
-                .as_ref()
-                .map(|(_, transparent)| *transparent)
-                .unwrap_or(false),
-        );
-        let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some());
-        self.mesh.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source),
-            &fragment_shader_source,
-            |program| {
-                material.bind(program, camera)?;
-                self.mesh.render(
-                    render_states,
-                    program,
-                    camera.uniform_buffer(),
-                    camera.viewport(),
-                )
-            },
-        )
-    }
-}
-
-impl Geometry for Model {
+    ///
+    /// Render the depth (scaled such that a value of 1 corresponds to max_depth) into the red channel of the current color render target which for example is used for picking.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    #[deprecated = "Use 'render_forward' instead"]
     fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
         let mut mat = DepthMaterial {
             max_distance: Some(max_depth),
@@ -202,6 +173,12 @@ impl Geometry for Model {
         self.render_forward(&mat, camera)
     }
 
+    ///
+    /// Render only the depth into the current depth render target which is useful for shadow maps or depth pre-pass.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    #[deprecated = "Use 'render_forward' instead"]
     fn render_depth(&self, camera: &Camera) -> Result<()> {
         let mut mat = DepthMaterial {
             render_states: RenderStates {
@@ -214,35 +191,11 @@ impl Geometry for Model {
         self.render_forward(&mat, camera)
     }
 
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.mesh.aabb()
-    }
-}
-
-impl DeferredGeometry for Model {
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()> {
-        let mut render_states = material.render_states_deferred();
-        render_states.cull = self.cull;
-        let fragment_shader_source =
-            material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
-        self.mesh.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source),
-            &fragment_shader_source,
-            |program| {
-                material.use_deferred(program)?;
-                self.mesh
-                    .render(render_states, program, camera.uniform_buffer(), viewport)
-            },
-        )
-    }
-}
-
-impl ShadedGeometry for Model {
+    ///
+    /// Render the geometry and surface material parameters of the object.
+    /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
+    ///
+    #[deprecated = "Use 'render_deferred' instead"]
     fn geometry_pass(
         &self,
         camera: &Camera,
@@ -252,6 +205,13 @@ impl ShadedGeometry for Model {
         self.render_deferred(material, camera, viewport)
     }
 
+    ///
+    /// Render the object shaded with the given lights using physically based rendering (PBR).
+    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
+    /// Will render transparent if the material contain an albedo color with alpha value below 255 or if the albedo texture contain an alpha channel (ie. the format is [Format::RGBA]),
+    /// you only need to render the model after all solid models.
+    ///
+    #[deprecated = "Use 'render_forward' instead"]
     fn render_with_lighting(
         &self,
         camera: &Camera,
@@ -287,6 +247,65 @@ impl ShadedGeometry for Model {
                 lights: &lights,
             },
             camera,
+        )
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.mesh.aabb()
+    }
+}
+
+impl Cullable for Model {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        camera.in_frustum(&self.mesh.aabb())
+    }
+}
+
+impl Shadable for Model {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        let render_states = material.render_states(
+            self.mesh
+                .color_buffer
+                .as_ref()
+                .map(|(_, transparent)| *transparent)
+                .unwrap_or(false),
+        );
+        let fragment_shader_source =
+            material.fragment_shader_source(self.mesh.color_buffer.is_some());
+        self.mesh.context.program(
+            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                material.bind(program, camera)?;
+                self.mesh.render(
+                    render_states,
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                )
+            },
+        )
+    }
+}
+impl DeferredGeometry for Model {
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        let mut render_states = material.render_states_deferred();
+        render_states.cull = self.cull;
+        let fragment_shader_source =
+            material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
+        self.mesh.context.program(
+            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                material.use_deferred(program)?;
+                self.mesh
+                    .render(render_states, program, camera.uniform_buffer(), viewport)
+            },
         )
     }
 }
