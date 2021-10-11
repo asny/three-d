@@ -15,7 +15,7 @@ pub enum DebugType {
     NONE,
 }
 ///
-/// Deferred render pipeline which can render objects (implementing the [Object] trait) with materials (implementing the [DeferredMaterial] trait) and lighting.
+/// Deferred render pipeline which can render objects (implementing the [Geometry] trait) with materials (implementing the [DeferredMaterial] trait) and lighting.
 /// Supports different types of lighting models by changing the [DeferredPipeline::lighting_model] field.
 /// Deferred rendering draws the geometry information into a buffer in the [DeferredPipeline::geometry_pass] and use that information in the [DeferredPipeline::light_pass].
 /// This means that the lighting is only calculated once per pixel since the depth testing is happening in the geometry pass.
@@ -118,7 +118,7 @@ impl DeferredPipeline {
 
     ///
     /// Uses the geometry and surface material parameters written in the last [DeferredPipeline::geometry_pass] call
-    /// and all of the given lights to render the [Object].
+    /// and all of the given lights to render the objects.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///

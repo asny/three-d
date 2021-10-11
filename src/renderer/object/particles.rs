@@ -244,6 +244,7 @@ impl Particles {
 }
 
 impl Geometry for Particles {}
+impl Geometry for &Particles {}
 
 impl Cullable for Particles {
     fn in_frustum(&self, _camera: &Camera) -> bool {
@@ -278,5 +279,19 @@ impl Shadable for Particles {
         _viewport: Viewport,
     ) -> Result<()> {
         unimplemented!();
+    }
+}
+
+impl Shadable for &Particles {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        (*self).render_forward(material, camera)
+    }
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
     }
 }

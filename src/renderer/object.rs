@@ -72,12 +72,6 @@ impl<G: Geometry, M: ForwardMaterial> Cullable for &Glue<G, M> {
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {}
-
-pub trait Object: Drawable + Cullable {}
-
-impl Object for &dyn Object {}
-
 pub trait Geometry: Shadable + Cullable {}
 
 impl Geometry for &dyn Geometry {}
@@ -137,12 +131,6 @@ impl Cullable for &dyn Cullable {
     }
 }
 
-impl Cullable for &dyn Object {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
-    }
-}
-
 impl Cullable for &dyn Geometry {
     fn in_frustum(&self, camera: &Camera) -> bool {
         (*self).in_frustum(camera)
@@ -159,12 +147,6 @@ pub trait Drawable {
 }
 
 impl Drawable for &dyn Drawable {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        (*self).render(camera)
-    }
-}
-
-impl Drawable for &dyn Object {
     fn render(&self, camera: &Camera) -> Result<()> {
         (*self).render(camera)
     }
