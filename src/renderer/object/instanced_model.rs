@@ -215,6 +215,12 @@ impl Cullable for InstancedModel {
     }
 }
 
+impl Cullable for &InstancedModel {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
+    }
+}
+
 impl Shadable for InstancedModel {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
         let render_states = material.render_states(

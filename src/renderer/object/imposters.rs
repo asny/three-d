@@ -177,3 +177,9 @@ impl Drawable for Imposters {
         Ok(())
     }
 }
+
+impl Drawable for &Imposters {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        (*self).render(camera)
+    }
+}
