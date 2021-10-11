@@ -64,7 +64,7 @@ impl DirectionalLight {
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<T: Shadable>(
+    pub fn generate_shadow_map<T: Geometry>(
         &mut self,
         target: &Vec3,
         frustrum_height: f32,
@@ -106,7 +106,7 @@ impl DirectionalLight {
             ..Default::default()
         };
         shadow_texture.write(Some(1.0), || {
-            for geometry in geometries {
+            for geometry in geometries.iter().filter(|g| g.in_frustum(&shadow_camera)) {
                 geometry.render_forward(&depth_material, &shadow_camera)?;
             }
             Ok(())

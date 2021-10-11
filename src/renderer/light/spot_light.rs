@@ -107,7 +107,7 @@ impl SpotLight {
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<T: Shadable>(
+    pub fn generate_shadow_map<T: Geometry>(
         &mut self,
         frustrum_depth: f32,
         texture_size: u32,
@@ -148,7 +148,7 @@ impl SpotLight {
             ..Default::default()
         };
         shadow_texture.write(Some(1.0), || {
-            for geometry in geometries {
+            for geometry in geometries.iter().filter(|g| g.in_frustum(&shadow_camera)) {
                 geometry.render_forward(&depth_material, &shadow_camera)?;
             }
             Ok(())
