@@ -43,7 +43,7 @@ impl crate::core::Camera {
     /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
     /// Returns ```None``` if no geometry was hit before the given maximum depth.
     ///
-    pub fn pick<T: Shadable>(
+    pub fn pick<T: Geometry>(
         &self,
         pixel: (f32, f32),
         max_depth: f32,
@@ -55,7 +55,7 @@ impl crate::core::Camera {
     }
 }
 
-pub fn ray_intersect<T: Shadable>(
+pub fn ray_intersect<T: Geometry>(
     context: &Context,
     position: Vec3,
     direction: Vec3,
@@ -116,7 +116,7 @@ pub fn ray_intersect<T: Shadable>(
             ..ClearState::none()
         },
         || {
-            for geometry in geometries {
+            for geometry in geometries.iter().filter(|g| g.in_frustum(&camera)) {
                 geometry.render_forward(&depth_material, &camera)?;
             }
             Ok(())
