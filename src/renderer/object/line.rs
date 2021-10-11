@@ -79,7 +79,7 @@ impl Shadable2D for &Line {
 
 impl Cullable2D for Line {
     fn in_frustum(&self, _viewport: Viewport) -> bool {
-        unimplemented!();
+        return true;
     }
 }
 

@@ -62,7 +62,7 @@ impl Shadable2D for &Circle {
 
 impl Cullable2D for Circle {
     fn in_frustum(&self, _viewport: Viewport) -> bool {
-        unimplemented!();
+        return true;
     }
 }
 
