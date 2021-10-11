@@ -58,8 +58,12 @@ impl ForwardPipeline {
         Ok(())
     }
 
-    pub fn render_pass<T: Drawable>(&self, camera: &Camera, objects: &[T]) -> Result<()> {
-        for object in objects.iter() {
+    pub fn render_pass<T: Geometry + Drawable>(
+        &self,
+        camera: &Camera,
+        objects: &[T],
+    ) -> Result<()> {
+        for object in objects.iter().filter(|o| o.in_frustum(camera)) {
             object.render(camera)?;
         }
         Ok(())
