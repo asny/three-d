@@ -54,9 +54,21 @@ impl<G: Geometry, M: ForwardMaterial> Drawable for Glue<G, M> {
     }
 }
 
+impl<G: Geometry, M: ForwardMaterial> Drawable for &Glue<G, M> {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        (*self).render(camera)
+    }
+}
+
 impl<G: Geometry, M: ForwardMaterial> Cullable for Glue<G, M> {
     fn in_frustum(&self, camera: &Camera) -> bool {
         self.geometry.in_frustum(camera)
+    }
+}
+
+impl<G: Geometry, M: ForwardMaterial> Cullable for &Glue<G, M> {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
     }
 }
 

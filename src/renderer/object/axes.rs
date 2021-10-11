@@ -57,6 +57,12 @@ impl Cullable for Axes {
     }
 }
 
+impl Cullable for &Axes {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
+    }
+}
+
 impl Drawable for Axes {
     fn render(&self, camera: &Camera) -> Result<()> {
         let mut model = self.model.clone();
@@ -66,6 +72,12 @@ impl Drawable for Axes {
         model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
         model.render_with_color(Color::BLUE, camera)?;
         Ok(())
+    }
+}
+
+impl Drawable for &Axes {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        (*self).render(camera)
     }
 }
 
