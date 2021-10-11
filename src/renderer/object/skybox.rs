@@ -68,3 +68,9 @@ impl Drawable for Skybox {
         Ok(())
     }
 }
+
+impl Drawable for &Skybox {
+    fn render(&self, camera: &Camera) -> Result<()> {
+        (*self).render(camera)
+    }
+}
