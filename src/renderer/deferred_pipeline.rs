@@ -190,7 +190,7 @@ impl DeferredPipeline {
         let effect = self.program_map.get(&fragment_shader).unwrap();
 
         for (i, light) in lights.iter().enumerate() {
-            light.bind(effect, camera, i as u32)?;
+            light.use_uniforms(effect, camera, i as u32)?;
         }
 
         effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
