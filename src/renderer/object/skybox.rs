@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// An illusion of a sky.
@@ -42,12 +43,13 @@ impl Skybox {
         })
     }
 
-    ///
-    /// Render the skybox.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    pub fn render(&self, camera: &Camera) -> Result<()> {
+    pub fn texture(&self) -> &TextureCubeMap {
+        &self.texture
+    }
+}
+
+impl Drawable for Skybox {
+    fn render(&self, camera: &Camera) -> Result<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             cull: Cull::Front,
@@ -64,9 +66,5 @@ impl Skybox {
         self.program
             .draw_arrays(render_states, camera.viewport(), 36);
         Ok(())
-    }
-
-    pub fn texture(&self) -> &TextureCubeMap {
-        &self.texture
     }
 }
