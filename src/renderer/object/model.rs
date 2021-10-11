@@ -323,7 +323,7 @@ impl Shadable for Model {
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_deferred(program)?;
+                material.use_uniforms_deferred(program)?;
                 self.mesh
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
