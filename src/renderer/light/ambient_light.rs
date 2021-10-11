@@ -22,7 +22,7 @@ impl Light for AmbientLight {
         
         ", i, i, i)
     }
-    fn bind(&self, program: &Program, _camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> Result<()> {
         program.use_uniform_vec3(
             &format!("ambientColor{}", i),
             &(self.color.to_vec3() * self.intensity),

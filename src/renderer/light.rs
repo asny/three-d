@@ -24,15 +24,15 @@ use crate::core::*;
 
 pub trait Light {
     fn shader_source(&self, i: u32) -> String;
-    fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()>;
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()>;
 }
 
 impl Light for &dyn Light {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
-        (*self).bind(program, camera, i)
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+        (*self).use_uniforms(program, camera, i)
     }
 }
 

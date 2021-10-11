@@ -119,9 +119,14 @@ impl PhysicalMaterial {
         shader_source.push_str(&material_shader_source(self, use_vertex_colors));
         shader_source
     }
-    pub fn bind<L: Light>(&self, program: &Program, camera: &Camera, lights: &[L]) -> Result<()> {
+    pub fn use_uniforms<L: Light>(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[L],
+    ) -> Result<()> {
         for (i, light) in lights.iter().enumerate() {
-            light.bind(program, camera, i as u32)?;
+            light.use_uniforms(program, camera, i as u32)?;
         }
         self.bind_internal(program)
     }

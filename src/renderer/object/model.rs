@@ -298,7 +298,7 @@ impl Shadable for Model {
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.bind(program, camera)?;
+                material.use_uniforms(program, camera)?;
                 self.mesh.render(
                     render_states,
                     program,
