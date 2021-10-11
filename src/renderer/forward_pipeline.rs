@@ -2,8 +2,8 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// Forward render pipeline which can render objects (implementing the [Object] trait) with materials (implementing the [ForwardMaterial] trait) and lighting.
-/// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Object::render_forward] directly.
+/// Forward render pipeline which can render objects (implementing the [Drawable] trait).
+/// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Drawable::render] directly.
 ///
 pub struct ForwardPipeline {
     context: Context,
@@ -69,7 +69,7 @@ impl ForwardPipeline {
         Ok(())
     }
 
-    pub fn depth_pass(&self, camera: &Camera, geometries: &[&dyn Shadable]) -> Result<()> {
+    pub fn depth_pass<T: Shadable>(&self, camera: &Camera, geometries: &[T]) -> Result<()> {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -83,10 +83,10 @@ impl ForwardPipeline {
         Ok(())
     }
 
-    pub fn depth_pass_texture(
+    pub fn depth_pass_texture<T: Shadable>(
         &self,
         camera: &Camera,
-        objects: &[&dyn Shadable],
+        objects: &[T],
     ) -> Result<DepthTargetTexture2D> {
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,
