@@ -51,6 +51,20 @@ impl Shadable for Axes {
     }
 }
 
+impl Shadable for &Axes {
+    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+        (*self).render_forward(material, camera)
+    }
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
+    }
+}
+
 impl Cullable for Axes {
     fn in_frustum(&self, _camera: &Camera) -> bool {
         true
@@ -81,6 +95,5 @@ impl Drawable for &Axes {
     }
 }
 
-impl Object for Axes {}
-
 impl Geometry for Axes {}
+impl Geometry for &Axes {}
