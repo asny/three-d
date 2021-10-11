@@ -164,18 +164,18 @@ impl DeferredPipeline {
                 .apply(render_states, camera.viewport())?;
             return Ok(());
         }
-        let mut lights = Vec::new();
+        let mut lights: Vec<&dyn Light> = Vec::new();
         if let Some(light) = ambient_light {
-            lights.push(light as &dyn Light)
+            lights.push(light)
         }
         for light in directional_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         for light in spot_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         for light in point_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
 
         let mut fragment_shader = lights_shader_source(self.lighting_model, &lights);
