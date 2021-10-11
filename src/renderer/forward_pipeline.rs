@@ -46,18 +46,14 @@ impl ForwardPipeline {
         for light in point_lights {
             lights.push(light);
         }
-        for object in objects
-            .iter()
-            .filter(|(g, _)| g.in_frustum(&camera))
-            .map(|(geo, mat)| Glue {
-                geometry: *geo,
-                material: LitForwardMaterial {
-                    material: &mat,
+        for (geo, mat) in objects.iter().filter(|(g, _)| g.in_frustum(&camera)) {
+            geo.render_forward(
+                &LitForwardMaterial {
+                    material: mat,
                     lights: &lights,
                 },
-            })
-        {
-            object.render(camera)?;
+                camera,
+            )?;
         }
         Ok(())
     }
