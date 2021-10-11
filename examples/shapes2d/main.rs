@@ -59,21 +59,21 @@ fn main() {
                 &context,
                 ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                 || {
-                    line.render(
+                    line.render_forward(
                         &ColorMaterial {
                             color: Color::GREEN,
                             ..Default::default()
                         },
                         frame_input.viewport,
                     )?;
-                    rectangle.render(
+                    rectangle.render_forward(
                         &ColorMaterial {
                             color: Color::RED,
                             ..Default::default()
                         },
                         frame_input.viewport,
                     )?;
-                    circle.render(
+                    circle.render_forward(
                         &ColorMaterial {
                             color: Color::BLUE,
                             ..Default::default()
