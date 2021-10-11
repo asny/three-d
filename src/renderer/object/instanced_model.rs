@@ -180,18 +180,18 @@ impl InstancedModel {
         mat.lighting_model = lighting_model;
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
-        let mut lights = Vec::new();
+        let mut lights: Vec<&dyn Light> = Vec::new();
         if let Some(light) = ambient_light {
-            lights.push(light as &dyn Light)
+            lights.push(light)
         }
         for light in directional_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         for light in spot_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         for light in point_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         self.render_forward(
             &LitForwardMaterial {

@@ -33,18 +33,18 @@ impl ForwardPipeline {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        let mut lights = Vec::new();
+        let mut lights: Vec<&dyn Light> = Vec::new();
         if let Some(light) = ambient_light {
-            lights.push(light as &dyn Light)
+            lights.push(light)
         }
         for light in directional_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         for light in spot_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         for light in point_lights {
-            lights.push(*light as &dyn Light);
+            lights.push(light);
         }
         for object in objects
             .iter()
