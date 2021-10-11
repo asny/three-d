@@ -304,44 +304,51 @@ fn main() {
                     Screen::write(&context, ClearState::default(), || {
                         match current_pipeline {
                             Pipeline::Forward => {
-                                let objects: [(&dyn Object, &dyn ForwardMaterial); 2] =
-                                    match deferred_pipeline.debug_type {
-                                        DebugType::NORMAL => [
-                                            (&plane, &normal_material),
-                                            (&monkey, &normal_material),
-                                        ],
-                                        DebugType::DEPTH => {
-                                            [(&plane, &depth_material), (&monkey, &depth_material)]
+                                match deferred_pipeline.debug_type {
+                                    DebugType::NORMAL => {
+                                        plane.render_forward(&normal_material, &camera).unwrap();
+                                        monkey.render_forward(&normal_material, &camera).unwrap();
+                                    }
+                                    DebugType::DEPTH => {
+                                        plane.render_forward(&depth_material, &camera).unwrap();
+                                        monkey.render_forward(&depth_material, &camera).unwrap();
+                                    }
+                                    _ => {
+                                        let mut lights: Vec<&dyn Light> = Vec::new();
+                                        if ambient_enabled {
+                                            lights.push(&ambient_light);
                                         }
-                                        _ => {
-                                            [(&plane, &plane_material), (&monkey, &monkey_material)]
+                                        if directional_enabled {
+                                            lights.push(&directional_light0);
+                                            lights.push(&directional_light1);
                                         }
-                                    };
-
-                                forward_pipeline.light_pass(
-                                    &camera,
-                                    &objects,
-                                    if ambient_enabled {
-                                        Some(&ambient_light)
-                                    } else {
-                                        None
-                                    },
-                                    &if directional_enabled {
-                                        vec![&directional_light0, &directional_light1]
-                                    } else {
-                                        vec![]
-                                    },
-                                    &if spot_enabled {
-                                        vec![&spot_light]
-                                    } else {
-                                        vec![]
-                                    },
-                                    &if point_enabled {
-                                        vec![&point_light0, &point_light1]
-                                    } else {
-                                        vec![]
-                                    },
-                                )?;
+                                        if spot_enabled {
+                                            lights.push(&spot_light);
+                                        }
+                                        if point_enabled {
+                                            lights.push(&point_light0);
+                                            lights.push(&point_light1);
+                                        }
+                                        plane
+                                            .render_forward(
+                                                &LitForwardMaterial {
+                                                    material: &plane_material,
+                                                    lights: &lights,
+                                                },
+                                                &camera,
+                                            )
+                                            .unwrap();
+                                        monkey
+                                            .render_forward(
+                                                &LitForwardMaterial {
+                                                    material: &monkey_material,
+                                                    lights: &lights,
+                                                },
+                                                &camera,
+                                            )
+                                            .unwrap();
+                                    }
+                                };
                             }
                             Pipeline::Deferred => {
                                 deferred_pipeline.light_pass(
