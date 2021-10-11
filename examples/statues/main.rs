@@ -92,17 +92,7 @@ fn main() {
             .unwrap();
 
             directional_light
-                .generate_shadow_map(
-                    &vec3(0.0, 0.0, 0.0),
-                    1000.0,
-                    2000.0,
-                    1024,
-                    1024,
-                    &models
-                        .iter()
-                        .map(|model| model as &dyn Object)
-                        .collect::<Vec<&dyn Object>>(),
-                )
+                .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 2000.0, 1024, 1024, &models)
                 .unwrap();
 
             // main loop
