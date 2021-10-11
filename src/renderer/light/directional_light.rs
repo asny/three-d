@@ -154,7 +154,7 @@ impl Light for DirectionalLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn bind(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
         if let Some(tex) = self.shadow_map() {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
         } else {
