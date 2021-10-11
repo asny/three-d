@@ -71,10 +71,23 @@ impl Shadable2D for Line {
     }
 }
 
+impl Shadable2D for &Line {
+    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+        (*self).render_forward(material, viewport)
+    }
+}
+
 impl Cullable2D for Line {
     fn in_frustum(&self, _viewport: Viewport) -> bool {
         unimplemented!();
     }
 }
 
+impl Cullable2D for &Line {
+    fn in_frustum(&self, viewport: Viewport) -> bool {
+        (*self).in_frustum(viewport)
+    }
+}
+
 impl Geometry2D for Line {}
+impl Geometry2D for &Line {}
