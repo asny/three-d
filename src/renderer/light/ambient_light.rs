@@ -30,6 +30,15 @@ impl Light for AmbientLight {
     }
 }
 
+impl Light for &AmbientLight {
+    fn shader_source(&self, i: u32) -> String {
+        (*self).shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+        (*self).use_uniforms(program, camera, i)
+    }
+}
+
 impl Default for AmbientLight {
     fn default() -> Self {
         Self {
