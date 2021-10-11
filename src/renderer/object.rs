@@ -153,12 +153,39 @@ impl Drawable for &dyn Drawable {
 }
 
 // 2D
+
+pub trait Geometry2D: Shadable2D + Cullable2D {}
+
+impl Geometry2D for &dyn Geometry2D {}
+
 pub trait Shadable2D {
     fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
+}
+
+impl Shadable2D for &dyn Shadable2D {
+    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+        (*self).render_forward(material, viewport)
+    }
+}
+
+impl Shadable2D for &dyn Geometry2D {
+    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+        (*self).render_forward(material, viewport)
+    }
 }
 
 pub trait Cullable2D {
     fn in_frustum(&self, viewport: Viewport) -> bool;
 }
 
-pub trait Geometry2D: Shadable2D + Cullable2D {}
+impl Cullable2D for &dyn Cullable2D {
+    fn in_frustum(&self, viewport: Viewport) -> bool {
+        (*self).in_frustum(viewport)
+    }
+}
+
+impl Cullable2D for &dyn Geometry2D {
+    fn in_frustum(&self, viewport: Viewport) -> bool {
+        (*self).in_frustum(viewport)
+    }
+}
