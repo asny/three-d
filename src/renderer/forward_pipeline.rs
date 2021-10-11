@@ -58,7 +58,7 @@ impl ForwardPipeline {
         Ok(())
     }
 
-    pub fn render_pass<T: Geometry + Drawable>(
+    pub fn render_pass<T: Cullable + Drawable>(
         &self,
         camera: &Camera,
         objects: &[T],
