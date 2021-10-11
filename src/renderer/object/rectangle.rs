@@ -85,7 +85,7 @@ impl Shadable2D for &Rectangle {
 
 impl Cullable2D for Rectangle {
     fn in_frustum(&self, _viewport: Viewport) -> bool {
-        unimplemented!();
+        return true;
     }
 }
 
