@@ -75,10 +75,10 @@ impl DeferredPipeline {
     /// This function must not be called in a render target render function and needs to be followed
     /// by a call to [DeferredPipeline::light_pass].
     ///
-    pub fn geometry_pass(
+    pub fn geometry_pass<G: Geometry, M: DeferredMaterial>(
         &mut self,
         camera: &Camera,
-        objects: &[(&dyn Shadable, &dyn DeferredMaterial)],
+        objects: &[(G, M)],
     ) -> Result<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
@@ -109,7 +109,7 @@ impl DeferredPipeline {
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
             for (geometry, material) in objects {
-                geometry.render_deferred(*material, camera, viewport)?;
+                geometry.render_deferred(material, camera, viewport)?;
             }
             Ok(())
         })?;

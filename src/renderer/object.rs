@@ -48,21 +48,6 @@ pub struct Glue<M: ForwardMaterial, G: Geometry> {
     pub material: M,
 }
 
-impl<M: ForwardMaterial, G: Geometry> Shadable for Glue<M, G> {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        self.geometry.render_forward(material, camera)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()> {
-        self.geometry.render_deferred(material, camera, viewport)
-    }
-}
-
 impl<M: ForwardMaterial, G: Geometry> Drawable for Glue<M, G> {
     fn render(&self, camera: &Camera) -> Result<()> {
         self.geometry.render_forward(&self.material, camera)
@@ -76,6 +61,14 @@ impl<M: ForwardMaterial, G: Geometry> Cullable for Glue<M, G> {
 }
 
 impl<M: ForwardMaterial, G: Geometry> Object for Glue<M, G> {}
+
+pub trait Object: Drawable + Cullable {}
+
+impl Object for &dyn Object {}
+
+pub trait Geometry: Shadable + Cullable {}
+
+impl Geometry for &dyn Geometry {}
 
 pub trait Shadable {
     fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
@@ -165,14 +158,7 @@ impl Drawable for &dyn Object {
     }
 }
 
-pub trait Object: Drawable + Cullable {}
-
-impl Object for &dyn Object {}
-
-pub trait Geometry: Shadable + Cullable {}
-
-impl Geometry for &dyn Geometry {}
-
+// 2D
 pub trait Shadable2D {
     fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
 }
