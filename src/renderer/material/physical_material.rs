@@ -121,7 +121,7 @@ impl ForwardMaterial for PhysicalMaterial {
         output.push_str(include_str!("shaders/physical_material.frag"));
         output
     }
-    fn use_uniforms(&self, program: &Program) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
@@ -163,8 +163,8 @@ impl ForwardMaterial for &PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
         (*self).fragment_shader_source(use_vertex_colors)
     }
-    fn use_uniforms(&self, program: &Program) -> Result<()> {
-        (*self).use_uniforms(program)
+    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
+        (*self).use_uniforms(program, camera)
     }
     fn render_states(&self, transparent: bool) -> RenderStates {
         (*self).render_states(transparent)

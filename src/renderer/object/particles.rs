@@ -272,7 +272,7 @@ impl Shadable for Particles {
             &Particles::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program)?;
+                material.use_uniforms(program, camera)?;
                 lights.use_uniforms(program, camera)?;
                 self.render(render_states, program, camera, self.time)
             },

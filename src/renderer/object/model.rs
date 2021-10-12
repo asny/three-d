@@ -162,8 +162,7 @@ impl Model {
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
         let mut mat = DepthMaterial {
-            max_distance: max_depth,
-            min_distance: camera.z_near(),
+            max_distance: Some(max_depth),
             ..Default::default()
         };
         mat.render_states.write_mask = WriteMask {
@@ -293,7 +292,7 @@ impl Shadable for Model {
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program)?;
+                material.use_uniforms(program, camera)?;
                 lights.use_uniforms(program, camera)?;
                 self.mesh.render(
                     render_states,
@@ -319,7 +318,7 @@ impl Shadable for Model {
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program)?;
+                material.use_uniforms(program, camera)?;
                 self.mesh
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
