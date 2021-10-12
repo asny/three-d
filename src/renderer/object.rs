@@ -72,6 +72,49 @@ impl<G: Geometry, M: ForwardMaterial> Cullable for &Glue<G, M> {
     }
 }
 
+impl<G: Geometry, M: ForwardMaterial> Shadable for Glue<G, M> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        self.geometry.render_forward(material, camera, lights)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        self.geometry.render_deferred(material, camera, viewport)
+    }
+}
+
+impl<G: Geometry, M: ForwardMaterial> Shadable for &Glue<G, M> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
+    }
+}
+
+impl<G: Geometry, M: ForwardMaterial> Geometry for Glue<G, M> {}
+impl<G: Geometry, M: ForwardMaterial> Geometry for &Glue<G, M> {}
+
 impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {}
 impl<G: Geometry, M: ForwardMaterial> Object for &Glue<G, M> {}
 
