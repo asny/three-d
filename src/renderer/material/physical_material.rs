@@ -118,7 +118,7 @@ impl ForwardMaterial for PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
         material_shader_source(self, use_vertex_colors)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
+    fn use_uniforms(&self, program: &Program) -> Result<()> {
         self.bind_internal(program)
     }
 
@@ -143,8 +143,8 @@ impl ForwardMaterial for &PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
         (*self).fragment_shader_source(use_vertex_colors)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
-        (*self).use_uniforms(program, camera)
+    fn use_uniforms(&self, program: &Program) -> Result<()> {
+        (*self).use_uniforms(program)
     }
     fn render_states(&self, transparent: bool) -> RenderStates {
         (*self).render_states(transparent)
