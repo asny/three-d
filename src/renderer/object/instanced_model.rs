@@ -238,15 +238,13 @@ impl Shadable for InstancedModel {
                 .map(|(_, transparent)| *transparent)
                 .unwrap_or(false),
         );
-        let mut fragment_shader_source = lights.fragment_shader_source();
-        fragment_shader_source
-            .push_str(&material.fragment_shader_source(self.mesh.color_buffer.is_some()));
+        let mut fragment_shader_source =
+            material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera)?;
-                lights.use_uniforms(program, camera)?;
+                material.use_uniforms(program, camera, lights)?;
                 self.mesh.render(
                     render_states,
                     program,
@@ -270,7 +268,7 @@ impl Shadable for InstancedModel {
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera)?;
+                material.use_uniforms(program, camera, &Lights::default())?;
                 self.mesh
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
