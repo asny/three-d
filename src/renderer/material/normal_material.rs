@@ -30,7 +30,7 @@ impl ForwardMaterial for NormalMaterial {
         shader.push_str(include_str!("shaders/normal_material.frag"));
         shader
     }
-    fn use_uniforms(&self, program: &Program) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera) -> Result<()> {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
             program.use_texture("normalTexture", &**tex)?;
@@ -49,8 +49,8 @@ impl ForwardMaterial for &NormalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
         (*self).fragment_shader_source(use_vertex_colors)
     }
-    fn use_uniforms(&self, program: &Program) -> Result<()> {
-        (*self).use_uniforms(program)
+    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
+        (*self).use_uniforms(program, camera)
     }
     fn render_states(&self, transparent: bool) -> RenderStates {
         (*self).render_states(transparent)
