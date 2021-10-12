@@ -48,7 +48,7 @@ impl InstancedModel {
         let mut mat = ColorMaterial::default();
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
+        self.render_forward(&mat, camera, &Lights::default())
     }
 
     ///
@@ -65,7 +65,7 @@ impl InstancedModel {
         };
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
+        self.render_forward(&mat, camera, &Lights::default())
     }
 
     ///
@@ -124,7 +124,7 @@ impl InstancedModel {
             ..WriteMask::DEPTH
         };
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
+        self.render_forward(&mat, camera, &Lights::default())
     }
 
     ///
@@ -142,7 +142,7 @@ impl InstancedModel {
             ..Default::default()
         };
         mat.render_states.cull = self.cull;
-        self.render_forward(&mat, camera)
+        self.render_forward(&mat, camera, &Lights::default())
     }
 
     ///
@@ -176,7 +176,7 @@ impl InstancedModel {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        let mut mat = material.clone();
+        /*let mut mat = material.clone();
         mat.lighting_model = lighting_model;
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
@@ -199,7 +199,8 @@ impl InstancedModel {
                 lights: &lights,
             },
             camera,
-        )
+        )*/
+        Ok(())
     }
 
     pub fn aabb(&self) -> AxisAlignedBoundingBox {
@@ -223,7 +224,12 @@ impl Cullable for &InstancedModel {
 }
 
 impl Shadable for InstancedModel {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
         let render_states = material.render_states(
             self.mesh
                 .mesh
@@ -232,13 +238,15 @@ impl Shadable for InstancedModel {
                 .map(|(_, transparent)| *transparent)
                 .unwrap_or(false),
         );
-        let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.mesh.color_buffer.is_some());
+        let mut fragment_shader_source = lights.fragment_shader_source();
+        fragment_shader_source
+            .push_str(&material.fragment_shader_source(self.mesh.color_buffer.is_some()));
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera)?;
+                lights.use_uniforms(program, camera)?;
                 self.mesh.render(
                     render_states,
                     program,
@@ -271,8 +279,13 @@ impl Shadable for InstancedModel {
 }
 
 impl Shadable for &InstancedModel {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        (*self).render_forward(material, camera)
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
     }
     fn render_deferred(
         &self,

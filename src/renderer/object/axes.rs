@@ -25,14 +25,19 @@ impl Axes {
 }
 
 impl Shadable for Axes {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
         let mut model = self.model.clone();
         model.set_transformation(self.transformation);
-        model.render_forward(material, camera)?;
+        model.render_forward(material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_forward(material, camera)?;
+        model.render_forward(material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_forward(material, camera)
+        model.render_forward(material, camera, lights)
     }
 
     fn render_deferred(
@@ -52,8 +57,13 @@ impl Shadable for Axes {
 }
 
 impl Shadable for &Axes {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        (*self).render_forward(material, camera)
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
     }
     fn render_deferred(
         &self,
@@ -78,7 +88,7 @@ impl Cullable for &Axes {
 }
 
 impl Drawable for Axes {
-    fn render(&self, camera: &Camera) -> Result<()> {
+    fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
         let mut model = self.model.clone();
         model.render_with_color(Color::RED, camera)?;
         model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
@@ -90,8 +100,8 @@ impl Drawable for Axes {
 }
 
 impl Drawable for &Axes {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        (*self).render(camera)
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).render(camera, lights)
     }
 }
 

@@ -146,7 +146,7 @@ impl Imposters {
 }
 
 impl Drawable for Imposters {
-    fn render(&self, camera: &Camera) -> Result<()> {
+    fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
         let render_states = RenderStates {
             blend: Blend::TRANSPARENCY,
             cull: Cull::Back,
@@ -179,7 +179,7 @@ impl Drawable for Imposters {
 }
 
 impl Drawable for &Imposters {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        (*self).render(camera)
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).render(camera, lights)
     }
 }
