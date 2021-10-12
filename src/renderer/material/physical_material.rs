@@ -91,8 +91,37 @@ impl PhysicalMaterial {
             },
         })
     }
+}
 
-    fn bind_internal(&self, program: &Program) -> Result<()> {
+impl ForwardMaterial for PhysicalMaterial {
+    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
+        let mut output = String::new();
+        if self.albedo_texture.is_some()
+            || self.metallic_roughness_texture.is_some()
+            || self.normal_texture.is_some()
+            || self.occlusion_texture.is_some()
+        {
+            output.push_str("in vec2 uvs;\n");
+            if self.albedo_texture.is_some() {
+                output.push_str("#define USE_ALBEDO_TEXTURE;\n");
+            }
+            if self.metallic_roughness_texture.is_some() {
+                output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
+            }
+            if self.occlusion_texture.is_some() {
+                output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
+            }
+            if self.normal_texture.is_some() {
+                output.push_str("#define USE_NORMAL_TEXTURE;\n");
+            }
+        }
+        if use_vertex_colors {
+            output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
+        }
+        output.push_str(include_str!("shaders/physical_material.frag"));
+        output
+    }
+    fn use_uniforms(&self, program: &Program) -> Result<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
@@ -111,15 +140,6 @@ impl PhysicalMaterial {
             program.use_texture("normalTexture", texture.as_ref())?;
         }
         Ok(())
-    }
-}
-
-impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
-        material_shader_source(self, use_vertex_colors)
-    }
-    fn use_uniforms(&self, program: &Program) -> Result<()> {
-        self.bind_internal(program)
     }
 
     fn render_states(&self, transparent: bool) -> RenderStates {
@@ -158,27 +178,14 @@ impl DeferredMaterial for PhysicalMaterial {
     fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
         format!(
             "#define DEFERRED\n{}",
-            material_shader_source(self, use_vertex_colors)
+            self.fragment_shader_source(use_vertex_colors)
         )
-    }
-    fn use_uniforms_deferred(&self, program: &Program) -> Result<()> {
-        self.bind_internal(program)
-    }
-
-    fn render_states_deferred(&self) -> RenderStates {
-        self.render_states
     }
 }
 
 impl DeferredMaterial for &PhysicalMaterial {
     fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
         (*self).fragment_shader_source_deferred(use_vertex_colors)
-    }
-    fn use_uniforms_deferred(&self, program: &Program) -> Result<()> {
-        (*self).use_uniforms_deferred(program)
-    }
-    fn render_states_deferred(&self) -> RenderStates {
-        (*self).render_states_deferred()
     }
 }
 
@@ -203,32 +210,4 @@ impl Default for PhysicalMaterial {
             },
         }
     }
-}
-
-fn material_shader_source(material: &PhysicalMaterial, use_vertex_colors: bool) -> String {
-    let mut output = String::new();
-    if material.albedo_texture.is_some()
-        || material.metallic_roughness_texture.is_some()
-        || material.normal_texture.is_some()
-        || material.occlusion_texture.is_some()
-    {
-        output.push_str("in vec2 uvs;\n");
-        if material.albedo_texture.is_some() {
-            output.push_str("#define USE_ALBEDO_TEXTURE;\n");
-        }
-        if material.metallic_roughness_texture.is_some() {
-            output.push_str("#define USE_METALLIC_ROUGHNESS_TEXTURE;\n");
-        }
-        if material.occlusion_texture.is_some() {
-            output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
-        }
-        if material.normal_texture.is_some() {
-            output.push_str("#define USE_NORMAL_TEXTURE;\n");
-        }
-    }
-    if use_vertex_colors {
-        output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
-    }
-    output.push_str(include_str!("shaders/physical_material.frag"));
-    output
 }
