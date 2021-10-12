@@ -25,7 +25,7 @@ impl ColorMaterial {
 }
 
 impl ForwardMaterial for ColorMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &Lights) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
@@ -33,10 +33,11 @@ impl ForwardMaterial for ColorMaterial {
         if use_vertex_colors {
             shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
+        shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
         shader
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
         program.use_uniform_vec4("color", &self.color.to_vec4())?;
         if let Some(ref tex) = self.texture {
             program.use_texture("tex", &**tex)?
@@ -61,11 +62,11 @@ impl ForwardMaterial for ColorMaterial {
 }
 
 impl ForwardMaterial for &ColorMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
-        (*self).fragment_shader_source(use_vertex_colors)
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
+        (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
-        (*self).use_uniforms(program, camera)
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self, transparent: bool) -> RenderStates {
         (*self).render_states(transparent)
