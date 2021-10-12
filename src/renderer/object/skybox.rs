@@ -49,7 +49,7 @@ impl Skybox {
 }
 
 impl Drawable for Skybox {
-    fn render(&self, camera: &Camera) -> Result<()> {
+    fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             cull: Cull::Front,
@@ -70,7 +70,7 @@ impl Drawable for Skybox {
 }
 
 impl Drawable for &Skybox {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        (*self).render(camera)
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).render(camera, lights)
     }
 }

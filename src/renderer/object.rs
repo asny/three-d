@@ -49,14 +49,14 @@ pub struct Object<G: Geometry, M: ForwardMaterial> {
 }
 
 impl<G: Geometry, M: ForwardMaterial> Drawable for Object<G, M> {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        self.geometry.render_forward(&self.material, camera)
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        self.geometry.render_forward(&self.material, camera, lights)
     }
 }
 
 impl<G: Geometry, M: ForwardMaterial> Drawable for &Object<G, M> {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        (*self).render(camera)
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).render(camera, lights)
     }
 }
 
@@ -77,7 +77,12 @@ pub trait Geometry: Shadable + Cullable {}
 impl Geometry for &dyn Geometry {}
 
 pub trait Shadable {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()>;
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()>;
 
     ///
     /// Render the geometry and surface material parameters of the object.
@@ -92,8 +97,13 @@ pub trait Shadable {
 }
 
 impl Shadable for &dyn Shadable {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        (*self).render_forward(material, camera)
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
     }
 
     fn render_deferred(
@@ -107,8 +117,13 @@ impl Shadable for &dyn Shadable {
 }
 
 impl Shadable for &dyn Geometry {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        (*self).render_forward(material, camera)
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
     }
 
     fn render_deferred(
@@ -143,12 +158,12 @@ pub trait Drawable {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    fn render(&self, camera: &Camera) -> Result<()>;
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()>;
 }
 
 impl Drawable for &dyn Drawable {
-    fn render(&self, camera: &Camera) -> Result<()> {
-        (*self).render(camera)
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).render(camera, lights)
     }
 }
 

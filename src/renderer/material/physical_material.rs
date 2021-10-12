@@ -85,7 +85,12 @@ impl PhysicalMaterial {
             occlusion_texture,
             occlusion_strength: cpu_material.occlusion_strength,
             lighting_model: LightingModel::Blinn,
-            ..Default::default()
+            render_states: RenderStates::default(),
+            transparent_render_states: RenderStates {
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            },
         })
     }
 
@@ -109,42 +114,45 @@ impl PhysicalMaterial {
         }
         Ok(())
     }
+}
 
-    pub fn fragment_shader_source<L: Light>(
-        &self,
-        lights: &[L],
-        use_vertex_colors: bool,
-    ) -> String {
-        let mut shader_source = lights_shader_source(self.lighting_model, lights);
-        shader_source.push_str(&material_shader_source(self, use_vertex_colors));
-        shader_source
+impl ForwardMaterial for PhysicalMaterial {
+    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
+        material_shader_source(self, use_vertex_colors)
     }
-    pub fn use_uniforms<L: Light>(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &[L],
-    ) -> Result<()> {
-        for (i, light) in lights.iter().enumerate() {
-            light.use_uniforms(program, camera, i as u32)?;
-        }
+    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
         self.bind_internal(program)
     }
 
-    pub fn render_states(&self, transparent: bool) -> RenderStates {
+    fn render_states(&self, transparent: bool) -> RenderStates {
         if transparent || self.is_transparent() {
             self.transparent_render_states
         } else {
             self.render_states
         }
     }
-    pub fn is_transparent(&self) -> bool {
+    fn is_transparent(&self) -> bool {
         self.albedo.a != 255
             || self
                 .albedo_texture
                 .as_ref()
                 .map(|t| t.is_transparent())
                 .unwrap_or(false)
+    }
+}
+
+impl ForwardMaterial for &PhysicalMaterial {
+    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
+        (*self).fragment_shader_source(use_vertex_colors)
+    }
+    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
+        (*self).use_uniforms(program, camera)
+    }
+    fn render_states(&self, transparent: bool) -> RenderStates {
+        (*self).render_states(transparent)
+    }
+    fn is_transparent(&self) -> bool {
+        (*self).is_transparent()
     }
 }
 
@@ -200,11 +208,8 @@ impl Default for PhysicalMaterial {
     }
 }
 
-pub(in crate::renderer) fn lights_shader_source<L: Light>(
-    lighting_model: LightingModel,
-    lights: &[L],
-) -> String {
-    let mut shader_source = match lighting_model {
+fn material_shader_source(material: &PhysicalMaterial, use_vertex_colors: bool) -> String {
+    let mut output = match material.lighting_model {
         LightingModel::Phong => "#define PHONG",
         LightingModel::Blinn => "#define BLINN",
         LightingModel::Cook(normal, _) => match normal {
@@ -214,29 +219,6 @@ pub(in crate::renderer) fn lights_shader_source<L: Light>(
         },
     }
     .to_string();
-    shader_source.push_str(include_str!("../../core/shared.frag"));
-    shader_source.push_str(include_str!("shaders/light_shared.frag"));
-    let mut dir_fun = String::new();
-    for (i, light) in lights.iter().enumerate() {
-        shader_source.push_str(&light.shader_source(i as u32));
-        dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, metallic, roughness, occlusion);", i))
-    }
-    shader_source.push_str(&format!(
-        "
-            vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
-            {{
-                vec3 color = vec3(0.0, 0.0, 0.0);
-                {}
-                return color;
-            }}
-            ",
-        &dir_fun
-    ));
-    shader_source
-}
-
-fn material_shader_source(material: &PhysicalMaterial, use_vertex_colors: bool) -> String {
-    let mut output = String::new();
     if material.albedo_texture.is_some()
         || material.metallic_roughness_texture.is_some()
         || material.normal_texture.is_some()

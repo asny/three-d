@@ -259,14 +259,21 @@ impl Cullable for &Particles {
 }
 
 impl Shadable for Particles {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
         let render_states = material.render_states(false);
-        let fragment_shader_source = material.fragment_shader_source(false);
+        let mut fragment_shader_source = lights.fragment_shader_source();
+        fragment_shader_source.push_str(&material.fragment_shader_source(false));
         self.context.program(
             &Particles::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera)?;
+                lights.use_uniforms(program, camera)?;
                 self.render(render_states, program, camera, self.time)
             },
         )
@@ -283,8 +290,13 @@ impl Shadable for Particles {
 }
 
 impl Shadable for &Particles {
-    fn render_forward(&self, material: &dyn ForwardMaterial, camera: &Camera) -> Result<()> {
-        (*self).render_forward(material, camera)
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
     }
     fn render_deferred(
         &self,

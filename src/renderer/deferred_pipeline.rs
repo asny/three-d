@@ -177,8 +177,21 @@ impl DeferredPipeline {
         for light in point_lights {
             lights.push(light);
         }
+        let mut lights_iter = lights.into_iter();
 
-        let mut fragment_shader = lights_shader_source(self.lighting_model, &lights);
+        let mut fragment_shader = match self.lighting_model {
+            LightingModel::Phong => "#define PHONG",
+            LightingModel::Blinn => "#define BLINN",
+            LightingModel::Cook(normal, _) => match normal {
+                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+                NormalDistributionFunction::TrowbridgeReitzGGX => {
+                    "#define COOK\n#define COOK_GGX\n"
+                }
+            },
+        }
+        .to_string();
+        fragment_shader.push_str(&lights_fragment_shader_source(&mut lights_iter));
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         if !self.program_map.contains_key(&fragment_shader) {
@@ -189,7 +202,7 @@ impl DeferredPipeline {
         };
         let effect = self.program_map.get(&fragment_shader).unwrap();
 
-        for (i, light) in lights.iter().enumerate() {
+        for (i, light) in lights_iter.enumerate() {
             light.use_uniforms(effect, camera, i as u32)?;
         }
 
