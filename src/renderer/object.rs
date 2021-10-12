@@ -43,30 +43,30 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-pub struct Object<G: Geometry, M: ForwardMaterial> {
+pub struct Glue<G: Geometry, M: ForwardMaterial> {
     pub geometry: G,
     pub material: M,
 }
 
-impl<G: Geometry, M: ForwardMaterial> Drawable for Object<G, M> {
+impl<G: Geometry, M: ForwardMaterial> Drawable for Glue<G, M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         self.geometry.render_forward(&self.material, camera, lights)
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Drawable for &Object<G, M> {
+impl<G: Geometry, M: ForwardMaterial> Drawable for &Glue<G, M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         (*self).render(camera, lights)
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Cullable for Object<G, M> {
+impl<G: Geometry, M: ForwardMaterial> Cullable for Glue<G, M> {
     fn in_frustum(&self, camera: &Camera) -> bool {
         self.geometry.in_frustum(camera)
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Cullable for &Object<G, M> {
+impl<G: Geometry, M: ForwardMaterial> Cullable for &Glue<G, M> {
     fn in_frustum(&self, camera: &Camera) -> bool {
         (*self).in_frustum(camera)
     }
