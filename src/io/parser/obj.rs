@@ -66,7 +66,6 @@ impl Loaded {
                         1.0
                     },
                     normal_texture,
-                    lighting_model: LightingModel::Blinn,
                     ..Default::default()
                 });
             }

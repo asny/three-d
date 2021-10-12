@@ -27,11 +27,7 @@ impl Skybox {
         let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
-            &format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/skybox.frag")
-            ),
+            include_str!("shaders/skybox.frag"),
         )?;
 
         let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;

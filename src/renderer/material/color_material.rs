@@ -33,7 +33,6 @@ impl ForwardMaterial for ColorMaterial {
         if use_vertex_colors {
             shader.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
-        shader.push_str(include_str!("../../core/shared.frag"));
         shader.push_str(include_str!("shaders/color_material.frag"));
         shader
     }
