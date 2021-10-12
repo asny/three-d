@@ -69,11 +69,33 @@ impl<'a> LightsIterator<'a> {
 impl<'a> Iterator for LightsIterator<'a> {
     type Item = &'a dyn Light;
     fn next(&mut self) -> Option<Self::Item> {
-        let result = if self.index == 0 && self.lights.ambient.is_some() {
-            self.lights.ambient.as_ref().map(|l| l as &dyn Light)
-        } else {
-            None
-        };
+        let result = self
+            .lights
+            .ambient
+            .as_ref()
+            .filter(|_| self.index == 0)
+            .map(|l| l as &dyn Light);
+        let mut count = if self.lights.ambient.is_some() { 1 } else { 0 };
+
+        let result = result.or(self
+            .lights
+            .directional
+            .get(self.index - count)
+            .map(|l| l as &dyn Light));
+        count += self.lights.directional.len();
+
+        let result = result.or(self
+            .lights
+            .spot
+            .get(self.index - count)
+            .map(|l| l as &dyn Light));
+        count += self.lights.spot.len();
+
+        let result = result.or(self
+            .lights
+            .point
+            .get(self.index - count)
+            .map(|l| l as &dyn Light));
 
         self.index += 1;
         result
