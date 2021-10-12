@@ -94,8 +94,8 @@ impl PhysicalMaterial {
 }
 
 impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
-        let mut output = String::new();
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
+        let mut output = lights.fragment_shader_source();
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
@@ -121,7 +121,8 @@ impl ForwardMaterial for PhysicalMaterial {
         output.push_str(include_str!("shaders/physical_material.frag"));
         output
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+        lights.use_uniforms(program, camera)?;
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
@@ -160,11 +161,11 @@ impl ForwardMaterial for PhysicalMaterial {
 }
 
 impl ForwardMaterial for &PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool) -> String {
-        (*self).fragment_shader_source(use_vertex_colors)
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
+        (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
-        (*self).use_uniforms(program, camera)
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self, transparent: bool) -> RenderStates {
         (*self).render_states(transparent)
@@ -178,7 +179,7 @@ impl DeferredMaterial for PhysicalMaterial {
     fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
         format!(
             "#define DEFERRED\n{}",
-            self.fragment_shader_source(use_vertex_colors)
+            self.fragment_shader_source(use_vertex_colors, &Lights::default())
         )
     }
 }
