@@ -44,6 +44,18 @@ impl Skybox {
     }
 }
 
+impl Cullable for Skybox {
+    fn in_frustum(&self, _camera: &Camera) -> bool {
+        true
+    }
+}
+
+impl Cullable for &Skybox {
+    fn in_frustum(&self, camera: &Camera) -> bool {
+        (*self).in_frustum(camera)
+    }
+}
+
 impl Drawable for Skybox {
     fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
         let render_states = RenderStates {
@@ -70,3 +82,6 @@ impl Drawable for &Skybox {
         (*self).render(camera, lights)
     }
 }
+
+impl Object for Skybox {}
+impl Object for &Skybox {}

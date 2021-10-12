@@ -107,3 +107,6 @@ impl Drawable for &Axes {
 
 impl Geometry for Axes {}
 impl Geometry for &Axes {}
+
+impl Object for Axes {}
+impl Object for &Axes {}
