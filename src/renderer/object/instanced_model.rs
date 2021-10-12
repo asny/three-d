@@ -264,14 +264,14 @@ impl Shadable for InstancedModel {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()> {
-        let render_states = material.render_states_deferred();
+        let render_states = material.render_states(false);
         let fragment_shader_source =
             material.fragment_shader_source_deferred(self.mesh.mesh.color_buffer.is_some());
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms_deferred(program)?;
+                material.use_uniforms(program)?;
                 self.mesh
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
