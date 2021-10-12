@@ -27,11 +27,12 @@ pub struct Lights {
     pub directional: Vec<DirectionalLight>,
     pub spot: Vec<SpotLight>,
     pub point: Vec<PointLight>,
+    pub lighting_model: LightingModel,
 }
 
 impl Lights {
     pub fn fragment_shader_source(&self) -> String {
-        lights_fragment_shader_source(&mut LightsIterator::new(self))
+        lights_fragment_shader_source(&mut LightsIterator::new(self), self.lighting_model)
     }
 
     pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
@@ -49,6 +50,7 @@ impl Default for Lights {
             directional: Vec::new(),
             spot: Vec::new(),
             point: Vec::new(),
+            lighting_model: LightingModel::Blinn,
         }
     }
 }
@@ -80,8 +82,19 @@ impl<'a> Iterator for LightsIterator<'a> {
 
 pub(crate) fn lights_fragment_shader_source(
     lights: &mut dyn Iterator<Item = &dyn Light>,
+    lighting_model: LightingModel,
 ) -> String {
-    let mut shader_source = include_str!("../core/shared.frag").to_string();
+    let mut shader_source = match lighting_model {
+        LightingModel::Phong => "#define PHONG",
+        LightingModel::Blinn => "#define BLINN",
+        LightingModel::Cook(normal, _) => match normal {
+            NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+            NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+            NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
+        },
+    }
+    .to_string();
+    shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("./material/shaders/light_shared.frag"));
     let mut dir_fun = String::new();
     for (i, light) in lights.enumerate() {

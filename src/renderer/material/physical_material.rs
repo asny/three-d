@@ -32,7 +32,6 @@ pub struct PhysicalMaterial {
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<Rc<Texture2D>>,
-    pub lighting_model: LightingModel,
     pub render_states: RenderStates,
     pub transparent_render_states: RenderStates,
 }
@@ -84,7 +83,6 @@ impl PhysicalMaterial {
             normal_scale: cpu_material.normal_scale,
             occlusion_texture,
             occlusion_strength: cpu_material.occlusion_strength,
-            lighting_model: LightingModel::Blinn,
             render_states: RenderStates::default(),
             transparent_render_states: RenderStates {
                 write_mask: WriteMask::COLOR,
@@ -197,7 +195,6 @@ impl Default for PhysicalMaterial {
             normal_scale: 1.0,
             occlusion_texture: None,
             occlusion_strength: 1.0,
-            lighting_model: LightingModel::Blinn,
             render_states: RenderStates::default(),
             transparent_render_states: RenderStates {
                 write_mask: WriteMask::COLOR,
@@ -209,16 +206,7 @@ impl Default for PhysicalMaterial {
 }
 
 fn material_shader_source(material: &PhysicalMaterial, use_vertex_colors: bool) -> String {
-    let mut output = match material.lighting_model {
-        LightingModel::Phong => "#define PHONG",
-        LightingModel::Blinn => "#define BLINN",
-        LightingModel::Cook(normal, _) => match normal {
-            NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
-            NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
-            NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
-        },
-    }
-    .to_string();
+    let mut output = String::new();
     if material.albedo_texture.is_some()
         || material.metallic_roughness_texture.is_some()
         || material.normal_texture.is_some()
