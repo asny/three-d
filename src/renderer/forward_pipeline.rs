@@ -33,7 +33,7 @@ impl ForwardPipeline {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        let mut lights: Vec<&dyn Light> = Vec::new();
+        /*let mut lights: Vec<&dyn Light> = Vec::new();
         if let Some(light) = ambient_light {
             lights.push(light)
         }
@@ -54,7 +54,7 @@ impl ForwardPipeline {
                 },
                 camera,
             )?;
-        }
+        }*/
         Ok(())
     }
 
@@ -62,9 +62,10 @@ impl ForwardPipeline {
         &self,
         camera: &Camera,
         objects: &[T],
+        lights: &Lights,
     ) -> Result<()> {
         for object in objects.iter().filter(|o| o.in_frustum(camera)) {
-            object.render(camera)?;
+            object.render(camera, lights)?;
         }
         Ok(())
     }
@@ -78,7 +79,7 @@ impl ForwardPipeline {
             ..Default::default()
         };
         for geometry in geometries {
-            geometry.render_forward(&depth_material, camera)?;
+            geometry.render_forward(&depth_material, camera, &Lights::default())?;
         }
         Ok(())
     }

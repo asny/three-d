@@ -107,7 +107,7 @@ impl DirectionalLight {
         };
         shadow_texture.write(Some(1.0), || {
             for geometry in geometries.iter().filter(|g| g.in_frustum(&shadow_camera)) {
-                geometry.render_forward(&depth_material, &shadow_camera)?;
+                geometry.render_forward(&depth_material, &shadow_camera, &Lights::default())?;
             }
             Ok(())
         })?;

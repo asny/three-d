@@ -72,7 +72,8 @@ impl Rectangle {
 impl Shadable2D for Rectangle {
     fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
         self.context.camera2d(viewport, |camera2d| {
-            self.model.render_forward(material, camera2d)
+            self.model
+                .render_forward(material, camera2d, &Lights::default())
         })
     }
 }
