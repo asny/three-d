@@ -145,28 +145,13 @@ impl InstancedModel {
         self.render_forward(&mat, camera, &Lights::default())
     }
 
-    ///
-    /// Render the geometry and surface material parameters of the object.
-    /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
-    ///
-    #[deprecated = "Use 'render_deferred' instead"]
-    pub fn geometry_pass(
-        &self,
-        camera: &Camera,
-        viewport: Viewport,
-        material: &PhysicalMaterial,
-    ) -> Result<()> {
-        self.render_deferred(material, camera, viewport)
+    pub fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
     }
+}
 
-    ///
-    /// Render the object shaded with the given lights using physically based rendering (PBR).
-    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
-    /// Will render transparent if the material contain an albedo color with alpha value below 255 or if the albedo texture contain an alpha channel (ie. the format is [Format::RGBA]),
-    /// you only need to render the model after all solid models.
-    ///
-    #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_with_lighting(
+impl ShadedGeometry for InstancedModel {
+    fn render_with_lighting(
         &self,
         camera: &Camera,
         material: &PhysicalMaterial,
@@ -176,10 +161,10 @@ impl InstancedModel {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        /*let mut mat = material.clone();
-        mat.lighting_model = lighting_model;
+        let mut mat = material.clone();
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
+
         let mut lights: Vec<&dyn Light> = Vec::new();
         if let Some(light) = ambient_light {
             lights.push(light)
@@ -193,18 +178,43 @@ impl InstancedModel {
         for light in point_lights {
             lights.push(light);
         }
-        self.render_forward(
-            &LitForwardMaterial {
-                material: &mat,
-                lights: &lights,
+        let mut lights_iter = lights.into_iter();
+        let render_states = material.render_states(
+            self.mesh
+                .color_buffer
+                .as_ref()
+                .map(|(_, transparent)| *transparent)
+                .unwrap_or(false),
+        );
+        let mut fragment_shader_source =
+            lights_fragment_shader_source(&mut lights_iter, lighting_model);
+        fragment_shader_source
+            .push_str(&material.fragment_shader_source_internal(self.mesh.color_buffer.is_some()));
+        self.mesh.context.program(
+            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &fragment_shader_source,
+            |program| {
+                for (i, light) in lights_iter.enumerate() {
+                    light.use_uniforms(program, camera, i as u32)?;
+                }
+                material.use_uniforms_internal(program)?;
+                self.mesh.render(
+                    render_states,
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                )
             },
-            camera,
-        )*/
-        Ok(())
+        )
     }
 
-    pub fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
+    fn geometry_pass(
+        &self,
+        camera: &Camera,
+        viewport: Viewport,
+        material: &PhysicalMaterial,
+    ) -> Result<()> {
+        self.render_deferred(material, camera, viewport)
     }
 }
 
