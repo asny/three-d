@@ -220,13 +220,6 @@ impl ShadedGeometry for Model {
         for light in point_lights {
             lights.push(light);
         }
-        let render_states = mat.render_states(
-            self.mesh
-                .color_buffer
-                .as_ref()
-                .map(|(_, transparent)| *transparent)
-                .unwrap_or(false),
-        );
         let mut fragment_shader_source =
             lights_fragment_shader_source(&mut lights.clone().into_iter(), lighting_model);
         fragment_shader_source
@@ -240,7 +233,7 @@ impl ShadedGeometry for Model {
                 }
                 mat.use_uniforms_internal(program)?;
                 self.mesh.render(
-                    render_states,
+                    mat.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
@@ -276,13 +269,6 @@ impl Shadable for Model {
         camera: &Camera,
         lights: &Lights,
     ) -> Result<()> {
-        let render_states = material.render_states(
-            self.mesh
-                .color_buffer
-                .as_ref()
-                .map(|(_, transparent)| *transparent)
-                .unwrap_or(false),
-        );
         let mut fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.mesh.context.program(
@@ -291,7 +277,7 @@ impl Shadable for Model {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
                 self.mesh.render(
-                    render_states,
+                    material.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
@@ -306,7 +292,7 @@ impl Shadable for Model {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()> {
-        let mut render_states = material.render_states(false);
+        let mut render_states = material.render_states();
         render_states.cull = self.cull;
         let fragment_shader_source =
             material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());

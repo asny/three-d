@@ -261,14 +261,13 @@ impl Shadable for Particles {
         camera: &Camera,
         lights: &Lights,
     ) -> Result<()> {
-        let render_states = material.render_states(false);
         let mut fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
             &Particles::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.render(render_states, program, camera, self.time)
+                self.render(material.render_states(), program, camera, self.time)
             },
         )
     }
