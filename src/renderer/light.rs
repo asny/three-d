@@ -121,7 +121,7 @@ pub(crate) fn lights_fragment_shader_source(
     let mut dir_fun = String::new();
     for (i, light) in lights.enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
-        dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, metallic, roughness, occlusion);", i))
+        dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, metallic, roughness, occlusion);\n", i))
     }
     shader_source.push_str(&format!(
         "
