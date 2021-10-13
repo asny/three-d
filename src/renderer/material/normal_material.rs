@@ -38,7 +38,7 @@ impl ForwardMaterial for NormalMaterial {
         }
         Ok(())
     }
-    fn render_states(&self, _transparent: bool) -> RenderStates {
+    fn render_states(&self) -> RenderStates {
         self.render_states
     }
     fn is_transparent(&self) -> bool {
@@ -53,8 +53,8 @@ impl ForwardMaterial for &NormalMaterial {
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
         (*self).use_uniforms(program, camera, lights)
     }
-    fn render_states(&self, transparent: bool) -> RenderStates {
-        (*self).render_states(transparent)
+    fn render_states(&self) -> RenderStates {
+        (*self).render_states()
     }
     fn is_transparent(&self) -> bool {
         (*self).is_transparent()
