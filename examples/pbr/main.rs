@@ -12,8 +12,6 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let pipeline = ForwardPipeline::new(&context).unwrap();
-
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -34,31 +32,39 @@ fn main() {
             let (cpu_meshes, cpu_materials) = loaded
                 .gltf("examples/assets/gltf/DamagedHelmet.glb")
                 .unwrap();
-            let material = Material::new(&context, &cpu_materials[0]).unwrap();
+            let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
+            material.render_states.cull = Cull::Back;
             let mut model = Model::new(&context, &cpu_meshes[0]).unwrap();
-            model.cull = Cull::Back;
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
-            let ambient_light = AmbientLight {
-                color: Color::WHITE,
-                intensity: 0.4,
+            let mut lights = Lights {
+                ambient: Some(AmbientLight {
+                    color: Color::WHITE,
+                    intensity: 0.4,
+                }),
+                directional: vec![
+                    DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0))
+                        .unwrap(),
+                    DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0))
+                        .unwrap(),
+                ],
+                spot: vec![SpotLight::new(
+                    &context,
+                    2.0,
+                    Color::WHITE,
+                    &vec3(0.0, 0.0, 0.0),
+                    &vec3(0.0, -1.0, 0.0),
+                    20.0,
+                    0.1,
+                    0.001,
+                    0.0001,
+                )
+                .unwrap()],
+                lighting_model: LightingModel::Cook(
+                    NormalDistributionFunction::TrowbridgeReitzGGX,
+                    GeometryFunction::SmithSchlickGGX,
+                ),
             };
-            let mut directional_light0 =
-                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0)).unwrap();
-            let mut directional_light1 =
-                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0)).unwrap();
-            let mut spot_light = SpotLight::new(
-                &context,
-                2.0,
-                Color::WHITE,
-                &vec3(0.0, 0.0, 0.0),
-                &vec3(0.0, -1.0, 0.0),
-                20.0,
-                0.1,
-                0.001,
-                0.0001,
-            )
-            .unwrap();
 
             // main loop
             let mut normal_map_enabled = true;
@@ -80,7 +86,7 @@ fn main() {
                         panel_width = gui_context.used_size().x as u32;
                     })
                     .unwrap();
-                    let material = Material {
+                    let material = PhysicalMaterial {
                         name: material.name.clone(),
                         albedo: material.albedo,
                         albedo_texture: if albedo_map_enabled {
@@ -107,7 +113,6 @@ fn main() {
                         } else {
                             None
                         },
-                        lighting_model: material.lighting_model,
                         ..Default::default()
                     };
 
@@ -125,33 +130,26 @@ fn main() {
                     let time = 0.001 * frame_input.accumulated_time;
                     let c = time.cos() as f32;
                     let s = time.sin() as f32;
-                    directional_light0.set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
-                    directional_light1.set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
-                    spot_light.set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
-                    spot_light.set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
+                    lights.directional[0].set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
+                    lights.directional[1].set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
+                    lights.spot[0].set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
+                    lights.spot[0].set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
 
                     // Draw
-                    directional_light0
+                    lights.directional[0]
                         .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 2.0, 20.0, 1024, 1024, &[&model])
                         .unwrap();
-                    directional_light1
+                    lights.directional[1]
                         .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 2.0, 20.0, 1024, 1024, &[&model])
                         .unwrap();
-                    spot_light
+                    lights.spot[0]
                         .generate_shadow_map(15.0, 1024, &[&model])
                         .unwrap();
                     Screen::write(
                         &context,
                         ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                         || {
-                            pipeline.light_pass(
-                                &camera,
-                                &[(&model, &material)],
-                                Some(&ambient_light),
-                                &[&directional_light0, &directional_light1],
-                                &[&spot_light],
-                                &[],
-                            )?;
+                            model.render_forward(&material, &camera, &lights)?;
                             gui.render()?;
                             Ok(())
                         },
