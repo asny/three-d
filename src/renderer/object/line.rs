@@ -78,17 +78,5 @@ impl Shadable2D for &Line {
     }
 }
 
-impl Cullable2D for Line {
-    fn in_frustum(&self, _viewport: Viewport) -> bool {
-        return true;
-    }
-}
-
-impl Cullable2D for &Line {
-    fn in_frustum(&self, viewport: Viewport) -> bool {
-        (*self).in_frustum(viewport)
-    }
-}
-
 impl Geometry2D for Line {}
 impl Geometry2D for &Line {}
