@@ -190,10 +190,6 @@ impl Model {
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera, &Lights::default())
     }
-
-    pub fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.mesh.aabb()
-    }
 }
 
 impl ShadedGeometry for Model {
@@ -262,8 +258,16 @@ impl ShadedGeometry for Model {
     }
 }
 
-impl Geometry for Model {}
-impl Geometry for &Model {}
+impl Geometry for Model {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        self.mesh.aabb()
+    }
+}
+impl Geometry for &Model {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+}
 
 impl Cullable for Model {
     fn in_frustum(&self, camera: &Camera) -> bool {

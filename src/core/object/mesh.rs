@@ -47,6 +47,7 @@ pub struct Mesh {
     uv_buffer: Option<Rc<VertexBuffer>>,
     pub(crate) color_buffer: Option<(Rc<VertexBuffer>, bool)>,
     pub(crate) aabb: AxisAlignedBoundingBox,
+    aabb_local: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
     pub name: String,
     transformation: Mat4,
@@ -96,6 +97,7 @@ impl Mesh {
         } else {
             None
         };
+        let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
             context: context.clone(),
             position_buffer,
@@ -103,7 +105,8 @@ impl Mesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            aabb: cpu_mesh.compute_aabb(),
+            aabb,
+            aabb_local: aabb.clone(),
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
             normal_transformation: Mat4::identity(),
@@ -123,6 +126,9 @@ impl Mesh {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
+        let mut aabb = self.aabb_local.clone();
+        aabb.transform(&self.transformation);
+        self.aabb = aabb;
     }
 
     pub(crate) fn use_attributes(
@@ -196,10 +202,8 @@ impl Mesh {
     ///
     /// Computes the axis aligned bounding box for this mesh.
     ///
-    pub fn aabb(&self) -> AxisAlignedBoundingBox {
-        let mut aabb = self.aabb.clone();
-        aabb.transform(&self.transformation);
-        aabb
+    pub fn aabb(&self) -> &AxisAlignedBoundingBox {
+        &self.aabb
     }
 
     pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
