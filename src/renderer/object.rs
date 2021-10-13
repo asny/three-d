@@ -52,11 +52,19 @@ impl<G: Geometry, M: ForwardMaterial> Drawable for Glue<G, M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         self.geometry.render_forward(&self.material, camera, lights)
     }
+
+    fn is_transparent(&self) -> bool {
+        self.material.is_transparent()
+    }
 }
 
 impl<G: Geometry, M: ForwardMaterial> Drawable for &Glue<G, M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         (*self).render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        (*self).is_transparent()
     }
 }
 
@@ -114,9 +122,40 @@ impl<G: Geometry, M: ForwardMaterial> Geometry for &Glue<G, M> {
 impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {}
 impl<G: Geometry, M: ForwardMaterial> Object for &Glue<G, M> {}
 
+// Object trait
 pub trait Object: Drawable + Geometry {}
 
 impl Object for &dyn Object {}
+
+impl Shadable for &dyn Object {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
+    }
+}
+
+impl Drawable for &dyn Object {
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        (*self).is_transparent()
+    }
+}
 
 impl Geometry for &dyn Object {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
@@ -124,6 +163,7 @@ impl Geometry for &dyn Object {
     }
 }
 
+// Geometry trait
 pub trait Geometry: Shadable {
     fn aabb(&self) -> &AxisAlignedBoundingBox;
 }
@@ -134,6 +174,27 @@ impl Geometry for &dyn Geometry {
     }
 }
 
+impl Shadable for &dyn Geometry {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> Result<()> {
+        (*self).render_forward(material, camera, lights)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> Result<()> {
+        (*self).render_deferred(material, camera, viewport)
+    }
+}
+
+// Shadable trait
 pub trait Shadable {
     fn render_forward(
         &self,
@@ -174,46 +235,6 @@ impl Shadable for &dyn Shadable {
     }
 }
 
-impl Shadable for &dyn Geometry {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> Result<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()> {
-        (*self).render_deferred(material, camera, viewport)
-    }
-}
-
-impl Shadable for &dyn Object {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> Result<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> Result<()> {
-        (*self).render_deferred(material, camera, viewport)
-    }
-}
-
 pub trait Drawable {
     ///
     /// Render the object.
@@ -221,17 +242,17 @@ pub trait Drawable {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()>;
+
+    fn is_transparent(&self) -> bool;
 }
 
 impl Drawable for &dyn Drawable {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         (*self).render(camera, lights)
     }
-}
 
-impl Drawable for &dyn Object {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
-        (*self).render(camera, lights)
+    fn is_transparent(&self) -> bool {
+        (*self).is_transparent()
     }
 }
 
