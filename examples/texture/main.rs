@@ -11,7 +11,6 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    // Renderer
     let pipeline = ForwardPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
         &context,
@@ -39,17 +38,20 @@ fn main() {
             "examples/assets/skybox_evening/right.jpg",
         ],
         move |mut loaded| {
-            let box_texture = Texture2D::new(
-                &context,
-                &loaded.image("examples/assets/test_texture.jpg").unwrap(),
-            )
-            .unwrap();
-            let box_material = Material {
-                albedo_texture: Some(std::rc::Rc::new(box_texture)),
-                ..Default::default()
+            let mut box_object = Glue {
+                geometry: Model::new(&context, &CPUMesh::cube()).unwrap(),
+                material: ColorMaterial {
+                    texture: Some(std::rc::Rc::new(
+                        Texture2D::new(
+                            &context,
+                            &loaded.image("examples/assets/test_texture.jpg").unwrap(),
+                        )
+                        .unwrap(),
+                    )),
+                    ..Default::default()
+                },
             };
-            let mut box_mesh = Model::new(&context, &CPUMesh::cube()).unwrap();
-            box_mesh.cull = Cull::Back;
+            box_object.geometry.cull = Cull::Back;
 
             let skybox = Skybox::new(
                 &context,
@@ -68,17 +70,29 @@ fn main() {
 
             let (penguin_cpu_meshes, penguin_cpu_materials) =
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
-            let penguin_material = Material::new(&context, &penguin_cpu_materials[0]).unwrap();
-            let mut penguin = Model::new(&context, &penguin_cpu_meshes[0]).unwrap();
-            penguin.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
-            penguin.cull = Cull::Back;
-
-            let ambient_light = AmbientLight {
-                intensity: 0.4,
-                color: Color::WHITE,
+            let mut penguin_object = Glue {
+                geometry: Model::new(&context, &penguin_cpu_meshes[0]).unwrap(),
+                material: PhysicalMaterial::new(&context, &penguin_cpu_materials[0]).unwrap(),
             };
-            let directional_light =
-                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
+            penguin_object
+                .geometry
+                .set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
+            penguin_object.geometry.cull = Cull::Back;
+
+            let lights = Lights {
+                ambient: Some(AmbientLight {
+                    intensity: 0.4,
+                    color: Color::WHITE,
+                }),
+                directional: vec![DirectionalLight::new(
+                    &context,
+                    2.0,
+                    Color::WHITE,
+                    &vec3(0.0, -1.0, -1.0),
+                )
+                .unwrap()],
+                ..Default::default()
+            };
 
             let axes = Axes::new(&context, 0.1, 3.0).unwrap();
             // main loop
@@ -93,15 +107,11 @@ fn main() {
                     // draw
                     if redraw {
                         Screen::write(&context, ClearState::default(), || {
-                            pipeline.light_pass(
+                            pipeline.render_pass(
                                 &camera,
-                                &[(&box_mesh, &box_material), (&penguin, &penguin_material)],
-                                Some(&ambient_light),
-                                &[&directional_light],
-                                &[],
-                                &[],
+                                &[&box_object as &dyn Object, &penguin_object, &axes],
+                                &lights,
                             )?;
-                            axes.render(&camera)?;
                             skybox.render(&camera)?;
                             Ok(())
                         })

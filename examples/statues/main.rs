@@ -69,29 +69,37 @@ fn main() {
                     angle.sin() * dist,
                 ));
                 statue.set_transformation(translation * scale * rotation);
-                models.push(statue.clone());
+                models.push(Glue {
+                    geometry: statue.clone(),
+                    material: statue_material.clone(),
+                });
             }
 
             let (fountain_cpu_meshes, fountain_cpu_materials) =
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
-            let fountain_material = Material::new(&context, &fountain_cpu_materials[0]).unwrap();
             let mut fountain = Model::new(&context, &fountain_cpu_meshes[0]).unwrap();
             fountain.cull = Cull::Back;
             fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
+            models.push(Glue {
+                geometry: fountain,
+                material: PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap(),
+            });
 
-            let ambient_light = AmbientLight {
-                intensity: 0.4,
-                color: Color::WHITE,
+            let mut lights = Lights {
+                ambient: Some(AmbientLight {
+                    intensity: 0.4,
+                    color: Color::WHITE,
+                }),
+                directional: vec![DirectionalLight::new(
+                    &context,
+                    10.0,
+                    Color::new_opaque(204, 178, 127),
+                    &vec3(0.0, -1.0, -1.0),
+                )
+                .unwrap()],
+                ..Default::default()
             };
-            let mut directional_light = DirectionalLight::new(
-                &context,
-                10.0,
-                Color::new_opaque(204, 178, 127),
-                &vec3(0.0, -1.0, -1.0),
-            )
-            .unwrap();
-
-            directional_light
+            lights.directional[0]
                 .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 1000.0, 2000.0, 1024, 1024, &models)
                 .unwrap();
 
@@ -124,28 +132,18 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                             || {
-                                let mut models_and_materials = models
+                                for model in models
                                     .iter()
-                                    .map(|m| (m, &statue_material))
-                                    .collect::<Vec<(&Model, &Material)>>();
-                                models_and_materials.push((&fountain, &fountain_material));
-
-                                for (geometry, material) in models_and_materials {
-                                    if primary_camera.in_frustum(&geometry.aabb()) {
-                                        geometry.render_with_lighting(
-                                            if is_primary_camera {
-                                                &primary_camera
-                                            } else {
-                                                &secondary_camera
-                                            },
-                                            material,
-                                            LightingModel::Blinn,
-                                            Some(&ambient_light),
-                                            &[&directional_light],
-                                            &[],
-                                            &[],
-                                        )?;
-                                    }
+                                    .filter(|o| primary_camera.in_frustum(o.aabb()))
+                                {
+                                    model.render(
+                                        if is_primary_camera {
+                                            &primary_camera
+                                        } else {
+                                            &secondary_camera
+                                        },
+                                        &lights,
+                                    )?;
                                 }
                                 Ok(())
                             },
