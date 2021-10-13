@@ -91,11 +91,9 @@ impl PhysicalMaterial {
             },
         })
     }
-}
 
-impl ForwardMaterial for PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
-        let mut output = lights.fragment_shader_source();
+    pub(crate) fn fragment_shader_source_internal(&self, use_vertex_colors: bool) -> String {
+        let mut output = String::new();
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
@@ -121,8 +119,8 @@ impl ForwardMaterial for PhysicalMaterial {
         output.push_str(include_str!("shaders/physical_material.frag"));
         output
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
-        lights.use_uniforms(program, camera)?;
+
+    pub(crate) fn use_uniforms_internal(&self, program: &Program) -> Result<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
@@ -140,6 +138,19 @@ impl ForwardMaterial for PhysicalMaterial {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
             program.use_texture("normalTexture", texture.as_ref())?;
         }
+        Ok(())
+    }
+}
+
+impl ForwardMaterial for PhysicalMaterial {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
+        let mut output = lights.fragment_shader_source();
+        output.push_str(&self.fragment_shader_source_internal(use_vertex_colors));
+        output
+    }
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+        lights.use_uniforms(program, camera)?;
+        self.use_uniforms_internal(program)?;
         Ok(())
     }
 

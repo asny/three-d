@@ -27,38 +27,27 @@ impl ForwardPipeline {
     pub fn light_pass(
         &self,
         camera: &Camera,
-        objects: &[(&dyn Geometry, &PhysicalMaterial)],
+        objects: &[(&dyn ShadedGeometry, &PhysicalMaterial)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        /*let mut lights: Vec<&dyn Light> = Vec::new();
-        if let Some(light) = ambient_light {
-            lights.push(light)
-        }
-        for light in directional_lights {
-            lights.push(light);
-        }
-        for light in spot_lights {
-            lights.push(light);
-        }
-        for light in point_lights {
-            lights.push(light);
-        }
         for (geo, mat) in objects.iter().filter(|(g, _)| g.in_frustum(&camera)) {
-            geo.render_forward(
-                &LitForwardMaterial {
-                    material: mat,
-                    lights: &lights,
-                },
+            geo.render_with_lighting(
                 camera,
+                mat,
+                LightingModel::Blinn,
+                ambient_light,
+                directional_lights,
+                spot_lights,
+                point_lights,
             )?;
-        }*/
+        }
         Ok(())
     }
 
-    pub fn render_pass<T: Cullable + Drawable>(
+    pub fn render_pass<T: Object>(
         &self,
         camera: &Camera,
         objects: &[T],
