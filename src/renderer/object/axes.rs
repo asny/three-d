@@ -88,11 +88,19 @@ impl Drawable for Axes {
         model.render_with_color(Color::BLUE, camera)?;
         Ok(())
     }
+
+    fn is_transparent(&self) -> bool {
+        false
+    }
 }
 
 impl Drawable for &Axes {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         (*self).render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        (*self).is_transparent()
     }
 }
 
