@@ -178,8 +178,7 @@ impl ShadedGeometry for InstancedModel {
         for light in point_lights {
             lights.push(light);
         }
-        let mut lights_iter = lights.into_iter();
-        let render_states = material.render_states(
+        let render_states = mat.render_states(
             self.mesh
                 .color_buffer
                 .as_ref()
@@ -187,17 +186,17 @@ impl ShadedGeometry for InstancedModel {
                 .unwrap_or(false),
         );
         let mut fragment_shader_source =
-            lights_fragment_shader_source(&mut lights_iter, lighting_model);
+            lights_fragment_shader_source(&mut lights.clone().into_iter(), lighting_model);
         fragment_shader_source
-            .push_str(&material.fragment_shader_source_internal(self.mesh.color_buffer.is_some()));
+            .push_str(&mat.fragment_shader_source_internal(self.mesh.color_buffer.is_some()));
         self.mesh.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                for (i, light) in lights_iter.enumerate() {
+                for (i, light) in lights.iter().enumerate() {
                     light.use_uniforms(program, camera, i as u32)?;
                 }
-                material.use_uniforms_internal(program)?;
+                mat.use_uniforms_internal(program)?;
                 self.mesh.render(
                     render_states,
                     program,
