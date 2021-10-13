@@ -3,25 +3,6 @@
 //!
 use crate::core::*;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum LightingModel {
-    Phong,
-    Blinn,
-    Cook(NormalDistributionFunction, GeometryFunction),
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum GeometryFunction {
-    SmithSchlickGGX,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum NormalDistributionFunction {
-    Blinn,
-    Beckmann,
-    TrowbridgeReitzGGX,
-}
-
 ///
 /// A CPU-side version of a [material](crate::renderer::material).
 /// Can be constructed manually or loaded via [io](crate::io).

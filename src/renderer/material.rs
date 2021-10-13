@@ -1,9 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub use crate::core::{
-    CPUMaterial, Color, GeometryFunction, LightingModel, NormalDistributionFunction,
-};
+pub use crate::core::{CPUMaterial, Color};
 
 mod color_material;
 #[doc(inline)]
