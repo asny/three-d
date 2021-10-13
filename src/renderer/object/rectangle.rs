@@ -84,17 +84,5 @@ impl Shadable2D for &Rectangle {
     }
 }
 
-impl Cullable2D for Rectangle {
-    fn in_frustum(&self, _viewport: Viewport) -> bool {
-        return true;
-    }
-}
-
-impl Cullable2D for &Rectangle {
-    fn in_frustum(&self, viewport: Viewport) -> bool {
-        (*self).in_frustum(viewport)
-    }
-}
-
 impl Geometry2D for Rectangle {}
 impl Geometry2D for &Rectangle {}
