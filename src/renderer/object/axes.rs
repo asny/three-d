@@ -7,7 +7,7 @@ use crate::renderer::*;
 #[derive(Clone)]
 pub struct Axes {
     model: Model,
-    pub transformation: Mat4,
+    aabb: AxisAlignedBoundingBox,
 }
 
 impl Axes {
@@ -17,10 +17,15 @@ impl Axes {
     pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self> {
         let mut mesh = CPUMesh::arrow(0.9, 0.6, 16);
         mesh.transform(&Mat4::from_nonuniform_scale(length, radius, radius));
-        Ok(Self {
-            model: Model::new(context, &mesh)?,
-            transformation: Mat4::identity(),
-        })
+        let model = Model::new(context, &mesh)?;
+        let mut aabb = *model.aabb();
+        let mut aabb2 = aabb.clone();
+        aabb2.transform(&Mat4::from_angle_z(degrees(90.0)));
+        aabb.expand_with_aabb(&aabb2);
+        let mut aabb3 = aabb.clone();
+        aabb3.transform(&Mat4::from_angle_y(degrees(-90.0)));
+        aabb.expand_with_aabb(&aabb3);
+        Ok(Self { model, aabb })
     }
 }
 
@@ -32,11 +37,10 @@ impl Shadable for Axes {
         lights: &Lights,
     ) -> Result<()> {
         let mut model = self.model.clone();
-        model.set_transformation(self.transformation);
         model.render_forward(material, camera, lights)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
+        model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
         model.render_forward(material, camera, lights)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
+        model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
         model.render_forward(material, camera, lights)
     }
 
@@ -47,11 +51,10 @@ impl Shadable for Axes {
         viewport: Viewport,
     ) -> Result<()> {
         let mut model = self.model.clone();
-        model.set_transformation(self.transformation);
         model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
+        model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
         model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
+        model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
         model.render_deferred(material, camera, viewport)
     }
 }
@@ -105,8 +108,16 @@ impl Drawable for &Axes {
     }
 }
 
-impl Geometry for Axes {}
-impl Geometry for &Axes {}
+impl Geometry for Axes {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        &self.aabb
+    }
+}
+impl Geometry for &Axes {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+}
 
 impl Object for Axes {}
 impl Object for &Axes {}

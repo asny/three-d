@@ -243,8 +243,16 @@ impl Particles {
     }
 }
 
-impl Geometry for Particles {}
-impl Geometry for &Particles {}
+impl Geometry for Particles {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        &AxisAlignedBoundingBox::INFINITE
+    }
+}
+impl Geometry for &Particles {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+}
 
 impl Cullable for Particles {
     fn in_frustum(&self, _camera: &Camera) -> bool {
