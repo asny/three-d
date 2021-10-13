@@ -61,17 +61,5 @@ impl Shadable2D for &Circle {
     }
 }
 
-impl Cullable2D for Circle {
-    fn in_frustum(&self, _viewport: Viewport) -> bool {
-        return true;
-    }
-}
-
-impl Cullable2D for &Circle {
-    fn in_frustum(&self, viewport: Viewport) -> bool {
-        (*self).in_frustum(viewport)
-    }
-}
-
 impl Geometry2D for Circle {}
 impl Geometry2D for &Circle {}
