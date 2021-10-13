@@ -224,18 +224,6 @@ impl Geometry for &InstancedModel {
     }
 }
 
-impl Cullable for InstancedModel {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        camera.in_frustum(&self.mesh.aabb())
-    }
-}
-
-impl Cullable for &InstancedModel {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
-    }
-}
-
 impl Shadable for InstancedModel {
     fn render_forward(
         &self,

@@ -60,18 +60,6 @@ impl<G: Geometry, M: ForwardMaterial> Drawable for &Glue<G, M> {
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Cullable for Glue<G, M> {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        self.geometry.in_frustum(camera)
-    }
-}
-
-impl<G: Geometry, M: ForwardMaterial> Cullable for &Glue<G, M> {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
-    }
-}
-
 impl<G: Geometry, M: ForwardMaterial> Shadable for Glue<G, M> {
     fn render_forward(
         &self,
@@ -136,7 +124,7 @@ impl Geometry for &dyn Object {
     }
 }
 
-pub trait Geometry: Shadable + Cullable {
+pub trait Geometry: Shadable {
     fn aabb(&self) -> &AxisAlignedBoundingBox;
 }
 
@@ -223,28 +211,6 @@ impl Shadable for &dyn Object {
         viewport: Viewport,
     ) -> Result<()> {
         (*self).render_deferred(material, camera, viewport)
-    }
-}
-
-pub trait Cullable {
-    fn in_frustum(&self, camera: &Camera) -> bool;
-}
-
-impl Cullable for &dyn Cullable {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
-    }
-}
-
-impl Cullable for &dyn Geometry {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
-    }
-}
-
-impl Cullable for &dyn Object {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
     }
 }
 
