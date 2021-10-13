@@ -143,10 +143,8 @@ impl Imposters {
         self.rotation_buffer.fill_with_dynamic(angles_in_radians);
         self.instance_count = positions.len() as u32 / 3;
     }
-}
 
-impl Drawable for Imposters {
-    fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
+    pub fn render(&self, camera: &Camera) -> Result<()> {
         let render_states = RenderStates {
             blend: Blend::TRANSPARENCY,
             cull: Cull::Back,
@@ -175,11 +173,5 @@ impl Drawable for Imposters {
             self.instance_count,
         );
         Ok(())
-    }
-}
-
-impl Drawable for &Imposters {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
-        (*self).render(camera, lights)
     }
 }
