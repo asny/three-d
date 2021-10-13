@@ -45,7 +45,7 @@ pub struct Mesh {
     normal_buffer: Option<Rc<VertexBuffer>>,
     pub(crate) index_buffer: Option<Rc<ElementBuffer>>,
     uv_buffer: Option<Rc<VertexBuffer>>,
-    pub(crate) color_buffer: Option<(Rc<VertexBuffer>, bool)>,
+    pub(crate) color_buffer: Option<Rc<VertexBuffer>>,
     pub(crate) aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
@@ -83,17 +83,7 @@ impl Mesh {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            let mut transparent = false;
-            for i in 0..colors.len() / 4 {
-                if colors[i * 4] != 255 {
-                    transparent = true;
-                    break;
-                }
-            }
-            Some((
-                Rc::new(VertexBuffer::new_with_static(context, colors)?),
-                transparent,
-            ))
+            Some(Rc::new(VertexBuffer::new_with_static(context, colors)?))
         } else {
             None
         };
@@ -157,7 +147,7 @@ impl Mesh {
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
         if program.requires_attribute("color") {
-            let (color_buffer, _) = self
+            let color_buffer = self
                 .color_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
