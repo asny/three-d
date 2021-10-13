@@ -144,10 +144,6 @@ impl InstancedModel {
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera, &Lights::default())
     }
-
-    pub fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
-    }
 }
 
 impl ShadedGeometry for InstancedModel {
@@ -217,8 +213,16 @@ impl ShadedGeometry for InstancedModel {
     }
 }
 
-impl Geometry for InstancedModel {}
-impl Geometry for &InstancedModel {}
+impl Geometry for InstancedModel {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        &AxisAlignedBoundingBox::INFINITE
+    }
+}
+impl Geometry for &InstancedModel {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+}
 
 impl Cullable for InstancedModel {
     fn in_frustum(&self, camera: &Camera) -> bool {

@@ -112,8 +112,16 @@ impl<G: Geometry, M: ForwardMaterial> Shadable for &Glue<G, M> {
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Geometry for Glue<G, M> {}
-impl<G: Geometry, M: ForwardMaterial> Geometry for &Glue<G, M> {}
+impl<G: Geometry, M: ForwardMaterial> Geometry for Glue<G, M> {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        self.geometry.aabb()
+    }
+}
+impl<G: Geometry, M: ForwardMaterial> Geometry for &Glue<G, M> {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+}
 
 impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {}
 impl<G: Geometry, M: ForwardMaterial> Object for &Glue<G, M> {}
@@ -122,9 +130,15 @@ pub trait Object: Drawable + Cullable {}
 
 impl Object for &dyn Object {}
 
-pub trait Geometry: Shadable + Cullable {}
+pub trait Geometry: Shadable + Cullable {
+    fn aabb(&self) -> &AxisAlignedBoundingBox;
+}
 
-impl Geometry for &dyn Geometry {}
+impl Geometry for &dyn Geometry {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+}
 
 pub trait Shadable {
     fn render_forward(
