@@ -116,7 +116,7 @@ pub fn ray_intersect<T: Geometry>(
             ..ClearState::none()
         },
         || {
-            for geometry in geometries.iter().filter(|g| g.in_frustum(&camera)) {
+            for geometry in geometries.iter().filter(|g| camera.in_frustum(g.aabb())) {
                 geometry.render_forward(&depth_material, &camera, &Lights::default())?;
             }
             Ok(())

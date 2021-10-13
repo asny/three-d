@@ -78,18 +78,6 @@ impl Shadable for &Axes {
     }
 }
 
-impl Cullable for Axes {
-    fn in_frustum(&self, _camera: &Camera) -> bool {
-        true
-    }
-}
-
-impl Cullable for &Axes {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
-    }
-}
-
 impl Drawable for Axes {
     fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
         let mut model = self.model.clone();

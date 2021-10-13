@@ -33,7 +33,7 @@ impl ForwardPipeline {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        for (geo, mat) in objects.iter().filter(|(g, _)| g.in_frustum(&camera)) {
+        for (geo, mat) in objects.iter().filter(|(g, _)| camera.in_frustum(g.aabb())) {
             geo.render_with_lighting(
                 camera,
                 mat,
@@ -53,7 +53,7 @@ impl ForwardPipeline {
         objects: &[T],
         lights: &Lights,
     ) -> Result<()> {
-        for object in objects.iter().filter(|o| o.in_frustum(camera)) {
+        for object in objects.iter().filter(|o| camera.in_frustum(o.aabb())) {
             object.render(camera, lights)?;
         }
         Ok(())

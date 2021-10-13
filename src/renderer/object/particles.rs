@@ -254,18 +254,6 @@ impl Geometry for &Particles {
     }
 }
 
-impl Cullable for Particles {
-    fn in_frustum(&self, _camera: &Camera) -> bool {
-        return true;
-    }
-}
-
-impl Cullable for &Particles {
-    fn in_frustum(&self, camera: &Camera) -> bool {
-        (*self).in_frustum(camera)
-    }
-}
-
 impl Shadable for Particles {
     fn render_forward(
         &self,
