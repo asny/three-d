@@ -174,13 +174,6 @@ impl ShadedGeometry for InstancedModel {
         for light in point_lights {
             lights.push(light);
         }
-        let render_states = mat.render_states(
-            self.mesh
-                .color_buffer
-                .as_ref()
-                .map(|(_, transparent)| *transparent)
-                .unwrap_or(false),
-        );
         let mut fragment_shader_source =
             lights_fragment_shader_source(&mut lights.clone().into_iter(), lighting_model);
         fragment_shader_source
@@ -194,7 +187,7 @@ impl ShadedGeometry for InstancedModel {
                 }
                 mat.use_uniforms_internal(program)?;
                 self.mesh.render(
-                    render_states,
+                    mat.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
@@ -231,14 +224,6 @@ impl Shadable for InstancedModel {
         camera: &Camera,
         lights: &Lights,
     ) -> Result<()> {
-        let render_states = material.render_states(
-            self.mesh
-                .mesh
-                .color_buffer
-                .as_ref()
-                .map(|(_, transparent)| *transparent)
-                .unwrap_or(false),
-        );
         let mut fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
@@ -247,7 +232,7 @@ impl Shadable for InstancedModel {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
                 self.mesh.render(
-                    render_states,
+                    material.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
@@ -262,7 +247,6 @@ impl Shadable for InstancedModel {
         camera: &Camera,
         viewport: Viewport,
     ) -> Result<()> {
-        let render_states = material.render_states(false);
         let fragment_shader_source =
             material.fragment_shader_source_deferred(self.mesh.mesh.color_buffer.is_some());
         self.context.program(
@@ -270,8 +254,12 @@ impl Shadable for InstancedModel {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
-                self.mesh
-                    .render(render_states, program, camera.uniform_buffer(), viewport)
+                self.mesh.render(
+                    material.render_states(),
+                    program,
+                    camera.uniform_buffer(),
+                    viewport,
+                )
             },
         )
     }
