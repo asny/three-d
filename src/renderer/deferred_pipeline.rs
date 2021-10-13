@@ -177,10 +177,9 @@ impl DeferredPipeline {
         for light in point_lights {
             lights.push(light);
         }
-        let mut lights_iter = lights.into_iter();
 
         let mut fragment_shader =
-            lights_fragment_shader_source(&mut lights_iter, self.lighting_model);
+            lights_fragment_shader_source(&mut lights.clone().into_iter(), self.lighting_model);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         if !self.program_map.contains_key(&fragment_shader) {
@@ -191,7 +190,7 @@ impl DeferredPipeline {
         };
         let effect = self.program_map.get(&fragment_shader).unwrap();
 
-        for (i, light) in lights_iter.enumerate() {
+        for (i, light) in lights.iter().enumerate() {
             light.use_uniforms(effect, camera, i as u32)?;
         }
 
