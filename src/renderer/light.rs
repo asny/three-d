@@ -22,6 +22,25 @@ pub use ambient_light::*;
 
 use crate::core::*;
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum LightingModel {
+    Phong,
+    Blinn,
+    Cook(NormalDistributionFunction, GeometryFunction),
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum GeometryFunction {
+    SmithSchlickGGX,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum NormalDistributionFunction {
+    Blinn,
+    Beckmann,
+    TrowbridgeReitzGGX,
+}
+
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
     pub directional: Vec<DirectionalLight>,

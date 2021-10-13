@@ -64,6 +64,7 @@ fn main() {
                     NormalDistributionFunction::TrowbridgeReitzGGX,
                     GeometryFunction::SmithSchlickGGX,
                 ),
+                ..Default::default()
             };
 
             // main loop
