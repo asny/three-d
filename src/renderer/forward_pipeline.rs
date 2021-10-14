@@ -23,6 +23,7 @@ impl ForwardPipeline {
     /// Render the objects with the given surface materials and the given set of lights.
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     ///
+    #[allow(deprecated)]
     #[deprecated = "Use render_pass instead"]
     pub fn light_pass(
         &self,

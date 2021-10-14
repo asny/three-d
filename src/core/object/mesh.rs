@@ -10,6 +10,7 @@ pub struct MeshProgram {
     program: Program,
 }
 
+#[allow(deprecated)]
 impl MeshProgram {
     ///
     /// Constructs a new shader program for rendering meshes. The fragment shader can use the fragments position in world space by adding `in vec3 pos;`,
@@ -26,6 +27,7 @@ impl MeshProgram {
     }
 }
 
+#[allow(deprecated)]
 impl std::ops::Deref for MeshProgram {
     type Target = Program;
 

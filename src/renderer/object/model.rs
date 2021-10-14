@@ -15,6 +15,7 @@ pub struct Model {
     normal_transformation: Mat4,
 }
 
+#[allow(deprecated)]
 impl Model {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
         let mesh = Mesh::new(context, cpu_mesh)?;
@@ -30,14 +31,14 @@ impl Model {
     }
 
     ///
-    /// Returns the local to world transformation applied to this geometry.
+    /// Returns the local to world transformation applied to this model.
     ///
-    fn transformation(&self) -> &Mat4 {
+    pub fn transformation(&self) -> &Mat4 {
         &self.transformation
     }
 
     ///
-    /// Set the local to world transformation applied to this geometry.
+    /// Set the local to world transformation applied to this model.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
@@ -207,6 +208,7 @@ impl Model {
     }
 }
 
+#[allow(deprecated)]
 impl ShadedGeometry for Model {
     fn render_with_lighting(
         &self,
@@ -282,6 +284,7 @@ impl Geometry for &Model {
     }
 }
 
+#[allow(deprecated)]
 impl Shadable for Model {
     fn render_forward(
         &self,
@@ -289,7 +292,7 @@ impl Shadable for Model {
         camera: &Camera,
         lights: &Lights,
     ) -> Result<()> {
-        let mut fragment_shader_source =
+        let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),

@@ -10,6 +10,7 @@ pub struct ParticlesProgram {
     program: Program,
 }
 
+#[allow(deprecated)]
 impl ParticlesProgram {
     ///
     /// Creates a new program which can be used to render particles.
@@ -26,6 +27,7 @@ impl ParticlesProgram {
     }
 }
 
+#[allow(deprecated)]
 impl std::ops::Deref for ParticlesProgram {
     type Target = Program;
 
@@ -254,6 +256,7 @@ impl Geometry for &Particles {
     }
 }
 
+#[allow(deprecated)]
 impl Shadable for Particles {
     fn render_forward(
         &self,
@@ -261,7 +264,7 @@ impl Shadable for Particles {
         camera: &Camera,
         lights: &Lights,
     ) -> Result<()> {
-        let mut fragment_shader_source = material.fragment_shader_source(false, lights);
+        let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
             &Particles::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
