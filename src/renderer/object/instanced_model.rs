@@ -9,14 +9,22 @@ pub struct InstancedModel {
     mesh: InstancedMesh,
     #[deprecated = "set in render states on material instead"]
     pub cull: Cull,
+    aabb: AxisAlignedBoundingBox,
+    transformation: Mat4,
+    normal_transformation: Mat4,
 }
 
 impl InstancedModel {
     pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self> {
+        let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
+        let aabb = mesh.aabb().clone();
         Ok(Self {
             context: context.clone(),
-            mesh: InstancedMesh::new(context, transformations, cpu_mesh)?,
+            mesh,
             cull: Cull::default(),
+            aabb,
+            transformation: Mat4::identity(),
+            normal_transformation: Mat4::identity(),
         })
     }
 
@@ -24,14 +32,18 @@ impl InstancedModel {
     /// Returns the local to world transformation applied to this geometry.
     ///
     fn transformation(&self) -> &Mat4 {
-        &self.mesh.transformation()
+        &self.transformation
     }
 
     ///
     /// Set the local to world transformation applied to this geometry.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
+        self.transformation = transformation;
+        self.normal_transformation = self.transformation.invert().unwrap().transpose();
+        let mut aabb = self.mesh.aabb().clone();
+        aabb.transform(&self.transformation);
+        self.aabb = aabb;
     }
 
     ///
@@ -98,7 +110,8 @@ impl InstancedModel {
             fragment_shader_source,
             |program| {
                 program.use_texture("tex", texture)?;
-                self.mesh.render(
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                self.mesh.draw(
                     render_states,
                     program,
                     camera.uniform_buffer(),
@@ -186,7 +199,8 @@ impl ShadedGeometry for InstancedModel {
                     light.use_uniforms(program, camera, i as u32)?;
                 }
                 mat.use_uniforms_internal(program)?;
-                self.mesh.render(
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                self.mesh.draw(
                     mat.render_states(),
                     program,
                     camera.uniform_buffer(),
@@ -235,7 +249,8 @@ impl Shadable for InstancedModel {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.mesh.render(
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                self.mesh.draw(
                     material.render_states(),
                     program,
                     camera.uniform_buffer(),
@@ -258,7 +273,8 @@ impl Shadable for InstancedModel {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
-                self.mesh.render(
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                self.mesh.draw(
                     material.render_states(),
                     program,
                     camera.uniform_buffer(),

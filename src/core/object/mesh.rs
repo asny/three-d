@@ -46,7 +46,6 @@ pub struct Mesh {
     pub uv_buffer: Option<Rc<VertexBuffer>>,
     pub color_buffer: Option<Rc<VertexBuffer>>,
     aabb: AxisAlignedBoundingBox,
-    aabb_local: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
     pub name: String,
     transformation: Mat4,
@@ -95,7 +94,6 @@ impl Mesh {
             uv_buffer,
             color_buffer,
             aabb,
-            aabb_local: aabb.clone(),
             name: cpu_mesh.name.clone(),
             transformation: Mat4::identity(),
             normal_transformation: Mat4::identity(),
@@ -105,6 +103,7 @@ impl Mesh {
     ///
     /// Returns the local to world transformation of this mesh.
     ///
+    #[deprecated = "Use Model instead"]
     pub fn transformation(&self) -> &Mat4 {
         &self.transformation
     }
@@ -112,12 +111,10 @@ impl Mesh {
     ///
     /// Set the local to world transformation of this mesh.
     ///
+    #[deprecated = "Use Model instead"]
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
-        let mut aabb = self.aabb_local.clone();
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
     }
 
     ///
@@ -130,8 +127,26 @@ impl Mesh {
     /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
     /// function will return an error.
     ///
-    #[deprecated = "Use render_forward in Model instead"]
+    #[deprecated = "Use Model instead"]
     pub fn render(
+        &self,
+        render_states: RenderStates,
+        program: &Program,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+    ) -> Result<()> {
+        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+        self.draw(render_states, program, camera_buffer, viewport)
+    }
+
+    ///
+    /// Computes the axis aligned bounding box for this mesh.
+    ///
+    pub fn aabb(&self) -> &AxisAlignedBoundingBox {
+        &self.aabb
+    }
+
+    pub(crate) fn draw(
         &self,
         render_states: RenderStates,
         program: &Program,
@@ -154,19 +169,11 @@ impl Mesh {
         Ok(())
     }
 
-    ///
-    /// Computes the axis aligned bounding box for this mesh.
-    ///
-    pub fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &self.aabb
-    }
-
     pub(crate) fn use_attributes(
         &self,
         program: &Program,
         camera_buffer: &UniformBuffer,
     ) -> Result<()> {
-        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_block("Camera", camera_buffer);
 
         if program.requires_attribute("position") {
