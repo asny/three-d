@@ -144,6 +144,7 @@ impl Mesh {
     ///
     /// Computes the axis aligned bounding box for this mesh.
     ///
+    #[deprecated = "Use Model instead"]
     pub fn aabb(&self) -> &AxisAlignedBoundingBox {
         &self.aabb
     }
