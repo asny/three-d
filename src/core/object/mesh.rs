@@ -35,18 +35,17 @@ impl std::ops::Deref for MeshProgram {
 }
 
 ///
-/// A triangle mesh which can be rendered with a custom [MeshProgram](MeshProgram).
+/// A triangle mesh where the mesh data is transfered to the GPU.
 ///
-#[deprecated = "Use Model instead"]
 #[derive(Clone)]
 pub struct Mesh {
-    pub(crate) context: Context,
-    pub(crate) position_buffer: Rc<VertexBuffer>,
-    normal_buffer: Option<Rc<VertexBuffer>>,
-    pub(crate) index_buffer: Option<Rc<ElementBuffer>>,
-    uv_buffer: Option<Rc<VertexBuffer>>,
-    pub(crate) color_buffer: Option<Rc<VertexBuffer>>,
-    pub(crate) aabb: AxisAlignedBoundingBox,
+    context: Context,
+    pub position_buffer: Rc<VertexBuffer>,
+    pub normal_buffer: Option<Rc<VertexBuffer>>,
+    pub index_buffer: Option<Rc<ElementBuffer>>,
+    pub uv_buffer: Option<Rc<VertexBuffer>>,
+    pub color_buffer: Option<Rc<VertexBuffer>>,
+    aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     /// Optional name of the mesh.
     pub name: String,
@@ -121,6 +120,47 @@ impl Mesh {
         self.aabb = aabb;
     }
 
+    ///
+    /// Render the mesh with the given [Program].
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write].
+    ///
+    /// # Errors
+    /// Will return an error if the program requires a certain attribute and the mesh does not have that attribute data.
+    /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
+    /// function will return an error.
+    ///
+    #[deprecated = "Use render_forward in Model instead"]
+    pub fn render(
+        &self,
+        render_states: RenderStates,
+        program: &Program,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+    ) -> Result<()> {
+        self.use_attributes(program, camera_buffer)?;
+        if program.requires_attribute("normal") {
+            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+        }
+        if let Some(ref index_buffer) = self.index_buffer {
+            program.draw_elements(render_states, viewport, index_buffer);
+        } else {
+            program.draw_arrays(
+                render_states,
+                viewport,
+                self.position_buffer.count() as u32 / 3,
+            );
+        }
+        Ok(())
+    }
+
+    ///
+    /// Computes the axis aligned bounding box for this mesh.
+    ///
+    pub fn aabb(&self) -> &AxisAlignedBoundingBox {
+        &self.aabb
+    }
+
     pub(crate) fn use_attributes(
         &self,
         program: &Program,
@@ -154,46 +194,6 @@ impl Mesh {
             program.use_attribute_vec4("color", color_buffer)?;
         }
         Ok(())
-    }
-
-    ///
-    /// Render the mesh with the given [Program].
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
-    ///
-    /// # Errors
-    /// Will return an error if the program requires a certain attribute and the mesh does not have that attribute data.
-    /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
-    /// function will return an error.
-    ///
-    pub fn render(
-        &self,
-        render_states: RenderStates,
-        program: &Program,
-        camera_buffer: &UniformBuffer,
-        viewport: Viewport,
-    ) -> Result<()> {
-        self.use_attributes(program, camera_buffer)?;
-        if program.requires_attribute("normal") {
-            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
-        }
-        if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(render_states, viewport, index_buffer);
-        } else {
-            program.draw_arrays(
-                render_states,
-                viewport,
-                self.position_buffer.count() as u32 / 3,
-            );
-        }
-        Ok(())
-    }
-
-    ///
-    /// Computes the axis aligned bounding box for this mesh.
-    ///
-    pub fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &self.aabb
     }
 
     pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
