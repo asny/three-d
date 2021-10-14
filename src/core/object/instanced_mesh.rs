@@ -81,28 +81,8 @@ impl InstancedMesh {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> Result<()> {
-        program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
-        program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
-        program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
-
-        self.mesh.use_attributes(program, camera_buffer)?;
-
-        if let Some(ref index_buffer) = self.mesh.index_buffer {
-            program.draw_elements_instanced(
-                render_states,
-                viewport,
-                index_buffer,
-                self.instance_count,
-            );
-        } else {
-            program.draw_arrays_instanced(
-                render_states,
-                viewport,
-                self.mesh.position_buffer.count() as u32 / 3,
-                self.instance_count,
-            );
-        }
-        Ok(())
+        program.use_uniform_mat4("modelMatrix", self.mesh.transformation())?;
+        self.draw(render_states, program, camera_buffer, viewport)
     }
 
     ///
@@ -135,8 +115,35 @@ impl InstancedMesh {
         self.instance_buffer3.fill_with_dynamic(&row3);
     }
 
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_infinite() // TODO: Compute bounding box
+    pub(crate) fn draw(
+        &self,
+        render_states: RenderStates,
+        program: &Program,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+    ) -> Result<()> {
+        program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
+        program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
+        program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
+
+        self.mesh.use_attributes(program, camera_buffer)?;
+
+        if let Some(ref index_buffer) = self.mesh.index_buffer {
+            program.draw_elements_instanced(
+                render_states,
+                viewport,
+                index_buffer,
+                self.instance_count,
+            );
+        } else {
+            program.draw_arrays_instanced(
+                render_states,
+                viewport,
+                self.mesh.position_buffer.count() as u32 / 3,
+                self.instance_count,
+            );
+        }
+        Ok(())
     }
 
     pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
