@@ -9,6 +9,7 @@ pub struct InstancedMeshProgram {
     program: Program,
 }
 
+#[allow(deprecated)]
 impl InstancedMeshProgram {
     ///
     /// Constructs a new shader program for rendering instanced meshes. The fragment shader can use the fragments position by adding `in vec3 pos;`,
@@ -25,6 +26,7 @@ impl InstancedMeshProgram {
     }
 }
 
+#[allow(deprecated)]
 impl std::ops::Deref for InstancedMeshProgram {
     type Target = Program;
 
@@ -45,6 +47,7 @@ pub struct InstancedMesh {
     instance_buffer3: InstanceBuffer,
 }
 
+#[allow(deprecated)]
 impl InstancedMesh {
     ///
     /// Constructs a new InstancedMesh from the given [CPUMesh]. The mesh is rendered
@@ -154,6 +157,7 @@ impl InstancedMesh {
     }
 }
 
+#[allow(deprecated)]
 impl std::ops::Deref for InstancedMesh {
     type Target = Mesh;
     fn deref(&self) -> &Self::Target {
@@ -161,6 +165,7 @@ impl std::ops::Deref for InstancedMesh {
     }
 }
 
+#[allow(deprecated)]
 impl std::ops::DerefMut for InstancedMesh {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.mesh

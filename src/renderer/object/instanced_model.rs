@@ -4,6 +4,7 @@ use crate::renderer::*;
 ///
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently. See [InstancedMesh] if you need a custom render function.
 ///
+#[allow(deprecated)]
 pub struct InstancedModel {
     context: Context,
     mesh: InstancedMesh,
@@ -14,6 +15,7 @@ pub struct InstancedModel {
     normal_transformation: Mat4,
 }
 
+#[allow(deprecated)]
 impl InstancedModel {
     pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self> {
         let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
@@ -29,14 +31,14 @@ impl InstancedModel {
     }
 
     ///
-    /// Returns the local to world transformation applied to this geometry.
+    /// Returns the local to world transformation applied to this instanced model.
     ///
-    fn transformation(&self) -> &Mat4 {
+    pub fn transformation(&self) -> &Mat4 {
         &self.transformation
     }
 
     ///
-    /// Set the local to world transformation applied to this geometry.
+    /// Set the local to world transformation applied to this instanced model.
     ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
@@ -159,6 +161,7 @@ impl InstancedModel {
     }
 }
 
+#[allow(deprecated)]
 impl ShadedGeometry for InstancedModel {
     fn render_with_lighting(
         &self,
@@ -235,6 +238,7 @@ impl Geometry for &InstancedModel {
     }
 }
 
+#[allow(deprecated)]
 impl Shadable for InstancedModel {
     fn render_forward(
         &self,
