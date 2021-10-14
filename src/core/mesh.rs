@@ -229,8 +229,8 @@ impl Mesh {
             } else {
                 ""
             },
-            include_str!("../shared.frag"),
-            include_str!("shaders/mesh.vert"),
+            include_str!("shared.frag"),
+            include_str!("mesh.vert"),
         )
     }
 }

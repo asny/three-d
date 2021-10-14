@@ -122,9 +122,17 @@ pub use math::*;
 pub mod texture;
 pub use texture::*;
 
-mod object;
+mod cpu_mesh;
 #[doc(inline)]
-pub use object::*;
+pub use cpu_mesh::*;
+
+mod mesh;
+#[doc(inline)]
+pub use mesh::*;
+
+mod instanced_mesh;
+#[doc(inline)]
+pub use instanced_mesh::*;
 
 pub mod render_states;
 pub use render_states::*;
