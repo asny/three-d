@@ -129,7 +129,7 @@ impl Mesh {
     /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
     /// function will return an error.
     ///
-    #[deprecated = "Use Model instead"]
+    #[deprecated = "Instead, use render_forward in Model or use Program and send attributes and uniforms self"]
     pub fn render(
         &self,
         render_states: RenderStates,
