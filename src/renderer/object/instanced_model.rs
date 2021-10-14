@@ -150,14 +150,14 @@ impl ShadedGeometry for InstancedModel {
     fn render_with_lighting(
         &self,
         camera: &Camera,
-        material: &PhysicalMaterial,
+        material: &Material,
         lighting_model: LightingModel,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> Result<()> {
-        let mut mat = material.clone();
+        let mut mat = PhysicalMaterial::new_from_material(material)?;
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
 
@@ -200,9 +200,13 @@ impl ShadedGeometry for InstancedModel {
         &self,
         camera: &Camera,
         viewport: Viewport,
-        material: &PhysicalMaterial,
+        material: &Material,
     ) -> Result<()> {
-        self.render_deferred(material, camera, viewport)
+        self.render_deferred(
+            &PhysicalMaterial::new_from_material(material)?,
+            camera,
+            viewport,
+        )
     }
 }
 
