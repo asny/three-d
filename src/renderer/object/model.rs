@@ -11,6 +11,7 @@ pub struct Model {
     #[deprecated = "set in render states on material instead"]
     pub cull: Cull,
     aabb: AxisAlignedBoundingBox,
+    aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     normal_transformation: Mat4,
 }
@@ -19,10 +20,11 @@ pub struct Model {
 impl Model {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
         let mesh = Mesh::new(context, cpu_mesh)?;
-        let aabb = mesh.aabb().clone();
+        let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
             mesh,
             aabb,
+            aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             normal_transformation: Mat4::identity(),
             context: context.clone(),
@@ -43,7 +45,7 @@ impl Model {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
-        let mut aabb = self.mesh.aabb().clone();
+        let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);
         self.aabb = aabb;
     }
@@ -275,7 +277,7 @@ impl ShadedGeometry for Model {
 
 impl Geometry for Model {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
-        self.mesh.aabb()
+        &self.aabb
     }
 }
 impl Geometry for &Model {

@@ -10,6 +10,7 @@ pub struct InstancedModel {
     mesh: InstancedMesh,
     #[deprecated = "set in render states on material instead"]
     pub cull: Cull,
+    aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     normal_transformation: Mat4,
@@ -19,12 +20,13 @@ pub struct InstancedModel {
 impl InstancedModel {
     pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self> {
         let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
-        let aabb = mesh.aabb().clone();
+        let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
             context: context.clone(),
             mesh,
             cull: Cull::default(),
             aabb,
+            aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             normal_transformation: Mat4::identity(),
         })
@@ -43,7 +45,7 @@ impl InstancedModel {
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
-        let mut aabb = self.mesh.aabb().clone();
+        let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);
         self.aabb = aabb;
     }
