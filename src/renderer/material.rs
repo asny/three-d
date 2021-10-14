@@ -1,7 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub use crate::core::{CPUMaterial, Color};
+pub use crate::core::{CPUMaterial, Color, Material};
 
 mod color_material;
 #[doc(inline)]

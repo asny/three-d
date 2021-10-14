@@ -27,7 +27,7 @@ impl ForwardPipeline {
     pub fn light_pass(
         &self,
         camera: &Camera,
-        objects: &[(&dyn ShadedGeometry, &PhysicalMaterial)],
+        objects: &[(&dyn ShadedGeometry, &Material)],
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],

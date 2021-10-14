@@ -136,6 +136,10 @@ mod cpu_material;
 #[doc(inline)]
 pub use cpu_material::*;
 
+mod material;
+#[doc(inline)]
+pub use material::*;
+
 mod camera;
 #[doc(inline)]
 pub use camera::*;

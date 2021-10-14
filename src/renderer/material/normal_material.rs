@@ -12,10 +12,10 @@ pub struct NormalMaterial {
 }
 
 impl NormalMaterial {
-    pub fn new_from_physical_material(physical_material: &PhysicalMaterial) -> Self {
+    pub fn new_from_material(material: &Material) -> Self {
         Self {
-            normal_scale: physical_material.normal_scale,
-            normal_texture: physical_material.normal_texture.clone(),
+            normal_scale: material.normal_scale,
+            normal_texture: material.normal_texture.clone(),
             render_states: RenderStates::default(),
         }
     }

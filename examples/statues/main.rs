@@ -53,7 +53,8 @@ fn main() {
         move |mut loaded| {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
-            let statue_material = Material::new(&context, &statue_cpu_materials[0]).unwrap();
+            let statue_material =
+                PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
             let mut statue = Model::new(&context, &statue_cpu_meshes[0]).unwrap();
             statue.cull = Cull::Back;
 

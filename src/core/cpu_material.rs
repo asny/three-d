@@ -4,7 +4,7 @@
 use crate::core::*;
 
 ///
-/// A CPU-side version of a [material](crate::renderer::material).
+/// A CPU-side version of a [Material].
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
 pub struct CPUMaterial {
