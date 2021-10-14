@@ -12,12 +12,17 @@ pub struct NormalMaterial {
 }
 
 impl NormalMaterial {
-    pub fn new_from_material(material: &Material) -> Self {
-        Self {
-            normal_scale: material.normal_scale,
-            normal_texture: material.normal_texture.clone(),
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
+        let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
+        Ok(Self {
+            normal_scale: cpu_material.normal_scale,
+            normal_texture: normal_texture,
             render_states: RenderStates::default(),
-        }
+        })
     }
 }
 

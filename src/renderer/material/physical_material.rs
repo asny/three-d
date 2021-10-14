@@ -38,7 +38,7 @@ impl PhysicalMaterial {
         Self::new_from_material(&Material::new(context, cpu_material)?)
     }
 
-    pub fn new_from_material(material: &Material) -> Result<Self> {
+    pub(crate) fn new_from_material(material: &Material) -> Result<Self> {
         Ok(Self {
             name: material.name.clone(),
             albedo: material.albedo,
