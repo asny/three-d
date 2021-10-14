@@ -6,6 +6,7 @@ use crate::renderer::*;
 ///
 #[derive(Clone)]
 pub struct Model {
+    context: Context,
     mesh: Mesh,
     #[deprecated = "set in render states on material instead"]
     pub cull: Cull,
@@ -15,6 +16,7 @@ impl Model {
     pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
         Ok(Self {
             mesh: Mesh::new(context, cpu_mesh)?,
+            context: context.clone(),
             cull: Cull::default(),
         })
     }
@@ -139,7 +141,7 @@ impl Model {
             }
         };
         let fragment_shader_source = include_str!("shaders/mesh_texture.frag");
-        self.mesh.context.program(
+        self.context.program(
             &Mesh::vertex_shader_source(fragment_shader_source),
             fragment_shader_source,
             |program| {
@@ -224,7 +226,7 @@ impl ShadedGeometry for Model {
             lights_fragment_shader_source(&mut lights.clone().into_iter(), lighting_model);
         fragment_shader_source
             .push_str(&mat.fragment_shader_source_internal(self.mesh.color_buffer.is_some()));
-        self.mesh.context.program(
+        self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
@@ -275,7 +277,7 @@ impl Shadable for Model {
     ) -> Result<()> {
         let mut fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
-        self.mesh.context.program(
+        self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
@@ -300,7 +302,7 @@ impl Shadable for Model {
         render_states.cull = self.cull;
         let fragment_shader_source =
             material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
-        self.mesh.context.program(
+        self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {

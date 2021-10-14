@@ -178,7 +178,7 @@ impl ShadedGeometry for InstancedModel {
             lights_fragment_shader_source(&mut lights.clone().into_iter(), lighting_model);
         fragment_shader_source
             .push_str(&mat.fragment_shader_source_internal(self.mesh.color_buffer.is_some()));
-        self.mesh.context.program(
+        self.context.program(
             &Mesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
