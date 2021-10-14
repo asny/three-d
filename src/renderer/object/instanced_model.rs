@@ -192,7 +192,7 @@ impl ShadedGeometry for InstancedModel {
         fragment_shader_source
             .push_str(&mat.fragment_shader_source_internal(self.mesh.color_buffer.is_some()));
         self.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &InstancedMesh::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 for (i, light) in lights.iter().enumerate() {
@@ -242,7 +242,7 @@ impl Shadable for InstancedModel {
         camera: &Camera,
         lights: &Lights,
     ) -> Result<()> {
-        let mut fragment_shader_source =
+        let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
             &InstancedMesh::vertex_shader_source(&fragment_shader_source),
