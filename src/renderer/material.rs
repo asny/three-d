@@ -26,11 +26,21 @@ mod physical_material;
 #[doc(inline)]
 pub use physical_material::*;
 
+///
+/// Represents a material that can be applied to a [Shadable] object.
+///
+/// The material can use the attributes position (in world space) by adding `in vec3 pos;`,
+/// normal by `in vec3 nor;`, uv coordinates by `in vec2 uvs;` and color by `in vec4 col;` to the fragment shader source code.
+///
 pub trait ForwardMaterial {
+    /// Returns the fragment shader source for this material. Should output the final fragment color.
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String;
+    /// Sends the uniform data needed for this material to the fragment shader.
     fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights)
         -> ThreeDResult<()>;
+    /// Returns the render states needed to render with this material.
     fn render_states(&self) -> RenderStates;
+    /// Returns whether or not this material is transparent.
     fn is_transparent(&self) -> bool;
 }
 
@@ -54,7 +64,11 @@ impl ForwardMaterial for &dyn ForwardMaterial {
     }
 }
 
+///
+/// Represents a material that can be used in a [DeferredPipeline::geometry_pass].
+///
 pub trait DeferredMaterial: ForwardMaterial {
+    /// Returns the deferred version of the fragment shader source for this material.
     fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String;
 }
 

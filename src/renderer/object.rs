@@ -223,6 +223,9 @@ impl Shadable for &dyn Geometry {
 ///
 /// Represents a 3D object that is possible to render with [ForwardMaterial]s and [DeferredMaterial]s.
 ///
+/// If requested by the material, the shadable object has to support the attributes position (in world space) `out vec3 pos;`,
+/// normal `out vec3 nor;`, uv coordinates `out vec2 uvs;` and color `out vec4 col;` in the vertex shader source code.
+///
 pub trait Shadable {
     ///
     /// Render the object with the given material.

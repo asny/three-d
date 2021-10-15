@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// A triangle mesh which can be rendered with one of the standard render functions. See [Mesh] if you need a custom render function.
+/// A triangle mesh which can be rendered with a [ForwardMaterial] or [DeferredMaterial].
 ///
 #[derive(Clone)]
 pub struct Model {
