@@ -220,7 +220,9 @@ impl Shadable for &dyn Geometry {
 
 // Shadable trait
 
-/// Represents an object that is possible to render with [ForwardMaterial]s and [DeferredMaterial]s.
+///
+/// Represents a 3D object that is possible to render with [ForwardMaterial]s and [DeferredMaterial]s.
+///
 pub trait Shadable {
     ///
     /// Render the object with the given material.
@@ -267,8 +269,17 @@ impl Shadable for &dyn Shadable {
     }
 }
 
-// 2D
+// Shadable2D trait
+
+///
+/// Represents a 2D object that is possible to render with [ForwardMaterial]s.
+///
 pub trait Shadable2D {
+    ///
+    /// Render the object with the given material.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -286,6 +297,9 @@ impl Shadable2D for &dyn Shadable2D {
     }
 }
 
+///
+///
+///
 #[deprecated]
 pub trait ShadedGeometry: Geometry {
     ///
