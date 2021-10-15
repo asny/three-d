@@ -1,5 +1,33 @@
 use three_d::core::*;
+use three_d::renderer::*;
 use three_d::window::*;
+
+struct MandelbrotMaterial {}
+
+impl ForwardMaterial for MandelbrotMaterial {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
+        include_str!("../assets/shaders/mandelbrot.frag").to_string()
+    }
+    fn use_uniforms(
+        &self,
+        _program: &Program,
+        _camera: &Camera,
+        _lights: &Lights,
+    ) -> ThreeDResult<()> {
+        Ok(())
+    }
+    fn render_states(&self) -> RenderStates {
+        RenderStates {
+            depth_test: DepthTest::Always,
+            write_mask: WriteMask::COLOR,
+            cull: Cull::Back,
+            ..Default::default()
+        }
+    }
+    fn is_transparent(&self) -> bool {
+        false
+    }
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -29,7 +57,7 @@ fn main() {
     let positions = vec![
         -2.0, -2.0, 0.0, 2.0, -2.0, 0.0, 2.0, 2.0, 0.0, -2.0, 2.0, 0.0,
     ];
-    let mut mesh = Mesh::new(
+    let mut mesh = Model::new(
         &context,
         &CPUMesh {
             indices: Some(Indices::U8(indices)),
@@ -39,8 +67,6 @@ fn main() {
     )
     .unwrap();
     mesh.set_transformation(Mat4::from_scale(10.0));
-    let program =
-        MeshProgram::new(&context, include_str!("../assets/shaders/mandelbrot.frag")).unwrap();
 
     // main loop
     window
@@ -82,17 +108,7 @@ fn main() {
 
             if redraw {
                 Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-                    mesh.render(
-                        RenderStates {
-                            depth_test: DepthTest::Always,
-                            write_mask: WriteMask::COLOR,
-                            cull: Cull::Back,
-                            ..Default::default()
-                        },
-                        &program,
-                        &camera.uniform_buffer(),
-                        camera.viewport(),
-                    )?;
+                    mesh.render_forward(&MandelbrotMaterial {}, &camera, &Lights::default())?;
                     Ok(())
                 })
                 .unwrap();

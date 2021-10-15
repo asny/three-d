@@ -27,7 +27,7 @@ pub use light::*;
 pub mod object;
 pub use object::*;
 
-pub(crate) use crate::ThreeDResult;
+pub use crate::ThreeDResult;
 use thiserror::Error;
 ///
 /// Error in the [renderer](crate::renderer) module.

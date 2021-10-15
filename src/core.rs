@@ -191,7 +191,7 @@ mod viewport;
 #[doc(inline)]
 pub use viewport::*;
 
-pub(crate) use crate::ThreeDResult;
+pub use crate::ThreeDResult;
 use thiserror::Error;
 ///
 /// Error in the [core](crate::core) module.
