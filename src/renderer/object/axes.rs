@@ -92,11 +92,32 @@ impl Geometry for &Axes {
 impl Object for Axes {
     fn render(&self, camera: &Camera, _lights: &Lights) -> ThreeDResult<()> {
         let mut model = self.model.clone();
-        model.render_with_color(Color::RED, camera)?;
+        model.render_forward(
+            &ColorMaterial {
+                color: Color::RED,
+                ..Default::default()
+            },
+            camera,
+            &Lights::default(),
+        )?;
         model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
-        model.render_with_color(Color::GREEN, camera)?;
+        model.render_forward(
+            &ColorMaterial {
+                color: Color::GREEN,
+                ..Default::default()
+            },
+            camera,
+            &Lights::default(),
+        )?;
         model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
-        model.render_with_color(Color::BLUE, camera)?;
+        model.render_forward(
+            &ColorMaterial {
+                color: Color::BLUE,
+                ..Default::default()
+            },
+            camera,
+            &Lights::default(),
+        )?;
         Ok(())
     }
 
