@@ -529,10 +529,16 @@ impl Program {
         self.context.unuse_program();
     }
 
+    ///
+    /// Returns true if this program uses the uniform with the given name.
+    ///
     pub fn requires_uniform(&self, name: &str) -> bool {
         self.uniforms.contains_key(name)
     }
 
+    ///
+    /// Returns true if this program uses the attribute with the given name.
+    ///
     pub fn requires_attribute(&self, name: &str) -> bool {
         self.vertex_attributes.contains_key(name)
     }
