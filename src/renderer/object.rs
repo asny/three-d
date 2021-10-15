@@ -268,11 +268,6 @@ impl Shadable for &dyn Shadable {
 }
 
 // 2D
-
-pub trait Geometry2D: Shadable2D {}
-
-impl Geometry2D for &dyn Geometry2D {}
-
 pub trait Shadable2D {
     fn render_forward(
         &self,
@@ -282,16 +277,6 @@ pub trait Shadable2D {
 }
 
 impl Shadable2D for &dyn Shadable2D {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, viewport)
-    }
-}
-
-impl Shadable2D for &dyn Geometry2D {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,

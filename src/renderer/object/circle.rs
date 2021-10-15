@@ -68,6 +68,3 @@ impl Shadable2D for &Circle {
         (*self).render_forward(material, viewport)
     }
 }
-
-impl Geometry2D for Circle {}
-impl Geometry2D for &Circle {}

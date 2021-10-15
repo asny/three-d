@@ -91,6 +91,3 @@ impl Shadable2D for &Rectangle {
         (*self).render_forward(material, viewport)
     }
 }
-
-impl Geometry2D for Rectangle {}
-impl Geometry2D for &Rectangle {}

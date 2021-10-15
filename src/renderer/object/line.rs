@@ -85,6 +85,3 @@ impl Shadable2D for &Line {
         (*self).render_forward(material, viewport)
     }
 }
-
-impl Geometry2D for Line {}
-impl Geometry2D for &Line {}
