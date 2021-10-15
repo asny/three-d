@@ -36,7 +36,7 @@ mod image_io {
         /// the [image](https://crates.io/crates/image/main.rs) crate.
         /// The CPUTexture can then be used to create a [Texture2D].
         ///
-        pub fn image<P: AsRef<Path>>(&mut self, path: P) -> Result<CPUTexture<u8>> {
+        pub fn image<P: AsRef<Path>>(&mut self, path: P) -> ThreeDResult<CPUTexture<u8>> {
             image_from_bytes(&self.get_bytes(path)?)
         }
 
@@ -53,7 +53,7 @@ mod image_io {
             bottom_path: P,
             front_path: P,
             back_path: P,
-        ) -> Result<CPUTexture<u8>> {
+        ) -> ThreeDResult<CPUTexture<u8>> {
             let mut right = self.image(right_path)?;
             let left = self.image(left_path)?;
             let top = self.image(top_path)?;
@@ -80,7 +80,7 @@ mod image_io {
             pixels: &[u8],
             width: u32,
             height: u32,
-        ) -> Result<()> {
+        ) -> ThreeDResult<()> {
             let mut pixels_out = vec![0u8; width as usize * height as usize * 4];
             for row in 0..height as usize {
                 for col in 0..width as usize {

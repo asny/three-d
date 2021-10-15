@@ -11,7 +11,7 @@ pub struct FogEffect {
 }
 
 impl FogEffect {
-    pub fn new(gl: &Context) -> Result<FogEffect> {
+    pub fn new(gl: &Context) -> ThreeDResult<FogEffect> {
         Ok(FogEffect {
             color: vec3(0.8, 0.8, 0.8),
             density: 0.2,
@@ -25,7 +25,7 @@ impl FogEffect {
         camera: &Camera,
         depth_texture: &DepthTargetTexture2D,
         time: f32,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             blend: Blend::TRANSPARENCY,

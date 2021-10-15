@@ -94,11 +94,11 @@ impl Screen {
     /// in the `render` closure to render something to the screen.
     /// Before writing, the screen is cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> Result<()>>(
+    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         context: &Context,
         clear_state: ClearState,
         render: F,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         context.bind_framebuffer(consts::DRAW_FRAMEBUFFER, None);
         clear(context, &clear_state);
         render()?;
@@ -108,7 +108,7 @@ impl Screen {
     ///
     /// Returns the RGBA color values from the screen as a list of bytes (one byte for each color channel).
     ///
-    pub fn read_color(context: &Context, viewport: Viewport) -> Result<Vec<u8>> {
+    pub fn read_color(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<u8>> {
         let mut pixels = vec![0u8; viewport.width as usize * viewport.height as usize * 4];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_u8_data(
@@ -128,7 +128,7 @@ impl Screen {
     /// Only available on desktop.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn read_depth(context: &Context, viewport: Viewport) -> Result<Vec<f32>> {
+    pub fn read_depth(context: &Context, viewport: Viewport) -> ThreeDResult<Vec<f32>> {
         let mut pixels = vec![0f32; viewport.width as usize * viewport.height as usize];
         context.bind_framebuffer(consts::READ_FRAMEBUFFER, None);
         context.read_pixels_with_f32_data(
@@ -179,7 +179,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         context: &Context,
         color_texture: &'a ColorTargetTexture2D<T>,
         depth_texture: &'b DepthTargetTexture2D,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -192,11 +192,11 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Renders whatever rendered in the `render` closure into the textures defined at construction.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> Result<()>>(
+    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &self,
         clear_state: ClearState,
         render: F,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         self.bind(consts::DRAW_FRAMEBUFFER)?;
         clear(
             &self.context,
@@ -224,7 +224,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let copy = || {
             let fragment_shader_source = "
             uniform sampler2D colorMap;
@@ -280,7 +280,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     pub(super) fn new_color(
         context: &Context,
         color_texture: &'a ColorTargetTexture2D<T>,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -292,7 +292,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     pub(super) fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2D,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -301,7 +301,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         })
     }
 
-    pub(super) fn bind(&self, target: u32) -> Result<()> {
+    pub(super) fn bind(&self, target: u32) -> ThreeDResult<()> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
@@ -343,7 +343,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         context: &Context,
         color_texture: &'a ColorTargetTexture2DArray<T>,
         depth_texture: &'b DepthTargetTexture2DArray,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -355,7 +355,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     pub(super) fn new_color(
         context: &Context,
         color_texture: &'a ColorTargetTexture2DArray<T>,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -367,7 +367,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     pub(super) fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2DArray,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -388,8 +388,8 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         color_layers: &[u32],
         depth_layer: u32,
         clear_state: ClearState,
-        render: impl FnOnce() -> Result<()>,
-    ) -> Result<()> {
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
         self.bind(Some(color_layers), Some(depth_layer))?;
         clear(
             &self.context,
@@ -419,7 +419,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let copy = || {
             let fragment_shader_source = "
             uniform sampler2DArray colorMap;
@@ -481,7 +481,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         Ok(())
     }
 
-    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> Result<()> {
+    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> ThreeDResult<()> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
@@ -513,14 +513,14 @@ impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     }
 }
 
-fn new_framebuffer(context: &Context) -> Result<crate::context::Framebuffer> {
+fn new_framebuffer(context: &Context) -> ThreeDResult<crate::context::Framebuffer> {
     Ok(context
         .create_framebuffer()
         .ok_or(CoreError::RenderTargetCreation)?)
 }
 
 #[cfg(feature = "debug")]
-fn check(context: &Context) -> Result<()> {
+fn check(context: &Context) -> ThreeDResult<()> {
     context
         .check_framebuffer_status()
         .or_else(|status| Err(CoreError::RenderTargetCreation))

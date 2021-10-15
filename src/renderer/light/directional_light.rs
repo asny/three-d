@@ -18,7 +18,7 @@ impl DirectionalLight {
         intensity: f32,
         color: Color,
         direction: &Vec3,
-    ) -> Result<DirectionalLight> {
+    ) -> ThreeDResult<DirectionalLight> {
         let mut light = DirectionalLight {
             context: context.clone(),
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
@@ -72,7 +72,7 @@ impl DirectionalLight {
         texture_width: u32,
         texture_height: u32,
         geometries: &[G],
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 
@@ -157,7 +157,7 @@ impl Light for DirectionalLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         if let Some(tex) = self.shadow_map() {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
         } else {
@@ -174,7 +174,7 @@ impl Light for &DirectionalLight {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, i)
     }
 }

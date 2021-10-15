@@ -22,7 +22,7 @@ impl Light for AmbientLight {
         
         ", i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> ThreeDResult<()> {
         program.use_uniform_vec3(
             &format!("ambientColor{}", i),
             &(self.color.to_vec3() * self.intensity),
@@ -34,7 +34,7 @@ impl Light for &AmbientLight {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, i)
     }
 }

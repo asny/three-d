@@ -12,7 +12,7 @@ pub struct NormalMaterial {
 }
 
 impl NormalMaterial {
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
@@ -36,7 +36,12 @@ impl ForwardMaterial for NormalMaterial {
         shader.push_str(include_str!("shaders/normal_material.frag"));
         shader
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        _camera: &Camera,
+        _lights: &Lights,
+    ) -> ThreeDResult<()> {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
             program.use_texture("normalTexture", &**tex)?;
@@ -55,7 +60,12 @@ impl ForwardMaterial for &NormalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {

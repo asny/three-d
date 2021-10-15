@@ -49,7 +49,7 @@ pub struct Glue<G: Geometry, M: ForwardMaterial> {
 }
 
 impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         self.geometry.render_forward(&self.material, camera, lights)
     }
 
@@ -59,7 +59,7 @@ impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {
 }
 
 impl<G: Geometry, M: ForwardMaterial> Object for &Glue<G, M> {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         (*self).render(camera, lights)
     }
 
@@ -74,7 +74,7 @@ impl<G: Geometry, M: ForwardMaterial> Shadable for Glue<G, M> {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         self.geometry.render_forward(material, camera, lights)
     }
 
@@ -83,7 +83,7 @@ impl<G: Geometry, M: ForwardMaterial> Shadable for Glue<G, M> {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         self.geometry.render_deferred(material, camera, viewport)
     }
 }
@@ -94,7 +94,7 @@ impl<G: Geometry, M: ForwardMaterial> Shadable for &Glue<G, M> {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, camera, lights)
     }
 
@@ -103,7 +103,7 @@ impl<G: Geometry, M: ForwardMaterial> Shadable for &Glue<G, M> {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
     }
 }
@@ -126,13 +126,13 @@ pub trait Object: Geometry {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()>;
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()>;
 
     fn is_transparent(&self) -> bool;
 }
 
 impl Object for &dyn Object {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         (*self).render(camera, lights)
     }
 
@@ -147,7 +147,7 @@ impl Shadable for &dyn Object {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, camera, lights)
     }
 
@@ -156,7 +156,7 @@ impl Shadable for &dyn Object {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
     }
 }
@@ -184,7 +184,7 @@ impl Shadable for &dyn Geometry {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, camera, lights)
     }
 
@@ -193,7 +193,7 @@ impl Shadable for &dyn Geometry {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
     }
 }
@@ -205,7 +205,7 @@ pub trait Shadable {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()>;
+    ) -> ThreeDResult<()>;
 
     ///
     /// Render the geometry and surface material parameters of the object.
@@ -216,7 +216,7 @@ pub trait Shadable {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()>;
+    ) -> ThreeDResult<()>;
 }
 
 impl Shadable for &dyn Shadable {
@@ -225,7 +225,7 @@ impl Shadable for &dyn Shadable {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, camera, lights)
     }
 
@@ -234,7 +234,7 @@ impl Shadable for &dyn Shadable {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
     }
 }
@@ -246,17 +246,29 @@ pub trait Geometry2D: Shadable2D {}
 impl Geometry2D for &dyn Geometry2D {}
 
 pub trait Shadable2D {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()>;
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()>;
 }
 
 impl Shadable2D for &dyn Shadable2D {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, viewport)
     }
 }
 
 impl Shadable2D for &dyn Geometry2D {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, viewport)
     }
 }
@@ -268,8 +280,12 @@ pub trait ShadedGeometry: Geometry {
     /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
     ///
     #[deprecated = "Use 'render_deferred' instead"]
-    fn geometry_pass(&self, camera: &Camera, viewport: Viewport, material: &Material)
-        -> Result<()>;
+    fn geometry_pass(
+        &self,
+        camera: &Camera,
+        viewport: Viewport,
+        material: &Material,
+    ) -> ThreeDResult<()>;
     ///
     /// Render the object shaded with the given lights using physically based rendering (PBR).
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
@@ -286,5 +302,5 @@ pub trait ShadedGeometry: Geometry {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<()>;
+    ) -> ThreeDResult<()>;
 }

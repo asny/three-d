@@ -20,7 +20,7 @@ pub struct Imposters {
 }
 
 impl Imposters {
-    pub fn new(context: &Context) -> Result<Self> {
+    pub fn new(context: &Context) -> ThreeDResult<Self> {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0];
         let positions_buffer = VertexBuffer::new(&context)?;
         let uvs_buffer = VertexBuffer::new_with_static(&context, &uvs)?;
@@ -64,10 +64,10 @@ impl Imposters {
 
     pub fn update_texture(
         &mut self,
-        render: impl Fn(&Camera) -> Result<()>,
+        render: impl Fn(&Camera) -> ThreeDResult<()>,
         aabb: (Vec3, Vec3),
         max_texture_size: u32,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let (min, max) = aabb;
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
@@ -143,7 +143,7 @@ impl Imposters {
         self.instance_count = positions.len() as u32 / 3;
     }
 
-    pub fn render(&self, camera: &Camera) -> Result<()> {
+    pub fn render(&self, camera: &Camera) -> ThreeDResult<()> {
         let render_states = RenderStates {
             blend: Blend::TRANSPARENCY,
             cull: Cull::Back,

@@ -10,7 +10,7 @@ pub struct Line {
 }
 
 impl Line {
-    pub fn new(context: &Context, pixel0: Vec2, pixel1: Vec2, width: f32) -> Result<Self> {
+    pub fn new(context: &Context, pixel0: Vec2, pixel1: Vec2, width: f32) -> ThreeDResult<Self> {
         let mut mesh = CPUMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))));
         let mut line = Self {
@@ -64,7 +64,11 @@ impl Line {
 }
 
 impl Shadable2D for Line {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model
                 .render_forward(material, camera2d, &Lights::default())
@@ -73,7 +77,11 @@ impl Shadable2D for Line {
 }
 
 impl Shadable2D for &Line {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, viewport)
     }
 }

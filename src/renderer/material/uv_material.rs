@@ -10,7 +10,12 @@ impl ForwardMaterial for UVMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         include_str!("shaders/uv_material.frag").to_string()
     }
-    fn use_uniforms(&self, _program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        _program: &Program,
+        _camera: &Camera,
+        _lights: &Lights,
+    ) -> ThreeDResult<()> {
         Ok(())
     }
     fn render_states(&self) -> RenderStates {
@@ -25,7 +30,12 @@ impl ForwardMaterial for &UVMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {

@@ -34,7 +34,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: Format,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, 1);
         set_parameters(
@@ -78,11 +78,11 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     /// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
     /// Use a [RenderTarget] to write to both color and depth.
     ///
-    pub fn write<F: FnOnce() -> Result<()>>(
+    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &self,
         clear_state: ClearState,
         render: F,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         RenderTarget::<T>::new_color(&self.context, &self)?.write(clear_state, render)
     }
 
@@ -98,7 +98,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         RenderTarget::new_color(&self.context, &self)?.copy_to(destination, viewport, write_mask)
     }
 
@@ -110,7 +110,7 @@ impl<T: TextureDataType> ColorTargetTexture2D<T> {
     /// # Errors
     /// Will return an error if the color texture is not RGBA format.
     ///
-    pub fn read(&self, viewport: Viewport) -> Result<Vec<T>> {
+    pub fn read(&self, viewport: Viewport) -> ThreeDResult<Vec<T>> {
         if self.format != Format::RGBA {
             Err(CoreError::ReadWrongFormat)?;
         }

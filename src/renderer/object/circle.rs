@@ -9,7 +9,7 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn new(context: &Context, center: Vec2, radius: f32) -> Result<Self> {
+    pub fn new(context: &Context, center: Vec2, radius: f32) -> ThreeDResult<Self> {
         let mesh = CPUMesh::circle(64);
         let mut circle = Self {
             context: context.clone(),
@@ -47,7 +47,11 @@ impl Circle {
 }
 
 impl Shadable2D for Circle {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model
                 .render_forward(material, camera2d, &Lights::default())
@@ -56,7 +60,11 @@ impl Shadable2D for Circle {
 }
 
 impl Shadable2D for &Circle {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, viewport)
     }
 }

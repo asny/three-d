@@ -6,7 +6,10 @@ impl Loaded {
     ///
     /// Deserialize a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
     ///
-    pub fn three_d<P: AsRef<Path>>(&mut self, path: P) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
+    pub fn three_d<P: AsRef<Path>>(
+        &mut self,
+        path: P,
+    ) -> ThreeDResult<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
         let bytes = self.get_bytes(path.as_ref())?;
         let mut decoded = bincode::deserialize::<ThreeDMesh>(bytes)
             .or_else(|_| Self::deserialize_version2(bytes))
@@ -65,7 +68,7 @@ impl Loaded {
         Ok((cpu_meshes, cpu_materials))
     }
 
-    fn deserialize_version2(bytes: &[u8]) -> Result<ThreeDMesh> {
+    fn deserialize_version2(bytes: &[u8]) -> ThreeDResult<ThreeDMesh> {
         Ok(
             bincode::deserialize::<ThreeDMeshV2>(bytes).map(|m| ThreeDMesh {
                 magic_number: m.magic_number,
@@ -86,7 +89,7 @@ impl Loaded {
         )
     }
 
-    fn deserialize_version1(bytes: &[u8]) -> Result<ThreeDMesh> {
+    fn deserialize_version1(bytes: &[u8]) -> ThreeDResult<ThreeDMesh> {
         Ok(
             bincode::deserialize::<ThreeDMeshV1>(bytes).map(|m| ThreeDMesh {
                 magic_number: m.magic_number,
@@ -120,7 +123,7 @@ impl Saver {
         path: P,
         cpu_meshes: Vec<CPUMesh>,
         cpu_materials: Vec<CPUMaterial>,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let dir = path.as_ref().parent().unwrap();
         let filename = path.as_ref().file_stem().unwrap().to_str().unwrap();
         for cpu_material in cpu_materials.iter() {
@@ -152,7 +155,7 @@ impl Saver {
         filename: &str,
         cpu_meshes: Vec<CPUMesh>,
         cpu_materials: Vec<CPUMaterial>,
-    ) -> Result<Vec<u8>> {
+    ) -> ThreeDResult<Vec<u8>> {
         let mut meshes = Vec::new();
         for cpu_mesh in cpu_meshes {
             let indices = cpu_mesh.indices.map(|indices| match indices {

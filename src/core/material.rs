@@ -36,7 +36,7 @@ impl Material {
     /// If the input contains an [CPUMaterial::occlusion_metallic_roughness_texture], this texture is used for both
     /// [Material::metallic_roughness_texture] and [Material::occlusion_texture] while any [CPUMaterial::metallic_roughness_texture] or [CPUMaterial::occlusion_texture] are ignored.
     ///
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {

@@ -39,7 +39,7 @@ impl Camera {
         height: f32,
         z_near: f32,
         z_far: f32,
-    ) -> Result<Camera> {
+    ) -> ThreeDResult<Camera> {
         let mut camera = Camera::new(context, viewport)?;
         camera.set_view(position, target, up)?;
         camera.set_orthographic_projection(height, z_near, z_far)?;
@@ -58,7 +58,7 @@ impl Camera {
         field_of_view_y: impl Into<Radians>,
         z_near: f32,
         z_far: f32,
-    ) -> Result<Camera> {
+    ) -> ThreeDResult<Camera> {
         let mut camera = Camera::new(context, viewport)?;
         camera.set_view(position, target, up)?;
         camera.set_perspective_projection(field_of_view_y, z_near, z_far)?;
@@ -73,7 +73,7 @@ impl Camera {
         field_of_view_y: impl Into<Radians>,
         z_near: f32,
         z_far: f32,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         if z_near < 0.0 || z_near > z_far {
             panic!("Wrong perspective camera parameters")
         };
@@ -99,7 +99,7 @@ impl Camera {
         height: f32,
         z_near: f32,
         z_far: f32,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         if z_near > z_far {
             panic!("Wrong orthographic camera parameters")
         };
@@ -125,7 +125,7 @@ impl Camera {
     /// Set the current viewport.
     /// Returns whether or not the viewport actually changed.
     ///
-    pub fn set_viewport(&mut self, viewport: Viewport) -> Result<bool> {
+    pub fn set_viewport(&mut self, viewport: Viewport) -> ThreeDResult<bool> {
         if self.viewport != viewport {
             self.viewport = viewport;
             match self.projection_type {
@@ -146,7 +146,7 @@ impl Camera {
     /// Change the view of the camera.
     /// The camera is placed at the given position, looking at the given target and with the given up direction.
     ///
-    pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3) -> Result<()> {
+    pub fn set_view(&mut self, position: Vec3, target: Vec3, up: Vec3) -> ThreeDResult<()> {
         self.position = position;
         self.target = target;
         self.up = up;
@@ -164,7 +164,7 @@ impl Camera {
     ///
     /// Change the camera view such that it is mirrored in the xz-plane.
     ///
-    pub fn mirror_in_xz_plane(&mut self) -> Result<()> {
+    pub fn mirror_in_xz_plane(&mut self) -> ThreeDResult<()> {
         self.view[1][0] = -self.view[1][0];
         self.view[1][1] = -self.view[1][1];
         self.view[1][2] = -self.view[1][2];
@@ -369,7 +369,7 @@ impl Camera {
         &self.uniform_buffer
     }
 
-    fn new(context: &Context, viewport: Viewport) -> Result<Camera> {
+    fn new(context: &Context, viewport: Viewport) -> ThreeDResult<Camera> {
         Ok(Camera {
             context: context.clone(),
             viewport,
@@ -396,7 +396,7 @@ impl Camera {
         self.screen2ray = (self.projection * v).invert().unwrap();
     }
 
-    fn update_uniform_buffer(&mut self) -> Result<()> {
+    fn update_uniform_buffer(&mut self) -> ThreeDResult<()> {
         self.uniform_buffer
             .update(0, &(self.projection * self.view).to_slice())?;
         self.uniform_buffer.update(1, &self.view.to_slice())?;
@@ -420,7 +420,7 @@ impl Camera {
     ///
     /// Translate the camera by the given change while keeping the same view and up directions.
     ///
-    pub fn translate(&mut self, change: &Vec3) -> Result<()> {
+    pub fn translate(&mut self, change: &Vec3) -> ThreeDResult<()> {
         self.set_view(self.position + change, self.target + change, self.up)?;
         Ok(())
     }
@@ -428,7 +428,7 @@ impl Camera {
     ///
     /// Rotates the camera by the angle delta around the 'right' direction.
     ///
-    pub fn pitch(&mut self, delta: impl Into<Radians>) -> Result<()> {
+    pub fn pitch(&mut self, delta: impl Into<Radians>) -> ThreeDResult<()> {
         let target = (self.view.invert().unwrap()
             * Mat4::from_angle_x(delta)
             * self.view
@@ -443,7 +443,7 @@ impl Camera {
     ///
     /// Rotates the camera by the angle delta around the 'up' direction.
     ///
-    pub fn yaw(&mut self, delta: impl Into<Radians>) -> Result<()> {
+    pub fn yaw(&mut self, delta: impl Into<Radians>) -> ThreeDResult<()> {
         let target = (self.view.invert().unwrap()
             * Mat4::from_angle_y(delta)
             * self.view
@@ -456,7 +456,7 @@ impl Camera {
     ///
     /// Rotates the camera by the angle delta around the 'view' direction.
     ///
-    pub fn roll(&mut self, delta: impl Into<Radians>) -> Result<()> {
+    pub fn roll(&mut self, delta: impl Into<Radians>) -> ThreeDResult<()> {
         let up = (self.view.invert().unwrap()
             * Mat4::from_angle_z(delta)
             * self.view
@@ -472,7 +472,7 @@ impl Camera {
     /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
     /// If you want the camera up direction to stay fixed, use the [rotate_around_with_fixed_up](Camera::rotate_around_with_fixed_up) function instead.
     ///
-    pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> Result<()> {
+    pub fn rotate_around(&mut self, point: &Vec3, x: f32, y: f32) -> ThreeDResult<()> {
         let dir = (point - self.position()).normalize();
         let right = dir.cross(*self.up());
         let up = right.cross(dir);
@@ -488,7 +488,12 @@ impl Camera {
     /// Rotate the camera around the given point while keeping the same distance to the point and the same up direction.
     /// The input `x` specifies the amount of rotation in the left direction and `y` specifies the amount of rotation in the up direction.
     ///
-    pub fn rotate_around_with_fixed_up(&mut self, point: &Vec3, x: f32, y: f32) -> Result<()> {
+    pub fn rotate_around_with_fixed_up(
+        &mut self,
+        point: &Vec3,
+        x: f32,
+        y: f32,
+    ) -> ThreeDResult<()> {
         let dir = (point - self.position()).normalize();
         let right = dir.cross(*self.up());
         let mut up = right.cross(dir);
@@ -513,7 +518,7 @@ impl Camera {
         delta: f32,
         minimum_distance: f32,
         maximum_distance: f32,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         if minimum_distance <= 0.0 {
             Err(CoreError::NegativeDistance)?;
         }

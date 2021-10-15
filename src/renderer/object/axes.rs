@@ -14,7 +14,7 @@ impl Axes {
     ///
     /// Creates a new axes object consisting of three arrows with the given radius and length.
     ///
-    pub fn new(context: &Context, radius: f32, length: f32) -> Result<Self> {
+    pub fn new(context: &Context, radius: f32, length: f32) -> ThreeDResult<Self> {
         let mut mesh = CPUMesh::arrow(0.9, 0.6, 16);
         mesh.transform(&Mat4::from_nonuniform_scale(length, radius, radius));
         let model = Model::new(context, &mesh)?;
@@ -35,7 +35,7 @@ impl Shadable for Axes {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_forward(material, camera, lights)?;
         model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
@@ -49,7 +49,7 @@ impl Shadable for Axes {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_deferred(material, camera, viewport)?;
         model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
@@ -65,7 +65,7 @@ impl Shadable for &Axes {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, camera, lights)
     }
     fn render_deferred(
@@ -73,7 +73,7 @@ impl Shadable for &Axes {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
     }
 }
@@ -90,7 +90,7 @@ impl Geometry for &Axes {
 }
 
 impl Object for Axes {
-    fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
+    fn render(&self, camera: &Camera, _lights: &Lights) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_with_color(Color::RED, camera)?;
         model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
@@ -105,7 +105,7 @@ impl Object for Axes {
     }
 }
 impl Object for &Axes {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         (*self).render(camera, lights)
     }
 

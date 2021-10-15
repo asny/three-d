@@ -323,7 +323,7 @@ impl CPUMesh {
     ///
     /// Returns an error if the mesh is not valid.
     ///
-    pub fn validate(&self) -> Result<()> {
+    pub fn validate(&self) -> ThreeDResult<()> {
         if let Some(ref indices) = self.indices {
             let index_count = match indices {
                 Indices::U8(ind) => ind.len(),

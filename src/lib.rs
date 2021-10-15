@@ -24,4 +24,4 @@ mod gui;
 #[doc(inline)]
 pub use gui::*;
 
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub type ThreeDResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;

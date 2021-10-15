@@ -42,7 +42,7 @@ impl ElementBuffer {
     ///
     /// Creates a new empty element buffer.
     ///
-    pub fn new<T: ElementBufferDataType>(context: &Context) -> Result<ElementBuffer> {
+    pub fn new<T: ElementBufferDataType>(context: &Context) -> ThreeDResult<ElementBuffer> {
         let id = context.create_buffer().unwrap();
         Ok(ElementBuffer {
             context: context.clone(),
@@ -58,7 +58,7 @@ impl ElementBuffer {
     pub fn new_with<T: ElementBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<ElementBuffer> {
+    ) -> ThreeDResult<ElementBuffer> {
         let mut buffer = Self::new::<T>(context)?;
         if data.len() > 0 {
             buffer.fill_with(data)?;
@@ -68,7 +68,7 @@ impl ElementBuffer {
     ///
     /// Fills the buffer with the given indices which must be divisable by 3.
     ///
-    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> Result<()> {
+    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         if data.len() % 3 != 0 {
             Err(CoreError::InvalidBufferLength(
                 "index".to_string(),

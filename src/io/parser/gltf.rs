@@ -8,7 +8,10 @@ impl Loaded {
     /// Deserialize a loaded .gltf file and related .bin resource file and related texture resources or a loaded .glb file into a list of meshes and materials.
     /// It uses the [gltf](https://crates.io/crates/gltf/main.rs) crate.
     ///
-    pub fn gltf(&mut self, path: impl AsRef<Path>) -> Result<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
+    pub fn gltf(
+        &mut self,
+        path: impl AsRef<Path>,
+    ) -> ThreeDResult<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
         let mut cpu_meshes = Vec::new();
         let mut cpu_materials = Vec::new();
 
@@ -52,7 +55,7 @@ fn parse_tree<'a>(
     buffers: &[::gltf::buffer::Data],
     cpu_meshes: &mut Vec<CPUMesh>,
     cpu_materials: &mut Vec<CPUMaterial>,
-) -> Result<()> {
+) -> ThreeDResult<()> {
     if let Some(mesh) = node.mesh() {
         let name: String = mesh
             .name()
@@ -207,7 +210,7 @@ fn parse_texture<'a>(
     path: &Path,
     buffers: &[::gltf::buffer::Data],
     gltf_texture: ::gltf::texture::Texture,
-) -> Result<CPUTexture<u8>> {
+) -> ThreeDResult<CPUTexture<u8>> {
     let gltf_image = gltf_texture.source();
     let gltf_source = gltf_image.source();
     let tex = match gltf_source {

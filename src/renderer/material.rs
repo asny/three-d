@@ -28,7 +28,8 @@ pub use physical_material::*;
 
 pub trait ForwardMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String;
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()>;
+    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights)
+        -> ThreeDResult<()>;
     fn render_states(&self) -> RenderStates;
     fn is_transparent(&self) -> bool;
 }
@@ -37,7 +38,12 @@ impl ForwardMaterial for &dyn ForwardMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {
@@ -56,7 +62,12 @@ impl ForwardMaterial for &dyn DeferredMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {

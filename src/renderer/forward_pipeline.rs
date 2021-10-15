@@ -13,7 +13,7 @@ impl ForwardPipeline {
     ///
     /// Constructor.
     ///
-    pub fn new(context: &Context) -> Result<Self> {
+    pub fn new(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
         })
@@ -33,7 +33,7 @@ impl ForwardPipeline {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         for (geo, mat) in objects.iter().filter(|(g, _)| camera.in_frustum(g.aabb())) {
             geo.render_with_lighting(
                 camera,
@@ -53,14 +53,14 @@ impl ForwardPipeline {
         camera: &Camera,
         objects: &[T],
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         for object in objects.iter().filter(|o| camera.in_frustum(o.aabb())) {
             object.render(camera, lights)?;
         }
         Ok(())
     }
 
-    pub fn depth_pass<T: Shadable>(&self, camera: &Camera, geometries: &[T]) -> Result<()> {
+    pub fn depth_pass<T: Shadable>(&self, camera: &Camera, geometries: &[T]) -> ThreeDResult<()> {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -78,7 +78,7 @@ impl ForwardPipeline {
         &self,
         camera: &Camera,
         objects: &[T],
-    ) -> Result<DepthTargetTexture2D> {
+    ) -> ThreeDResult<DepthTargetTexture2D> {
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,
             camera.viewport().width,

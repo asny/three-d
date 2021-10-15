@@ -17,7 +17,7 @@ impl Rectangle {
         rotation: impl Into<Radians>,
         width: f32,
         height: f32,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         let mut mesh = CPUMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5)));
         let mut rectangle = Self {
@@ -70,7 +70,11 @@ impl Rectangle {
 }
 
 impl Shadable2D for Rectangle {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model
                 .render_forward(material, camera2d, &Lights::default())
@@ -79,7 +83,11 @@ impl Shadable2D for Rectangle {
 }
 
 impl Shadable2D for &Rectangle {
-    fn render_forward(&self, material: &dyn ForwardMaterial, viewport: Viewport) -> Result<()> {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, viewport)
     }
 }

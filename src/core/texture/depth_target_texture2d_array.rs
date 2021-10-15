@@ -25,7 +25,7 @@ impl DepthTargetTexture2DArray {
         wrap_s: Wrapping,
         wrap_t: Wrapping,
         format: DepthFormat,
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         let id = generate(context)?;
         set_parameters(
             context,
@@ -60,12 +60,12 @@ impl DepthTargetTexture2DArray {
     /// Writes the depth of whatever rendered in the `render` closure into the depth texture defined by the input parameter `depth_layer`.
     /// Before writing, the texture is cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> Result<()>>(
+    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &self,
         depth_layer: u32,
         clear_state: Option<f32>,
         render: F,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         RenderTargetArray::<u8>::new_depth(&self.context, &self)?.write(
             &[],
             depth_layer,
@@ -88,7 +88,7 @@ impl DepthTargetTexture2DArray {
         depth_layer: u32,
         destination: CopyDestination<T>,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         RenderTargetArray::new_depth(&self.context, &self)?.copy_to(
             0,
             depth_layer,
