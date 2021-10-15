@@ -51,7 +51,7 @@ fn main() {
                     ..Default::default()
                 },
             };
-            box_object.geometry.cull = Cull::Back;
+            box_object.material.opaque_render_states.cull = Cull::Back;
 
             let skybox = Skybox::new(
                 &context,
@@ -77,7 +77,7 @@ fn main() {
             penguin_object
                 .geometry
                 .set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
-            penguin_object.geometry.cull = Cull::Back;
+            penguin_object.material.opaque_render_states.cull = Cull::Back;
 
             let lights = Lights {
                 ambient: Some(AmbientLight {
