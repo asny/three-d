@@ -66,7 +66,7 @@ impl InstancedModel {
     #[deprecated = "Use 'render_forward' instead"]
     pub fn render_color(&self, camera: &Camera) -> ThreeDResult<()> {
         let mut mat = ColorMaterial::default();
-        mat.render_states.cull = self.cull;
+        mat.opaque_render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
         self.render_forward(&mat, camera, &Lights::default())
     }
@@ -83,7 +83,7 @@ impl InstancedModel {
             color,
             ..Default::default()
         };
-        mat.render_states.cull = self.cull;
+        mat.opaque_render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
         self.render_forward(&mat, camera, &Lights::default())
     }

@@ -2,14 +2,23 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
+///
+/// A material that renders a [Shadable] object in a color defined by multiplying a color with an optional texture and optional per vertex colors.
+/// This material is not affected by lights.
+///
 #[derive(Clone)]
 pub struct ColorMaterial {
+    /// A color applied everywhere.
     pub color: Color,
+    /// An optional texture which is samples using uv coordinates (requires that the [Shadable] object supports uv coordinates).
     pub texture: Option<Rc<Texture2D>>,
-    pub render_states: RenderStates,
+    /// Render states used when the color is opaque (has a maximal alpha value).
+    pub opaque_render_states: RenderStates,
+    /// Render states used when the color is transparent (does not have a maximal alpha value).
     pub transparent_render_states: RenderStates,
 }
 impl ColorMaterial {
+    /// Constructs a new color material from a [CPUMaterial].
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
@@ -53,7 +62,7 @@ impl ForwardMaterial for ColorMaterial {
         if self.is_transparent() {
             self.transparent_render_states
         } else {
-            self.render_states
+            self.opaque_render_states
         }
     }
     fn is_transparent(&self) -> bool {
@@ -91,7 +100,7 @@ impl Default for ColorMaterial {
         Self {
             color: Color::default(),
             texture: None,
-            render_states: RenderStates::default(),
+            opaque_render_states: RenderStates::default(),
             transparent_render_states: RenderStates {
                 write_mask: WriteMask::COLOR,
                 blend: Blend::TRANSPARENCY,
