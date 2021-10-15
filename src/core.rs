@@ -4,12 +4,17 @@
 //! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
 //!
 
+use crate::context::GLContext;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+
+///
+/// Contains information about the graphics context to use for rendering and other "global" variables.
+///
 #[derive(Clone)]
 pub struct Context {
-    context: crate::context::GLContext,
+    context: GLContext,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
@@ -17,7 +22,10 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new_from_gl_context(context: crate::context::GLContext) -> Self {
+    ///
+    /// Creates a new context from a [OpenGL/WebGL context](GLContext).
+    ///
+    pub fn new_from_gl_context(context: GLContext) -> Self {
         Self {
             context,
             programs: Rc::new(RefCell::new(HashMap::new())),
@@ -27,6 +35,10 @@ impl Context {
         }
     }
 
+    ///
+    /// Compiles a [Program] with the given vertex and fragment shader source and stores it for later use.
+    /// If it has already been created, then it is just returned.
+    ///
     pub fn program(
         &self,
         vertex_shader_source: &str,
@@ -43,6 +55,10 @@ impl Context {
         callback(self.programs.borrow().get(&key).unwrap())
     }
 
+    ///
+    /// Compiles an [ImageEffect] with the given fragment shader source and stores it for later use.
+    /// If it has already been created, then it is just returned.
+    ///
     pub fn effect(
         &self,
         fragment_shader_source: &str,
@@ -57,6 +73,9 @@ impl Context {
         callback(self.effects.borrow().get(fragment_shader_source).unwrap())
     }
 
+    ///
+    /// Returns a camera for viewing 2D content.
+    ///
     pub fn camera2d(
         &self,
         viewport: Viewport,
