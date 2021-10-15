@@ -36,21 +36,47 @@ use thiserror::Error;
 #[allow(missing_docs)]
 pub enum RendererError {}
 
+impl crate::core::Camera {
+    ///
+    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
+    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
+    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
+    /// Returns ```None``` if no geometry was hit before the given maximum depth.
+    ///
+    #[deprecated = "Use pick function instead"]
+    pub fn pick<S: Shadable>(
+        &self,
+        pixel: (f32, f32),
+        max_depth: f32,
+        objects: &[S],
+    ) -> Result<Option<Vec3>> {
+        let pos = self.position_at_pixel(pixel);
+        let dir = self.view_direction_at_pixel(pixel);
+        ray_intersect(&self.context, pos, dir, max_depth, objects)
+    }
+}
+
 ///
 /// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
 /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
 /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
-/// Returns ```None``` if no geometry was hit before the given maximum depth.
+/// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
 ///
 pub fn pick<S: Shadable>(
+    context: &Context,
     camera: &Camera,
     pixel: (f32, f32),
-    max_depth: f32,
     geometries: &[S],
 ) -> Result<Option<Vec3>> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
-    ray_intersect(&camera.context, pos, dir, max_depth, geometries)
+    ray_intersect(
+        context,
+        pos + dir * camera.z_near(),
+        dir,
+        camera.z_far() - camera.z_near(),
+        geometries,
+    )
 }
 
 ///
