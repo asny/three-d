@@ -35,42 +35,58 @@ fn main() {
         move |mut loaded| {
             // Tree
             let (mut meshes, materials) = loaded.obj("examples/assets/Tree1.obj").unwrap();
-            for mesh in meshes.iter_mut() {
-                if mesh.name == "leaves.001" || mesh.name == "tree.001_Mesh.002" {
-                    mesh.compute_normals();
-                }
-            }
-            let tree_cpu_mesh = meshes
+            let mut tree_cpu_mesh = meshes
                 .iter()
-                .find(|m| m.name == "tree.001_Mesh.002")
+                .position(|m| m.name == "tree.001_Mesh.002")
+                .map(|index| meshes.remove(index))
                 .unwrap();
-            let tree_cpu_material = materials
-                .iter()
-                .find(|m| &m.name == tree_cpu_mesh.material_name.as_ref().unwrap())
-                .unwrap();
-            let tree_material = Material::new(&context, &tree_cpu_material).unwrap();
-            let mut tree_mesh = Model::new(&context, tree_cpu_mesh).unwrap();
-            tree_mesh.cull = Cull::Back;
+            tree_cpu_mesh.compute_normals();
+            let mut tree_mesh = Glue {
+                geometry: Model::new(&context, &tree_cpu_mesh).unwrap(),
+                material: PhysicalMaterial::new(
+                    &context,
+                    &materials
+                        .iter()
+                        .find(|m| Some(&m.name) == tree_cpu_mesh.material_name.as_ref())
+                        .unwrap(),
+                )
+                .unwrap(),
+            };
+            tree_mesh.material.transparent_render_states.cull = Cull::Back;
 
-            let leaves_cpu_mesh = meshes.iter().find(|m| m.name == "leaves.001").unwrap();
-            let leaves_material = Material::new(
-                &context,
-                &materials
-                    .iter()
-                    .find(|m| &m.name == leaves_cpu_mesh.material_name.as_ref().unwrap())
-                    .unwrap(),
-            )
-            .unwrap();
-            let leaves_mesh = Model::new(&context, leaves_cpu_mesh).unwrap();
+            let mut leaves_cpu_mesh = meshes
+                .iter()
+                .position(|m| m.name == "leaves.001")
+                .map(|index| meshes.remove(index))
+                .unwrap();
+            leaves_cpu_mesh.compute_normals();
+            let leaves_mesh = Glue {
+                geometry: Model::new(&context, &leaves_cpu_mesh).unwrap(),
+                material: PhysicalMaterial::new(
+                    &context,
+                    &materials
+                        .iter()
+                        .find(|m| Some(&m.name) == leaves_cpu_mesh.material_name.as_ref())
+                        .unwrap(),
+                )
+                .unwrap(),
+            };
 
             // Lights
-            let ambient_light = AmbientLight {
-                intensity: 0.3,
-                color: Color::WHITE,
+            let mut lights = Lights {
+                ambient: Some(AmbientLight {
+                    intensity: 0.3,
+                    color: Color::WHITE,
+                }),
+                directional: vec![DirectionalLight::new(
+                    &context,
+                    4.0,
+                    Color::WHITE,
+                    &vec3(-1.0, -1.0, -1.0),
+                )
+                .unwrap()],
+                ..Default::default()
             };
-            let mut directional_light =
-                DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
-                    .unwrap();
 
             // Imposters
             let mut aabb = tree_cpu_mesh.compute_aabb();
@@ -79,17 +95,7 @@ fn main() {
             imposters
                 .update_texture(
                     |camera: &Camera| {
-                        pipeline.light_pass(
-                            &camera,
-                            &[
-                                (&tree_mesh, &tree_material),
-                                (&leaves_mesh, &leaves_material),
-                            ],
-                            Some(&ambient_light),
-                            &[&directional_light],
-                            &[],
-                            &[],
-                        )?;
+                        pipeline.render_pass(&camera, &[&tree_mesh, &leaves_mesh], &lights)?;
                         Ok(())
                     },
                     (*aabb.min(), *aabb.max()),
@@ -113,27 +119,29 @@ fn main() {
             imposters.update_positions(&positions, &angles);
 
             // Plane
-            let plane_material = Material {
-                albedo: Color::new_opaque(128, 200, 70),
-                metallic: 0.0,
-                roughness: 1.0,
-                ..Default::default()
-            };
-            let mut plane = Model::new(
-                &context,
-                &CPUMesh {
-                    positions: vec![
-                        -10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0,
-                    ],
-                    normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
+            let mut plane = Glue {
+                geometry: Model::new(
+                    &context,
+                    &CPUMesh {
+                        positions: vec![
+                            -10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0,
+                        ],
+                        normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
+                        ..Default::default()
+                    },
+                )
+                .unwrap(),
+                material: PhysicalMaterial {
+                    albedo: Color::new_opaque(128, 200, 70),
+                    metallic: 0.0,
+                    roughness: 1.0,
                     ..Default::default()
                 },
-            )
-            .unwrap();
-            plane.cull = Cull::Back;
+            };
+            plane.material.opaque_render_states.cull = Cull::Back;
 
             // Shadows
-            directional_light
+            lights.directional[0]
                 .generate_shadow_map(
                     &vec3(0.0, 0.0, 0.0),
                     50.0,
@@ -159,17 +167,10 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                             || {
-                                pipeline.light_pass(
+                                pipeline.render_pass(
                                     &camera,
-                                    &[
-                                        (&plane, &plane_material),
-                                        (&tree_mesh, &tree_material),
-                                        (&leaves_mesh, &leaves_material),
-                                    ],
-                                    Some(&ambient_light),
-                                    &[&directional_light],
-                                    &[],
-                                    &[],
+                                    &[&plane, &tree_mesh, &leaves_mesh],
+                                    &lights,
                                 )?;
                                 imposters.render(&camera)?;
                                 Ok(())

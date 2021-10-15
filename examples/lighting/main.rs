@@ -43,7 +43,7 @@ fn main() {
                 geometry: Model::new(&context, &monkey_cpu_meshes[0]).unwrap(),
                 material: PhysicalMaterial::new(&context, &monkey_cpu_materials[0]).unwrap(),
             };
-            monkey.geometry.cull = Cull::Back;
+            monkey.material.opaque_render_states.cull = Cull::Back;
 
             let mut plane = Glue {
                 geometry: Model::new(
