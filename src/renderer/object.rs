@@ -43,8 +43,13 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
+///
+/// Glue that binds a [Geometry] and a [ForwardMaterial] together into an [Object].
+///
 pub struct Glue<G: Geometry, M: ForwardMaterial> {
+    /// The geometry
     pub geometry: G,
+    /// The material applied to the geometry
     pub material: M,
 }
 
@@ -120,14 +125,22 @@ impl<G: Geometry, M: ForwardMaterial> Geometry for &Glue<G, M> {
 }
 
 // Object trait
+
+///
+/// Represents a 3D object which can be rendered.
+///
 pub trait Object: Geometry {
     ///
     /// Render the object.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// You can use [Lights::default()] if you know the object does not require lights to be rendered.
     ///
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()>;
 
+    ///
+    /// Returns whether or not this object should be considered transparent.
+    ///
     fn is_transparent(&self) -> bool;
 }
 
@@ -168,7 +181,14 @@ impl Geometry for &dyn Object {
 }
 
 // Geometry trait
+
+///
+/// Represents a 3D geometry.
+///
 pub trait Geometry: Shadable {
+    ///
+    /// Returns the [AxisAlignedBoundingBox] for this geometry.
+    ///
     fn aabb(&self) -> &AxisAlignedBoundingBox;
 }
 
@@ -199,7 +219,15 @@ impl Shadable for &dyn Geometry {
 }
 
 // Shadable trait
+
+/// Represents an object that is possible to render with [ForwardMaterial]s and [DeferredMaterial]s.
 pub trait Shadable {
+    ///
+    /// Render the object with the given material.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// You can use [Lights::default()] if you know the material does not require lights.
+    ///
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -209,7 +237,7 @@ pub trait Shadable {
 
     ///
     /// Render the geometry and surface material parameters of the object.
-    /// Should not be called directly but used in a [deferred render pass](crate::DeferredPipeline::geometry_pass).
+    /// Should usually not be called directly but used in [DeferredPipeline::geometry_pass].
     ///
     fn render_deferred(
         &self,
