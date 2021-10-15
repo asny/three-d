@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// Forward render pipeline which can render objects (implementing the [Drawable] trait).
+/// Forward render pipeline which can render objects (implementing the [Object] trait).
 /// Forward rendering directly draws to the given render target (for example the screen) and is therefore the same as calling [Drawable::render] directly.
 ///
 pub struct ForwardPipeline {

@@ -10,7 +10,8 @@ pub struct AxisAlignedBoundingBox {
 }
 
 impl AxisAlignedBoundingBox {
-    const EMPTY: Self = Self {
+    /// An empty bounding box.
+    pub const EMPTY: Self = Self {
         min: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
         max: vec3(
             std::f32::NEG_INFINITY,
@@ -19,7 +20,15 @@ impl AxisAlignedBoundingBox {
         ),
     };
 
-    pub const INFINITE: Self = Self::EMPTY;
+    /// An infinitely large bounding box.
+    pub const INFINITE: Self = Self {
+        min: vec3(
+            std::f32::NEG_INFINITY,
+            std::f32::NEG_INFINITY,
+            std::f32::NEG_INFINITY,
+        ),
+        max: vec3(std::f32::INFINITY, std::f32::INFINITY, std::f32::INFINITY),
+    };
 
     ///
     /// Constructs a new bounding box and expands it such that all of the given positions are contained inside the bounding box.
@@ -42,17 +51,17 @@ impl AxisAlignedBoundingBox {
     }
 
     ///
-    /// Creates a new infinitely large bounding box.
+    /// Returns true if the bounding box is empty (ie. constructed by [AxisAlignedBoundingBox::EMPTY]).
     ///
-    pub fn new_infinite() -> Self {
-        Self::EMPTY
+    pub fn is_empty(&self) -> bool {
+        self.max.x == f32::NEG_INFINITY
     }
 
     ///
-    /// Returns true if the bounding box is infinitely large (ie. constructed by [AxisAlignedBoundingBox::new_infinite]).
+    /// Returns true if the bounding box is infinitely large (ie. constructed by [AxisAlignedBoundingBox::INFINITE]).
     ///
     pub fn is_infinite(&self) -> bool {
-        self.min.x > self.max.x || self.min.y > self.max.y || self.min.z > self.max.z
+        self.max.x == f32::INFINITY
     }
 
     ///
