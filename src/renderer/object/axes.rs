@@ -78,7 +78,18 @@ impl Shadable for &Axes {
     }
 }
 
-impl Drawable for Axes {
+impl Geometry for Axes {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        &self.aabb
+    }
+}
+impl Geometry for &Axes {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (*self).aabb()
+    }
+}
+
+impl Object for Axes {
     fn render(&self, camera: &Camera, _lights: &Lights) -> Result<()> {
         let mut model = self.model.clone();
         model.render_with_color(Color::RED, camera)?;
@@ -93,8 +104,7 @@ impl Drawable for Axes {
         false
     }
 }
-
-impl Drawable for &Axes {
+impl Object for &Axes {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         (*self).render(camera, lights)
     }
@@ -103,17 +113,3 @@ impl Drawable for &Axes {
         (*self).is_transparent()
     }
 }
-
-impl Geometry for Axes {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &self.aabb
-    }
-}
-impl Geometry for &Axes {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        (*self).aabb()
-    }
-}
-
-impl Object for Axes {}
-impl Object for &Axes {}
