@@ -1,6 +1,49 @@
 use rand::prelude::*;
+use three_d::core::*;
 use three_d::window::*;
 use three_d::*;
+
+#[derive(Clone)]
+struct FireworksMaterial {
+    pub color: Vec3,
+    pub fade: f32,
+}
+
+impl ForwardMaterial for FireworksMaterial {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
+        include_str!("../assets/shaders/particles.frag").to_string()
+    }
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
+        program.use_uniform_vec4(
+            "color",
+            &vec4(
+                self.color.x * self.fade,
+                self.color.y * self.fade,
+                self.color.z * self.fade,
+                1.0,
+            ),
+        )
+    }
+    fn render_states(&self) -> RenderStates {
+        RenderStates {
+            cull: Cull::Back,
+            blend: Blend::Enabled {
+                rgb_equation: BlendEquationType::Add,
+                alpha_equation: BlendEquationType::Add,
+                source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
+                source_alpha_multiplier: BlendMultiplierType::Zero,
+                destination_rgb_multiplier: BlendMultiplierType::One,
+                destination_alpha_multiplier: BlendMultiplierType::One,
+            },
+            depth_test: DepthTest::Always,
+            write_mask: WriteMask::COLOR,
+            clip: Clip::Disabled,
+        }
+    }
+    fn is_transparent(&self) -> bool {
+        false
+    }
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -40,11 +83,13 @@ fn main() {
         vec3(0.3, 0.93, 0.15),
         vec3(0.16, 0.07, 0.87),
     ];
-    let fragment_shader_source = include_str!("../assets/shaders/particles.frag");
-    let particles_program = ParticlesProgram::new(&context, &fragment_shader_source).unwrap();
     let mut square = CPUMesh::square();
     square.transform(&Mat4::from_scale(0.6));
     let mut particles = Particles::new(&context, &square).unwrap();
+    let mut fireworks_material = FireworksMaterial {
+        color: vec3(0.0, 0.0, 0.0),
+        fade: 0.0,
+    };
 
     // main loop
     particles.time = explosion_time + 100.0;
@@ -87,27 +132,9 @@ fn main() {
 
             Screen::write(&context, ClearState::color(0.0, 0.0, 0.0, 1.0), || {
                 let f = particles.time / explosion_time.max(0.0);
-                let fade = 1.0 - f * f * f * f;
-                let color = colors[color_index];
-                particles_program.use_uniform_vec4(
-                    "color",
-                    &vec4(color.x * fade, color.y * fade, color.z * fade, 1.0),
-                )?;
-                let render_states = RenderStates {
-                    cull: Cull::Back,
-                    blend: Blend::Enabled {
-                        rgb_equation: BlendEquationType::Add,
-                        alpha_equation: BlendEquationType::Add,
-                        source_rgb_multiplier: BlendMultiplierType::SrcAlpha,
-                        source_alpha_multiplier: BlendMultiplierType::Zero,
-                        destination_rgb_multiplier: BlendMultiplierType::One,
-                        destination_alpha_multiplier: BlendMultiplierType::One,
-                    },
-                    depth_test: DepthTest::Always,
-                    write_mask: WriteMask::COLOR,
-                    clip: Clip::Disabled,
-                };
-                particles.render(render_states, &particles_program, &camera, particles.time)?;
+                fireworks_material.fade = 1.0 - f * f * f * f;
+                fireworks_material.color = colors[color_index];
+                particles.render_forward(&fireworks_material, &camera, &Lights::default())?;
                 Ok(())
             })
             .unwrap();
