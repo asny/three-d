@@ -37,17 +37,27 @@ fn main() {
         ],
         move |mut loaded| {
             let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let monkey_material = Material::new(&context, &materials[0]).unwrap();
-            let mut monkey = Model::new(&context, &meshes[0]).unwrap();
-            monkey.cull = Cull::Back;
-
-            let ambient_light = AmbientLight {
-                intensity: 0.4,
-                color: Color::WHITE,
+            let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
+            monkey_material.opaque_render_states.cull = Cull::Back;
+            let monkey = Glue {
+                geometry: Model::new(&context, &meshes[0]).unwrap(),
+                material: monkey_material,
             };
-            let directional_light =
-                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
-                    .unwrap();
+
+            let lights = Lights {
+                ambient: Some(AmbientLight {
+                    intensity: 0.4,
+                    color: Color::WHITE,
+                }),
+                directional: vec![DirectionalLight::new(
+                    &context,
+                    2.0,
+                    Color::WHITE,
+                    &vec3(-1.0, -1.0, -1.0),
+                )
+                .unwrap()],
+                ..Default::default()
+            };
 
             // Fog
             let mut fog_effect = FogEffect::new(&context).unwrap();
@@ -100,14 +110,7 @@ fn main() {
                     }
 
                     Screen::write(&context, ClearState::default(), || {
-                        pipeline.light_pass(
-                            &camera,
-                            &[(&monkey, &monkey_material)],
-                            Some(&ambient_light),
-                            &[&directional_light],
-                            &[],
-                            &[],
-                        )?;
+                        monkey.render(&camera, &lights)?;
                         skybox.render(&camera)?;
                         if fog_enabled {
                             fog_effect.apply(
