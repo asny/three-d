@@ -64,7 +64,9 @@ pub struct Particles {
     /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,
     instance_count: u32,
-    pub transformation: Mat4,
+    transformation: Mat4,
+    normal_transformation: Mat4,
+    /// A time variable that should be updated each frame.
     pub time: f32,
 }
 
@@ -106,8 +108,24 @@ impl Particles {
             acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),
+            normal_transformation: Mat4::identity(),
             time: 0.0,
         })
+    }
+
+    ///
+    /// Returns the local to world transformation applied to all particles.
+    ///
+    pub fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
+
+    ///
+    /// Set the local to world transformation applied to all particles.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+        self.normal_transformation = self.transformation.invert().unwrap().transpose();
     }
 
     ///
@@ -167,10 +185,7 @@ impl Particles {
                 .normal_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-            program.use_uniform_mat4(
-                "normalMatrix",
-                &self.transformation.invert().unwrap().transpose(),
-            )?;
+            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
             program.use_attribute_vec3("normal", normal_buffer)?;
         }
 
