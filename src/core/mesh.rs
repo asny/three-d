@@ -42,16 +42,21 @@ impl std::ops::Deref for MeshProgram {
 #[derive(Clone)]
 pub struct Mesh {
     context: Context,
+    /// Buffer with the position data, ie. `(x, y, z)` for each vertex
     pub position_buffer: Rc<VertexBuffer>,
+    /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
     pub normal_buffer: Option<Rc<VertexBuffer>>,
-    pub index_buffer: Option<Rc<ElementBuffer>>,
+    /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
     pub uv_buffer: Option<Rc<VertexBuffer>>,
+    /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
     pub color_buffer: Option<Rc<VertexBuffer>>,
-    aabb: AxisAlignedBoundingBox,
+    /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
+    pub index_buffer: Option<Rc<ElementBuffer>>,
     /// Optional name of the mesh.
     pub name: String,
     transformation: Mat4,
     normal_transformation: Mat4,
+    aabb: AxisAlignedBoundingBox,
 }
 
 impl Mesh {
