@@ -48,7 +48,7 @@ pub struct Glue<G: Geometry, M: ForwardMaterial> {
     pub material: M,
 }
 
-impl<G: Geometry, M: ForwardMaterial> Drawable for Glue<G, M> {
+impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         self.geometry.render_forward(&self.material, camera, lights)
     }
@@ -58,7 +58,7 @@ impl<G: Geometry, M: ForwardMaterial> Drawable for Glue<G, M> {
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Drawable for &Glue<G, M> {
+impl<G: Geometry, M: ForwardMaterial> Object for &Glue<G, M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
         (*self).render(camera, lights)
     }
@@ -119,13 +119,27 @@ impl<G: Geometry, M: ForwardMaterial> Geometry for &Glue<G, M> {
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {}
-impl<G: Geometry, M: ForwardMaterial> Object for &Glue<G, M> {}
-
 // Object trait
-pub trait Object: Drawable + Geometry {}
+pub trait Object: Geometry {
+    ///
+    /// Render the object.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()>;
 
-impl Object for &dyn Object {}
+    fn is_transparent(&self) -> bool;
+}
+
+impl Object for &dyn Object {
+    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
+        (*self).render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        (*self).is_transparent()
+    }
+}
 
 impl Shadable for &dyn Object {
     fn render_forward(
@@ -144,16 +158,6 @@ impl Shadable for &dyn Object {
         viewport: Viewport,
     ) -> Result<()> {
         (*self).render_deferred(material, camera, viewport)
-    }
-}
-
-impl Drawable for &dyn Object {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
-        (*self).render(camera, lights)
-    }
-
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
     }
 }
 
@@ -232,27 +236,6 @@ impl Shadable for &dyn Shadable {
         viewport: Viewport,
     ) -> Result<()> {
         (*self).render_deferred(material, camera, viewport)
-    }
-}
-
-pub trait Drawable {
-    ///
-    /// Render the object.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()>;
-
-    fn is_transparent(&self) -> bool;
-}
-
-impl Drawable for &dyn Drawable {
-    fn render(&self, camera: &Camera, lights: &Lights) -> Result<()> {
-        (*self).render(camera, lights)
-    }
-
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
     }
 }
 
