@@ -34,42 +34,61 @@ fn main() {
         ],
         move |mut loaded| {
             let (mut meshes, materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
-            let cpu_mesh = meshes.remove(0);
-            let material = Material::new(&context, &materials[0]).unwrap();
-            let mut model = Model::new(&context, &cpu_mesh).unwrap();
-            model.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            model.cull = Cull::Back;
+            let mut cpu_mesh = meshes.remove(0);
+            cpu_mesh.transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
+            let model = Glue {
+                geometry: Model::new(&context, &cpu_mesh).unwrap(),
+                material: PhysicalMaterial::new(&context, &materials[0]).unwrap(),
+            };
 
-            let wireframe_material = Material {
+            let wireframe_material = PhysicalMaterial {
                 name: "wireframe".to_string(),
                 albedo: Color::new_opaque(220, 50, 50),
                 roughness: 0.7,
                 metallic: 0.8,
+                opaque_render_states: RenderStates {
+                    cull: Cull::Back,
+                    ..Default::default()
+                },
                 ..Default::default()
             };
             let mut cylinder = CPUMesh::cylinder(10);
             cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
-            let mut edges =
-                InstancedModel::new(&context, &edge_transformations(&cpu_mesh), &cylinder).unwrap();
-            edges.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            edges.cull = Cull::Back;
+            let edges = Glue {
+                geometry: InstancedModel::new(
+                    &context,
+                    &edge_transformations(&cpu_mesh),
+                    &cylinder,
+                )
+                .unwrap(),
+                material: wireframe_material.clone(),
+            };
 
             let mut sphere = CPUMesh::sphere();
             sphere.transform(&Mat4::from_scale(0.015));
-            let mut vertices =
-                InstancedModel::new(&context, &vertex_transformations(&cpu_mesh), &sphere).unwrap();
-            vertices.set_transformation(Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            vertices.cull = Cull::Back;
-
-            let ambient_light = AmbientLight {
-                intensity: 0.7,
-                color: Color::WHITE,
+            let vertices = Glue {
+                geometry: InstancedModel::new(
+                    &context,
+                    &vertex_transformations(&cpu_mesh),
+                    &sphere,
+                )
+                .unwrap(),
+                material: wireframe_material,
             };
-            let directional_light0 =
-                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
-                    .unwrap();
-            let directional_light1 =
-                DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
+
+            let lights = Lights {
+                ambient: Some(AmbientLight {
+                    intensity: 0.7,
+                    color: Color::WHITE,
+                }),
+                directional: vec![
+                    DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
+                        .unwrap(),
+                    DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0))
+                        .unwrap(),
+                ],
+                ..Default::default()
+            };
 
             // main loop
             window
@@ -85,17 +104,10 @@ fn main() {
                             &context,
                             ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
                             || {
-                                pipeline.light_pass(
+                                pipeline.render_pass(
                                     &camera,
-                                    &[
-                                        (&model, &material),
-                                        (&vertices, &wireframe_material),
-                                        (&edges, &wireframe_material),
-                                    ],
-                                    Some(&ambient_light),
-                                    &[&directional_light0, &directional_light1],
-                                    &[],
-                                    &[],
+                                    &[&model as &dyn Object, &vertices, &edges],
+                                    &lights,
                                 )?;
                                 Ok(())
                             },
