@@ -23,7 +23,7 @@ impl SpotLight {
         attenuation_constant: f32,
         attenuation_linear: f32,
         attenuation_exponential: f32,
-    ) -> Result<SpotLight> {
+    ) -> ThreeDResult<SpotLight> {
         let uniform_sizes = [3u32, 1, 1, 1, 1, 1, 3, 1, 3, 1, 16];
         let mut light = SpotLight {
             context: context.clone(),
@@ -112,7 +112,7 @@ impl SpotLight {
         frustrum_depth: f32,
         texture_size: u32,
         geometries: &[G],
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let position = self.position();
         let direction = self.direction();
         let up = compute_up_direction(direction);
@@ -210,7 +210,7 @@ impl Light for SpotLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         if let Some(tex) = self.shadow_map() {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
         } else {
@@ -227,7 +227,7 @@ impl Light for &SpotLight {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, i)
     }
 }

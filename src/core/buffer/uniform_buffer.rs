@@ -19,7 +19,7 @@ impl UniformBuffer {
     /// The first with 3 elements (a [Vec3]), the second with 1 element (a `f32`), the third with four elements (a [Vec4]) and the last with 16 elements (a [Mat4]).
     /// The variables are initialized to 0.
     ///
-    pub fn new(context: &Context, sizes: &[u32]) -> Result<UniformBuffer> {
+    pub fn new(context: &Context, sizes: &[u32]) -> ThreeDResult<UniformBuffer> {
         let id = context.create_buffer().unwrap();
 
         let mut offsets = Vec::new();
@@ -50,7 +50,7 @@ impl UniformBuffer {
     /// Will return an error if the index is not in the range `[0-max]` where `max` is the length of the `sizes` argument given at construction.
     /// Will return an error if the data length does not match the element count of the variable (defined at construction) at the given index.
     ///
-    pub fn update(&mut self, index: u32, data: &[f32]) -> Result<()> {
+    pub fn update(&mut self, index: u32, data: &[f32]) -> ThreeDResult<()> {
         let (offset, length) = self.offset_length(index as usize)?;
         if data.len() != length {
             Err(CoreError::InvalidUniformBufferElementLength(
@@ -72,12 +72,12 @@ impl UniformBuffer {
     /// # Errors
     /// Will return an error if the index is not in the range `[0-max]` where `max` is the length of the `sizes` argument given at construction.
     ///
-    pub fn get(&self, index: u32) -> Result<&[f32]> {
+    pub fn get(&self, index: u32) -> ThreeDResult<&[f32]> {
         let (offset, length) = self.offset_length(index as usize)?;
         Ok(&self.data[offset..offset + length])
     }
 
-    fn offset_length(&self, index: usize) -> Result<(usize, usize)> {
+    fn offset_length(&self, index: usize) -> ThreeDResult<(usize, usize)> {
         if index >= self.offsets.len() {
             Err(CoreError::IndexOutOfRange(index, self.offsets.len() - 1))?;
         }

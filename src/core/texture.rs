@@ -168,7 +168,7 @@ pub(in crate::core) mod internal {
     use crate::core::*;
 
     pub trait TextureDataTypeExtension: Clone {
-        fn internal_format(format: Format) -> Result<u32>;
+        fn internal_format(format: Format) -> ThreeDResult<u32>;
         fn fill(
             context: &Context,
             target: u32,
@@ -182,7 +182,7 @@ pub(in crate::core) mod internal {
     }
 
     impl TextureDataTypeExtension for u8 {
-        fn internal_format(format: Format) -> Result<u32> {
+        fn internal_format(format: Format) -> ThreeDResult<u32> {
             Ok(match format {
                 Format::R => crate::context::consts::R8,
                 Format::RG => crate::context::consts::RG8,
@@ -229,7 +229,7 @@ pub(in crate::core) mod internal {
         }
     }
     impl TextureDataTypeExtension for f32 {
-        fn internal_format(format: Format) -> Result<u32> {
+        fn internal_format(format: Format) -> ThreeDResult<u32> {
             Ok(match format {
                 Format::R => crate::context::consts::R32F,
                 Format::RG => crate::context::consts::RG32F,
@@ -277,7 +277,7 @@ pub(in crate::core) mod internal {
     }
 
     impl TextureDataTypeExtension for u32 {
-        fn internal_format(format: Format) -> Result<u32> {
+        fn internal_format(format: Format) -> ThreeDResult<u32> {
             Ok(match format {
                 Format::R => crate::context::consts::R32UI,
                 Format::RG => crate::context::consts::RG32UI,
@@ -335,7 +335,6 @@ pub(in crate::core) mod internal {
 
 use crate::context::consts;
 use crate::core::*;
-use crate::Result;
 
 ///
 /// A texture that can be sampled in a fragment shader (see [use_texture](crate::core::Program::use_texture)).
@@ -384,7 +383,7 @@ pub trait TextureCube {
 }
 
 // COMMON TEXTURE FUNCTIONS
-fn generate(context: &Context) -> Result<crate::context::Texture> {
+fn generate(context: &Context) -> ThreeDResult<crate::context::Texture> {
     Ok(context
         .create_texture()
         .ok_or_else(|| CoreError::TextureCreation)?)
@@ -501,7 +500,7 @@ fn check_data_length(
     depth: u32,
     format: Format,
     length: usize,
-) -> Result<()> {
+) -> ThreeDResult<()> {
     let expected_pixels = width as usize * height as usize * depth as usize;
     let actual_pixels = length / format.color_channel_count() as usize;
 

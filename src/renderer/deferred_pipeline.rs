@@ -38,7 +38,7 @@ impl DeferredPipeline {
     ///
     /// Constructor.
     ///
-    pub fn new(context: &Context) -> Result<Self> {
+    pub fn new(context: &Context) -> ThreeDResult<Self> {
         let renderer = Self {
             context: context.clone(),
             program_map: HashMap::new(),
@@ -79,7 +79,7 @@ impl DeferredPipeline {
         &mut self,
         camera: &Camera,
         objects: &[(G, M)],
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
@@ -130,7 +130,7 @@ impl DeferredPipeline {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             ..Default::default()

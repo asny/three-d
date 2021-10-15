@@ -15,7 +15,7 @@ impl InstancedMeshProgram {
     /// Constructs a new shader program for rendering instanced meshes. The fragment shader can use the fragments position by adding `in vec3 pos;`,
     /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
     ///
-    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
+    pub fn new(context: &Context, fragment_shader_source: &str) -> ThreeDResult<Self> {
         Ok(Self {
             program: Program::from_source(
                 context,
@@ -55,7 +55,7 @@ impl InstancedMesh {
     /// Each instance is transformed with the given transformation before it is rendered.
     /// The transformations can be updated by the [update_transformations](Self::update_transformations) function.
     ///
-    pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> Result<Self> {
+    pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
         let mut mesh = Self {
             instance_count: 0,
             mesh: Mesh::new(context, cpu_mesh)?,
@@ -83,7 +83,7 @@ impl InstancedMesh {
         program: &Program,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         program.use_uniform_mat4("modelMatrix", self.mesh.transformation())?;
         self.draw(render_states, program, camera_buffer, viewport)
     }
@@ -124,7 +124,7 @@ impl InstancedMesh {
         program: &Program,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
         program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;

@@ -27,7 +27,7 @@ pub use light::*;
 pub mod object;
 pub use object::*;
 
-pub(crate) use crate::Result;
+pub(crate) use crate::ThreeDResult;
 use thiserror::Error;
 ///
 /// Error in the [renderer](crate::renderer) module.
@@ -49,7 +49,7 @@ impl crate::core::Camera {
         pixel: (f32, f32),
         max_depth: f32,
         objects: &[S],
-    ) -> Result<Option<Vec3>> {
+    ) -> ThreeDResult<Option<Vec3>> {
         let pos = self.position_at_pixel(pixel);
         let dir = self.view_direction_at_pixel(pixel);
         ray_intersect(&self.context, pos, dir, max_depth, objects)
@@ -67,7 +67,7 @@ pub fn pick<S: Shadable>(
     camera: &Camera,
     pixel: (f32, f32),
     geometries: &[S],
-) -> Result<Option<Vec3>> {
+) -> ThreeDResult<Option<Vec3>> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
     ray_intersect(
@@ -89,7 +89,7 @@ pub fn ray_intersect<S: Shadable>(
     direction: Vec3,
     max_depth: f32,
     geometries: &[S],
-) -> Result<Option<Vec3>> {
+) -> ThreeDResult<Option<Vec3>> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
     let up = if direction.dot(vec3(1.0, 0.0, 0.0)).abs() > 0.99 {

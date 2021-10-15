@@ -14,7 +14,7 @@ impl ImageEffect {
     ///
     /// Creates a new image effect which applies the calculations defined in the given fragment shader source when calling the [ImageEffect::apply] function.
     ///
-    pub fn new(context: &Context, fragment_shader: &str) -> Result<Self> {
+    pub fn new(context: &Context, fragment_shader: &str) -> ThreeDResult<Self> {
         let program = Program::from_source(
             &context,
             "in vec3 position;
@@ -45,7 +45,7 @@ impl ImageEffect {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> Result<()> {
+    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
         self.program
             .use_attribute_vec3("position", &self.positions)?;
         self.program

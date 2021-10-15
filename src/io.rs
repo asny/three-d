@@ -18,7 +18,7 @@ mod saver;
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
 
-pub(crate) use crate::Result;
+pub(crate) use crate::ThreeDResult;
 use thiserror::Error;
 ///
 /// Error from the [io](crate::io) module.
@@ -52,7 +52,7 @@ pub enum IOError {
 }
 
 #[cfg(feature = "image-io")]
-pub(crate) fn image_from_bytes(bytes: &[u8]) -> Result<crate::core::CPUTexture<u8>> {
+pub(crate) fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8>> {
     use crate::core::*;
     use image::DynamicImage;
     use image::GenericImageView;

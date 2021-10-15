@@ -25,7 +25,7 @@ impl InstanceBuffer {
     ///
     /// Creates a new empty instance buffer.
     ///
-    pub fn new(context: &Context) -> Result<Self> {
+    pub fn new(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
@@ -43,7 +43,7 @@ impl InstanceBuffer {
     pub fn new_with_static<T: InstanceBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill_with_static(data);
@@ -79,7 +79,7 @@ impl InstanceBuffer {
     pub fn new_with_dynamic<T: InstanceBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<Self> {
+    ) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context).unwrap();
         if data.len() > 0 {
             buffer.fill_with_dynamic(data);

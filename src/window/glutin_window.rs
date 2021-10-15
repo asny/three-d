@@ -34,7 +34,7 @@ impl Window {
     ///
     /// Constructs a new window with the given settings.
     ///
-    pub fn new(mut settings: WindowSettings) -> Result<Window> {
+    pub fn new(mut settings: WindowSettings) -> ThreeDResult<Window> {
         let event_loop = EventLoop::new();
         let mut wc = Self::new_windowed_context(&settings, &event_loop);
         if wc.is_err() {
@@ -56,7 +56,7 @@ impl Window {
     fn new_windowed_context(
         settings: &WindowSettings,
         event_loop: &EventLoop<()>,
-    ) -> Result<WindowedContext<NotCurrent>> {
+    ) -> ThreeDResult<WindowedContext<NotCurrent>> {
         if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
             Err(WindowError::InvalidNumberOfMSAASamples)?;
         }
@@ -91,7 +91,7 @@ impl Window {
     pub fn render_loop<F: 'static + FnMut(FrameInput) -> FrameOutput>(
         self,
         mut callback: F,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let windowed_context = self.windowed_context;
         let mut last_time = std::time::Instant::now();
         let mut accumulated_time = 0.0;
@@ -309,7 +309,7 @@ impl Window {
     ///
     /// Return the current logical size of the window.
     ///
-    pub fn size(&self) -> Result<(u32, u32)> {
+    pub fn size(&self) -> ThreeDResult<(u32, u32)> {
         Ok(self
             .windowed_context
             .window()
@@ -321,7 +321,7 @@ impl Window {
     ///
     /// Returns the current viewport of the window in physical pixels (the size of the [screen](crate::Screen)).
     ///
-    pub fn viewport(&self) -> Result<Viewport> {
+    pub fn viewport(&self) -> ThreeDResult<Viewport> {
         let (w, h): (u32, u32) = self.windowed_context.window().inner_size().into();
         Ok(Viewport::new_at_origo(w, h))
     }
@@ -329,7 +329,7 @@ impl Window {
     ///
     /// Returns the graphics context for this window.
     ///
-    pub fn gl(&self) -> Result<crate::Context> {
+    pub fn gl(&self) -> ThreeDResult<crate::Context> {
         Ok(self.gl.clone())
     }
 }

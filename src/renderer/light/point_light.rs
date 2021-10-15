@@ -17,7 +17,7 @@ impl PointLight {
         attenuation_constant: f32,
         attenuation_linear: f32,
         attenuation_exponential: f32,
-    ) -> Result<PointLight> {
+    ) -> ThreeDResult<PointLight> {
         let mut light = PointLight {
             light_buffer: UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1])?,
         };
@@ -103,7 +103,7 @@ impl Light for PointLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         program.use_uniform_vec3("eyePosition", camera.position())?;
         program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
         Ok(())
@@ -114,7 +114,7 @@ impl Light for &PointLight {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, i)
     }
 }

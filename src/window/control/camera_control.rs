@@ -61,7 +61,11 @@ impl CameraControl {
         Self::default()
     }
 
-    pub fn handle_events(&mut self, camera: &mut Camera, events: &mut [Event]) -> Result<bool> {
+    pub fn handle_events(
+        &mut self,
+        camera: &mut Camera,
+        events: &mut [Event],
+    ) -> ThreeDResult<bool> {
         let mut change = false;
         for event in events.iter_mut() {
             match event {
@@ -108,7 +112,7 @@ impl CameraControl {
         camera: &mut Camera,
         control_type: CameraAction,
         x: f64,
-    ) -> Result<bool> {
+    ) -> ThreeDResult<bool> {
         match control_type {
             CameraAction::Pitch { speed } => {
                 camera.pitch(radians(speed * x as f32))?;

@@ -10,7 +10,7 @@ pub struct ColorMaterial {
     pub transparent_render_states: RenderStates,
 }
 impl ColorMaterial {
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
@@ -37,7 +37,12 @@ impl ForwardMaterial for ColorMaterial {
         shader.push_str(include_str!("shaders/color_material.frag"));
         shader
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        _camera: &Camera,
+        _lights: &Lights,
+    ) -> ThreeDResult<()> {
         program.use_uniform_vec4("color", &self.color.to_vec4())?;
         if let Some(ref tex) = self.texture {
             program.use_texture("tex", &**tex)?
@@ -65,7 +70,12 @@ impl ForwardMaterial for &ColorMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {

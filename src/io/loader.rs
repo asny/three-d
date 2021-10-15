@@ -25,7 +25,7 @@ impl Loaded {
     /// Remove and returns the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn remove_bytes(&mut self, path: impl AsRef<Path>) -> Result<Vec<u8>> {
+    pub fn remove_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<Vec<u8>> {
         let bytes = self
             .loaded
             .remove_entry(path.as_ref())
@@ -40,7 +40,7 @@ impl Loaded {
     /// Returns a reference to the loaded byte array for the resource at the given path.
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
-    pub fn get_bytes(&mut self, path: impl AsRef<Path>) -> Result<&[u8]> {
+    pub fn get_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<&[u8]> {
         let bytes = self
             .loaded
             .get(path.as_ref())

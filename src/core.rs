@@ -43,8 +43,8 @@ impl Context {
         &self,
         vertex_shader_source: &str,
         fragment_shader_source: &str,
-        callback: impl FnOnce(&Program) -> Result<()>,
-    ) -> Result<()> {
+        callback: impl FnOnce(&Program) -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
         let key = format!("{}{}", vertex_shader_source, fragment_shader_source);
         if !self.programs.borrow().contains_key(&key) {
             self.programs.borrow_mut().insert(
@@ -62,8 +62,8 @@ impl Context {
     pub fn effect(
         &self,
         fragment_shader_source: &str,
-        callback: impl FnOnce(&ImageEffect) -> Result<()>,
-    ) -> Result<()> {
+        callback: impl FnOnce(&ImageEffect) -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
         if !self.effects.borrow().contains_key(fragment_shader_source) {
             self.effects.borrow_mut().insert(
                 fragment_shader_source.to_string(),
@@ -79,8 +79,8 @@ impl Context {
     pub fn camera2d(
         &self,
         viewport: Viewport,
-        callback: impl FnOnce(&Camera) -> Result<()>,
-    ) -> Result<()> {
+        callback: impl FnOnce(&Camera) -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
         if self.camera2d.borrow().is_none() {
             *self.camera2d.borrow_mut() = Some(Camera::new_orthographic(
                 self,
@@ -116,7 +116,7 @@ impl Context {
         callback(camera2d.as_ref().unwrap())
     }
 
-    pub(crate) fn use_texture_dummy(&self, program: &Program, name: &str) -> Result<()> {
+    pub(crate) fn use_texture_dummy(&self, program: &Program, name: &str) -> ThreeDResult<()> {
         if self.dummy_tex.borrow().is_none() {
             *self.dummy_tex.borrow_mut() =
                 Some(Texture2D::new(&self, &CPUTexture::<u8>::default())?);
@@ -191,7 +191,7 @@ mod viewport;
 #[doc(inline)]
 pub use viewport::*;
 
-pub(crate) use crate::Result;
+pub(crate) use crate::ThreeDResult;
 use thiserror::Error;
 ///
 /// Error in the [core](crate::core) module.

@@ -34,11 +34,11 @@ pub struct PhysicalMaterial {
 }
 
 impl PhysicalMaterial {
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> Result<Self> {
+    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
         Self::new_from_material(&Material::new(context, cpu_material)?)
     }
 
-    pub(crate) fn new_from_material(material: &Material) -> Result<Self> {
+    pub(crate) fn new_from_material(material: &Material) -> ThreeDResult<Self> {
         Ok(Self {
             name: material.name.clone(),
             albedo: material.albedo,
@@ -87,7 +87,7 @@ impl PhysicalMaterial {
         output
     }
 
-    pub(crate) fn use_uniforms_internal(&self, program: &Program) -> Result<()> {
+    pub(crate) fn use_uniforms_internal(&self, program: &Program) -> ThreeDResult<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
@@ -115,7 +115,12 @@ impl ForwardMaterial for PhysicalMaterial {
         output.push_str(&self.fragment_shader_source_internal(use_vertex_colors));
         output
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
         lights.use_uniforms(program, camera)?;
         self.use_uniforms_internal(program)?;
         Ok(())
@@ -142,7 +147,12 @@ impl ForwardMaterial for &PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }
     fn render_states(&self) -> RenderStates {

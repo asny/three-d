@@ -54,7 +54,7 @@ impl Lights {
         lights_fragment_shader_source(&mut LightsIterator::new(self), self.lighting_model)
     }
 
-    pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> Result<()> {
+    pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> ThreeDResult<()> {
         for (i, light) in LightsIterator::new(self).enumerate() {
             light.use_uniforms(program, camera, i as u32)?;
         }
@@ -158,14 +158,14 @@ pub(crate) fn lights_fragment_shader_source(
 
 pub trait Light {
     fn shader_source(&self, i: u32) -> String;
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()>;
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()>;
 }
 
 impl Light for &dyn Light {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> Result<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, i)
     }
 }

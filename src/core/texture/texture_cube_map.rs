@@ -22,7 +22,7 @@ impl TextureCubeMap {
     pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &CPUTexture<T>,
-    ) -> Result<TextureCubeMap> {
+    ) -> ThreeDResult<TextureCubeMap> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -71,7 +71,7 @@ impl TextureCubeMap {
     /// # Errors
     /// Returns an error if the length of the data does not correspond to 6 images with the width, height and format specified at construction.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> Result<()> {
+    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         let offset = data.len() / 6;
         check_data_length(self.width, self.height, 1, self.format, offset)?;
         self.context

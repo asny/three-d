@@ -16,7 +16,7 @@ impl ParticlesProgram {
     /// Creates a new program which can be used to render particles.
     /// The fragment shader code can use position (`in vec3 pos;`), normal (`in vec3 nor;`) and uv coordinates (`in vec2 uvs;`).
     ///
-    pub fn new(context: &Context, fragment_shader_source: &str) -> Result<Self> {
+    pub fn new(context: &Context, fragment_shader_source: &str) -> ThreeDResult<Self> {
         Ok(Self {
             program: Program::from_source(
                 context,
@@ -72,7 +72,7 @@ impl Particles {
     ///
     /// Creates a new set of particles with geometry defined by the given cpu mesh.
     ///
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
         cpu_mesh.validate()?;
         let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
@@ -144,7 +144,7 @@ impl Particles {
         program: &Program,
         camera: &Camera,
         time: f32,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         program.use_uniform_mat4("modelMatrix", &self.transformation)?;
         program.use_uniform_vec3("acceleration", &self.acceleration)?;
         program.use_uniform_float("time", &time)?;
@@ -263,7 +263,7 @@ impl Shadable for Particles {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
             &Particles::vertex_shader_source(&fragment_shader_source),
@@ -280,7 +280,7 @@ impl Shadable for Particles {
         _material: &dyn DeferredMaterial,
         _camera: &Camera,
         _viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         unimplemented!();
     }
 }
@@ -291,7 +291,7 @@ impl Shadable for &Particles {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, camera, lights)
     }
     fn render_deferred(
@@ -299,7 +299,7 @@ impl Shadable for &Particles {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
     }
 }

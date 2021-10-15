@@ -18,7 +18,7 @@ pub struct Model {
 
 #[allow(deprecated)]
 impl Model {
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> Result<Self> {
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
         let mesh = Mesh::new(context, cpu_mesh)?;
         let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
@@ -80,7 +80,7 @@ impl Model {
     /// Will return an error if the mesh has no colors.
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_color(&self, camera: &Camera) -> Result<()> {
+    pub fn render_color(&self, camera: &Camera) -> ThreeDResult<()> {
         let mut mat = ColorMaterial::default();
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
@@ -93,7 +93,7 @@ impl Model {
     /// Will render the model transparent if the color contains an alpha value below 255, you only need to render the model after all solid models.
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_with_color(&self, color: Color, camera: &Camera) -> Result<()> {
+    pub fn render_with_color(&self, color: Color, camera: &Camera) -> ThreeDResult<()> {
         let mut mat = ColorMaterial {
             color,
             ..Default::default()
@@ -112,7 +112,7 @@ impl Model {
     /// Will return an error if the mesh has no uv coordinates.
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_uvs(&self, camera: &Camera) -> Result<()> {
+    pub fn render_uvs(&self, camera: &Camera) -> ThreeDResult<()> {
         let mut mat = UVMaterial::default();
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera, &Lights::default())
@@ -126,7 +126,7 @@ impl Model {
     /// Will return an error if the mesh has no normals.
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_normals(&self, camera: &Camera) -> Result<()> {
+    pub fn render_normals(&self, camera: &Camera) -> ThreeDResult<()> {
         let mut mat = NormalMaterial::default();
         mat.render_states.cull = self.cull;
         self.render_forward(&mat, camera, &Lights::default())
@@ -141,7 +141,7 @@ impl Model {
     /// Will return an error if the mesh has no uv coordinates.
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_with_texture(&self, texture: &Texture2D, camera: &Camera) -> Result<()> {
+    pub fn render_with_texture(&self, texture: &Texture2D, camera: &Camera) -> ThreeDResult<()> {
         let render_states = if texture.is_transparent() {
             RenderStates {
                 cull: self.cull,
@@ -178,7 +178,7 @@ impl Model {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> Result<()> {
+    pub fn render_depth_to_red(&self, camera: &Camera, max_depth: f32) -> ThreeDResult<()> {
         let mut mat = DepthMaterial {
             max_distance: Some(max_depth),
             ..Default::default()
@@ -197,7 +197,7 @@ impl Model {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
     #[deprecated = "Use 'render_forward' instead"]
-    pub fn render_depth(&self, camera: &Camera) -> Result<()> {
+    pub fn render_depth(&self, camera: &Camera) -> ThreeDResult<()> {
         let mut mat = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -221,7 +221,7 @@ impl ShadedGeometry for Model {
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let mut mat = PhysicalMaterial::new_from_material(material)?;
         mat.render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
@@ -266,7 +266,7 @@ impl ShadedGeometry for Model {
         camera: &Camera,
         viewport: Viewport,
         material: &Material,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         self.render_deferred(
             &PhysicalMaterial::new_from_material(material)?,
             camera,
@@ -293,7 +293,7 @@ impl Shadable for Model {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
@@ -317,7 +317,7 @@ impl Shadable for Model {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         let mut render_states = material.render_states();
         render_states.cull = self.cull;
         let fragment_shader_source =
@@ -340,7 +340,7 @@ impl Shadable for &Model {
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_forward(material, camera, lights)
     }
     fn render_deferred(
@@ -348,7 +348,7 @@ impl Shadable for &Model {
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
-    ) -> Result<()> {
+    ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
     }
 }

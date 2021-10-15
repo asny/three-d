@@ -12,7 +12,7 @@ pub struct FXAAEffect {
 }
 
 impl FXAAEffect {
-    pub fn new(gl: &Context) -> Result<Self> {
+    pub fn new(gl: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             color: vec3(0.8, 0.8, 0.8),
             density: 0.2,
@@ -21,7 +21,7 @@ impl FXAAEffect {
         })
     }
 
-    pub fn apply(&self, viewport: Viewport, color_texture: &impl Texture) -> Result<()> {
+    pub fn apply(&self, viewport: Viewport, color_texture: &impl Texture) -> ThreeDResult<()> {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             depth_test: DepthTest::Always,

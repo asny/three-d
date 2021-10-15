@@ -26,7 +26,7 @@ impl VertexBuffer {
     ///
     /// Creates a new empty vertex buffer.
     ///
-    pub fn new(context: &Context) -> Result<VertexBuffer> {
+    pub fn new(context: &Context) -> ThreeDResult<VertexBuffer> {
         Ok(VertexBuffer {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
@@ -43,7 +43,7 @@ impl VertexBuffer {
     pub fn new_with_static<T: VertexBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<VertexBuffer> {
+    ) -> ThreeDResult<VertexBuffer> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill_with_static(data);
@@ -77,7 +77,7 @@ impl VertexBuffer {
     pub fn new_with_dynamic<T: VertexBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> Result<VertexBuffer> {
+    ) -> ThreeDResult<VertexBuffer> {
         let mut buffer = Self::new(context).unwrap();
         if data.len() > 0 {
             buffer.fill_with_dynamic(data);

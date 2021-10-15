@@ -13,7 +13,12 @@ impl ForwardMaterial for FireworksMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         include_str!("../assets/shaders/particles.frag").to_string()
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &Lights) -> Result<()> {
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        _camera: &Camera,
+        _lights: &Lights,
+    ) -> ThreeDResult<()> {
         program.use_uniform_vec4(
             "color",
             &vec4(
