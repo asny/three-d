@@ -3,7 +3,8 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// A physically-based material used for shading an object.
+/// A physically-based material that renders a [Shadable] object in an approximate correct physical manner based on Physically Based Rendering (PBR).
+/// This material is affected by lights.
 ///
 #[derive(Clone)]
 pub struct PhysicalMaterial {
@@ -29,11 +30,14 @@ pub struct PhysicalMaterial {
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<Rc<Texture2D>>,
-    pub render_states: RenderStates,
+    /// Render states used when the color is opaque (has a maximal alpha value).
+    pub opaque_render_states: RenderStates,
+    /// Render states used when the color is transparent (does not have a maximal alpha value).
     pub transparent_render_states: RenderStates,
 }
 
 impl PhysicalMaterial {
+    /// Constructs a new physical material from a [CPUMaterial].
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
         Self::new_from_material(&Material::new(context, cpu_material)?)
     }
@@ -50,7 +54,7 @@ impl PhysicalMaterial {
             normal_scale: material.normal_scale,
             occlusion_texture: material.occlusion_texture.clone(),
             occlusion_strength: material.occlusion_strength,
-            render_states: RenderStates::default(),
+            opaque_render_states: RenderStates::default(),
             transparent_render_states: RenderStates {
                 write_mask: WriteMask::COLOR,
                 blend: Blend::TRANSPARENCY,
@@ -130,7 +134,7 @@ impl ForwardMaterial for PhysicalMaterial {
         if self.is_transparent() {
             self.transparent_render_states
         } else {
-            self.render_states
+            self.opaque_render_states
         }
     }
     fn is_transparent(&self) -> bool {
@@ -191,7 +195,7 @@ impl Default for PhysicalMaterial {
             normal_scale: 1.0,
             occlusion_texture: None,
             occlusion_strength: 1.0,
-            render_states: RenderStates::default(),
+            opaque_render_states: RenderStates::default(),
             transparent_render_states: RenderStates {
                 write_mask: WriteMask::COLOR,
                 blend: Blend::TRANSPARENCY,

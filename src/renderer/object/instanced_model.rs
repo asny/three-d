@@ -180,7 +180,7 @@ impl ShadedGeometry for InstancedModel {
         point_lights: &[&PointLight],
     ) -> ThreeDResult<()> {
         let mut mat = PhysicalMaterial::new_from_material(material)?;
-        mat.render_states.cull = self.cull;
+        mat.opaque_render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
 
         let mut lights: Vec<&dyn Light> = Vec::new();
