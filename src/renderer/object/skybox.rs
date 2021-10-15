@@ -10,6 +10,9 @@ pub struct Skybox {
 }
 
 impl Skybox {
+    ///
+    /// Creates a new skybox with the given cpu-side version of a [TextureCubeMap].
+    ///
     pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &mut CPUTexture<T>,
@@ -22,6 +25,9 @@ impl Skybox {
         Self::new_with_texture(context, texture)
     }
 
+    ///
+    /// Creates a new skybox with the given [TextureCubeMap].
+    ///
     pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> ThreeDResult<Skybox> {
         let program = Program::from_source(
             context,
@@ -42,10 +48,16 @@ impl Skybox {
         })
     }
 
+    ///
+    /// Returns a reference to the cube map texture
+    ///
     pub fn texture(&self) -> &TextureCubeMap {
         &self.texture
     }
 
+    ///
+    /// Render the skybox.
+    ///
     pub fn render(&self, camera: &Camera) -> ThreeDResult<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
