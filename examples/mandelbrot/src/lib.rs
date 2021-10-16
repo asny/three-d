@@ -3,7 +3,7 @@ include!("../main.rs");
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
-pub fn start() -> ThreeDResult<(), JsValue> {
+pub fn start() -> Result<(), JsValue> {
     console_log::init_with_level(log::Level::Debug).unwrap();
 
     use log::info;
