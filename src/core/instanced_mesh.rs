@@ -55,7 +55,11 @@ impl InstancedMesh {
     /// Each instance is transformed with the given transformation before it is rendered.
     /// The transformations can be updated by the [update_transformations](Self::update_transformations) function.
     ///
-    pub fn new(context: &Context, transformations: &[Mat4], cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
+    pub fn new(
+        context: &Context,
+        transformations: &[Mat4],
+        cpu_mesh: &CPUMesh,
+    ) -> ThreeDResult<Self> {
         let mut mesh = Self {
             instance_count: 0,
             mesh: Mesh::new(context, cpu_mesh)?,
