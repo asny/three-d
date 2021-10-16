@@ -53,10 +53,10 @@ fn main() {
         move |mut loaded| {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
-            let statue_material =
+            let mut statue_material =
                 PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
+            statue_material.opaque_render_states.cull = Cull::Back;
             let mut statue = Model::new(&context, &statue_cpu_meshes[0]).unwrap();
-            statue.cull = Cull::Back;
 
             let mut models = Vec::new();
             let scale = Mat4::from_scale(10.0);
@@ -79,11 +79,13 @@ fn main() {
             let (fountain_cpu_meshes, fountain_cpu_materials) =
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
             let mut fountain = Model::new(&context, &fountain_cpu_meshes[0]).unwrap();
-            fountain.cull = Cull::Back;
+            let mut fountain_material =
+                PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
+            fountain_material.opaque_render_states.cull = Cull::Back;
             fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
             models.push(Glue {
                 geometry: fountain,
-                material: PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap(),
+                material: fountain_material,
             });
 
             let mut lights = Lights {
