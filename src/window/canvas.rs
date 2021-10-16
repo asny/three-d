@@ -1,6 +1,5 @@
-use crate::core::{Context, Viewport};
+use crate::core::{Context, ThreeDResult, Viewport};
 use crate::window::*;
-use crate::Result;
 use serde::Serialize;
 use std::cell::RefCell;
 use std::rc::Rc;

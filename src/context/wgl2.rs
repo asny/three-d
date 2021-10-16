@@ -610,7 +610,7 @@ impl GLContext {
         self.inner.draw_buffers(&array);
     }
 
-    pub fn check_framebuffer_status(&self) -> ThreeDResult<(), String> {
+    pub fn check_framebuffer_status(&self) -> Result<(), String> {
         let status = self.inner.check_framebuffer_status(consts::FRAMEBUFFER);
 
         match status {
