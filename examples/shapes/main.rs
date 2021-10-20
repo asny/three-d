@@ -24,7 +24,13 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let sphere = Sphere::new(&context, vec3(0.0, 2.0, 1.0), 1.0).unwrap();
+    let sphere = Glue {
+        geometry: Sphere::new(&context, vec3(0.0, 2.0, 1.0), 1.0).unwrap(),
+        material: PhysicalMaterial {
+            albedo: Color::RED,
+            ..Default::default()
+        },
+    };
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
 
     window
@@ -38,8 +44,25 @@ fn main() {
                 &context,
                 ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                 || {
-                    sphere.render(&camera, &Lights::default());
-                    axes.render(&camera, &Lights::default());
+                    let lights = Lights {
+                        directional: vec![
+                            DirectionalLight::new(
+                                &context,
+                                1.0,
+                                Color::WHITE,
+                                &vec3(0.0, -0.5, -0.5),
+                            )?,
+                            DirectionalLight::new(
+                                &context,
+                                1.0,
+                                Color::WHITE,
+                                &vec3(0.0, 0.5, 0.5),
+                            )?,
+                        ],
+                        ..Default::default()
+                    };
+                    sphere.render(&camera, &lights)?;
+                    axes.render(&camera, &lights)?;
                     Ok(())
                 },
             )

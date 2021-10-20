@@ -64,7 +64,7 @@ fn main() {
                 material: wireframe_material.clone(),
             };
 
-            let mut sphere = CPUMesh::sphere();
+            let mut sphere = CPUMesh::sphere(8);
             sphere.transform(&Mat4::from_scale(0.015));
             let vertices = Glue {
                 geometry: InstancedModel::new(
