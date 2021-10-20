@@ -157,8 +157,8 @@ impl CPUMesh {
         for j in 0..angle_subdivisions * 2 {
             let j1 = (j + 1) % (angle_subdivisions * 2);
             indices.push(0);
-            indices.push((1 + j1) as u16);
             indices.push((1 + j) as u16);
+            indices.push((1 + j1) as u16);
         }
 
         for i in 0..angle_subdivisions - 1 {
@@ -184,11 +184,11 @@ impl CPUMesh {
                 if i != angle_subdivisions - 2 {
                     let j1 = (j + 1) % (angle_subdivisions * 2);
                     indices.push((i0 + j) as u16);
+                    indices.push((i1 + j1) as u16);
                     indices.push((i0 + j1) as u16);
                     indices.push((i1 + j1) as u16);
-                    indices.push((i1 + j1) as u16);
-                    indices.push((i1 + j) as u16);
                     indices.push((i0 + j) as u16);
+                    indices.push((i1 + j) as u16);
                 }
             }
         }
@@ -204,8 +204,8 @@ impl CPUMesh {
         for j in 0..angle_subdivisions * 2 {
             let j1 = (j + 1) % (angle_subdivisions * 2);
             indices.push((i + j) as u16);
-            indices.push((i + j1) as u16);
             indices.push(((angle_subdivisions - 1) * angle_subdivisions * 2 + 1) as u16);
+            indices.push((i + j1) as u16);
         }
 
         CPUMesh {
