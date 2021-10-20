@@ -141,26 +141,80 @@ impl CPUMesh {
     ///
     /// Returns a sphere mesh with radius 1 and center in `(0, 0, 0)`.
     ///
-    pub fn sphere() -> Self {
-        let x = 0.525731112119133606f32;
-        let z = 0.850650808352039932f32;
-        let positions = vec![
-            -x, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0, -z, 0.0, z, x, 0.0, z, -x, 0.0, -z, x, 0.0,
-            -z, -x, z, x, 0.0, -z, x, 0.0, z, -x, 0.0, -z, -x, 0.0,
-        ];
-        let indices = vec![
-            0u8, 1, 4, 0, 4, 9, 9, 4, 5, 4, 8, 5, 4, 1, 8, 8, 1, 10, 8, 10, 3, 5, 8, 3, 5, 3, 2, 2,
-            3, 7, 7, 3, 10, 7, 10, 6, 7, 6, 11, 11, 6, 0, 0, 6, 1, 6, 10, 1, 9, 11, 0, 9, 2, 11, 9,
-            5, 2, 7, 11, 2,
-        ];
-        let mut mesh = CPUMesh {
+    pub fn sphere(angle_subdivisions: u32) -> Self {
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+        let mut normals = Vec::new();
+
+        positions.push(0.0);
+        positions.push(0.0);
+        positions.push(1.0);
+
+        normals.push(0.0);
+        normals.push(0.0);
+        normals.push(1.0);
+
+        for j in 0..angle_subdivisions * 2 {
+            let j1 = (j + 1) % (angle_subdivisions * 2);
+            indices.push(0);
+            indices.push((1 + j1) as u16);
+            indices.push((1 + j) as u16);
+        }
+
+        for i in 0..angle_subdivisions - 1 {
+            let theta = std::f32::consts::PI * (i + 1) as f32 / angle_subdivisions as f32;
+            let sin_theta = theta.sin();
+            let cos_theta = theta.cos();
+            let i0 = 1 + i * angle_subdivisions * 2;
+            let i1 = 1 + (i + 1) * angle_subdivisions * 2;
+
+            for j in 0..angle_subdivisions * 2 {
+                let phi = std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
+                let x = sin_theta * phi.cos();
+                let y = sin_theta * phi.sin();
+                let z = cos_theta;
+                positions.push(x);
+                positions.push(y);
+                positions.push(z);
+
+                normals.push(x);
+                normals.push(y);
+                normals.push(z);
+
+                if i != angle_subdivisions - 2 {
+                    let j1 = (j + 1) % (angle_subdivisions * 2);
+                    indices.push((i0 + j) as u16);
+                    indices.push((i0 + j1) as u16);
+                    indices.push((i1 + j1) as u16);
+                    indices.push((i1 + j1) as u16);
+                    indices.push((i1 + j) as u16);
+                    indices.push((i0 + j) as u16);
+                }
+            }
+        }
+        positions.push(0.0);
+        positions.push(0.0);
+        positions.push(-1.0);
+
+        normals.push(0.0);
+        normals.push(0.0);
+        normals.push(-1.0);
+
+        let i = 1 + (angle_subdivisions - 2) * angle_subdivisions * 2;
+        for j in 0..angle_subdivisions * 2 {
+            let j1 = (j + 1) % (angle_subdivisions * 2);
+            indices.push((i + j) as u16);
+            indices.push((i + j1) as u16);
+            indices.push(((angle_subdivisions - 1) * angle_subdivisions * 2 + 1) as u16);
+        }
+
+        CPUMesh {
             name: "sphere".to_string(),
-            indices: Some(Indices::U8(indices)),
+            indices: Some(Indices::U16(indices)),
             positions,
+            normals: Some(normals),
             ..Default::default()
-        };
-        mesh.compute_normals();
-        mesh
+        }
     }
 
     ///
