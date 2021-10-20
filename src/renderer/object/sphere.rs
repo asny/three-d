@@ -7,7 +7,7 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn new(context: &Context, center: Vec3, radius: f32) -> ThreeDResult<Self> {
-        let mut mesh = CPUMesh::sphere();
+        let mut mesh = CPUMesh::sphere(8);
         mesh.transform(&(Mat4::from_translation(center) * Mat4::from_scale(radius)));
         let model = Model::new(context, &mesh)?;
         Ok(Self { model })
