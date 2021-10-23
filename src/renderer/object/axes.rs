@@ -7,7 +7,9 @@ use crate::renderer::*;
 #[derive(Clone)]
 pub struct Axes {
     model: Model,
+    aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
+    transformation: Mat4,
 }
 
 impl Axes {
@@ -25,7 +27,12 @@ impl Axes {
         let mut aabb3 = aabb.clone();
         aabb3.transform(&Mat4::from_angle_y(degrees(-90.0)));
         aabb.expand_with_aabb(&aabb3);
-        Ok(Self { model, aabb })
+        Ok(Self {
+            model,
+            aabb: aabb.clone(),
+            aabb_local: aabb,
+            transformation: Mat4::identity(),
+        })
     }
 }
 
@@ -38,9 +45,9 @@ impl Shadable for Axes {
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_forward(material, camera, lights)?;
-        model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
+        model.set_transformation(&(self.transformation * Mat4::from_angle_z(degrees(90.0))));
         model.render_forward(material, camera, lights)?;
-        model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
+        model.set_transformation(&(self.transformation * Mat4::from_angle_y(degrees(-90.0))));
         model.render_forward(material, camera, lights)
     }
 
@@ -52,29 +59,10 @@ impl Shadable for Axes {
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
+        model.set_transformation(&(self.transformation * Mat4::from_angle_z(degrees(90.0))));
         model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
+        model.set_transformation(&(self.transformation * Mat4::from_angle_y(degrees(-90.0))));
         model.render_deferred(material, camera, viewport)
-    }
-}
-
-impl Shadable for &Axes {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
     }
 }
 
@@ -82,10 +70,17 @@ impl Geometry for Axes {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
         &self.aabb
     }
+
+    fn transformation(&self) -> &Mat4 {
+        &self.transformation
+    }
 }
-impl Geometry for &Axes {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        (*self).aabb()
+impl GeometryMut for Axes {
+    fn set_transformation(&mut self, transformation: &Mat4) {
+        self.transformation = *transformation;
+        let mut aabb = self.aabb_local.clone();
+        aabb.transform(&self.transformation);
+        self.aabb = aabb;
     }
 }
 
@@ -100,7 +95,7 @@ impl Object for Axes {
             camera,
             &Lights::default(),
         )?;
-        model.set_transformation(Mat4::from_angle_z(degrees(90.0)));
+        model.set_transformation(&(self.transformation * Mat4::from_angle_z(degrees(90.0))));
         model.render_forward(
             &ColorMaterial {
                 color: Color::GREEN,
@@ -109,7 +104,7 @@ impl Object for Axes {
             camera,
             &Lights::default(),
         )?;
-        model.set_transformation(Mat4::from_angle_y(degrees(-90.0)));
+        model.set_transformation(&(self.transformation * Mat4::from_angle_y(degrees(-90.0))));
         model.render_forward(
             &ColorMaterial {
                 color: Color::BLUE,
@@ -123,14 +118,5 @@ impl Object for Axes {
 
     fn is_transparent(&self) -> bool {
         false
-    }
-}
-impl Object for &Axes {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
-        (*self).render(camera, lights)
-    }
-
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
     }
 }

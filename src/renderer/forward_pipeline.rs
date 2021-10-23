@@ -48,10 +48,10 @@ impl ForwardPipeline {
         Ok(())
     }
 
-    pub fn render_pass<T: Object>(
+    pub fn render_pass(
         &self,
         camera: &Camera,
-        objects: &[T],
+        objects: &[&dyn Object],
         lights: &Lights,
     ) -> ThreeDResult<()> {
         for object in objects.iter().filter(|o| camera.in_frustum(o.aabb())) {

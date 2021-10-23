@@ -69,7 +69,7 @@ fn main() {
                     (1.2 * std::f32::consts::PI - angle).cos() * 21.0 - 33.0,
                     angle.sin() * dist,
                 ));
-                statue.set_transformation(translation * scale * rotation);
+                statue.set_transformation(&(translation * scale * rotation));
                 models.push(Glue {
                     geometry: statue.clone(),
                     material: statue_material.clone(),
@@ -82,7 +82,7 @@ fn main() {
             let mut fountain_material =
                 PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
             fountain_material.opaque_render_states.cull = Cull::Back;
-            fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
+            fountain.set_transformation(&Mat4::from_angle_x(degrees(-90.0)));
             models.push(Glue {
                 geometry: fountain,
                 material: fountain_material,

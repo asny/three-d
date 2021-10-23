@@ -222,12 +222,3 @@ impl Light for SpotLight {
         Ok(())
     }
 }
-
-impl Light for &SpotLight {
-    fn shader_source(&self, i: u32) -> String {
-        (*self).shader_source(i)
-    }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
-        (*self).use_uniforms(program, camera, i)
-    }
-}

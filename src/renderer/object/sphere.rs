@@ -34,33 +34,19 @@ impl Shadable for Sphere {
     }
 }
 
-impl Shadable for &Sphere {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
-    }
-}
-
 impl Geometry for Sphere {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
         self.model.aabb()
     }
+
+    fn transformation(&self) -> &Mat4 {
+        self.model.transformation()
+    }
 }
-impl Geometry for &Sphere {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        (*self).aabb()
+
+impl GeometryMut for Sphere {
+    fn set_transformation(&mut self, transformation: &Mat4) {
+        self.model.set_transformation(transformation);
     }
 }
 
@@ -78,14 +64,5 @@ impl Object for Sphere {
 
     fn is_transparent(&self) -> bool {
         false
-    }
-}
-impl Object for &Sphere {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
-        (*self).render(camera, lights)
-    }
-
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
     }
 }

@@ -58,13 +58,3 @@ impl Shadable2D for Circle {
         })
     }
 }
-
-impl Shadable2D for &Circle {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, viewport)
-    }
-}

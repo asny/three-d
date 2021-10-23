@@ -147,38 +147,12 @@ impl ForwardMaterial for PhysicalMaterial {
     }
 }
 
-impl ForwardMaterial for &PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
-        (*self).fragment_shader_source(use_vertex_colors, lights)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        (*self).render_states()
-    }
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
-    }
-}
-
 impl DeferredMaterial for PhysicalMaterial {
     fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
         format!(
             "#define DEFERRED\n{}",
             self.fragment_shader_source(use_vertex_colors, &Lights::default())
         )
-    }
-}
-
-impl DeferredMaterial for &PhysicalMaterial {
-    fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
-        (*self).fragment_shader_source_deferred(use_vertex_colors)
     }
 }
 

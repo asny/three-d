@@ -347,7 +347,7 @@ fn main() {
                                     }
                                     _ => forward_pipeline.render_pass(
                                         &camera,
-                                        &[&plane as &dyn Object, &monkey],
+                                        &[&plane, &monkey],
                                         &lights,
                                     )?,
                                 };

@@ -106,7 +106,7 @@ fn main() {
                             || {
                                 pipeline.render_pass(
                                     &camera,
-                                    &[&model as &dyn Object, &vertices, &edges],
+                                    &[&model, &vertices, &edges],
                                     &lights,
                                 )?;
                                 Ok(())
