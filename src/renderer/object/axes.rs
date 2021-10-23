@@ -45,9 +45,9 @@ impl Shadable for Axes {
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_forward(material, camera, lights)?;
-        model.set_transformation(&(self.transformation * Mat4::from_angle_z(degrees(90.0))));
+        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
         model.render_forward(material, camera, lights)?;
-        model.set_transformation(&(self.transformation * Mat4::from_angle_y(degrees(-90.0))));
+        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_forward(material, camera, lights)
     }
 
@@ -59,9 +59,9 @@ impl Shadable for Axes {
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(&(self.transformation * Mat4::from_angle_z(degrees(90.0))));
+        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
         model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(&(self.transformation * Mat4::from_angle_y(degrees(-90.0))));
+        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_deferred(material, camera, viewport)
     }
 }
@@ -76,8 +76,8 @@ impl Geometry for Axes {
     }
 }
 impl GeometryMut for Axes {
-    fn set_transformation(&mut self, transformation: &Mat4) {
-        self.transformation = *transformation;
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
         let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);
         self.aabb = aabb;
@@ -95,7 +95,7 @@ impl Object for Axes {
             camera,
             &Lights::default(),
         )?;
-        model.set_transformation(&(self.transformation * Mat4::from_angle_z(degrees(90.0))));
+        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
         model.render_forward(
             &ColorMaterial {
                 color: Color::GREEN,
@@ -104,7 +104,7 @@ impl Object for Axes {
             camera,
             &Lights::default(),
         )?;
-        model.set_transformation(&(self.transformation * Mat4::from_angle_y(degrees(-90.0))));
+        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_forward(
             &ColorMaterial {
                 color: Color::BLUE,

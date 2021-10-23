@@ -98,7 +98,7 @@ impl<G: GeometryMut, M: ForwardMaterial> Geometry for Glue<G, M> {
 }
 
 impl<G: GeometryMut, M: ForwardMaterial> GeometryMut for Glue<G, M> {
-    fn set_transformation(&mut self, transformation: &Mat4) {
+    fn set_transformation(&mut self, transformation: Mat4) {
         self.geometry.set_transformation(transformation);
     }
 }
@@ -187,11 +187,11 @@ pub trait GeometryMut: Geometry {
     ///
     /// Set the local to world transformation applied to this geometry.
     ///
-    fn set_transformation(&mut self, transformation: &Mat4);
+    fn set_transformation(&mut self, transformation: Mat4);
 }
 
 impl<T: GeometryMut> GeometryMut for &mut T {
-    fn set_transformation(&mut self, transformation: &Mat4) {
+    fn set_transformation(&mut self, transformation: Mat4) {
         (*self).set_transformation(transformation);
     }
 }

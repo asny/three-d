@@ -35,7 +35,7 @@ fn main() {
             let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
             material.opaque_render_states.cull = Cull::Back;
             let mut model = Model::new(&context, &cpu_meshes[0]).unwrap();
-            model.set_transformation(&Mat4::from_angle_x(degrees(90.0)));
+            model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
             let mut lights = Lights {
                 ambient: Some(AmbientLight {

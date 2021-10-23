@@ -66,7 +66,7 @@ fn main() {
         },
     )
     .unwrap();
-    mesh.set_transformation(&Mat4::from_scale(10.0));
+    mesh.set_transformation(Mat4::from_scale(10.0));
 
     // main loop
     window
