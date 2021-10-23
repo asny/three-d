@@ -133,6 +133,16 @@ impl<T: Object> Object for &T {
     }
 }
 
+impl<T: Object> Object for &mut T {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+        (**self).render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        (**self).is_transparent()
+    }
+}
+
 // Geometry trait
 
 ///
@@ -285,6 +295,16 @@ impl<T: Shadable2D> Shadable2D for &T {
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         (*self).render_forward(material, viewport)
+    }
+}
+
+impl<T: Shadable2D> Shadable2D for &mut T {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        (**self).render_forward(material, viewport)
     }
 }
 
