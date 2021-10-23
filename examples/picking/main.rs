@@ -79,9 +79,7 @@ fn main() {
                                     if let Some(pick) =
                                         pick(&context, &camera, pixel, &[&monkey]).unwrap()
                                     {
-                                        pick_mesh
-                                            .geometry
-                                            .set_transformation(&Mat4::from_translation(pick));
+                                        pick_mesh.set_transformation(&Mat4::from_translation(pick));
                                         change = true;
                                     }
                                 }
