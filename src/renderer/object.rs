@@ -50,14 +50,14 @@ use crate::renderer::*;
 ///
 /// Glue that binds a [Geometry] and a [ForwardMaterial] together into an [Object].
 ///
-pub struct Glue<G: Geometry, M: ForwardMaterial> {
+pub struct Glue<G: GeometryMut, M: ForwardMaterial> {
     /// The geometry
     pub geometry: G,
     /// The material applied to the geometry
     pub material: M,
 }
 
-impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {
+impl<G: GeometryMut, M: ForwardMaterial> Object for Glue<G, M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         self.geometry.render_forward(&self.material, camera, lights)
     }
@@ -67,17 +67,7 @@ impl<G: Geometry, M: ForwardMaterial> Object for Glue<G, M> {
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Object for &Glue<G, M> {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
-        (*self).render(camera, lights)
-    }
-
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
-    }
-}
-
-impl<G: Geometry, M: ForwardMaterial> Shadable for Glue<G, M> {
+impl<G: GeometryMut, M: ForwardMaterial> Shadable for Glue<G, M> {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -97,34 +87,19 @@ impl<G: Geometry, M: ForwardMaterial> Shadable for Glue<G, M> {
     }
 }
 
-impl<G: Geometry, M: ForwardMaterial> Shadable for &Glue<G, M> {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
-    }
-}
-
-impl<G: Geometry, M: ForwardMaterial> Geometry for Glue<G, M> {
+impl<G: GeometryMut, M: ForwardMaterial> Geometry for Glue<G, M> {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
         self.geometry.aabb()
     }
+
+    fn transformation(&self) -> &Mat4 {
+        self.geometry.transformation()
+    }
 }
-impl<G: Geometry, M: ForwardMaterial> Geometry for &Glue<G, M> {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        (*self).aabb()
+
+impl<G: GeometryMut, M: ForwardMaterial> GeometryMut for Glue<G, M> {
+    fn set_transformation(&mut self, transformation: &Mat4) {
+        self.geometry.set_transformation(transformation);
     }
 }
 
@@ -148,39 +123,13 @@ pub trait Object: Geometry {
     fn is_transparent(&self) -> bool;
 }
 
-impl Object for &dyn Object {
+impl<T: Object> Object for &T {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         (*self).render(camera, lights)
     }
 
     fn is_transparent(&self) -> bool {
         (*self).is_transparent()
-    }
-}
-
-impl Shadable for &dyn Object {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
-    }
-}
-
-impl Geometry for &dyn Object {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        (*self).aabb()
     }
 }
 
@@ -194,31 +143,46 @@ pub trait Geometry: Shadable {
     /// Returns the [AxisAlignedBoundingBox] for this geometry.
     ///
     fn aabb(&self) -> &AxisAlignedBoundingBox;
+
+    ///
+    /// Returns the local to world transformation applied to this geometry.
+    ///
+    fn transformation(&self) -> &Mat4;
 }
 
-impl Geometry for &dyn Geometry {
+impl<T: Geometry> Geometry for &T {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
         (*self).aabb()
     }
+
+    fn transformation(&self) -> &Mat4 {
+        (*self).transformation()
+    }
 }
 
-impl Shadable for &dyn Geometry {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
+impl<T: Geometry> Geometry for &mut T {
+    fn aabb(&self) -> &AxisAlignedBoundingBox {
+        (**self).aabb()
     }
 
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
+    fn transformation(&self) -> &Mat4 {
+        (**self).transformation()
+    }
+}
+
+///
+/// Represents a 3D geometry.
+///
+pub trait GeometryMut: Geometry {
+    ///
+    /// Set the local to world transformation applied to this geometry.
+    ///
+    fn set_transformation(&mut self, transformation: &Mat4);
+}
+
+impl<T: GeometryMut> GeometryMut for &mut T {
+    fn set_transformation(&mut self, transformation: &Mat4) {
+        (*self).set_transformation(transformation);
     }
 }
 
@@ -256,7 +220,7 @@ pub trait Shadable {
     ) -> ThreeDResult<()>;
 }
 
-impl Shadable for &dyn Shadable {
+impl<T: Shadable> Shadable for &T {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -273,6 +237,26 @@ impl Shadable for &dyn Shadable {
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         (*self).render_deferred(material, camera, viewport)
+    }
+}
+
+impl<T: Shadable> Shadable for &mut T {
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        (**self).render_forward(material, camera, lights)
+    }
+
+    fn render_deferred(
+        &self,
+        material: &dyn DeferredMaterial,
+        camera: &Camera,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        (**self).render_deferred(material, camera, viewport)
     }
 }
 
@@ -294,7 +278,7 @@ pub trait Shadable2D {
     ) -> ThreeDResult<()>;
 }
 
-impl Shadable2D for &dyn Shadable2D {
+impl<T: Shadable2D> Shadable2D for &T {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,

@@ -59,7 +59,7 @@ fn main() {
         // Start writing to the screen and clears the color and depth
         Screen::write(&context, ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
             // Set the current transformation of the triangle
-            model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
+            model.set_transformation(&Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
 
             // Render the triangle with the color material which uses the per vertex colors defined at construction
             model.render_forward(&material, &camera, &Lights::default())?;

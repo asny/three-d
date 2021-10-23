@@ -81,7 +81,7 @@ fn main() {
                                     {
                                         pick_mesh
                                             .geometry
-                                            .set_transformation(Mat4::from_translation(pick));
+                                            .set_transformation(&Mat4::from_translation(pick));
                                         change = true;
                                     }
                                 }

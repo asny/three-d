@@ -76,7 +76,7 @@ fn main() {
             };
             penguin_object
                 .geometry
-                .set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
+                .set_transformation(&Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
             penguin_object.material.opaque_render_states.cull = Cull::Back;
 
             let lights = Lights {
@@ -109,7 +109,7 @@ fn main() {
                         Screen::write(&context, ClearState::default(), || {
                             pipeline.render_pass(
                                 &camera,
-                                &[&box_object as &dyn Object, &penguin_object, &axes],
+                                &[&box_object, &penguin_object, &axes],
                                 &lights,
                             )?;
                             skybox.render(&camera)?;

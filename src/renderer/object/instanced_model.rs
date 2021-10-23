@@ -37,24 +37,6 @@ impl InstancedModel {
     }
 
     ///
-    /// Returns the local to world transformation applied to this instanced model.
-    ///
-    pub fn transformation(&self) -> &Mat4 {
-        &self.transformation
-    }
-
-    ///
-    /// Set the local to world transformation applied to this instanced model.
-    ///
-    pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        self.normal_transformation = self.transformation.invert().unwrap().transpose();
-        let mut aabb = self.aabb_local.clone();
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
-    }
-
-    ///
     /// Render the instanced model with a color per triangle vertex. The colors are defined when constructing the instanced model.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
@@ -235,12 +217,21 @@ impl ShadedGeometry for InstancedModel {
 
 impl Geometry for InstancedModel {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &AxisAlignedBoundingBox::INFINITE
+        &self.aabb
+    }
+
+    fn transformation(&self) -> &Mat4 {
+        &self.transformation
     }
 }
-impl Geometry for &InstancedModel {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        (*self).aabb()
+
+impl GeometryMut for InstancedModel {
+    fn set_transformation(&mut self, transformation: &Mat4) {
+        self.transformation = *transformation;
+        self.normal_transformation = self.transformation.invert().unwrap().transpose();
+        let mut aabb = self.aabb_local.clone();
+        aabb.transform(&self.transformation);
+        self.aabb = aabb;
     }
 }
 
@@ -292,24 +283,5 @@ impl Shadable for InstancedModel {
                 )
             },
         )
-    }
-}
-
-impl Shadable for &InstancedModel {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
     }
 }

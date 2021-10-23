@@ -81,13 +81,3 @@ impl Shadable2D for Rectangle {
         })
     }
 }
-
-impl Shadable2D for &Rectangle {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, viewport)
-    }
-}

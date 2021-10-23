@@ -25,23 +25,3 @@ impl ForwardMaterial for UVMaterial {
         false
     }
 }
-
-impl ForwardMaterial for &UVMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
-        (*self).fragment_shader_source(use_vertex_colors, lights)
-    }
-    fn use_uniforms(
-        &self,
-        program: &Program,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).use_uniforms(program, camera, lights)
-    }
-    fn render_states(&self) -> RenderStates {
-        (*self).render_states()
-    }
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
-    }
-}

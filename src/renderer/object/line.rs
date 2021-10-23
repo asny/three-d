@@ -75,13 +75,3 @@ impl Shadable2D for Line {
         })
     }
 }
-
-impl Shadable2D for &Line {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, viewport)
-    }
-}
