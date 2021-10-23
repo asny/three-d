@@ -226,8 +226,8 @@ impl Geometry for InstancedModel {
 }
 
 impl GeometryMut for InstancedModel {
-    fn set_transformation(&mut self, transformation: &Mat4) {
-        self.transformation = *transformation;
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
         let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);

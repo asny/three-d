@@ -11,7 +11,7 @@ impl Sphere {
     pub fn new(context: &Context, center: Vec3, radius: f32) -> ThreeDResult<Self> {
         let mesh = CPUMesh::sphere((radius * 20.0).max(4.0) as u32);
         let mut model = Model::new(context, &mesh)?;
-        model.set_transformation(&(Mat4::from_translation(center) * Mat4::from_scale(radius)));
+        model.set_transformation(Mat4::from_translation(center) * Mat4::from_scale(radius));
         Ok(Self {
             model,
             center,
@@ -22,7 +22,7 @@ impl Sphere {
     pub fn set_center(&mut self, center: Vec3) {
         self.center = center;
         self.model.set_transformation(
-            &(Mat4::from_translation(self.center) * Mat4::from_scale(self.radius)),
+            Mat4::from_translation(self.center) * Mat4::from_scale(self.radius),
         );
     }
 
@@ -33,7 +33,7 @@ impl Sphere {
     pub fn set_radius(&mut self, radius: f32) {
         self.radius = radius;
         self.model.set_transformation(
-            &(Mat4::from_translation(self.center) * Mat4::from_scale(self.radius)),
+            Mat4::from_translation(self.center) * Mat4::from_scale(self.radius),
         );
     }
 
@@ -73,7 +73,7 @@ impl Geometry for Sphere {
 }
 
 impl GeometryMut for Sphere {
-    fn set_transformation(&mut self, transformation: &Mat4) {
+    fn set_transformation(&mut self, transformation: Mat4) {
         self.model.set_transformation(transformation);
     }
 }

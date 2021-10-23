@@ -33,7 +33,7 @@ impl Model {
     }
 
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
-        self.set_transformation(&Mat4::new(
+        self.set_transformation(Mat4::new(
             transformation.x.x,
             transformation.x.y,
             0.0,
@@ -268,8 +268,8 @@ impl Geometry for Model {
 }
 
 impl GeometryMut for Model {
-    fn set_transformation(&mut self, transformation: &Mat4) {
-        self.transformation = *transformation;
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
         let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);

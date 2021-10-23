@@ -74,7 +74,7 @@ fn main() {
                 geometry: Model::new(&context, &penguin_cpu_meshes[0]).unwrap(),
                 material: PhysicalMaterial::new(&context, &penguin_cpu_materials[0]).unwrap(),
             };
-            penguin_object.set_transformation(&Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
+            penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
             penguin_object.material.opaque_render_states.cull = Cull::Back;
 
             let lights = Lights {
