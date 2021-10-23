@@ -3,14 +3,42 @@ use crate::renderer::*;
 #[derive(Clone)]
 pub struct Sphere {
     model: Model,
+    center: Vec3,
+    radius: f32,
 }
 
 impl Sphere {
     pub fn new(context: &Context, center: Vec3, radius: f32) -> ThreeDResult<Self> {
-        let mut mesh = CPUMesh::sphere((radius * 20.0).max(4.0) as u32);
-        mesh.transform(&(Mat4::from_translation(center) * Mat4::from_scale(radius)));
-        let model = Model::new(context, &mesh)?;
-        Ok(Self { model })
+        let mesh = CPUMesh::sphere((radius * 20.0).max(4.0) as u32);
+        let mut model = Model::new(context, &mesh)?;
+        model.set_transformation(&(Mat4::from_translation(center) * Mat4::from_scale(radius)));
+        Ok(Self {
+            model,
+            center,
+            radius,
+        })
+    }
+
+    pub fn set_center(&mut self, center: Vec3) {
+        self.center = center;
+        self.model.set_transformation(
+            &(Mat4::from_translation(self.center) * Mat4::from_scale(self.radius)),
+        );
+    }
+
+    pub fn center(&self) -> &Vec3 {
+        &self.center
+    }
+
+    pub fn set_radius(&mut self, radius: f32) {
+        self.radius = radius;
+        self.model.set_transformation(
+            &(Mat4::from_translation(self.center) * Mat4::from_scale(self.radius)),
+        );
+    }
+
+    pub fn radius(&self) -> f32 {
+        self.radius
     }
 }
 
