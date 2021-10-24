@@ -1,18 +1,21 @@
 use crate::renderer::*;
 
 #[derive(Clone)]
-pub struct Sphere {
+pub struct Sphere<M: ForwardMaterial> {
     model: Model,
     center: Vec3,
     radius: f32,
+    /// The material applied to the sphere
+    pub material: M,
 }
 
-impl Sphere {
-    pub fn new(context: &Context, center: Vec3, radius: f32) -> ThreeDResult<Self> {
+impl<M: ForwardMaterial> Sphere<M> {
+    pub fn new(context: &Context, center: Vec3, radius: f32, material: M) -> ThreeDResult<Self> {
         let mesh = CPUMesh::sphere((radius * 20.0).max(4.0) as u32);
         let mut model = Model::new(context, &mesh)?;
         model.set_transformation(Mat4::from_translation(center) * Mat4::from_scale(radius));
         Ok(Self {
+            material,
             model,
             center,
             radius,
@@ -42,7 +45,7 @@ impl Sphere {
     }
 }
 
-impl Shadable for Sphere {
+impl<M: ForwardMaterial> Shadable for Sphere<M> {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -62,7 +65,7 @@ impl Shadable for Sphere {
     }
 }
 
-impl Geometry for Sphere {
+impl<M: ForwardMaterial> Geometry for Sphere<M> {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
         self.model.aabb()
     }
@@ -72,22 +75,15 @@ impl Geometry for Sphere {
     }
 }
 
-impl GeometryMut for Sphere {
+impl<M: ForwardMaterial> GeometryMut for Sphere<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.model.set_transformation(transformation);
     }
 }
 
-impl Object for Sphere {
-    fn render(&self, camera: &Camera, _lights: &Lights) -> ThreeDResult<()> {
-        self.model.render_forward(
-            &ColorMaterial {
-                color: Color::WHITE,
-                ..Default::default()
-            },
-            camera,
-            &Lights::default(),
-        )
+impl<M: ForwardMaterial> Object for Sphere<M> {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+        self.model.render_forward(&self.material, camera, lights)
     }
 
     fn is_transparent(&self) -> bool {
