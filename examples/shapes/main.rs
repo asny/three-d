@@ -24,13 +24,16 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let sphere = Glue {
-        geometry: Sphere::new(&context, vec3(0.0, 2.0, 1.0), 1.0).unwrap(),
-        material: PhysicalMaterial {
+    let sphere = Sphere::new(
+        &context,
+        vec3(0.0, 2.0, 1.0),
+        1.0,
+        PhysicalMaterial {
             albedo: Color::RED,
             ..Default::default()
         },
-    };
+    )
+    .unwrap();
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
 
     window
