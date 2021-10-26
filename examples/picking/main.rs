@@ -27,22 +27,26 @@ fn main() {
 
     let mut sphere = CPUMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.05));
-    let mut pick_mesh = Glue {
-        geometry: Model::new(&context, &sphere).unwrap(),
-        material: PhysicalMaterial {
+    let mut pick_mesh = Model::new(
+        &context,
+        &sphere,
+        PhysicalMaterial {
             albedo: Color::RED,
             ..Default::default()
         },
-    };
+    )
+    .unwrap();
 
     Loader::load(
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |mut loaded| {
             let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = Glue {
-                geometry: Model::new(&context, &meshes[0]).unwrap(),
-                material: PhysicalMaterial::new(&context, &materials[0]).unwrap(),
-            };
+            let mut monkey = Model::new(
+                &context,
+                &meshes[0],
+                PhysicalMaterial::new(&context, &materials[0]).unwrap(),
+            )
+            .unwrap();
             monkey.material.opaque_render_states.cull = Cull::Back;
 
             let lights = Lights {

@@ -41,9 +41,10 @@ fn main() {
                 .map(|index| meshes.remove(index))
                 .unwrap();
             tree_cpu_mesh.compute_normals();
-            let mut tree_mesh = Glue {
-                geometry: Model::new(&context, &tree_cpu_mesh).unwrap(),
-                material: PhysicalMaterial::new(
+            let mut tree_mesh = Model::new(
+                &context,
+                &tree_cpu_mesh,
+                PhysicalMaterial::new(
                     &context,
                     &materials
                         .iter()
@@ -51,7 +52,8 @@ fn main() {
                         .unwrap(),
                 )
                 .unwrap(),
-            };
+            )
+            .unwrap();
             tree_mesh.material.transparent_render_states.cull = Cull::Back;
 
             let mut leaves_cpu_mesh = meshes
@@ -60,9 +62,10 @@ fn main() {
                 .map(|index| meshes.remove(index))
                 .unwrap();
             leaves_cpu_mesh.compute_normals();
-            let leaves_mesh = Glue {
-                geometry: Model::new(&context, &leaves_cpu_mesh).unwrap(),
-                material: PhysicalMaterial::new(
+            let leaves_mesh = Model::new(
+                &context,
+                &leaves_cpu_mesh,
+                PhysicalMaterial::new(
                     &context,
                     &materials
                         .iter()
@@ -70,7 +73,8 @@ fn main() {
                         .unwrap(),
                 )
                 .unwrap(),
-            };
+            )
+            .unwrap();
 
             // Lights
             let mut lights = Lights {
@@ -119,25 +123,23 @@ fn main() {
             imposters.update_positions(&positions, &angles);
 
             // Plane
-            let mut plane = Glue {
-                geometry: Model::new(
-                    &context,
-                    &CPUMesh {
-                        positions: vec![
-                            -10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0,
-                        ],
-                        normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                        ..Default::default()
-                    },
-                )
-                .unwrap(),
-                material: PhysicalMaterial {
+            let mut plane = Model::new(
+                &context,
+                &CPUMesh {
+                    positions: vec![
+                        -10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0,
+                    ],
+                    normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
+                    ..Default::default()
+                },
+                PhysicalMaterial {
                     albedo: Color::new_opaque(128, 200, 70),
                     metallic: 0.0,
                     roughness: 1.0,
                     ..Default::default()
                 },
-            };
+            )
+            .unwrap();
             plane.material.opaque_render_states.cull = Cull::Back;
 
             // Shadows

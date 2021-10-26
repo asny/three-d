@@ -1,8 +1,8 @@
 use crate::renderer::*;
 
 #[derive(Clone)]
-pub struct Rectangle {
-    model: Model,
+pub struct Rectangle<M: ForwardMaterial> {
+    model: Model<M>,
     context: Context,
     width: f32,
     height: f32,
@@ -10,18 +10,19 @@ pub struct Rectangle {
     rotation: Radians,
 }
 
-impl Rectangle {
+impl<M: ForwardMaterial> Rectangle<M> {
     pub fn new(
         context: &Context,
         center: Vec2,
         rotation: impl Into<Radians>,
         width: f32,
         height: f32,
+        material: M,
     ) -> ThreeDResult<Self> {
         let mut mesh = CPUMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5)));
         let mut rectangle = Self {
-            model: Model::new(context, &mesh)?,
+            model: Model::new(context, &mesh, material)?,
             context: context.clone(),
             width,
             height,
@@ -69,7 +70,7 @@ impl Rectangle {
     }
 }
 
-impl Shadable2D for Rectangle {
+impl<M: ForwardMaterial> Shadable2D for Rectangle<M> {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -79,5 +80,17 @@ impl Shadable2D for Rectangle {
             self.model
                 .render_forward(material, camera2d, &Lights::default())
         })
+    }
+}
+
+impl<M: ForwardMaterial> Object2D for Rectangle<M> {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render(camera2d, &Lights::default())
+        })
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.model.is_transparent()
     }
 }

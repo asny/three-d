@@ -5,7 +5,7 @@ use crate::renderer::*;
 /// A triangle mesh which can be rendered with a [ForwardMaterial] or [DeferredMaterial].
 ///
 #[derive(Clone)]
-pub struct Model {
+pub struct Model<M: ForwardMaterial> {
     context: Context,
     mesh: Mesh,
     #[deprecated = "set in render states on material instead"]
@@ -14,11 +14,13 @@ pub struct Model {
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
     normal_transformation: Mat4,
+    /// The material applied to the model
+    pub material: M,
 }
 
 #[allow(deprecated)]
-impl Model {
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
+impl<M: ForwardMaterial> Model<M> {
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh, material: M) -> ThreeDResult<Self> {
         let mesh = Mesh::new(context, cpu_mesh)?;
         let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
@@ -29,6 +31,7 @@ impl Model {
             normal_transformation: Mat4::identity(),
             context: context.clone(),
             cull: Cull::default(),
+            material,
         })
     }
 
@@ -193,7 +196,7 @@ impl Model {
 }
 
 #[allow(deprecated)]
-impl ShadedGeometry for Model {
+impl<M: ForwardMaterial> ShadedGeometry for Model<M> {
     fn render_with_lighting(
         &self,
         camera: &Camera,
@@ -257,7 +260,7 @@ impl ShadedGeometry for Model {
     }
 }
 
-impl Geometry for Model {
+impl<M: ForwardMaterial> Geometry for Model<M> {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
         &self.aabb
     }
@@ -267,7 +270,7 @@ impl Geometry for Model {
     }
 }
 
-impl GeometryMut for Model {
+impl<M: ForwardMaterial> GeometryMut for Model<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
@@ -278,7 +281,7 @@ impl GeometryMut for Model {
 }
 
 #[allow(deprecated)]
-impl Shadable for Model {
+impl<M: ForwardMaterial> Shadable for Model<M> {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -322,5 +325,15 @@ impl Shadable for Model {
                     .render(render_states, program, camera.uniform_buffer(), viewport)
             },
         )
+    }
+}
+
+impl<M: ForwardMaterial> Object for Model<M> {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+        self.render_forward(&self.material, camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.material.is_transparent()
     }
 }

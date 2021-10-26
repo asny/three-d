@@ -2,20 +2,17 @@ use crate::renderer::*;
 
 #[derive(Clone)]
 pub struct Sphere<M: ForwardMaterial> {
-    model: Model,
+    model: Model<M>,
     center: Vec3,
     radius: f32,
-    /// The material applied to the sphere
-    pub material: M,
 }
 
 impl<M: ForwardMaterial> Sphere<M> {
     pub fn new(context: &Context, center: Vec3, radius: f32, material: M) -> ThreeDResult<Self> {
         let mesh = CPUMesh::sphere((radius * 20.0).max(4.0) as u32);
-        let mut model = Model::new(context, &mesh)?;
+        let mut model = Model::new(context, &mesh, material)?;
         model.set_transformation(Mat4::from_translation(center) * Mat4::from_scale(radius));
         Ok(Self {
-            material,
             model,
             center,
             radius,
@@ -83,7 +80,7 @@ impl<M: ForwardMaterial> GeometryMut for Sphere<M> {
 
 impl<M: ForwardMaterial> Object for Sphere<M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
-        self.model.render_forward(&self.material, camera, lights)
+        self.model.render(camera, lights)
     }
 
     fn is_transparent(&self) -> bool {

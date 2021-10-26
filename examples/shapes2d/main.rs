@@ -11,9 +11,28 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let mut rectangle =
-        Rectangle::new(&context, vec2(200.0, 200.0), degrees(45.0), 100.0, 200.0).unwrap();
-    let mut circle = Circle::new(&context, vec2(500.0, 500.0), 200.0).unwrap();
+    let mut rectangle = Rectangle::new(
+        &context,
+        vec2(200.0, 200.0),
+        degrees(45.0),
+        100.0,
+        200.0,
+        ColorMaterial {
+            color: Color::RED,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let mut circle = Circle::new(
+        &context,
+        vec2(500.0, 500.0),
+        200.0,
+        ColorMaterial {
+            color: Color::BLUE,
+            ..Default::default()
+        },
+    )
+    .unwrap();
     let mut line = Line::new(
         &context,
         vec2(0.0, 0.0),
@@ -22,6 +41,10 @@ fn main() {
             window.viewport().unwrap().height as f32,
         ),
         5.0,
+        ColorMaterial {
+            color: Color::GREEN,
+            ..Default::default()
+        },
     )
     .unwrap();
 
@@ -59,27 +82,9 @@ fn main() {
                 &context,
                 ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                 || {
-                    line.render_forward(
-                        &ColorMaterial {
-                            color: Color::GREEN,
-                            ..Default::default()
-                        },
-                        frame_input.viewport,
-                    )?;
-                    rectangle.render_forward(
-                        &ColorMaterial {
-                            color: Color::RED,
-                            ..Default::default()
-                        },
-                        frame_input.viewport,
-                    )?;
-                    circle.render_forward(
-                        &ColorMaterial {
-                            color: Color::BLUE,
-                            ..Default::default()
-                        },
-                        frame_input.viewport,
-                    )?;
+                    line.render(frame_input.viewport)?;
+                    rectangle.render(frame_input.viewport)?;
+                    circle.render(frame_input.viewport)?;
                     Ok(())
                 },
             )

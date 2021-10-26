@@ -47,62 +47,6 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-///
-/// Glue that binds a [Geometry] and a [ForwardMaterial] together into an [Object].
-///
-pub struct Glue<G: GeometryMut, M: ForwardMaterial> {
-    /// The geometry
-    pub geometry: G,
-    /// The material applied to the geometry
-    pub material: M,
-}
-
-impl<G: GeometryMut, M: ForwardMaterial> Object for Glue<G, M> {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
-        self.geometry.render_forward(&self.material, camera, lights)
-    }
-
-    fn is_transparent(&self) -> bool {
-        self.material.is_transparent()
-    }
-}
-
-impl<G: GeometryMut, M: ForwardMaterial> Shadable for Glue<G, M> {
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        self.geometry.render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &dyn DeferredMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        self.geometry.render_deferred(material, camera, viewport)
-    }
-}
-
-impl<G: GeometryMut, M: ForwardMaterial> Geometry for Glue<G, M> {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        self.geometry.aabb()
-    }
-
-    fn transformation(&self) -> &Mat4 {
-        self.geometry.transformation()
-    }
-}
-
-impl<G: GeometryMut, M: ForwardMaterial> GeometryMut for Glue<G, M> {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.geometry.set_transformation(transformation);
-    }
-}
-
 // Object trait
 
 ///
@@ -305,6 +249,44 @@ impl<T: Shadable2D> Shadable2D for &mut T {
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         (**self).render_forward(material, viewport)
+    }
+}
+// Object2D trait
+
+///
+/// Represents a 2D object which can be rendered.
+///
+pub trait Object2D: Shadable2D {
+    ///
+    /// Render the object.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()>;
+
+    ///
+    /// Returns whether or not this object should be considered transparent.
+    ///
+    fn is_transparent(&self) -> bool;
+}
+
+impl<T: Object2D> Object2D for &T {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        (*self).render(viewport)
+    }
+
+    fn is_transparent(&self) -> bool {
+        (*self).is_transparent()
+    }
+}
+
+impl<T: Object2D> Object2D for &mut T {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        (**self).render(viewport)
+    }
+
+    fn is_transparent(&self) -> bool {
+        (**self).is_transparent()
     }
 }
 
