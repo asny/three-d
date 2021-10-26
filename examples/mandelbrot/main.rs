@@ -64,6 +64,7 @@ fn main() {
             positions,
             ..Default::default()
         },
+        MandelbrotMaterial {},
     )
     .unwrap();
     mesh.set_transformation(Mat4::from_scale(10.0));
@@ -108,8 +109,7 @@ fn main() {
 
             if redraw {
                 Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-                    mesh.render_forward(&MandelbrotMaterial {}, &camera, &Lights::default())?;
-                    Ok(())
+                    mesh.render(&camera, &Lights::default())
                 })
                 .unwrap();
             }

@@ -1,21 +1,27 @@
 use crate::renderer::*;
 
 #[derive(Clone)]
-pub struct Line {
+pub struct Line<M: ForwardMaterial> {
     context: Context,
-    model: Model,
+    model: Model<M>,
     pixel0: Vec2,
     pixel1: Vec2,
     width: f32,
 }
 
-impl Line {
-    pub fn new(context: &Context, pixel0: Vec2, pixel1: Vec2, width: f32) -> ThreeDResult<Self> {
+impl<M: ForwardMaterial> Line<M> {
+    pub fn new(
+        context: &Context,
+        pixel0: Vec2,
+        pixel1: Vec2,
+        width: f32,
+        material: M,
+    ) -> ThreeDResult<Self> {
         let mut mesh = CPUMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))));
         let mut line = Self {
             context: context.clone(),
-            model: Model::new(context, &mesh)?,
+            model: Model::new(context, &mesh, material)?,
             pixel0,
             pixel1,
             width,
@@ -63,7 +69,7 @@ impl Line {
     }
 }
 
-impl Shadable2D for Line {
+impl<M: ForwardMaterial> Shadable2D for Line<M> {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -73,5 +79,17 @@ impl Shadable2D for Line {
             self.model
                 .render_forward(material, camera2d, &Lights::default())
         })
+    }
+}
+
+impl<M: ForwardMaterial> Object2D for Line<M> {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render(camera2d, &Lights::default())
+        })
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.model.is_transparent()
     }
 }

@@ -5,7 +5,7 @@ use crate::renderer::*;
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently. See [InstancedMesh] if you need a custom render function.
 ///
 #[allow(deprecated)]
-pub struct InstancedModel {
+pub struct InstancedModel<M: ForwardMaterial> {
     context: Context,
     mesh: InstancedMesh,
     #[deprecated = "set in render states on material instead"]
@@ -14,14 +14,17 @@ pub struct InstancedModel {
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     normal_transformation: Mat4,
+    /// The material applied to the instanced model
+    pub material: M,
 }
 
 #[allow(deprecated)]
-impl InstancedModel {
+impl<M: ForwardMaterial> InstancedModel<M> {
     pub fn new(
         context: &Context,
         transformations: &[Mat4],
         cpu_mesh: &CPUMesh,
+        material: M,
     ) -> ThreeDResult<Self> {
         let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
         let aabb = cpu_mesh.compute_aabb();
@@ -33,6 +36,7 @@ impl InstancedModel {
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             normal_transformation: Mat4::identity(),
+            material,
         })
     }
 
@@ -150,7 +154,7 @@ impl InstancedModel {
 }
 
 #[allow(deprecated)]
-impl ShadedGeometry for InstancedModel {
+impl<M: ForwardMaterial> ShadedGeometry for InstancedModel<M> {
     fn render_with_lighting(
         &self,
         camera: &Camera,
@@ -215,7 +219,7 @@ impl ShadedGeometry for InstancedModel {
     }
 }
 
-impl Geometry for InstancedModel {
+impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
     fn aabb(&self) -> &AxisAlignedBoundingBox {
         &self.aabb
     }
@@ -225,7 +229,7 @@ impl Geometry for InstancedModel {
     }
 }
 
-impl GeometryMut for InstancedModel {
+impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.normal_transformation = self.transformation.invert().unwrap().transpose();
@@ -236,7 +240,7 @@ impl GeometryMut for InstancedModel {
 }
 
 #[allow(deprecated)]
-impl Shadable for InstancedModel {
+impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -283,5 +287,15 @@ impl Shadable for InstancedModel {
                 )
             },
         )
+    }
+}
+
+impl<M: ForwardMaterial> Object for InstancedModel<M> {
+    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+        self.render_forward(&self.material, camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.material.is_transparent()
     }
 }

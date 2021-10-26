@@ -44,11 +44,11 @@ fn main() {
         ..Default::default()
     };
 
-    // Construct a model, thereby transferring the mesh data to the GPU
-    let mut model = Model::new(&context, &cpu_mesh).unwrap();
-
     // Construct a new color material with default parameters
     let material = ColorMaterial::default();
+
+    // Construct a model, thereby transferring the mesh data to the GPU
+    let mut model = Model::new(&context, &cpu_mesh, material).unwrap();
 
     // Start the main render loop
     window.render_loop(move |frame_input: FrameInput| // Begin a new frame with an updated frame input
@@ -62,7 +62,7 @@ fn main() {
             model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
 
             // Render the triangle with the color material which uses the per vertex colors defined at construction
-            model.render_forward(&material, &camera, &Lights::default())?;
+            model.render(&camera, &Lights::default())?;
             Ok(())
         }).unwrap();
 

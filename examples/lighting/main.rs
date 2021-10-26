@@ -39,29 +39,29 @@ fn main() {
         move |mut loaded| {
             let (monkey_cpu_meshes, monkey_cpu_materials) =
                 loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = Glue {
-                geometry: Model::new(&context, &monkey_cpu_meshes[0]).unwrap(),
-                material: PhysicalMaterial::new(&context, &monkey_cpu_materials[0]).unwrap(),
-            };
+            let mut monkey = Model::new(
+                &context,
+                &monkey_cpu_meshes[0],
+                PhysicalMaterial::new(&context, &monkey_cpu_materials[0]).unwrap(),
+            )
+            .unwrap();
             monkey.material.opaque_render_states.cull = Cull::Back;
 
-            let mut plane = Glue {
-                geometry: Model::new(
-                    &context,
-                    &CPUMesh {
-                        positions: vec![
-                            -10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0,
-                        ],
-                        normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                        ..Default::default()
-                    },
-                )
-                .unwrap(),
-                material: PhysicalMaterial {
+            let mut plane = Model::new(
+                &context,
+                &CPUMesh {
+                    positions: vec![
+                        -10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0,
+                    ],
+                    normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
+                    ..Default::default()
+                },
+                PhysicalMaterial {
                     albedo: Color::new_opaque(128, 200, 70),
                     ..Default::default()
                 },
-            };
+            )
+            .unwrap();
 
             let mut lights = Lights {
                 ambient: Some(AmbientLight {

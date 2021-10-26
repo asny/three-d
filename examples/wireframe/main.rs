@@ -36,10 +36,12 @@ fn main() {
             let (mut meshes, materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let mut cpu_mesh = meshes.remove(0);
             cpu_mesh.transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            let model = Glue {
-                geometry: Model::new(&context, &cpu_mesh).unwrap(),
-                material: PhysicalMaterial::new(&context, &materials[0]).unwrap(),
-            };
+            let model = Model::new(
+                &context,
+                &cpu_mesh,
+                PhysicalMaterial::new(&context, &materials[0]).unwrap(),
+            )
+            .unwrap();
 
             let wireframe_material = PhysicalMaterial {
                 name: "wireframe".to_string(),
@@ -54,27 +56,23 @@ fn main() {
             };
             let mut cylinder = CPUMesh::cylinder(10);
             cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
-            let edges = Glue {
-                geometry: InstancedModel::new(
-                    &context,
-                    &edge_transformations(&cpu_mesh),
-                    &cylinder,
-                )
-                .unwrap(),
-                material: wireframe_material.clone(),
-            };
+            let edges = InstancedModel::new(
+                &context,
+                &edge_transformations(&cpu_mesh),
+                &cylinder,
+                wireframe_material.clone(),
+            )
+            .unwrap();
 
             let mut sphere = CPUMesh::sphere(8);
             sphere.transform(&Mat4::from_scale(0.015));
-            let vertices = Glue {
-                geometry: InstancedModel::new(
-                    &context,
-                    &vertex_transformations(&cpu_mesh),
-                    &sphere,
-                )
-                .unwrap(),
-                material: wireframe_material,
-            };
+            let vertices = InstancedModel::new(
+                &context,
+                &vertex_transformations(&cpu_mesh),
+                &sphere,
+                wireframe_material,
+            )
+            .unwrap();
 
             let lights = Lights {
                 ambient: Some(AmbientLight {

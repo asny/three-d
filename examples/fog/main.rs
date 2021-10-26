@@ -39,10 +39,7 @@ fn main() {
             let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
             let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
             monkey_material.opaque_render_states.cull = Cull::Back;
-            let monkey = Glue {
-                geometry: Model::new(&context, &meshes[0]).unwrap(),
-                material: monkey_material,
-            };
+            let monkey = Model::new(&context, &meshes[0], monkey_material).unwrap();
 
             let lights = Lights {
                 ambient: Some(AmbientLight {

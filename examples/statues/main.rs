@@ -56,7 +56,7 @@ fn main() {
             let mut statue_material =
                 PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
             statue_material.opaque_render_states.cull = Cull::Back;
-            let mut statue = Model::new(&context, &statue_cpu_meshes[0]).unwrap();
+            let mut statue = Model::new(&context, &statue_cpu_meshes[0], statue_material).unwrap();
 
             let mut models = Vec::new();
             let scale = Mat4::from_scale(10.0);
@@ -70,23 +70,18 @@ fn main() {
                     angle.sin() * dist,
                 ));
                 statue.set_transformation(translation * scale * rotation);
-                models.push(Glue {
-                    geometry: statue.clone(),
-                    material: statue_material.clone(),
-                });
+                models.push(statue.clone());
             }
 
             let (fountain_cpu_meshes, fountain_cpu_materials) =
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
-            let mut fountain = Model::new(&context, &fountain_cpu_meshes[0]).unwrap();
             let mut fountain_material =
                 PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
             fountain_material.opaque_render_states.cull = Cull::Back;
+            let mut fountain =
+                Model::new(&context, &fountain_cpu_meshes[0], fountain_material).unwrap();
             fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
-            models.push(Glue {
-                geometry: fountain,
-                material: fountain_material,
-            });
+            models.push(fountain);
 
             let mut lights = Lights {
                 ambient: Some(AmbientLight {

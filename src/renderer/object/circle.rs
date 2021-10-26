@@ -1,19 +1,19 @@
 use crate::renderer::*;
 
 #[derive(Clone)]
-pub struct Circle {
+pub struct Circle<M: ForwardMaterial> {
     context: Context,
-    model: Model,
+    model: Model<M>,
     radius: f32,
     center: Vec2,
 }
 
-impl Circle {
-    pub fn new(context: &Context, center: Vec2, radius: f32) -> ThreeDResult<Self> {
+impl<M: ForwardMaterial> Circle<M> {
+    pub fn new(context: &Context, center: Vec2, radius: f32, material: M) -> ThreeDResult<Self> {
         let mesh = CPUMesh::circle(64);
         let mut circle = Self {
             context: context.clone(),
-            model: Model::new(context, &mesh)?,
+            model: Model::new(context, &mesh, material)?,
             center,
             radius,
         };
@@ -46,7 +46,7 @@ impl Circle {
     }
 }
 
-impl Shadable2D for Circle {
+impl<M: ForwardMaterial> Shadable2D for Circle<M> {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -56,5 +56,17 @@ impl Shadable2D for Circle {
             self.model
                 .render_forward(material, camera2d, &Lights::default())
         })
+    }
+}
+
+impl<M: ForwardMaterial> Object2D for Circle<M> {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        self.context.camera2d(viewport, |camera2d| {
+            self.model.render(camera2d, &Lights::default())
+        })
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.model.is_transparent()
     }
 }
