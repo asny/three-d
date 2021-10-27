@@ -32,10 +32,6 @@ mod imposters;
 #[doc(inline)]
 pub use imposters::*;
 
-mod sphere;
-#[doc(inline)]
-pub use sphere::*;
-
 mod axes;
 #[doc(inline)]
 pub use axes::*;
