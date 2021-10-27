@@ -96,7 +96,6 @@ fn main() {
                 ..Default::default()
             };
 
-            let axes = Axes::new(&context, 0.1, 3.0).unwrap();
             // main loop
             window
                 .render_loop(move |mut frame_input| {
@@ -111,7 +110,7 @@ fn main() {
                         Screen::write(&context, ClearState::default(), || {
                             pipeline.render_pass(
                                 &camera,
-                                &[&box_object, &penguin_object, &axes],
+                                &[&box_object, &penguin_object],
                                 &lights,
                             )?;
                             skybox.render(&camera)?;
