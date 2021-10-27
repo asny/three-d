@@ -79,6 +79,13 @@ impl AxisAlignedBoundingBox {
     }
 
     ///
+    /// Get the center of the bounding box.
+    ///
+    pub fn center(&self) -> Vec3 {
+        0.5 * self.max + 0.5 * self.min
+    }
+
+    ///
     /// Expands the bounding box such that all of the given positions are contained inside the bounding box.
     /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
     ///

@@ -36,6 +36,25 @@ use thiserror::Error;
 #[allow(missing_docs)]
 pub enum RendererError {}
 
+use std::cmp::Ordering;
+pub fn cmp_render_order(camera: &Camera, obj0: &dyn Object, obj1: &dyn Object) -> Ordering {
+    if obj0.is_transparent() == obj1.is_transparent() {
+        let distance_a = camera.position().distance2(obj0.aabb().center());
+        let distance_b = camera.position().distance2(obj1.aabb().center());
+        if obj0.is_transparent() {
+            distance_b.partial_cmp(&distance_a).unwrap()
+        } else {
+            distance_a.partial_cmp(&distance_b).unwrap()
+        }
+    } else {
+        if obj0.is_transparent() {
+            Ordering::Greater
+        } else {
+            Ordering::Less
+        }
+    }
+}
+
 impl crate::core::Camera {
     ///
     /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
