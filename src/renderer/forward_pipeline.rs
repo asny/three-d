@@ -48,13 +48,22 @@ impl ForwardPipeline {
         Ok(())
     }
 
+    ///
+    /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
+    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
+    ///
     pub fn render_pass(
         &self,
         camera: &Camera,
         objects: &[&dyn Object],
         lights: &Lights,
     ) -> ThreeDResult<()> {
-        for object in objects.iter().filter(|o| camera.in_frustum(o.aabb())) {
+        let mut culled_objects = objects
+            .iter()
+            .filter(|o| camera.in_frustum(o.aabb()))
+            .collect::<Vec<_>>();
+        culled_objects.sort_by(|a, b| cmp_render_order(camera, **a, **b));
+        for object in culled_objects {
             object.render(camera, lights)?;
         }
         Ok(())
