@@ -24,16 +24,37 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let sphere = Sphere::new(
+    let mut sphere = Model::new(
         &context,
-        vec3(0.0, 2.0, 1.0),
-        1.0,
+        &CPUMesh::sphere(16),
+        PhysicalMaterial {
+            albedo: Color::GREEN,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
+    let mut cylinder = Model::new(
+        &context,
+        &CPUMesh::cylinder(16),
         PhysicalMaterial {
             albedo: Color::RED,
             ..Default::default()
         },
     )
     .unwrap();
+    cylinder
+        .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
+    let mut cube = Model::new(
+        &context,
+        &CPUMesh::cube(),
+        PhysicalMaterial {
+            albedo: Color::BLUE,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
 
     window
@@ -65,6 +86,8 @@ fn main() {
                         ..Default::default()
                     };
                     sphere.render(&camera, &lights)?;
+                    cylinder.render(&camera, &lights)?;
+                    cube.render(&camera, &lights)?;
                     axes.render(&camera, &lights)?;
                     Ok(())
                 },
