@@ -67,15 +67,15 @@ impl AxisAlignedBoundingBox {
     ///
     /// Get the minimum coordinate of the bounding box.
     ///
-    pub fn min(&self) -> &Vec3 {
-        &self.min
+    pub fn min(&self) -> Vec3 {
+        self.min
     }
 
     ///
     /// Get the maximum coordinate of the bounding box.
     ///
-    pub fn max(&self) -> &Vec3 {
-        &self.max
+    pub fn max(&self) -> Vec3 {
+        self.max
     }
 
     ///
@@ -83,6 +83,13 @@ impl AxisAlignedBoundingBox {
     ///
     pub fn center(&self) -> Vec3 {
         0.5 * self.max + 0.5 * self.min
+    }
+
+    ///
+    /// Get the size of the bounding box.
+    ///
+    pub fn size(&self) -> Vec3 {
+        self.max - self.min
     }
 
     ///
