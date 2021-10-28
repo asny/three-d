@@ -7,8 +7,14 @@
 
 ### What is it?
 
-A 3D renderer which enables out-of-the-box build to both desktop (Rust + OpenGL) and web (Rust to WebAssembly + WebGL2).
-This makes it possible to develop a 3D application on desktop and easily deploy it on both desktop and web!
+A renderer which seeks to make graphics simple but still have the power to do whatever you desire.
+
+`three-d` 
+- makes it possible to combine high-level features with custom shaders so you can focus on the important stuff.
+- can be used by those without any graphics experience and who just want to draw something.
+- tries to do simple stuff in a few simple lines of code.
+- aims to be as explicit as possible so there is no surprices for you - no hidden magic.
+- targets both desktop and web so you can develop on desktop and deploy on web.
 
 The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and two optional utility modules, `io` and `window`:
 
@@ -19,11 +25,6 @@ The crate consist of three main modules for drawing, `context`, `core` and `rend
 | [`renderer`](https://docs.rs/three-d/0/three_d/renderer/)  | High-level rendering module - requires no knowledge about graphics concepts. Use this if you just want to draw something on the screen. Features include methods for rendering different types of standard objects with different types of shading. Can be combined seamlessly with the mid-level features in the `core` module and also with calls in the `context` module as long as the graphics state is reset.             |
 | [`io`](https://docs.rs/three-d/0/three_d/io/) | Contains functionality to load any type of asset runtime on both desktop and web as well as parsers for different image and 3D model formats. Also includes functionality to save data which is limited to desktop.
 | [`window`](https://docs.rs/three-d/0/three_d/window/)  | Contains functionality for creating a window on both cross-platform desktop (requires the `"glutin-window"` feature) and web (requires the `"canvas"` feature). Also contain render loop, event handling and camera control functionality. Can be replaced by anything that provides an OpenGL or WebGL2 graphics context. 
-
-
-### Supported browsers
-
-Chrome, Firefox, Edge and Safari (Safari might requires enabling the "WebGL 2.0" experimental feature).
 
 ### Examples
 
@@ -63,17 +64,10 @@ Start the server and go to http://localhost:8080 in a browser:
 $ http-server
 ```
 
+### Supported browsers
+
+Chrome, Firefox, Edge and Safari.
+
 ### Other
 
-Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [development branch](https://github.com/asny/three-d/tree/development).
-
-[all]: https://github.com/asny/three-d/tree/master/examples/
-[lighting]: https://github.com/asny/three-d/tree/master/examples/lighting/main.rs
-[texture]: https://github.com/asny/three-d/tree/master/examples/texture/main.rs
-[fog]: https://github.com/asny/three-d/tree/master/examples/fog/main.rs
-[fireworks]: https://github.com/asny/three-d/tree/master/examples/fireworks/main.rs
-[statues]: https://github.com/asny/three-d/tree/master/examples/statues/main.rs
-[forest]: https://github.com/asny/three-d/tree/master/examples/forest/main.rs
-[triangle]: https://github.com/asny/three-d/tree/master/examples/triangle/main.rs
-[mandelbrot]: https://github.com/asny/three-d/tree/master/examples/mandelbrot/main.rs
-[wireframe]: https://github.com/asny/three-d/tree/master/examples/wireframe/main.rs
+Feature requests and bug reports are more than welcome, just open an issue or start a discussion. Contributions are highly appreciated, please feel free to reach out or simply create a pull request against the [master branch](https://github.com/asny/three-d/tree/master).
