@@ -132,7 +132,7 @@ fn main() {
                             || {
                                 for model in models
                                     .iter()
-                                    .filter(|o| primary_camera.in_frustum(o.aabb()))
+                                    .filter(|o| primary_camera.in_frustum(&o.aabb()))
                                 {
                                     model.render(
                                         if is_primary_camera {

@@ -27,7 +27,7 @@ impl Axes {
                 ..Default::default()
             },
         )?;
-        let mut aabb = *model.aabb();
+        let mut aabb = model.aabb();
         let mut aabb2 = aabb.clone();
         aabb2.transform(&Mat4::from_angle_z(degrees(90.0)));
         aabb.expand_with_aabb(&aabb2);
@@ -74,12 +74,12 @@ impl Shadable for Axes {
 }
 
 impl Geometry for Axes {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &self.aabb
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.aabb
     }
 
-    fn transformation(&self) -> &Mat4 {
-        &self.transformation
+    fn transformation(&self) -> Mat4 {
+        self.transformation
     }
 }
 impl GeometryMut for Axes {

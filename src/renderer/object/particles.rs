@@ -246,12 +246,12 @@ impl Particles {
 }
 
 impl Geometry for Particles {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &AxisAlignedBoundingBox::INFINITE
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::INFINITE
     }
 
-    fn transformation(&self) -> &Mat4 {
-        &self.transformation
+    fn transformation(&self) -> Mat4 {
+        self.transformation
     }
 }
 
