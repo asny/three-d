@@ -1,6 +1,5 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::collections::HashMap;
 
 ///
 /// Used for debug purposes.
@@ -23,8 +22,6 @@ pub enum DebugType {
 ///
 pub struct DeferredPipeline {
     context: Context,
-    program_map: HashMap<String, ImageEffect>,
-    debug_effect: Option<ImageEffect>,
     ///
     /// Set this to visualize the positions, normals etc. for debug purposes.
     ///
@@ -41,8 +38,6 @@ impl DeferredPipeline {
     pub fn new(context: &Context) -> ThreeDResult<Self> {
         let renderer = Self {
             context: context.clone(),
-            program_map: HashMap::new(),
-            debug_effect: None,
             debug_type: DebugType::NONE,
             lighting_model: LightingModel::Blinn,
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(
@@ -137,33 +132,21 @@ impl DeferredPipeline {
         };
 
         if self.debug_type != DebugType::NONE {
-            if self.debug_effect.is_none() {
-                self.debug_effect = Some(
-                    ImageEffect::new(&self.context, include_str!("material/shaders/debug.frag"))
-                        .unwrap(),
-                );
-            }
-            self.debug_effect.as_ref().unwrap().use_uniform_mat4(
-                "viewProjectionInverse",
-                &(camera.projection() * camera.view()).invert().unwrap(),
-            )?;
-            self.debug_effect
-                .as_ref()
-                .unwrap()
-                .use_texture_array("gbuffer", self.geometry_pass_texture())?;
-            self.debug_effect
-                .as_ref()
-                .unwrap()
-                .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
-            self.debug_effect
-                .as_ref()
-                .unwrap()
-                .use_uniform_int("type", &(self.debug_type as i32))?;
-            self.debug_effect
-                .as_ref()
-                .unwrap()
-                .apply(render_states, camera.viewport())?;
-            return Ok(());
+            return self.context.effect(
+                include_str!("material/shaders/debug.frag"),
+                |debug_effect| {
+                    debug_effect.use_uniform_mat4(
+                        "viewProjectionInverse",
+                        &(camera.projection() * camera.view()).invert().unwrap(),
+                    )?;
+                    debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
+                    debug_effect
+                        .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+                    debug_effect.use_uniform_int("type", &(self.debug_type as i32))?;
+                    debug_effect.apply(render_states, camera.viewport())?;
+                    Ok(())
+                },
+            );
         }
         let mut lights: Vec<&dyn Light> = Vec::new();
         if let Some(light) = ambient_light {
@@ -183,28 +166,22 @@ impl DeferredPipeline {
             lights_fragment_shader_source(&mut lights.clone().into_iter(), self.lighting_model);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
-        if !self.program_map.contains_key(&fragment_shader) {
-            self.program_map.insert(
-                fragment_shader.clone(),
-                ImageEffect::new(&self.context, &fragment_shader)?,
-            );
-        };
-        let effect = self.program_map.get(&fragment_shader).unwrap();
-
-        for (i, light) in lights.iter().enumerate() {
-            light.use_uniforms(effect, camera, i as u32)?;
-        }
-
-        effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-        effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
-        if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty() {
-            effect.use_uniform_mat4(
-                "viewProjectionInverse",
-                &(camera.projection() * camera.view()).invert().unwrap(),
-            )?;
-        }
-        effect.apply(render_states, camera.viewport())?;
-        Ok(())
+        self.context.effect(&fragment_shader, |effect| {
+            for (i, light) in lights.iter().enumerate() {
+                light.use_uniforms(effect, camera, i as u32)?;
+            }
+            effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
+            effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+            if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty()
+            {
+                effect.use_uniform_mat4(
+                    "viewProjectionInverse",
+                    &(camera.projection() * camera.view()).invert().unwrap(),
+                )?;
+            }
+            effect.apply(render_states, camera.viewport())?;
+            Ok(())
+        })
     }
 
     pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray<u8> {
