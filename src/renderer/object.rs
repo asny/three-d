@@ -36,6 +36,10 @@ mod axes;
 #[doc(inline)]
 pub use axes::*;
 
+mod bounding_box;
+#[doc(inline)]
+pub use bounding_box::*;
+
 mod particles;
 #[doc(inline)]
 pub use particles::*;
