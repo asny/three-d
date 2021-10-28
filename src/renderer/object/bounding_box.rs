@@ -24,28 +24,28 @@ impl<M: ForwardMaterial> BoundingBox<M> {
                 * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
             Mat4::from_translation(min)
                 * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
             Mat4::from_translation(vec3(max.x, min.y, max.z))
                 * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
             Mat4::from_translation(vec3(min.x, min.y, max.z))
                 * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
             Mat4::from_translation(vec3(max.x, min.y, min.z))
                 * Mat4::from_angle_z(degrees(90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.y, thickness, thickness),
             Mat4::from_translation(min)
                 * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
             Mat4::from_translation(vec3(max.x, max.y, min.z))
                 * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
             Mat4::from_translation(vec3(min.x, max.y, min.z))
                 * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
             Mat4::from_translation(vec3(max.x, min.y, min.z))
                 * Mat4::from_angle_y(degrees(-90.0))
-                * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
+                * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
         ];
         let model =
             InstancedModel::new(context, &transformations, &CPUMesh::cylinder(16), material)?;
