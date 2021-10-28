@@ -34,7 +34,7 @@ impl ForwardPipeline {
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> ThreeDResult<()> {
-        for (geo, mat) in objects.iter().filter(|(g, _)| camera.in_frustum(g.aabb())) {
+        for (geo, mat) in objects.iter().filter(|(g, _)| camera.in_frustum(&g.aabb())) {
             geo.render_with_lighting(
                 camera,
                 mat,
@@ -60,7 +60,7 @@ impl ForwardPipeline {
     ) -> ThreeDResult<()> {
         let mut culled_objects = objects
             .iter()
-            .filter(|o| camera.in_frustum(o.aabb()))
+            .filter(|o| camera.in_frustum(&o.aabb()))
             .collect::<Vec<_>>();
         culled_objects.sort_by(|a, b| cmp_render_order(camera, **a, **b));
         for object in culled_objects {

@@ -92,30 +92,30 @@ pub trait Geometry: Shadable {
     ///
     /// Returns the [AxisAlignedBoundingBox] for this geometry.
     ///
-    fn aabb(&self) -> &AxisAlignedBoundingBox;
+    fn aabb(&self) -> AxisAlignedBoundingBox;
 
     ///
     /// Returns the local to world transformation applied to this geometry.
     ///
-    fn transformation(&self) -> &Mat4;
+    fn transformation(&self) -> Mat4;
 }
 
 impl<T: Geometry> Geometry for &T {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
+    fn aabb(&self) -> AxisAlignedBoundingBox {
         (*self).aabb()
     }
 
-    fn transformation(&self) -> &Mat4 {
+    fn transformation(&self) -> Mat4 {
         (*self).transformation()
     }
 }
 
 impl<T: Geometry> Geometry for &mut T {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
+    fn aabb(&self) -> AxisAlignedBoundingBox {
         (**self).aabb()
     }
 
-    fn transformation(&self) -> &Mat4 {
+    fn transformation(&self) -> Mat4 {
         (**self).transformation()
     }
 }

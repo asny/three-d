@@ -108,7 +108,7 @@ impl DeferredPipeline {
             self.geometry_pass_depth_texture.as_ref().unwrap(),
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
-            for (geometry, material) in objects.iter().filter(|(g, _)| camera.in_frustum(g.aabb()))
+            for (geometry, material) in objects.iter().filter(|(g, _)| camera.in_frustum(&g.aabb()))
             {
                 geometry.render_deferred(material, camera, viewport)?;
             }

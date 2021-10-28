@@ -220,12 +220,12 @@ impl<M: ForwardMaterial> ShadedGeometry for InstancedModel<M> {
 }
 
 impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
-    fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &self.aabb
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.aabb
     }
 
-    fn transformation(&self) -> &Mat4 {
-        &self.transformation
+    fn transformation(&self) -> Mat4 {
+        self.transformation
     }
 }
 
