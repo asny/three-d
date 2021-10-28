@@ -58,18 +58,10 @@ impl ForwardPipeline {
         objects: &[&dyn Object],
         lights: &Lights,
     ) -> ThreeDResult<()> {
-        let mut culled_objects = objects
-            .iter()
-            .filter(|o| camera.in_frustum(&o.aabb()))
-            .collect::<Vec<_>>();
-        culled_objects.sort_by(|a, b| cmp_render_order(camera, **a, **b));
-        for object in culled_objects {
-            object.render(camera, lights)?;
-        }
-        Ok(())
+        render_pass(camera, objects, lights)
     }
 
-    pub fn depth_pass<T: Shadable>(&self, camera: &Camera, geometries: &[T]) -> ThreeDResult<()> {
+    pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> ThreeDResult<()> {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -77,16 +69,19 @@ impl ForwardPipeline {
             },
             ..Default::default()
         };
-        for geometry in geometries {
-            geometry.render_forward(&depth_material, camera, &Lights::default())?;
+        for object in objects
+            .iter()
+            .filter(|o| !o.is_transparent() && camera.in_frustum(&o.aabb()))
+        {
+            object.render_forward(&depth_material, camera, &Lights::default())?;
         }
         Ok(())
     }
 
-    pub fn depth_pass_texture<T: Shadable>(
+    pub fn depth_pass_texture(
         &self,
         camera: &Camera,
-        objects: &[T],
+        objects: &[&dyn Object],
     ) -> ThreeDResult<DepthTargetTexture2D> {
         let depth_texture = DepthTargetTexture2D::new(
             &self.context,
