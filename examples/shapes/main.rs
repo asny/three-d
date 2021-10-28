@@ -28,7 +28,12 @@ fn main() {
         &context,
         &CPUMesh::sphere(16),
         PhysicalMaterial {
-            albedo: Color::GREEN,
+            albedo: Color {
+                r: 255,
+                g: 0,
+                b: 0,
+                a: 200,
+            },
             ..Default::default()
         },
     )
@@ -38,7 +43,12 @@ fn main() {
         &context,
         &CPUMesh::cylinder(16),
         PhysicalMaterial {
-            albedo: Color::RED,
+            albedo: Color {
+                r: 0,
+                g: 255,
+                b: 0,
+                a: 200,
+            },
             ..Default::default()
         },
     )
@@ -49,13 +59,45 @@ fn main() {
         &context,
         &CPUMesh::cube(),
         PhysicalMaterial {
-            albedo: Color::BLUE,
+            albedo: Color {
+                r: 0,
+                g: 0,
+                b: 255,
+                a: 100,
+            },
             ..Default::default()
         },
     )
     .unwrap();
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
+    let bounding_box_sphere = BoundingBox::new(
+        &context,
+        sphere.aabb(),
+        ColorMaterial {
+            color: Color::BLACK,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let bounding_box_cube = BoundingBox::new(
+        &context,
+        cube.aabb(),
+        ColorMaterial {
+            color: Color::BLACK,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let bounding_box_cylinder = BoundingBox::new(
+        &context,
+        cylinder.aabb(),
+        ColorMaterial {
+            color: Color::BLACK,
+            ..Default::default()
+        },
+    )
+    .unwrap();
 
     window
         .render_loop(move |mut frame_input: FrameInput| {
@@ -85,10 +127,20 @@ fn main() {
                         ],
                         ..Default::default()
                     };
-                    sphere.render(&camera, &lights)?;
-                    cylinder.render(&camera, &lights)?;
-                    cube.render(&camera, &lights)?;
-                    axes.render(&camera, &lights)?;
+
+                    render_pass(
+                        &camera,
+                        &[
+                            &sphere,
+                            &cylinder,
+                            &cube,
+                            &axes,
+                            &bounding_box_sphere,
+                            &bounding_box_cube,
+                            &bounding_box_cylinder,
+                        ],
+                        &lights,
+                    )?;
                     Ok(())
                 },
             )
