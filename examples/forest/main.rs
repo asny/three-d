@@ -102,7 +102,7 @@ fn main() {
                         pipeline.render_pass(&camera, &[&tree_mesh, &leaves_mesh], &lights)?;
                         Ok(())
                     },
-                    (*aabb.min(), *aabb.max()),
+                    (aabb.min(), aabb.max()),
                     256,
                 )
                 .unwrap();
