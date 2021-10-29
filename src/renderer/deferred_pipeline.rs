@@ -11,6 +11,7 @@ pub enum DebugType {
     COLOR,
     DEPTH,
     ORM,
+    UV,
     NONE,
 }
 ///
