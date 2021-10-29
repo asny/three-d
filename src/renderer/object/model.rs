@@ -146,12 +146,13 @@ impl<M: ForwardMaterial> Model<M> {
             fragment_shader_source,
             |program| {
                 program.use_texture("tex", texture)?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 self.mesh.draw(
                     render_states,
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
+                    Some(self.transformation),
+                    Some(self.normal_transformation),
                 )
             },
         )
@@ -236,12 +237,13 @@ impl<M: ForwardMaterial> ShadedGeometry for Model<M> {
                     light.use_uniforms(program, camera, i as u32)?;
                 }
                 mat.use_uniforms_internal(program)?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 self.mesh.draw(
                     mat.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
+                    Some(self.transformation),
+                    Some(self.normal_transformation),
                 )
             },
         )
@@ -295,12 +297,13 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 self.mesh.draw(
                     material.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
+                    Some(self.transformation),
+                    Some(self.normal_transformation),
                 )
             },
         )

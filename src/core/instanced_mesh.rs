@@ -88,8 +88,7 @@ impl InstancedMesh {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        program.use_uniform_mat4("modelMatrix", self.mesh.transformation())?;
-        self.draw(render_states, program, camera_buffer, viewport)
+        self.draw(render_states, program, camera_buffer, viewport, None)
     }
 
     ///
@@ -128,12 +127,17 @@ impl InstancedMesh {
         program: &Program,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
+        transformation: Option<Mat4>,
     ) -> ThreeDResult<()> {
         program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
         program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
 
         self.mesh.use_attributes(program, camera_buffer)?;
+        program.use_uniform_mat4(
+            "modelMatrix",
+            &transformation.unwrap_or(*self.transformation()),
+        )?;
 
         if let Some(ref index_buffer) = self.mesh.index_buffer {
             program.draw_elements_instanced(
