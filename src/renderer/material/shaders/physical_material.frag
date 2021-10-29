@@ -43,9 +43,9 @@ void main()
     float metallic_factor = metallic;
     float roughness_factor = roughness;
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
-    vec2 t = texture(metallicRoughnessTexture, uvs).xy;
-    metallic_factor *= t.x;
-    roughness_factor *= t.y;
+    vec2 t = texture(metallicRoughnessTexture, uvs).gb;
+    roughness_factor *= t.x;
+    metallic_factor *= t.y;
 #endif
 
     float occlusion = 1.0;
