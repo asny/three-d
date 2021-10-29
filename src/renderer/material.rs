@@ -18,6 +18,14 @@ mod normal_material;
 #[doc(inline)]
 pub use normal_material::*;
 
+mod orm_material;
+#[doc(inline)]
+pub use orm_material::*;
+
+mod position_material;
+#[doc(inline)]
+pub use position_material::*;
+
 mod uv_material;
 #[doc(inline)]
 pub use uv_material::*;

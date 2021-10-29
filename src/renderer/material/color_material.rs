@@ -31,6 +31,15 @@ impl ColorMaterial {
             ..Default::default()
         })
     }
+
+    pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
+        Self {
+            color: physical_material.albedo,
+            texture: physical_material.albedo_texture.clone(),
+            opaque_render_states: physical_material.opaque_render_states,
+            transparent_render_states: physical_material.transparent_render_states,
+        }
+    }
 }
 
 impl ForwardMaterial for ColorMaterial {

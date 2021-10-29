@@ -118,12 +118,6 @@ fn main() {
             let mut point_intensity = lights.point[0].intensity();
 
             let mut current_pipeline = Pipeline::Forward;
-            let normal_material = NormalMaterial::default();
-            let depth_material = DepthMaterial {
-                min_distance: Some(0.1),
-                max_distance: Some(10.0),
-                ..Default::default()
-            };
 
             window
                 .render_loop(move |mut frame_input| {
@@ -334,18 +328,70 @@ fn main() {
                             Pipeline::Forward => {
                                 match deferred_pipeline.debug_type {
                                     DebugType::NORMAL => {
-                                        plane.render_forward(&normal_material, &camera, &lights)?;
+                                        plane.render_forward(
+                                            &NormalMaterial::from_physical_material(
+                                                &plane.material,
+                                            ),
+                                            &camera,
+                                            &lights,
+                                        )?;
                                         monkey.render_forward(
-                                            &normal_material,
+                                            &NormalMaterial::from_physical_material(
+                                                &monkey.material,
+                                            ),
                                             &camera,
                                             &lights,
                                         )?;
                                     }
                                     DebugType::DEPTH => {
+                                        let depth_material = DepthMaterial {
+                                            min_distance: Some(0.1),
+                                            max_distance: Some(10.0),
+                                            ..Default::default()
+                                        };
                                         plane.render_forward(&depth_material, &camera, &lights)?;
                                         monkey.render_forward(&depth_material, &camera, &lights)?;
                                     }
-                                    _ => forward_pipeline.render_pass(
+                                    DebugType::ORM => {
+                                        plane.render_forward(
+                                            &ORMMaterial::from_physical_material(&plane.material),
+                                            &camera,
+                                            &lights,
+                                        )?;
+                                        monkey.render_forward(
+                                            &ORMMaterial::from_physical_material(&monkey.material),
+                                            &camera,
+                                            &lights,
+                                        )?;
+                                    }
+                                    DebugType::POSITION => {
+                                        let position_material = PositionMaterial::default();
+                                        plane.render_forward(
+                                            &position_material,
+                                            &camera,
+                                            &lights,
+                                        )?;
+                                        monkey.render_forward(
+                                            &position_material,
+                                            &camera,
+                                            &lights,
+                                        )?;
+                                    }
+                                    DebugType::COLOR => {
+                                        plane.render_forward(
+                                            &ColorMaterial::from_physical_material(&plane.material),
+                                            &camera,
+                                            &lights,
+                                        )?;
+                                        monkey.render_forward(
+                                            &ColorMaterial::from_physical_material(
+                                                &monkey.material,
+                                            ),
+                                            &camera,
+                                            &lights,
+                                        )?;
+                                    }
+                                    DebugType::NONE => forward_pipeline.render_pass(
                                         &camera,
                                         &[&plane, &monkey],
                                         &lights,
