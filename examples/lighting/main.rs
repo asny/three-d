@@ -49,19 +49,18 @@ fn main() {
 
             let mut plane = Model::new(
                 &context,
-                &CPUMesh {
-                    positions: vec![
-                        -10000.0, -1.0, 10000.0, 10000.0, -1.0, 10000.0, 0.0, -1.0, -10000.0,
-                    ],
-                    normals: Some(vec![0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]),
-                    ..Default::default()
-                },
+                &CPUMesh::square(),
                 PhysicalMaterial {
                     albedo: Color::new_opaque(128, 200, 70),
                     ..Default::default()
                 },
             )
             .unwrap();
+            plane.set_transformation(
+                Mat4::from_translation(vec3(0.0, -1.0, 0.0))
+                    * Mat4::from_scale(10.0)
+                    * Mat4::from_angle_x(degrees(-90.0)),
+            );
 
             let mut lights = Lights {
                 ambient: Some(AmbientLight {
