@@ -35,17 +35,19 @@ fn main() {
     let mut gui = three_d::GUI::new(&context).unwrap();
 
     Loader::load(
-        &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
+        &["examples/assets/gltf/DamagedHelmet.glb"],
         move |mut loaded| {
-            let (monkey_cpu_meshes, monkey_cpu_materials) =
-                loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = Model::new(
+            let (model_cpu_meshes, model_cpu_materials) = loaded
+                .gltf("examples/assets/gltf/DamagedHelmet.glb")
+                .unwrap();
+            let mut model = Model::new(
                 &context,
-                &monkey_cpu_meshes[0],
-                PhysicalMaterial::new(&context, &monkey_cpu_materials[0]).unwrap(),
+                &model_cpu_meshes[0],
+                PhysicalMaterial::new(&context, &model_cpu_materials[0]).unwrap(),
             )
             .unwrap();
-            monkey.material.opaque_render_states.cull = Cull::Back;
+            model.material.opaque_render_states.cull = Cull::Back;
+            model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
             let mut plane = Model::new(
                 &context,
@@ -130,16 +132,16 @@ fn main() {
 
                                 ui.label("Surface parameters");
                                 ui.add(
-                                    Slider::new(&mut monkey.material.metallic, 0.0..=1.0)
-                                        .text("Monkey Metallic"),
+                                    Slider::new(&mut model.material.metallic, 0.0..=1.0)
+                                        .text("Model Metallic"),
                                 );
                                 ui.add(
-                                    Slider::new(&mut monkey.material.roughness, 0.0..=1.0)
-                                        .text("Monkey Roughness"),
+                                    Slider::new(&mut model.material.roughness, 0.0..=1.0)
+                                        .text("Model Roughness"),
                                 );
                                 ui.add(
-                                    Slider::new(&mut monkey.material.albedo.a, 0..=255)
-                                        .text("Monkey opacity"),
+                                    Slider::new(&mut model.material.albedo.a, 0..=255)
+                                        .text("Model opacity"),
                                 );
                                 ui.add(
                                     Slider::new(&mut plane.material.metallic, 0.0..=1.0)
@@ -298,7 +300,7 @@ fn main() {
                                 20.0,
                                 1024,
                                 1024,
-                                &[&monkey],
+                                &[&model],
                             )
                             .unwrap();
                         lights.directional[1]
@@ -308,11 +310,11 @@ fn main() {
                                 20.0,
                                 1024,
                                 1024,
-                                &[&monkey],
+                                &[&model],
                             )
                             .unwrap();
                         lights.spot[0]
-                            .generate_shadow_map(20.0, 1024, &[&monkey])
+                            .generate_shadow_map(20.0, 1024, &[&model])
                             .unwrap();
                     }
 
@@ -321,7 +323,7 @@ fn main() {
                         deferred_pipeline
                             .geometry_pass(
                                 &camera,
-                                &[(&monkey, &monkey.material), (&plane, &plane.material)],
+                                &[(&model, &model.material), (&plane, &plane.material)],
                             )
                             .unwrap();
                     }
@@ -339,9 +341,9 @@ fn main() {
                                             &camera,
                                             &lights,
                                         )?;
-                                        monkey.render_forward(
+                                        model.render_forward(
                                             &NormalMaterial::from_physical_material(
-                                                &monkey.material,
+                                                &model.material,
                                             ),
                                             &camera,
                                             &lights,
@@ -350,7 +352,7 @@ fn main() {
                                     DebugType::DEPTH => {
                                         let depth_material = DepthMaterial::default();
                                         plane.render_forward(&depth_material, &camera, &lights)?;
-                                        monkey.render_forward(&depth_material, &camera, &lights)?;
+                                        model.render_forward(&depth_material, &camera, &lights)?;
                                     }
                                     DebugType::ORM => {
                                         plane.render_forward(
@@ -358,8 +360,8 @@ fn main() {
                                             &camera,
                                             &lights,
                                         )?;
-                                        monkey.render_forward(
-                                            &ORMMaterial::from_physical_material(&monkey.material),
+                                        model.render_forward(
+                                            &ORMMaterial::from_physical_material(&model.material),
                                             &camera,
                                             &lights,
                                         )?;
@@ -371,7 +373,7 @@ fn main() {
                                             &camera,
                                             &lights,
                                         )?;
-                                        monkey.render_forward(
+                                        model.render_forward(
                                             &position_material,
                                             &camera,
                                             &lights,
@@ -380,7 +382,7 @@ fn main() {
                                     DebugType::UV => {
                                         let uv_material = UVMaterial::default();
                                         plane.render_forward(&uv_material, &camera, &lights)?;
-                                        monkey.render_forward(&uv_material, &camera, &lights)?;
+                                        model.render_forward(&uv_material, &camera, &lights)?;
                                     }
                                     DebugType::COLOR => {
                                         plane.render_forward(
@@ -388,17 +390,15 @@ fn main() {
                                             &camera,
                                             &lights,
                                         )?;
-                                        monkey.render_forward(
-                                            &ColorMaterial::from_physical_material(
-                                                &monkey.material,
-                                            ),
+                                        model.render_forward(
+                                            &ColorMaterial::from_physical_material(&model.material),
                                             &camera,
                                             &lights,
                                         )?;
                                     }
                                     DebugType::NONE => forward_pipeline.render_pass(
                                         &camera,
-                                        &[&plane, &monkey],
+                                        &[&plane, &model],
                                         &lights,
                                     )?,
                                 };
