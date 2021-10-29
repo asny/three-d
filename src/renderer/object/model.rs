@@ -324,8 +324,14 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
-                self.mesh
-                    .render(render_states, program, camera.uniform_buffer(), viewport)
+                self.mesh.draw(
+                    render_states,
+                    program,
+                    camera.uniform_buffer(),
+                    viewport,
+                    Some(self.transformation),
+                    Some(self.normal_transformation),
+                )
             },
         )
     }
