@@ -24,6 +24,14 @@ impl NormalMaterial {
             render_states: RenderStates::default(),
         })
     }
+
+    pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
+        Self {
+            normal_scale: physical_material.normal_scale,
+            normal_texture: physical_material.normal_texture.clone(),
+            render_states: physical_material.opaque_render_states,
+        }
+    }
 }
 
 impl ForwardMaterial for NormalMaterial {
