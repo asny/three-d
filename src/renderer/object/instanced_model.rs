@@ -13,7 +13,6 @@ pub struct InstancedModel<M: ForwardMaterial> {
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    normal_transformation: Mat4,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -35,7 +34,6 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
-            normal_transformation: Mat4::identity(),
             material,
         })
     }
@@ -104,12 +102,12 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             fragment_shader_source,
             |program| {
                 program.use_texture("tex", texture)?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 self.mesh.draw(
                     render_states,
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
+                    Some(self.transformation),
                 )
             },
         )
@@ -194,12 +192,12 @@ impl<M: ForwardMaterial> ShadedGeometry for InstancedModel<M> {
                     light.use_uniforms(program, camera, i as u32)?;
                 }
                 mat.use_uniforms_internal(program)?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 self.mesh.draw(
                     mat.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
+                    Some(self.transformation),
                 )
             },
         )
@@ -232,7 +230,6 @@ impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
 impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        self.normal_transformation = self.transformation.invert().unwrap().transpose();
         let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);
         self.aabb = aabb;
@@ -254,12 +251,12 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 self.mesh.draw(
                     material.render_states(),
                     program,
                     camera.uniform_buffer(),
                     camera.viewport(),
+                    Some(self.transformation),
                 )
             },
         )
@@ -278,12 +275,12 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 self.mesh.draw(
                     material.render_states(),
                     program,
                     camera.uniform_buffer(),
                     viewport,
+                    Some(self.transformation),
                 )
             },
         )

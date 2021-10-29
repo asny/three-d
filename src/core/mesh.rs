@@ -142,8 +142,7 @@ impl Mesh {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-        self.draw(render_states, program, camera_buffer, viewport)
+        self.draw(render_states, program, camera_buffer, viewport, None, None)
     }
 
     ///
@@ -160,10 +159,19 @@ impl Mesh {
         program: &Program,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
+        transformation: Option<Mat4>,
+        normal_transformation: Option<Mat4>,
     ) -> ThreeDResult<()> {
         self.use_attributes(program, camera_buffer)?;
+        program.use_uniform_mat4(
+            "modelMatrix",
+            &transformation.unwrap_or(self.transformation),
+        )?;
         if program.requires_attribute("normal") {
-            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+            program.use_uniform_mat4(
+                "normalMatrix",
+                &normal_transformation.unwrap_or(self.normal_transformation),
+            )?;
         }
         if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements(render_states, viewport, index_buffer);
