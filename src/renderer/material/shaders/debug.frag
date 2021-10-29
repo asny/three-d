@@ -52,7 +52,7 @@ void main()
     }
     else if(type == 2) // Color
     {
-        color = vec4(texture(gbuffer, vec3(uv, 0)).xyz, 1.);
+        color = vec4(srgb_from_rgb(texture(gbuffer, vec3(uv, 0)).xyz), 1.);
     }
     else if(type == 3) // Depth
     {

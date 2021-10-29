@@ -133,7 +133,11 @@ impl DeferredPipeline {
 
         if self.debug_type != DebugType::NONE {
             return self.context.effect(
-                include_str!("material/shaders/debug.frag"),
+                &format!(
+                    "{}{}",
+                    include_str!("../core/shared.frag"),
+                    include_str!("material/shaders/debug.frag")
+                ),
                 |debug_effect| {
                     debug_effect.use_uniform_mat4(
                         "viewProjectionInverse",
