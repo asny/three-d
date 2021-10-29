@@ -62,6 +62,10 @@ void main()
         float occlusion = n.z;
         color = vec4(occlusion, roughness, metallic, 1.0);
     }
+    else if(type == 5) // UV
+    {
+        color = vec4(uv, 0., 1.);
+    }
     else {
         color = vec4(0., 0., 0., 0.);
     }

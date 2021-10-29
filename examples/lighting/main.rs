@@ -251,6 +251,11 @@ fn main() {
                                 );
                                 ui.radio_value(
                                     &mut deferred_pipeline.debug_type,
+                                    DebugType::UV,
+                                    "UV",
+                                );
+                                ui.radio_value(
+                                    &mut deferred_pipeline.debug_type,
                                     DebugType::DEPTH,
                                     "Depth",
                                 );
@@ -372,6 +377,11 @@ fn main() {
                                             &camera,
                                             &lights,
                                         )?;
+                                    }
+                                    DebugType::UV => {
+                                        let uv_material = UVMaterial::default();
+                                        plane.render_forward(&uv_material, &camera, &lights)?;
+                                        monkey.render_forward(&uv_material, &camera, &lights)?;
                                     }
                                     DebugType::COLOR => {
                                         plane.render_forward(
