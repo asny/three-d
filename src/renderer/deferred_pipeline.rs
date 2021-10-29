@@ -146,6 +146,11 @@ impl DeferredPipeline {
                     debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
                     debug_effect
                         .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+                    if self.debug_type == DebugType::DEPTH {
+                        debug_effect.use_uniform_float("zNear", &camera.z_near())?;
+                        debug_effect.use_uniform_float("zFar", &camera.z_far())?;
+                        debug_effect.use_uniform_vec3("cameraPosition", &camera.position())?;
+                    }
                     debug_effect.use_uniform_int("type", &(self.debug_type as i32))?;
                     debug_effect.apply(render_states, camera.viewport())?;
                     Ok(())
