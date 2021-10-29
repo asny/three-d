@@ -7,14 +7,14 @@
 
 ### What is it?
 
-A renderer which seeks to make graphics simple but still have the power to do whatever you desire.
+A renderer which seeks to make graphics simple but still have the power to draw whatever you desire.
 
 `three-d` 
 - makes it possible to combine high-level features with custom shaders so you can focus on the important stuff.
 - can be used by those without any graphics experience and who just want to draw something.
-- tries to do simple stuff in a few simple lines of code.
+- tries to do stuff in a few simple lines of code.
 - aims to be as explicit as possible so there is no surprices for you - no hidden magic.
-- targets both desktop and web so you can develop on desktop and deploy on web.
+- targets both desktop and web so you can develop on desktop and deploy on web (with no need for web development and everything that goes with it, except a few lines of html).
 
 The crate consist of three main modules for drawing, `context`, `core` and `renderer`, and two optional utility modules, `io` and `window`:
 
