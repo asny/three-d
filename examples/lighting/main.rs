@@ -28,7 +28,7 @@ fn main() {
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
-        1000.0,
+        30.0,
     )
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
@@ -344,11 +344,7 @@ fn main() {
                                         )?;
                                     }
                                     DebugType::DEPTH => {
-                                        let depth_material = DepthMaterial {
-                                            min_distance: Some(0.1),
-                                            max_distance: Some(10.0),
-                                            ..Default::default()
-                                        };
+                                        let depth_material = DepthMaterial::default();
                                         plane.render_forward(&depth_material, &camera, &lights)?;
                                         monkey.render_forward(&depth_material, &camera, &lights)?;
                                     }

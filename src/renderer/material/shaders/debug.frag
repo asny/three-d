@@ -12,13 +12,7 @@ layout (location = 0) out vec4 color;
 
 uniform float zNear;
 uniform float zFar;
-
-float linear_depth(float z)
-{
-    float n = 0.1; // camera z near
-    float f = 10.0; // camera z far
-    return (2.0 * n) / (f + n - z * (f - n));
-}
+uniform vec3 cameraPosition;
 
 vec3 WorldPosFromDepth(float depth, vec2 uv) {
     vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
@@ -35,7 +29,6 @@ void main()
     }
     if(type == 0) // Position
     {
-        float depth = texture(depthMap, vec3(uv, 0)).x;
         vec3 pos = WorldPosFromDepth(depth, uv);
         color = vec4(pos, 1.);
     }
@@ -56,8 +49,9 @@ void main()
     }
     else if(type == 3) // Depth
     {
-        depth = linear_depth(depth);
-        color = vec4(depth, depth, depth, 1.);
+        vec3 pos = WorldPosFromDepth(depth, uv);
+        float dist = (distance(pos, cameraPosition) - zNear) / (zFar - zNear);
+        color = vec4(dist, dist, dist, 1.);
     }
     else if(type == 4) // ORM
     {
