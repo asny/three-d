@@ -154,7 +154,7 @@ fn parse_tree<'a>(
                         };
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
-                        albedo: Color::new_from_rgba_slice(&color),
+                        albedo: Color::from_rgba_slice(&color),
                         albedo_texture,
                         metallic: pbr.metallic_factor(),
                         roughness: pbr.roughness_factor(),
