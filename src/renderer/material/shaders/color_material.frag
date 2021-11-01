@@ -1,4 +1,4 @@
-uniform vec4 color;
+uniform vec4 surfaceColor;
 
 #ifdef USE_TEXTURE
 uniform sampler2D tex;
@@ -8,7 +8,7 @@ layout (location = 0) out vec4 outColor;
 
 void main()
 {
-    outColor = color;
+    outColor = surfaceColor;
     
     #ifdef USE_VERTEX_COLORS
     outColor *= col;

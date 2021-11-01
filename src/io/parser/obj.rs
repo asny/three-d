@@ -52,7 +52,7 @@ impl Loaded {
 
                 cpu_materials.push(CPUMaterial {
                     name: material.name,
-                    albedo: Color::new_from_rgba_slice(&[
+                    albedo: Color::from_rgba_slice(&[
                         color.r as f32,
                         color.g as f32,
                         color.b as f32,

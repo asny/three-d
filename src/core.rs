@@ -25,7 +25,7 @@ impl Context {
     ///
     /// Creates a new context from a [OpenGL/WebGL context](GLContext).
     ///
-    pub fn new_from_gl_context(context: GLContext) -> Self {
+    pub fn from_gl_context(context: GLContext) -> Self {
         Self {
             context,
             programs: Rc::new(RefCell::new(HashMap::new())),

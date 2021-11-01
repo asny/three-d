@@ -101,6 +101,17 @@ impl GLContext {
     pub fn create_shader(&self, type_: ShaderType) -> Option<Shader> {
         self.inner.create_shader(type_.to_const())
     }
+    pub fn get_shader_info_log(&self, shader: &Shader) -> Option<String> {
+        if let Some(log) = self.inner.get_shader_info_log(shader) {
+            if log.len() > 0 {
+                Some(log)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {
         let header = "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2DArray;\n";

@@ -49,7 +49,7 @@ impl Window {
         Ok(Window {
             windowed_context,
             event_loop,
-            gl: crate::core::Context::new_from_gl_context(context),
+            gl: crate::core::Context::from_gl_context(context),
         })
     }
 

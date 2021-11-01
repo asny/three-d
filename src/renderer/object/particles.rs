@@ -47,7 +47,7 @@ pub struct ParticleData {
 }
 
 ///
-/// Particle effect with fixed vertex shader and customizable fragment shader (see also [ParticlesProgram](ParticlesProgram)).
+/// Particle effect that can be rendered with any material.
 ///
 /// Each particle is initialised with a position and velocity using the [update](Particles::update) function and a global acceleration.
 /// Then when time passes, their position is updated based on
