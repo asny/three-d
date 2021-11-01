@@ -24,7 +24,7 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut sphere = Model::new(
+    let mut sphere = Model::new_with_material(
         &context,
         &CPUMesh::sphere(16),
         PhysicalMaterial {
@@ -39,7 +39,7 @@ fn main() {
     )
     .unwrap();
     sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
-    let mut cylinder = Model::new(
+    let mut cylinder = Model::new_with_material(
         &context,
         &CPUMesh::cylinder(16),
         PhysicalMaterial {
@@ -55,7 +55,7 @@ fn main() {
     .unwrap();
     cylinder
         .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
-    let mut cube = Model::new(
+    let mut cube = Model::new_with_material(
         &context,
         &CPUMesh::cube(),
         PhysicalMaterial {
@@ -71,7 +71,7 @@ fn main() {
     .unwrap();
     cube.set_transformation(Mat4::from_translation(vec3(0.0, 0.0, 1.3)) * Mat4::from_scale(0.2));
     let axes = Axes::new(&context, 0.1, 1.0).unwrap();
-    let bounding_box_sphere = BoundingBox::new(
+    let bounding_box_sphere = BoundingBox::new_with_material(
         &context,
         sphere.aabb(),
         ColorMaterial {
@@ -80,7 +80,7 @@ fn main() {
         },
     )
     .unwrap();
-    let bounding_box_cube = BoundingBox::new(
+    let bounding_box_cube = BoundingBox::new_with_material(
         &context,
         cube.aabb(),
         ColorMaterial {
@@ -89,7 +89,7 @@ fn main() {
         },
     )
     .unwrap();
-    let bounding_box_cylinder = BoundingBox::new(
+    let bounding_box_cylinder = BoundingBox::new_with_material(
         &context,
         cylinder.aabb(),
         ColorMaterial {

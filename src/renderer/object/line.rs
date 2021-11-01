@@ -10,7 +10,7 @@ pub struct Line<M: ForwardMaterial> {
 }
 
 impl<M: ForwardMaterial> Line<M> {
-    pub fn new(
+    pub fn new_with_material(
         context: &Context,
         pixel0: Vec2,
         pixel1: Vec2,
@@ -21,7 +21,7 @@ impl<M: ForwardMaterial> Line<M> {
         mesh.transform(&(Mat4::from_scale(0.5) * Mat4::from_translation(vec3(1.0, 0.0, 0.0))));
         let mut line = Self {
             context: context.clone(),
-            model: Model::new(context, &mesh, material)?,
+            model: Model::new_with_material(context, &mesh, material)?,
             pixel0,
             pixel1,
             width,

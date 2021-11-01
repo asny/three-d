@@ -56,7 +56,8 @@ fn main() {
             let mut statue_material =
                 PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
             statue_material.opaque_render_states.cull = Cull::Back;
-            let mut statue = Model::new(&context, &statue_cpu_meshes[0], statue_material).unwrap();
+            let mut statue =
+                Model::new_with_material(&context, &statue_cpu_meshes[0], statue_material).unwrap();
 
             let mut models = Vec::new();
             let scale = Mat4::from_scale(10.0);
@@ -79,7 +80,8 @@ fn main() {
                 PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
             fountain_material.opaque_render_states.cull = Cull::Back;
             let mut fountain =
-                Model::new(&context, &fountain_cpu_meshes[0], fountain_material).unwrap();
+                Model::new_with_material(&context, &fountain_cpu_meshes[0], fountain_material)
+                    .unwrap();
             fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
             models.push(fountain);
 

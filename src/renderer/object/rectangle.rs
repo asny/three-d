@@ -11,7 +11,7 @@ pub struct Rectangle<M: ForwardMaterial> {
 }
 
 impl<M: ForwardMaterial> Rectangle<M> {
-    pub fn new(
+    pub fn new_with_material(
         context: &Context,
         center: Vec2,
         rotation: impl Into<Radians>,
@@ -22,7 +22,7 @@ impl<M: ForwardMaterial> Rectangle<M> {
         let mut mesh = CPUMesh::square();
         mesh.transform(&(Mat4::from_scale(0.5)));
         let mut rectangle = Self {
-            model: Model::new(context, &mesh, material)?,
+            model: Model::new_with_material(context, &mesh, material)?,
             context: context.clone(),
             width,
             height,

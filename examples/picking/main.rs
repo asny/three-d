@@ -27,7 +27,7 @@ fn main() {
 
     let mut sphere = CPUMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.05));
-    let mut pick_mesh = Model::new(
+    let mut pick_mesh = Model::new_with_material(
         &context,
         &sphere,
         PhysicalMaterial {
@@ -41,7 +41,7 @@ fn main() {
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |mut loaded| {
             let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = Model::new(
+            let mut monkey = Model::new_with_material(
                 &context,
                 &meshes[0],
                 PhysicalMaterial::new(&context, &materials[0]).unwrap(),

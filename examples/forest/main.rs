@@ -41,7 +41,7 @@ fn main() {
                 .map(|index| meshes.remove(index))
                 .unwrap();
             tree_cpu_mesh.compute_normals();
-            let mut tree_mesh = Model::new(
+            let mut tree_mesh = Model::new_with_material(
                 &context,
                 &tree_cpu_mesh,
                 PhysicalMaterial::new(
@@ -62,7 +62,7 @@ fn main() {
                 .map(|index| meshes.remove(index))
                 .unwrap();
             leaves_cpu_mesh.compute_normals();
-            let leaves_mesh = Model::new(
+            let leaves_mesh = Model::new_with_material(
                 &context,
                 &leaves_cpu_mesh,
                 PhysicalMaterial::new(
@@ -123,7 +123,7 @@ fn main() {
             imposters.update_positions(&positions, &angles);
 
             // Plane
-            let mut plane = Model::new(
+            let mut plane = Model::new_with_material(
                 &context,
                 &CPUMesh {
                     positions: vec![

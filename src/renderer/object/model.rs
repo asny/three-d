@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// A triangle mesh which can be rendered with a [ForwardMaterial] or [DeferredMaterial].
+/// A 3D model consisting of a triangle mesh and any material that implements the `ForwardMaterial` trait.
 ///
 #[derive(Clone)]
 pub struct Model<M: ForwardMaterial> {
@@ -18,9 +18,25 @@ pub struct Model<M: ForwardMaterial> {
     pub material: M,
 }
 
+impl Model<ColorMaterial> {
+    ///
+    /// Creates a new 3D model with a triangle mesh as geometry and a default [ColorMaterial].
+    ///
+    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
+        Self::new_with_material(context, cpu_mesh, ColorMaterial::default())
+    }
+}
+
 #[allow(deprecated)]
 impl<M: ForwardMaterial> Model<M> {
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh, material: M) -> ThreeDResult<Self> {
+    ///
+    /// Creates a new 3D model with a triangle mesh as geometry and the given material.
+    ///
+    pub fn new_with_material(
+        context: &Context,
+        cpu_mesh: &CPUMesh,
+        material: M,
+    ) -> ThreeDResult<Self> {
         let mesh = Mesh::new(context, cpu_mesh)?;
         let aabb = cpu_mesh.compute_aabb();
         Ok(Self {

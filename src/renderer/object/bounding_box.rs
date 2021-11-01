@@ -9,7 +9,11 @@ impl<M: ForwardMaterial> BoundingBox<M> {
     ///
     /// Creates a bounding box object from an axis aligned bounding box.
     ///
-    pub fn new(context: &Context, aabb: AxisAlignedBoundingBox, material: M) -> ThreeDResult<Self> {
+    pub fn new_with_material(
+        context: &Context,
+        aabb: AxisAlignedBoundingBox,
+        material: M,
+    ) -> ThreeDResult<Self> {
         let max = aabb.max();
         let min = aabb.min();
         let size = aabb.size();
@@ -47,8 +51,12 @@ impl<M: ForwardMaterial> BoundingBox<M> {
                 * Mat4::from_angle_y(degrees(-90.0))
                 * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
         ];
-        let model =
-            InstancedModel::new(context, &transformations, &CPUMesh::cylinder(16), material)?;
+        let model = InstancedModel::new_with_material(
+            context,
+            &transformations,
+            &CPUMesh::cylinder(16),
+            material,
+        )?;
         Ok(Self { model, aabb })
     }
 }

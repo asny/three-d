@@ -11,7 +11,7 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let mut rectangle = Rectangle::new(
+    let mut rectangle = Rectangle::new_with_material(
         &context,
         vec2(200.0, 200.0),
         degrees(45.0),
@@ -23,7 +23,7 @@ fn main() {
         },
     )
     .unwrap();
-    let mut circle = Circle::new(
+    let mut circle = Circle::new_with_material(
         &context,
         vec2(500.0, 500.0),
         200.0,
@@ -33,7 +33,7 @@ fn main() {
         },
     )
     .unwrap();
-    let mut line = Line::new(
+    let mut line = Line::new_with_material(
         &context,
         vec2(0.0, 0.0),
         vec2(

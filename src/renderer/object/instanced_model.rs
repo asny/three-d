@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// Similar to [Model], except it is possible to render many instances of the same model efficiently. See [InstancedMesh] if you need a custom render function.
+/// Similar to [Model], except it is possible to render many instances of the same model efficiently.
 ///
 #[allow(deprecated)]
 pub struct InstancedModel<M: ForwardMaterial> {
@@ -17,9 +17,22 @@ pub struct InstancedModel<M: ForwardMaterial> {
     pub material: M,
 }
 
+impl InstancedModel<ColorMaterial> {
+    ///
+    /// Creates a new instanced 3D model with a triangle mesh as geometry and a default [ColorMaterial].
+    ///
+    pub fn new(
+        context: &Context,
+        transformations: &[Mat4],
+        cpu_mesh: &CPUMesh,
+    ) -> ThreeDResult<Self> {
+        Self::new_with_material(context, transformations, cpu_mesh, ColorMaterial::default())
+    }
+}
+
 #[allow(deprecated)]
 impl<M: ForwardMaterial> InstancedModel<M> {
-    pub fn new(
+    pub fn new_with_material(
         context: &Context,
         transformations: &[Mat4],
         cpu_mesh: &CPUMesh,

@@ -57,7 +57,7 @@ fn main() {
     let positions = vec![
         -2.0, -2.0, 0.0, 2.0, -2.0, 0.0, 2.0, 2.0, 0.0, -2.0, 2.0, 0.0,
     ];
-    let mut mesh = Model::new(
+    let mut mesh = Model::new_with_material(
         &context,
         &CPUMesh {
             indices: Some(Indices::U8(indices)),

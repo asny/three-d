@@ -36,7 +36,7 @@ fn main() {
             let (mut meshes, materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
             let mut cpu_mesh = meshes.remove(0);
             cpu_mesh.transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            let model = Model::new(
+            let model = Model::new_with_material(
                 &context,
                 &cpu_mesh,
                 PhysicalMaterial::new(&context, &materials[0]).unwrap(),
@@ -56,7 +56,7 @@ fn main() {
             };
             let mut cylinder = CPUMesh::cylinder(10);
             cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
-            let edges = InstancedModel::new(
+            let edges = InstancedModel::new_with_material(
                 &context,
                 &edge_transformations(&cpu_mesh),
                 &cylinder,
@@ -66,7 +66,7 @@ fn main() {
 
             let mut sphere = CPUMesh::sphere(8);
             sphere.transform(&Mat4::from_scale(0.015));
-            let vertices = InstancedModel::new(
+            let vertices = InstancedModel::new_with_material(
                 &context,
                 &vertex_transformations(&cpu_mesh),
                 &sphere,

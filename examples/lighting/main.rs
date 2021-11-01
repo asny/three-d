@@ -40,7 +40,7 @@ fn main() {
             let (model_cpu_meshes, model_cpu_materials) = loaded
                 .gltf("examples/assets/gltf/DamagedHelmet.glb")
                 .unwrap();
-            let mut model = Model::new(
+            let mut model = Model::new_with_material(
                 &context,
                 &model_cpu_meshes[0],
                 PhysicalMaterial::new(&context, &model_cpu_materials[0]).unwrap(),
@@ -49,7 +49,7 @@ fn main() {
             model.material.opaque_render_states.cull = Cull::Back;
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
-            let mut plane = Model::new(
+            let mut plane = Model::new_with_material(
                 &context,
                 &CPUMesh::square(),
                 PhysicalMaterial {

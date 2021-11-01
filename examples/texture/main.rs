@@ -38,7 +38,7 @@ fn main() {
             "examples/assets/skybox_evening/right.jpg",
         ],
         move |mut loaded| {
-            let mut box_object = Model::new(
+            let mut box_object = Model::new_with_material(
                 &context,
                 &CPUMesh::cube(),
                 ColorMaterial {
@@ -72,7 +72,7 @@ fn main() {
 
             let (penguin_cpu_meshes, penguin_cpu_materials) =
                 loaded.obj("examples/assets/PenguinBaseMesh.obj").unwrap();
-            let mut penguin_object = Model::new(
+            let mut penguin_object = Model::new_with_material(
                 &context,
                 &penguin_cpu_meshes[0],
                 PhysicalMaterial::new(&context, &penguin_cpu_materials[0]).unwrap(),

@@ -9,11 +9,16 @@ pub struct Circle<M: ForwardMaterial> {
 }
 
 impl<M: ForwardMaterial> Circle<M> {
-    pub fn new(context: &Context, center: Vec2, radius: f32, material: M) -> ThreeDResult<Self> {
+    pub fn new_with_material(
+        context: &Context,
+        center: Vec2,
+        radius: f32,
+        material: M,
+    ) -> ThreeDResult<Self> {
         let mesh = CPUMesh::circle(64);
         let mut circle = Self {
             context: context.clone(),
-            model: Model::new(context, &mesh, material)?,
+            model: Model::new_with_material(context, &mesh, material)?,
             center,
             radius,
         };
