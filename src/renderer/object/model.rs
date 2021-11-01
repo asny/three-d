@@ -217,14 +217,14 @@ impl<M: ForwardMaterial> ShadedGeometry for Model<M> {
     fn render_with_lighting(
         &self,
         camera: &Camera,
-        material: &Material,
+        material: &PhysicalMaterial,
         lighting_model: LightingModel,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],
         spot_lights: &[&SpotLight],
         point_lights: &[&PointLight],
     ) -> ThreeDResult<()> {
-        let mut mat = PhysicalMaterial::new_from_material(material)?;
+        let mut mat = material.clone();
         mat.opaque_render_states.cull = self.cull;
         mat.transparent_render_states.cull = self.cull;
 
@@ -268,13 +268,9 @@ impl<M: ForwardMaterial> ShadedGeometry for Model<M> {
         &self,
         camera: &Camera,
         viewport: Viewport,
-        material: &Material,
+        material: &PhysicalMaterial,
     ) -> ThreeDResult<()> {
-        self.render_deferred(
-            &PhysicalMaterial::new_from_material(material)?,
-            camera,
-            viewport,
-        )
+        self.render_deferred(material, camera, viewport)
     }
 }
 

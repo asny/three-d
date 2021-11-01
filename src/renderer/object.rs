@@ -304,7 +304,7 @@ pub trait ShadedGeometry: Geometry {
         &self,
         camera: &Camera,
         viewport: Viewport,
-        material: &Material,
+        material: &PhysicalMaterial,
     ) -> ThreeDResult<()>;
     ///
     /// Render the object shaded with the given lights using physically based rendering (PBR).
@@ -316,7 +316,7 @@ pub trait ShadedGeometry: Geometry {
     fn render_with_lighting(
         &self,
         camera: &Camera,
-        material: &Material,
+        material: &PhysicalMaterial,
         lighting_model: LightingModel,
         ambient_light: Option<&AmbientLight>,
         directional_lights: &[&DirectionalLight],

@@ -3,7 +3,7 @@ use crate::renderer::*;
 
 pub use crate::core::{CPUMaterial, Color};
 
-#[deprecated = "Use PhysicalMaterial instead"]
+#[allow(deprecated)]
 pub use crate::core::Material;
 
 mod color_material;

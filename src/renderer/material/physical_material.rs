@@ -37,23 +37,52 @@ pub struct PhysicalMaterial {
 }
 
 impl PhysicalMaterial {
+    ///
     /// Constructs a new physical material from a [CPUMaterial].
+    /// If the input contains an [CPUMaterial::occlusion_metallic_roughness_texture], this texture is used for both
+    /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CPUMaterial::metallic_roughness_texture] or [CPUMaterial::occlusion_texture] are ignored.
+    ///
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
-        Self::new_from_material(&Material::new(context, cpu_material)?)
-    }
-
-    pub(crate) fn new_from_material(material: &Material) -> ThreeDResult<Self> {
+        let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
+        let metallic_roughness_texture =
+            if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            } else {
+                if let Some(ref cpu_texture) = cpu_material.metallic_roughness_texture {
+                    Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+                } else {
+                    None
+                }
+            };
+        let occlusion_texture = if cpu_material.occlusion_metallic_roughness_texture.is_some() {
+            metallic_roughness_texture.clone()
+        } else {
+            if let Some(ref cpu_texture) = cpu_material.occlusion_texture {
+                Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            } else {
+                None
+            }
+        };
+        let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
         Ok(Self {
-            name: material.name.clone(),
-            albedo: material.albedo,
-            albedo_texture: material.albedo_texture.clone(),
-            metallic: material.metallic,
-            roughness: material.roughness,
-            metallic_roughness_texture: material.metallic_roughness_texture.clone(),
-            normal_texture: material.normal_texture.clone(),
-            normal_scale: material.normal_scale,
-            occlusion_texture: material.occlusion_texture.clone(),
-            occlusion_strength: material.occlusion_strength,
+            name: cpu_material.name.clone(),
+            albedo: cpu_material.albedo,
+            albedo_texture,
+            metallic: cpu_material.metallic,
+            roughness: cpu_material.roughness,
+            metallic_roughness_texture,
+            normal_texture,
+            normal_scale: cpu_material.normal_scale,
+            occlusion_texture,
+            occlusion_strength: cpu_material.occlusion_strength,
             opaque_render_states: RenderStates::default(),
             transparent_render_states: RenderStates {
                 write_mask: WriteMask::COLOR,
