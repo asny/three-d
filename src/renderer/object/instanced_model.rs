@@ -13,6 +13,7 @@ pub struct InstancedModel<M: ForwardMaterial> {
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
+    transformations: Vec<Mat4>,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -20,6 +21,8 @@ pub struct InstancedModel<M: ForwardMaterial> {
 impl InstancedModel<ColorMaterial> {
     ///
     /// Creates a new instanced 3D model with a triangle mesh as geometry and a default [ColorMaterial].
+    /// The transformations are applied to each model instance before they are rendered.
+    /// The model is rendered in as many instances as there are transformation matrices.
     ///
     pub fn new(
         context: &Context,
@@ -40,15 +43,38 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     ) -> ThreeDResult<Self> {
         let mesh = InstancedMesh::new(context, transformations, cpu_mesh)?;
         let aabb = cpu_mesh.compute_aabb();
-        Ok(Self {
+        let mut model = Self {
             context: context.clone(),
             mesh,
             cull: Cull::default(),
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
+            transformations: transformations.to_vec(),
             material,
-        })
+        };
+        model.update_aabb();
+        Ok(model)
+    }
+
+    ///
+    /// Updates the transformations applied to each model instance before they are rendered.
+    /// The model is rendered in as many instances as there are transformation matrices.
+    ///
+    pub fn update_transformations(&mut self, transformations: &[Mat4]) {
+        self.transformations = transformations.to_vec();
+        self.mesh.update_transformations(transformations);
+        self.update_aabb();
+    }
+
+    fn update_aabb(&mut self) {
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for transform in self.transformations.iter() {
+            let mut aabb2 = self.aabb_local.clone();
+            aabb2.transform(&(transform * self.transformation));
+            aabb.expand_with_aabb(&aabb2);
+        }
+        self.aabb = aabb;
     }
 
     ///
@@ -239,9 +265,7 @@ impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
 impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        let mut aabb = self.aabb_local.clone();
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
+        self.update_aabb();
     }
 }
 
