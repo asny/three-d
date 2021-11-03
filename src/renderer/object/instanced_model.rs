@@ -67,6 +67,10 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         self.update_aabb();
     }
 
+    pub fn transformations(&self) -> &[Mat4] {
+        &self.transformations
+    }
+
     fn update_aabb(&mut self) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for transform in self.transformations.iter() {
