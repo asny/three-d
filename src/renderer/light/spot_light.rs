@@ -19,7 +19,7 @@ impl SpotLight {
         color: Color,
         position: &Vec3,
         direction: &Vec3,
-        cutoff: f32,
+        cutoff: impl Into<Radians>,
         attenuation_constant: f32,
         attenuation_linear: f32,
         attenuation_exponential: f32,
@@ -83,12 +83,12 @@ impl SpotLight {
         vec3(p[0], p[1], p[2])
     }
 
-    pub fn set_cutoff(&mut self, cutoff: f32) {
-        self.light_buffer.update(7, &[cutoff]).unwrap();
+    pub fn set_cutoff(&mut self, cutoff: impl Into<Radians>) {
+        self.light_buffer.update(7, &[cutoff.into().0]).unwrap();
     }
 
-    pub fn cutoff(&self) -> f32 {
-        self.light_buffer.get(7).unwrap()[0]
+    pub fn cutoff(&self) -> Radians {
+        radians(self.light_buffer.get(7).unwrap()[0])
     }
 
     pub fn set_direction(&mut self, direction: &Vec3) {
@@ -116,7 +116,6 @@ impl SpotLight {
         let position = self.position();
         let direction = self.direction();
         let up = compute_up_direction(direction);
-        let cutoff = self.light_buffer.get(7).unwrap()[0];
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
         let shadow_camera = Camera::new_perspective(
@@ -125,7 +124,7 @@ impl SpotLight {
             position,
             position + direction,
             up,
-            degrees(cutoff),
+            self.cutoff(),
             0.1,
             frustrum_depth,
         )?;
@@ -191,7 +190,7 @@ impl Light for SpotLight {
                     vec3 light_color = base{}.intensity * base{}.color;
                     vec3 light_direction = normalize(position - position{});
                     float angle = acos(dot(light_direction, normalize(direction{})));
-                    float cutoff = 3.14 * cutoff{} / 180.0;
+                    float cutoff = cutoff{};
                 
                     vec3 result = vec3(0.0);
                     if (angle < cutoff) {{
