@@ -294,24 +294,10 @@ fn main() {
                     // Draw
                     if shadows_enabled {
                         lights.directional[0]
-                            .generate_shadow_map(
-                                &vec3(0.0, 0.0, 0.0),
-                                4.0,
-                                20.0,
-                                1024,
-                                1024,
-                                &[&model],
-                            )
+                            .generate_shadow_map(4.0, 1024, 1024, &[&model, &plane])
                             .unwrap();
                         lights.directional[1]
-                            .generate_shadow_map(
-                                &vec3(0.0, 0.0, 0.0),
-                                4.0,
-                                20.0,
-                                1024,
-                                1024,
-                                &[&model],
-                            )
+                            .generate_shadow_map(4.0, 1024, 1024, &[&model, &plane])
                             .unwrap();
                         lights.spot[0]
                             .generate_shadow_map(1024, &[&model, &plane])

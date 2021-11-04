@@ -64,28 +64,37 @@ impl DirectionalLight {
         self.light_buffer.update(3, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<G: Geometry>(
+    pub fn generate_shadow_map(
         &mut self,
-        target: &Vec3,
         frustrum_height: f32,
-        frustrum_depth: f32,
         texture_width: u32,
         texture_height: u32,
-        geometries: &[G],
+        geometries: &[&dyn Geometry],
     ) -> ThreeDResult<()> {
         let direction = self.direction();
         let up = compute_up_direction(direction);
 
         let viewport = Viewport::new_at_origo(texture_width, texture_height);
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for geometry in geometries {
+            aabb.expand_with_aabb(&geometry.aabb());
+        }
+        if aabb.is_empty() {
+            return Ok(());
+        }
+        let target = aabb.center();
+        let position = target - direction * aabb.max().distance(aabb.min());
+        let z_far = aabb.distance_max(&position);
+        let z_near = aabb.distance(&position);
         let shadow_camera = Camera::new_orthographic(
             &self.context,
             viewport,
-            target - direction.normalize() * 0.5 * frustrum_depth,
-            *target,
+            position,
+            target,
             up,
             frustrum_height,
-            0.0,
-            frustrum_depth,
+            z_near,
+            z_far,
         )?;
         self.light_buffer
             .update(4, &shadow_matrix(&shadow_camera).to_slice())?;

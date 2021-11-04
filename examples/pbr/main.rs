@@ -139,10 +139,10 @@ fn main() {
 
                     // Draw
                     lights.directional[0]
-                        .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 2.0, 20.0, 1024, 1024, &[&model])
+                        .generate_shadow_map(2.0, 1024, 1024, &[&model])
                         .unwrap();
                     lights.directional[1]
-                        .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 2.0, 20.0, 1024, 1024, &[&model])
+                        .generate_shadow_map(2.0, 1024, 1024, &[&model])
                         .unwrap();
                     lights.spot[0].generate_shadow_map(1024, &[&model]).unwrap();
                     Screen::write(
