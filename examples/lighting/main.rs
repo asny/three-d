@@ -314,7 +314,7 @@ fn main() {
                             )
                             .unwrap();
                         lights.spot[0]
-                            .generate_shadow_map(20.0, 1024, &[&model])
+                            .generate_shadow_map(1024, &[&model, &plane])
                             .unwrap();
                     }
 

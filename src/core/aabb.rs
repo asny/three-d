@@ -175,4 +175,46 @@ impl AxisAlignedBoundingBox {
         self.min = aabb.min;
         self.max = aabb.max;
     }
+
+    ///
+    /// The distance from position to the point in this bounding box that is closest to position.
+    ///
+    pub fn distance(&self, position: &Vec3) -> f32 {
+        let x = (self.min.x - position.x)
+            .max(position.x - self.max.x)
+            .max(0.0);
+        let y = (self.min.y - position.y)
+            .max(position.y - self.max.y)
+            .max(0.0);
+        let z = (self.min.z - position.z)
+            .max(position.z - self.max.z)
+            .max(0.0);
+        let d2 = x * x + y * y + z * z;
+        if d2 > 0.001 {
+            d2.sqrt()
+        } else {
+            d2
+        }
+    }
+
+    ///
+    /// The distance from position to the point in this bounding box that is furthest away from position.
+    ///
+    pub fn distance_max(&self, position: &Vec3) -> f32 {
+        let x = (position.x - self.min.x)
+            .abs()
+            .max((self.max.x - position.x).abs());
+        let y = (position.y - self.min.y)
+            .abs()
+            .max((self.max.y - position.y).abs());
+        let z = (position.z - self.min.z)
+            .abs()
+            .max((self.max.z - position.z).abs());
+        let d2 = x * x + y * y + z * z;
+        if d2 > 0.001 {
+            d2.sqrt()
+        } else {
+            d2
+        }
+    }
 }

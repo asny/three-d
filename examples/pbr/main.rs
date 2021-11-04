@@ -144,9 +144,7 @@ fn main() {
                     lights.directional[1]
                         .generate_shadow_map(&vec3(0.0, 0.0, 0.0), 2.0, 20.0, 1024, 1024, &[&model])
                         .unwrap();
-                    lights.spot[0]
-                        .generate_shadow_map(15.0, 1024, &[&model])
-                        .unwrap();
+                    lights.spot[0].generate_shadow_map(1024, &[&model]).unwrap();
                     Screen::write(
                         &context,
                         ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),

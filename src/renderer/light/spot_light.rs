@@ -109,7 +109,6 @@ impl SpotLight {
 
     pub fn generate_shadow_map<G: Geometry>(
         &mut self,
-        frustrum_depth: f32,
         texture_size: u32,
         geometries: &[G],
     ) -> ThreeDResult<()> {
@@ -118,6 +117,14 @@ impl SpotLight {
         let up = compute_up_direction(direction);
 
         let viewport = Viewport::new_at_origo(texture_size, texture_size);
+
+        let mut z_far = 0.0f32;
+        let mut z_near = f32::MAX;
+        for geometry in geometries.iter() {
+            z_far = z_far.max(geometry.aabb().distance_max(&position));
+            z_near = z_near.min(geometry.aabb().distance(&position));
+        }
+
         let shadow_camera = Camera::new_perspective(
             &self.context,
             viewport,
@@ -125,8 +132,8 @@ impl SpotLight {
             position + direction,
             up,
             self.cutoff(),
-            0.1,
-            frustrum_depth,
+            z_near,
+            z_far,
         )?;
         self.light_buffer
             .update(10, &shadow_matrix(&shadow_camera).to_slice())?;
