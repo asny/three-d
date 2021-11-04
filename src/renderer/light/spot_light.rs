@@ -107,10 +107,10 @@ impl SpotLight {
         self.light_buffer.update(9, &[0.0]).unwrap();
     }
 
-    pub fn generate_shadow_map<G: Geometry>(
+    pub fn generate_shadow_map(
         &mut self,
         texture_size: u32,
-        geometries: &[G],
+        geometries: &[&dyn Geometry],
     ) -> ThreeDResult<()> {
         let position = self.position();
         let direction = self.direction();
@@ -120,9 +120,12 @@ impl SpotLight {
 
         let mut z_far = 0.0f32;
         let mut z_near = f32::MAX;
-        for geometry in geometries.iter() {
-            z_far = z_far.max(geometry.aabb().distance_max(&position));
-            z_near = z_near.min(geometry.aabb().distance(&position));
+        for geometry in geometries {
+            let aabb = geometry.aabb();
+            if !aabb.is_empty() {
+                z_far = z_far.max(aabb.distance_max(&position));
+                z_near = z_near.min(aabb.distance(&position));
+            }
         }
 
         let shadow_camera = Camera::new_perspective(
@@ -132,7 +135,7 @@ impl SpotLight {
             position + direction,
             up,
             self.cutoff(),
-            z_near,
+            z_near.max(0.01),
             z_far,
         )?;
         self.light_buffer
