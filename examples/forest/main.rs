@@ -77,7 +77,7 @@ fn main() {
             .unwrap();
 
             // Lights
-            let mut lights = Lights {
+            let lights = Lights {
                 ambient: Some(AmbientLight {
                     intensity: 0.3,
                     color: Color::WHITE,
@@ -141,18 +141,6 @@ fn main() {
             )
             .unwrap();
             plane.material.opaque_render_states.cull = Cull::Back;
-
-            // Shadows
-            lights.directional[0]
-                .generate_shadow_map(
-                    &vec3(0.0, 0.0, 0.0),
-                    50.0,
-                    100.0,
-                    512,
-                    512,
-                    &[&tree_mesh, &leaves_mesh],
-                )
-                .unwrap();
 
             // main loop
             window
