@@ -11,7 +11,6 @@ pub struct Model<M: ForwardMaterial> {
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
-    normal_transformation: Mat4,
     /// The material applied to the model
     pub material: M,
 }
@@ -41,7 +40,6 @@ impl<M: ForwardMaterial> Model<M> {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
-            normal_transformation: Mat4::identity(),
             context: context.clone(),
             material,
         })
@@ -82,7 +80,6 @@ impl<M: ForwardMaterial> Geometry for Model<M> {
 impl<M: ForwardMaterial> GeometryMut for Model<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
-        self.normal_transformation = self.transformation.invert().unwrap().transpose();
         let mut aabb = self.aabb_local.clone();
         aabb.transform(&self.transformation);
         self.aabb = aabb;
@@ -103,25 +100,13 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.mesh.use_attributes(program, camera.uniform_buffer())?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-                if program.requires_attribute("normal") {
-                    program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
-                }
-                if let Some(ref index_buffer) = self.mesh.index_buffer {
-                    program.draw_elements(
-                        material.render_states(),
-                        camera.viewport(),
-                        index_buffer,
-                    );
-                } else {
-                    program.draw_arrays(
-                        material.render_states(),
-                        camera.viewport(),
-                        self.mesh.position_buffer.count() as u32 / 3,
-                    );
-                }
-                Ok(())
+                self.mesh.draw(
+                    material.render_states(),
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                    &self.transformation(),
+                )
             },
         )
     }
@@ -139,21 +124,13 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
-                self.mesh.use_attributes(program, camera.uniform_buffer())?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-                if program.requires_attribute("normal") {
-                    program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
-                }
-                if let Some(ref index_buffer) = self.mesh.index_buffer {
-                    program.draw_elements(material.render_states(), viewport, index_buffer);
-                } else {
-                    program.draw_arrays(
-                        material.render_states(),
-                        viewport,
-                        self.mesh.position_buffer.count() as u32 / 3,
-                    );
-                }
-                Ok(())
+                self.mesh.draw(
+                    material.render_states(),
+                    program,
+                    camera.uniform_buffer(),
+                    viewport,
+                    &self.transformation(),
+                )
             },
         )
     }

@@ -63,12 +63,16 @@ impl Mesh {
         })
     }
 
-    pub(crate) fn use_attributes(
+    pub fn draw(
         &self,
+        render_states: RenderStates,
         program: &Program,
         camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+        transformation: &Mat4,
     ) -> ThreeDResult<()> {
         program.use_uniform_block("Camera", camera_buffer);
+        program.use_uniform_mat4("modelMatrix", transformation)?;
 
         if program.requires_attribute("position") {
             program.use_attribute_vec3("position", &self.position_buffer)?;
@@ -86,6 +90,10 @@ impl Mesh {
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
             program.use_attribute_vec3("normal", normal_buffer)?;
+            program.use_uniform_mat4(
+                "normalMatrix",
+                &transformation.invert().unwrap().transpose(),
+            )?;
         }
         if program.requires_attribute("color") {
             let color_buffer = self
@@ -94,10 +102,19 @@ impl Mesh {
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
             program.use_attribute_vec4("color", color_buffer)?;
         }
+        if let Some(ref index_buffer) = self.index_buffer {
+            program.draw_elements(render_states, viewport, index_buffer);
+        } else {
+            program.draw_arrays(
+                render_states,
+                viewport,
+                self.position_buffer.count() as u32 / 3,
+            );
+        }
         Ok(())
     }
 
-    pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
+    pub fn vertex_shader_source(fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();

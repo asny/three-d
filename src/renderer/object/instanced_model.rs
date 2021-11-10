@@ -106,6 +106,66 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         self.aabb = aabb;
     }
 
+    fn draw(
+        &self,
+        render_states: RenderStates,
+        program: &Program,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        program.use_uniform_block("Camera", camera_buffer);
+        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+
+        program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
+        program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
+        program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
+
+        if program.requires_attribute("position") {
+            program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
+        }
+        if program.requires_attribute("uv_coordinates") {
+            let uv_buffer = self
+                .mesh
+                .uv_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
+            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+        }
+        if program.requires_attribute("normal") {
+            let normal_buffer = self
+                .mesh
+                .normal_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
+            program.use_attribute_vec3("normal", normal_buffer)?;
+        }
+        if program.requires_attribute("color") {
+            let color_buffer = self
+                .mesh
+                .color_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
+            program.use_attribute_vec4("color", color_buffer)?;
+        }
+
+        if let Some(ref index_buffer) = self.mesh.index_buffer {
+            program.draw_elements_instanced(
+                render_states,
+                viewport,
+                index_buffer,
+                self.instance_count,
+            );
+        } else {
+            program.draw_arrays_instanced(
+                render_states,
+                viewport,
+                self.mesh.position_buffer.count() as u32 / 3,
+                self.instance_count,
+            );
+        }
+        Ok(())
+    }
+
     fn vertex_shader_source(fragment_shader_source: &str) -> String {
         format!(
             "#define INSTANCED\n{}",
@@ -145,30 +205,12 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-
-                program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
-                program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
-                program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
-
-                self.mesh.use_attributes(program, camera.uniform_buffer())?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-
-                if let Some(ref index_buffer) = self.mesh.index_buffer {
-                    program.draw_elements_instanced(
-                        material.render_states(),
-                        camera.viewport(),
-                        index_buffer,
-                        self.instance_count,
-                    );
-                } else {
-                    program.draw_arrays_instanced(
-                        material.render_states(),
-                        camera.viewport(),
-                        self.mesh.position_buffer.count() as u32 / 3,
-                        self.instance_count,
-                    );
-                }
-                Ok(())
+                self.draw(
+                    material.render_states(),
+                    program,
+                    camera.uniform_buffer(),
+                    camera.viewport(),
+                )
             },
         )
     }
@@ -186,30 +228,12 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
-
-                program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
-                program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
-                program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
-
-                self.mesh.use_attributes(program, camera.uniform_buffer())?;
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-
-                if let Some(ref index_buffer) = self.mesh.index_buffer {
-                    program.draw_elements_instanced(
-                        material.render_states(),
-                        viewport,
-                        index_buffer,
-                        self.instance_count,
-                    );
-                } else {
-                    program.draw_arrays_instanced(
-                        material.render_states(),
-                        viewport,
-                        self.mesh.position_buffer.count() as u32 / 3,
-                        self.instance_count,
-                    );
-                }
-                Ok(())
+                self.draw(
+                    material.render_states(),
+                    program,
+                    camera.uniform_buffer(),
+                    viewport,
+                )
             },
         )
     }
