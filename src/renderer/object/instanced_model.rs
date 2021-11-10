@@ -108,8 +108,8 @@ impl<M: ForwardMaterial> InstancedModel<M> {
 
     fn draw(
         &self,
-        render_states: RenderStates,
         program: &Program,
+        render_states: RenderStates,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
@@ -206,8 +206,8 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
                 self.draw(
-                    material.render_states(),
                     program,
+                    material.render_states(),
                     camera.uniform_buffer(),
                     camera.viewport(),
                 )
@@ -229,8 +229,8 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
                 self.draw(
-                    material.render_states(),
                     program,
+                    material.render_states(),
                     camera.uniform_buffer(),
                     viewport,
                 )

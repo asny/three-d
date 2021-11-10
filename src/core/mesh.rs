@@ -65,8 +65,8 @@ impl Mesh {
 
     pub fn draw(
         &self,
-        render_states: RenderStates,
         program: &Program,
+        render_states: RenderStates,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
         transformation: &Mat4,

@@ -101,11 +101,11 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
                 self.mesh.draw(
-                    material.render_states(),
                     program,
+                    material.render_states(),
                     camera.uniform_buffer(),
                     camera.viewport(),
-                    &self.transformation(),
+                    &self.transformation,
                 )
             },
         )
@@ -125,11 +125,11 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
                 self.mesh.draw(
-                    material.render_states(),
                     program,
+                    material.render_states(),
                     camera.uniform_buffer(),
                     viewport,
-                    &self.transformation(),
+                    &self.transformation,
                 )
             },
         )
