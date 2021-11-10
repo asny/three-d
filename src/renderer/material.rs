@@ -3,9 +3,6 @@ use crate::renderer::*;
 
 pub use crate::core::{CPUMaterial, Color};
 
-#[allow(deprecated)]
-pub use crate::core::Material;
-
 mod color_material;
 #[doc(inline)]
 pub use color_material::*;

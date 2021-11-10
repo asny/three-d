@@ -8,8 +8,6 @@ use crate::renderer::*;
 pub struct Model<M: ForwardMaterial> {
     context: Context,
     mesh: Mesh,
-    #[deprecated = "set in render states on material instead"]
-    pub cull: Cull,
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -27,7 +25,6 @@ impl Model<ColorMaterial> {
     }
 }
 
-#[allow(deprecated)]
 impl<M: ForwardMaterial> Model<M> {
     ///
     /// Creates a new 3D model with a triangle mesh as geometry and the given material.
@@ -46,7 +43,6 @@ impl<M: ForwardMaterial> Model<M> {
             transformation: Mat4::identity(),
             normal_transformation: Mat4::identity(),
             context: context.clone(),
-            cull: Cull::default(),
             material,
         })
     }
@@ -93,7 +89,6 @@ impl<M: ForwardMaterial> GeometryMut for Model<M> {
     }
 }
 
-#[allow(deprecated)]
 impl<M: ForwardMaterial> Shadable for Model<M> {
     fn render_forward(
         &self,
@@ -108,14 +103,25 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.mesh.draw(
-                    material.render_states(),
-                    program,
-                    camera.uniform_buffer(),
-                    camera.viewport(),
-                    Some(self.transformation),
-                    Some(self.normal_transformation),
-                )
+                self.mesh.use_attributes(program, camera.uniform_buffer())?;
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                if program.requires_attribute("normal") {
+                    program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+                }
+                if let Some(ref index_buffer) = self.mesh.index_buffer {
+                    program.draw_elements(
+                        material.render_states(),
+                        camera.viewport(),
+                        index_buffer,
+                    );
+                } else {
+                    program.draw_arrays(
+                        material.render_states(),
+                        camera.viewport(),
+                        self.mesh.position_buffer.count() as u32 / 3,
+                    );
+                }
+                Ok(())
             },
         )
     }
@@ -126,8 +132,6 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        let mut render_states = material.render_states();
-        render_states.cull = self.cull;
         let fragment_shader_source =
             material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
         self.context.program(
@@ -135,14 +139,21 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
-                self.mesh.draw(
-                    render_states,
-                    program,
-                    camera.uniform_buffer(),
-                    viewport,
-                    Some(self.transformation),
-                    Some(self.normal_transformation),
-                )
+                self.mesh.use_attributes(program, camera.uniform_buffer())?;
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                if program.requires_attribute("normal") {
+                    program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+                }
+                if let Some(ref index_buffer) = self.mesh.index_buffer {
+                    program.draw_elements(material.render_states(), viewport, index_buffer);
+                } else {
+                    program.draw_arrays(
+                        material.render_states(),
+                        viewport,
+                        self.mesh.position_buffer.count() as u32 / 3,
+                    );
+                }
+                Ok(())
             },
         )
     }

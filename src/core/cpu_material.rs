@@ -55,9 +55,3 @@ impl Default for CPUMaterial {
         }
     }
 }
-
-///
-/// A material used for shading an object. This is the GPU-side version of [CPUMaterial], meaning the same data, just transfered to the GPU so it can be used for rendering.
-///
-#[deprecated = "Use PhysicalMaterial instead"]
-pub type Material = crate::renderer::PhysicalMaterial;

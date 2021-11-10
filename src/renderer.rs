@@ -71,26 +71,6 @@ pub fn cmp_render_order(camera: &Camera, obj0: &dyn Object, obj1: &dyn Object) -
     }
 }
 
-impl crate::core::Camera {
-    ///
-    /// Finds the closest intersection between a ray from this camera in the given pixel coordinate and the given geometries.
-    /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport
-    /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
-    /// Returns ```None``` if no geometry was hit before the given maximum depth.
-    ///
-    #[deprecated = "Use pick function instead"]
-    pub fn pick<S: Shadable>(
-        &self,
-        pixel: (f32, f32),
-        max_depth: f32,
-        objects: &[S],
-    ) -> ThreeDResult<Option<Vec3>> {
-        let pos = self.position_at_pixel(pixel);
-        let dir = self.view_direction_at_pixel(pixel);
-        ray_intersect(&self.context, pos, dir, max_depth, objects)
-    }
-}
-
 ///
 /// Finds the closest intersection between a ray from the given camera in the given pixel coordinate and the given geometries.
 /// The pixel coordinate must be in physical pixels, where (viewport.x, viewport.y) indicate the top left corner of the viewport

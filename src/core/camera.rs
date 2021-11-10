@@ -9,7 +9,6 @@ pub(super) enum ProjectionType {
 /// Used in a render call to define how to view the 3D world.
 ///
 pub struct Camera {
-    pub(crate) context: Context,
     viewport: Viewport,
     projection_type: ProjectionType,
     z_near: f32,
@@ -371,7 +370,6 @@ impl Camera {
 
     fn new(context: &Context, viewport: Viewport) -> ThreeDResult<Camera> {
         Ok(Camera {
-            context: context.clone(),
             viewport,
             projection_type: ProjectionType::Orthographic {
                 width: 1.0,

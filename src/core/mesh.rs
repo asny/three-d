@@ -6,7 +6,6 @@ use std::rc::Rc;
 ///
 #[derive(Clone)]
 pub struct Mesh {
-    context: Context,
     /// Buffer with the position data, ie. `(x, y, z)` for each vertex
     pub position_buffer: Rc<VertexBuffer>,
     /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
@@ -19,9 +18,6 @@ pub struct Mesh {
     pub index_buffer: Option<Rc<ElementBuffer>>,
     /// Optional name of the mesh.
     pub name: String,
-    transformation: Mat4,
-    normal_transformation: Mat4,
-    aabb: AxisAlignedBoundingBox,
 }
 
 impl Mesh {
@@ -57,97 +53,14 @@ impl Mesh {
         } else {
             None
         };
-        let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
-            context: context.clone(),
             position_buffer,
             normal_buffer,
             index_buffer,
             uv_buffer,
             color_buffer,
-            aabb,
             name: cpu_mesh.name.clone(),
-            transformation: Mat4::identity(),
-            normal_transformation: Mat4::identity(),
         })
-    }
-
-    ///
-    /// Returns the local to world transformation of this mesh.
-    ///
-    #[deprecated = "Use Model instead"]
-    pub fn transformation(&self) -> &Mat4 {
-        &self.transformation
-    }
-
-    ///
-    /// Set the local to world transformation of this mesh.
-    ///
-    #[deprecated = "Use Model instead"]
-    pub fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        self.normal_transformation = self.transformation.invert().unwrap().transpose();
-    }
-
-    ///
-    /// Render the mesh with the given [Program].
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
-    ///
-    /// # Errors
-    /// Will return an error if the program requires a certain attribute and the mesh does not have that attribute data.
-    /// For example if the program needs the normal to calculate lighting, but the mesh does not have per vertex normals, this
-    /// function will return an error.
-    ///
-    #[deprecated = "Instead, use render_forward in Model or use Program and send attributes and uniforms self"]
-    pub fn render(
-        &self,
-        render_states: RenderStates,
-        program: &Program,
-        camera_buffer: &UniformBuffer,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        self.draw(render_states, program, camera_buffer, viewport, None, None)
-    }
-
-    ///
-    /// Computes the axis aligned bounding box for this mesh.
-    ///
-    #[deprecated = "Use Model instead"]
-    pub fn aabb(&self) -> &AxisAlignedBoundingBox {
-        &self.aabb
-    }
-
-    pub(crate) fn draw(
-        &self,
-        render_states: RenderStates,
-        program: &Program,
-        camera_buffer: &UniformBuffer,
-        viewport: Viewport,
-        transformation: Option<Mat4>,
-        normal_transformation: Option<Mat4>,
-    ) -> ThreeDResult<()> {
-        self.use_attributes(program, camera_buffer)?;
-        program.use_uniform_mat4(
-            "modelMatrix",
-            &transformation.unwrap_or(self.transformation),
-        )?;
-        if program.requires_attribute("normal") {
-            program.use_uniform_mat4(
-                "normalMatrix",
-                &normal_transformation.unwrap_or(self.normal_transformation),
-            )?;
-        }
-        if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements(render_states, viewport, index_buffer);
-        } else {
-            program.draw_arrays(
-                render_states,
-                viewport,
-                self.position_buffer.count() as u32 / 3,
-            );
-        }
-        Ok(())
     }
 
     pub(crate) fn use_attributes(

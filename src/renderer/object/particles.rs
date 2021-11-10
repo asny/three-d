@@ -2,41 +2,6 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// Shader program used for rendering [Particles](Particles). It has a fixed vertex shader and
-/// customizable fragment shader for custom shading. Use this in combination with [Particles::render].
-///
-#[deprecated]
-pub struct ParticlesProgram {
-    program: Program,
-}
-
-#[allow(deprecated)]
-impl ParticlesProgram {
-    ///
-    /// Creates a new program which can be used to render particles.
-    /// The fragment shader code can use position (`in vec3 pos;`), normal (`in vec3 nor;`) and uv coordinates (`in vec2 uvs;`).
-    ///
-    pub fn new(context: &Context, fragment_shader_source: &str) -> ThreeDResult<Self> {
-        Ok(Self {
-            program: Program::from_source(
-                context,
-                &Particles::vertex_shader_source(fragment_shader_source),
-                fragment_shader_source,
-            )?,
-        })
-    }
-}
-
-#[allow(deprecated)]
-impl std::ops::Deref for ParticlesProgram {
-    type Target = Program;
-
-    fn deref(&self) -> &Program {
-        &self.program
-    }
-}
-
-///
 /// Used to define the initial position and velocity of a particle in [Particles](Particles).
 ///
 pub struct ParticleData {
@@ -135,63 +100,6 @@ impl Particles {
         self.instance_count = data.len() as u32;
     }
 
-    ///
-    /// Render all defined particles with the given [Program].
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    #[deprecated = "Use 'render_forward' instead"]
-    pub fn render(
-        &self,
-        render_states: RenderStates,
-        program: &Program,
-        camera: &Camera,
-        time: f32,
-    ) -> ThreeDResult<()> {
-        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-        program.use_uniform_vec3("acceleration", &self.acceleration)?;
-        program.use_uniform_float("time", &time)?;
-        program.use_uniform_block("Camera", camera.uniform_buffer());
-
-        program.use_attribute_vec3_instanced("start_position", &self.start_position_buffer)?;
-        program.use_attribute_vec3_instanced("start_velocity", &self.start_velocity_buffer)?;
-        if program.requires_attribute("position") {
-            program.use_attribute_vec3("position", &self.position_buffer)?;
-        }
-        if program.requires_attribute("uv_coordinates") {
-            let uv_buffer = self
-                .uv_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
-            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
-        }
-        if program.requires_attribute("normal") {
-            let normal_buffer = self
-                .normal_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-            program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
-            program.use_attribute_vec3("normal", normal_buffer)?;
-        }
-
-        if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements_instanced(
-                render_states,
-                camera.viewport(),
-                index_buffer,
-                self.instance_count,
-            );
-        } else {
-            program.draw_arrays_instanced(
-                render_states,
-                camera.viewport(),
-                self.position_buffer.count() as u32 / 3,
-                self.instance_count,
-            );
-        }
-        Ok(())
-    }
-
     pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -262,7 +170,6 @@ impl GeometryMut for Particles {
     }
 }
 
-#[allow(deprecated)]
 impl Shadable for Particles {
     fn render_forward(
         &self,
@@ -276,7 +183,51 @@ impl Shadable for Particles {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.render(material.render_states(), program, camera, self.time)
+
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                program.use_uniform_vec3("acceleration", &self.acceleration)?;
+                program.use_uniform_float("time", &self.time)?;
+                program.use_uniform_block("Camera", camera.uniform_buffer());
+
+                program
+                    .use_attribute_vec3_instanced("start_position", &self.start_position_buffer)?;
+                program
+                    .use_attribute_vec3_instanced("start_velocity", &self.start_velocity_buffer)?;
+                if program.requires_attribute("position") {
+                    program.use_attribute_vec3("position", &self.position_buffer)?;
+                }
+                if program.requires_attribute("uv_coordinates") {
+                    let uv_buffer = self
+                        .uv_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
+                    program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+                }
+                if program.requires_attribute("normal") {
+                    let normal_buffer = self
+                        .normal_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
+                    program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+                    program.use_attribute_vec3("normal", normal_buffer)?;
+                }
+
+                if let Some(ref index_buffer) = self.index_buffer {
+                    program.draw_elements_instanced(
+                        material.render_states(),
+                        camera.viewport(),
+                        index_buffer,
+                        self.instance_count,
+                    );
+                } else {
+                    program.draw_arrays_instanced(
+                        material.render_states(),
+                        camera.viewport(),
+                        self.position_buffer.count() as u32 / 3,
+                        self.instance_count,
+                    );
+                }
+                Ok(())
             },
         )
     }
