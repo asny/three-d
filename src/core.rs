@@ -149,10 +149,6 @@ mod mesh;
 #[doc(inline)]
 pub use mesh::*;
 
-mod instanced_mesh;
-#[doc(inline)]
-pub use instanced_mesh::*;
-
 pub mod render_states;
 pub use render_states::*;
 

@@ -2,41 +2,6 @@ use crate::core::*;
 use std::rc::Rc;
 
 ///
-/// A shader program used for rendering one or more instances of a [Mesh](Mesh). It has a fixed vertex shader and
-/// customizable fragment shader for custom lighting. Use this in combination with [Mesh::render].
-///
-#[deprecated]
-pub struct MeshProgram {
-    program: Program,
-}
-
-#[allow(deprecated)]
-impl MeshProgram {
-    ///
-    /// Constructs a new shader program for rendering meshes. The fragment shader can use the fragments position in world space by adding `in vec3 pos;`,
-    /// its normal by `in vec3 nor;`, its uv coordinates by `in vec2 uvs;` and its per vertex color by `in vec4 col;` to the shader source code.
-    ///
-    pub fn new(context: &Context, fragment_shader_source: &str) -> ThreeDResult<Self> {
-        Ok(Self {
-            program: Program::from_source(
-                context,
-                &Mesh::vertex_shader_source(&fragment_shader_source),
-                fragment_shader_source,
-            )?,
-        })
-    }
-}
-
-#[allow(deprecated)]
-impl std::ops::Deref for MeshProgram {
-    type Target = Program;
-
-    fn deref(&self) -> &Program {
-        &self.program
-    }
-}
-
-///
 /// A triangle mesh where the mesh data is transfered to the GPU.
 ///
 #[derive(Clone)]

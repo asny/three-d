@@ -20,35 +20,6 @@ impl ForwardPipeline {
     }
 
     ///
-    /// Render the objects with the given surface materials and the given set of lights.
-    /// Must be called in a render target render function, for example in the callback function of [Screen::write].
-    ///
-    #[allow(deprecated)]
-    #[deprecated = "Use render_pass instead"]
-    pub fn light_pass(
-        &self,
-        camera: &Camera,
-        objects: &[(&dyn ShadedGeometry, &PhysicalMaterial)],
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> ThreeDResult<()> {
-        for (geo, mat) in objects.iter().filter(|(g, _)| camera.in_frustum(&g.aabb())) {
-            geo.render_with_lighting(
-                camera,
-                mat,
-                LightingModel::Blinn,
-                ambient_light,
-                directional_lights,
-                spot_lights,
-                point_lights,
-            )?;
-        }
-        Ok(())
-    }
-
-    ///
     /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
     /// Must be called in a render target render function, for example in the callback function of [Screen::write].
     ///
