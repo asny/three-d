@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::rc::Rc;
 
 ///
 /// A 3D model consisting of a triangle mesh and any material that implements the `ForwardMaterial` trait.
@@ -7,7 +8,7 @@ use crate::renderer::*;
 #[derive(Clone)]
 pub struct Model<M: ForwardMaterial> {
     context: Context,
-    mesh: Mesh,
+    mesh: Rc<Mesh>,
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -33,7 +34,7 @@ impl<M: ForwardMaterial> Model<M> {
         cpu_mesh: &CPUMesh,
         material: M,
     ) -> ThreeDResult<Self> {
-        let mesh = Mesh::new(context, cpu_mesh)?;
+        let mesh = Rc::new(Mesh::new(context, cpu_mesh)?);
         let aabb = cpu_mesh.compute_aabb();
         Ok(Self {
             mesh,
