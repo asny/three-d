@@ -206,7 +206,7 @@ impl Program {
     /// Use the given [Texture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
+    pub fn use_texture(&self, name: &str, texture: impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
         self.use_uniform_int(name, &(index as i32))?;
@@ -217,7 +217,7 @@ impl Program {
     /// Use the given [TextureArray] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture_array(&self, name: &str, texture: &impl TextureArray) -> ThreeDResult<()> {
+    pub fn use_texture_array(&self, name: &str, texture: impl TextureArray) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
         self.use_uniform_int(name, &(index as i32))?;
@@ -228,7 +228,7 @@ impl Program {
     /// Use the given [TextureCube] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
     ///
-    pub fn use_texture_cube(&self, name: &str, texture: &impl TextureCube) -> ThreeDResult<()> {
+    pub fn use_texture_cube(&self, name: &str, texture: impl TextureCube) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
         self.use_uniform_int(name, &(index as i32))?;

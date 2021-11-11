@@ -49,7 +49,7 @@ pub trait ForwardMaterial {
     fn is_transparent(&self) -> bool;
 }
 
-impl<T: ForwardMaterial> ForwardMaterial for &T {
+impl<T: ForwardMaterial + ?Sized> ForwardMaterial for &T {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
@@ -77,7 +77,7 @@ pub trait DeferredMaterial: ForwardMaterial {
     fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String;
 }
 
-impl<T: DeferredMaterial> DeferredMaterial for &T {
+impl<T: DeferredMaterial + ?Sized> DeferredMaterial for &T {
     fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
         (*self).fragment_shader_source_deferred(use_vertex_colors)
     }

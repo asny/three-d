@@ -21,7 +21,7 @@ impl FXAAEffect {
         })
     }
 
-    pub fn apply(&self, viewport: Viewport, color_texture: &impl Texture) -> ThreeDResult<()> {
+    pub fn apply(&self, viewport: Viewport, color_texture: impl Texture) -> ThreeDResult<()> {
         let render_states = RenderStates {
             write_mask: WriteMask::COLOR,
             depth_test: DepthTest::Always,
@@ -29,7 +29,7 @@ impl FXAAEffect {
             ..Default::default()
         };
 
-        self.image_effect.use_texture("colorMap", color_texture)?;
+        self.image_effect.use_texture("colorMap", &color_texture)?;
         self.image_effect.use_uniform_vec2(
             "resolution",
             &vec2(color_texture.width() as f32, color_texture.height() as f32),
