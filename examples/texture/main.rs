@@ -110,7 +110,7 @@ fn main() {
                         Screen::write(&context, ClearState::default(), || {
                             pipeline.render_pass(
                                 &camera,
-                                &[&box_object, &penguin_object],
+                                &[&box_object as &dyn Object, &penguin_object],
                                 &lights,
                             )?;
                             skybox.render(&camera)?;

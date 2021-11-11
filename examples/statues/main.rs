@@ -100,15 +100,7 @@ fn main() {
                 ..Default::default()
             };
             lights.directional[0]
-                .generate_shadow_map(
-                    1000.0,
-                    1024,
-                    1024,
-                    &models
-                        .iter()
-                        .map(|m| m as &dyn Geometry)
-                        .collect::<Vec<_>>(),
-                )
+                .generate_shadow_map(1000.0, 1024, 1024, &models)
                 .unwrap();
 
             // main loop

@@ -69,7 +69,7 @@ impl DirectionalLight {
         frustrum_height: f32,
         texture_width: u32,
         texture_height: u32,
-        geometries: &[&dyn Geometry],
+        geometries: &[impl Geometry],
     ) -> ThreeDResult<()> {
         let direction = self.direction();
         let up = compute_up_direction(direction);

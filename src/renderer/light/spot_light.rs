@@ -110,7 +110,7 @@ impl SpotLight {
     pub fn generate_shadow_map(
         &mut self,
         texture_size: u32,
-        geometries: &[&dyn Geometry],
+        geometries: &[impl Geometry],
     ) -> ThreeDResult<()> {
         let position = self.position();
         let direction = self.direction();

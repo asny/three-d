@@ -40,12 +40,12 @@ pub enum RendererError {}
 /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
 /// Must be called in a render target render function, for example in the callback function of [Screen::write].
 ///
-pub fn render_pass(camera: &Camera, objects: &[&dyn Object], lights: &Lights) -> ThreeDResult<()> {
+pub fn render_pass(camera: &Camera, objects: &[impl Object], lights: &Lights) -> ThreeDResult<()> {
     let mut culled_objects = objects
         .iter()
         .filter(|o| camera.in_frustum(&o.aabb()))
         .collect::<Vec<_>>();
-    culled_objects.sort_by(|a, b| cmp_render_order(camera, **a, **b));
+    culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
     for object in culled_objects {
         object.render(camera, lights)?;
     }
@@ -53,7 +53,7 @@ pub fn render_pass(camera: &Camera, objects: &[&dyn Object], lights: &Lights) ->
 }
 
 use std::cmp::Ordering;
-pub fn cmp_render_order(camera: &Camera, obj0: &dyn Object, obj1: &dyn Object) -> Ordering {
+pub fn cmp_render_order(camera: &Camera, obj0: impl Object, obj1: impl Object) -> Ordering {
     if obj0.is_transparent() == obj1.is_transparent() {
         let distance_a = camera.position().distance2(obj0.aabb().center());
         let distance_b = camera.position().distance2(obj1.aabb().center());

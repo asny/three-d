@@ -67,7 +67,7 @@ pub trait Object: Geometry {
     fn is_transparent(&self) -> bool;
 }
 
-impl<T: Object> Object for &T {
+impl<T: Object + ?Sized> Object for &T {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         (*self).render(camera, lights)
     }
@@ -77,7 +77,7 @@ impl<T: Object> Object for &T {
     }
 }
 
-impl<T: Object> Object for &mut T {
+impl<T: Object + ?Sized> Object for &mut T {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         (**self).render(camera, lights)
     }
@@ -104,7 +104,7 @@ pub trait Geometry: Shadable {
     fn transformation(&self) -> Mat4;
 }
 
-impl<T: Geometry> Geometry for &T {
+impl<T: Geometry + ?Sized> Geometry for &T {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (*self).aabb()
     }
@@ -114,7 +114,7 @@ impl<T: Geometry> Geometry for &T {
     }
 }
 
-impl<T: Geometry> Geometry for &mut T {
+impl<T: Geometry + ?Sized> Geometry for &mut T {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (**self).aabb()
     }
@@ -134,7 +134,7 @@ pub trait GeometryMut: Geometry {
     fn set_transformation(&mut self, transformation: Mat4);
 }
 
-impl<T: GeometryMut> GeometryMut for &mut T {
+impl<T: GeometryMut + ?Sized> GeometryMut for &mut T {
     fn set_transformation(&mut self, transformation: Mat4) {
         (*self).set_transformation(transformation);
     }
@@ -174,7 +174,7 @@ pub trait Shadable {
     ) -> ThreeDResult<()>;
 }
 
-impl<T: Shadable> Shadable for &T {
+impl<T: Shadable + ?Sized> Shadable for &T {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -194,7 +194,7 @@ impl<T: Shadable> Shadable for &T {
     }
 }
 
-impl<T: Shadable> Shadable for &mut T {
+impl<T: Shadable + ?Sized> Shadable for &mut T {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -232,7 +232,7 @@ pub trait Shadable2D {
     ) -> ThreeDResult<()>;
 }
 
-impl<T: Shadable2D> Shadable2D for &T {
+impl<T: Shadable2D + ?Sized> Shadable2D for &T {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -242,7 +242,7 @@ impl<T: Shadable2D> Shadable2D for &T {
     }
 }
 
-impl<T: Shadable2D> Shadable2D for &mut T {
+impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -270,7 +270,7 @@ pub trait Object2D: Shadable2D {
     fn is_transparent(&self) -> bool;
 }
 
-impl<T: Object2D> Object2D for &T {
+impl<T: Object2D + ?Sized> Object2D for &T {
     fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
         (*self).render(viewport)
     }
@@ -280,7 +280,7 @@ impl<T: Object2D> Object2D for &T {
     }
 }
 
-impl<T: Object2D> Object2D for &mut T {
+impl<T: Object2D + ?Sized> Object2D for &mut T {
     fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
         (**self).render(viewport)
     }
