@@ -80,14 +80,24 @@ impl Loaded {
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
     pub fn remove_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<Vec<u8>> {
-        let bytes = self
-            .loaded
-            .remove_entry(path.as_ref())
-            .ok_or(IOError::NotLoaded(
-                path.as_ref().to_str().unwrap().to_owned(),
-            ))?
-            .1?;
-        Ok(bytes)
+        if let Some((path, bytes)) = self.loaded.remove_entry(path.as_ref()) {
+            Ok(bytes.map_err(|e| IOError::NotLoaded(path.to_str().unwrap().to_string()))?)
+        } else {
+            let key = self
+                .loaded
+                .iter()
+                .find(|(k, _)| {
+                    k.to_str()
+                        .unwrap()
+                        .contains(path.as_ref().to_str().unwrap())
+                })
+                .ok_or(IOError::NotLoaded(
+                    path.as_ref().to_str().unwrap().to_owned(),
+                ))?
+                .0
+                .clone();
+            Ok(self.loaded.remove_entry(&key).unwrap().1?)
+        }
     }
 
     ///
@@ -95,15 +105,30 @@ impl Loaded {
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
     pub fn get_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<&[u8]> {
-        let bytes = self
-            .loaded
-            .get(path.as_ref())
-            .ok_or(IOError::NotLoaded(
-                path.as_ref().to_str().unwrap().to_owned(),
-            ))?
-            .as_ref()
-            .map_err(|e| std::io::Error::from(e.kind()))?;
-        Ok(bytes)
+        if let Some(bytes) = self.loaded.get(path.as_ref()) {
+            Ok(bytes
+                .as_ref()
+                .map_err(|e| IOError::NotLoaded(path.as_ref().to_str().unwrap().to_string()))?)
+        } else {
+            let key = self
+                .loaded
+                .iter()
+                .find(|(k, _)| {
+                    k.to_str()
+                        .unwrap()
+                        .contains(path.as_ref().to_str().unwrap())
+                })
+                .ok_or(IOError::NotLoaded(
+                    path.as_ref().to_str().unwrap().to_owned(),
+                ))?
+                .0;
+            Ok(self
+                .loaded
+                .get(key)
+                .unwrap()
+                .as_ref()
+                .map_err(|e| std::io::Error::from(e.kind()))?)
+        }
     }
 
     ///
