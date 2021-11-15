@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::io::*;
-use std::cell::{Ref, RefCell};
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -41,6 +41,10 @@ impl<T> Loading<T> {
 
     pub fn borrow(&self) -> Ref<'_, Option<T>> {
         self.load.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<'_, Option<T>> {
+        self.load.borrow_mut()
     }
 
     pub fn take(&self) -> Option<T> {
