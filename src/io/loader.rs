@@ -1,6 +1,38 @@
 use crate::io::*;
+use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
+
+pub struct Loading<T> {
+    load: Rc<RefCell<Option<T>>>,
+}
+
+impl<T> Loading<T> {
+    pub fn new(paths: &[impl AsRef<Path>], map: impl 'static + FnOnce(Loaded) -> T) -> Self
+    where
+        T: 'static,
+    {
+        let load = Rc::new(RefCell::new(None));
+        let load_clone = load.clone();
+        Loader::load(paths, move |mut loaded| {
+            *load_clone.borrow_mut() = Some(map(loaded));
+        });
+        Self { load }
+    }
+
+    pub fn get(&self) -> Ref<'_, Option<T>> {
+        self.load.borrow()
+    }
+
+    pub fn take(&self) -> Option<T> {
+        if self.load.borrow().is_some() {
+            self.load.take()
+        } else {
+            None
+        }
+    }
+}
 
 ///
 /// Contains the resources loaded using the [Loader](crate::Loader) and/or manually inserted using the [insert_bytes](Self::insert_bytes) method.
