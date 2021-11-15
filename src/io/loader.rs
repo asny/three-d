@@ -39,7 +39,7 @@ impl<T> Loading<T> {
         Self { load }
     }
 
-    pub fn get(&self) -> Ref<'_, Option<T>> {
+    pub fn borrow(&self) -> Ref<'_, Option<T>> {
         self.load.borrow()
     }
 
