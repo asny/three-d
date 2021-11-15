@@ -1,3 +1,4 @@
+use crate::core::*;
 use crate::io::*;
 use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
@@ -17,6 +18,23 @@ impl<T> Loading<T> {
         let load_clone = load.clone();
         Loader::load(paths, move |mut loaded| {
             *load_clone.borrow_mut() = Some(map(loaded));
+        });
+        Self { load }
+    }
+
+    pub fn new_with_context(
+        context: &Context,
+        paths: &[impl AsRef<Path>],
+        map: impl 'static + FnOnce(Context, Loaded) -> T,
+    ) -> Self
+    where
+        T: 'static,
+    {
+        let load = Rc::new(RefCell::new(None));
+        let load_clone = load.clone();
+        let context_clone = context.clone();
+        Loader::load(paths, move |mut loaded| {
+            *load_clone.borrow_mut() = Some(map(context_clone, loaded));
         });
         Self { load }
     }
