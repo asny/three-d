@@ -16,7 +16,7 @@ impl<T> Loading<T> {
     {
         let load = Rc::new(RefCell::new(None));
         let load_clone = load.clone();
-        Loader::load(paths, move |mut loaded| {
+        Loader::load(paths, move |loaded| {
             *load_clone.borrow_mut() = Some(map(loaded));
         });
         Self { load }
@@ -33,7 +33,7 @@ impl<T> Loading<T> {
         let load = Rc::new(RefCell::new(None));
         let load_clone = load.clone();
         let context_clone = context.clone();
-        Loader::load(paths, move |mut loaded| {
+        Loader::load(paths, move |loaded| {
             *load_clone.borrow_mut() = Some(map(context_clone, loaded));
         });
         Self { load }
@@ -81,7 +81,7 @@ impl Loaded {
     ///
     pub fn remove_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<Vec<u8>> {
         if let Some((path, bytes)) = self.loaded.remove_entry(path.as_ref()) {
-            Ok(bytes.map_err(|e| IOError::NotLoaded(path.to_str().unwrap().to_string()))?)
+            Ok(bytes.map_err(|_| IOError::NotLoaded(path.to_str().unwrap().to_string()))?)
         } else {
             let key = self
                 .loaded
@@ -96,7 +96,7 @@ impl Loaded {
                 ))?
                 .0
                 .clone();
-            Ok(self.loaded.remove_entry(&key).unwrap().1?)
+            Ok(self.loaded.remove(&key).unwrap()?)
         }
     }
 
@@ -108,7 +108,7 @@ impl Loaded {
         if let Some(bytes) = self.loaded.get(path.as_ref()) {
             Ok(bytes
                 .as_ref()
-                .map_err(|e| IOError::NotLoaded(path.as_ref().to_str().unwrap().to_string()))?)
+                .map_err(|_| IOError::NotLoaded(path.as_ref().to_str().unwrap().to_string()))?)
         } else {
             let key = self
                 .loaded
