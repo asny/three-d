@@ -9,11 +9,8 @@ pub struct Loading<T> {
     load: Rc<RefCell<Option<T>>>,
 }
 
-impl<T> Loading<T> {
-    pub fn new(paths: &[impl AsRef<Path>], map: impl 'static + FnOnce(Loaded) -> T) -> Self
-    where
-        T: 'static,
-    {
+impl<T: 'static> Loading<T> {
+    pub fn new(paths: &[impl AsRef<Path>], map: impl 'static + FnOnce(Loaded) -> T) -> Self {
         let load = Rc::new(RefCell::new(None));
         let load_clone = load.clone();
         Loader::load(paths, move |loaded| {
@@ -26,10 +23,7 @@ impl<T> Loading<T> {
         context: &Context,
         paths: &[impl AsRef<Path>],
         map: impl 'static + FnOnce(Context, Loaded) -> T,
-    ) -> Self
-    where
-        T: 'static,
-    {
+    ) -> Self {
         let load = Rc::new(RefCell::new(None));
         let load_clone = load.clone();
         let context_clone = context.clone();
@@ -149,7 +143,7 @@ impl Loader {
     ///
     /// Loads all of the resources in the given paths then calls `on_done` with all of the [loaded resources](crate::Loaded).
     ///
-    pub fn load<F: 'static + FnOnce(Loaded)>(paths: &[impl AsRef<Path>], on_done: F) {
+    pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Loaded)) {
         #[cfg(target_arch = "wasm32")]
         {
             wasm_bindgen_futures::spawn_local(Self::load_files_async(
@@ -175,7 +169,7 @@ impl Loader {
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load_files_async<F: 'static + FnOnce(Loaded)>(paths: Vec<PathBuf>, on_done: F) {
+    async fn load_files_async(paths: Vec<PathBuf>, on_done: impl 'static + FnOnce(Loaded)) {
         let mut loads = Loaded::new();
         for path in paths.iter() {
             let url = reqwest::Url::parse(path.to_str().unwrap()).unwrap_or_else(|_| {
