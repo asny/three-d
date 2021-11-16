@@ -39,14 +39,7 @@ fn main() {
             Skybox::new(
                 &context,
                 &mut loaded
-                    .cube_image(
-                        "examples/assets/skybox_evening/right.jpg",
-                        "examples/assets/skybox_evening/left.jpg",
-                        "examples/assets/skybox_evening/top.jpg",
-                        "examples/assets/skybox_evening/top.jpg",
-                        "examples/assets/skybox_evening/front.jpg",
-                        "examples/assets/skybox_evening/back.jpg",
-                    )
+                    .cube_image("right", "left", "top", "top", "front", "back")
                     .unwrap(),
             )
             .unwrap()
@@ -57,7 +50,7 @@ fn main() {
         &context,
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |context, mut loaded| {
-            let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
+            let (meshes, materials) = loaded.obj("suzanne").unwrap();
             let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
             monkey_material.opaque_render_states.cull = Cull::Back;
             Model::new_with_material(&context, &meshes[0], monkey_material).unwrap()
