@@ -35,7 +35,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
         format: Format,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
-        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, depth);
+        let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height);
         set_parameters(
             context,
             &id,

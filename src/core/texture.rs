@@ -93,6 +93,8 @@ pub struct CPUTexture<T: TextureDataType> {
     pub format: Format,
     pub min_filter: Interpolation,
     pub mag_filter: Interpolation,
+    /// Specifies whether mipmaps should be created for this texture and what type of interpolation to use between the two closest mipmaps.
+    /// Note, however, that the mipmaps only will be created if the width and height of the texture are power of two.
     pub mip_map_filter: Option<Interpolation>,
     pub wrap_s: Wrapping,
     pub wrap_t: Wrapping,
@@ -510,13 +512,11 @@ fn calculate_number_of_mip_maps(
     mip_map_filter: Option<Interpolation>,
     width: u32,
     height: u32,
-    depth: u32,
 ) -> u32 {
-    if mip_map_filter.is_some() {
+    if mip_map_filter.is_some() && width.is_power_of_two() && height.is_power_of_two() {
         let w = (width as f64).log2().ceil();
         let h = (height as f64).log2().ceil();
-        let d = (depth as f64).log2().ceil();
-        w.max(h).max(d).floor() as u32 + 1
+        w.max(h).floor() as u32 + 1
     } else {
         1
     }

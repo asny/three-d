@@ -27,7 +27,6 @@ impl Texture2D {
             cpu_texture.mip_map_filter,
             cpu_texture.width,
             cpu_texture.height,
-            1,
         );
         set_parameters(
             context,
