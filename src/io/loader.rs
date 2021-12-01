@@ -10,7 +10,7 @@ use std::rc::Rc;
 /// To get the loaded object, use the `borrow()` or `borrow_mut()` methods which returns `Some` reference to the object if loaded and `None` otherwise.
 ///
 pub struct Loading<T> {
-    load: Rc<RefCell<Option<T>>>,
+    load: Rc<RefCell<Option<ThreeDResult<T>>>>,
 }
 
 impl<T: 'static> Loading<T> {
@@ -20,7 +20,7 @@ impl<T: 'static> Loading<T> {
     pub fn new(
         context: &Context,
         paths: &[impl AsRef<Path>],
-        on_load: impl 'static + FnOnce(Context, Loaded) -> T,
+        on_load: impl 'static + FnOnce(Context, Loaded) -> ThreeDResult<T>,
     ) -> Self {
         let load = Rc::new(RefCell::new(None));
         let load_clone = load.clone();
@@ -40,7 +40,7 @@ impl<T: 'static> Loading<T> {
 }
 
 impl<T: 'static> std::ops::Deref for Loading<T> {
-    type Target = Rc<RefCell<Option<T>>>;
+    type Target = Rc<RefCell<Option<ThreeDResult<T>>>>;
     fn deref(&self) -> &Self::Target {
         &self.load
     }

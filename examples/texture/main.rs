@@ -37,11 +37,8 @@ fn main() {
         move |context, mut loaded| {
             Skybox::new(
                 &context,
-                &mut loaded
-                    .cube_image("right", "left", "top", "top", "front", "back")
-                    .unwrap(),
+                &mut loaded.cube_image("right", "left", "top", "top", "front", "back")?,
             )
-            .unwrap()
         },
     );
 
@@ -58,25 +55,23 @@ fn main() {
                 &context,
                 &CPUMesh::cube(),
                 ColorMaterial {
-                    texture: Some(std::rc::Rc::new(
-                        Texture2D::new(&context, &loaded.image("test_texture").unwrap()).unwrap(),
-                    )),
+                    texture: Some(std::rc::Rc::new(Texture2D::new(
+                        &context,
+                        &loaded.image("test_texture")?,
+                    )?)),
                     ..Default::default()
                 },
-            )
-            .unwrap();
+            )?;
             box_object.material.opaque_render_states.cull = Cull::Back;
-            let (penguin_cpu_meshes, penguin_cpu_materials) =
-                loaded.obj("PenguinBaseMesh.obj").unwrap();
+            let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("PenguinBaseMesh.obj")?;
             let mut penguin_object = Model::new_with_material(
                 &context,
                 &penguin_cpu_meshes[0],
-                PhysicalMaterial::new(&context, &penguin_cpu_materials[0]).unwrap(),
-            )
-            .unwrap();
+                PhysicalMaterial::new(&context, &penguin_cpu_materials[0])?,
+            )?;
             penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
             penguin_object.material.opaque_render_states.cull = Cull::Back;
-            (box_object, penguin_object)
+            Ok((box_object, penguin_object))
         },
     );
 
@@ -112,14 +107,14 @@ fn main() {
             // draw
             if redraw {
                 Screen::write(&context, ClearState::default(), || {
-                    if let Some((ref box_object, ref penguin_object)) = *objects.borrow() {
+                    if let Some(Ok((ref box_object, ref penguin_object))) = *objects.borrow() {
                         pipeline.render_pass(
                             &camera,
                             &[box_object as &dyn Object, penguin_object],
                             &lights,
                         )?;
                     }
-                    if let Some(ref skybox) = *skybox.borrow() {
+                    if let Some(Ok(ref skybox)) = *skybox.borrow() {
                         skybox.render(&camera)?;
                     }
                     Ok(())

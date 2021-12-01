@@ -38,11 +38,8 @@ fn main() {
         move |context, mut loaded| {
             Skybox::new(
                 &context,
-                &mut loaded
-                    .cube_image("right", "left", "top", "top", "front", "back")
-                    .unwrap(),
+                &mut loaded.cube_image("right", "left", "top", "top", "front", "back")?,
             )
-            .unwrap()
         },
     );
 
@@ -50,10 +47,10 @@ fn main() {
         &context,
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |context, mut loaded| {
-            let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
-            let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
+            let (meshes, materials) = loaded.obj("suzanne.obj")?;
+            let mut monkey_material = PhysicalMaterial::new(&context, &materials[0])?;
             monkey_material.opaque_render_states.cull = Cull::Back;
-            Model::new_with_material(&context, &meshes[0], monkey_material).unwrap()
+            Model::new_with_material(&context, &meshes[0], monkey_material)
         },
     );
 
@@ -107,16 +104,16 @@ fn main() {
 
             // draw
             if change && fog_enabled {
-                if let Some(ref monkey) = *monkey.borrow() {
+                if let Some(Ok(ref monkey)) = *monkey.borrow() {
                     depth_texture = Some(pipeline.depth_pass_texture(&camera, &[monkey]).unwrap());
                 }
             }
 
             Screen::write(&context, ClearState::default(), || {
-                if let Some(ref monkey) = *monkey.borrow() {
+                if let Some(Ok(ref monkey)) = *monkey.borrow() {
                     monkey.render(&camera, &lights)?;
                 }
-                if let Some(ref skybox) = *skybox.borrow() {
+                if let Some(Ok(ref skybox)) = *skybox.borrow() {
                     skybox.render(&camera)?;
                 }
                 if fog_enabled {
