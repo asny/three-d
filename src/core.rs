@@ -213,6 +213,10 @@ pub enum CoreError {
     InvalidTextureLength(usize, usize),
     #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]
     MissingMeshBuffer(String),
+    #[error(
+        "if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'"
+    )]
+    MissingBitangent,
     #[error("{0} buffer length must be divisible by 3, actual count is {1}")]
     InvalidBufferLength(String, usize),
     #[error("index buffer contains values larger than the length of the buffer which is {0}")]

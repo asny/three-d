@@ -97,7 +97,7 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &Mesh::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
@@ -121,7 +121,7 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
         let fragment_shader_source =
             material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
         self.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source),
+            &Mesh::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &Lights::default())?;
