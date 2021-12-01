@@ -22,8 +22,6 @@ uniform float occlusionStrength;
 #endif
 
 #ifdef USE_NORMAL_TEXTURE
-in vec3 tang;
-in vec3 bitang;
 uniform sampler2D normalTexture;
 uniform float normalScale;
 #endif

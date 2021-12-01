@@ -122,7 +122,7 @@ impl PhysicalMaterial {
                 output.push_str("#define USE_OCCLUSION_TEXTURE;\n");
             }
             if self.normal_texture.is_some() {
-                output.push_str("#define USE_NORMAL_TEXTURE;\n");
+                output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
             }
             if self.emissive_texture.is_some() {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
