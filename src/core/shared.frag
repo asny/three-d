@@ -28,12 +28,12 @@ vec3 world_pos_from_depth(mat4 viewProjectionInverse, float depth, vec2 uv) {
 }
 
 mat3 basis(vec3 normal) {
-    vec3 binormal;
-    if(normal.x < 0.9) {
-        binormal = cross(normal, vec3(1.0, 0.0, 0.0));
+    vec3 tangent;
+    if(abs(normal.y) < 0.9) {
+        tangent = cross(normal, vec3(0.0, -1.0, 0.0));
     } 
     else {
-        binormal = cross(normal, vec3(0.0, 1.0, 0.0));
+        tangent = cross(normal, vec3(1.0, 0.0, 0.0));
     }
-    return mat3(binormal, cross(normal, binormal), normal);
+    return mat3(tangent, cross(normal, tangent), normal);
 }
