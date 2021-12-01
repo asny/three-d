@@ -5,34 +5,35 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+///
+/// Convenience functionality to load some resources and, when loaded, use them to create one or more objects (for example a 3D model, a skybox, a texture etc).
+/// To get the loaded object, use the `borrow()` or `borrow_mut()` methods which returns `Some` reference to the object if loaded and `None` otherwise.
+///
 pub struct Loading<T> {
     load: Rc<RefCell<Option<T>>>,
 }
 
 impl<T: 'static> Loading<T> {
-    pub fn new(paths: &[impl AsRef<Path>], map: impl 'static + FnOnce(Loaded) -> T) -> Self {
-        let load = Rc::new(RefCell::new(None));
-        let load_clone = load.clone();
-        Loader::load(paths, move |loaded| {
-            *load_clone.borrow_mut() = Some(map(loaded));
-        });
-        Self { load }
-    }
-
-    pub fn new_with_context(
+    ///
+    /// Starts loading the resources defined by `paths` and calls the `on_load` closure when everything is loaded.
+    ///
+    pub fn new(
         context: &Context,
         paths: &[impl AsRef<Path>],
-        map: impl 'static + FnOnce(Context, Loaded) -> T,
+        on_load: impl 'static + FnOnce(Context, Loaded) -> T,
     ) -> Self {
         let load = Rc::new(RefCell::new(None));
         let load_clone = load.clone();
         let context_clone = context.clone();
         Loader::load(paths, move |loaded| {
-            *load_clone.borrow_mut() = Some(map(context_clone, loaded));
+            *load_clone.borrow_mut() = Some(on_load(context_clone, loaded));
         });
         Self { load }
     }
 
+    ///
+    /// Returns true if the object is loaded and mapped by the `on_load` closure.
+    ///
     pub fn is_loaded(&self) -> bool {
         self.load.borrow().is_some()
     }

@@ -26,7 +26,7 @@ fn main() {
     let mut control = FlyControl::new(0.05);
 
     // Skybox
-    let skybox = Loading::new_with_context(
+    let skybox = Loading::new(
         &context,
         &[
             "examples/assets/skybox_evening/right.jpg",
@@ -46,7 +46,7 @@ fn main() {
         },
     );
 
-    let monkey = Loading::new_with_context(
+    let monkey = Loading::new(
         &context,
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |context, mut loaded| {

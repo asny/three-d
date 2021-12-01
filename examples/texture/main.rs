@@ -25,7 +25,7 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let skybox = Loading::new_with_context(
+    let skybox = Loading::new(
         &context,
         &[
             "examples/assets/skybox_evening/right.jpg",
@@ -45,7 +45,7 @@ fn main() {
         },
     );
 
-    let objects = Loading::new_with_context(
+    let objects = Loading::new(
         &context,
         &[
             "examples/assets/test_texture.jpg",
