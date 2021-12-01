@@ -152,6 +152,11 @@ fn parse_tree<'a>(
                         } else {
                             (None, 1.0)
                         };
+                    let emissive_texture = if let Some(info) = material.emissive_texture() {
+                        Some(parse_texture(loaded, path, buffers, info.texture())?)
+                    } else {
+                        None
+                    };
                     cpu_materials.push(CPUMaterial {
                         name: material_name.clone(),
                         albedo: Color::from_rgba_slice(&color),
@@ -165,6 +170,7 @@ fn parse_tree<'a>(
                         occlusion_strength,
                         occlusion_metallic_roughness_texture: None,
                         emissive: Color::from_rgb_slice(&material.emissive_factor()),
+                        emissive_texture,
                     });
                 }
 

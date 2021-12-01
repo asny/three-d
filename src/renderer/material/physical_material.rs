@@ -36,6 +36,8 @@ pub struct PhysicalMaterial {
     pub transparent_render_states: RenderStates,
 
     pub emissive: Color,
+
+    pub emissive_texture: Option<Rc<Texture2D>>,
 }
 
 impl PhysicalMaterial {
@@ -74,6 +76,11 @@ impl PhysicalMaterial {
         } else {
             None
         };
+        let emissive_texture = if let Some(ref cpu_texture) = cpu_material.emissive_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
         Ok(Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
@@ -92,6 +99,7 @@ impl PhysicalMaterial {
                 ..Default::default()
             },
             emissive: cpu_material.emissive,
+            emissive_texture,
         })
     }
 
@@ -114,6 +122,9 @@ impl PhysicalMaterial {
             }
             if self.normal_texture.is_some() {
                 output.push_str("#define USE_NORMAL_TEXTURE;\n");
+            }
+            if self.emissive_texture.is_some() {
+                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
         }
         if use_vertex_colors {
@@ -141,6 +152,9 @@ impl PhysicalMaterial {
         if let Some(ref texture) = self.normal_texture {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
             program.use_texture("normalTexture", texture.as_ref())?;
+        }
+        if let Some(ref texture) = self.emissive_texture {
+            program.use_texture("emissiveTexture", texture.as_ref())?;
         }
         Ok(())
     }
@@ -209,6 +223,7 @@ impl Default for PhysicalMaterial {
                 ..Default::default()
             },
             emissive: Color::BLACK,
+            emissive_texture: None,
         }
     }
 }

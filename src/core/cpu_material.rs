@@ -38,6 +38,7 @@ pub struct CPUMaterial {
     pub normal_texture: Option<CPUTexture<u8>>,
 
     pub emissive: Color,
+    pub emissive_texture: Option<CPUTexture<u8>>,
 }
 
 impl Default for CPUMaterial {
@@ -55,6 +56,7 @@ impl Default for CPUMaterial {
             normal_texture: None,
             normal_scale: 1.0,
             emissive: Color::BLACK,
+            emissive_texture: None,
         }
     }
 }

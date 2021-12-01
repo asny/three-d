@@ -116,6 +116,7 @@ fn main() {
                             None
                         },
                         emissive: material.emissive,
+                        emissive_texture: material.emissive_texture.clone(),
                         opaque_render_states: material.opaque_render_states,
                         transparent_render_states: material.transparent_render_states,
                     };
