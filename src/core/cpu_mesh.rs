@@ -53,6 +53,18 @@ pub struct CPUMesh {
 
 impl CPUMesh {
     ///
+    /// Returns the material for this mesh in the given list of materials. Returns `None` if no suitable material can be found.
+    ///
+    pub fn material<'a>(&self, materials: &'a [CPUMaterial]) -> Option<&'a CPUMaterial> {
+        self.material_name.as_ref().and_then(|name| {
+            materials
+                .iter()
+                .position(|mat| &mat.name == name)
+                .map(|index| &materials[index])
+        })
+    }
+
+    ///
     /// Transforms the mesh by the given transformation.
     ///
     pub fn transform(&mut self, transform: &Mat4) {
