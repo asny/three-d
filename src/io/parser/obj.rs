@@ -155,6 +155,7 @@ impl Loaded {
                     normals: Some(normals),
                     uvs: Some(uvs),
                     colors: None,
+                    tangents: None,
                 });
             }
         }

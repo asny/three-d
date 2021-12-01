@@ -24,7 +24,15 @@ out vec3 pos;
 uniform mat4 normalMatrix;
 in vec3 normal;
 out vec3 nor;
+
+#ifdef USE_TANGENTS 
+in vec3 tangent;
+out vec3 tang;
+out vec3 bitang;
 #endif
+
+#endif
+
 
 #ifdef USE_UVS 
 in vec2 uv_coordinates;
@@ -39,6 +47,7 @@ out vec4 col;
 void main()
 {
     mat4 local2World = modelMatrix;
+    mat4 normalMat;
 #ifdef INSTANCED
     mat4 transform;
     transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
@@ -47,13 +56,12 @@ void main()
     transform[3] = vec4(row1.w, row2.w, row3.w, 1.0);
     local2World *= transform;
 
-#ifdef USE_NORMALS 
-    nor = mat3(transpose(inverse(local2World))) * normal;
+#ifdef USE_NORMALS
+    normalMat = mat3(transpose(inverse(local2World)));
 #endif
-
 #else
-#ifdef USE_NORMALS 
-    nor = mat3(normalMatrix) * normal;
+#ifdef USE_NORMALS
+    normalMat = normalMatrix;
 #endif
 #endif
 
@@ -62,6 +70,16 @@ void main()
 
 #ifdef USE_POSITIONS
     pos = worldPosition.xyz;
+#endif
+
+#ifdef USE_NORMALS 
+    nor = mat3(normalMat) * normal;
+
+#ifdef USE_TANGENTS 
+    tang = mat3(normalMat) * tangent;
+    bitang = mat3(normalMat) * tangent;
+#endif
+
 #endif
 
 #ifdef USE_UVS 

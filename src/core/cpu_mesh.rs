@@ -44,6 +44,7 @@ pub struct CPUMesh {
     pub indices: Option<Indices>,
     /// The normals of the vertices. Three contiguous floats defines a normal `(x, y, z)`, therefore the length must be divisable by 3.
     pub normals: Option<Vec<f32>>,
+    pub tangents: Option<Vec<f32>>,
     /// The uv coordinates of the vertices. Two contiguous floats defines a coordinate `(u, v)`, therefore the length must be divisable by 2.
     pub uvs: Option<Vec<f32>>,
     /// The colors of the vertices. Four contiguous bytes defines a color `(r, g, b, a)`, therefore the length must be divisable by 4.

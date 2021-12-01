@@ -71,15 +71,14 @@ fn parse_tree<'a>(
                     positions.push(value[2]);
                 }
 
-                let normals = reader.read_normals().map(|values| {
-                    let mut nors = Vec::new();
-                    for value in values {
-                        nors.push(value[0]);
-                        nors.push(value[1]);
-                        nors.push(value[2]);
-                    }
-                    nors
-                });
+                let normals = reader
+                    .read_normals()
+                    .map(|values| values.flatten().collect::<Vec<_>>());
+
+                let tangents = reader
+                    .read_tangents()
+                    .map(|values| values.flatten().collect::<Vec<_>>());
+
 
                 let indices = reader.read_indices().map(|values| match values {
                     ::gltf::mesh::util::ReadIndices::U8(iter) => {
@@ -198,6 +197,7 @@ fn parse_tree<'a>(
                     name: name.clone(),
                     positions,
                     normals,
+                    tangents,
                     indices,
                     colors,
                     uvs,

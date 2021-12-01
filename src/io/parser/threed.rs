@@ -41,6 +41,7 @@ impl Loaded {
                 normals: mesh.normals,
                 uvs: mesh.uvs,
                 colors: None,
+                tangents: None,
             });
         }
 

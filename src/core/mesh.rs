@@ -8,6 +8,7 @@ pub struct Mesh {
     pub position_buffer: VertexBuffer,
     /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
     pub normal_buffer: Option<VertexBuffer>,
+    pub tangent_buffer: Option<VertexBuffer>,
     /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
     pub uv_buffer: Option<VertexBuffer>,
     /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
@@ -29,6 +30,11 @@ impl Mesh {
         let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(VertexBuffer::new_with_static(context, normals)?)
+        } else {
+            None
+        };
+        let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
+            Some(VertexBuffer::new_with_static(context, tangents)?)
         } else {
             None
         };
@@ -54,6 +60,7 @@ impl Mesh {
         Ok(Self {
             position_buffer,
             normal_buffer,
+            tangent_buffer,
             index_buffer,
             uv_buffer,
             color_buffer,
@@ -92,6 +99,13 @@ impl Mesh {
                 "normalMatrix",
                 &transformation.invert().unwrap().transpose(),
             )?;
+            if program.requires_attribute("tangent") {
+                let tangent_buffer = self
+                    .tangent_buffer
+                    .as_ref()
+                    .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
+                program.use_attribute_vec3("tangent", tangent_buffer)?;
+            }
         }
         if program.requires_attribute("color") {
             let color_buffer = self
@@ -112,13 +126,14 @@ impl Mesh {
         Ok(())
     }
 
-    pub fn vertex_shader_source(fragment_shader_source: &str) -> String {
+    pub fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
         let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
-        format!(
-            "{}{}{}{}{}{}",
+        Ok(format!(
+            "{}{}{}{}{}{}{}",
             if use_positions {
                 "#define USE_POSITIONS\n"
             } else {
@@ -126,6 +141,14 @@ impl Mesh {
             },
             if use_normals {
                 "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if use_tangents {
+                if fragment_shader_source.find("in vec3 tang;").is_none() {
+                    Err(CoreError::MissingBitangent)?;
+                }
+                "#define USE_TANGENTS\n"
             } else {
                 ""
             },
@@ -137,6 +160,6 @@ impl Mesh {
             },
             include_str!("shared.frag"),
             include_str!("mesh.vert"),
-        )
+        ))
     }
 }

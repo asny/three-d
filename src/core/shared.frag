@@ -26,14 +26,3 @@ vec3 world_pos_from_depth(mat4 viewProjectionInverse, float depth, vec2 uv) {
     vec4 position = viewProjectionInverse * clipSpacePosition;
     return position.xyz / position.w;
 }
-
-mat3 basis(vec3 normal) {
-    vec3 tangent;
-    if(abs(normal.y) < 0.9) {
-        tangent = cross(normal, vec3(0.0, -1.0, 0.0));
-    } 
-    else {
-        tangent = cross(normal, vec3(1.0, 0.0, 0.0));
-    }
-    return mat3(tangent, cross(normal, tangent), normal);
-}
