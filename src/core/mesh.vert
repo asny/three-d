@@ -26,7 +26,7 @@ in vec3 normal;
 out vec3 nor;
 
 #ifdef USE_TANGENTS 
-in vec3 tangent;
+in vec4 tangent;
 out vec3 tang;
 out vec3 bitang;
 #endif
@@ -73,11 +73,11 @@ void main()
 #endif
 
 #ifdef USE_NORMALS 
-    nor = mat3(normalMat) * normal;
+    nor = normalize(mat3(normalMat) * normal);
 
 #ifdef USE_TANGENTS 
-    tang = mat3(normalMat) * tangent;
-    bitang = mat3(normalMat) * tangent;
+    tang = normalize(mat3(normalMat) * tangent.xyz);
+    bitang = normalize(cross(nor, tang) * tangent.w);
 #endif
 
 #endif
