@@ -50,7 +50,7 @@ fn main() {
         &context,
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
         move |context, mut loaded| {
-            let (meshes, materials) = loaded.obj("suzanne").unwrap();
+            let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
             let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
             monkey_material.opaque_render_states.cull = Cull::Back;
             Model::new_with_material(&context, &meshes[0], monkey_material).unwrap()
