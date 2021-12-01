@@ -109,6 +109,7 @@ impl PhysicalMaterial {
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
             || self.occlusion_texture.is_some()
+            || self.emissive_texture.is_some()
         {
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
