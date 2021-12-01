@@ -2,8 +2,6 @@
 in vec3 nor;
 
 #ifdef USE_TEXTURE
-in vec3 tang;
-in vec3 bitang;
 uniform sampler2D normalTexture;
 uniform float normalScale;
 #endif
