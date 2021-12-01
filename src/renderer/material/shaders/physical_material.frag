@@ -7,6 +7,8 @@ uniform vec4 albedo;
 uniform sampler2D albedoTexture;
 #endif
 
+uniform vec3 emissive;
+
 #ifdef USE_METALLIC_ROUGHNESS_TEXTURE
 uniform sampler2D metallicRoughnessTexture;
 #endif
@@ -63,7 +65,7 @@ void main()
     outColor = vec4(surface_color.rgb, metallic_factor);
     outNormal = vec4(0.5 * normal.xy + 0.5, occlusion, roughness_factor);
 #else
-    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, pos, normal, metallic_factor, roughness_factor, occlusion));
+    outColor.rgb = srgb_from_rgb(emissive + calculate_lighting(surface_color.rgb, pos, normal, metallic_factor, roughness_factor, occlusion));
     outColor.a = surface_color.a;
 #endif
 }

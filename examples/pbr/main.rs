@@ -115,7 +115,9 @@ fn main() {
                         } else {
                             None
                         },
-                        ..Default::default()
+                        emissive: material.emissive,
+                        opaque_render_states: material.opaque_render_states,
+                        transparent_render_states: material.transparent_render_states,
                     };
 
                     let viewport = Viewport {

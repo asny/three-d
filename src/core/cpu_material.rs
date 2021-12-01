@@ -36,6 +36,8 @@ pub struct CPUMaterial {
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<CPUTexture<u8>>,
+
+    pub emissive: Color,
 }
 
 impl Default for CPUMaterial {
@@ -52,6 +54,7 @@ impl Default for CPUMaterial {
             occlusion_strength: 1.0,
             normal_texture: None,
             normal_scale: 1.0,
+            emissive: Color::BLACK,
         }
     }
 }

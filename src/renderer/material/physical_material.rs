@@ -34,6 +34,8 @@ pub struct PhysicalMaterial {
     pub opaque_render_states: RenderStates,
     /// Render states used when the color is transparent (does not have a maximal alpha value).
     pub transparent_render_states: RenderStates,
+
+    pub emissive: Color,
 }
 
 impl PhysicalMaterial {
@@ -89,6 +91,7 @@ impl PhysicalMaterial {
                 blend: Blend::TRANSPARENCY,
                 ..Default::default()
             },
+            emissive: cpu_material.emissive,
         })
     }
 
@@ -124,6 +127,7 @@ impl PhysicalMaterial {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
+        program.use_uniform_vec3("emissive", &self.emissive.to_vec3())?;
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture.as_ref())?;
         }
@@ -204,6 +208,7 @@ impl Default for PhysicalMaterial {
                 blend: Blend::TRANSPARENCY,
                 ..Default::default()
             },
+            emissive: Color::BLACK,
         }
     }
 }
