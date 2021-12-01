@@ -73,6 +73,7 @@ fn main() {
             let mut occlusion_map_enabled = true;
             let mut metallic_roughness_enabled = true;
             let mut albedo_map_enabled = true;
+            let mut emissive_map_enabled = true;
             window
                 .render_loop(move |mut frame_input| {
                     let mut panel_width = 0;
@@ -84,6 +85,7 @@ fn main() {
                             ui.checkbox(&mut metallic_roughness_enabled, "Metallic roughness map");
                             ui.checkbox(&mut normal_map_enabled, "Normal map");
                             ui.checkbox(&mut occlusion_map_enabled, "Occlusion map");
+                            ui.checkbox(&mut emissive_map_enabled, "Emissive map");
                         });
                         panel_width = gui_context.used_size().x as u32;
                     })
@@ -115,8 +117,16 @@ fn main() {
                         } else {
                             None
                         },
-                        emissive: material.emissive,
-                        emissive_texture: material.emissive_texture.clone(),
+                        emissive: if emissive_map_enabled {
+                            material.emissive
+                        } else {
+                            Color::BLACK
+                        },
+                        emissive_texture: if emissive_map_enabled {
+                            material.emissive_texture.clone()
+                        } else {
+                            None
+                        },
                         opaque_render_states: material.opaque_render_states,
                         transparent_render_states: material.transparent_render_states,
                     };
