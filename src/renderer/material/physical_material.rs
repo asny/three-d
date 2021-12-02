@@ -34,7 +34,7 @@ pub struct PhysicalMaterial {
     pub opaque_render_states: RenderStates,
     /// Render states used when the color is transparent (does not have a maximal alpha value).
     pub transparent_render_states: RenderStates,
-    /// Alpha cutoff value for transparency in deferred rendering pipeline.
+    /// Alpha cutout value for transparency in deferred rendering pipeline.
     pub alpha_cutout: Option<f32>,
 }
 
@@ -91,7 +91,7 @@ impl PhysicalMaterial {
                 blend: Blend::TRANSPARENCY,
                 ..Default::default()
             },
-            alpha_cutout: None,
+            alpha_cutout: cpu_material.alpha_cutout,
         })
     }
 

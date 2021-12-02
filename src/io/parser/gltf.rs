@@ -164,6 +164,7 @@ fn parse_tree<'a>(
                         occlusion_texture,
                         occlusion_strength,
                         occlusion_metallic_roughness_texture: None,
+                        alpha_cutout: None,
                     });
                 }
 
