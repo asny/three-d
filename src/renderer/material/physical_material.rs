@@ -139,7 +139,9 @@ impl PhysicalMaterial {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
-        program.use_uniform_vec3("emissive", &self.emissive.to_vec3())?;
+        if program.requires_uniform("emissive") {
+            program.use_uniform_vec3("emissive", &self.emissive.to_vec3())?;
+        }
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture.as_ref())?;
         }
@@ -154,8 +156,10 @@ impl PhysicalMaterial {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
             program.use_texture("normalTexture", texture.as_ref())?;
         }
-        if let Some(ref texture) = self.emissive_texture {
-            program.use_texture("emissiveTexture", texture.as_ref())?;
+        if program.requires_uniform("emissiveTexture") {
+            if let Some(ref texture) = self.emissive_texture {
+                program.use_texture("emissiveTexture", texture.as_ref())?;
+            }
         }
         Ok(())
     }
