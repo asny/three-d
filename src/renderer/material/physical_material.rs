@@ -34,6 +34,8 @@ pub struct PhysicalMaterial {
     pub opaque_render_states: RenderStates,
     /// Render states used when the color is transparent (does not have a maximal alpha value).
     pub transparent_render_states: RenderStates,
+    /// Alpha cutoff value for transparency in deferred rendering pipeline.
+    pub alpha_cutout: Option<f32>,
 }
 
 impl PhysicalMaterial {
@@ -89,6 +91,7 @@ impl PhysicalMaterial {
                 blend: Blend::TRANSPARENCY,
                 ..Default::default()
             },
+            alpha_cutout: None,
         })
     }
 
@@ -98,6 +101,7 @@ impl PhysicalMaterial {
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
             || self.occlusion_texture.is_some()
+            || self.alpha_cutout.is_some()
         {
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
@@ -111,6 +115,9 @@ impl PhysicalMaterial {
             }
             if self.normal_texture.is_some() {
                 output.push_str("#define USE_NORMAL_TEXTURE;\n");
+            }
+            if self.alpha_cutout.is_some() {
+                output.push_str(format!("#define ALPHACUT;\nfloat acut = {};", self.alpha_cutout.unwrap()).as_str());
             }
         }
         if use_vertex_colors {
@@ -167,12 +174,15 @@ impl ForwardMaterial for PhysicalMaterial {
         }
     }
     fn is_transparent(&self) -> bool {
-        self.albedo.a != 255
-            || self
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false)
+        match self.alpha_cutout {
+            Some(_) => false,
+            None => self.albedo.a != 255
+                    || self
+                        .albedo_texture
+                        .as_ref()
+                        .map(|t| t.is_transparent())
+                        .unwrap_or(false),
+        }
     }
 }
 
@@ -204,6 +214,7 @@ impl Default for PhysicalMaterial {
                 blend: Blend::TRANSPARENCY,
                 ..Default::default()
             },
+            alpha_cutout: None,
         }
     }
 }
