@@ -471,7 +471,7 @@ impl CPUMesh {
 }
 
 fn compute_normals_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
-    let mut normals = vec![0.0f32; positions.len() * 3];
+    let mut normals = vec![0.0f32; positions.len()];
     for face in 0..indices.len() / 3 {
         let index0 = indices[face * 3] as usize;
         let p0 = vec3(
