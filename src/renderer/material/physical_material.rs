@@ -36,9 +36,8 @@ pub struct PhysicalMaterial {
     pub transparent_render_states: RenderStates,
 
     pub emissive: Color,
-
     pub emissive_texture: Option<Rc<Texture2D>>,
-    /// Alpha cutoff value for transparency in deferred rendering pipeline.
+    /// Alpha cutout value for transparency in deferred rendering pipeline.
     pub alpha_cutout: Option<f32>,
 }
 
@@ -102,7 +101,7 @@ impl PhysicalMaterial {
             },
             emissive: cpu_material.emissive,
             emissive_texture,
-            alpha_cutout: None,
+            alpha_cutout: cpu_material.alpha_cutout,
         })
     }
 
