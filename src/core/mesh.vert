@@ -47,7 +47,7 @@ out vec4 col;
 void main()
 {
     mat4 local2World = modelMatrix;
-    mat4 normalMat;
+    mat3 normalMat;
 #ifdef INSTANCED
     mat4 transform;
     transform[0] = vec4(row1.x, row2.x, row3.x, 0.0);
@@ -61,7 +61,7 @@ void main()
 #endif
 #else
 #ifdef USE_NORMALS
-    normalMat = normalMatrix;
+    normalMat = mat3(normalMatrix);
 #endif
 #endif
 
@@ -73,10 +73,10 @@ void main()
 #endif
 
 #ifdef USE_NORMALS 
-    nor = normalize(mat3(normalMat) * normal);
+    nor = normalize(normalMat * normal);
 
 #ifdef USE_TANGENTS 
-    tang = normalize(mat3(normalMat) * tangent.xyz);
+    tang = normalize(normalMat * tangent.xyz);
     bitang = normalize(cross(nor, tang) * tangent.w);
 #endif
 
