@@ -380,6 +380,15 @@ impl CPUMesh {
         );
     }
 
+    pub fn compute_tangents(&mut self) {
+        self.tangents = Some(
+            self.indices
+                .as_ref()
+                .map(|indices| compute_tangents_with_indices(&indices.into_u32(), &self.positions))
+                .unwrap_or_else(|| compute_tangents(&self.positions)),
+        );
+    }
+
     ///
     /// Computes the axis aligned bounding box of the mesh.
     ///
@@ -545,4 +554,12 @@ fn compute_normals(positions: &[f32]) -> Vec<f32> {
         normals[3 * i + 2] = normal.z;
     }
     normals
+}
+
+fn compute_tangents_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
+    unimplemented!()
+}
+
+fn compute_tangents(positions: &[f32]) -> Vec<f32> {
+    unimplemented!()
 }
