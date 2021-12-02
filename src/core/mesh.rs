@@ -145,7 +145,7 @@ impl Mesh {
                 ""
             },
             if use_tangents {
-                if fragment_shader_source.find("in vec3 tang;").is_none() {
+                if fragment_shader_source.find("in vec3 bitang;").is_none() {
                     Err(CoreError::MissingBitangent)?;
                 }
                 "#define USE_TANGENTS\n"
