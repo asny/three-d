@@ -113,7 +113,6 @@ impl DeferredPhysicalMaterial {
 impl ForwardMaterial for DeferredPhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         let mut output = lights.fragment_shader_source();
-        output.push_str("#define DEFERRED\n");
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
@@ -146,7 +145,7 @@ impl ForwardMaterial for DeferredPhysicalMaterial {
         if use_vertex_colors {
             output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
-        output.push_str(include_str!("shaders/physical_material.frag"));
+        output.push_str(include_str!("shaders/deferred_physical_material.frag"));
         output
     }
 
