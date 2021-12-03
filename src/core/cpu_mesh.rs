@@ -401,20 +401,18 @@ impl CPUMesh {
             let uvba = uvb - uva;
             let uvca = uvc - uva;
 
-            let r = 1.0 / (uvba.x * uvca.y - uvca.x * uvba.y);
-
-            // TODO: Test if degenerate
-
-            let sdir = (ba * uvca.y - ca * uvba.y) * r;
-            let tdir = (ca * uvba.x - ba * uvca.x) * r;
-
-            tan1[i0] += sdir;
-            tan1[i1] += sdir;
-            tan1[i2] += sdir;
-
-            tan2[i0] += tdir;
-            tan2[i1] += tdir;
-            tan2[i2] += tdir;
+            let d = uvba.x * uvca.y - uvca.x * uvba.y;
+            if d.abs() > 0.00001 {
+                let r = 1.0 / d;
+                let sdir = (ba * uvca.y - ca * uvba.y) * r;
+                let tdir = (ca * uvba.x - ba * uvca.x) * r;
+                tan1[i0] += sdir;
+                tan1[i1] += sdir;
+                tan1[i2] += sdir;
+                tan2[i0] += tdir;
+                tan2[i1] += tdir;
+                tan2[i2] += tdir;
+            }
         };
 
         let indices = self.indices.as_ref().unwrap().into_u32();
@@ -427,19 +425,18 @@ impl CPUMesh {
 
         let mut tangents = vec![0.0f32; 4 * self.positions.len() / 3];
         let mut handle_vertex = |index| {
-            let n = self.normal(index).unwrap();
+            let normal = self.normal(index).unwrap();
             let t = tan1[index];
-            let tmp = (t - n * n.dot(t)).normalize();
-            let tmp2 = n.cross(t);
-            let w = if tmp2.dot(tan2[index]) < 0.0 {
+            let tangent = (t - normal * normal.dot(t)).normalize();
+            let handedness = if normal.cross(tangent).dot(tan2[index]) < 0.0 {
                 1.0
             } else {
                 -1.0
             };
-            tangents[index * 4] = tmp.x;
-            tangents[index * 4 + 1] = tmp.y;
-            tangents[index * 4 + 2] = tmp.z;
-            tangents[index * 4 + 3] = w;
+            tangents[index * 4] = tangent.x;
+            tangents[index * 4 + 1] = tangent.y;
+            tangents[index * 4 + 2] = tangent.z;
+            tangents[index * 4 + 3] = handedness;
         };
 
         for i in 0..self.positions.len() / 3 {
