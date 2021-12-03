@@ -380,13 +380,92 @@ impl CPUMesh {
         );
     }
 
+    pub fn position(&self, vertex_index: usize) -> Vec3 {
+        vec3(
+            self.positions[3 * vertex_index],
+            self.positions[3 * vertex_index + 1],
+            self.positions[3 * vertex_index + 2],
+        )
+    }
+
+    pub fn normal(&self, vertex_index: usize) -> Option<Vec3> {
+        self.normals.as_ref().map(|normals| {
+            vec3(
+                normals[3 * vertex_index],
+                normals[3 * vertex_index + 1],
+                normals[3 * vertex_index + 2],
+            )
+        })
+    }
+
+    pub fn uv(&self, vertex_index: usize) -> Option<Vec2> {
+        self.uvs
+            .as_ref()
+            .map(|uvs| vec2(uvs[2 * vertex_index], uvs[2 * vertex_index + 1]))
+    }
+
     pub fn compute_tangents(&mut self) {
-        self.tangents = Some(
-            self.indices
-                .as_ref()
-                .map(|indices| compute_tangents_with_indices(&indices.into_u32(), &self.positions))
-                .unwrap_or_else(|| compute_tangents(&self.positions)),
-        );
+        let mut tan1 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
+        let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
+        let mut handle_triangle = |i0, i1, i2| {
+            let a = self.position(i0);
+            let b = self.position(i1);
+            let c = self.position(i2);
+            let uva = self.uv(i0).unwrap();
+            let uvb = self.uv(i1).unwrap();
+            let uvc = self.uv(i2).unwrap();
+
+            let ba = b - a;
+            let ca = c - a;
+
+            let uvba = uvb - uva;
+            let uvca = uvc - uva;
+
+            let r = 1.0 / (uvba.x * uvca.y - uvca.x * uvba.y);
+
+            // TODO: Test if degenerate
+
+            let sdir = (ba * uvca.y - ca * uvba.y) * r;
+            let tdir = (ca * uvba.x - ba * uvca.x) * r;
+
+            tan1[i0] += sdir;
+            tan1[i1] += sdir;
+            tan1[i2] += sdir;
+
+            tan2[i0] += tdir;
+            tan2[i1] += tdir;
+            tan2[i2] += tdir;
+        };
+
+        let indices = self.indices.as_ref().unwrap().into_u32();
+        for face in 0..indices.len() / 3 {
+            let index0 = indices[face * 3] as usize;
+            let index1 = indices[face * 3 + 1] as usize;
+            let index2 = indices[face * 3 + 2] as usize;
+            handle_triangle(index0, index1, index2);
+        }
+
+        let mut tangents = vec![0.0f32; 4 * self.positions.len() / 3];
+        let mut handle_vertex = |index| {
+            let n = self.normal(index).unwrap();
+            let t = tan1[index];
+            let tmp = (t - n * n.dot(t)).normalize();
+            let tmp2 = n.cross(t);
+            let w = if tmp2.dot(tan2[index]) < 0.0 {
+                1.0
+            } else {
+                -1.0
+            };
+            tangents[index * 4] = tmp.x;
+            tangents[index * 4 + 1] = tmp.y;
+            tangents[index * 4 + 2] = tmp.z;
+            tangents[index * 4 + 3] = w;
+        };
+
+        for i in 0..self.positions.len() / 3 {
+            handle_vertex(i);
+        }
+        self.tangents = Some(tangents);
     }
 
     ///
@@ -554,12 +633,4 @@ fn compute_normals(positions: &[f32]) -> Vec<f32> {
         normals[3 * i + 2] = normal.z;
     }
     normals
-}
-
-fn compute_tangents_with_indices(indices: &[u32], positions: &[f32]) -> Vec<f32> {
-    unimplemented!()
-}
-
-fn compute_tangents(positions: &[f32]) -> Vec<f32> {
-    unimplemented!()
 }
