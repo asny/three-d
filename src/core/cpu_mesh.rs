@@ -380,30 +380,10 @@ impl CPUMesh {
         );
     }
 
-    pub fn position(&self, vertex_index: usize) -> Vec3 {
-        vec3(
-            self.positions[3 * vertex_index],
-            self.positions[3 * vertex_index + 1],
-            self.positions[3 * vertex_index + 2],
-        )
-    }
-
-    pub fn normal(&self, vertex_index: usize) -> Option<Vec3> {
-        self.normals.as_ref().map(|normals| {
-            vec3(
-                normals[3 * vertex_index],
-                normals[3 * vertex_index + 1],
-                normals[3 * vertex_index + 2],
-            )
-        })
-    }
-
-    pub fn uv(&self, vertex_index: usize) -> Option<Vec2> {
-        self.uvs
-            .as_ref()
-            .map(|uvs| vec2(uvs[2 * vertex_index], uvs[2 * vertex_index + 1]))
-    }
-
+    ///
+    /// Computes the per vertex tangents and updates the tangents of the mesh.
+    /// It will override the current tangents if they already exist.
+    ///
     pub fn compute_tangents(&mut self) {
         let mut tan1 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
         let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
@@ -466,6 +446,39 @@ impl CPUMesh {
             handle_vertex(i);
         }
         self.tangents = Some(tangents);
+    }
+
+    ///
+    /// Returns the position of the vertex with the given index.
+    ///
+    pub fn position(&self, vertex_index: usize) -> Vec3 {
+        vec3(
+            self.positions[3 * vertex_index],
+            self.positions[3 * vertex_index + 1],
+            self.positions[3 * vertex_index + 2],
+        )
+    }
+
+    ///
+    /// Returns the normal of the vertex with the given index.
+    ///
+    pub fn normal(&self, vertex_index: usize) -> Option<Vec3> {
+        self.normals.as_ref().map(|normals| {
+            vec3(
+                normals[3 * vertex_index],
+                normals[3 * vertex_index + 1],
+                normals[3 * vertex_index + 2],
+            )
+        })
+    }
+
+    ///
+    /// Returns the uv coordinates of the vertex with the given index.
+    ///
+    pub fn uv(&self, vertex_index: usize) -> Option<Vec2> {
+        self.uvs
+            .as_ref()
+            .map(|uvs| vec2(uvs[2 * vertex_index], uvs[2 * vertex_index + 1]))
     }
 
     ///
