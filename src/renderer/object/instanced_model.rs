@@ -11,10 +11,13 @@ pub struct InstancedModel<M: ForwardMaterial> {
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
+    instance_buffer4: InstanceBuffer,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     transformations: Vec<Mat4>,
+    subtexture: Option<TextureRegion>,
+    subtextures: Option<Vec<TextureRegion>>,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -49,10 +52,13 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
+            instance_buffer4: InstanceBuffer::new(context)?,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             transformations: transformations.to_vec(),
+            subtexture: None,
+            subtextures: None,
             material,
         };
         model.update_transformations(transformations);
@@ -70,6 +76,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
+        let mut subt = Vec::new();
         for transform in transformations {
             row1.push(transform.x.x);
             row1.push(transform.y.x);
@@ -85,15 +92,57 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             row3.push(transform.y.z);
             row3.push(transform.z.z);
             row3.push(transform.w.z);
+
+            for i in [0.0f32, 0.0, 1.0, 1.0] {
+                subt.push(i);
+            }
+        }
+        if self.subtextures.is_some() {
+            for (i, subtex) in self.subtextures
+                    .as_ref().unwrap()
+                    .iter().enumerate() {
+                subt[i*4] = subtex.x;
+                subt[i*4+1] = subtex.y;
+                subt[i*4+2] = subtex.w;
+                subt[i*4+3] = subtex.h;
+            }
+        } else if self.subtexture.is_some() {
+            let subtex = self.subtexture.unwrap();
+            subt[0] = subtex.x;
+            subt[1] = subtex.y;
+            subt[2] = subtex.w;
+            subt[3] = subtex.h;
+        } else {
+            subt[0] = 0.0;
+            subt[1] = 0.0;
+            subt[2] = 1.0;
+            subt[3] = 1.0;
         }
         self.instance_buffer1.fill_with_dynamic(&row1);
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
+        self.instance_buffer4.fill_with_dynamic(&subt);
         self.update_aabb();
     }
 
     pub fn transformations(&self) -> &[Mat4] {
         &self.transformations
+    }
+
+    pub fn set_subtexture(&mut self, subtex: TextureRegion) {
+        self.subtexture = Some(subtex);
+    }
+
+    pub fn add_subtexture(&mut self, index: usize, subtex: TextureRegion) {
+        let mut subtextures = Vec::new();
+        if self.subtextures.is_some() {
+            subtextures = self.subtextures.clone().unwrap();
+        }
+        while subtextures.len() <= index {
+            subtextures.push(TextureRegion::new());
+        }
+        subtextures[index] = subtex;
+        self.subtextures = Some(subtextures);
     }
 
     fn update_aabb(&mut self) {
@@ -119,6 +168,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
         program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
+        program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
 
         if program.requires_attribute("position") {
             program.use_attribute_vec3("position", &self.mesh.position_buffer)?;

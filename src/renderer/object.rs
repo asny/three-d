@@ -12,6 +12,10 @@ mod instanced_model;
 #[doc(inline)]
 pub use instanced_model::*;
 
+mod texture_region;
+#[doc(inline)]
+pub use texture_region::*;
+
 mod line;
 #[doc(inline)]
 pub use line::*;
