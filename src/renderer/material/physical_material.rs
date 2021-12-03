@@ -196,15 +196,12 @@ impl ForwardMaterial for PhysicalMaterial {
         }
     }
     fn is_transparent(&self) -> bool {
-        match self.alpha_cutout {
-            Some(_) => false,
-            None => self.albedo.a != 255
-                    || self
-                        .albedo_texture
-                        .as_ref()
-                        .map(|t| t.is_transparent())
-                        .unwrap_or(false),
-        }
+        self.alpha_cutout.is_none() && (self.albedo.a != 255
+            || self
+                .albedo_texture
+                .as_ref()
+                .map(|t| t.is_transparent())
+                .unwrap_or(false))
     }
 }
 
