@@ -71,10 +71,10 @@ impl DeferredPipeline {
     /// This function must not be called in a render target render function and needs to be followed
     /// by a call to [DeferredPipeline::light_pass].
     ///
-    pub fn geometry_pass<G: Geometry, M: DeferredMaterial>(
+    pub fn geometry_pass<G: Geometry>(
         &mut self,
         camera: &Camera,
-        objects: &[(G, M)],
+        objects: &[(G, DeferredPhysicalMaterial)],
     ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(

@@ -217,17 +217,18 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
 
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
+        let lights = Lights::default();
         let fragment_shader_source =
-            material.fragment_shader_source_deferred(self.mesh.color_buffer.is_some());
+            material.fragment_shader_source(self.mesh.color_buffer.is_some(), &lights);
         self.context.program(
             &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, &Lights::default())?;
+                material.use_uniforms(program, camera, &lights)?;
                 self.draw(
                     program,
                     material.render_states(),

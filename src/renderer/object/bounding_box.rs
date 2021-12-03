@@ -73,7 +73,7 @@ impl<M: ForwardMaterial> Shadable for BoundingBox<M> {
 
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
