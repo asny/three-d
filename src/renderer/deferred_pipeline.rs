@@ -74,7 +74,7 @@ impl DeferredPipeline {
     pub fn geometry_pass<G: Geometry>(
         &mut self,
         camera: &Camera,
-        objects: &[(G, DeferredPhysicalMaterial)],
+        objects: &[(G, &PhysicalMaterial)],
     ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
@@ -106,7 +106,11 @@ impl DeferredPipeline {
         .write(&[0, 1], 0, ClearState::default(), || {
             for (geometry, material) in objects.iter().filter(|(g, _)| camera.in_frustum(&g.aabb()))
             {
-                geometry.render_deferred(material, camera, viewport)?;
+                geometry.render_deferred(
+                    &DeferredPhysicalMaterial::from_physical_material(material),
+                    camera,
+                    viewport,
+                )?;
             }
             Ok(())
         })?;
