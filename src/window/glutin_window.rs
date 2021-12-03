@@ -60,6 +60,7 @@ impl Window {
         if settings.multisamples > 0 && !settings.multisamples.is_power_of_two() {
             Err(WindowError::InvalidNumberOfMSAASamples)?;
         }
+        let borderless = settings.borderless;
         let window_builder = if let Some((width, height)) = settings.max_size {
             WindowBuilder::new()
                 .with_title(&settings.title)
@@ -69,6 +70,7 @@ impl Window {
                 ))
                 .with_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
                 .with_max_inner_size(dpi::LogicalSize::new(width as f64, height as f64))
+                .with_decorations(!borderless)
         } else {
             WindowBuilder::new()
                 .with_min_inner_size(dpi::LogicalSize::new(
@@ -76,6 +78,7 @@ impl Window {
                     settings.min_size.1,
                 ))
                 .with_title(&settings.title)
+                .with_decorations(!borderless)
                 .with_maximized(true)
         };
 

@@ -39,6 +39,8 @@ pub struct CPUMaterial {
 
     pub emissive: Color,
     pub emissive_texture: Option<CPUTexture<u8>>,
+    /// Alpha cutout value for transparency in deferred rendering pipeline.
+    pub alpha_cutout: Option<f32>,
 }
 
 impl Default for CPUMaterial {
@@ -57,6 +59,7 @@ impl Default for CPUMaterial {
             normal_scale: 1.0,
             emissive: Color::BLACK,
             emissive_texture: None,
+            alpha_cutout: None,
         }
     }
 }

@@ -39,6 +39,9 @@ void main()
     vec4 surface_color = albedo;
 #ifdef USE_ALBEDO_TEXTURE
     vec4 c = texture(albedoTexture, uvs);
+    #ifdef ALPHACUT
+        if (c.a < acut) discard;
+    #endif
     surface_color *= vec4(rgb_from_srgb(c.rgb), c.a);
 #endif
 #ifdef USE_VERTEX_COLORS
