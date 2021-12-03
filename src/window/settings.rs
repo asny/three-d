@@ -20,10 +20,6 @@ pub struct WindowSettings {
     /// On web, this can only be off (0) or on (>0).
     /// The actual number of samples depends on browser settings.
     pub multisamples: u8,
-    /// Borderless mode.
-    ///
-    /// No effect on web.
-    pub borderless: bool,
 }
 impl Default for WindowSettings {
     fn default() -> Self {
@@ -33,7 +29,6 @@ impl Default for WindowSettings {
             max_size: None,
             vsync: true,
             multisamples: 4,
-            borderless: false,
         }
     }
 }
