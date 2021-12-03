@@ -392,7 +392,7 @@ impl CPUMesh {
     ///
     pub fn compute_normals(&mut self) {
         let mut normals = vec![0.0f32; self.positions.len()];
-        let mut handle_triangle = |i0, i1, i2| {
+        self.for_each_triangle(&mut |i0, i1, i2| {
             let p0 = self.position(i0);
             let p1 = self.position(i1);
             let p2 = self.position(i2);
@@ -406,26 +406,14 @@ impl CPUMesh {
             normals[i2 * 3] += normal.x;
             normals[i2 * 3 + 1] += normal.y;
             normals[i2 * 3 + 2] += normal.z;
-        };
-        if let Some(ref indices) = self.indices {
-            let indices = indices.into_u32();
-            for face in 0..indices.len() / 3 {
-                let index0 = indices[face * 3] as usize;
-                let index1 = indices[face * 3 + 1] as usize;
-                let index2 = indices[face * 3 + 2] as usize;
-                handle_triangle(index0, index1, index2);
-            }
-        } else {
-            for face in 0..self.positions.len() / 9 {
-                handle_triangle(face * 3, face * 3 + 1, face * 3 + 2);
-            }
-        }
-        for i in 0..normals.len() / 3 {
+        });
+
+        self.for_each_vertex(&mut |i| {
             let normal = vec3(normals[3 * i], normals[3 * i + 1], normals[3 * i + 2]).normalize();
             normals[3 * i] = normal.x;
             normals[3 * i + 1] = normal.y;
             normals[3 * i + 2] = normal.z;
-        }
+        });
         self.normals = Some(normals);
     }
 
@@ -439,7 +427,8 @@ impl CPUMesh {
         }
         let mut tan1 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
         let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
-        let mut handle_triangle = |i0, i1, i2| {
+
+        self.for_each_triangle(&mut |i0, i1, i2| {
             let a = self.position(i0);
             let b = self.position(i1);
             let c = self.position(i2);
@@ -465,24 +454,10 @@ impl CPUMesh {
                 tan2[i1] += tdir;
                 tan2[i2] += tdir;
             }
-        };
-
-        if let Some(ref indices) = self.indices {
-            let indices = indices.into_u32();
-            for face in 0..indices.len() / 3 {
-                let index0 = indices[face * 3] as usize;
-                let index1 = indices[face * 3 + 1] as usize;
-                let index2 = indices[face * 3 + 2] as usize;
-                handle_triangle(index0, index1, index2);
-            }
-        } else {
-            for face in 0..self.positions.len() / 9 {
-                handle_triangle(face * 3, face * 3 + 1, face * 3 + 2);
-            }
-        }
+        });
 
         let mut tangents = vec![0.0f32; 4 * self.positions.len() / 3];
-        let mut handle_vertex = |index| {
+        self.for_each_vertex(&mut |index| {
             let normal = self.normal(index).unwrap();
             let t = tan1[index];
             let tangent = (t - normal * normal.dot(t)).normalize();
@@ -495,13 +470,32 @@ impl CPUMesh {
             tangents[index * 4 + 1] = tangent.y;
             tangents[index * 4 + 2] = tangent.z;
             tangents[index * 4 + 3] = handedness;
-        };
+        });
 
-        for i in 0..self.positions.len() / 3 {
-            handle_vertex(i);
-        }
         self.tangents = Some(tangents);
         Ok(())
+    }
+
+    pub fn for_each_vertex(&self, callback: &mut dyn FnMut(usize)) {
+        for i in 0..self.positions.len() / 3 {
+            callback(i);
+        }
+    }
+
+    pub fn for_each_triangle(&self, callback: &mut dyn FnMut(usize, usize, usize)) {
+        if let Some(ref indices) = self.indices {
+            let indices = indices.into_u32();
+            for face in 0..indices.len() / 3 {
+                let index0 = indices[face * 3] as usize;
+                let index1 = indices[face * 3 + 1] as usize;
+                let index2 = indices[face * 3 + 2] as usize;
+                callback(index0, index1, index2);
+            }
+        } else {
+            for face in 0..self.positions.len() / 9 {
+                callback(face * 3, face * 3 + 1, face * 3 + 2);
+            }
+        }
     }
 
     ///
