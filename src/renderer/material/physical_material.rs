@@ -131,7 +131,13 @@ impl PhysicalMaterial {
                 output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
             }
             if self.alpha_cutout.is_some() {
-                output.push_str(format!("#define ALPHACUT;\nfloat acut = {};", self.alpha_cutout.unwrap()).as_str());
+                output.push_str(
+                    format!(
+                        "#define ALPHACUT;\nfloat acut = {};",
+                        self.alpha_cutout.unwrap()
+                    )
+                    .as_str(),
+                );
             }
         }
         if use_vertex_colors {
@@ -196,12 +202,13 @@ impl ForwardMaterial for PhysicalMaterial {
         }
     }
     fn is_transparent(&self) -> bool {
-        self.alpha_cutout.is_none() && (self.albedo.a != 255
-            || self
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false))
+        self.alpha_cutout.is_none()
+            && (self.albedo.a != 255
+                || self
+                    .albedo_texture
+                    .as_ref()
+                    .map(|t| t.is_transparent())
+                    .unwrap_or(false))
     }
 }
 
