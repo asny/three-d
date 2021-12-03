@@ -96,28 +96,25 @@ impl<'a> Iterator for LightsIterator<'a> {
             .map(|l| l as &dyn Light);
         let mut count = if self.lights.ambient.is_some() { 1 } else { 0 };
 
-        let result = result.or_else(|| {
-            self.lights
-                .directional
-                .get(self.index - count)
-                .map(|l| l as &dyn Light)
-        });
+        let result = result.or(self
+            .lights
+            .directional
+            .get(self.index - count)
+            .map(|l| l as &dyn Light));
         count += self.lights.directional.len();
 
-        let result = result.or_else(|| {
-            self.lights
-                .spot
-                .get(self.index - count)
-                .map(|l| l as &dyn Light)
-        });
+        let result = result.or(self
+            .lights
+            .spot
+            .get(self.index - count)
+            .map(|l| l as &dyn Light));
         count += self.lights.spot.len();
 
-        let result = result.or_else(|| {
-            self.lights
-                .point
-                .get(self.index - count)
-                .map(|l| l as &dyn Light)
-        });
+        let result = result.or(self
+            .lights
+            .point
+            .get(self.index - count)
+            .map(|l| l as &dyn Light));
 
         self.index += 1;
         result
