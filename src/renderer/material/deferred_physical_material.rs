@@ -3,7 +3,8 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// A physically-based material that renders a [Shadable] object in an approximate correct physical manner based on Physically Based Rendering (PBR).
+/// The deferred part of a physically-based material that renders a [Shadable] object in an approximate correct physical manner based on Physically Based Rendering (PBR).
+/// Must be used together with a [DeferredRenderPipeline].
 /// This material is affected by lights.
 ///
 #[derive(Clone)]
@@ -38,7 +39,7 @@ pub struct DeferredPhysicalMaterial {
 
 impl DeferredPhysicalMaterial {
     ///
-    /// Constructs a new physical material from a [CPUMaterial].
+    /// Constructs a new deferred physical material from a [CPUMaterial].
     /// If the input contains an [CPUMaterial::occlusion_metallic_roughness_texture], this texture is used for both
     /// [DeferredPhysicalMaterial::metallic_roughness_texture] and [DeferredPhysicalMaterial::occlusion_texture] while any [CPUMaterial::metallic_roughness_texture] or [CPUMaterial::occlusion_texture] are ignored.
     ///
@@ -88,6 +89,9 @@ impl DeferredPhysicalMaterial {
         })
     }
 
+    ///
+    /// Constructs a deferred physical material from a physical material.
+    ///
     pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
         Self {
             name: physical_material.name.clone(),
