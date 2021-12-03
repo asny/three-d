@@ -392,7 +392,7 @@ impl CPUMesh {
     ///
     pub fn compute_normals(&mut self) {
         let mut normals = vec![0.0f32; self.positions.len()];
-        self.for_each_triangle(&mut |i0, i1, i2| {
+        self.for_each_triangle(|i0, i1, i2| {
             let p0 = self.position(i0);
             let p1 = self.position(i1);
             let p2 = self.position(i2);
@@ -408,7 +408,7 @@ impl CPUMesh {
             normals[i2 * 3 + 2] += normal.z;
         });
 
-        self.for_each_vertex(&mut |i| {
+        self.for_each_vertex(|i| {
             let normal = vec3(normals[3 * i], normals[3 * i + 1], normals[3 * i + 2]).normalize();
             normals[3 * i] = normal.x;
             normals[3 * i + 1] = normal.y;
@@ -428,7 +428,7 @@ impl CPUMesh {
         let mut tan1 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
         let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
 
-        self.for_each_triangle(&mut |i0, i1, i2| {
+        self.for_each_triangle(|i0, i1, i2| {
             let a = self.position(i0);
             let b = self.position(i1);
             let c = self.position(i2);
@@ -457,7 +457,7 @@ impl CPUMesh {
         });
 
         let mut tangents = vec![0.0f32; 4 * self.positions.len() / 3];
-        self.for_each_vertex(&mut |index| {
+        self.for_each_vertex(|index| {
             let normal = self.normal(index).unwrap();
             let t = tan1[index];
             let tangent = (t - normal * normal.dot(t)).normalize();
@@ -476,13 +476,19 @@ impl CPUMesh {
         Ok(())
     }
 
-    pub fn for_each_vertex(&self, callback: &mut dyn FnMut(usize)) {
+    ///
+    ///  Iterates over all vertices in this mesh and calls the callback function with the index for each vertex.
+    ///
+    pub fn for_each_vertex(&self, mut callback: impl FnMut(usize)) {
         for i in 0..self.positions.len() / 3 {
             callback(i);
         }
     }
 
-    pub fn for_each_triangle(&self, callback: &mut dyn FnMut(usize, usize, usize)) {
+    ///
+    /// Iterates over all triangles in this mesh and calls the callback function with the three indices, one for each vertex in the triangle.
+    ///
+    pub fn for_each_triangle(&self, mut callback: impl FnMut(usize, usize, usize)) {
         match self.indices {
             Some(Indices::U8(ref indices)) => {
                 for face in 0..indices.len() / 3 {
