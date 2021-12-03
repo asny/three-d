@@ -31,6 +31,10 @@ mod physical_material;
 #[doc(inline)]
 pub use physical_material::*;
 
+mod deferred_physical_material;
+#[doc(inline)]
+pub use deferred_physical_material::*;
+
 ///
 /// Represents a material that can be applied to a [Shadable] object.
 ///
@@ -66,19 +70,5 @@ impl<T: ForwardMaterial + ?Sized> ForwardMaterial for &T {
     }
     fn is_transparent(&self) -> bool {
         (*self).is_transparent()
-    }
-}
-
-///
-/// Represents a material that can be used in a [DeferredPipeline::geometry_pass].
-///
-pub trait DeferredMaterial: ForwardMaterial {
-    /// Returns the deferred version of the fragment shader source for this material.
-    fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String;
-}
-
-impl<T: DeferredMaterial + ?Sized> DeferredMaterial for &T {
-    fn fragment_shader_source_deferred(&self, use_vertex_colors: bool) -> String {
-        (*self).fragment_shader_source_deferred(use_vertex_colors)
     }
 }

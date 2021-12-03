@@ -166,9 +166,10 @@ pub trait Shadable {
     /// Render the geometry and surface material parameters of the object.
     /// Should usually not be called directly but used in [DeferredPipeline::geometry_pass].
     ///
+    #[deprecated]
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()>;
@@ -186,7 +187,7 @@ impl<T: Shadable + ?Sized> Shadable for &T {
 
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
@@ -206,7 +207,7 @@ impl<T: Shadable + ?Sized> Shadable for &mut T {
 
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {

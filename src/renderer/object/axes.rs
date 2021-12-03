@@ -53,7 +53,7 @@ impl Shadable for Axes {
 
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {

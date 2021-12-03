@@ -234,7 +234,7 @@ impl Shadable for Particles {
 
     fn render_deferred(
         &self,
-        _material: &dyn DeferredMaterial,
+        _material: &DeferredPhysicalMaterial,
         _camera: &Camera,
         _viewport: Viewport,
     ) -> ThreeDResult<()> {
