@@ -22,7 +22,7 @@ fn main() {
         move |context, mut loaded| {
             let (mut cpu_meshes, cpu_materials) = loaded.gltf("NormalTangentTest.glb").unwrap();
             let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-            cpu_meshes[0].compute_tangents();
+            cpu_meshes[0].compute_tangents().unwrap();
             let mut model1 =
                 Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
             model1.set_transformation(Mat4::from_translation(vec3(1.4, 0.0, 0.0)));

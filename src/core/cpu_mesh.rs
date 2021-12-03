@@ -398,7 +398,10 @@ impl CPUMesh {
     /// Computes the per vertex tangents and updates the tangents of the mesh.
     /// It will override the current tangents if they already exist.
     ///
-    pub fn compute_tangents(&mut self) {
+    pub fn compute_tangents(&mut self) -> ThreeDResult<()> {
+        if self.normals.is_none() || self.uvs.is_none() {
+            Err(CoreError::FailedComputingTangents)?;
+        }
         let mut tan1 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
         let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
         let mut handle_triangle = |i0, i1, i2| {
@@ -429,12 +432,18 @@ impl CPUMesh {
             }
         };
 
-        let indices = self.indices.as_ref().unwrap().into_u32();
-        for face in 0..indices.len() / 3 {
-            let index0 = indices[face * 3] as usize;
-            let index1 = indices[face * 3 + 1] as usize;
-            let index2 = indices[face * 3 + 2] as usize;
-            handle_triangle(index0, index1, index2);
+        if let Some(ref indices) = self.indices {
+            let indices = indices.into_u32();
+            for face in 0..indices.len() / 3 {
+                let index0 = indices[face * 3] as usize;
+                let index1 = indices[face * 3 + 1] as usize;
+                let index2 = indices[face * 3 + 2] as usize;
+                handle_triangle(index0, index1, index2);
+            }
+        } else {
+            for face in 0..self.positions.len() / 9 {
+                handle_triangle(face * 3, face * 3 + 1, face * 3 + 2);
+            }
         }
 
         let mut tangents = vec![0.0f32; 4 * self.positions.len() / 3];

@@ -219,6 +219,8 @@ pub enum CoreError {
     MissingBitangent,
     #[error("{0} buffer length must be divisible by 3, actual count is {1}")]
     InvalidBufferLength(String, usize),
+    #[error("mesh must have both normals and uv coordinates to be able to compute tangents")]
+    FailedComputingTangents,
     #[error("index buffer contains values larger than the length of the buffer which is {0}")]
     InvalidIndexBuffer(usize),
     #[error(
