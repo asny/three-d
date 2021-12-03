@@ -121,12 +121,16 @@ impl CPUMesh {
             -halfsize, halfsize, 0.0,
         ];
         let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];
+        let tangents = vec![
+            1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
+        ];
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
         CPUMesh {
             name: "square".to_string(),
             indices: Some(Indices::U8(indices)),
             positions,
             normals: Some(normals),
+            tangents: Some(tangents),
             uvs: Some(uvs),
             ..Default::default()
         }
@@ -270,6 +274,7 @@ impl CPUMesh {
             ..Default::default()
         };
         mesh.compute_normals();
+        mesh.compute_tangents().unwrap();
         mesh
     }
 
@@ -466,6 +471,7 @@ impl CPUMesh {
             handle_vertex(i);
         }
         self.tangents = Some(tangents);
+        Ok(())
     }
 
     ///
