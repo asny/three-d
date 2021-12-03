@@ -86,12 +86,26 @@ impl CPUMesh {
 
         if let Some(ref mut normals) = self.normals {
             for i in 0..normals.len() / 3 {
-                let p = (normal_transform
-                    * vec4(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2], 1.0))
-                .truncate();
-                normals[i * 3] = p.x;
-                normals[i * 3 + 1] = p.y;
-                normals[i * 3 + 2] = p.z;
+                let n = normal_transform
+                    * vec4(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2], 1.0);
+                normals[i * 3] = n.x;
+                normals[i * 3 + 1] = n.y;
+                normals[i * 3 + 2] = n.z;
+            }
+        }
+
+        if let Some(ref mut tangents) = self.tangents {
+            for i in 0..tangents.len() / 3 {
+                let t = normal_transform
+                    * vec4(
+                        tangents[i * 3],
+                        tangents[i * 3 + 1],
+                        tangents[i * 3 + 2],
+                        1.0,
+                    );
+                tangents[i * 3] = t.x;
+                tangents[i * 3 + 1] = t.y;
+                tangents[i * 3 + 2] = t.z;
             }
         }
     }
