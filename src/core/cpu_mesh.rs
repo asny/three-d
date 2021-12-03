@@ -483,17 +483,35 @@ impl CPUMesh {
     }
 
     pub fn for_each_triangle(&self, callback: &mut dyn FnMut(usize, usize, usize)) {
-        if let Some(ref indices) = self.indices {
-            let indices = indices.into_u32();
-            for face in 0..indices.len() / 3 {
-                let index0 = indices[face * 3] as usize;
-                let index1 = indices[face * 3 + 1] as usize;
-                let index2 = indices[face * 3 + 2] as usize;
-                callback(index0, index1, index2);
+        match self.indices {
+            Some(Indices::U8(ref indices)) => {
+                for face in 0..indices.len() / 3 {
+                    let index0 = indices[face * 3] as usize;
+                    let index1 = indices[face * 3 + 1] as usize;
+                    let index2 = indices[face * 3 + 2] as usize;
+                    callback(index0, index1, index2);
+                }
             }
-        } else {
-            for face in 0..self.positions.len() / 9 {
-                callback(face * 3, face * 3 + 1, face * 3 + 2);
+            Some(Indices::U16(ref indices)) => {
+                for face in 0..indices.len() / 3 {
+                    let index0 = indices[face * 3] as usize;
+                    let index1 = indices[face * 3 + 1] as usize;
+                    let index2 = indices[face * 3 + 2] as usize;
+                    callback(index0, index1, index2);
+                }
+            }
+            Some(Indices::U32(ref indices)) => {
+                for face in 0..indices.len() / 3 {
+                    let index0 = indices[face * 3] as usize;
+                    let index1 = indices[face * 3 + 1] as usize;
+                    let index2 = indices[face * 3 + 2] as usize;
+                    callback(index0, index1, index2);
+                }
+            }
+            None => {
+                for face in 0..self.positions.len() / 9 {
+                    callback(face * 3, face * 3 + 1, face * 3 + 2);
+                }
             }
         }
     }
