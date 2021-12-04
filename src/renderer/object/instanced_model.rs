@@ -110,25 +110,42 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
         let mut subt = Vec::new();
-        for transform in transformations {
-            row1.push(transform.x.x);
-            row1.push(transform.y.x);
-            row1.push(transform.z.x);
-            row1.push(transform.w.x);
+        if self.transformations.len() > 0 {
+            for transform in transformations {
+                row1.push(transform.x.x);
+                row1.push(transform.y.x);
+                row1.push(transform.z.x);
+                row1.push(transform.w.x);
 
-            row2.push(transform.x.y);
-            row2.push(transform.y.y);
-            row2.push(transform.z.y);
-            row2.push(transform.w.y);
+                row2.push(transform.x.y);
+                row2.push(transform.y.y);
+                row2.push(transform.z.y);
+                row2.push(transform.w.y);
 
-            row3.push(transform.x.z);
-            row3.push(transform.y.z);
-            row3.push(transform.z.z);
-            row3.push(transform.w.z);
+                row3.push(transform.x.z);
+                row3.push(transform.y.z);
+                row3.push(transform.z.z);
+                row3.push(transform.w.z);
 
-            for i in [0.0f32, 0.0, 1.0, 1.0] {
-                subt.push(i);
+                for i in [0.0f32, 0.0, 1.0, 1.0] {
+                    subt.push(i);
+                }
             }
+        } else {
+            row1.push(self.transformation.x.x);
+            row1.push(self.transformation.y.x);
+            row1.push(self.transformation.z.x);
+            row1.push(self.transformation.w.x);
+
+            row2.push(self.transformation.x.y);
+            row2.push(self.transformation.y.y);
+            row2.push(self.transformation.z.y);
+            row2.push(self.transformation.w.y);
+
+            row3.push(self.transformation.x.z);
+            row3.push(self.transformation.y.z);
+            row3.push(self.transformation.z.z);
+            row3.push(self.transformation.w.z);
         }
         if self.subtextures.is_some() {
             for (i, subtex) in self.subtextures.as_ref().unwrap().iter().enumerate() {
@@ -142,11 +159,17 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             }
         } else if self.subtexture.is_some() {
             let subtex = self.subtexture.unwrap();
+            while subt.len() < 4 {
+                subt.push(0.0);
+            }
             subt[0] = subtex.x;
             subt[1] = subtex.y;
             subt[2] = subtex.w;
             subt[3] = subtex.h;
         } else {
+            while subt.len() < 4 {
+                subt.push(0.0);
+            }
             subt[0] = 0.0;
             subt[1] = 0.0;
             subt[2] = 1.0;
