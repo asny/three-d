@@ -61,7 +61,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             subtextures: None,
             material,
         };
-        model.update_transformations(transformations);
+        model.set_transformations(transformations);
         Ok(model)
     }
 
@@ -69,13 +69,39 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     /// Store the transformations applied to each model instance before they are rendered.
     /// The model is rendered in as many instances as there are transformation matrices.
     ///
+    // Recommending #[deprecated]
     pub fn update_transformations(&mut self, transformations: &[Mat4]) {
+        self.set_transformations(&transformations);
+    }
+
+    ///
+    /// Store the transformations applied to each model instance before they are rendered.
+    /// The model is rendered in as many instances as there are transformation matrices.
+    ///
+    pub fn set_transformations(&mut self, transformations: &[Mat4]) {
         self.transformations = transformations.to_vec();
         self.update_buffers();
     }
 
     ///
-    /// Update transforms and uvs.
+    /// Store the transformations applied to each model instance before they are rendered.
+    /// The model is rendered in as many instances as there are transformation matrices.
+    /// Must (eventually) call [update_buffers()](InstancedModel::update_buffers()) afterward.
+    ///
+    pub fn add_transformation(&mut self, transformation: &Mat4) {
+        self.transformations.push(*transformation);
+    }
+
+    ///
+    /// Clear transformations array.
+    ///
+    pub fn clear_transformations(&mut self) {
+        self.transformations = Vec::new();
+        self.update_buffers();
+    }
+
+    ///
+    /// Update instance transform and uv buffers and aabb.
     ///
     pub fn update_buffers(&mut self) {
         self.instance_count = self.transformations.len() as u32;
@@ -151,7 +177,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
 
     ///
     /// Apply TextureRegion to instance index.
-    /// Must call [update_buffers()](InstancedModel::update_buffers()) afterward.
+    /// Must (eventually) call [update_buffers()](InstancedModel::update_buffers()) afterward.
     ///
     pub fn add_subtexture(&mut self, index: usize, subtex: TextureRegion) {
         let mut subtextures = Vec::new();
