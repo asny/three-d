@@ -62,17 +62,21 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             material,
         };
         model.update_transformations(transformations);
-        model.update_aabb();
         Ok(model)
     }
 
     ///
-    /// Updates the transformations applied to each model instance before they are rendered.
+    /// Updates the transforms and uvs applied to each model instance before they are rendered.
     /// The model is rendered in as many instances as there are transformation matrices.
     ///
     pub fn update_transformations(&mut self, transformations: &[Mat4]) {
         self.transformations = transformations.to_vec();
-        self.instance_count = transformations.len() as u32;
+        self.update_buffers();
+    }
+
+    pub fn update_buffers(&mut self) {
+        self.instance_count = self.transformations.len() as u32;
+        let transformations = self.transformations.as_slice();
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
@@ -101,6 +105,9 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             for (i, subtex) in self.subtextures
                     .as_ref().unwrap()
                     .iter().enumerate() {
+                if i >= transformations.len() {
+                    break;
+                }
                 subt[i*4] = subtex.x;
                 subt[i*4+1] = subtex.y;
                 subt[i*4+2] = subtex.w;
@@ -143,6 +150,11 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         }
         subtextures[index] = subtex;
         self.subtextures = Some(subtextures);
+    }
+
+    pub fn clear_subtextures(&mut self) {
+        self.subtextures = None;
+        self.update_buffers();
     }
 
     fn update_aabb(&mut self) {
