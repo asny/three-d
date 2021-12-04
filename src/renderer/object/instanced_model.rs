@@ -131,16 +131,14 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             }
         }
         if self.subtextures.is_some() {
-            for (i, subtex) in self.subtextures
-                    .as_ref().unwrap()
-                    .iter().enumerate() {
+            for (i, subtex) in self.subtextures.as_ref().unwrap().iter().enumerate() {
                 if i >= transformations.len() {
                     break;
                 }
-                subt[i*4] = subtex.x;
-                subt[i*4+1] = subtex.y;
-                subt[i*4+2] = subtex.w;
-                subt[i*4+3] = subtex.h;
+                subt[i * 4] = subtex.x;
+                subt[i * 4 + 1] = subtex.y;
+                subt[i * 4 + 2] = subtex.w;
+                subt[i * 4 + 3] = subtex.h;
             }
         } else if self.subtexture.is_some() {
             let subtex = self.subtexture.unwrap();

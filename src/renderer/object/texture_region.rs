@@ -1,4 +1,3 @@
-
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TextureRegion {
     pub x: f32,
@@ -17,7 +16,7 @@ impl TextureRegion {
         }
     }
 
-    pub fn from_slice(subt: [f32;4]) -> TextureRegion {
+    pub fn from_slice(subt: [f32; 4]) -> TextureRegion {
         TextureRegion {
             x: subt[0],
             y: subt[1],
