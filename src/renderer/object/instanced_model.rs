@@ -196,7 +196,10 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
         program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
-        program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
+
+        if program.requires_attribute("subt") {
+            program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
+        }
 
         if program.requires_attribute("position") {
             program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
