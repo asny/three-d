@@ -66,7 +66,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     }
 
     ///
-    /// Updates the transforms and uvs applied to each model instance before they are rendered.
+    /// Store the transformations applied to each model instance before they are rendered.
     /// The model is rendered in as many instances as there are transformation matrices.
     ///
     pub fn update_transformations(&mut self, transformations: &[Mat4]) {
@@ -74,6 +74,9 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         self.update_buffers();
     }
 
+    ///
+    /// Update transforms and uvs.
+    ///
     pub fn update_buffers(&mut self) {
         self.instance_count = self.transformations.len() as u32;
         let transformations = self.transformations.as_slice();
@@ -136,10 +139,20 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         &self.transformations
     }
 
-    pub fn set_subtexture(&mut self, subtex: TextureRegion) {
-        self.subtexture = Some(subtex);
+    ///
+    /// Set a single subtexture for all instances. Is overridden by any existing subtextures,
+    /// so call [clear_subtextures()](InstancedModel::clear_subtextures) if previously populated
+    /// by [add_subtexture()](InstancedModel::add_subtexture). Defaults to and optionally [None].
+    ///
+    pub fn set_subtexture(&mut self, subtex: Option<TextureRegion>) {
+        self.subtexture = subtex;
+        self.update_buffers();
     }
 
+    ///
+    /// Apply TextureRegion to instance index.
+    /// Must call [update_buffers()](InstancedModel::update_buffers()) afterward.
+    ///
     pub fn add_subtexture(&mut self, index: usize, subtex: TextureRegion) {
         let mut subtextures = Vec::new();
         if self.subtextures.is_some() {
@@ -152,6 +165,9 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         self.subtextures = Some(subtextures);
     }
 
+    ///
+    /// Clear subtexture array.
+    ///
     pub fn clear_subtextures(&mut self) {
         self.subtextures = None;
         self.update_buffers();
