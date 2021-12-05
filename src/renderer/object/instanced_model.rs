@@ -66,10 +66,9 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     }
 
     ///
-    /// Store the transformations applied to each model instance before they are rendered.
-    /// The model is rendered in as many instances as there are transformation matrices.
+    /// Use [set_transformations()](InstancedModel::set_transformations()) instead.
     ///
-    // Recommending #[deprecated]
+    #[deprecated]
     pub fn update_transformations(&mut self, transformations: &[Mat4]) {
         self.set_transformations(&transformations);
     }
