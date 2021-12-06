@@ -76,16 +76,40 @@ impl DeferredPipeline {
         };
         Ok(renderer)
     }
+    ///
+    /// Render the given geometry and material parameters to a buffer.
+    /// This function must not be called in a render target render function and needs to be followed
+    /// by a call to [DeferredPipeline::light_pass].
+    ///
+    #[deprecated = "use render_pass instead"]
+    pub fn geometry_pass<G: Geometry>(
+        &mut self,
+        camera: &Camera,
+        objects: &[(G, impl std::borrow::Borrow<PhysicalMaterial>)],
+    ) -> ThreeDResult<()> {
+        self.render_pass(
+            camera,
+            &objects
+                .iter()
+                .map(|(g, m)| {
+                    (
+                        g,
+                        DeferredPhysicalMaterial::from_physical_material(m.borrow()),
+                    )
+                })
+                .collect::<Vec<_>>(),
+        )
+    }
 
     ///
     /// Render the given geometry and material parameters to a buffer.
     /// This function must not be called in a render target render function and needs to be followed
     /// by a call to [DeferredPipeline::light_pass].
     ///
-    pub fn geometry_pass<G: Geometry>(
+    pub fn render_pass<G: Geometry>(
         &mut self,
         camera: &Camera,
-        objects: &[(G, &PhysicalMaterial)],
+        objects: &[(G, impl std::borrow::Borrow<DeferredPhysicalMaterial>)],
     ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         match camera.projection_type() {
@@ -139,7 +163,7 @@ impl DeferredPipeline {
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
             {
                 geometry.render_with_material(
-                    &DeferredPhysicalMaterial::from_physical_material(material),
+                    material.borrow(),
                     &self.camera,
                     &Lights::default(),
                 )?;
