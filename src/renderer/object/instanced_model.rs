@@ -200,7 +200,7 @@ impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
 }
 
 impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
-    fn render_forward(
+    fn render_with_material(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
@@ -221,6 +221,15 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
                 )
             },
         )
+    }
+
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        self.render_with_material(material, camera, lights)
     }
 
     fn render_deferred(
