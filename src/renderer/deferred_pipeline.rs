@@ -28,6 +28,7 @@ pub struct DeferredPipeline {
     ///
     pub debug_type: DebugType,
     pub lighting_model: LightingModel,
+    camera: Camera,
     geometry_pass_texture: Option<ColorTargetTexture2DArray<u8>>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
@@ -39,6 +40,16 @@ impl DeferredPipeline {
     pub fn new(context: &Context) -> ThreeDResult<Self> {
         let renderer = Self {
             context: context.clone(),
+            camera: Camera::new_perspective(
+                context,
+                Viewport::new_at_origo(1, 1),
+                vec3(0.0, 0.0, 1.0),
+                vec3(0.0, 0.0, 0.0),
+                vec3(0.0, 1.0, 0.0),
+                degrees(75.0),
+                0.01,
+                10.0,
+            )?,
             debug_type: DebugType::NONE,
             lighting_model: LightingModel::Blinn,
             geometry_pass_texture: Some(ColorTargetTexture2DArray::new(
@@ -77,6 +88,25 @@ impl DeferredPipeline {
         objects: &[(G, &PhysicalMaterial)],
     ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
+        match camera.projection_type() {
+            ProjectionType::Perspective { field_of_view_y } => {
+                self.camera.set_perspective_projection(
+                    *field_of_view_y,
+                    camera.z_near(),
+                    camera.z_far(),
+                )?;
+            }
+            ProjectionType::Orthographic { height, .. } => {
+                self.camera.set_orthographic_projection(
+                    *height,
+                    camera.z_near(),
+                    camera.z_far(),
+                )?;
+            }
+        };
+        self.camera.set_viewport(viewport)?;
+        self.camera
+            .set_view(*camera.position(), *camera.target(), *camera.up())?;
         self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
             &self.context,
             viewport.width,
@@ -104,12 +134,14 @@ impl DeferredPipeline {
             self.geometry_pass_depth_texture.as_ref().unwrap(),
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
-            for (geometry, material) in objects.iter().filter(|(g, _)| camera.in_frustum(&g.aabb()))
+            for (geometry, material) in objects
+                .iter()
+                .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
             {
-                geometry.render_deferred(
+                geometry.render_forward(
                     &DeferredPhysicalMaterial::from_physical_material(material),
-                    camera,
-                    viewport,
+                    &self.camera,
+                    &Lights::default(),
                 )?;
             }
             Ok(())
