@@ -103,7 +103,7 @@ impl PhysicalMaterial {
     }
 }
 
-impl ForwardMaterial for PhysicalMaterial {
+impl Material for PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         let mut output = lights.fragment_shader_source();
         if self.albedo_texture.is_some()

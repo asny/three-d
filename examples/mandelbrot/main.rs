@@ -4,7 +4,7 @@ use three_d::window::*;
 
 struct MandelbrotMaterial {}
 
-impl ForwardMaterial for MandelbrotMaterial {
+impl Material for MandelbrotMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         include_str!("../assets/shaders/mandelbrot.frag").to_string()
     }

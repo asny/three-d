@@ -42,7 +42,7 @@ impl ColorMaterial {
     }
 }
 
-impl ForwardMaterial for ColorMaterial {
+impl Material for ColorMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &Lights) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
