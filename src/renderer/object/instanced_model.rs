@@ -16,8 +16,9 @@ pub struct InstancedModel<M: ForwardMaterial> {
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     transformations: Vec<Mat4>,
-    subtexture: Option<TextureRegion>,
-    subtextures: Option<Vec<TextureRegion>>,
+    transform_mode: TransformMode,
+    subtexture: Option<TextureTransform>,
+    subtextures: Option<Vec<TextureTransform>>,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -153,8 +154,8 @@ impl<M: ForwardMaterial> InstancedModel<M> {
                 }
                 subt[i * 4] = subtex.x;
                 subt[i * 4 + 1] = subtex.y;
-                subt[i * 4 + 2] = subtex.w;
-                subt[i * 4 + 3] = subtex.h;
+                subt[i * 4 + 2] = subtex.sx;
+                subt[i * 4 + 3] = subtex.sy;
             }
         } else if self.subtexture.is_some() {
             let subtex = self.subtexture.unwrap();
@@ -163,8 +164,8 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             }
             subt[0] = subtex.x;
             subt[1] = subtex.y;
-            subt[2] = subtex.w;
-            subt[3] = subtex.h;
+            subt[2] = subtex.sx;
+            subt[3] = subtex.sy;
         } else {
             while subt.len() < 4 {
                 subt.push(0.0);
@@ -190,22 +191,30 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     /// so call [clear_subtextures()](InstancedModel::clear_subtextures) if previously populated
     /// by [add_subtexture()](InstancedModel::add_subtexture). Defaults to and optionally [None].
     ///
-    pub fn set_subtexture(&mut self, subtex: Option<TextureRegion>) {
+    pub fn set_subtexture(&mut self, subtex: Option<TextureTransform>) {
         self.subtexture = subtex;
         self.update_buffers();
     }
 
     ///
-    /// Apply TextureRegion to instance index.
+    /// Set all subtextures en masse.
+    ///
+    pub fn set_subtextures(&mut self, subtexvec: Vec<TextureTransform>) {
+        self.subtextures = Some(subtexvec);
+        self.update_buffers();
+    }
+
+    ///
+    /// Apply TextureTransform to instance by index.
     /// Must (eventually) call [update_buffers()](InstancedModel::update_buffers()) afterward.
     ///
-    pub fn add_subtexture(&mut self, index: usize, subtex: TextureRegion) {
+    pub fn add_subtexture(&mut self, index: usize, subtex: TextureTransform) {
         let mut subtextures = Vec::new();
         if self.subtextures.is_some() {
             subtextures = self.subtextures.clone().unwrap();
         }
         while subtextures.len() <= index {
-            subtextures.push(TextureRegion::new());
+            subtextures.push(TextureTransform::new());
         }
         subtextures[index] = subtex;
         self.subtextures = Some(subtextures);
@@ -307,6 +316,11 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             Mesh::vertex_shader_source(fragment_shader_source)?
         ))
     }
+}
+
+pub struct ModelInstance {
+    mesh_transform: Mat4,
+    texture_transform: TextureTransform,
 }
 
 impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
