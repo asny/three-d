@@ -96,7 +96,7 @@ impl GeometryMut for Axes {
 impl Object for Axes {
     fn render(&self, camera: &Camera, _lights: &Lights) -> ThreeDResult<()> {
         let mut model = self.model.clone();
-        model.render_forward(
+        model.render_with_material(
             &ColorMaterial {
                 color: Color::RED,
                 ..Default::default()
@@ -105,7 +105,7 @@ impl Object for Axes {
             &Lights::default(),
         )?;
         model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_forward(
+        model.render_with_material(
             &ColorMaterial {
                 color: Color::GREEN,
                 ..Default::default()
@@ -114,7 +114,7 @@ impl Object for Axes {
             &Lights::default(),
         )?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_forward(
+        model.render_with_material(
             &ColorMaterial {
                 color: Color::BLUE,
                 ..Default::default()

@@ -138,7 +138,7 @@ impl DeferredPipeline {
                 .iter()
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
             {
-                geometry.render_forward(
+                geometry.render_with_material(
                     &DeferredPhysicalMaterial::from_physical_material(material),
                     &self.camera,
                     &Lights::default(),

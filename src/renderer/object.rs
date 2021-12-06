@@ -258,6 +258,18 @@ pub trait Shadable2D {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
+    fn render_with_material(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()>;
+
+    ///
+    /// Render the object with the given material.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    ///
+    #[deprecated = "use render_with_material instead"]
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -266,6 +278,14 @@ pub trait Shadable2D {
 }
 
 impl<T: Shadable2D + ?Sized> Shadable2D for &T {
+    fn render_with_material(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        (*self).render_with_material(material, viewport)
+    }
+
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -276,6 +296,14 @@ impl<T: Shadable2D + ?Sized> Shadable2D for &T {
 }
 
 impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
+    fn render_with_material(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        (**self).render_with_material(material, viewport)
+    }
+
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
