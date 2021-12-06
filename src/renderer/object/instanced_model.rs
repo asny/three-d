@@ -138,6 +138,14 @@ impl<M: ForwardMaterial> InstancedModel<M> {
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
             program.use_attribute_vec3("normal", normal_buffer)?;
+            if program.requires_attribute("tangent") {
+                let tangent_buffer = self
+                    .mesh
+                    .tangent_buffer
+                    .as_ref()
+                    .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
+                program.use_attribute_vec4("tangent", tangent_buffer)?;
+            }
         }
         if program.requires_attribute("color") {
             let color_buffer = self
