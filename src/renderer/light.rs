@@ -60,6 +60,10 @@ impl Lights {
         }
         Ok(())
     }
+
+    pub fn iter<'a>(&'a self) -> LightsIterator<'a> {
+        LightsIterator::new(self)
+    }
 }
 
 impl Default for Lights {
@@ -74,7 +78,7 @@ impl Default for Lights {
     }
 }
 
-struct LightsIterator<'a> {
+pub struct LightsIterator<'a> {
     lights: &'a Lights,
     index: usize,
 }
