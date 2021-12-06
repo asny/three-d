@@ -58,7 +58,7 @@ fn main() {
             cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
             let edges = InstancedModel::new_with_material(
                 &context,
-                &edge_transformations(&cpu_mesh),
+                edge_transformations(&cpu_mesh),
                 &cylinder,
                 wireframe_material.clone(),
             )
@@ -68,7 +68,7 @@ fn main() {
             sphere.transform(&Mat4::from_scale(0.015));
             let vertices = InstancedModel::new_with_material(
                 &context,
-                &vertex_transformations(&cpu_mesh),
+                vertex_transformations(&cpu_mesh),
                 &sphere,
                 wireframe_material,
             )
@@ -133,7 +133,7 @@ fn main() {
     );
 }
 
-fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
+fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     let mut iter = cpu_mesh.positions.iter();
     let mut vertex_transformations = Vec::new();
     while let Some(v) = iter.next() {
@@ -143,10 +143,17 @@ fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
             *iter.next().unwrap(),
         )));
     }
-    vertex_transformations
+    let mut instances = Vec::new();
+    for transform in vertex_transformations {
+        instances.push(ModelInstance {
+            mesh_transform: transform,
+            ..Default::default()
+        });
+    }
+    instances
 }
 
-fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
+fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     let mut edge_transformations = std::collections::HashMap::new();
     let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
     for f in 0..indices.len() / 3 {
@@ -175,8 +182,16 @@ fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
         fun(i1, i3);
         fun(i2, i3);
     }
-    edge_transformations
+    let mut instances = Vec::new();
+    for transform in edge_transformations
         .drain()
         .map(|(_, v)| v)
         .collect::<Vec<Mat4>>()
+    {
+        instances.push(ModelInstance {
+            mesh_transform: transform,
+            ..Default::default()
+        });
+    }
+    instances
 }

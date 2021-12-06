@@ -51,9 +51,16 @@ impl<M: ForwardMaterial> BoundingBox<M> {
                 * Mat4::from_angle_y(degrees(-90.0))
                 * Mat4::from_nonuniform_scale(size.z, thickness, thickness),
         ];
+        let mut instances = Vec::new();
+        for transform in transformations {
+            instances.push(ModelInstance {
+                mesh_transform: transform,
+                ..Default::default()
+            });
+        }
         let model = InstancedModel::new_with_material(
             context,
-            &transformations,
+            instances,
             &CPUMesh::cylinder(16),
             material,
         )?;

@@ -68,9 +68,9 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     ///
     /// Updates instance transform and uv buffers and aabb on demand.
     ///
-    fn update_buffers(&mut self) -> ThreeDResult<()> {
+    fn update_buffers(&mut self) {
         if !self.instances_dirty {
-            return Ok(());
+            return;
         }
         self.instance_count = self.instances.len() as u32;
         let instances = self.instances.as_slice();
@@ -134,7 +134,6 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         self.instance_buffer4.fill_with_dynamic(&subt);
         self.update_aabb();
         self.instances_dirty = false;
-        Ok(())
     }
 
     ///
@@ -143,6 +142,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     pub fn clear_instances(&mut self) {
         self.instances_dirty = true;
         self.instances = Vec::new();
+        self.update_buffers();
     }
 
     ///
@@ -158,6 +158,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     pub fn set_instances(&mut self, instances: Vec<ModelInstance>) {
         self.instances_dirty = true;
         self.instances = instances.to_vec();
+        self.update_buffers();
     }
 
     ///
@@ -167,6 +168,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     pub fn set_instance(&mut self, index: usize, instance: &ModelInstance) {
         self.instances_dirty = true;
         self.instances[index] = *instance;
+        self.update_buffers();
     }
 
     ///
@@ -175,6 +177,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     pub fn push_instance(&mut self, instance: &ModelInstance) -> usize {
         self.instances_dirty = true;
         self.instances.push(*instance);
+        self.update_buffers();
         self.instances.len() - 1
     }
 
@@ -287,7 +290,7 @@ impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
 
 impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
     fn render_forward(
-        &mut self,
+        &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
@@ -310,7 +313,7 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
     }
 
     fn render_deferred(
-        &mut self,
+        &self,
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
@@ -345,8 +348,8 @@ impl<M: ForwardMaterial> Object for InstancedModel<M> {
 
 #[derive(Clone, Copy, Debug)]
 pub struct ModelInstance {
-    mesh_transform: Mat4,
-    texture_transform: TextureTransform,
+    pub mesh_transform: Mat4,
+    pub texture_transform: TextureTransform,
 }
 
 impl Default for ModelInstance {
@@ -355,5 +358,5 @@ impl Default for ModelInstance {
             mesh_transform: Mat4::identity(),
             texture_transform: TextureTransform::default(),
         }
-    }  
+    }
 }
