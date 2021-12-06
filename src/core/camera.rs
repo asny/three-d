@@ -1,8 +1,19 @@
 use crate::core::*;
 
-pub(super) enum ProjectionType {
-    Orthographic { width: f32, height: f32 },
-    Perspective { field_of_view_y: Radians },
+///
+/// The type of projection used by a camera (orthographic or perspective) including parameters.
+///
+pub enum ProjectionType {
+    /// Orthographic projection
+    Orthographic {
+        /// Height of the camera film/sensor.
+        height: f32,
+    },
+    /// Perspective projection
+    Perspective {
+        /// The field of view angle in the vertical direction.
+        field_of_view_y: Radians,
+    },
 }
 
 ///
@@ -105,7 +116,7 @@ impl Camera {
         self.z_near = z_near;
         self.z_far = z_far;
         let width = height * self.viewport.aspect();
-        self.projection_type = ProjectionType::Orthographic { width, height };
+        self.projection_type = ProjectionType::Orthographic { height };
         self.projection = ortho(
             -0.5 * width,
             0.5 * width,
@@ -128,7 +139,7 @@ impl Camera {
         if self.viewport != viewport {
             self.viewport = viewport;
             match self.projection_type {
-                ProjectionType::Orthographic { width: _, height } => {
+                ProjectionType::Orthographic { height } => {
                     self.set_orthographic_projection(height, self.z_near, self.z_far)?;
                 }
                 ProjectionType::Perspective { field_of_view_y } => {
@@ -224,8 +235,9 @@ impl Camera {
     ///
     pub fn position_at_pixel(&self, pixel: (f32, f32)) -> Vec3 {
         match self.projection_type() {
-            ProjectionType::Orthographic { width, height, .. } => {
+            ProjectionType::Orthographic { height } => {
                 let coords = self.uv_coordinates_at_pixel(pixel);
+                let width = height * self.viewport.aspect();
                 self.position() + vec3((coords.0 - 0.5) * width, (0.5 - coords.1) * height, 0.0)
             }
             ProjectionType::Perspective { .. } => *self.position(),
@@ -274,7 +286,10 @@ impl Camera {
         )
     }
 
-    pub(super) fn projection_type(&self) -> &ProjectionType {
+    ///
+    /// Returns the type of projection (orthographic or perspective) including parameters.
+    ///
+    pub fn projection_type(&self) -> &ProjectionType {
         &self.projection_type
     }
 
@@ -371,10 +386,7 @@ impl Camera {
     fn new(context: &Context, viewport: Viewport) -> ThreeDResult<Camera> {
         Ok(Camera {
             viewport,
-            projection_type: ProjectionType::Orthographic {
-                width: 1.0,
-                height: 1.0,
-            },
+            projection_type: ProjectionType::Orthographic { height: 1.0 },
             z_near: 0.0,
             z_far: 0.0,
             uniform_buffer: UniformBuffer::new(context, &[16, 16, 16, 3, 1])?,
@@ -534,7 +546,7 @@ impl Camera {
         let new_position = point - direction * new_distance;
         self.set_view(new_position, new_position + (target - position), up)?;
         match self.projection_type() {
-            ProjectionType::Orthographic { width: _, height } => {
+            ProjectionType::Orthographic { height } => {
                 let h = new_distance * height / distance;
                 let z_near = self.z_near();
                 let z_far = self.z_far();
