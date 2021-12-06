@@ -259,7 +259,7 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
 
 impl<M: ForwardMaterial> Object for InstancedModel<M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
-        self.render_forward(&self.material, camera, lights)
+        self.render_with_material(&self.material, camera, lights)
     }
 
     fn is_transparent(&self) -> bool {

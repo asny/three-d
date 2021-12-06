@@ -70,15 +70,23 @@ impl<M: ForwardMaterial> Line<M> {
 }
 
 impl<M: ForwardMaterial> Shadable2D for Line<M> {
-    fn render_forward(
+    fn render_with_material(
         &self,
         material: &dyn ForwardMaterial,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model
-                .render_forward(material, camera2d, &Lights::default())
+                .render_with_material(material, camera2d, &Lights::default())
         })
+    }
+
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        self.render_with_material(material, viewport)
     }
 }
 
