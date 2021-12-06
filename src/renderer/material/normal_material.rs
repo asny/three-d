@@ -34,7 +34,7 @@ impl NormalMaterial {
     }
 }
 
-impl ForwardMaterial for NormalMaterial {
+impl Material for NormalMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         let mut shader = String::new();
         if self.normal_texture.is_some() {

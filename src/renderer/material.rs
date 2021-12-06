@@ -41,7 +41,7 @@ pub use deferred_physical_material::*;
 /// The material can use the attributes position (in world space) by adding `in vec3 pos;`,
 /// normal by `in vec3 nor;`, uv coordinates by `in vec2 uvs;` and color by `in vec4 col;` to the fragment shader source code.
 ///
-pub trait ForwardMaterial {
+pub trait Material {
     /// Returns the fragment shader source for this material. Should output the final fragment color.
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String;
     /// Sends the uniform data needed for this material to the fragment shader.
@@ -53,7 +53,7 @@ pub trait ForwardMaterial {
     fn is_transparent(&self) -> bool;
 }
 
-impl<T: ForwardMaterial + ?Sized> ForwardMaterial for &T {
+impl<T: Material + ?Sized> Material for &T {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }

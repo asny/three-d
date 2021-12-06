@@ -4,7 +4,7 @@ use crate::renderer::*;
 ///
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently.
 ///
-pub struct InstancedModel<M: ForwardMaterial> {
+pub struct InstancedModel<M: Material> {
     context: Context,
     mesh: Mesh,
     instance_count: u32,
@@ -34,7 +34,7 @@ impl InstancedModel<ColorMaterial> {
     }
 }
 
-impl<M: ForwardMaterial> InstancedModel<M> {
+impl<M: Material> InstancedModel<M> {
     pub fn new_with_material(
         context: &Context,
         transformations: &[Mat4],
@@ -182,7 +182,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     }
 }
 
-impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
+impl<M: Material> Geometry for InstancedModel<M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
     }
@@ -192,17 +192,17 @@ impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
     }
 }
 
-impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
+impl<M: Material> GeometryMut for InstancedModel<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.update_aabb();
     }
 }
 
-impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
+impl<M: Material> Shadable for InstancedModel<M> {
     fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
@@ -225,7 +225,7 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
 
     fn render_forward(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
@@ -257,7 +257,7 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
     }
 }
 
-impl<M: ForwardMaterial> Object for InstancedModel<M> {
+impl<M: Material> Object for InstancedModel<M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
     }

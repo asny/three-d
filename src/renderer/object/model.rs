@@ -3,10 +3,10 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// A 3D model consisting of a triangle mesh and any material that implements the `ForwardMaterial` trait.
+/// A 3D model consisting of a triangle mesh and any material that implements the `Material` trait.
 ///
 #[derive(Clone)]
-pub struct Model<M: ForwardMaterial> {
+pub struct Model<M: Material> {
     context: Context,
     mesh: Rc<Mesh>,
     aabb: AxisAlignedBoundingBox,
@@ -25,7 +25,7 @@ impl Model<ColorMaterial> {
     }
 }
 
-impl<M: ForwardMaterial> Model<M> {
+impl<M: Material> Model<M> {
     ///
     /// Creates a new 3D model with a triangle mesh as geometry and the given material.
     ///
@@ -68,7 +68,7 @@ impl<M: ForwardMaterial> Model<M> {
     }
 }
 
-impl<M: ForwardMaterial> Geometry for Model<M> {
+impl<M: Material> Geometry for Model<M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
     }
@@ -78,7 +78,7 @@ impl<M: ForwardMaterial> Geometry for Model<M> {
     }
 }
 
-impl<M: ForwardMaterial> GeometryMut for Model<M> {
+impl<M: Material> GeometryMut for Model<M> {
     fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         let mut aabb = self.aabb_local.clone();
@@ -87,10 +87,10 @@ impl<M: ForwardMaterial> GeometryMut for Model<M> {
     }
 }
 
-impl<M: ForwardMaterial> Shadable for Model<M> {
+impl<M: Material> Shadable for Model<M> {
     fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
@@ -114,7 +114,7 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
 
     fn render_forward(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
@@ -147,7 +147,7 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
     }
 }
 
-impl<M: ForwardMaterial> Object for Model<M> {
+impl<M: Material> Object for Model<M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
     }

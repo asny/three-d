@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 #[derive(Clone)]
-pub struct Rectangle<M: ForwardMaterial> {
+pub struct Rectangle<M: Material> {
     model: Model<M>,
     context: Context,
     width: f32,
@@ -10,7 +10,7 @@ pub struct Rectangle<M: ForwardMaterial> {
     rotation: Radians,
 }
 
-impl<M: ForwardMaterial> Rectangle<M> {
+impl<M: Material> Rectangle<M> {
     pub fn new_with_material(
         context: &Context,
         center: Vec2,
@@ -70,10 +70,10 @@ impl<M: ForwardMaterial> Rectangle<M> {
     }
 }
 
-impl<M: ForwardMaterial> Shadable2D for Rectangle<M> {
+impl<M: Material> Shadable2D for Rectangle<M> {
     fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
@@ -82,16 +82,12 @@ impl<M: ForwardMaterial> Shadable2D for Rectangle<M> {
         })
     }
 
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()> {
         self.render_with_material(material, viewport)
     }
 }
 
-impl<M: ForwardMaterial> Object2D for Rectangle<M> {
+impl<M: Material> Object2D for Rectangle<M> {
     fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render(camera2d, &Lights::default())

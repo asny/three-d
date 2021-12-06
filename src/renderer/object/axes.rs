@@ -39,7 +39,7 @@ impl Axes {
 impl Shadable for Axes {
     fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
@@ -53,7 +53,7 @@ impl Shadable for Axes {
 
     fn render_forward(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {

@@ -1,14 +1,14 @@
 use crate::renderer::*;
 
 #[derive(Clone)]
-pub struct Circle<M: ForwardMaterial> {
+pub struct Circle<M: Material> {
     context: Context,
     model: Model<M>,
     radius: f32,
     center: Vec2,
 }
 
-impl<M: ForwardMaterial> Circle<M> {
+impl<M: Material> Circle<M> {
     pub fn new_with_material(
         context: &Context,
         center: Vec2,
@@ -51,10 +51,10 @@ impl<M: ForwardMaterial> Circle<M> {
     }
 }
 
-impl<M: ForwardMaterial> Shadable2D for Circle<M> {
+impl<M: Material> Shadable2D for Circle<M> {
     fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
@@ -63,16 +63,12 @@ impl<M: ForwardMaterial> Shadable2D for Circle<M> {
         })
     }
 
-    fn render_forward(
-        &self,
-        material: &dyn ForwardMaterial,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
+    fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()> {
         self.render_with_material(material, viewport)
     }
 }
 
-impl<M: ForwardMaterial> Object2D for Circle<M> {
+impl<M: Material> Object2D for Circle<M> {
     fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render(camera2d, &Lights::default())
