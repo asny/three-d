@@ -15,10 +15,9 @@ pub struct InstancedModel<M: ForwardMaterial> {
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    transformations: Vec<Mat4>,
-    transform_mode: TransformMode,
-    subtexture: Option<TextureTransform>,
-    subtextures: Option<Vec<TextureTransform>>,
+    instances: Vec<ModelInstance>,
+    instances_dirty: bool,
+    texture_transform: Option<TextureTransform>,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -31,17 +30,17 @@ impl InstancedModel<ColorMaterial> {
     ///
     pub fn new(
         context: &Context,
-        transformations: &[Mat4],
+        instances: Vec<ModelInstance>,
         cpu_mesh: &CPUMesh,
     ) -> ThreeDResult<Self> {
-        Self::new_with_material(context, transformations, cpu_mesh, ColorMaterial::default())
+        Self::new_with_material(context, instances, cpu_mesh, ColorMaterial::default())
     }
 }
 
 impl<M: ForwardMaterial> InstancedModel<M> {
     pub fn new_with_material(
         context: &Context,
-        transformations: &[Mat4],
+        instances: Vec<ModelInstance>,
         cpu_mesh: &CPUMesh,
         material: M,
     ) -> ThreeDResult<Self> {
@@ -57,79 +56,50 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
-            transformations: transformations.to_vec(),
-            subtexture: None,
-            subtextures: None,
+            instances: instances.to_vec(),
+            instances_dirty: true,
+            texture_transform: None,
             material,
         };
-        model.set_transformations(transformations);
+        model.update_buffers();
         Ok(model)
     }
 
     ///
-    /// Use [set_transformations()](InstancedModel::set_transformations()) instead.
+    /// Updates instance transform and uv buffers and aabb on demand.
     ///
-    #[deprecated]
-    pub fn update_transformations(&mut self, transformations: &[Mat4]) {
-        self.set_transformations(&transformations);
-    }
-
-    ///
-    /// Store the transformations applied to each model instance before they are rendered.
-    /// The model is rendered in as many instances as there are transformation matrices.
-    ///
-    pub fn set_transformations(&mut self, transformations: &[Mat4]) {
-        self.transformations = transformations.to_vec();
-        self.update_buffers();
-    }
-
-    ///
-    /// Store the transformations applied to each model instance before they are rendered.
-    /// The model is rendered in as many instances as there are transformation matrices.
-    /// Must (eventually) call [update_buffers()](InstancedModel::update_buffers()) afterward.
-    ///
-    pub fn add_transformation(&mut self, transformation: &Mat4) {
-        self.transformations.push(*transformation);
-    }
-
-    ///
-    /// Clear transformations array.
-    ///
-    pub fn clear_transformations(&mut self) {
-        self.transformations = Vec::new();
-        self.update_buffers();
-    }
-
-    ///
-    /// Update instance transform and uv buffers and aabb.
-    ///
-    pub fn update_buffers(&mut self) {
-        self.instance_count = self.transformations.len() as u32;
-        let transformations = self.transformations.as_slice();
+    fn update_buffers(&mut self) -> ThreeDResult<()> {
+        if !self.instances_dirty {
+            return Ok(());
+        }
+        self.instance_count = self.instances.len() as u32;
+        let instances = self.instances.as_slice();
+        let root_transform = self.transformation;
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
         let mut subt = Vec::new();
-        if self.transformations.len() > 0 {
-            for transform in transformations {
-                row1.push(transform.x.x);
-                row1.push(transform.y.x);
-                row1.push(transform.z.x);
-                row1.push(transform.w.x);
+        if self.instances.len() > 0 {
+            for instance in instances {
+                row1.push((instance.mesh_transform * root_transform).x.x);
+                row1.push((instance.mesh_transform * root_transform).y.x);
+                row1.push((instance.mesh_transform * root_transform).z.x);
+                row1.push((instance.mesh_transform * root_transform).w.x);
 
-                row2.push(transform.x.y);
-                row2.push(transform.y.y);
-                row2.push(transform.z.y);
-                row2.push(transform.w.y);
+                row2.push((instance.mesh_transform * root_transform).x.y);
+                row2.push((instance.mesh_transform * root_transform).y.y);
+                row2.push((instance.mesh_transform * root_transform).z.y);
+                row2.push((instance.mesh_transform * root_transform).w.y);
 
-                row3.push(transform.x.z);
-                row3.push(transform.y.z);
-                row3.push(transform.z.z);
-                row3.push(transform.w.z);
+                row3.push((instance.mesh_transform * root_transform).x.z);
+                row3.push((instance.mesh_transform * root_transform).y.z);
+                row3.push((instance.mesh_transform * root_transform).z.z);
+                row3.push((instance.mesh_transform * root_transform).w.z);
 
-                for i in [0.0f32, 0.0, 1.0, 1.0] {
-                    subt.push(i);
-                }
+                subt.push(instance.texture_transform.offset_x);
+                subt.push(instance.texture_transform.offset_y);
+                subt.push(instance.texture_transform.scale_x);
+                subt.push(instance.texture_transform.scale_y);
             }
         } else {
             row1.push(self.transformation.x.x);
@@ -146,93 +116,73 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             row3.push(self.transformation.y.z);
             row3.push(self.transformation.z.z);
             row3.push(self.transformation.w.z);
-        }
-        if self.subtextures.is_some() {
-            for (i, subtex) in self.subtextures.as_ref().unwrap().iter().enumerate() {
-                if i >= transformations.len() {
-                    break;
+
+            if let Some(texture_transform) = self.texture_transform {
+                subt.push(texture_transform.offset_x);
+                subt.push(texture_transform.offset_y);
+                subt.push(texture_transform.scale_x);
+                subt.push(texture_transform.scale_y);
+            } else {
+                for i in [0.0f32, 0.0, 1.0, 1.0] {
+                    subt.push(i);
                 }
-                subt[i * 4] = subtex.x;
-                subt[i * 4 + 1] = subtex.y;
-                subt[i * 4 + 2] = subtex.sx;
-                subt[i * 4 + 3] = subtex.sy;
             }
-        } else if self.subtexture.is_some() {
-            let subtex = self.subtexture.unwrap();
-            while subt.len() < 4 {
-                subt.push(0.0);
-            }
-            subt[0] = subtex.x;
-            subt[1] = subtex.y;
-            subt[2] = subtex.sx;
-            subt[3] = subtex.sy;
-        } else {
-            while subt.len() < 4 {
-                subt.push(0.0);
-            }
-            subt[0] = 0.0;
-            subt[1] = 0.0;
-            subt[2] = 1.0;
-            subt[3] = 1.0;
         }
         self.instance_buffer1.fill_with_dynamic(&row1);
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
         self.instance_buffer4.fill_with_dynamic(&subt);
         self.update_aabb();
-    }
-
-    pub fn transformations(&self) -> &[Mat4] {
-        &self.transformations
-    }
-
-    ///
-    /// Set a single subtexture for all instances. Is overridden by any existing subtextures,
-    /// so call [clear_subtextures()](InstancedModel::clear_subtextures) if previously populated
-    /// by [add_subtexture()](InstancedModel::add_subtexture). Defaults to and optionally [None].
-    ///
-    pub fn set_subtexture(&mut self, subtex: Option<TextureTransform>) {
-        self.subtexture = subtex;
-        self.update_buffers();
+        self.instances_dirty = false;
+        Ok(())
     }
 
     ///
-    /// Set all subtextures en masse.
+    /// Clear all instances
     ///
-    pub fn set_subtextures(&mut self, subtexvec: Vec<TextureTransform>) {
-        self.subtextures = Some(subtexvec);
-        self.update_buffers();
+    pub fn clear_instances(&mut self) {
+        self.instances_dirty = true;
+        self.instances = Vec::new();
     }
 
     ///
-    /// Apply TextureTransform to instance by index.
-    /// Must (eventually) call [update_buffers()](InstancedModel::update_buffers()) afterward.
+    /// Retrieve all instances
     ///
-    pub fn add_subtexture(&mut self, index: usize, subtex: TextureTransform) {
-        let mut subtextures = Vec::new();
-        if self.subtextures.is_some() {
-            subtextures = self.subtextures.clone().unwrap();
-        }
-        while subtextures.len() <= index {
-            subtextures.push(TextureTransform::new());
-        }
-        subtextures[index] = subtex;
-        self.subtextures = Some(subtextures);
+    pub fn get_instances(&mut self) -> Vec<ModelInstance> {
+        self.instances.clone()
     }
 
     ///
-    /// Clear subtexture array.
+    /// Create an instance for each element with the given mesh and texture transforms.
     ///
-    pub fn clear_subtextures(&mut self) {
-        self.subtextures = None;
-        self.update_buffers();
+    pub fn set_instances(&mut self, instances: Vec<ModelInstance>) {
+        self.instances_dirty = true;
+        self.instances = instances.to_vec();
+    }
+
+    ///
+    /// For updating many objects in any order without needing to collect all instance transforms
+    /// Indexing must be tracked externally.
+    ///
+    pub fn set_instance(&mut self, index: usize, instance: &ModelInstance) {
+        self.instances_dirty = true;
+        self.instances[index] = *instance;
+    }
+
+    ///
+    /// Push a new instance into the existing set and return it's index for later updating.
+    ///
+    pub fn push_instance(&mut self, instance: &ModelInstance) -> usize {
+        self.instances_dirty = true;
+        self.instances.push(*instance);
+        self.instances.len() - 1
     }
 
     fn update_aabb(&mut self) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for transform in self.transformations.iter() {
+        for instance in self.instances.iter() {
             let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(transform * self.transformation));
+            aabb2.transform(&(instance.mesh_transform * self.transformation));
             aabb.expand_with_aabb(&aabb2);
         }
         self.aabb = aabb;
@@ -318,11 +268,6 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     }
 }
 
-pub struct ModelInstance {
-    mesh_transform: Mat4,
-    texture_transform: TextureTransform,
-}
-
 impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
@@ -342,7 +287,7 @@ impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
 
 impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
     fn render_forward(
-        &self,
+        &mut self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
@@ -365,7 +310,7 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
     }
 
     fn render_deferred(
-        &self,
+        &mut self,
         material: &dyn DeferredMaterial,
         camera: &Camera,
         viewport: Viewport,
@@ -396,4 +341,19 @@ impl<M: ForwardMaterial> Object for InstancedModel<M> {
     fn is_transparent(&self) -> bool {
         self.material.is_transparent()
     }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ModelInstance {
+    mesh_transform: Mat4,
+    texture_transform: TextureTransform,
+}
+
+impl Default for ModelInstance {
+    fn default() -> Self {
+        Self {
+            mesh_transform: Mat4::identity(),
+            texture_transform: TextureTransform::default(),
+        }
+    }  
 }
