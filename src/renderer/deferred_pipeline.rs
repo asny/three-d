@@ -17,7 +17,7 @@ pub enum DebugType {
 ///
 /// Deferred render pipeline which can render objects (implementing the [Geometry] trait) with a [DeferredPhysicalMaterial] and lighting.
 /// Supports different types of lighting models by changing the [DeferredPipeline::lighting_model] field.
-/// Deferred rendering draws the geometry information into a buffer in the [DeferredPipeline::render_pass] and use that information in the [DeferredPipeline::light_pass].
+/// Deferred rendering draws the geometry information into a buffer in the [DeferredPipeline::render_pass] and use that information in the [DeferredPipeline::lighting_pass].
 /// This means that the lighting is only calculated once per pixel since the depth testing is happening in the render pass.
 /// **Note:** Deferred rendering does not support blending and therefore does not support transparency!
 ///
@@ -79,7 +79,7 @@ impl DeferredPipeline {
     ///
     /// Render the given geometry and material parameters to a buffer.
     /// This function must not be called in a render target render function and needs to be followed
-    /// by a call to [DeferredPipeline::light_pass].
+    /// by a call to [DeferredPipeline::lighting_pass].
     ///
     #[deprecated = "use render_pass instead"]
     pub fn geometry_pass<G: Geometry>(
@@ -104,7 +104,7 @@ impl DeferredPipeline {
     ///
     /// Render the given geometry and material parameters to a buffer.
     /// This function must not be called in a render target render function and needs to be followed
-    /// by a call to [DeferredPipeline::light_pass].
+    /// by a call to [DeferredPipeline::lighting_pass].
     ///
     pub fn render_pass<G: Geometry>(
         &mut self,
@@ -179,6 +179,7 @@ impl DeferredPipeline {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
+    #[deprecated = "use lighting_pass instead"]
     pub fn light_pass(
         &mut self,
         camera: &Camera,
@@ -243,6 +244,64 @@ impl DeferredPipeline {
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
             effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
             if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty()
+            {
+                effect.use_uniform_mat4(
+                    "viewProjectionInverse",
+                    &(camera.projection() * camera.view()).invert().unwrap(),
+                )?;
+            }
+            effect.apply(render_states, camera.viewport())?;
+            Ok(())
+        })
+    }
+
+    ///
+    /// Uses the geometry and surface material parameters written in the last [DeferredPipeline::render_pass] call
+    /// and all of the given lights to render the objects.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write].
+    ///
+    pub fn lighting_pass(&mut self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+        let render_states = RenderStates {
+            depth_test: DepthTest::LessOrEqual,
+            ..Default::default()
+        };
+
+        if self.debug_type != DebugType::NONE {
+            return self.context.effect(
+                &format!(
+                    "{}{}",
+                    include_str!("../core/shared.frag"),
+                    include_str!("material/shaders/debug.frag")
+                ),
+                |debug_effect| {
+                    debug_effect.use_uniform_mat4(
+                        "viewProjectionInverse",
+                        &(camera.projection() * camera.view()).invert().unwrap(),
+                    )?;
+                    debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
+                    debug_effect
+                        .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+                    if self.debug_type == DebugType::DEPTH {
+                        debug_effect.use_uniform_float("zNear", &camera.z_near())?;
+                        debug_effect.use_uniform_float("zFar", &camera.z_far())?;
+                        debug_effect.use_uniform_vec3("cameraPosition", &camera.position())?;
+                    }
+                    debug_effect.use_uniform_int("type", &(self.debug_type as i32))?;
+                    debug_effect.apply(render_states, camera.viewport())?;
+                    Ok(())
+                },
+            );
+        }
+
+        let mut fragment_shader = lights.fragment_shader_source();
+        fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
+
+        self.context.effect(&fragment_shader, |effect| {
+            lights.use_uniforms(effect, camera)?;
+            effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
+            effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
+            if !lights.directional.is_empty() || !lights.spot.is_empty() || !lights.point.is_empty()
             {
                 effect.use_uniform_mat4(
                     "viewProjectionInverse",
