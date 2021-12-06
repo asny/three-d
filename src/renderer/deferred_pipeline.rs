@@ -27,6 +27,7 @@ pub struct DeferredPipeline {
     /// Set this to visualize the positions, normals etc. for debug purposes.
     ///
     pub debug_type: DebugType,
+    #[deprecated = "use lighting_pass where Light struct contain lighting model"]
     pub lighting_model: LightingModel,
     camera: Camera,
     geometry_pass_texture: Option<ColorTargetTexture2DArray<u8>>,
