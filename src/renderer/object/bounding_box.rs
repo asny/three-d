@@ -62,13 +62,22 @@ impl<M: ForwardMaterial> BoundingBox<M> {
 }
 
 impl<M: ForwardMaterial> Shadable for BoundingBox<M> {
+    fn render_with_material(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        self.model.render_with_material(material, camera, lights)
+    }
+
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
-        self.model.render_forward(material, camera, lights)
+        self.render_with_material(material, camera, lights)
     }
 
     fn render_deferred(

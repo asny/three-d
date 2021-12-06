@@ -37,18 +37,27 @@ impl Axes {
 }
 
 impl Shadable for Axes {
-    fn render_forward(
+    fn render_with_material(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
-        model.render_forward(material, camera, lights)?;
+        model.render_with_material(material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_forward(material, camera, lights)?;
+        model.render_with_material(material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_forward(material, camera, lights)
+        model.render_with_material(material, camera, lights)
+    }
+
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        self.render_with_material(material, camera, lights)
     }
 
     fn render_deferred(

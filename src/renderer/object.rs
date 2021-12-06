@@ -155,6 +155,20 @@ pub trait Shadable {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// You can use [Lights::default()] if you know the material does not require lights.
     ///
+    fn render_with_material(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()>;
+
+    ///
+    /// Render the object with the given material.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// You can use [Lights::default()] if you know the material does not require lights.
+    ///
+    #[deprecated = "use render_with_material instead"]
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -176,6 +190,15 @@ pub trait Shadable {
 }
 
 impl<T: Shadable + ?Sized> Shadable for &T {
+    fn render_with_material(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        (*self).render_with_material(material, camera, lights)
+    }
+
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,
@@ -196,6 +219,15 @@ impl<T: Shadable + ?Sized> Shadable for &T {
 }
 
 impl<T: Shadable + ?Sized> Shadable for &mut T {
+    fn render_with_material(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        (**self).render_with_material(material, camera, lights)
+    }
+
     fn render_forward(
         &self,
         material: &dyn ForwardMaterial,

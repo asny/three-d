@@ -171,7 +171,7 @@ impl GeometryMut for Particles {
 }
 
 impl Shadable for Particles {
-    fn render_forward(
+    fn render_with_material(
         &self,
         material: &dyn ForwardMaterial,
         camera: &Camera,
@@ -230,6 +230,15 @@ impl Shadable for Particles {
                 Ok(())
             },
         )
+    }
+
+    fn render_forward(
+        &self,
+        material: &dyn ForwardMaterial,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        self.render_with_material(material, camera, lights)
     }
 
     fn render_deferred(
