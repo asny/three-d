@@ -135,18 +135,14 @@ fn main() {
 
 fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     let mut iter = cpu_mesh.positions.iter();
-    let mut vertex_transformations = Vec::new();
-    while let Some(v) = iter.next() {
-        vertex_transformations.push(Mat4::from_translation(vec3(
-            *v,
-            *iter.next().unwrap(),
-            *iter.next().unwrap(),
-        )));
-    }
     let mut instances = Vec::new();
-    for transform in vertex_transformations {
+    while let Some(v) = iter.next() {
         instances.push(ModelInstance {
-            mesh_transform: transform,
+            mesh_transform: Mat4::from_translation(vec3(
+                *v,
+                *iter.next().unwrap(),
+                *iter.next().unwrap(),
+            )),
             ..Default::default()
         });
     }
