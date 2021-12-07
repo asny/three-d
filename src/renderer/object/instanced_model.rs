@@ -16,7 +16,6 @@ pub struct InstancedModel<M: ForwardMaterial> {
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     instances: Vec<ModelInstance>,
-    instances_dirty: bool,
     texture_transform: Option<TextureTransform>,
     /// The material applied to the instanced model
     pub material: M,
@@ -57,7 +56,6 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             instances: instances.to_vec(),
-            instances_dirty: true,
             texture_transform: None,
             material,
         };
@@ -69,80 +67,38 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     /// Updates instance transform and uv buffers and aabb on demand.
     ///
     fn update_buffers(&mut self) {
-        if !self.instances_dirty {
-            return;
-        }
         self.instance_count = self.instances.len() as u32;
         let instances = self.instances.as_slice();
-        let root_transform = self.transformation;
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
         let mut subt = Vec::new();
-        if self.instances.len() > 0 {
-            for instance in instances {
-                row1.push((instance.mesh_transform * root_transform).x.x);
-                row1.push((instance.mesh_transform * root_transform).y.x);
-                row1.push((instance.mesh_transform * root_transform).z.x);
-                row1.push((instance.mesh_transform * root_transform).w.x);
+        for instance in instances {
+            row1.push(instance.mesh_transform.x.x);
+            row1.push(instance.mesh_transform.y.x);
+            row1.push(instance.mesh_transform.z.x);
+            row1.push(instance.mesh_transform.w.x);
 
-                row2.push((instance.mesh_transform * root_transform).x.y);
-                row2.push((instance.mesh_transform * root_transform).y.y);
-                row2.push((instance.mesh_transform * root_transform).z.y);
-                row2.push((instance.mesh_transform * root_transform).w.y);
+            row2.push(instance.mesh_transform.x.y);
+            row2.push(instance.mesh_transform.y.y);
+            row2.push(instance.mesh_transform.z.y);
+            row2.push(instance.mesh_transform.w.y);
 
-                row3.push((instance.mesh_transform * root_transform).x.z);
-                row3.push((instance.mesh_transform * root_transform).y.z);
-                row3.push((instance.mesh_transform * root_transform).z.z);
-                row3.push((instance.mesh_transform * root_transform).w.z);
+            row3.push(instance.mesh_transform.x.z);
+            row3.push(instance.mesh_transform.y.z);
+            row3.push(instance.mesh_transform.z.z);
+            row3.push(instance.mesh_transform.w.z);
 
-                subt.push(instance.texture_transform.offset_x);
-                subt.push(instance.texture_transform.offset_y);
-                subt.push(instance.texture_transform.scale_x);
-                subt.push(instance.texture_transform.scale_y);
-            }
-        } else {
-            row1.push(self.transformation.x.x);
-            row1.push(self.transformation.y.x);
-            row1.push(self.transformation.z.x);
-            row1.push(self.transformation.w.x);
-
-            row2.push(self.transformation.x.y);
-            row2.push(self.transformation.y.y);
-            row2.push(self.transformation.z.y);
-            row2.push(self.transformation.w.y);
-
-            row3.push(self.transformation.x.z);
-            row3.push(self.transformation.y.z);
-            row3.push(self.transformation.z.z);
-            row3.push(self.transformation.w.z);
-
-            if let Some(texture_transform) = self.texture_transform {
-                subt.push(texture_transform.offset_x);
-                subt.push(texture_transform.offset_y);
-                subt.push(texture_transform.scale_x);
-                subt.push(texture_transform.scale_y);
-            } else {
-                for i in [0.0f32, 0.0, 1.0, 1.0] {
-                    subt.push(i);
-                }
-            }
+            subt.push(instance.texture_transform.offset_x);
+            subt.push(instance.texture_transform.offset_y);
+            subt.push(instance.texture_transform.scale_x);
+            subt.push(instance.texture_transform.scale_y);
         }
         self.instance_buffer1.fill_with_dynamic(&row1);
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
         self.instance_buffer4.fill_with_dynamic(&subt);
         self.update_aabb();
-        self.instances_dirty = false;
-    }
-
-    ///
-    /// Clear all instances
-    ///
-    pub fn clear_instances(&mut self) {
-        self.instances_dirty = true;
-        self.instances = Vec::new();
-        self.update_buffers();
     }
 
     ///
@@ -156,29 +112,8 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
     pub fn set_instances(&mut self, instances: Vec<ModelInstance>) {
-        self.instances_dirty = true;
         self.instances = instances.to_vec();
         self.update_buffers();
-    }
-
-    ///
-    /// For updating many objects in any order without needing to collect all instance transforms
-    /// Indexing must be tracked externally.
-    ///
-    pub fn set_instance(&mut self, index: usize, instance: &ModelInstance) {
-        self.instances_dirty = true;
-        self.instances[index] = *instance;
-        self.update_buffers();
-    }
-
-    ///
-    /// Push a new instance into the existing set and return it's index for later updating.
-    ///
-    pub fn push_instance(&mut self, instance: &ModelInstance) -> usize {
-        self.instances_dirty = true;
-        self.instances.push(*instance);
-        self.update_buffers();
-        self.instances.len() - 1
     }
 
     fn update_aabb(&mut self) {
