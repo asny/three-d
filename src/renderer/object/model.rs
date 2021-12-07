@@ -48,6 +48,14 @@ impl<M: ForwardMaterial> Model<M> {
         })
     }
 
+    pub fn texture_transform(&mut self) -> &TextureTransform {
+        &self.texture_transform
+    }
+
+    pub fn set_texture_transform(&mut self, texture_transform: TextureTransform) {
+        self.texture_transform = texture_transform;
+    }
+
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
         self.set_transformation(Mat4::new(
             transformation.x.x,

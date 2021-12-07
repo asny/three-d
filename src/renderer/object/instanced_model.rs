@@ -61,6 +61,14 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         Ok(model)
     }
 
+    pub fn texture_transform(&mut self) -> &TextureTransform {
+        &self.texture_transform
+    }
+
+    pub fn set_texture_transform(&mut self, texture_transform: TextureTransform) {
+        self.texture_transform = texture_transform;
+    }
+
     ///
     /// Updates instance transform and uv buffers and aabb on demand.
     ///
