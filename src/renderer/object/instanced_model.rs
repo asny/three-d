@@ -7,7 +7,6 @@ use crate::renderer::*;
 pub struct InstancedModel<M: ForwardMaterial> {
     context: Context,
     mesh: Mesh,
-    instance_count: u32,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
@@ -46,7 +45,6 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         let aabb = cpu_mesh.compute_aabb();
         let mut model = Self {
             context: context.clone(),
-            instance_count: 0,
             mesh: Mesh::new(context, cpu_mesh)?,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
@@ -67,7 +65,6 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     /// Updates instance transform and uv buffers and aabb on demand.
     ///
     fn update_buffers(&mut self) {
-        self.instance_count = self.instances.len() as u32;
         let instances = self.instances.as_slice();
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
@@ -185,14 +182,14 @@ impl<M: ForwardMaterial> InstancedModel<M> {
                 render_states,
                 viewport,
                 index_buffer,
-                self.instance_count,
+                self.instances.len() as u32,
             );
         } else {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
                 self.mesh.position_buffer.count() as u32 / 3,
-                self.instance_count,
+                self.instances.len() as u32,
             );
         }
         Ok(())
