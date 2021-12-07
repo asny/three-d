@@ -182,16 +182,11 @@ fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
         fun(i1, i3);
         fun(i2, i3);
     }
-    let mut instances = Vec::new();
-    for transform in edge_transformations
+    edge_transformations
         .drain()
-        .map(|(_, v)| v)
-        .collect::<Vec<Mat4>>()
-    {
-        instances.push(ModelInstance {
-            mesh_transform: transform,
+        .map(|(_, v)| ModelInstance {
+            mesh_transform: v,
             ..Default::default()
-        });
-    }
-    instances
+        })
+        .collect::<Vec<_>>()
 }
