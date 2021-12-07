@@ -9,7 +9,7 @@ struct FireworksMaterial {
     pub fade: f32,
 }
 
-impl ForwardMaterial for FireworksMaterial {
+impl Material for FireworksMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         include_str!("../assets/shaders/particles.frag").to_string()
     }
@@ -139,7 +139,7 @@ fn main() {
                 let f = particles.time / explosion_time.max(0.0);
                 fireworks_material.fade = 1.0 - f * f * f * f;
                 fireworks_material.color = colors[color_index];
-                particles.render_forward(&fireworks_material, &camera, &Lights::default())?;
+                particles.render_with_material(&fireworks_material, &camera, &Lights::default())?;
                 Ok(())
             })
             .unwrap();

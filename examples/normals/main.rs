@@ -23,23 +23,43 @@ fn main() {
             let (mut cpu_meshes, cpu_materials) = loaded.gltf("NormalTangentTest.glb").unwrap();
             let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
             cpu_meshes[0].compute_tangents().unwrap();
+
             let mut model1 =
                 Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
-            model1.set_transformation(Mat4::from_translation(vec3(1.4, 0.0, 0.0)));
+            model1.set_transformation(Mat4::from_translation(vec3(1.4, 1.2, 0.0)));
+
+            let mut model3 = InstancedModel::new_with_material(
+                &context,
+                &[Mat4::identity()],
+                &cpu_meshes[0],
+                material.clone(),
+            )
+            .unwrap();
+            model3.set_transformation(Mat4::from_translation(vec3(1.4, -1.2, 0.0)));
 
             let (cpu_meshes, cpu_materials) = loaded.gltf("NormalTangentMirrorTest.glb").unwrap();
             let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
+
             let mut model2 =
                 Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
-            model2.set_transformation(Mat4::from_translation(vec3(-1.4, 0.0, 0.0)));
-            Ok((model1, model2))
+            model2.set_transformation(Mat4::from_translation(vec3(-1.4, 1.2, 0.0)));
+
+            let mut model4 = InstancedModel::new_with_material(
+                &context,
+                &[Mat4::identity()],
+                &cpu_meshes[0],
+                material.clone(),
+            )
+            .unwrap();
+            model4.set_transformation(Mat4::from_translation(vec3(-1.4, -1.2, 0.0)));
+            Ok((model1, model2, model3, model4))
         },
     );
 
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(0.0, 0.0, 5.0),
+        vec3(0.0, 0.0, 7.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -83,10 +103,14 @@ fn main() {
                     if let Some(Ok((
                         ref model_with_computed_tangents,
                         ref model_with_loaded_tangents,
+                        ref instanced_model_with_computed_tangents,
+                        ref instanced_model_with_loaded_tangents,
                     ))) = *models.borrow()
                     {
                         model_with_computed_tangents.render(&camera, &lights)?;
                         model_with_loaded_tangents.render(&camera, &lights)?;
+                        instanced_model_with_computed_tangents.render(&camera, &lights)?;
+                        instanced_model_with_loaded_tangents.render(&camera, &lights)?;
                     }
                     Ok(())
                 },

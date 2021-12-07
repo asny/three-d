@@ -33,7 +33,7 @@ impl ORMMaterial {
     }
 }
 
-impl ForwardMaterial for ORMMaterial {
+impl Material for ORMMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         let mut output = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {

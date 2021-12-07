@@ -6,7 +6,7 @@ pub struct UVMaterial {
     pub render_states: RenderStates,
 }
 
-impl ForwardMaterial for UVMaterial {
+impl Material for UVMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         include_str!("shaders/uv_material.frag").to_string()
     }

@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 #[derive(Clone)]
-pub struct Line<M: ForwardMaterial> {
+pub struct Line<M: Material> {
     context: Context,
     model: Model<M>,
     pixel0: Vec2,
@@ -9,7 +9,7 @@ pub struct Line<M: ForwardMaterial> {
     width: f32,
 }
 
-impl<M: ForwardMaterial> Line<M> {
+impl<M: Material> Line<M> {
     pub fn new_with_material(
         context: &Context,
         pixel0: Vec2,
@@ -69,20 +69,24 @@ impl<M: ForwardMaterial> Line<M> {
     }
 }
 
-impl<M: ForwardMaterial> Shadable2D for Line<M> {
-    fn render_forward(
+impl<M: Material> Shadable2D for Line<M> {
+    fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model
-                .render_forward(material, camera2d, &Lights::default())
+                .render_with_material(material, camera2d, &Lights::default())
         })
+    }
+
+    fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()> {
+        self.render_with_material(material, viewport)
     }
 }
 
-impl<M: ForwardMaterial> Object2D for Line<M> {
+impl<M: Material> Object2D for Line<M> {
     fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model.render(camera2d, &Lights::default())

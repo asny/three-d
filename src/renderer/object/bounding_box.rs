@@ -1,11 +1,11 @@
 use crate::renderer::*;
 
-pub struct BoundingBox<M: ForwardMaterial> {
+pub struct BoundingBox<M: Material> {
     model: InstancedModel<M>,
     aabb: AxisAlignedBoundingBox,
 }
 
-impl<M: ForwardMaterial> BoundingBox<M> {
+impl<M: Material> BoundingBox<M> {
     ///
     /// Creates a bounding box object from an axis aligned bounding box.
     ///
@@ -68,19 +68,29 @@ impl<M: ForwardMaterial> BoundingBox<M> {
     }
 }
 
-impl<M: ForwardMaterial> Shadable for BoundingBox<M> {
-    fn render_forward(
+impl<M: Material> Shadable for BoundingBox<M> {
+    fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
-        self.model.render_forward(material, camera, lights)
+        self.model.render_with_material(material, camera, lights)
     }
 
+    fn render_forward(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        self.render_with_material(material, camera, lights)
+    }
+
+    #[allow(deprecated)]
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
@@ -88,7 +98,7 @@ impl<M: ForwardMaterial> Shadable for BoundingBox<M> {
     }
 }
 
-impl<M: ForwardMaterial> Geometry for BoundingBox<M> {
+impl<M: Material> Geometry for BoundingBox<M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
     }
@@ -98,7 +108,7 @@ impl<M: ForwardMaterial> Geometry for BoundingBox<M> {
     }
 }
 
-impl<M: ForwardMaterial> Object for BoundingBox<M> {
+impl<M: Material> Object for BoundingBox<M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
         self.model.render(camera, lights)
     }
