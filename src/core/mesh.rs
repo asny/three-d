@@ -68,13 +68,14 @@ impl Mesh {
         })
     }
 
-    pub fn draw(
+    pub(crate) fn draw(
         &self,
         program: &Program,
         render_states: RenderStates,
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
         transformation: &Mat4,
+        texture_transform: &TextureTransform,
     ) -> ThreeDResult<()> {
         program.use_uniform_block("Camera", camera_buffer);
         program.use_uniform_mat4("modelMatrix", transformation)?;
@@ -83,6 +84,7 @@ impl Mesh {
             program.use_attribute_vec3("position", &self.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
+            program.use_uniform_vec4("textureTransform", &texture_transform.to_vec4())?;
             let uv_buffer = self
                 .uv_buffer
                 .as_ref()
@@ -126,7 +128,7 @@ impl Mesh {
         Ok(())
     }
 
-    pub fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
+    pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();

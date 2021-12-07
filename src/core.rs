@@ -152,6 +152,10 @@ pub use mesh::*;
 pub mod render_states;
 pub use render_states::*;
 
+mod texture_transform;
+#[doc(inline)]
+pub use texture_transform::*;
+
 pub mod render_target;
 pub use render_target::*;
 

@@ -15,7 +15,7 @@ pub struct InstancedModel<M: ForwardMaterial> {
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     instances: Vec<ModelInstance>,
-    texture_transform: Option<TextureTransform>,
+    texture_transform: TextureTransform,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -54,7 +54,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             instances: instances.to_vec(),
-            texture_transform: None,
+            texture_transform: TextureTransform::default(),
             material,
         };
         model.update_buffers();
@@ -137,14 +137,12 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
 
-        if program.requires_attribute("subt") {
-            program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
-        }
-
         if program.requires_attribute("position") {
             program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
+            program.use_uniform_vec4("textureTransform", &self.texture_transform.to_vec4())?;
+            program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
             let uv_buffer = self
                 .mesh
                 .uv_buffer

@@ -14,7 +14,6 @@ in vec3 position;
 in vec4 row1;
 in vec4 row2;
 in vec4 row3;
-in vec4 subt;
 #endif
 
 #ifdef USE_POSITIONS
@@ -36,6 +35,10 @@ out vec3 bitang;
 
 
 #ifdef USE_UVS 
+#ifdef INSTANCED
+in vec4 subt;
+#endif
+uniform vec4 textureTransform;
 in vec2 uv_coordinates;
 out vec2 uvs;
 #endif
@@ -64,7 +67,6 @@ void main()
 #ifdef USE_NORMALS
     normalMat = mat3(normalMatrix);
 #endif
-    vec4 subt = vec4(0.0, 0.0, 1.0, 1.0);
 #endif
 
     vec4 worldPosition = local2World * vec4(position, 1.);
@@ -85,11 +87,10 @@ void main()
 #endif
 
 #ifdef USE_UVS 
-    uvs = uv_coordinates;
-    uvs.x *= subt.z;
-    uvs.y *= subt.w;
-    uvs.x += subt.x;
-    uvs.y += subt.y;
+    uvs = uv_coordinates * textureTransform.zw + textureTransform.xy;
+#ifdef INSTANCED
+    uvs = uvs * subt.zw + subt.xy;
+#endif
 #endif
 
 #ifdef USE_COLORS 

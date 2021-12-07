@@ -12,6 +12,7 @@ pub struct Model<M: ForwardMaterial> {
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
+    texture_transform: TextureTransform,
     /// The material applied to the model
     pub material: M,
 }
@@ -41,6 +42,7 @@ impl<M: ForwardMaterial> Model<M> {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
+            texture_transform: TextureTransform::default(),
             context: context.clone(),
             material,
         })
@@ -107,6 +109,7 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
                     camera.uniform_buffer(),
                     camera.viewport(),
                     &self.transformation,
+                    &self.texture_transform,
                 )
             },
         )
@@ -131,6 +134,7 @@ impl<M: ForwardMaterial> Shadable for Model<M> {
                     camera.uniform_buffer(),
                     viewport,
                     &self.transformation,
+                    &self.texture_transform,
                 )
             },
         )
