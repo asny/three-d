@@ -73,12 +73,11 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     /// Updates instance transform and uv buffers and aabb on demand.
     ///
     fn update_buffers(&mut self) {
-        let instances = self.instances.as_slice();
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
         let mut subt = Vec::new();
-        for instance in instances {
+        for instance in self.instances.iter() {
             row1.push(instance.mesh_transform.x.x);
             row1.push(instance.mesh_transform.y.x);
             row1.push(instance.mesh_transform.z.x);
@@ -107,16 +106,16 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     }
 
     ///
-    /// Retrieve all instances
+    /// Returns all instances
     ///
-    pub fn get_instances(&mut self) -> Vec<ModelInstance> {
-        self.instances.clone()
+    pub fn instances(&self) -> &[ModelInstance] {
+        &self.instances
     }
 
     ///
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
-    pub fn set_instances(&mut self, instances: Vec<ModelInstance>) {
+    pub fn set_instances(&mut self, instances: &[ModelInstance]) {
         self.instances = instances.to_vec();
         self.update_buffers();
     }
