@@ -189,6 +189,7 @@ pub trait Shadable {
     ) -> ThreeDResult<()>;
 }
 
+#[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &T {
     fn render_with_material(
         &self,
@@ -218,6 +219,7 @@ impl<T: Shadable + ?Sized> Shadable for &T {
     }
 }
 
+#[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &mut T {
     fn render_with_material(
         &self,
@@ -270,6 +272,7 @@ pub trait Shadable2D {
     fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()>;
 }
 
+#[allow(deprecated)]
 impl<T: Shadable2D + ?Sized> Shadable2D for &T {
     fn render_with_material(
         &self,
@@ -284,6 +287,7 @@ impl<T: Shadable2D + ?Sized> Shadable2D for &T {
     }
 }
 
+#[allow(deprecated)]
 impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
     fn render_with_material(
         &self,

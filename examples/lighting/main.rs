@@ -178,18 +178,10 @@ fn main() {
                         }
 
                         ui.label("Lighting model");
+                        ui.radio_value(&mut lights.lighting_model, LightingModel::Phong, "Phong");
+                        ui.radio_value(&mut lights.lighting_model, LightingModel::Blinn, "Blinn");
                         ui.radio_value(
-                            &mut deferred_pipeline.lighting_model,
-                            LightingModel::Phong,
-                            "Phong",
-                        );
-                        ui.radio_value(
-                            &mut deferred_pipeline.lighting_model,
-                            LightingModel::Blinn,
-                            "Blinn",
-                        );
-                        ui.radio_value(
-                            &mut deferred_pipeline.lighting_model,
+                            &mut lights.lighting_model,
                             LightingModel::Cook(
                                 NormalDistributionFunction::Blinn,
                                 GeometryFunction::SmithSchlickGGX,
@@ -197,7 +189,7 @@ fn main() {
                             "Cook (Blinn)",
                         );
                         ui.radio_value(
-                            &mut deferred_pipeline.lighting_model,
+                            &mut lights.lighting_model,
                             LightingModel::Cook(
                                 NormalDistributionFunction::Beckmann,
                                 GeometryFunction::SmithSchlickGGX,
@@ -205,14 +197,13 @@ fn main() {
                             "Cook (Beckmann)",
                         );
                         ui.radio_value(
-                            &mut deferred_pipeline.lighting_model,
+                            &mut lights.lighting_model,
                             LightingModel::Cook(
                                 NormalDistributionFunction::TrowbridgeReitzGGX,
                                 GeometryFunction::SmithSchlickGGX,
                             ),
                             "Cook (Trowbridge-Reitz GGX)",
                         );
-                        lights.lighting_model = deferred_pipeline.lighting_model;
 
                         ui.label("Pipeline");
                         ui.radio_value(&mut current_pipeline, Pipeline::Forward, "Forward");

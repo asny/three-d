@@ -80,6 +80,7 @@ impl<M: Material> Shadable for BoundingBox<M> {
         self.render_with_material(material, camera, lights)
     }
 
+    #[allow(deprecated)]
     fn render_deferred(
         &self,
         material: &DeferredPhysicalMaterial,

@@ -34,6 +34,7 @@ pub struct DeferredPipeline {
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
+#[allow(deprecated)]
 impl DeferredPipeline {
     ///
     /// Constructor.

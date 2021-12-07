@@ -60,6 +60,7 @@ impl Shadable for Axes {
         self.render_with_material(material, camera, lights)
     }
 
+    #[allow(deprecated)]
     fn render_deferred(
         &self,
         material: &DeferredPhysicalMaterial,
