@@ -58,7 +58,7 @@ fn main() {
             cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
             let edges = InstancedModel::new_with_material(
                 &context,
-                edge_transformations(&cpu_mesh),
+                &edge_transformations(&cpu_mesh),
                 &cylinder,
                 wireframe_material.clone(),
             )
@@ -68,7 +68,7 @@ fn main() {
             sphere.transform(&Mat4::from_scale(0.015));
             let vertices = InstancedModel::new_with_material(
                 &context,
-                vertex_transformations(&cpu_mesh),
+                &vertex_transformations(&cpu_mesh),
                 &sphere,
                 wireframe_material,
             )

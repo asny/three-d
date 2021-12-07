@@ -30,7 +30,7 @@ impl InstancedModel<ColorMaterial> {
     ///
     pub fn new(
         context: &Context,
-        instances: Vec<ModelInstance>,
+        instances: &[ModelInstance],
         cpu_mesh: &CPUMesh,
     ) -> ThreeDResult<Self> {
         Self::new_with_material(context, instances, cpu_mesh, ColorMaterial::default())
@@ -40,7 +40,7 @@ impl InstancedModel<ColorMaterial> {
 impl<M: ForwardMaterial> InstancedModel<M> {
     pub fn new_with_material(
         context: &Context,
-        instances: Vec<ModelInstance>,
+        instances: &[ModelInstance],
         cpu_mesh: &CPUMesh,
         material: M,
     ) -> ThreeDResult<Self> {
