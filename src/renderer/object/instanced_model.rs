@@ -14,7 +14,7 @@ pub struct InstancedModel<M: ForwardMaterial> {
     transformation: RefCell<Mat4>,
     instances: RefCell<Vec<ModelInstance>>,
     texture_transform: RefCell<TextureTransform>,
-    buffers_dirty: bool,
+    buffers_dirty: RefCell<bool>,
     instance_buffer1: RefCell<InstanceBuffer>,
     instance_buffer2: RefCell<InstanceBuffer>,
     instance_buffer3: RefCell<InstanceBuffer>,
@@ -51,7 +51,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         material: Rc<M>,
     ) -> ThreeDResult<Self> {
         let aabb = cpu_mesh.compute_aabb();
-        let mut model = Self {
+        let model = Self {
             context: context.clone(),
             mesh: Mesh::new(context, cpu_mesh)?,
             aabb: RefCell::new(aabb),
@@ -59,7 +59,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             transformation: RefCell::new(Mat4::identity()),
             instances: RefCell::new(instances.to_vec()),
             texture_transform: RefCell::new(TextureTransform::default()),
-            buffers_dirty: true,
+            buffers_dirty: RefCell::new(true),
             instance_buffer1: RefCell::new(InstanceBuffer::new(context)?),
             instance_buffer2: RefCell::new(InstanceBuffer::new(context)?),
             instance_buffer3: RefCell::new(InstanceBuffer::new(context)?),
@@ -69,39 +69,40 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         Ok(model)
     }
 
-    pub fn texture_transform(&self) -> &TextureTransform {
-        &*self.texture_transform.borrow()
+    pub fn texture_transform(&self) -> TextureTransform {
+        (*self.texture_transform.borrow()).clone()
     }
 
     pub fn set_texture_transform(&self, texture_transform: TextureTransform) {
-        let mut transform = *self.texture_transform.borrow_mut();
-        transform = texture_transform;
-        self.buffers_dirty = true;
+        let transform = &mut *self.texture_transform.borrow_mut();
+        *transform = texture_transform;
+        self.set_buffers_dirty(true);
     }
 
     ///
     /// Returns all instances
     ///
-    pub fn instances(&self) -> &[ModelInstance] {
-        &*self.instances.borrow()
+    pub fn instances(&self) -> Vec<ModelInstance> {
+        (*self.instances.borrow()).to_vec()
     }
 
     ///
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
     pub fn set_instances(&self, new_instances: &[ModelInstance]) {
-        let mut instances = *self.instances.borrow_mut();
-        instances = new_instances.to_vec();
-        self.buffers_dirty = true;
+        let mut instances = self.instances.borrow_mut();
+        *instances = new_instances.to_vec();
+        self.set_buffers_dirty(true);
     }
 
     ///
     /// Framework for future JIT updating additions.
     ///
-    fn update(&self) {
-        if self.buffers_dirty {
-            self.update_buffers();
+    fn update(&self) -> ThreeDResult<()> {
+        if *self.buffers_dirty.borrow() {
+            self.update_buffers()?;
         }
+        Ok(())
     }
 
     ///
@@ -113,12 +114,12 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         let mut row3 = Vec::new();
         let mut subt = Vec::new();
         let root_transform = *self.transformation.borrow();
-        let instances = *self.instances.borrow();
-        let mut instance_buffer1 = *self.instance_buffer1.borrow_mut();
-        let mut instance_buffer2 = *self.instance_buffer2.borrow_mut();
-        let mut instance_buffer3 = *self.instance_buffer3.borrow_mut();
-        let mut instance_buffer4 = *self.instance_buffer4.borrow_mut();
-        let combined_transform: Mat4;
+        let instances = &*self.instances.borrow();
+        let instance_buffer1 = &mut *self.instance_buffer1.borrow_mut();
+        let instance_buffer2 = &mut *self.instance_buffer2.borrow_mut();
+        let instance_buffer3 = &mut *self.instance_buffer3.borrow_mut();
+        let instance_buffer4 = &mut *self.instance_buffer4.borrow_mut();
+        let mut combined_transform: Mat4;
         for instance in instances.iter() {
             combined_transform = root_transform * instance.mesh_transform;
             row1.push(combined_transform.x.x);
@@ -145,8 +146,14 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         instance_buffer2.fill_with_dynamic(&row2);
         instance_buffer3.fill_with_dynamic(&row3);
         instance_buffer4.fill_with_dynamic(&subt);
-        self.update_aabb();
+        self.update_aabb()?;
+        self.set_buffers_dirty(false);
         Ok(())
+    }
+
+    fn set_buffers_dirty(&self, bool: bool) {
+        let mut dirty = self.buffers_dirty.borrow_mut();
+        *dirty = bool
     }
 
     ///
@@ -154,8 +161,8 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     ///
     fn update_aabb(&self) -> ThreeDResult<()> {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        let mut instances = *self.instances.borrow_mut();
-        let mut aabb_local = *self.aabb_local.borrow_mut();
+        let instances = &*self.instances.borrow();
+        let aabb_local = *self.aabb_local.borrow();
         let transformation = *self.transformation.borrow();
         for instance in instances.iter() {
             let mut aabb2 = aabb_local.clone();
@@ -172,15 +179,15 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        self.update();
+        self.update()?;
 
         let transformation = *self.transformation.borrow();
         let texture_transform = *self.texture_transform.borrow();
-        let instance_buffer1 = *self.instance_buffer1.borrow();
-        let instance_buffer2 = *self.instance_buffer2.borrow();
-        let instance_buffer3 = *self.instance_buffer3.borrow();
-        let instance_buffer4 = *self.instance_buffer4.borrow();
-        let instances = *self.instances.borrow();
+        let instance_buffer1 = &*self.instance_buffer1.borrow();
+        let instance_buffer2 = &*self.instance_buffer2.borrow();
+        let instance_buffer3 = &*self.instance_buffer3.borrow();
+        let instance_buffer4 = &*self.instance_buffer4.borrow();
+        let instances = &*self.instances.borrow();
 
         program.use_uniform_block("Camera", camera_buffer);
         program.use_uniform_mat4("modelMatrix", &transformation)?;
@@ -266,9 +273,9 @@ impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
 // &mut self is uncessary here, but needs to be removed at the trait level too.
 impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
     fn set_transformation(&mut self, new_transformation: Mat4) {
-        let mut transformation = *self.transformation.borrow_mut();
-        transformation = new_transformation;
-        self.buffers_dirty = true;
+        let mut _transformation = *self.transformation.borrow_mut();
+        _transformation = new_transformation;
+        self.set_buffers_dirty(true);
     }
 }
 
