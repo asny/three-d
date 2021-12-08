@@ -1,5 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 ///
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently.
@@ -7,17 +9,19 @@ use crate::renderer::*;
 pub struct InstancedModel<M: ForwardMaterial> {
     context: Context,
     mesh: Mesh,
-    instance_buffer1: InstanceBuffer,
-    instance_buffer2: InstanceBuffer,
-    instance_buffer3: InstanceBuffer,
-    instance_buffer4: InstanceBuffer,
-    aabb_local: AxisAlignedBoundingBox,
-    aabb: AxisAlignedBoundingBox,
-    transformation: Mat4,
-    instances: Vec<ModelInstance>,
-    texture_transform: TextureTransform,
+    aabb_dirty: bool,
+    aabb_local: RefCell<AxisAlignedBoundingBox>,
+    aabb: RefCell<AxisAlignedBoundingBox>,
+    transformation: RefCell<Mat4>,
+    instances: RefCell<Vec<ModelInstance>>,
+    texture_transform: RefCell<TextureTransform>,
+    buffers_dirty: bool,
+    instance_buffer1: RefCell<InstanceBuffer>,
+    instance_buffer2: RefCell<InstanceBuffer>,
+    instance_buffer3: RefCell<InstanceBuffer>,
+    instance_buffer4: RefCell<InstanceBuffer>,
     /// The material applied to the instanced model
-    pub material: M,
+    pub material: Rc<M>,
 }
 
 impl InstancedModel<ColorMaterial> {
@@ -31,7 +35,7 @@ impl InstancedModel<ColorMaterial> {
         instances: &[ModelInstance],
         cpu_mesh: &CPUMesh,
     ) -> ThreeDResult<Self> {
-        Self::new_with_material(context, instances, cpu_mesh, ColorMaterial::default())
+        Self::new_with_material(context, instances, cpu_mesh, Rc::new(ColorMaterial::default()))
     }
 }
 
@@ -40,94 +44,122 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         context: &Context,
         instances: &[ModelInstance],
         cpu_mesh: &CPUMesh,
-        material: M,
+        material: Rc<M>,
     ) -> ThreeDResult<Self> {
         let aabb = cpu_mesh.compute_aabb();
         let mut model = Self {
             context: context.clone(),
             mesh: Mesh::new(context, cpu_mesh)?,
-            instance_buffer1: InstanceBuffer::new(context)?,
-            instance_buffer2: InstanceBuffer::new(context)?,
-            instance_buffer3: InstanceBuffer::new(context)?,
-            instance_buffer4: InstanceBuffer::new(context)?,
-            aabb,
-            aabb_local: aabb.clone(),
-            transformation: Mat4::identity(),
-            instances: instances.to_vec(),
-            texture_transform: TextureTransform::default(),
+            aabb: RefCell::new(aabb),
+            aabb_local: RefCell::new(aabb.clone()),
+            aabb_dirty: true,
+            transformation: RefCell::new(Mat4::identity()),
+            instances: RefCell::new(instances.to_vec()),
+            texture_transform: RefCell::new(TextureTransform::default()),
+            buffers_dirty: true,
+            instance_buffer1: RefCell::new(InstanceBuffer::new(context)?),
+            instance_buffer2: RefCell::new(InstanceBuffer::new(context)?),
+            instance_buffer3: RefCell::new(InstanceBuffer::new(context)?),
+            instance_buffer4: RefCell::new(InstanceBuffer::new(context)?),
             material,
         };
-        model.update_buffers();
         Ok(model)
     }
 
-    pub fn texture_transform(&mut self) -> &TextureTransform {
-        &self.texture_transform
+    pub fn texture_transform(&self) -> &TextureTransform {
+        &*self.texture_transform.borrow()
     }
 
-    pub fn set_texture_transform(&mut self, texture_transform: TextureTransform) {
-        self.texture_transform = texture_transform;
-    }
-
-    ///
-    /// Updates instance transform and uv buffers and aabb on demand.
-    ///
-    fn update_buffers(&mut self) {
-        let mut row1 = Vec::new();
-        let mut row2 = Vec::new();
-        let mut row3 = Vec::new();
-        let mut subt = Vec::new();
-        for instance in self.instances.iter() {
-            row1.push(instance.mesh_transform.x.x);
-            row1.push(instance.mesh_transform.y.x);
-            row1.push(instance.mesh_transform.z.x);
-            row1.push(instance.mesh_transform.w.x);
-
-            row2.push(instance.mesh_transform.x.y);
-            row2.push(instance.mesh_transform.y.y);
-            row2.push(instance.mesh_transform.z.y);
-            row2.push(instance.mesh_transform.w.y);
-
-            row3.push(instance.mesh_transform.x.z);
-            row3.push(instance.mesh_transform.y.z);
-            row3.push(instance.mesh_transform.z.z);
-            row3.push(instance.mesh_transform.w.z);
-
-            subt.push(instance.texture_transform.offset_x);
-            subt.push(instance.texture_transform.offset_y);
-            subt.push(instance.texture_transform.scale_x);
-            subt.push(instance.texture_transform.scale_y);
-        }
-        self.instance_buffer1.fill_with_dynamic(&row1);
-        self.instance_buffer2.fill_with_dynamic(&row2);
-        self.instance_buffer3.fill_with_dynamic(&row3);
-        self.instance_buffer4.fill_with_dynamic(&subt);
-        self.update_aabb();
+    pub fn set_texture_transform(&self, texture_transform: TextureTransform) {
+        let mut transform = *self.texture_transform.borrow_mut();
+        transform = texture_transform;
+        self.buffers_dirty = true;
     }
 
     ///
     /// Returns all instances
     ///
     pub fn instances(&self) -> &[ModelInstance] {
-        &self.instances
+        &*self.instances.borrow()
     }
 
     ///
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
-    pub fn set_instances(&mut self, instances: &[ModelInstance]) {
-        self.instances = instances.to_vec();
-        self.update_buffers();
+    pub fn set_instances(&self, new_instances: &[ModelInstance]) {
+        let mut instances = *self.instances.borrow_mut();
+        instances = new_instances.to_vec();
+        self.buffers_dirty = true;
     }
 
-    fn update_aabb(&mut self) {
+    fn update(&self) {
+        if self.buffers_dirty {
+            self.update_buffers();
+        }
+        if self.aabb_dirty {
+            self.update_aabb();
+        }
+    }
+
+    ///
+    /// Updates instance transform and uv buffers.
+    ///
+    fn update_buffers(&self) -> ThreeDResult<()> {
+        let mut row1 = Vec::new();
+        let mut row2 = Vec::new();
+        let mut row3 = Vec::new();
+        let mut subt = Vec::new();
+        let root_transform = *self.transformation.borrow();
+        let instances = *self.instances.borrow();
+        let mut instance_buffer1 = *self.instance_buffer1.borrow_mut();
+        let mut instance_buffer2 = *self.instance_buffer2.borrow_mut();
+        let mut instance_buffer3 = *self.instance_buffer3.borrow_mut();
+        let mut instance_buffer4 = *self.instance_buffer4.borrow_mut();
+        let combined_transform: Mat4;
+        for instance in instances.iter() {
+            combined_transform = root_transform * instance.mesh_transform;
+            row1.push(combined_transform.x.x);
+            row1.push(combined_transform.y.x);
+            row1.push(combined_transform.z.x);
+            row1.push(combined_transform.w.x);
+
+            row2.push(combined_transform.x.y);
+            row2.push(combined_transform.y.y);
+            row2.push(combined_transform.z.y);
+            row2.push(combined_transform.w.y);
+
+            row3.push(combined_transform.x.z);
+            row3.push(combined_transform.y.z);
+            row3.push(combined_transform.z.z);
+            row3.push(combined_transform.w.z);
+
+            subt.push(instance.texture_transform.offset_x);
+            subt.push(instance.texture_transform.offset_y);
+            subt.push(instance.texture_transform.scale_x);
+            subt.push(instance.texture_transform.scale_y);
+        }
+        instance_buffer1.fill_with_dynamic(&row1);
+        instance_buffer2.fill_with_dynamic(&row2);
+        instance_buffer3.fill_with_dynamic(&row3);
+        instance_buffer4.fill_with_dynamic(&subt);
+        self.aabb_dirty = true;
+        Ok(())
+    }
+
+    ///
+    /// Updates aabb.
+    ///
+    fn update_aabb(&self) -> ThreeDResult<()> {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for instance in self.instances.iter() {
-            let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(instance.mesh_transform * self.transformation));
+        let mut instances = *self.instances.borrow_mut();
+        let mut aabb_local = *self.aabb_local.borrow_mut();
+        let transformation = *self.transformation.borrow();
+        for instance in instances.iter() {
+            let mut aabb2 = aabb_local.clone();
+            aabb2.transform(&(instance.mesh_transform * transformation));
             aabb.expand_with_aabb(&aabb2);
         }
-        self.aabb = aabb;
+        Ok(())
     }
 
     fn draw(
@@ -137,19 +169,29 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        program.use_uniform_block("Camera", camera_buffer);
-        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+        self.update();
 
-        program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
-        program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
-        program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
+        let transformation = *self.transformation.borrow();
+        let texture_transform = *self.texture_transform.borrow();
+        let instance_buffer1 = *self.instance_buffer1.borrow();
+        let instance_buffer2 = *self.instance_buffer2.borrow();
+        let instance_buffer3 = *self.instance_buffer3.borrow();
+        let instance_buffer4 = *self.instance_buffer4.borrow();
+        let instances = *self.instances.borrow();
+
+        program.use_uniform_block("Camera", camera_buffer);
+        program.use_uniform_mat4("modelMatrix", &transformation)?;
+
+        program.use_attribute_vec4_instanced("row1", &instance_buffer1)?;
+        program.use_attribute_vec4_instanced("row2", &instance_buffer2)?;
+        program.use_attribute_vec4_instanced("row3", &instance_buffer3)?;
 
         if program.requires_attribute("position") {
             program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
-            program.use_uniform_vec4("textureTransform", &self.texture_transform.to_vec4())?;
-            program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
+            program.use_uniform_vec4("textureTransform", &texture_transform.to_vec4())?;
+            program.use_attribute_vec4_instanced("subt", &instance_buffer4)?;
             let uv_buffer = self
                 .mesh
                 .uv_buffer
@@ -187,14 +229,14 @@ impl<M: ForwardMaterial> InstancedModel<M> {
                 render_states,
                 viewport,
                 index_buffer,
-                self.instances.len() as u32,
+                instances.len() as u32,
             );
         } else {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
                 self.mesh.position_buffer.count() as u32 / 3,
-                self.instances.len() as u32,
+                instances.len() as u32,
             );
         }
         Ok(())
@@ -210,18 +252,20 @@ impl<M: ForwardMaterial> InstancedModel<M> {
 
 impl<M: ForwardMaterial> Geometry for InstancedModel<M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
+        *self.aabb.borrow()
     }
 
     fn transformation(&self) -> Mat4 {
-        self.transformation
+        *self.transformation.borrow()
     }
 }
 
+// &mut self is uncessary here, but needs to be removed at the trait level too.
 impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        self.update_aabb();
+    fn set_transformation(&mut self, new_transformation: Mat4) {
+        let mut transformation = *self.transformation.borrow_mut();
+        transformation = new_transformation;
+        self.aabb_dirty = true;
     }
 }
 
@@ -275,7 +319,7 @@ impl<M: ForwardMaterial> Shadable for InstancedModel<M> {
 
 impl<M: ForwardMaterial> Object for InstancedModel<M> {
     fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
-        self.render_forward(&self.material, camera, lights)
+        self.render_forward(&*self.material, camera, lights)
     }
 
     fn is_transparent(&self) -> bool {
