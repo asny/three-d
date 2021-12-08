@@ -1,7 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 ///
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently.
@@ -35,7 +35,12 @@ impl InstancedModel<ColorMaterial> {
         instances: &[ModelInstance],
         cpu_mesh: &CPUMesh,
     ) -> ThreeDResult<Self> {
-        Self::new_with_material(context, instances, cpu_mesh, Rc::new(ColorMaterial::default()))
+        Self::new_with_material(
+            context,
+            instances,
+            cpu_mesh,
+            Rc::new(ColorMaterial::default()),
+        )
     }
 }
 
