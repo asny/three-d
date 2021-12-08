@@ -9,7 +9,6 @@ use std::rc::Rc;
 pub struct InstancedModel<M: ForwardMaterial> {
     context: Context,
     mesh: Mesh,
-    aabb_dirty: bool,
     aabb_local: RefCell<AxisAlignedBoundingBox>,
     aabb: RefCell<AxisAlignedBoundingBox>,
     transformation: RefCell<Mat4>,
@@ -57,7 +56,6 @@ impl<M: ForwardMaterial> InstancedModel<M> {
             mesh: Mesh::new(context, cpu_mesh)?,
             aabb: RefCell::new(aabb),
             aabb_local: RefCell::new(aabb.clone()),
-            aabb_dirty: true,
             transformation: RefCell::new(Mat4::identity()),
             instances: RefCell::new(instances.to_vec()),
             texture_transform: RefCell::new(TextureTransform::default()),
@@ -97,12 +95,12 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         self.buffers_dirty = true;
     }
 
+    ///
+    /// Framework for future JIT updating additions.
+    ///
     fn update(&self) {
         if self.buffers_dirty {
             self.update_buffers();
-        }
-        if self.aabb_dirty {
-            self.update_aabb();
         }
     }
 
@@ -147,7 +145,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         instance_buffer2.fill_with_dynamic(&row2);
         instance_buffer3.fill_with_dynamic(&row3);
         instance_buffer4.fill_with_dynamic(&subt);
-        self.aabb_dirty = true;
+        self.update_aabb();
         Ok(())
     }
 
@@ -270,7 +268,7 @@ impl<M: ForwardMaterial> GeometryMut for InstancedModel<M> {
     fn set_transformation(&mut self, new_transformation: Mat4) {
         let mut transformation = *self.transformation.borrow_mut();
         transformation = new_transformation;
-        self.aabb_dirty = true;
+        self.buffers_dirty = true;
     }
 }
 
