@@ -113,29 +113,26 @@ impl<M: ForwardMaterial> InstancedModel<M> {
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
         let mut subt = Vec::new();
-        let root_transform = *self.transformation.borrow();
         let instances = &*self.instances.borrow();
         let instance_buffer1 = &mut *self.instance_buffer1.borrow_mut();
         let instance_buffer2 = &mut *self.instance_buffer2.borrow_mut();
         let instance_buffer3 = &mut *self.instance_buffer3.borrow_mut();
         let instance_buffer4 = &mut *self.instance_buffer4.borrow_mut();
-        let mut combined_transform: Mat4;
         for instance in instances.iter() {
-            combined_transform = root_transform * instance.mesh_transform;
-            row1.push(combined_transform.x.x);
-            row1.push(combined_transform.y.x);
-            row1.push(combined_transform.z.x);
-            row1.push(combined_transform.w.x);
+            row1.push(instance.mesh_transform.x.x);
+            row1.push(instance.mesh_transform.y.x);
+            row1.push(instance.mesh_transform.z.x);
+            row1.push(instance.mesh_transform.w.x);
 
-            row2.push(combined_transform.x.y);
-            row2.push(combined_transform.y.y);
-            row2.push(combined_transform.z.y);
-            row2.push(combined_transform.w.y);
+            row2.push(instance.mesh_transform.x.y);
+            row2.push(instance.mesh_transform.y.y);
+            row2.push(instance.mesh_transform.z.y);
+            row2.push(instance.mesh_transform.w.y);
 
-            row3.push(combined_transform.x.z);
-            row3.push(combined_transform.y.z);
-            row3.push(combined_transform.z.z);
-            row3.push(combined_transform.w.z);
+            row3.push(instance.mesh_transform.x.z);
+            row3.push(instance.mesh_transform.y.z);
+            row3.push(instance.mesh_transform.z.z);
+            row3.push(instance.mesh_transform.w.z);
 
             subt.push(instance.texture_transform.offset_x);
             subt.push(instance.texture_transform.offset_y);
