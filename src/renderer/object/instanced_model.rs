@@ -90,7 +90,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
     pub fn set_instances(&self, new_instances: &[ModelInstance]) {
-        let mut instances = self.instances.borrow_mut();
+        let instances = &mut *self.instances.borrow_mut();
         *instances = new_instances.to_vec();
         self.set_buffers_dirty(true);
     }
@@ -149,7 +149,7 @@ impl<M: ForwardMaterial> InstancedModel<M> {
     }
 
     fn set_buffers_dirty(&self, bool: bool) {
-        let mut dirty = self.buffers_dirty.borrow_mut();
+        let dirty = &mut self.buffers_dirty.borrow_mut();
         *dirty = bool
     }
 
