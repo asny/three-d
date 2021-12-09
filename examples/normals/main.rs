@@ -30,7 +30,7 @@ fn main() {
 
             let mut model3 = InstancedModel::new_with_material(
                 &context,
-                &[Mat4::identity()],
+                &[ModelInstance::default()],
                 &cpu_meshes[0],
                 material.clone(),
             )
@@ -46,7 +46,7 @@ fn main() {
 
             let mut model4 = InstancedModel::new_with_material(
                 &context,
-                &[Mat4::identity()],
+                &[ModelInstance::default()],
                 &cpu_meshes[0],
                 material.clone(),
             )
