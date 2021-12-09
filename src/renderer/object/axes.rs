@@ -37,23 +37,33 @@ impl Axes {
 }
 
 impl Shadable for Axes {
-    fn render_forward(
+    fn render_with_material(
         &self,
-        material: &dyn ForwardMaterial,
+        material: &dyn Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
-        model.render_forward(material, camera, lights)?;
+        model.render_with_material(material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_forward(material, camera, lights)?;
+        model.render_with_material(material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_forward(material, camera, lights)
+        model.render_with_material(material, camera, lights)
     }
 
+    fn render_forward(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &Lights,
+    ) -> ThreeDResult<()> {
+        self.render_with_material(material, camera, lights)
+    }
+
+    #[allow(deprecated)]
     fn render_deferred(
         &self,
-        material: &dyn DeferredMaterial,
+        material: &DeferredPhysicalMaterial,
         camera: &Camera,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
@@ -87,7 +97,7 @@ impl GeometryMut for Axes {
 impl Object for Axes {
     fn render(&self, camera: &Camera, _lights: &Lights) -> ThreeDResult<()> {
         let mut model = self.model.clone();
-        model.render_forward(
+        model.render_with_material(
             &ColorMaterial {
                 color: Color::RED,
                 ..Default::default()
@@ -96,7 +106,7 @@ impl Object for Axes {
             &Lights::default(),
         )?;
         model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_forward(
+        model.render_with_material(
             &ColorMaterial {
                 color: Color::GREEN,
                 ..Default::default()
@@ -105,7 +115,7 @@ impl Object for Axes {
             &Lights::default(),
         )?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_forward(
+        model.render_with_material(
             &ColorMaterial {
                 color: Color::BLUE,
                 ..Default::default()

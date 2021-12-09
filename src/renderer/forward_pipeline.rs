@@ -44,7 +44,7 @@ impl ForwardPipeline {
             .iter()
             .filter(|o| !o.is_transparent() && camera.in_frustum(&o.aabb()))
         {
-            object.render_forward(&depth_material, camera, &Lights::default())?;
+            object.render_with_material(&depth_material, camera, &Lights::default())?;
         }
         Ok(())
     }

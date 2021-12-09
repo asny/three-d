@@ -119,7 +119,11 @@ impl DirectionalLight {
                 .iter()
                 .filter(|g| shadow_camera.in_frustum(&g.aabb()))
             {
-                geometry.render_forward(&depth_material, &shadow_camera, &Lights::default())?;
+                geometry.render_with_material(
+                    &depth_material,
+                    &shadow_camera,
+                    &Lights::default(),
+                )?;
             }
             Ok(())
         })?;

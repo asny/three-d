@@ -3,11 +3,12 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// A physically-based material that renders a [Shadable] object in an approximate correct physical manner based on Physically Based Rendering (PBR).
+/// The deferred part of a physically-based material that renders a [Shadable] object in an approximate correct physical manner based on Physically Based Rendering (PBR).
+/// Must be used together with a [DeferredPipeline].
 /// This material is affected by lights.
 ///
 #[derive(Clone)]
-pub struct PhysicalMaterial {
+pub struct DeferredPhysicalMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
@@ -30,20 +31,17 @@ pub struct PhysicalMaterial {
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<Rc<Texture2D>>,
-    /// Render states used when the color is opaque (has a maximal alpha value).
-    pub opaque_render_states: RenderStates,
-    /// Render states used when the color is transparent (does not have a maximal alpha value).
-    pub transparent_render_states: RenderStates,
-
-    pub emissive: Color,
-    pub emissive_texture: Option<Rc<Texture2D>>,
+    /// Render states
+    pub render_states: RenderStates,
+    /// Alpha cutout value for transparency in deferred rendering pipeline.
+    pub alpha_cutout: Option<f32>,
 }
 
-impl PhysicalMaterial {
+impl DeferredPhysicalMaterial {
     ///
-    /// Constructs a new physical material from a [CPUMaterial].
+    /// Constructs a new deferred physical material from a [CPUMaterial].
     /// If the input contains an [CPUMaterial::occlusion_metallic_roughness_texture], this texture is used for both
-    /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CPUMaterial::metallic_roughness_texture] or [CPUMaterial::occlusion_texture] are ignored.
+    /// [DeferredPhysicalMaterial::metallic_roughness_texture] and [DeferredPhysicalMaterial::occlusion_texture] while any [CPUMaterial::metallic_roughness_texture] or [CPUMaterial::occlusion_texture] are ignored.
     ///
     pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
@@ -75,11 +73,6 @@ impl PhysicalMaterial {
         } else {
             None
         };
-        let emissive_texture = if let Some(ref cpu_texture) = cpu_material.emissive_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
-        } else {
-            None
-        };
         Ok(Self {
             name: cpu_material.name.clone(),
             albedo: cpu_material.albedo,
@@ -91,26 +84,40 @@ impl PhysicalMaterial {
             normal_scale: cpu_material.normal_scale,
             occlusion_texture,
             occlusion_strength: cpu_material.occlusion_strength,
-            opaque_render_states: RenderStates::default(),
-            transparent_render_states: RenderStates {
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
-            },
-            emissive: cpu_material.emissive,
-            emissive_texture,
+            render_states: RenderStates::default(),
+            alpha_cutout: cpu_material.alpha_cutout,
         })
+    }
+
+    ///
+    /// Constructs a deferred physical material from a physical material.
+    ///
+    pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
+        Self {
+            name: physical_material.name.clone(),
+            albedo: physical_material.albedo,
+            albedo_texture: physical_material.albedo_texture.clone(),
+            metallic: physical_material.metallic,
+            roughness: physical_material.roughness,
+            metallic_roughness_texture: physical_material.metallic_roughness_texture.clone(),
+            normal_texture: physical_material.normal_texture.clone(),
+            normal_scale: physical_material.normal_scale,
+            occlusion_texture: physical_material.occlusion_texture.clone(),
+            occlusion_strength: physical_material.occlusion_strength,
+            render_states: physical_material.opaque_render_states,
+            alpha_cutout: None,
+        }
     }
 }
 
-impl Material for PhysicalMaterial {
+impl Material for DeferredPhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
         let mut output = lights.fragment_shader_source();
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
             || self.occlusion_texture.is_some()
-            || self.emissive_texture.is_some()
+            || self.alpha_cutout.is_some()
         {
             output.push_str("in vec2 uvs;\n");
             if self.albedo_texture.is_some() {
@@ -125,16 +132,23 @@ impl Material for PhysicalMaterial {
             if self.normal_texture.is_some() {
                 output.push_str("#define USE_NORMAL_TEXTURE;\nin vec3 tang;\nin vec3 bitang;\n");
             }
-            if self.emissive_texture.is_some() {
-                output.push_str("#define USE_EMISSIVE_TEXTURE;\n");
+            if self.alpha_cutout.is_some() {
+                output.push_str(
+                    format!(
+                        "#define ALPHACUT;\nfloat acut = {};",
+                        self.alpha_cutout.unwrap()
+                    )
+                    .as_str(),
+                );
             }
         }
         if use_vertex_colors {
             output.push_str("#define USE_VERTEX_COLORS\nin vec4 col;\n");
         }
-        output.push_str(include_str!("shaders/physical_material.frag"));
+        output.push_str(include_str!("shaders/deferred_physical_material.frag"));
         output
     }
+
     fn use_uniforms(
         &self,
         program: &Program,
@@ -145,9 +159,6 @@ impl Material for PhysicalMaterial {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;
-        if program.requires_uniform("emissive") {
-            program.use_uniform_vec3("emissive", &self.emissive.to_vec3())?;
-        }
         if let Some(ref texture) = self.albedo_texture {
             program.use_texture("albedoTexture", texture.as_ref())?;
         }
@@ -162,32 +173,19 @@ impl Material for PhysicalMaterial {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
             program.use_texture("normalTexture", texture.as_ref())?;
         }
-        if program.requires_uniform("emissiveTexture") {
-            if let Some(ref texture) = self.emissive_texture {
-                program.use_texture("emissiveTexture", texture.as_ref())?;
-            }
-        }
         Ok(())
     }
 
     fn render_states(&self) -> RenderStates {
-        if self.is_transparent() {
-            self.transparent_render_states
-        } else {
-            self.opaque_render_states
-        }
+        self.render_states
     }
+
     fn is_transparent(&self) -> bool {
-        self.albedo.a != 255
-            || self
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false)
+        false
     }
 }
 
-impl Default for PhysicalMaterial {
+impl Default for DeferredPhysicalMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),
@@ -200,14 +198,8 @@ impl Default for PhysicalMaterial {
             normal_scale: 1.0,
             occlusion_texture: None,
             occlusion_strength: 1.0,
-            opaque_render_states: RenderStates::default(),
-            transparent_render_states: RenderStates {
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
-            },
-            emissive: Color::BLACK,
-            emissive_texture: None,
+            render_states: RenderStates::default(),
+            alpha_cutout: None,
         }
     }
 }

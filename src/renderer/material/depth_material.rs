@@ -8,7 +8,7 @@ pub struct DepthMaterial {
     pub render_states: RenderStates,
 }
 
-impl ForwardMaterial for DepthMaterial {
+impl Material for DepthMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
         include_str!("shaders/depth_material.frag").to_string()
     }

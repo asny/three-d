@@ -160,7 +160,7 @@ pub fn ray_intersect<S: Shadable>(
         },
         || {
             for geometry in geometries {
-                geometry.render_forward(&depth_material, &camera, &Lights::default())?;
+                geometry.render_with_material(&depth_material, &camera, &Lights::default())?;
             }
             Ok(())
         },

@@ -165,9 +165,8 @@ fn main() {
                             },
                             opaque_render_states: model.material.opaque_render_states,
                             transparent_render_states: model.material.transparent_render_states,
-                            alpha_cutout: model.material.alpha_cutout,
                         };
-                        model.render_forward(&material, &camera, &lights)?;
+                        model.render_with_material(&material, &camera, &lights)?;
                     }
                     gui.render()?;
                     Ok(())
