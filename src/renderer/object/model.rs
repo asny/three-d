@@ -174,7 +174,7 @@ impl<M: Material> Model<M> {
                 ""
             },
             include_str!("../../core/shared.frag"),
-            include_str!("../../core/mesh.vert"),
+            include_str!("shaders/mesh.vert"),
         ))
     }
 }
