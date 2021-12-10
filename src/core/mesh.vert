@@ -35,6 +35,10 @@ out vec3 bitang;
 
 
 #ifdef USE_UVS 
+#ifdef INSTANCED
+in vec4 subt;
+#endif
+uniform vec4 textureTransform;
 in vec2 uv_coordinates;
 out vec2 uvs;
 #endif
@@ -83,7 +87,10 @@ void main()
 #endif
 
 #ifdef USE_UVS 
-    uvs = uv_coordinates;
+    uvs = uv_coordinates * textureTransform.zw + textureTransform.xy;
+#ifdef INSTANCED
+    uvs = uvs * subt.zw + subt.xy;
+#endif
 #endif
 
 #ifdef USE_COLORS 

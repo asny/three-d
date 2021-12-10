@@ -12,6 +12,7 @@ pub struct Model<M: Material> {
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
+    texture_transform: TextureTransform,
     /// The material applied to the model
     pub material: M,
 }
@@ -41,9 +42,18 @@ impl<M: Material> Model<M> {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
+            texture_transform: TextureTransform::default(),
             context: context.clone(),
             material,
         })
+    }
+
+    pub fn texture_transform(&mut self) -> &TextureTransform {
+        &self.texture_transform
+    }
+
+    pub fn set_texture_transform(&mut self, texture_transform: TextureTransform) {
+        self.texture_transform = texture_transform;
     }
 
     pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
@@ -107,6 +117,7 @@ impl<M: Material> Shadable for Model<M> {
                     camera.uniform_buffer(),
                     camera.viewport(),
                     &self.transformation,
+                    &self.texture_transform,
                 )
             },
         )
@@ -141,6 +152,7 @@ impl<M: Material> Shadable for Model<M> {
                     camera.uniform_buffer(),
                     viewport,
                     &self.transformation,
+                    &self.texture_transform,
                 )
             },
         )

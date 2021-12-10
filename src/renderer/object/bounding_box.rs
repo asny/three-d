@@ -53,7 +53,13 @@ impl<M: Material> BoundingBox<M> {
         ];
         let model = InstancedModel::new_with_material(
             context,
-            &transformations,
+            &transformations
+                .iter()
+                .map(|t| ModelInstance {
+                    mesh_transform: *t,
+                    ..Default::default()
+                })
+                .collect::<Vec<_>>(),
             &CPUMesh::cylinder(16),
             material,
         )?;

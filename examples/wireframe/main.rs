@@ -133,20 +133,23 @@ fn main() {
     );
 }
 
-fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
+fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     let mut iter = cpu_mesh.positions.iter();
-    let mut vertex_transformations = Vec::new();
+    let mut instances = Vec::new();
     while let Some(v) = iter.next() {
-        vertex_transformations.push(Mat4::from_translation(vec3(
-            *v,
-            *iter.next().unwrap(),
-            *iter.next().unwrap(),
-        )));
+        instances.push(ModelInstance {
+            mesh_transform: Mat4::from_translation(vec3(
+                *v,
+                *iter.next().unwrap(),
+                *iter.next().unwrap(),
+            )),
+            ..Default::default()
+        });
     }
-    vertex_transformations
+    instances
 }
 
-fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
+fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     let mut edge_transformations = std::collections::HashMap::new();
     let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
     for f in 0..indices.len() / 3 {
@@ -177,6 +180,9 @@ fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<Mat4> {
     }
     edge_transformations
         .drain()
-        .map(|(_, v)| v)
-        .collect::<Vec<Mat4>>()
+        .map(|(_, v)| ModelInstance {
+            mesh_transform: v,
+            ..Default::default()
+        })
+        .collect::<Vec<_>>()
 }

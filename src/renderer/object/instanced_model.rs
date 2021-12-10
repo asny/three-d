@@ -7,14 +7,15 @@ use crate::renderer::*;
 pub struct InstancedModel<M: Material> {
     context: Context,
     mesh: Mesh,
-    instance_count: u32,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
+    instance_buffer4: InstanceBuffer,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    transformations: Vec<Mat4>,
+    instances: Vec<ModelInstance>,
+    texture_transform: TextureTransform,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -27,80 +28,103 @@ impl InstancedModel<ColorMaterial> {
     ///
     pub fn new(
         context: &Context,
-        transformations: &[Mat4],
+        instances: &[ModelInstance],
         cpu_mesh: &CPUMesh,
     ) -> ThreeDResult<Self> {
-        Self::new_with_material(context, transformations, cpu_mesh, ColorMaterial::default())
+        Self::new_with_material(context, instances, cpu_mesh, ColorMaterial::default())
     }
 }
 
 impl<M: Material> InstancedModel<M> {
     pub fn new_with_material(
         context: &Context,
-        transformations: &[Mat4],
+        instances: &[ModelInstance],
         cpu_mesh: &CPUMesh,
         material: M,
     ) -> ThreeDResult<Self> {
         let aabb = cpu_mesh.compute_aabb();
         let mut model = Self {
             context: context.clone(),
-            instance_count: 0,
             mesh: Mesh::new(context, cpu_mesh)?,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
+            instance_buffer4: InstanceBuffer::new(context)?,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
-            transformations: transformations.to_vec(),
+            instances: instances.to_vec(),
+            texture_transform: TextureTransform::default(),
             material,
         };
-        model.update_transformations(transformations);
-        model.update_aabb();
+        model.update_buffers();
         Ok(model)
     }
 
+    pub fn texture_transform(&mut self) -> &TextureTransform {
+        &self.texture_transform
+    }
+
+    pub fn set_texture_transform(&mut self, texture_transform: TextureTransform) {
+        self.texture_transform = texture_transform;
+    }
+
     ///
-    /// Updates the transformations applied to each model instance before they are rendered.
-    /// The model is rendered in as many instances as there are transformation matrices.
+    /// Updates instance transform and uv buffers and aabb on demand.
     ///
-    pub fn update_transformations(&mut self, transformations: &[Mat4]) {
-        self.transformations = transformations.to_vec();
-        self.instance_count = transformations.len() as u32;
+    fn update_buffers(&mut self) {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
-        for transform in transformations {
-            row1.push(transform.x.x);
-            row1.push(transform.y.x);
-            row1.push(transform.z.x);
-            row1.push(transform.w.x);
+        let mut subt = Vec::new();
+        for instance in self.instances.iter() {
+            row1.push(instance.mesh_transform.x.x);
+            row1.push(instance.mesh_transform.y.x);
+            row1.push(instance.mesh_transform.z.x);
+            row1.push(instance.mesh_transform.w.x);
 
-            row2.push(transform.x.y);
-            row2.push(transform.y.y);
-            row2.push(transform.z.y);
-            row2.push(transform.w.y);
+            row2.push(instance.mesh_transform.x.y);
+            row2.push(instance.mesh_transform.y.y);
+            row2.push(instance.mesh_transform.z.y);
+            row2.push(instance.mesh_transform.w.y);
 
-            row3.push(transform.x.z);
-            row3.push(transform.y.z);
-            row3.push(transform.z.z);
-            row3.push(transform.w.z);
+            row3.push(instance.mesh_transform.x.z);
+            row3.push(instance.mesh_transform.y.z);
+            row3.push(instance.mesh_transform.z.z);
+            row3.push(instance.mesh_transform.w.z);
+
+            subt.push(instance.texture_transform.offset_x);
+            subt.push(instance.texture_transform.offset_y);
+            subt.push(instance.texture_transform.scale_x);
+            subt.push(instance.texture_transform.scale_y);
         }
         self.instance_buffer1.fill_with_dynamic(&row1);
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
+        self.instance_buffer4.fill_with_dynamic(&subt);
         self.update_aabb();
     }
 
-    pub fn transformations(&self) -> &[Mat4] {
-        &self.transformations
+    ///
+    /// Returns all instances
+    ///
+    pub fn instances(&self) -> &[ModelInstance] {
+        &self.instances
+    }
+
+    ///
+    /// Create an instance for each element with the given mesh and texture transforms.
+    ///
+    pub fn set_instances(&mut self, instances: &[ModelInstance]) {
+        self.instances = instances.to_vec();
+        self.update_buffers();
     }
 
     fn update_aabb(&mut self) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for transform in self.transformations.iter() {
+        for instance in self.instances.iter() {
             let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(transform * self.transformation));
+            aabb2.transform(&(instance.mesh_transform * self.transformation));
             aabb.expand_with_aabb(&aabb2);
         }
         self.aabb = aabb;
@@ -124,6 +148,8 @@ impl<M: Material> InstancedModel<M> {
             program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
+            program.use_uniform_vec4("textureTransform", &self.texture_transform.to_vec4())?;
+            program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
             let uv_buffer = self
                 .mesh
                 .uv_buffer
@@ -161,14 +187,14 @@ impl<M: Material> InstancedModel<M> {
                 render_states,
                 viewport,
                 index_buffer,
-                self.instance_count,
+                self.instances.len() as u32,
             );
         } else {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
                 self.mesh.position_buffer.count() as u32 / 3,
-                self.instance_count,
+                self.instances.len() as u32,
             );
         }
         Ok(())
@@ -264,5 +290,20 @@ impl<M: Material> Object for InstancedModel<M> {
 
     fn is_transparent(&self) -> bool {
         self.material.is_transparent()
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ModelInstance {
+    pub mesh_transform: Mat4,
+    pub texture_transform: TextureTransform,
+}
+
+impl Default for ModelInstance {
+    fn default() -> Self {
+        Self {
+            mesh_transform: Mat4::identity(),
+            texture_transform: TextureTransform::default(),
+        }
     }
 }
