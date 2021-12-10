@@ -76,6 +76,107 @@ impl<M: Material> Model<M> {
             transformation.z.z,
         ));
     }
+
+    fn draw(
+        &self,
+        program: &Program,
+        render_states: RenderStates,
+        camera_buffer: &UniformBuffer,
+        viewport: Viewport,
+        transformation: &Mat4,
+        texture_transform: &TextureTransform,
+    ) -> ThreeDResult<()> {
+        program.use_uniform_block("Camera", camera_buffer);
+        program.use_uniform_mat4("modelMatrix", transformation)?;
+
+        if program.requires_attribute("position") {
+            program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
+        }
+        if program.requires_attribute("uv_coordinates") {
+            program.use_uniform_vec4("textureTransform", &texture_transform.to_vec4())?;
+            let uv_buffer = self
+                .mesh
+                .uv_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
+            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+        }
+        if program.requires_attribute("normal") {
+            let normal_buffer = self
+                .mesh
+                .normal_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
+            program.use_attribute_vec3("normal", normal_buffer)?;
+            program.use_uniform_mat4(
+                "normalMatrix",
+                &transformation.invert().unwrap().transpose(),
+            )?;
+            if program.requires_attribute("tangent") {
+                let tangent_buffer = self
+                    .mesh
+                    .tangent_buffer
+                    .as_ref()
+                    .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
+                program.use_attribute_vec4("tangent", tangent_buffer)?;
+            }
+        }
+        if program.requires_attribute("color") {
+            let color_buffer = self
+                .mesh
+                .color_buffer
+                .as_ref()
+                .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
+            program.use_attribute_vec4("color", color_buffer)?;
+        }
+        if let Some(ref index_buffer) = self.mesh.index_buffer {
+            program.draw_elements(render_states, viewport, index_buffer);
+        } else {
+            program.draw_arrays(
+                render_states,
+                viewport,
+                self.mesh.position_buffer.count() as u32 / 3,
+            );
+        }
+        Ok(())
+    }
+
+    pub(super) fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
+        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
+        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
+        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
+        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
+        Ok(format!(
+            "{}{}{}{}{}{}{}",
+            if use_positions {
+                "#define USE_POSITIONS\n"
+            } else {
+                ""
+            },
+            if use_normals {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if use_tangents {
+                if fragment_shader_source.find("in vec3 bitang;").is_none() {
+                    Err(CoreError::MissingBitangent)?;
+                }
+                "#define USE_TANGENTS\n"
+            } else {
+                ""
+            },
+            if use_uvs { "#define USE_UVS\n" } else { "" },
+            if use_colors {
+                "#define USE_COLORS\n"
+            } else {
+                ""
+            },
+            include_str!("../../core/shared.frag"),
+            include_str!("../../core/mesh.vert"),
+        ))
+    }
 }
 
 impl<M: Material> Geometry for Model<M> {
@@ -107,11 +208,11 @@ impl<M: Material> Shadable for Model<M> {
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source)?,
+            &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.mesh.draw(
+                self.draw(
                     program,
                     material.render_states(),
                     camera.uniform_buffer(),
@@ -142,11 +243,11 @@ impl<M: Material> Shadable for Model<M> {
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), &lights);
         self.context.program(
-            &Mesh::vertex_shader_source(&fragment_shader_source)?,
+            &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, &lights)?;
-                self.mesh.draw(
+                self.draw(
                     program,
                     material.render_states(),
                     camera.uniform_buffer(),
