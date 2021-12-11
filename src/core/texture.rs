@@ -25,6 +25,14 @@ mod depth_target_texture2d_array;
 #[doc(inline)]
 pub use depth_target_texture2d_array::*;
 
+mod color_target_texture_cube_map;
+#[doc(inline)]
+pub use color_target_texture_cube_map::*;
+
+mod depth_target_texture_cube_map;
+#[doc(inline)]
+pub use depth_target_texture_cube_map::*;
+
 ///
 /// Possible modes of interpolation which determines the texture output between texture pixels.
 ///
