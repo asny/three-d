@@ -513,6 +513,117 @@ impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     }
 }
 
+///
+/// Adds additional functionality to write to a [ColorTargetTextureCubeMap] and
+/// a [DepthTargetTextureCubeMap] at the same time.
+/// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
+///
+pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
+    context: Context,
+    id: crate::context::Framebuffer,
+    color_texture: Option<&'a ColorTargetTextureCubeMap<T>>,
+    depth_texture: Option<&'b DepthTargetTextureCubeMap>,
+}
+
+impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
+    ///
+    /// Constructs a new render target cube map that enables rendering into the given
+    /// [ColorTargetTextureCubeMap] and [DepthTargetTextureCubeMap] textures.
+    ///
+    pub fn new(
+        context: &Context,
+        color_texture: &'a ColorTargetTextureCubeMap<T>,
+        depth_texture: &'b DepthTargetTextureCubeMap,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: Some(depth_texture),
+        })
+    }
+
+    pub(super) fn new_color(
+        context: &Context,
+        color_texture: &'a ColorTargetTextureCubeMap<T>,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: None,
+        })
+    }
+
+    pub(super) fn new_depth(
+        context: &Context,
+        depth_texture: &'b DepthTargetTextureCubeMap,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: None,
+            depth_texture: Some(depth_texture),
+        })
+    }
+
+    pub fn write(
+        &self,
+        color_layers: &[u32],
+        depth_layer: u32,
+        clear_state: ClearState,
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
+        self.bind(Some(color_layers), Some(depth_layer))?;
+        clear(
+            &self.context,
+            &ClearState {
+                red: self.color_texture.and(clear_state.red),
+                green: self.color_texture.and(clear_state.green),
+                blue: self.color_texture.and(clear_state.blue),
+                alpha: self.color_texture.and(clear_state.alpha),
+                depth: self.depth_texture.and(clear_state.depth),
+            },
+        );
+        render()?;
+        if let Some(color_texture) = self.color_texture {
+            color_texture.generate_mip_maps();
+        }
+        Ok(())
+    }
+
+    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> ThreeDResult<()> {
+        self.context
+            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
+        if let Some(color_texture) = self.color_texture {
+            if let Some(color_layers) = color_layers {
+                self.context.draw_buffers(
+                    &(0..color_layers.len())
+                        .map(|i| consts::COLOR_ATTACHMENT0 + i as u32)
+                        .collect::<Vec<u32>>(),
+                );
+                for channel in 0..color_layers.len() {
+                    color_texture.bind_as_color_target(color_layers[channel], channel as u32);
+                }
+            }
+        }
+        if let Some(depth_texture) = self.depth_texture {
+            if let Some(depth_layer) = depth_layer {
+                depth_texture.bind_as_depth_target(depth_layer);
+            }
+        }
+        #[cfg(feature = "debug")]
+        check(&self.context)?;
+        Ok(())
+    }
+}
+
+impl<T: TextureDataType> Drop for RenderTargetCubeMap<'_, '_, T> {
+    fn drop(&mut self) {
+        self.context.delete_framebuffer(Some(&self.id));
+    }
+}
+
 fn new_framebuffer(context: &Context) -> ThreeDResult<crate::context::Framebuffer> {
     Ok(context
         .create_framebuffer()
