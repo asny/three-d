@@ -30,6 +30,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         mip_map_filter: Option<Interpolation>,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
+        wrap_r: Wrapping,
         format: Format,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
@@ -47,7 +48,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             },
             wrap_s,
             wrap_t,
-            None,
+            Some(wrap_r),
         );
         context.bind_texture(consts::TEXTURE_CUBE_MAP, &id);
         context.tex_storage_2d(
