@@ -24,14 +24,49 @@ impl Skybox<TextureCubeMap> {
         let texture = TextureCubeMap::new(&context, cpu_texture)?;
         Self::new_with_texture(context, texture)
     }
+}
 
+impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
+    ///
+    /// Creates a new skybox with a cube texture generated from the equirectangular texture given as input.
+    ///
+    pub fn new_from_equirectangular(
+        context: &Context,
+        cpu_texture: &CPUTexture<T>,
+    ) -> ThreeDResult<Skybox<ColorTargetTextureCubeMap<T>>> {
+        let program = Program::from_source(
+            context,
+            include_str!("shaders/equirectangular.vert"),
+            include_str!("shaders/equirectangular.frag"),
+        )?;
+        let map = Texture2D::new(context, cpu_texture)?;
+        program.use_texture("equirectangularMap", map)?;
+        let texture = ColorTargetTextureCubeMap::new(
+            &context,
+            512,
+            512,
+            Interpolation::Linear,
+            Interpolation::Linear,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Format::RGB,
+        )?;
+
+        for i in 0..6 {
+            texture.write(&[i], ClearState::default(), || Ok(()))?;
+        }
+
+        Self::new_with_texture(context, texture)
+    }
+}
+
+impl<T: TextureCube> Skybox<T> {
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
-    pub fn new_with_texture(
-        context: &Context,
-        texture: TextureCubeMap,
-    ) -> ThreeDResult<Skybox<TextureCubeMap>> {
+    pub fn new_with_texture(context: &Context, texture: T) -> ThreeDResult<Skybox<T>> {
         let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
@@ -46,9 +81,7 @@ impl Skybox<TextureCubeMap> {
             texture,
         })
     }
-}
 
-impl<T: TextureCube> Skybox<T> {
     ///
     /// Returns a reference to the cube map texture
     ///
