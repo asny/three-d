@@ -15,8 +15,6 @@ struct Attenuation
     float padding;
 };
 
-#define PI 3.1415926
-
 // handy value clamping to 0 - 1 range
 float saturate(in float value)
 {

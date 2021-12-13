@@ -20,6 +20,10 @@ mod ambient_light;
 #[doc(inline)]
 pub use ambient_light::*;
 
+mod environment_light;
+#[doc(inline)]
+pub use environment_light::*;
+
 use crate::core::*;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -43,6 +47,7 @@ pub enum NormalDistributionFunction {
 
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
+    pub environment: Option<EnvironmentLight>,
     pub directional: Vec<DirectionalLight>,
     pub spot: Vec<SpotLight>,
     pub point: Vec<PointLight>,
@@ -70,6 +75,7 @@ impl Default for Lights {
     fn default() -> Self {
         Self {
             ambient: None,
+            environment: None,
             directional: Vec::new(),
             spot: Vec::new(),
             point: Vec::new(),
@@ -92,13 +98,27 @@ impl<'a> LightsIterator<'a> {
 impl<'a> Iterator for LightsIterator<'a> {
     type Item = &'a dyn Light;
     fn next(&mut self) -> Option<Self::Item> {
+        let mut count = 0;
         let result = self
             .lights
             .ambient
             .as_ref()
             .filter(|_| self.index == 0)
             .map(|l| l as &dyn Light);
-        let mut count = if self.lights.ambient.is_some() { 1 } else { 0 };
+        if self.lights.ambient.is_some() {
+            count += 1;
+        }
+
+        let result = result.or_else(|| {
+            self.lights
+                .environment
+                .as_ref()
+                .filter(|_| self.index == 1)
+                .map(|l| l as &dyn Light)
+        });
+        if self.lights.environment.is_some() {
+            count += 1;
+        }
 
         let result = result.or_else(|| {
             self.lights
