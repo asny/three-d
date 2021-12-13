@@ -54,7 +54,18 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
             Format::RGB,
         )?;
 
+        let camera = Camera::new_perspective(
+            context,
+            Viewport::new_at_origo(512, 512),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 1.0, 0.0),
+            degrees(45.0),
+            0.001,
+            100.0,
+        )?;
         for i in 0..6 {
+            program.use_uniform_block("Camera", camera.uniform_buffer());
             texture.write(&[i], ClearState::default(), || Ok(()))?;
         }
 
