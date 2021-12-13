@@ -22,6 +22,7 @@ impl DepthTargetTextureCubeMap {
         height: u32,
         wrap_s: Wrapping,
         wrap_t: Wrapping,
+        wrap_r: Wrapping,
         format: DepthFormat,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
@@ -34,7 +35,7 @@ impl DepthTargetTextureCubeMap {
             None,
             wrap_s,
             wrap_t,
-            None,
+            Some(wrap_r),
         );
         context.bind_texture(consts::TEXTURE_CUBE_MAP, &id);
         context.tex_storage_2d(
