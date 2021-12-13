@@ -15,7 +15,7 @@ pub struct TextureCubeMap {
 
 impl TextureCubeMap {
     ///
-    /// Creates a new texture curbe map from the given cpu texture.
+    /// Creates a new texture cube map from the given cpu texture.
     /// The cpu texture data must contain 6 images all with the width and height specified in the cpu texture.
     /// The images are used in the following order; right, left, top, bottom, front, back.
     ///

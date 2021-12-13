@@ -3,20 +3,20 @@ use crate::core::*;
 ///
 /// An illusion of a sky.
 ///
-pub struct Skybox {
+pub struct Skybox<T: TextureCube> {
     program: Program,
     vertex_buffer: VertexBuffer,
-    texture: TextureCubeMap,
+    texture: T,
 }
 
-impl Skybox {
+impl Skybox<TextureCubeMap> {
     ///
     /// Creates a new skybox with the given cpu-side version of a [TextureCubeMap].
     ///
     pub fn new<T: TextureDataType>(
         context: &Context,
         cpu_texture: &mut CPUTexture<T>,
-    ) -> ThreeDResult<Skybox> {
+    ) -> ThreeDResult<Skybox<TextureCubeMap>> {
         cpu_texture.wrap_t = Wrapping::ClampToEdge;
         cpu_texture.wrap_s = Wrapping::ClampToEdge;
         cpu_texture.wrap_r = Wrapping::ClampToEdge;
@@ -28,7 +28,10 @@ impl Skybox {
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
-    pub fn new_with_texture(context: &Context, texture: TextureCubeMap) -> ThreeDResult<Skybox> {
+    pub fn new_with_texture(
+        context: &Context,
+        texture: TextureCubeMap,
+    ) -> ThreeDResult<Skybox<TextureCubeMap>> {
         let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
@@ -47,11 +50,13 @@ impl Skybox {
             texture,
         })
     }
+}
 
+impl<T: TextureCube> Skybox<T> {
     ///
     /// Returns a reference to the cube map texture
     ///
-    pub fn texture(&self) -> &TextureCubeMap {
+    pub fn texture(&self) -> &impl TextureCube {
         &self.texture
     }
 
