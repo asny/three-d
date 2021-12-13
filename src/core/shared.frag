@@ -1,4 +1,5 @@
 
+#define PI 3.1415926
 
 vec3 srgb_from_rgb(vec3 rgb) {
 	vec3 a = vec3(0.055, 0.055, 0.055);
