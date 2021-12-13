@@ -113,7 +113,7 @@ impl<'a> Iterator for LightsIterator<'a> {
             self.lights
                 .environment
                 .as_ref()
-                .filter(|_| self.index == 1)
+                .filter(|_| self.index == if self.lights.ambient.is_some() { 1 } else { 0 })
                 .map(|l| l as &dyn Light)
         });
         if self.lights.environment.is_some() {
