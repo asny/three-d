@@ -40,6 +40,27 @@ mod image_io {
             image_from_bytes(&self.get_bytes(path)?)
         }
 
+        pub fn hdr_image(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CPUTexture<f32>> {
+            use image::codecs::hdr::*;
+            use image::*;
+            let bytes = self.get_bytes(path)?;
+            let decoder = HdrDecoder::new(bytes)?;
+            let metadata = decoder.metadata();
+            let img = decoder.read_image_hdr()?;
+            Ok(CPUTexture {
+                data: img
+                    .iter()
+                    .map(|Rgb(values)| values)
+                    .flatten()
+                    .map(|v| *v)
+                    .collect::<Vec<_>>(),
+                width: metadata.width,
+                height: metadata.height,
+                format: Format::RGB,
+                ..Default::default()
+            })
+        }
+
         ///
         /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
         /// the [image](https://crates.io/crates/image/main.rs) crate.
