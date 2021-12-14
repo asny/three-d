@@ -40,9 +40,7 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
             include_str!("shaders/equirectangular.frag"),
         )?;
         let map = Texture2D::new(context, cpu_texture)?;
-        program.use_texture("equirectangularMap", &map)?;
         let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
-        program.use_attribute_vec3("position", &vertex_buffer)?;
         let texture = ColorTargetTextureCubeMap::new(
             &context,
             512,
@@ -56,18 +54,54 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
             Format::RGB,
         )?;
 
-        let camera = Camera::new_perspective(
+        let mut camera = Camera::new_perspective(
             context,
             Viewport::new_at_origo(512, 512),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 0.0, -1.0),
             vec3(0.0, 1.0, 0.0),
-            degrees(45.0),
-            0.001,
-            100.0,
+            degrees(90.0),
+            0.1,
+            10.0,
         )?;
         for i in 0..6 {
+            match i {
+                0 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                1 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                2 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 0.0, 1.0),
+                ),
+                3 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, 0.0, -1.0),
+                ),
+                4 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                5 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                _ => unreachable!(),
+            }?;
+
             program.use_uniform_block("Camera", camera.uniform_buffer());
+            program.use_texture("equirectangularMap", &map)?;
+            program.use_attribute_vec3("position", &vertex_buffer)?;
             texture.write(&[i], ClearState::default(), || {
                 program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
                 Ok(())
