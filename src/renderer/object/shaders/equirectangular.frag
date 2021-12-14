@@ -11,7 +11,7 @@ vec2 sample_spherical_map(vec3 v)
     vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
     uv *= invAtan;
     uv += 0.5;
-    return uv;
+    return vec2(uv.x, 1.0 - uv.y);
 }
 
 void main()
