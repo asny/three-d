@@ -41,6 +41,8 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
         )?;
         let map = Texture2D::new(context, cpu_texture)?;
         program.use_texture("equirectangularMap", map)?;
+        let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
+        program.use_attribute_vec3("position", &vertex_buffer)?;
         let texture = ColorTargetTextureCubeMap::new(
             &context,
             512,
@@ -66,7 +68,10 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
         )?;
         for i in 0..6 {
             program.use_uniform_block("Camera", camera.uniform_buffer());
-            texture.write(&[i], ClearState::default(), || Ok(()))?;
+            texture.write(&[i], ClearState::default(), || {
+                program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
+                Ok(())
+            })?;
         }
 
         Self::new_with_texture(context, texture)
