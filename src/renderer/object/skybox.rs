@@ -40,7 +40,7 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
             include_str!("shaders/equirectangular.frag"),
         )?;
         let map = Texture2D::new(context, cpu_texture)?;
-        program.use_texture("equirectangularMap", map)?;
+        program.use_texture("equirectangularMap", &map)?;
         let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
         program.use_attribute_vec3("position", &vertex_buffer)?;
         let texture = ColorTargetTextureCubeMap::new(
