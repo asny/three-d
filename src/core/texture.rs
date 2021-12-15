@@ -521,7 +521,7 @@ fn calculate_number_of_mip_maps(
     width: u32,
     height: u32,
 ) -> u32 {
-    if mip_map_filter.is_some() && width.is_power_of_two() && height.is_power_of_two() {
+    if mip_map_filter.is_some() && width == height && height.is_power_of_two() {
         let w = (width as f64).log2().ceil();
         let h = (height as f64).log2().ceil();
         w.max(h).floor() as u32 + 1
