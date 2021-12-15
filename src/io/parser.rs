@@ -46,13 +46,18 @@ mod image_io {
             let bytes = self.get_bytes(path)?;
             let decoder = HdrDecoder::new(bytes)?;
             let metadata = decoder.metadata();
-            let img = decoder.read_image_hdr()?;
+            let img = decoder.read_image_native()?;
             Ok(CPUTexture {
                 data: img
                     .iter()
-                    .map(|Rgb(values)| values)
+                    .map(|rgbe| {
+                        if let Rgb(values) = rgbe.to_hdr() {
+                            values
+                        } else {
+                            unreachable!()
+                        }
+                    })
                     .flatten()
-                    .map(|v| *v)
                     .collect::<Vec<_>>(),
                 width: metadata.width,
                 height: metadata.height,
