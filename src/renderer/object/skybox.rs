@@ -51,12 +51,12 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGB,
+            Format::RGBA,
         )?;
 
         let mut camera = Camera::new_perspective(
             context,
-            Viewport::new_at_origo(512, 512),
+            Viewport::new_at_origo(texture.width(), texture.height()),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 0.0, -1.0),
             vec3(0.0, 1.0, 0.0),
