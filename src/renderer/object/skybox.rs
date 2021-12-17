@@ -102,7 +102,7 @@ impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
             program.use_uniform_block("Camera", camera.uniform_buffer());
             program.use_texture("equirectangularMap", &map)?;
             program.use_attribute_vec3("position", &vertex_buffer)?;
-            texture.write(&[i], ClearState::default(), || {
+            texture.write(i, ClearState::default(), || {
                 program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
                 Ok(())
             })?;

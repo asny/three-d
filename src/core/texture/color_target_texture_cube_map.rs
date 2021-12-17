@@ -71,12 +71,12 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
 
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &self,
-        color_layers: &[u32],
+        color_layer: u32,
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
         RenderTargetCubeMap::new_color(&self.context, &self)?.write(
-            color_layers,
+            color_layer,
             0,
             clear_state,
             render,
