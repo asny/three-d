@@ -77,7 +77,7 @@ impl EnvironmentLight {
             program.use_uniform_block("Camera", camera.uniform_buffer());
             program.use_texture_cube("environmentMap", environment_map)?;
             program.use_attribute_vec3("position", &vertex_buffer)?;
-            irradiance_map.write(&[i], ClearState::default(), || {
+            irradiance_map.write(i, ClearState::default(), || {
                 program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
                 Ok(())
             })?;

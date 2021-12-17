@@ -569,12 +569,12 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
     pub fn write(
         &self,
-        color_layers: &[u32],
+        color_layer: u32,
         depth_layer: u32,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.bind(Some(color_layers), Some(depth_layer))?;
+        self.bind(Some(color_layer), Some(depth_layer))?;
         clear(
             &self.context,
             &ClearState {
@@ -592,19 +592,13 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         Ok(())
     }
 
-    fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> ThreeDResult<()> {
+    fn bind(&self, color_layer: Option<u32>, depth_layer: Option<u32>) -> ThreeDResult<()> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
-            if let Some(color_layers) = color_layers {
-                self.context.draw_buffers(
-                    &(0..color_layers.len())
-                        .map(|i| consts::COLOR_ATTACHMENT0 + i as u32)
-                        .collect::<Vec<u32>>(),
-                );
-                for channel in 0..color_layers.len() {
-                    color_texture.bind_as_color_target(color_layers[channel], channel as u32);
-                }
+            if let Some(color_layer) = color_layer {
+                self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+                color_texture.bind_as_color_target(color_layer, 0);
             }
         }
         if let Some(depth_texture) = self.depth_texture {
