@@ -126,6 +126,10 @@ impl Window {
         context
             .get_extension("OES_texture_float")
             .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
+        context
+            .get_extension("OES_texture_float_linear")
+            .map_err(|e| CanvasError::OESTextureFloatNotSupported(format!(": {:?}", e)))?;
+
         Ok(crate::core::Context::from_gl_context(
             crate::context::GLContext::new(context),
         ))
