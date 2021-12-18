@@ -69,6 +69,124 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         })
     }
 
+    ///
+    /// Creates a new cube texture generated from the equirectangular texture given as input.
+    ///
+    pub fn new_from_equirectangular<T_: TextureDataType>(
+        context: &Context,
+        cpu_texture: &CPUTexture<T_>,
+    ) -> ThreeDResult<Self> {
+        let program = Program::from_source(
+            context,
+            "layout (std140) uniform Camera
+            {
+                mat4 viewProjection;
+                mat4 view;
+                mat4 projection;
+                vec3 position;
+                float padding;
+            } camera;
+            
+            in vec3 position;
+            out vec3 pos;
+            
+            void main()
+            {
+                pos = position;
+                gl_Position = camera.viewProjection * vec4(position, 1.0);
+            }",
+            "uniform sampler2D equirectangularMap;
+            const vec2 invAtan = vec2(0.1591, 0.3183);
+            
+            in vec3 pos;
+            layout (location = 0) out vec4 outColor;
+            
+            vec2 sample_spherical_map(vec3 v)
+            {
+                vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
+                uv *= invAtan;
+                uv += 0.5;
+                return vec2(uv.x, 1.0 - uv.y);
+            }
+            
+            void main()
+            {		
+                vec2 uv = sample_spherical_map(normalize(pos));
+                outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
+            }",
+        )?;
+        let map = Texture2D::new(context, cpu_texture)?;
+        let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
+        let texture = Self::new(
+            &context,
+            512,
+            512,
+            Interpolation::Linear,
+            Interpolation::Linear,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Format::RGBA,
+        )?;
+
+        let mut camera = Camera::new_perspective(
+            context,
+            Viewport::new_at_origo(texture.width(), texture.height()),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 1.0, 0.0),
+            degrees(90.0),
+            0.1,
+            10.0,
+        )?;
+        for i in 0..6 {
+            match i {
+                0 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                1 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                2 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 0.0, 1.0),
+                ),
+                3 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, 0.0, -1.0),
+                ),
+                4 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                5 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                _ => unreachable!(),
+            }?;
+
+            program.use_uniform_block("Camera", camera.uniform_buffer());
+            program.use_texture("equirectangularMap", &map)?;
+            program.use_attribute_vec3("position", &vertex_buffer)?;
+            texture.write(i, ClearState::default(), || {
+                program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
+                Ok(())
+            })?;
+        }
+
+        Ok(texture)
+    }
+
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &self,
         color_layer: u32,
