@@ -15,7 +15,7 @@ void main()
     // incoming radiance of the environment. The result of this radiance
     // is the radiance of light coming from -Normal direction, which is what
     // we use in the PBR shader to sample irradiance.
-    vec3 N = normalize(WorldPos);
+    vec3 N = normalize(pos);
 
     vec3 irradiance = vec3(0.0);   
     
