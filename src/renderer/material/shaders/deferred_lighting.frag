@@ -32,6 +32,8 @@ void main()
     float roughness_factor = n.w;
     float occlusion = n.z;
 
-    outColor.rgb = srgb_from_rgb(calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion));
+    outColor.rgb = calculate_lighting(surface_color.rgb, position, normal, metallic_factor, roughness_factor, occlusion);
+    outColor.rgb = reinhard_tone_mapping(outColor.rgb);
+    outColor.rgb = srgb_from_rgb(outColor.rgb);
     outColor.a = surface_color.a;
 }

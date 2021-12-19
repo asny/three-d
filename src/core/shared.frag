@@ -27,3 +27,7 @@ vec3 world_pos_from_depth(mat4 viewProjectionInverse, float depth, vec2 uv) {
     vec4 position = viewProjectionInverse * clipSpacePosition;
     return position.xyz / position.w;
 }
+
+vec3 reinhard_tone_mapping(vec3 color) {
+    return color / (color + vec3(1.0));
+}
