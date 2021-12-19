@@ -17,21 +17,21 @@ impl EnvironmentLight {
         )?;
         let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
         let irradiance_map = ColorTargetTextureCubeMap::new(
-            &context,
-            512,
-            512,
+            context,
+            32,
+            32,
             Interpolation::Linear,
             Interpolation::Linear,
             None,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
-            Format::RGB,
+            Format::RGBA,
         )?;
 
         let mut camera = Camera::new_perspective(
             context,
-            Viewport::new_at_origo(512, 512),
+            Viewport::new_at_origo(irradiance_map.width(), irradiance_map.height()),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 0.0, -1.0),
             vec3(0.0, 1.0, 0.0),
