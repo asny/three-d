@@ -163,7 +163,7 @@ pub(crate) fn lights_fragment_shader_source(
     }
     .to_string();
     shader_source.push_str(include_str!("../core/shared.frag"));
-    shader_source.push_str(include_str!("./material/shaders/light_shared.frag"));
+    shader_source.push_str(include_str!("./light/shaders/light_shared.frag"));
     let mut dir_fun = String::new();
     for (i, light) in lights.enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
