@@ -72,6 +72,8 @@ void main()
     total_emissive *= rgb_from_srgb(e.rgb);
 #endif
 
-    outColor.rgb = srgb_from_rgb(total_emissive + calculate_lighting(surface_color.rgb, pos, normal, metallic_factor, roughness_factor, occlusion));
+    outColor.rgb = total_emissive + calculate_lighting(surface_color.rgb, pos, normal, metallic_factor, roughness_factor, occlusion);
+    outColor.rgb = reinhard_tone_mapping(outColor.rgb);
+    outColor.rgb = srgb_from_rgb(outColor.rgb);
     outColor.a = surface_color.a;
 }
