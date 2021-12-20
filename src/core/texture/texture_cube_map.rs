@@ -116,7 +116,7 @@ impl TextureCube for TextureCubeMap {
         self.format
     }
     fn is_hdr(&self) -> bool {
-        self.is_hdr()
+        self.is_hdr
     }
 }
 
