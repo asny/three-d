@@ -119,8 +119,8 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
         let texture = Self::new(
             &context,
-            512,
-            512,
+            cpu_texture.height,
+            cpu_texture.height,
             Interpolation::Linear,
             Interpolation::Linear,
             None,
