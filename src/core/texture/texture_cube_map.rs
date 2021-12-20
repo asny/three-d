@@ -4,25 +4,23 @@ use crate::core::texture::*;
 ///
 /// A texture that covers all 6 sides of a cube.
 ///
-pub struct TextureCubeMap {
+pub struct TextureCubeMap<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
     width: u32,
     height: u32,
     format: Format,
     number_of_mip_maps: u32,
+    _dummy: T,
 }
 
-impl TextureCubeMap {
+impl<T: TextureDataType> TextureCubeMap<T> {
     ///
     /// Creates a new texture cube map from the given cpu texture.
     /// The cpu texture data must contain 6 images all with the width and height specified in the cpu texture.
     /// The images are used in the following order; right, left, top, bottom, front, back.
     ///
-    pub fn new<T: TextureDataType>(
-        context: &Context,
-        cpu_texture: &CPUTexture<T>,
-    ) -> ThreeDResult<TextureCubeMap> {
+    pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> ThreeDResult<TextureCubeMap<T>> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -59,6 +57,7 @@ impl TextureCubeMap {
             height: cpu_texture.height,
             format: cpu_texture.format,
             number_of_mip_maps,
+            _dummy: T::default(),
         };
         texture.fill(&cpu_texture.data)?;
         Ok(texture)
@@ -70,7 +69,7 @@ impl TextureCubeMap {
     /// # Errors
     /// Returns an error if the length of the data does not correspond to 6 images with the width, height and format specified at construction.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         let offset = data.len() / 6;
         check_data_length(self.width, self.height, 1, self.format, offset)?;
         self.context
@@ -98,7 +97,7 @@ impl TextureCubeMap {
     }
 }
 
-impl TextureCube for TextureCubeMap {
+impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
     }
@@ -113,9 +112,12 @@ impl TextureCube for TextureCubeMap {
     fn format(&self) -> Format {
         self.format
     }
+    fn is_hdr(&self) -> bool {
+        T::bits_per_channel() > 8
+    }
 }
 
-impl Drop for TextureCubeMap {
+impl<T: TextureDataType> Drop for TextureCubeMap<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }

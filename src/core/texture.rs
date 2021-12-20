@@ -189,6 +189,7 @@ pub(in crate::core) mod internal {
         );
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
         fn is_max(value: Self) -> bool;
+        fn bits_per_channel() -> u8;
     }
 
     impl TextureDataTypeExtension for u8 {
@@ -237,6 +238,10 @@ pub(in crate::core) mod internal {
         fn is_max(value: Self) -> bool {
             value == 255u8
         }
+
+        fn bits_per_channel() -> u8 {
+            8
+        }
     }
     impl TextureDataTypeExtension for f32 {
         fn internal_format(format: Format) -> ThreeDResult<u32> {
@@ -284,6 +289,10 @@ pub(in crate::core) mod internal {
         fn is_max(value: Self) -> bool {
             value > 0.99
         }
+
+        fn bits_per_channel() -> u8 {
+            32
+        }
     }
 
     impl TextureDataTypeExtension for u32 {
@@ -330,6 +339,10 @@ pub(in crate::core) mod internal {
 
         fn is_max(_value: Self) -> bool {
             true
+        }
+
+        fn bits_per_channel() -> u8 {
+            32
         }
     }
 
@@ -426,6 +439,8 @@ pub trait TextureCube {
     fn height(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
+
+    fn is_hdr(&self) -> bool;
 }
 
 impl<T: TextureCube + ?Sized> TextureCube for &T {
@@ -440,6 +455,9 @@ impl<T: TextureCube + ?Sized> TextureCube for &T {
     }
     fn format(&self) -> Format {
         (*self).format()
+    }
+    fn is_hdr(&self) -> bool {
+        (*self).is_hdr()
     }
 }
 

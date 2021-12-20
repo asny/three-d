@@ -233,6 +233,9 @@ impl<T: TextureDataType> TextureCube for ColorTargetTextureCubeMap<T> {
     fn format(&self) -> Format {
         self.format
     }
+    fn is_hdr(&self) -> bool {
+        T::bits_per_channel() > 8
+    }
 }
 
 impl<T: TextureDataType> Drop for ColorTargetTextureCubeMap<T> {
