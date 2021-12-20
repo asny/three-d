@@ -98,6 +98,9 @@ impl TextureCube for DepthTargetTextureCubeMap {
     fn format(&self) -> Format {
         Format::R
     }
+    fn is_hdr(&self) -> bool {
+        false
+    }
 }
 
 impl Drop for DepthTargetTextureCubeMap {

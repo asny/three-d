@@ -9,14 +9,14 @@ pub struct Skybox<T: TextureCube> {
     texture: T,
 }
 
-impl Skybox<TextureCubeMap> {
+impl<T: TextureDataType> Skybox<TextureCubeMap<T>> {
     ///
     /// Creates a new skybox with the given cpu-side version of a [TextureCubeMap].
     ///
-    pub fn new<T: TextureDataType>(
+    pub fn new(
         context: &Context,
         cpu_texture: &mut CPUTexture<T>,
-    ) -> ThreeDResult<Skybox<TextureCubeMap>> {
+    ) -> ThreeDResult<Skybox<TextureCubeMap<T>>> {
         cpu_texture.wrap_t = Wrapping::ClampToEdge;
         cpu_texture.wrap_s = Wrapping::ClampToEdge;
         cpu_texture.wrap_r = Wrapping::ClampToEdge;
@@ -48,7 +48,11 @@ impl<T: TextureCube> Skybox<T> {
         let program = Program::from_source(
             context,
             include_str!("shaders/skybox.vert"),
-            include_str!("shaders/skybox.frag"),
+            &format!(
+                "{}{}",
+                include_str!("../../core/shared.frag"),
+                include_str!("shaders/skybox.frag")
+            ),
         )?;
 
         let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
@@ -77,6 +81,8 @@ impl<T: TextureCube> Skybox<T> {
             ..Default::default()
         };
 
+        self.program
+            .use_uniform_int("isHDR", if self.texture.is_hdr() { &1 } else { &0 })?;
         self.program.use_texture_cube("texture0", &self.texture)?;
         self.program
             .use_uniform_block("Camera", camera.uniform_buffer());
