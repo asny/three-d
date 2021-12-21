@@ -28,14 +28,18 @@ void main()
     float nrSamples = 0.0;
     for(float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta)
     {
+        float sin_phi = sin(phi);
+        float cos_phi = cos(phi);
         for(float theta = 0.0; theta < 0.5 * PI; theta += sampleDelta)
         {
+            float sin_theta = sin(theta);
+            float cos_theta = cos(theta);
             // spherical to cartesian (in tangent space)
-            vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+            vec3 tangentSample = vec3(sin_theta * cos_phi,  sin_theta * sin_phi, cos_theta);
             // tangent space to world
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N; 
 
-            irradiance += texture(environmentMap, sampleVec).rgb * cos(theta) * sin(theta);
+            irradiance += texture(environmentMap, sampleVec).rgb * cos_theta * sin_theta;
             nrSamples++;
         }
     }
