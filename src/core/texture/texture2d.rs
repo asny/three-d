@@ -4,7 +4,7 @@ use crate::core::texture::*;
 /// A 2D texture, basically an image that is transferred to the GPU.
 /// For a texture that can be rendered into, see [ColorTargetTexture2D].
 ///
-pub struct Texture2D {
+pub struct Texture2D<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
     width: u32,
@@ -12,16 +12,14 @@ pub struct Texture2D {
     format: Format,
     number_of_mip_maps: u32,
     transparent: bool,
+    _dummy: T,
 }
 
-impl Texture2D {
+impl<T: TextureDataType> Texture2D<T> {
     ///
     /// Construcs a new texture with the given data.
     ///
-    pub fn new<T: TextureDataType>(
-        context: &Context,
-        cpu_texture: &CPUTexture<T>,
-    ) -> ThreeDResult<Texture2D> {
+    pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> ThreeDResult<Texture2D<T>> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(
             cpu_texture.mip_map_filter,
@@ -58,6 +56,7 @@ impl Texture2D {
             format: cpu_texture.format,
             number_of_mip_maps,
             transparent: false,
+            _dummy: T::default(),
         };
         tex.fill(&cpu_texture.data)?;
         Ok(tex)
@@ -69,7 +68,7 @@ impl Texture2D {
     /// # Errors
     /// Return an error if the length of the data array is smaller or bigger than the necessary number of bytes to fill the entire texture.
     ///
-    pub fn fill<T: TextureDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
+    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
         self.transparent = if self.format == Format::RGBA {
             let mut transparent = false;
@@ -104,7 +103,7 @@ impl Texture2D {
     }
 }
 
-impl Texture for Texture2D {
+impl<T: TextureDataType> Texture for Texture2D<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
     }
@@ -122,7 +121,7 @@ impl Texture for Texture2D {
     }
 }
 
-impl Drop for Texture2D {
+impl<T: TextureDataType> Drop for Texture2D<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }

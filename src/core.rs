@@ -18,7 +18,7 @@ pub struct Context {
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
-    dummy_tex: Rc<RefCell<Option<Texture2D>>>,
+    dummy_tex: Rc<RefCell<Option<Texture2D<u8>>>>,
 }
 
 impl Context {

@@ -14,7 +14,7 @@ pub struct GUI {
     height: u32,
     program: Program,
     texture_version: u64,
-    texture: Option<Texture2D>,
+    texture: Option<Texture2D<u8>>,
 }
 
 impl GUI {
@@ -178,7 +178,7 @@ impl GUI {
         width: u32,
         height: u32,
         mesh: &egui::paint::Mesh,
-        texture: &Texture2D,
+        texture: &Texture2D<u8>,
     ) -> ThreeDResult<()> {
         debug_assert!(mesh.is_valid());
 

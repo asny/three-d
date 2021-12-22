@@ -11,7 +11,7 @@ pub struct ColorMaterial {
     /// A color applied everywhere.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Shadable] object supports uv coordinates).
-    pub texture: Option<Rc<Texture2D>>,
+    pub texture: Option<Rc<Texture2D<u8>>>,
     /// Render states used when the color is opaque (has a maximal alpha value).
     pub opaque_render_states: RenderStates,
     /// Render states used when the color is transparent (does not have a maximal alpha value).
