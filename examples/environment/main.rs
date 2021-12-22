@@ -37,19 +37,19 @@ fn main() {
         ],
         move |context, mut loaded| {
             let environment_map = loaded.hdr_image("flower").unwrap();
-            let skybox_ = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
+            let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
             /*let skybox = Skybox::new(
                 &context,
                 &mut loaded.cube_image("right", "left", "top", "top", "front", "back")?,
             )?;*/
-            let skybox = Skybox::new_with_texture(
+            /*let skybox = Skybox::new_with_texture(
                 &context,
                 EnvironmentLight::generate_texture(&context, skybox_.texture())?,
             )
-            .unwrap();
+            .unwrap();*/
 
             let lights = Lights {
-                environment: Some(EnvironmentLight::new(&context, skybox_.texture())?),
+                environment: Some(EnvironmentLight::new(&context, skybox.texture())?),
                 lighting_model: LightingModel::Cook(
                     NormalDistributionFunction::TrowbridgeReitzGGX,
                     GeometryFunction::SmithSchlickGGX,
