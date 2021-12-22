@@ -123,7 +123,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             cpu_texture.height,
             Interpolation::Linear,
             Interpolation::Linear,
-            None,
+            Some(Interpolation::Linear),
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
