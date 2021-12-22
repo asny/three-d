@@ -7,7 +7,7 @@ pub struct NormalMaterial {
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
-    pub normal_texture: Option<Rc<Texture2D>>,
+    pub normal_texture: Option<Rc<Texture2D<u8>>>,
     pub render_states: RenderStates,
 }
 
