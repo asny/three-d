@@ -27,18 +27,9 @@ fn main() {
 
     let skybox = Loading::new(
         &context,
-        &[
-            "examples/assets/skybox_evening/right.jpg",
-            "examples/assets/skybox_evening/left.jpg",
-            "examples/assets/skybox_evening/top.jpg",
-            "examples/assets/skybox_evening/front.jpg",
-            "examples/assets/skybox_evening/back.jpg",
-        ],
+        &["examples/assets/flower_road_4k.hdr"],
         move |context, mut loaded| {
-            Skybox::new(
-                &context,
-                &mut loaded.cube_image("right", "left", "top", "top", "front", "back")?,
-            )
+            Skybox::new_from_equirectangular(&context, &loaded.hdr_image("")?)
         },
     );
 

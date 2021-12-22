@@ -38,7 +38,7 @@ fn main() {
         move |context, mut loaded| {
             Skybox::new(
                 &context,
-                &mut loaded.cube_image("right", "left", "top", "top", "front", "back")?,
+                &loaded.cube_image("right", "left", "top", "top", "front", "back")?,
             )
         },
     );

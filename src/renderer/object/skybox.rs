@@ -15,12 +15,8 @@ impl<T: TextureDataType> Skybox<TextureCubeMap<T>> {
     ///
     pub fn new(
         context: &Context,
-        cpu_texture: &mut CPUTexture<T>,
+        cpu_texture: &CPUTexture<T>,
     ) -> ThreeDResult<Skybox<TextureCubeMap<T>>> {
-        cpu_texture.wrap_t = Wrapping::ClampToEdge;
-        cpu_texture.wrap_s = Wrapping::ClampToEdge;
-        cpu_texture.wrap_r = Wrapping::ClampToEdge;
-        cpu_texture.mip_map_filter = None;
         let texture = TextureCubeMap::new(&context, cpu_texture)?;
         Self::new_with_texture(context, texture)
     }
