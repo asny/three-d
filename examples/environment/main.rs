@@ -42,11 +42,6 @@ fn main() {
                 &context,
                 &mut loaded.cube_image("right", "left", "top", "top", "front", "back")?,
             )?;*/
-            /*let skybox = Skybox::new_with_texture(
-                &context,
-                EnvironmentLight::generate_texture(&context, skybox_.texture())?,
-            )
-            .unwrap();*/
 
             let lights = Lights {
                 environment: Some(EnvironmentLight::new(&context, skybox.texture())?),

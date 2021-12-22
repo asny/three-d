@@ -1,9 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
 
-///
-/// A light which shines equally on all parts of any surface.
-///
 pub struct EnvironmentLight {
     irradiance_map: ColorTargetTextureCubeMap<f32>,
 }
