@@ -9,14 +9,14 @@ pub struct Skybox<T: TextureCube> {
     texture: T,
 }
 
-impl Skybox<TextureCubeMap> {
+impl<T: TextureDataType> Skybox<TextureCubeMap<T>> {
     ///
     /// Creates a new skybox with the given cpu-side version of a [TextureCubeMap].
     ///
-    pub fn new<T: TextureDataType>(
+    pub fn new(
         context: &Context,
         cpu_texture: &mut CPUTexture<T>,
-    ) -> ThreeDResult<Skybox<TextureCubeMap>> {
+    ) -> ThreeDResult<Skybox<TextureCubeMap<T>>> {
         cpu_texture.wrap_t = Wrapping::ClampToEdge;
         cpu_texture.wrap_s = Wrapping::ClampToEdge;
         cpu_texture.wrap_r = Wrapping::ClampToEdge;
