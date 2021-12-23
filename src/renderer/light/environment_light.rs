@@ -4,6 +4,7 @@ use crate::renderer::*;
 pub struct EnvironmentLight {
     irradiance_map: ColorTargetTextureCubeMap<f32>,
     prefilter_map: ColorTargetTextureCubeMap<f32>,
+    brdf_map: ColorTargetTexture2D<f32>,
 }
 
 impl EnvironmentLight {
@@ -34,8 +35,8 @@ impl EnvironmentLight {
         // Prefilter
         let prefilter_map = ColorTargetTextureCubeMap::new(
             context,
-            32,
-            32,
+            128,
+            128,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
@@ -54,9 +55,37 @@ impl EnvironmentLight {
             |program| program.use_texture_cube("environmentMap", environment_map),
         )?;
 
+        // BRDF
+        let brdf_map = ColorTargetTexture2D::new(
+            context,
+            512,
+            512,
+            Interpolation::Linear,
+            Interpolation::Linear,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Format::RG,
+        )?;
+        let effect = ImageEffect::new(
+            context,
+            &format!(
+                "{}{}",
+                include_str!("../../core/shared.frag"),
+                include_str!("shaders/brdf.frag")
+            ),
+        )?;
+        brdf_map.write(ClearState::default(), || {
+            effect.apply(
+                RenderStates::default(),
+                Viewport::new_at_origo(brdf_map.width(), brdf_map.height()),
+            )
+        })?;
+
         Ok(Self {
             irradiance_map,
             prefilter_map,
+            brdf_map,
         })
     }
 }
