@@ -7,28 +7,10 @@ pub struct EnvironmentLight {
 
 impl EnvironmentLight {
     pub fn new(context: &Context, environment_map: &impl TextureCube) -> ThreeDResult<Self> {
-        let program = Program::from_source(
-            context,
-            include_str!("shaders/irradiance.vert"),
-            include_str!("shaders/irradiance.frag"),
-        )?;
         let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
-        let irradiance_map = ColorTargetTextureCubeMap::new(
-            context,
-            32,
-            32,
-            Interpolation::Linear,
-            Interpolation::Linear,
-            Some(Interpolation::Linear),
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            Format::RGBA,
-        )?;
-
         let mut camera = Camera::new_perspective(
             context,
-            Viewport::new_at_origo(irradiance_map.width(), irradiance_map.height()),
+            Viewport::new_at_origo(1, 1),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 0.0, -1.0),
             vec3(0.0, 1.0, 0.0),
@@ -36,6 +18,43 @@ impl EnvironmentLight {
             0.1,
             10.0,
         )?;
+
+        let program = Program::from_source(
+            context,
+            include_str!("shaders/irradiance.vert"),
+            include_str!("shaders/irradiance.frag"),
+        )?;
+        let irradiance_map = ColorTargetTextureCubeMap::new(
+            context,
+            32,
+            32,
+            Interpolation::Linear,
+            Interpolation::Linear,
+            Some(Interpolation::Linear),
+            Wrapping::Repeat,
+            Wrapping::Repeat,
+            Wrapping::Repeat,
+            Format::RGBA,
+        )?;
+        Self::render_to_cube(
+            &program,
+            &irradiance_map,
+            &vertex_buffer,
+            &mut camera,
+            || program.use_texture_cube("environmentMap", environment_map),
+        )?;
+
+        Ok(Self { irradiance_map })
+    }
+
+    fn render_to_cube<T: TextureDataType>(
+        program: &Program,
+        target: &ColorTargetTextureCubeMap<T>,
+        vertex_buffer: &VertexBuffer,
+        camera: &mut Camera,
+        use_uniforms: impl Fn() -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
+        camera.set_viewport(Viewport::new_at_origo(target.width(), target.height()))?;
         for i in 0..6 {
             match i {
                 0 => camera.set_view(
@@ -72,14 +91,14 @@ impl EnvironmentLight {
             }?;
 
             program.use_uniform_block("Camera", camera.uniform_buffer());
-            program.use_texture_cube("environmentMap", environment_map)?;
             program.use_attribute_vec3("position", &vertex_buffer)?;
-            irradiance_map.write(i, ClearState::default(), || {
+            use_uniforms()?;
+            target.write(i, ClearState::default(), || {
                 program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
                 Ok(())
             })?;
         }
-        Ok(Self { irradiance_map })
+        Ok(())
     }
 }
 
@@ -91,25 +110,24 @@ impl Light for EnvironmentLight {
             uniform samplerCube irradianceMap{};  // prefiltered env cubemap
             //uniform sampler2D iblbrdf; // IBL BRDF normalization precalculated tex
 
+            vec3 fresnelSchlickRoughness(float NdV, vec3 F0, float roughness)
+            {{
+                return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - NdV, 0.0, 1.0), 5.0);
+            }}
+
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
                 vec3 V = normalize(eyePosition - position);
                 float NdV = max(0.001, dot(normal, V));
-            
-                vec3 diffuse_light = texture(irradianceMap{}, normal).rgb / PI;
-            
-                // specular IBL term
-                //    11 magic number is total MIP levels in cubemap, this is simplest way for picking
-                //    MIP level from roughness value (but it's not correct, however it looks fine)
-                //vec3 refl = tnrm * reflect(-V, N);
-                //vec3 reflected_light = textureCubeLod(
-                //    irradianceMap, refl, max(roughness * 11.0, textureQueryLod(irradianceMap, refl).y)
-                //).xyz;
-            
-                //vec2 brdf = texture2D(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
-                //vec3 iblspec = min(vec3(0.99), fresnel_factor(specular, NdV) * brdf.x + brdf.y);
 
-                return occlusion * diffuse_light * mix(surface_color, vec3(0.0), metallic); // + reflected_light * iblspec;
+                vec3 F0 = vec3(0.04); 
+                F0 = mix(F0, surface_color, metallic);
+                vec3 kS = fresnelSchlickRoughness(NdV, F0, roughness); 
+                vec3 kD = 1.0 - kS;
+                vec3 irradiance = texture(irradianceMap{}, normal).rgb;
+                vec3 diffuse    = irradiance * surface_color;
+                vec3 ambient = (kD * diffuse) * occlusion;
+                return ambient;
             }}
         
         ", i, i, i)
