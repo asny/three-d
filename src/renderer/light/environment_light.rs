@@ -48,8 +48,9 @@ impl EnvironmentLight {
         prefilter_map.write_to_all(
             ClearState::default(),
             &format!(
-                "{}{}",
+                "#define COOK\n#define COOK_GGX\n{}{}{}",
                 include_str!("../../core/shared.frag"),
+                include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/prefilter.frag")
             ),
             |program| program.use_texture_cube("environmentMap", environment_map),
@@ -70,8 +71,9 @@ impl EnvironmentLight {
         let effect = ImageEffect::new(
             context,
             &format!(
-                "{}{}",
+                "#define COOK\n#define COOK_GGX\n{}{}{}",
                 include_str!("../../core/shared.frag"),
+                include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/brdf.frag")
             ),
         )?;
@@ -97,11 +99,6 @@ impl Light for EnvironmentLight {
 
             uniform samplerCube irradianceMap{};  // prefiltered env cubemap
             //uniform sampler2D iblbrdf; // IBL BRDF normalization precalculated tex
-
-            vec3 fresnelSchlickRoughness(float NdV, vec3 F0, float roughness)
-            {{
-                return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - NdV, 0.0, 1.0), 5.0);
-            }}
 
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
