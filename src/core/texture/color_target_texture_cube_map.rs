@@ -76,8 +76,87 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         context: &Context,
         cpu_texture: &CPUTexture<T_>,
     ) -> ThreeDResult<Self> {
+        let map = Texture2D::new(context, cpu_texture)?;
+        let texture = Self::new(
+            &context,
+            cpu_texture.height,
+            cpu_texture.height,
+            Interpolation::Linear,
+            Interpolation::Linear,
+            Some(Interpolation::Linear),
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Format::RGBA,
+        )?;
+
+        let fragment_shader_source = "uniform sampler2D equirectangularMap;
+        const vec2 invAtan = vec2(0.1591, 0.3183);
+        
+        in vec3 pos;
+        layout (location = 0) out vec4 outColor;
+        
+        vec2 sample_spherical_map(vec3 v)
+        {
+            vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
+            uv *= invAtan;
+            uv += 0.5;
+            return vec2(uv.x, 1.0 - uv.y);
+        }
+        
+        void main()
+        {		
+            vec2 uv = sample_spherical_map(normalize(pos));
+            outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
+        }";
+
+        texture.write_to_all(
+            ClearState::default(),
+            fragment_shader_source,
+            |program, camera| {
+                program.use_texture("equirectangularMap", &map)?;
+                program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
+                Ok(())
+            },
+        )?;
+        Ok(texture)
+    }
+
+    pub fn write(
+        &self,
+        color_layer: u32,
+        clear_state: ClearState,
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
+        RenderTargetCubeMap::new_color(&self.context, &self)?.write(
+            color_layer,
+            0,
+            clear_state,
+            render,
+        )
+    }
+
+    pub fn write_to_all(
+        &self,
+        clear_state: ClearState,
+        fragment_shader_source: &str,
+        render: impl Fn(&Program, &Camera) -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
+        let vertex_buffer =
+            VertexBuffer::new_with_static(&self.context, &CPUMesh::cube().positions)?;
+
+        let mut camera = Camera::new_perspective(
+            &self.context,
+            Viewport::new_at_origo(self.width(), self.height()),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 1.0, 0.0),
+            degrees(90.0),
+            0.1,
+            10.0,
+        )?;
         let program = Program::from_source(
-            context,
+            &self.context,
             "layout (std140) uniform Camera
             {
                 mat4 viewProjection;
@@ -95,50 +174,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
                 pos = position;
                 gl_Position = camera.viewProjection * vec4(position, 1.0);
             }",
-            "uniform sampler2D equirectangularMap;
-            const vec2 invAtan = vec2(0.1591, 0.3183);
-            
-            in vec3 pos;
-            layout (location = 0) out vec4 outColor;
-            
-            vec2 sample_spherical_map(vec3 v)
-            {
-                vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
-                uv *= invAtan;
-                uv += 0.5;
-                return vec2(uv.x, 1.0 - uv.y);
-            }
-            
-            void main()
-            {		
-                vec2 uv = sample_spherical_map(normalize(pos));
-                outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
-            }",
-        )?;
-        let map = Texture2D::new(context, cpu_texture)?;
-        let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
-        let texture = Self::new(
-            &context,
-            cpu_texture.height,
-            cpu_texture.height,
-            Interpolation::Linear,
-            Interpolation::Linear,
-            Some(Interpolation::Linear),
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            Format::RGBA,
-        )?;
-
-        let mut camera = Camera::new_perspective(
-            context,
-            Viewport::new_at_origo(texture.width(), texture.height()),
-            vec3(0.0, 0.0, 0.0),
-            vec3(0.0, 0.0, -1.0),
-            vec3(0.0, 1.0, 0.0),
-            degrees(90.0),
-            0.1,
-            10.0,
+            fragment_shader_source,
         )?;
         for i in 0..6 {
             match i {
@@ -174,31 +210,11 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
                 ),
                 _ => unreachable!(),
             }?;
-
             program.use_uniform_block("Camera", camera.uniform_buffer());
-            program.use_texture("equirectangularMap", &map)?;
             program.use_attribute_vec3("position", &vertex_buffer)?;
-            texture.write(i, ClearState::default(), || {
-                program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
-                Ok(())
-            })?;
+            self.write(i, clear_state, || render(&program, &camera))?;
         }
-
-        Ok(texture)
-    }
-
-    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &self,
-        color_layer: u32,
-        clear_state: ClearState,
-        render: F,
-    ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::new_color(&self.context, &self)?.write(
-            color_layer,
-            0,
-            clear_state,
-            render,
-        )
+        Ok(())
     }
 
     pub(in crate::core) fn generate_mip_maps(&self) {
