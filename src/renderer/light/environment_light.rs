@@ -19,7 +19,7 @@ impl EnvironmentLight {
             32,
             Interpolation::Linear,
             Interpolation::Linear,
-            None,
+            Some(Interpolation::Linear),
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
