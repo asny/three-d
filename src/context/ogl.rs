@@ -66,6 +66,7 @@ impl GLContext {
             inner: Rc::new(InnerGl::load_with(loadfn)),
         };
         gl.bind_vertex_array(&gl.create_vertex_array().unwrap());
+        gl.enable(consts::TEXTURE_CUBE_MAP_SEAMLESS);
         gl
     }
 

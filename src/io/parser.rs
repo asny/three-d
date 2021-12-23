@@ -92,9 +92,6 @@ mod image_io {
             right.data.extend(bottom.data);
             right.data.extend(front.data);
             right.data.extend(back.data);
-            right.wrap_t = Wrapping::ClampToEdge;
-            right.wrap_s = Wrapping::ClampToEdge;
-            right.wrap_r = Wrapping::ClampToEdge;
             Ok(right)
         }
     }
