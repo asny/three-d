@@ -2,8 +2,6 @@
 
 uniform samplerCube environmentMap;
 
-const float PI = 3.14159265359;
-
 in vec3 pos;
 
 layout (location = 0) out vec4 outColor;

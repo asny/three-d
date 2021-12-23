@@ -110,15 +110,9 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
         }";
 
-        texture.write_to_all(
-            ClearState::default(),
-            fragment_shader_source,
-            |program, camera| {
-                program.use_texture("equirectangularMap", &map)?;
-                program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
-                Ok(())
-            },
-        )?;
+        texture.write_to_all(ClearState::default(), fragment_shader_source, |program| {
+            program.use_texture("equirectangularMap", &map)
+        })?;
         Ok(texture)
     }
 
@@ -140,7 +134,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         &self,
         clear_state: ClearState,
         fragment_shader_source: &str,
-        render: impl Fn(&Program, &Camera) -> ThreeDResult<()>,
+        use_uniforms: impl Fn(&Program) -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         let vertex_buffer =
             VertexBuffer::new_with_static(&self.context, &CPUMesh::cube().positions)?;
@@ -212,7 +206,11 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             }?;
             program.use_uniform_block("Camera", camera.uniform_buffer());
             program.use_attribute_vec3("position", &vertex_buffer)?;
-            self.write(i, clear_state, || render(&program, &camera))?;
+            self.write(i, clear_state, || {
+                use_uniforms(&program)?;
+                program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
+                Ok(())
+            })?;
         }
         Ok(())
     }
