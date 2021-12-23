@@ -19,9 +19,10 @@ impl EnvironmentLight {
             10.0,
         )?;
 
+        // Diffuse
         let program = Program::from_source(
             context,
-            include_str!("shaders/irradiance.vert"),
+            include_str!("shaders/cubemap.vert"),
             include_str!("shaders/irradiance.frag"),
         )?;
         let irradiance_map = ColorTargetTextureCubeMap::new(
