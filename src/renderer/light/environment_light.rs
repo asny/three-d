@@ -135,6 +135,7 @@ impl Light for EnvironmentLight {
     fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> ThreeDResult<()> {
         program.use_texture_cube("irradianceMap", &self.irradiance_map)?;
         program.use_texture_cube("prefilterMap", &self.prefilter_map)?;
+        program.use_texture("brdfLUT", &self.brdf_map)?;
         Ok(())
     }
 }
