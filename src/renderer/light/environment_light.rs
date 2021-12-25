@@ -104,7 +104,7 @@ impl Light for EnvironmentLight {
             {{
                 vec3 N = normal;
                 vec3 V = normalize(eyePosition - position);
-                vec3 R = reflect(-V, N); 
+                vec3 R = reflect(V, N); 
                 
                 // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
                 // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
