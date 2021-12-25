@@ -571,10 +571,11 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         &self,
         color_layer: u32,
         depth_layer: u32,
+        mip_level: u32,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.bind(Some(color_layer), Some(depth_layer))?;
+        self.bind(Some(color_layer), Some(depth_layer), mip_level)?;
         clear(
             &self.context,
             &ClearState {
@@ -592,13 +593,18 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         Ok(())
     }
 
-    fn bind(&self, color_layer: Option<u32>, depth_layer: Option<u32>) -> ThreeDResult<()> {
+    fn bind(
+        &self,
+        color_layer: Option<u32>,
+        depth_layer: Option<u32>,
+        mip_level: u32,
+    ) -> ThreeDResult<()> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
         if let Some(color_texture) = self.color_texture {
             if let Some(color_layer) = color_layer {
                 self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
-                color_texture.bind_as_color_target(color_layer, 0);
+                color_texture.bind_as_color_target(color_layer, 0, mip_level);
             }
         }
         if let Some(depth_texture) = self.depth_texture {

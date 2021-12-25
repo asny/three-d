@@ -66,6 +66,7 @@ impl DepthTargetTextureCubeMap {
         RenderTargetCubeMap::<u8>::new_depth(&self.context, &self)?.write(
             0,
             depth_layer,
+            0,
             ClearState {
                 depth: clear_state,
                 ..ClearState::none()
