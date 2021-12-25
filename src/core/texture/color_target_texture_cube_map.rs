@@ -110,21 +110,26 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
         }";
 
-        texture.write_to_all(ClearState::default(), fragment_shader_source, |program| {
-            program.use_texture("equirectangularMap", &map)
-        })?;
+        texture.write_to_all(
+            0,
+            ClearState::default(),
+            fragment_shader_source,
+            |program| program.use_texture("equirectangularMap", &map),
+        )?;
         Ok(texture)
     }
 
     pub fn write(
         &self,
         color_layer: u32,
+        mip_level: u32,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         RenderTargetCubeMap::new_color(&self.context, &self)?.write(
             color_layer,
             0,
+            mip_level,
             clear_state,
             render,
         )
@@ -132,6 +137,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
 
     pub fn write_to_all(
         &self,
+        mip_level: u32,
         clear_state: ClearState,
         fragment_shader_source: &str,
         use_uniforms: impl Fn(&Program) -> ThreeDResult<()>,
@@ -206,7 +212,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             }?;
             program.use_uniform_block("Camera", camera.uniform_buffer());
             program.use_attribute_vec3("position", &vertex_buffer)?;
-            self.write(i, clear_state, || {
+            self.write(i, mip_level, clear_state, || {
                 use_uniforms(&program)?;
                 program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
                 Ok(())
@@ -223,13 +229,13 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         }
     }
 
-    pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32) {
+    pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32, mip_level: u32) {
         self.context.framebuffer_texture_2d(
             consts::DRAW_FRAMEBUFFER,
             consts::COLOR_ATTACHMENT0 + channel,
             consts::TEXTURE_CUBE_MAP_POSITIVE_X + layer,
             &self.id,
-            0,
+            mip_level,
         );
     }
 }

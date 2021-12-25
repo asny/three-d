@@ -23,6 +23,7 @@ impl EnvironmentLight {
             Format::RGBA,
         )?;
         irradiance_map.write_to_all(
+            0,
             ClearState::default(),
             &format!(
                 "{}{}",
@@ -45,16 +46,24 @@ impl EnvironmentLight {
             Wrapping::ClampToEdge,
             Format::RGBA,
         )?;
-        prefilter_map.write_to_all(
-            ClearState::default(),
-            &format!(
-                "#define COOK\n#define COOK_GGX\n{}{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/light_shared.frag"),
-                include_str!("shaders/prefilter.frag")
-            ),
-            |program| program.use_texture_cube("environmentMap", environment_map),
-        )?;
+        let max_mip_levels = 5;
+        for mip in 0..max_mip_levels {
+            let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
+            prefilter_map.write_to_all(
+                mip,
+                ClearState::default(),
+                &format!(
+                    "#define COOK\n#define COOK_GGX\n{}{}{}",
+                    include_str!("../../core/shared.frag"),
+                    include_str!("shaders/light_shared.frag"),
+                    include_str!("shaders/prefilter.frag")
+                ),
+                |program| {
+                    program.use_texture_cube("environmentMap", environment_map)?;
+                    program.use_uniform_float("roughness", &roughness)
+                },
+            )?;
+        }
 
         // BRDF
         let brdf_map = ColorTargetTexture2D::new(
