@@ -32,7 +32,10 @@ fn main() {
             let environment_map = loaded.hdr_image("").unwrap();
             let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
             let lights = Lights {
-                environment: Some(EnvironmentLight::new(&context, skybox.texture())?),
+                ambient: Some(AmbientLight {
+                    environment: Some(Environment::new(&context, skybox.texture())?),
+                    ..Default::default()
+                }),
                 lighting_model: LightingModel::Cook(
                     NormalDistributionFunction::TrowbridgeReitzGGX,
                     GeometryFunction::SmithSchlickGGX,
