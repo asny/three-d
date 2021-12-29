@@ -45,7 +45,10 @@ fn main() {
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
             let lights = Lights {
-                environment: Some(EnvironmentLight::new(&context, skybox.texture())?),
+                ambient: Some(AmbientLight {
+                    environment: Some(Environment::new(&context, skybox.texture())?),
+                    ..Default::default()
+                }),
                 lighting_model: LightingModel::Cook(
                     NormalDistributionFunction::TrowbridgeReitzGGX,
                     GeometryFunction::SmithSchlickGGX,
