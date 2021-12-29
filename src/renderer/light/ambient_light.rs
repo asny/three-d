@@ -25,29 +25,25 @@ impl Light for AmbientLight {
                     vec3 N = normal;
                     vec3 V = normalize(eyePosition - position);
                     vec3 R = reflect(-V, N); 
+                    float NdV = max(0.001, dot(N, V));
                     
                     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
                     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-                    vec3 F0 = vec3(0.04); 
-                    F0 = mix(F0, surface_color, metallic);
-    
-                    // ambient lighting (we now use IBL as the ambient term)
-                    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-                    
-                    vec3 kS = F;
-                    vec3 kD = 1.0 - kS;
-                    kD *= 1.0 - metallic;	  
-                    
+                    vec3 F0 = mix(vec3(0.04), surface_color, metallic);
+                    vec3 specular_fresnel = fresnelSchlickRoughness(NdV, F0, roughness);
+                    vec3 diffuse_fresnel = 1.0 - specular_fresnel;
+
+                    // Diffuse
                     vec3 irradiance = texture(irradianceMap, N).rgb;
-                    vec3 diffuse      = irradiance * surface_color;
+                    vec3 diffuse = diffuse_fresnel * mix(surface_color, vec3(0.0), metallic) * irradiance;
                     
                     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
                     const float MAX_REFLECTION_LOD = 4.0;
                     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
-                    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-                    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+                    vec2 brdf  = texture(brdfLUT, vec2(NdV, roughness)).rg;
+                    vec3 specular = prefilteredColor * (specular_fresnel * brdf.x + brdf.y);
     
-                    return (kD * diffuse + specular) * occlusion * ambientColor;
+                    return (diffuse + specular) * occlusion * ambientColor;
                 }}
             
             ", i)
