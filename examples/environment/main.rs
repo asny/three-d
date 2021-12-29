@@ -27,22 +27,10 @@ fn main() {
 
     let scene = Loading::new(
         &context,
-        &[
-            "examples/assets/skybox_evening/right.jpg",
-            "examples/assets/skybox_evening/left.jpg",
-            "examples/assets/skybox_evening/top.jpg",
-            "examples/assets/skybox_evening/front.jpg",
-            "examples/assets/skybox_evening/back.jpg",
-            "examples/assets/flower_road_4k.hdr",
-        ],
+        &["examples/assets/chinese_garden_4k.hdr"],
         move |context, mut loaded| {
-            let environment_map = loaded.hdr_image("flower").unwrap();
+            let environment_map = loaded.hdr_image("").unwrap();
             let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
-            /*let skybox = Skybox::new(
-                &context,
-                &mut loaded.cube_image("right", "left", "top", "top", "front", "back")?,
-            )?;*/
-
             let lights = Lights {
                 environment: Some(EnvironmentLight::new(&context, skybox.texture())?),
                 lighting_model: LightingModel::Cook(
@@ -60,6 +48,8 @@ fn main() {
         &CPUMesh::sphere(16),
         PhysicalMaterial {
             albedo: Color::WHITE,
+            roughness: 0.5,
+            metallic: 0.8,
             ..Default::default()
         },
     )
