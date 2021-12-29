@@ -113,7 +113,7 @@ impl Light for EnvironmentLight {
             {{
                 vec3 N = normal;
                 vec3 V = normalize(eyePosition - position);
-                vec3 R = reflect(V, N); 
+                vec3 R = reflect(-V, N); 
                 
                 // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
                 // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -141,10 +141,11 @@ impl Light for EnvironmentLight {
         
         ", i)
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         program.use_texture_cube("irradianceMap", &self.irradiance_map)?;
         program.use_texture_cube("prefilterMap", &self.prefilter_map)?;
         program.use_texture("brdfLUT", &self.brdf_map)?;
+        program.use_uniform_vec3("eyePosition", camera.position())?;
         Ok(())
     }
 }
