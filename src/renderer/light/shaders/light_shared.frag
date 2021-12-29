@@ -162,36 +162,35 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
 
     // mix between metal and non-metal material, for non-metal
     // constant base specular factor of 0.04 grey is used
-    vec3 specular = mix(vec3(0.04), surface_color, metallic);
+    vec3 F0 = mix(vec3(0.04), surface_color, metallic);
 
 #ifdef PHONG
     // specular reflectance with PHONG
-    vec3 specular_fresnel = fresnel_factor(specular, NdV);
-    vec3 reflected_light = phong_specular(V, L, N, specular_fresnel, roughness);
+    vec3 specular_fresnel = fresnel_factor(F0, NdV);
+    vec3 specular = phong_specular(V, L, N, specular_fresnel, roughness);
 #else
     vec3 H = normalize(L + V);
     float NdH = max(0.001, dot(N, H));
     float HdV = max(0.001, dot(H, V));
+    vec3 specular_fresnel = fresnel_factor(F0, HdV);
 #endif
 
 #ifdef BLINN
     // specular reflectance with BLINN
-    vec3 specular_fresnel = fresnel_factor(specular, HdV);
-    vec3 reflected_light = blinn_specular(NdH, specular_fresnel, roughness);
+    vec3 specular = blinn_specular(NdH, specular_fresnel, roughness);
 #endif
 
 #ifdef COOK
     // specular reflectance with COOK-TORRANCE
-    vec3 specular_fresnel = fresnel_factor(specular, HdV);
-    vec3 reflected_light = cooktorrance_specular(NdL, NdV, NdH, specular_fresnel, roughness);
+    vec3 specular = cooktorrance_specular(NdL, NdV, NdH, specular_fresnel, roughness);
 #endif
 
     // diffuse is common for any model
     vec3 diffuse_fresnel = 1.0 - specular_fresnel;
-    vec3 diffuse_light = diffuse_fresnel * mix(surface_color, vec3(0.0), metallic) / PI;
+    vec3 diffuse = diffuse_fresnel * mix(surface_color, vec3(0.0), metallic) / PI;
     
     // final result
-    return (occlusion * diffuse_light + reflected_light) * light_color * NdL;
+    return (diffuse + specular) * occlusion * light_color * NdL;
 }
 
 vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
