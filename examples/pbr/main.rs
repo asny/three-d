@@ -15,7 +15,7 @@ fn main() {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(3.0, 1.0, 2.5),
+        vec3(-3.0, 1.0, 2.5),
         vec3(0.0, 0.0, -0.5),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
@@ -26,10 +26,16 @@ fn main() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let model = Loading::new(
+    let scene = Loading::new(
         &context,
-        &["examples/assets/gltf/DamagedHelmet.glb"],
+        &[
+            "examples/assets/gltf/DamagedHelmet.glb",
+            "examples/assets/chinese_garden_4k.hdr",
+        ],
         move |context, mut loaded| {
+            let environment_map = loaded.hdr_image("chinese").unwrap();
+            let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
+
             let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
             let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
             material.opaque_render_states.cull = Cull::Back;
@@ -37,37 +43,18 @@ fn main() {
             let mut model =
                 Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
-            Ok(model)
+
+            let lights = Lights {
+                environment: Some(EnvironmentLight::new(&context, skybox.texture())?),
+                lighting_model: LightingModel::Cook(
+                    NormalDistributionFunction::TrowbridgeReitzGGX,
+                    GeometryFunction::SmithSchlickGGX,
+                ),
+                ..Default::default()
+            };
+            Ok((model, skybox, lights))
         },
     );
-
-    let mut lights = Lights {
-        ambient: Some(AmbientLight {
-            color: Color::WHITE,
-            intensity: 0.4,
-        }),
-        directional: vec![
-            DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0)).unwrap(),
-            DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0)).unwrap(),
-        ],
-        spot: vec![SpotLight::new(
-            &context,
-            2.0,
-            Color::WHITE,
-            &vec3(0.0, 0.0, 0.0),
-            &vec3(0.0, -1.0, 0.0),
-            degrees(20.0),
-            0.1,
-            0.001,
-            0.0001,
-        )
-        .unwrap()],
-        lighting_model: LightingModel::Cook(
-            NormalDistributionFunction::TrowbridgeReitzGGX,
-            GeometryFunction::SmithSchlickGGX,
-        ),
-        ..Default::default()
-    };
 
     // main loop
     let mut normal_map_enabled = true;
@@ -103,29 +90,13 @@ fn main() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            let time = 0.001 * frame_input.accumulated_time;
-            let c = time.cos() as f32;
-            let s = time.sin() as f32;
-            lights.directional[0].set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
-            lights.directional[1].set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
-            lights.spot[0].set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
-            lights.spot[0].set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
-
-            // Draw
-            if let Some(Ok(ref model)) = *model.borrow() {
-                lights.directional[0]
-                    .generate_shadow_map(2.0, 1024, 1024, &[&model])
-                    .unwrap();
-                lights.directional[1]
-                    .generate_shadow_map(2.0, 1024, 1024, &[&model])
-                    .unwrap();
-                lights.spot[0].generate_shadow_map(1024, &[&model]).unwrap();
-            }
             Screen::write(
                 &context,
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
-                    if let Some(Ok(ref model)) = *model.borrow() {
+                    if let Some(ref scene) = *scene.borrow() {
+                        let (model, skybox, lights) = scene.as_ref().unwrap();
+                        skybox.render(&camera)?;
                         let material = PhysicalMaterial {
                             name: model.material.name.clone(),
                             albedo: model.material.albedo,
@@ -166,7 +137,7 @@ fn main() {
                             opaque_render_states: model.material.opaque_render_states,
                             transparent_render_states: model.material.transparent_render_states,
                         };
-                        model.render_with_material(&material, &camera, &lights)?;
+                        model.render_with_material(&material, &camera, lights)?;
                     }
                     gui.render()?;
                     Ok(())
