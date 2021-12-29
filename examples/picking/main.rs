@@ -52,7 +52,7 @@ fn main() {
             let lights = Lights {
                 ambient: Some(AmbientLight {
                     intensity: 0.4,
-                    color: Color::WHITE,
+                    ..Default::default()
                 }),
                 directional: vec![DirectionalLight::new(
                     &context,
