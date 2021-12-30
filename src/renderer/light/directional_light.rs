@@ -153,11 +153,11 @@ impl Light for DirectionalLight {
                 float shadowEnabled{};
                 mat4 shadowMVP{};
             }};
-            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
             {{
                 if(base{}.intensity > 0.001) {{
                     vec3 light_color = base{}.intensity * base{}.color;
-                    vec3 result = calculate_light(light_color, -direction{}, surface_color, position, normal, metallic, roughness);
+                    vec3 result = calculate_light(light_color, -direction{}, surface_color, view_direction, normal, metallic, roughness);
                     if(shadowEnabled{} > 0.5) {{
                         result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
                     }}
@@ -170,14 +170,13 @@ impl Light for DirectionalLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> ThreeDResult<()> {
         if let Some(tex) = self.shadow_map() {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
         } else {
             self.context
                 .use_texture_dummy(&program, &format!("shadowMap{}", i))?;
         }
-        program.use_uniform_vec3("eyePosition", camera.position())?;
         program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
         Ok(())
     }

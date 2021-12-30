@@ -152,10 +152,9 @@ impl Material for DeferredPhysicalMaterial {
     fn use_uniforms(
         &self,
         program: &Program,
-        camera: &Camera,
-        lights: &Lights,
+        _camera: &Camera,
+        _lights: &Lights,
     ) -> ThreeDResult<()> {
-        lights.use_uniforms(program, camera)?;
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform_vec4("albedo", &self.albedo.to_vec4())?;

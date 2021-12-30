@@ -59,6 +59,7 @@ impl Lights {
     }
 
     pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> ThreeDResult<()> {
+        program.use_uniform_vec3("eyePosition", camera.position())?;
         for (i, light) in LightsIterator::new(self).enumerate() {
             light.use_uniforms(program, camera, i as u32)?;
         }
@@ -154,13 +155,15 @@ pub(crate) fn lights_fragment_shader_source(
     let mut dir_fun = String::new();
     for (i, light) in lights.enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
-        dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, metallic, roughness, occlusion);\n", i))
+        dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, view_direction, metallic, roughness, occlusion);\n", i))
     }
     shader_source.push_str(&format!(
         "
+            uniform vec3 eyePosition;
             vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
                 vec3 color = vec3(0.0, 0.0, 0.0);
+                vec3 view_direction = normalize(eyePosition - position);
                 {}
                 return color;
             }}
