@@ -209,7 +209,7 @@ impl Light for SpotLight {
                     vec3 result = vec3(0.0);
                     if (angle < cutoff) {{
                         result = calculate_attenuated_light(light_color, attenuation{}, position{}, surface_color, position, normal, 
-                            metallic, roughness, occlusion) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+                            metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
                         if(shadowEnabled{} > 0.5) {{
                             result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
                         }}

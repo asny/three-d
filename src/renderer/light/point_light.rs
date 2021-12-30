@@ -94,7 +94,7 @@ impl Light for PointLight {
                 if(base{}.intensity > 0.001) {{
                     vec3 light_color = base{}.intensity * base{}.color;
                     return calculate_attenuated_light(light_color, attenuation{}, position{}, surface_color, position, normal,
-                        metallic, roughness, occlusion);
+                        metallic, roughness);
                 }}
                 else {{
                     return vec3(0.0, 0.0, 0.0);
