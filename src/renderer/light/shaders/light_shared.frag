@@ -182,17 +182,13 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
     return (diffuse + specular) * light_color * NdL;
 }
 
-vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
+vec3 attenuate(vec3 light_color, Attenuation attenuation, float distance)
 {
-    vec3 light_direction = light_position - position;
-    float distance = length(light_direction);
-    light_direction = light_direction / distance;
-
     float att =  attenuation.constant +
         attenuation.linear * distance +
         attenuation.exp * distance * distance;
 
-    return calculate_light(light_color / max(1.0, att), light_direction, surface_color, position, normal, metallic, roughness);
+    return light_color / max(1.0, att);
 }
 
 float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
