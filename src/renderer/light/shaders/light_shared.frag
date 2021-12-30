@@ -54,20 +54,6 @@ float D_GGX(in float roughness, in float NdH)
     return alpha2 / (PI * d * d);
 }
 
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float a = roughness*roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
-
-    float nom   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return nom / denom;
-}
-
 // Smith's Schlick-GGX geometry function including the normalization factor 1 / (4 * NdV * NdL)
 float G_schlick(in float roughness, in float NdV, in float NdL)
 {
