@@ -54,35 +54,14 @@ float D_GGX(in float roughness, in float NdH)
     return alpha2 / (PI * d * d);
 }
 
-// Smith's Schlick-GGX geometry function including the normalization factor 1 / (4 * NdV * NdL)
+// Smith's Schlick-GGX geometry function
 float G_schlick(in float roughness, in float NdV, in float NdL)
 {
     float alpha = roughness * roughness;
     float k = 0.125 * (alpha + 1.0) * (alpha + 1.0);
     float V = NdV * (1.0 - k) + k;
     float L = NdL * (1.0 - k) + k;
-    return 0.25 / (V * L);
-}
-
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
-
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return nom / denom;
-}
-
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
+    return NdV * NdL / (V * L);
 }
 
 // simple phong specular calculation with normalization
@@ -122,7 +101,7 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
 
     float G = G_schlick(roughness, NdV, NdL);
 
-    return specular_fresnel * G * D;
+    return specular_fresnel * G * D / (4.0 * NdV * NdL);
 }
 
 vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 V, vec3 N, float metallic, float roughness)
