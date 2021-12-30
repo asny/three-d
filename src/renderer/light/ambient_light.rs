@@ -20,10 +20,10 @@ impl Light for AmbientLight {
                 uniform sampler2D brdfLUT;
                 uniform vec3 ambientColor;
     
-                vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+                vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
                 {{
                     vec3 N = normal;
-                    vec3 V = normalize(eyePosition - position);
+                    vec3 V = view_direction;
                     vec3 R = reflect(-V, N); 
                     float NdV = max(0.001, dot(N, V));
                     
@@ -51,7 +51,7 @@ impl Light for AmbientLight {
             format!(
                 "
                     uniform vec3 ambientColor;
-                    vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+                    vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
                     {{
                         return occlusion * ambientColor * mix(surface_color, vec3(0.0), metallic);
                     }}
@@ -59,12 +59,11 @@ impl Light for AmbientLight {
                 ", i)
         }
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, _i: u32) -> ThreeDResult<()> {
         if let Some(ref environment) = self.environment {
             program.use_texture_cube("irradianceMap", &environment.irradiance_map)?;
             program.use_texture_cube("prefilterMap", &environment.prefilter_map)?;
             program.use_texture("brdfLUT", &environment.brdf_map)?;
-            program.use_uniform_vec3("eyePosition", camera.position())?;
         }
         program.use_uniform_vec3("ambientColor", &(self.color.to_vec3() * self.intensity))
     }

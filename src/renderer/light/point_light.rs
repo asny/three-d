@@ -89,7 +89,7 @@ impl Light for PointLight {
                 vec3 position{};
                 float padding{};
             }};
-            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
             {{
                 if(base{}.intensity > 0.001) {{
                     vec3 light_direction = position{} - position;
@@ -98,7 +98,7 @@ impl Light for PointLight {
 
                     vec3 light_color = base{}.intensity * base{}.color;
                     light_color = attenuate(light_color, attenuation{}, distance);
-                    return calculate_light(light_color, light_direction, surface_color, position, normal, metallic, roughness);
+                    return calculate_light(light_color, light_direction, surface_color, view_direction, normal, metallic, roughness);
                 }}
                 else {{
                     return vec3(0.0, 0.0, 0.0);
@@ -107,8 +107,7 @@ impl Light for PointLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
-        program.use_uniform_vec3("eyePosition", camera.position())?;
+    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> ThreeDResult<()> {
         program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
         Ok(())
     }
