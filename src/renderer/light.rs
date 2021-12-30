@@ -61,7 +61,7 @@ impl Lights {
     pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> ThreeDResult<()> {
         program.use_uniform_vec3("eyePosition", camera.position())?;
         for (i, light) in LightsIterator::new(self).enumerate() {
-            light.use_uniforms(program, camera, i as u32)?;
+            light.use_uniforms(program, i as u32)?;
         }
         Ok(())
     }
@@ -175,15 +175,15 @@ pub(crate) fn lights_fragment_shader_source(
 
 pub trait Light {
     fn shader_source(&self, i: u32) -> String;
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()>;
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()>;
 }
 
 impl<T: Light + ?Sized> Light for &T {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
-    fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
-        (*self).use_uniforms(program, camera, i)
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        (*self).use_uniforms(program, i)
     }
 }
 

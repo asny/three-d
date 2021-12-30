@@ -59,7 +59,7 @@ impl Light for AmbientLight {
                 ", i)
         }
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, _i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, _i: u32) -> ThreeDResult<()> {
         if let Some(ref environment) = self.environment {
             program.use_texture_cube("irradianceMap", &environment.irradiance_map)?;
             program.use_texture_cube("prefilterMap", &environment.prefilter_map)?;
