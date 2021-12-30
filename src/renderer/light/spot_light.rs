@@ -201,14 +201,18 @@ impl Light for SpotLight {
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
             {{
                 if(base{}.intensity > 0.001) {{
-                    vec3 light_color = base{}.intensity * base{}.color;
-                    vec3 light_direction = normalize(position - position{});
-                    float angle = acos(dot(light_direction, normalize(direction{})));
+                    vec3 light_direction = position{} - position;
+                    float distance = length(light_direction);
+                    light_direction = light_direction / distance;
+
+                    float angle = acos(dot(-light_direction, normalize(direction{})));
                     float cutoff = cutoff{};
                 
                     vec3 result = vec3(0.0);
                     if (angle < cutoff) {{
-                        result = calculate_attenuated_light(light_color, attenuation{}, position{}, surface_color, position, normal, 
+    
+                        vec3 light_color = attenuate(base{}.intensity * base{}.color, attenuation{}, distance);
+                        result = calculate_light(light_color, light_direction, surface_color, position, normal, 
                             metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
                         if(shadowEnabled{} > 0.5) {{
                             result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
@@ -221,7 +225,7 @@ impl Light for SpotLight {
                 }}
             }}
         
-        ", i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i)
+        ", i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
     fn use_uniforms(&self, program: &Program, camera: &Camera, i: u32) -> ThreeDResult<()> {
         if let Some(tex) = self.shadow_map() {
