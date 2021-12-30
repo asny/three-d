@@ -72,6 +72,7 @@ fn main() {
         ambient: Some(AmbientLight {
             color: Color::WHITE,
             intensity: 0.4,
+            ..Default::default()
         }),
         directional: vec![DirectionalLight::new(
             &context,
