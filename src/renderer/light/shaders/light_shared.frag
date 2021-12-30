@@ -141,7 +141,7 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
     return specular_fresnel * G * D;
 }
 
-vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position, vec3 N, float metallic, float roughness, float occlusion)
+vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position, vec3 N, float metallic, float roughness)
 {
     vec3 V = normalize(eyePosition - position);
 
@@ -179,10 +179,10 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
     vec3 diffuse = diffuse_fresnel * mix(surface_color, vec3(0.0), metallic) / PI;
     
     // final result
-    return (diffuse + specular) * occlusion * light_color * NdL;
+    return (diffuse + specular) * light_color * NdL;
 }
 
-vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 light_position, vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness)
 {
     vec3 light_direction = light_position - position;
     float distance = length(light_direction);
@@ -192,7 +192,7 @@ vec3 calculate_attenuated_light(vec3 light_color, Attenuation attenuation, vec3 
         attenuation.linear * distance +
         attenuation.exp * distance * distance;
 
-    return calculate_light(light_color / max(1.0, att), light_direction, surface_color, position, normal, metallic, roughness, occlusion);
+    return calculate_light(light_color / max(1.0, att), light_direction, surface_color, position, normal, metallic, roughness);
 }
 
 float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
