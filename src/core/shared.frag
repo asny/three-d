@@ -1,6 +1,12 @@
 
 #define PI 3.1415926
 
+// clamping to 0 - 1 range
+float saturate(in float value)
+{
+    return clamp(value, 0.0, 1.0);
+}
+
 vec3 srgb_from_rgb(vec3 rgb) {
 	vec3 a = vec3(0.055, 0.055, 0.055);
 	vec3 ap1 = vec3(1.0, 1.0, 1.0) + a;
