@@ -16,7 +16,7 @@ fn main() {
         &context,
         window.viewport().unwrap(),
         vec3(-3.0, 1.0, 2.5),
-        vec3(0.0, 0.0, -0.5),
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,

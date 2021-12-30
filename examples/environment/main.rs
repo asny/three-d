@@ -15,8 +15,8 @@ fn main() {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
-        vec3(0.0, 0.0, 5.5),
-        vec3(0.0, 0.0, -0.5),
+        vec3(-3.0, 1.0, 2.5),
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
@@ -48,9 +48,9 @@ fn main() {
 
     let mut model = Model::new_with_material(
         &context,
-        &CPUMesh::sphere(16),
+        &CPUMesh::sphere(32),
         PhysicalMaterial {
-            albedo: Color::WHITE,
+            albedo: Color::RED,
             roughness: 0.5,
             metallic: 0.8,
             ..Default::default()
