@@ -15,27 +15,16 @@ struct Attenuation
     float padding;
 };
 
-// handy value clamping to 0 - 1 range
-float saturate(in float value)
-{
-    return clamp(value, 0.0, 1.0);
-}
-
 // compute fresnel specular factor
 // cosTheta could be NdV or VdH depending on used technique
-vec3 fresnel_factor(in vec3 F0, in float cosTheta)
+vec3 fresnel_schlick(vec3 F0, float cosTheta)
 {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
 }
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
+vec3 fresnel_schlick_roughness(vec3 F0, float cosTheta, float roughness)
 {
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
-
-vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
-{
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(saturate(1.0 - cosTheta), 5.0);
 } 
 
 
@@ -166,13 +155,13 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 position
 
 #ifdef PHONG
     // specular reflectance with PHONG
-    vec3 specular_fresnel = fresnel_factor(F0, NdV);
+    vec3 specular_fresnel = fresnel_schlick_roughness(F0, NdV, roughness);
     vec3 specular = phong_specular(V, L, N, specular_fresnel, roughness);
 #else
     vec3 H = normalize(L + V);
     float NdH = max(0.001, dot(N, H));
     float HdV = max(0.001, dot(H, V));
-    vec3 specular_fresnel = fresnel_factor(F0, HdV);
+    vec3 specular_fresnel = fresnel_schlick_roughness(F0, HdV, roughness);
 #endif
 
 #ifdef BLINN

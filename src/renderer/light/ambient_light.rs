@@ -30,7 +30,7 @@ impl Light for AmbientLight {
                     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
                     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
                     vec3 F0 = mix(vec3(0.04), surface_color, metallic);
-                    vec3 specular_fresnel = fresnel_factor(F0, NdV);
+                    vec3 specular_fresnel = fresnel_schlick_roughness(F0, NdV, roughness);
                     vec3 diffuse_fresnel = 1.0 - specular_fresnel;
 
                     // Diffuse
