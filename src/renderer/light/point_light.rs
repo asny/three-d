@@ -107,7 +107,7 @@ impl Light for PointLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
         program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
         Ok(())
     }

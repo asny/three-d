@@ -170,7 +170,7 @@ impl Light for DirectionalLight {
         
         ", i, i, i, i, i, i, i, i, i, i, i, i, i, i)
     }
-    fn use_uniforms(&self, program: &Program, _camera: &Camera, i: u32) -> ThreeDResult<()> {
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
         if let Some(tex) = self.shadow_map() {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
         } else {
