@@ -58,7 +58,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             width,
             height,
         );
-        Ok(Self {
+        let tex = Self {
             context: context.clone(),
             id,
             width,
@@ -66,7 +66,9 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             number_of_mip_maps,
             format,
             _dummy: T::default(),
-        })
+        };
+        tex.generate_mip_maps();
+        Ok(tex)
     }
 
     ///
@@ -110,23 +112,34 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
         }";
 
-        texture.write_to_all(
-            0,
-            ClearState::default(),
-            fragment_shader_source,
-            |program| program.use_texture("equirectangularMap", &map),
-        )?;
+        texture.write_to_all(ClearState::default(), fragment_shader_source, |program| {
+            program.use_texture("equirectangularMap", &map)
+        })?;
         Ok(texture)
     }
 
     pub fn write(
         &self,
         color_layer: u32,
-        mip_level: u32,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         RenderTargetCubeMap::new_color(&self.context, &self)?.write(
+            color_layer,
+            0,
+            clear_state,
+            render,
+        )
+    }
+
+    pub fn write_to_mip_level(
+        &self,
+        color_layer: u32,
+        mip_level: u32,
+        clear_state: ClearState,
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
+        RenderTargetCubeMap::new_color(&self.context, &self)?.write_to_mip_level(
             color_layer,
             0,
             mip_level,
@@ -135,9 +148,96 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         )
     }
 
-    pub fn write_to_all(
+    pub fn write_to_all_to_mip_level(
         &self,
         mip_level: u32,
+        clear_state: ClearState,
+        fragment_shader_source: &str,
+        use_uniforms: impl Fn(&Program) -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
+        let vertex_buffer =
+            VertexBuffer::new_with_static(&self.context, &CPUMesh::cube().positions)?;
+
+        let width = self.width() / 2u32.pow(mip_level);
+        let height = self.height() / 2u32.pow(mip_level);
+        let mut camera = Camera::new_perspective(
+            &self.context,
+            Viewport::new_at_origo(width, height),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 1.0, 0.0),
+            degrees(90.0),
+            0.1,
+            10.0,
+        )?;
+        let program = Program::from_source(
+            &self.context,
+            "layout (std140) uniform Camera
+            {
+                mat4 viewProjection;
+                mat4 view;
+                mat4 projection;
+                vec3 position;
+                float padding;
+            } camera;
+            
+            in vec3 position;
+            out vec3 pos;
+            
+            void main()
+            {
+                pos = position;
+                gl_Position = camera.viewProjection * vec4(position, 1.0);
+            }",
+            fragment_shader_source,
+        )?;
+        for i in 0..6 {
+            match i {
+                0 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                1 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                2 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 0.0, 1.0),
+                ),
+                3 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, 0.0, -1.0),
+                ),
+                4 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                5 => camera.set_view(
+                    vec3(0.0, 0.0, 0.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, -1.0, 0.0),
+                ),
+                _ => unreachable!(),
+            }?;
+            program.use_uniform_block("Camera", camera.uniform_buffer());
+            program.use_attribute_vec3("position", &vertex_buffer)?;
+            self.write_to_mip_level(i, mip_level, clear_state, || {
+                use_uniforms(&program)?;
+                program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
+                Ok(())
+            })?;
+        }
+        Ok(())
+    }
+
+    pub fn write_to_all(
+        &self,
         clear_state: ClearState,
         fragment_shader_source: &str,
         use_uniforms: impl Fn(&Program) -> ThreeDResult<()>,
@@ -212,7 +312,7 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
             }?;
             program.use_uniform_block("Camera", camera.uniform_buffer());
             program.use_attribute_vec3("position", &vertex_buffer)?;
-            self.write(i, mip_level, clear_state, || {
+            self.write(i, clear_state, || {
                 use_uniforms(&program)?;
                 program.draw_arrays(RenderStates::default(), camera.viewport(), 36);
                 Ok(())

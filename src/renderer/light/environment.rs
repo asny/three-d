@@ -21,7 +21,6 @@ impl Environment {
             Format::RGBA,
         )?;
         irradiance_map.write_to_all(
-            0,
             ClearState::default(),
             &format!(
                 "{}{}",
@@ -47,7 +46,7 @@ impl Environment {
         let max_mip_levels = 5;
         for mip in 0..max_mip_levels {
             let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
-            prefilter_map.write_to_all(
+            prefilter_map.write_to_all_to_mip_level(
                 mip,
                 ClearState::default(),
                 &format!(
