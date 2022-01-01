@@ -571,6 +571,20 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         &self,
         color_layer: u32,
         depth_layer: u32,
+        clear_state: ClearState,
+        render: impl FnOnce() -> ThreeDResult<()>,
+    ) -> ThreeDResult<()> {
+        self.write_to_mip_level(color_layer, depth_layer, 0, clear_state, render)?;
+        if let Some(color_texture) = self.color_texture {
+            color_texture.generate_mip_maps();
+        }
+        Ok(())
+    }
+
+    pub fn write_to_mip_level(
+        &self,
+        color_layer: u32,
+        depth_layer: u32,
         mip_level: u32,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
@@ -586,11 +600,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
                 depth: self.depth_texture.and(clear_state.depth),
             },
         );
-        render()?;
-        if let Some(color_texture) = self.color_texture {
-            color_texture.generate_mip_maps();
-        }
-        Ok(())
+        render()
     }
 
     fn bind(
