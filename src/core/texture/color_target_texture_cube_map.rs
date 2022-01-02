@@ -81,8 +81,8 @@ impl<T: TextureDataType> ColorTargetTextureCubeMap<T> {
         let map = Texture2D::new(context, cpu_texture)?;
         let texture = Self::new(
             &context,
-            cpu_texture.height,
-            cpu_texture.height,
+            cpu_texture.width / 4,
+            cpu_texture.width / 4,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
