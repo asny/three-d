@@ -172,20 +172,14 @@ impl Window {
             self.set_canvas_size().unwrap();
             let device_pixel_ratio = self.pixels_per_point();
             let canvas = self.canvas.as_ref().unwrap();
-            let (width, height) = (
-                (canvas.width() as f64 / device_pixel_ratio) as u32,
-                (canvas.height() as f64 / device_pixel_ratio) as u32,
-            );
+            let (width, height) = (canvas.width(), canvas.height());
             let frame_input = FrameInput {
                 events,
                 elapsed_time,
                 accumulated_time,
-                viewport: Viewport::new_at_origo(
-                    (device_pixel_ratio * width as f64) as u32,
-                    (device_pixel_ratio * height as f64) as u32,
-                ),
-                window_width: width,
-                window_height: height,
+                viewport: Viewport::new_at_origo(width, height),
+                window_width: (width as f64 / device_pixel_ratio) as u32,
+                window_height: (height as f64 / device_pixel_ratio) as u32,
                 device_pixel_ratio,
                 first_frame: first_frame,
             };
@@ -223,9 +217,21 @@ impl Window {
         };
         width = u32::max(width, self.settings.min_size.0);
         height = u32::max(height, self.settings.min_size.1);
+
+        let device_pixel_ratio = self.pixels_per_point();
+
+        // Determine the amount of actual pixels we want to render:
+        let width_px = (device_pixel_ratio * width as f64) as u32;
+        let height_px = (device_pixel_ratio * height as f64) as u32;
+
+        // Determine the CSS width & height, which are adjusted for the device
+        // pixel ratio and can be fractional:
+        let width_css = (width_px as f64) / device_pixel_ratio;
+        let height_css = (height_px as f64) / device_pixel_ratio;
+
         let mut style = canvas.style().css_text();
-        let w = format!("width:{}px;", width);
-        let h = format!("height:{}px;", height);
+        let w = format!("width:{}px;", width_css);
+        let h = format!("height:{}px;", height_css);
         if let Some(start) = style.find("width") {
             let mut end = start;
             for char in style[start..].chars() {
@@ -252,9 +258,9 @@ impl Window {
         }
 
         canvas.style().set_css_text(&style);
-        let device_pixel_ratio = self.pixels_per_point();
-        canvas.set_width((device_pixel_ratio * width as f64) as u32);
-        canvas.set_height((device_pixel_ratio * height as f64) as u32);
+        canvas.set_width(width_px);
+        canvas.set_height(height_px);
+
         Ok(())
     }
 
