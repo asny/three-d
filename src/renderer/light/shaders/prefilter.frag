@@ -3,6 +3,7 @@ in vec3 pos;
 
 uniform samplerCube environmentMap;
 uniform float roughness;
+uniform float resolution; // resolution of source cubemap (per face)
 
 void main()
 {		
@@ -33,7 +34,6 @@ void main()
             float D   = D_GGX(roughness, NdH);
             float pdf = D * NdH / (4.0 * HdV) + 0.0001; 
 
-            float resolution = 1024.0; // resolution of source cubemap (per face)
             float saTexel  = PI / (6.0 * resolution * resolution);
             float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
 

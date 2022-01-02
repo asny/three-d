@@ -57,7 +57,8 @@ impl Environment {
                 ),
                 |program| {
                     program.use_texture_cube("environmentMap", environment_map)?;
-                    program.use_uniform_float("roughness", &roughness)
+                    program.use_uniform_float("roughness", &roughness)?;
+                    program.use_uniform_float("resolution", &(environment_map.width() as f32))
                 },
             )?;
         }
