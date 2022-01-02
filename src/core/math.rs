@@ -105,10 +105,10 @@ impl Mat4Ext for Mat4 {
     }
 }
 
-pub fn degrees(v: f32) -> Degrees {
+pub const fn degrees(v: f32) -> Degrees {
     Deg(v)
 }
-pub fn radians(v: f32) -> Radians {
+pub const fn radians(v: f32) -> Radians {
     Rad(v)
 }
 
