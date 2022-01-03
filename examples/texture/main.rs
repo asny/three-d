@@ -27,9 +27,18 @@ fn main() {
 
     let skybox = Loading::new(
         &context,
-        &["examples/assets/flower_road_4k.hdr"],
+        &[
+            "examples/assets/skybox_evening/right.jpg",
+            "examples/assets/skybox_evening/left.jpg",
+            "examples/assets/skybox_evening/top.jpg",
+            "examples/assets/skybox_evening/front.jpg",
+            "examples/assets/skybox_evening/back.jpg",
+        ],
         move |context, mut loaded| {
-            Skybox::new_from_equirectangular(&context, &loaded.hdr_image("")?)
+            Skybox::new(
+                &context,
+                &loaded.cube_image("right", "left", "top", "top", "front", "back")?,
+            )
         },
     );
 
@@ -99,15 +108,16 @@ fn main() {
             // draw
             if redraw {
                 Screen::write(&context, ClearState::default(), || {
-                    if let Some(Ok((ref box_object, ref penguin_object))) = *objects.borrow() {
+                    if let Some(ref objects) = *objects.borrow() {
+                        let (box_object, penguin_object) = objects.as_ref().unwrap();
                         pipeline.render_pass(
                             &camera,
                             &[box_object as &dyn Object, penguin_object],
                             &lights,
                         )?;
                     }
-                    if let Some(Ok(ref skybox)) = *skybox.borrow() {
-                        skybox.render(&camera)?;
+                    if let Some(ref skybox) = *skybox.borrow() {
+                        skybox.as_ref().unwrap().render(&camera)?;
                     }
                     Ok(())
                 })
