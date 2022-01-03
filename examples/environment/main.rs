@@ -51,7 +51,7 @@ fn main() {
         &CPUMesh::sphere(32),
         PhysicalMaterial {
             albedo: Color::RED,
-            roughness: 0.5,
+            roughness: 0.2,
             metallic: 0.8,
             ..Default::default()
         },
