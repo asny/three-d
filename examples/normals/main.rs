@@ -101,13 +101,13 @@ fn main() {
                 &context,
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
-                    if let Some(Ok((
-                        ref model_with_computed_tangents,
-                        ref model_with_loaded_tangents,
-                        ref instanced_model_with_computed_tangents,
-                        ref instanced_model_with_loaded_tangents,
-                    ))) = *models.borrow()
-                    {
+                    if let Some(ref models) = *models.borrow() {
+                        let (
+                            ref model_with_computed_tangents,
+                            ref model_with_loaded_tangents,
+                            ref instanced_model_with_computed_tangents,
+                            ref instanced_model_with_loaded_tangents,
+                        ) = models.as_ref().unwrap();
                         model_with_computed_tangents.render(&camera, &lights)?;
                         model_with_loaded_tangents.render(&camera, &lights)?;
                         instanced_model_with_computed_tangents.render(&camera, &lights)?;

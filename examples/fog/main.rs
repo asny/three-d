@@ -25,24 +25,6 @@ fn main() {
     .unwrap();
     let mut control = FlyControl::new(0.05);
 
-    // Skybox
-    let skybox = Loading::new(
-        &context,
-        &[
-            "examples/assets/skybox_evening/right.jpg",
-            "examples/assets/skybox_evening/left.jpg",
-            "examples/assets/skybox_evening/top.jpg",
-            "examples/assets/skybox_evening/front.jpg",
-            "examples/assets/skybox_evening/back.jpg",
-        ],
-        move |context, mut loaded| {
-            Skybox::new(
-                &context,
-                &loaded.cube_image("right", "left", "top", "top", "front", "back")?,
-            )
-        },
-    );
-
     let monkey = Loading::new(
         &context,
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
@@ -84,7 +66,7 @@ fn main() {
             change |= control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
-            if !loaded && monkey.is_loaded() && skybox.is_loaded() {
+            if !loaded && monkey.is_loaded() {
                 change = true;
                 loaded = true;
             }
@@ -104,17 +86,18 @@ fn main() {
 
             // draw
             if change && fog_enabled {
-                if let Some(Ok(ref monkey)) = *monkey.borrow() {
-                    depth_texture = Some(pipeline.depth_pass_texture(&camera, &[monkey]).unwrap());
+                if let Some(ref monkey) = *monkey.borrow() {
+                    depth_texture = Some(
+                        pipeline
+                            .depth_pass_texture(&camera, &[monkey.as_ref().unwrap()])
+                            .unwrap(),
+                    );
                 }
             }
 
             Screen::write(&context, ClearState::default(), || {
-                if let Some(Ok(ref monkey)) = *monkey.borrow() {
-                    monkey.render(&camera, &lights)?;
-                }
-                if let Some(Ok(ref skybox)) = *skybox.borrow() {
-                    skybox.render(&camera)?;
+                if let Some(ref monkey) = *monkey.borrow() {
+                    monkey.as_ref().unwrap().render(&camera, &lights)?;
                 }
                 if fog_enabled {
                     if let Some(ref depth_texture) = depth_texture {

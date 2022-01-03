@@ -129,18 +129,27 @@ fn main() {
                         ui.heading("Debug Panel");
 
                         ui.label("Surface parameters");
-                        if let Some(Ok(ref mut model)) = *model.borrow_mut() {
+                        if let Some(ref mut model) = *model.borrow_mut() {
                             ui.add(
-                                Slider::new(&mut model.material.metallic, 0.0..=1.0)
-                                    .text("Model Metallic"),
+                                Slider::new(
+                                    &mut model.as_mut().unwrap().material.metallic,
+                                    0.0..=1.0,
+                                )
+                                .text("Model Metallic"),
                             );
                             ui.add(
-                                Slider::new(&mut model.material.roughness, 0.0..=1.0)
-                                    .text("Model Roughness"),
+                                Slider::new(
+                                    &mut model.as_mut().unwrap().material.roughness,
+                                    0.0..=1.0,
+                                )
+                                .text("Model Roughness"),
                             );
                             ui.add(
-                                Slider::new(&mut model.material.albedo.a, 0..=255)
-                                    .text("Model opacity"),
+                                Slider::new(
+                                    &mut model.as_mut().unwrap().material.albedo.a,
+                                    0..=255,
+                                )
+                                .text("Model opacity"),
                             );
                         }
                         ui.add(
@@ -260,7 +269,8 @@ fn main() {
             lights.point[1].set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
             // Draw
-            if let Some(Ok(ref model)) = *model.borrow() {
+            if let Some(ref model) = *model.borrow() {
+                let model = model.as_ref().unwrap();
                 if shadows_enabled {
                     lights.directional[0]
                         .generate_shadow_map(4.0, 1024, 1024, &[model, &plane])
