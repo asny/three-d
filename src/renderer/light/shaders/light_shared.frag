@@ -32,7 +32,7 @@ vec3 fresnel_schlick_roughness(vec3 F0, float cosTheta, float roughness)
 float D_blinn(in float roughness, in float NdH)
 {
     float alpha = roughness * roughness;
-    float alpha2 = alpha * alpha;
+    float alpha2 = max(alpha * alpha, 0.001);
     float n = 2.0 / alpha2 - 2.0;
     return (n + 2.0) / (2.0 * PI) * pow(NdH, n);
 }
@@ -40,7 +40,7 @@ float D_blinn(in float roughness, in float NdH)
 float D_beckmann(in float roughness, in float NdH)
 {
     float alpha = roughness * roughness;
-    float alpha2 = alpha * alpha;
+    float alpha2 = max(alpha * alpha, 0.001);
     float NdH2 = NdH * NdH;
     return exp((NdH2 - 1.0) / (alpha2 * NdH2)) / (PI * alpha2 * NdH2 * NdH2);
 }
