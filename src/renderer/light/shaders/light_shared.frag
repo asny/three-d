@@ -107,7 +107,7 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
 vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 V, vec3 N, float metallic, float roughness)
 {
     // compute material reflectance
-    float NdL = max(0.0, dot(N, L));
+    float NdL = max(0.001, dot(N, L));
     float NdV = max(0.001, dot(N, V));
 
     // mix between metal and non-metal material, for non-metal
