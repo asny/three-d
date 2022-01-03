@@ -25,6 +25,10 @@
 
 ![Picking example](https://asny.github.io/three-d/0.10/picking.png)
 
+## Environment [[code](https://github.com/asny/three-d/tree/master/examples/environment/main.rs)] [[web](https://asny.github.io/three-d/0.10/environment.html)]
+
+![Environment example](https://asny.github.io/three-d/0.10/environment.png)
+
 ## PBR [[code](https://github.com/asny/three-d/tree/master/examples/pbr/main.rs)] [[web](https://asny.github.io/three-d/0.10/pbr.html)]
 
 ![PBR example](https://asny.github.io/three-d/0.10/pbr.png)
@@ -52,5 +56,9 @@
 ## Forest [[code](https://github.com/asny/three-d/tree/master/examples/forest/main.rs)] [[web](https://asny.github.io/three-d/0.10/forest.html)]
 
 ![Forest example](https://asny.github.io/three-d/0.10/forest.png)
+
+## Normals [[code](https://github.com/asny/three-d/tree/master/examples/normals/main.rs)] [[web](https://asny.github.io/three-d/0.10/normals.html)]
+
+![Normals example](https://asny.github.io/three-d/0.10/normals.png)
 
 
