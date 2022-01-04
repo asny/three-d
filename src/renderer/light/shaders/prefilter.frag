@@ -31,7 +31,7 @@ void main()
             float HdV = max(dot(H, V), 0.0);
 
             // sample from the environment's mip level based on roughness/pdf
-            float D   = D_GGX(roughness, NdH);
+            float D = calculate_D(roughness, NdH);
             float pdf = D * NdH / (4.0 * HdV) + 0.0001; 
 
             float saTexel  = PI / (6.0 * resolution * resolution);

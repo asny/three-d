@@ -54,6 +54,22 @@ float D_GGX(in float roughness, in float NdH)
     return alpha2 / (PI * d * d);
 }
 
+float calculate_D(float roughness, float NdH) {
+    float D = 0.0;
+#ifdef COOK_BLINN
+    D = D_blinn(roughness, NdH);
+#endif
+
+#ifdef COOK_BECKMANN
+    D = D_beckmann(roughness, NdH);
+#endif
+
+#ifdef COOK_GGX
+    D = D_GGX(roughness, NdH);
+#endif
+    return D;
+}
+
 // Smith's Schlick-GGX geometry function
 float G_schlick(in float roughness, in float NdV, in float NdL)
 {
@@ -86,21 +102,8 @@ vec3 blinn_specular(in float NdH, in vec3 specular_fresnel, in float roughness)
 // cook-torrance specular calculation                      
 vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 specular_fresnel, in float roughness)
 {
-    float D = 0.0;
-#ifdef COOK_BLINN
-    D = D_blinn(roughness, NdH);
-#endif
-
-#ifdef COOK_BECKMANN
-    D = D_beckmann(roughness, NdH);
-#endif
-
-#ifdef COOK_GGX
-    D = D_GGX(roughness, NdH);
-#endif
-
+    float D = calculate_D(roughness, NdH);
     float G = G_schlick(roughness, NdV, NdL);
-
     return specular_fresnel * G * D / (4.0 * NdV * NdL);
 }
 

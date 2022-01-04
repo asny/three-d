@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::renderer::*;
 pub struct Environment {
     pub irradiance_map: ColorTargetTextureCubeMap<f32>,
     pub prefilter_map: ColorTargetTextureCubeMap<f32>,
@@ -7,6 +8,10 @@ pub struct Environment {
 
 impl Environment {
     pub fn new(context: &Context, environment_map: &impl TextureCube) -> ThreeDResult<Self> {
+        let lighting_model = LightingModel::Cook(
+            NormalDistributionFunction::TrowbridgeReitzGGX,
+            GeometryFunction::SmithSchlickGGX,
+        );
         // Diffuse
         let irradiance_map = ColorTargetTextureCubeMap::new(
             context,
@@ -50,7 +55,8 @@ impl Environment {
                 mip,
                 ClearState::default(),
                 &format!(
-                    "#define COOK\n#define COOK_GGX\n{}{}{}",
+                    "{}{}{}{}",
+                    lighting_model.shader(),
                     include_str!("../../core/shared.frag"),
                     include_str!("shaders/light_shared.frag"),
                     include_str!("shaders/prefilter.frag")
@@ -78,7 +84,8 @@ impl Environment {
         let effect = ImageEffect::new(
             context,
             &format!(
-                "#define COOK\n#define COOK_GGX\n{}{}{}",
+                "{}{}{}{}",
+                lighting_model.shader(),
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/light_shared.frag"),
                 include_str!("shaders/brdf.frag")

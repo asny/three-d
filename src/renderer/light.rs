@@ -45,6 +45,22 @@ pub enum NormalDistributionFunction {
     TrowbridgeReitzGGX,
 }
 
+impl LightingModel {
+    pub(crate) fn shader(&self) -> &str {
+        match self {
+            LightingModel::Phong => "#define PHONG",
+            LightingModel::Blinn => "#define BLINN",
+            LightingModel::Cook(normal, _) => match normal {
+                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+                NormalDistributionFunction::TrowbridgeReitzGGX => {
+                    "#define COOK\n#define COOK_GGX\n"
+                }
+            },
+        }
+    }
+}
+
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
     pub directional: Vec<DirectionalLight>,
@@ -140,16 +156,7 @@ pub(crate) fn lights_fragment_shader_source(
     lights: &mut dyn Iterator<Item = &dyn Light>,
     lighting_model: LightingModel,
 ) -> String {
-    let mut shader_source = match lighting_model {
-        LightingModel::Phong => "#define PHONG",
-        LightingModel::Blinn => "#define BLINN",
-        LightingModel::Cook(normal, _) => match normal {
-            NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
-            NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
-            NormalDistributionFunction::TrowbridgeReitzGGX => "#define COOK\n#define COOK_GGX\n",
-        },
-    }
-    .to_string();
+    let mut shader_source = lighting_model.shader().to_string();
     shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("./light/shaders/light_shared.frag"));
     let mut dir_fun = String::new();
