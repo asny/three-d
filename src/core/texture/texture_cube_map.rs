@@ -1,6 +1,94 @@
 use crate::context::consts;
 use crate::core::texture::*;
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+pub enum CubeMapSide {
+    Top,
+    Bottom,
+    Right,
+    Left,
+    Front,
+    Back,
+}
+
+pub struct CubeMapSideIterator {
+    index: usize,
+}
+
+impl CubeMapSideIterator {
+    pub fn new() -> Self {
+        Self { index: 0 }
+    }
+}
+
+impl<'a> Iterator for CubeMapSideIterator {
+    type Item = CubeMapSide;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.index += 1;
+        match self.index {
+            1 => Some(CubeMapSide::Right),
+            2 => Some(CubeMapSide::Left),
+            3 => Some(CubeMapSide::Top),
+            4 => Some(CubeMapSide::Bottom),
+            5 => Some(CubeMapSide::Front),
+            6 => Some(CubeMapSide::Back),
+            _ => None,
+        }
+    }
+}
+
+impl CubeMapSide {
+    pub fn iter() -> CubeMapSideIterator {
+        CubeMapSideIterator::new()
+    }
+
+    pub(in crate::core) fn to_const(&self) -> u32 {
+        match self {
+            CubeMapSide::Right => consts::TEXTURE_CUBE_MAP_POSITIVE_X,
+            CubeMapSide::Left => consts::TEXTURE_CUBE_MAP_NEGATIVE_X,
+            CubeMapSide::Top => consts::TEXTURE_CUBE_MAP_POSITIVE_Y,
+            CubeMapSide::Bottom => consts::TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            CubeMapSide::Front => consts::TEXTURE_CUBE_MAP_POSITIVE_Z,
+            CubeMapSide::Back => consts::TEXTURE_CUBE_MAP_NEGATIVE_Z,
+        }
+    }
+
+    pub(in crate::core) fn view(&self) -> Mat4 {
+        match self {
+            CubeMapSide::Right => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(1.0, 0.0, 0.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+            CubeMapSide::Left => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(-1.0, 0.0, 0.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+            CubeMapSide::Top => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, 1.0, 0.0),
+                vec3(0.0, 0.0, 1.0),
+            ),
+            CubeMapSide::Bottom => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, -1.0, 0.0),
+                vec3(0.0, 0.0, -1.0),
+            ),
+            CubeMapSide::Front => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, 0.0, 1.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+            CubeMapSide::Back => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, 0.0, -1.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+        }
+    }
+}
+
 ///
 /// A texture that covers all 6 sides of a cube.
 ///
