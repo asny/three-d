@@ -30,7 +30,7 @@ pub struct DeferredPipeline {
     #[deprecated = "use lighting_pass where Light struct contain lighting model"]
     pub lighting_model: LightingModel,
     camera: Camera,
-    geometry_pass_texture: Option<ColorTargetTexture2DArray<u8>>,
+    geometry_pass_texture: Option<Texture2DArray<u8>>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
@@ -54,7 +54,7 @@ impl DeferredPipeline {
             )?,
             debug_type: DebugType::NONE,
             lighting_model: LightingModel::Blinn,
-            geometry_pass_texture: Some(ColorTargetTexture2DArray::new(
+            geometry_pass_texture: Some(Texture2DArray::new(
                 context,
                 1,
                 1,
@@ -133,7 +133,7 @@ impl DeferredPipeline {
         self.camera.set_viewport(viewport)?;
         self.camera
             .set_view(*camera.position(), *camera.target(), *camera.up())?;
-        self.geometry_pass_texture = Some(ColorTargetTexture2DArray::<u8>::new(
+        self.geometry_pass_texture = Some(Texture2DArray::<u8>::new(
             &self.context,
             viewport.width,
             viewport.height,
@@ -316,7 +316,7 @@ impl DeferredPipeline {
         })
     }
 
-    pub fn geometry_pass_texture(&self) -> &ColorTargetTexture2DArray<u8> {
+    pub fn geometry_pass_texture(&self) -> &Texture2DArray<u8> {
         self.geometry_pass_texture.as_ref().unwrap()
     }
     pub fn geometry_pass_depth_texture_array(&self) -> &DepthTargetTexture2DArray {

@@ -1,13 +1,16 @@
 use crate::core::texture::*;
 use crate::core::*;
 
+#[deprecated = "Use Texture2DArray instead"]
+pub type ColorTargetTexture2DArray<T> = Texture2DArray<T>;
+
 ///
 /// A array of 2D color textures that can be rendered into.
 ///
 /// **Note:** [DepthTest] is disabled if not also writing to a depth texture array.
 /// Use a [RenderTargetArray] to write to both color and depth.
 ///
-pub struct ColorTargetTexture2DArray<T: TextureDataType> {
+pub struct Texture2DArray<T: TextureDataType> {
     context: Context,
     id: crate::context::Texture,
     width: u32,
@@ -18,7 +21,7 @@ pub struct ColorTargetTexture2DArray<T: TextureDataType> {
     _dummy: T,
 }
 
-impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
+impl<T: TextureDataType> Texture2DArray<T> {
     ///
     /// Creates a new array of color target textures.
     ///
@@ -136,7 +139,7 @@ impl<T: TextureDataType> ColorTargetTexture2DArray<T> {
     }
 }
 
-impl<T: TextureDataType> TextureArray for ColorTargetTexture2DArray<T> {
+impl<T: TextureDataType> TextureArray for Texture2DArray<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
@@ -154,7 +157,7 @@ impl<T: TextureDataType> TextureArray for ColorTargetTexture2DArray<T> {
     }
 }
 
-impl<T: TextureDataType> Drop for ColorTargetTexture2DArray<T> {
+impl<T: TextureDataType> Drop for Texture2DArray<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
     }

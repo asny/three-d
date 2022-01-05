@@ -76,9 +76,9 @@ impl Default for Cull {
 /// when comparing its depth with the depth of the current fragment/pixel.
 ///
 /// **Note:** Depth test is disabled if the render call is not writing to a depth texture.
-/// This means depth testing does not work when writing to a [ColorTargetTexture2D](crate::core::ColorTargetTexture2D) or [ColorTargetTexture2DArray](crate::core::ColorTargetTexture2DArray),
-/// but do work when writing to the [Screen](crate::core::Screen), a [RenderTarget](crate::core::RenderTarget), [RenderTargetArray](crate::core::RenderTargetArray),
-/// [DepthTargetTexture2D](crate::core::DepthTargetTexture2D) or [DepthTargetTexture2DArray](crate::core::DepthTargetTexture2DArray).
+/// This means depth testing does not work when writing to a [ColorTargetTexture2D] or [Texture2DArray],
+/// but do work when writing to the [Screen], a [RenderTarget], [RenderTargetArray],
+/// [DepthTargetTexture2D] or [DepthTargetTexture2DArray].
 ///
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
