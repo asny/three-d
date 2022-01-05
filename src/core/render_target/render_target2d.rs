@@ -30,6 +30,30 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         })
     }
 
+    pub fn new_color(
+        context: &Context,
+        color_texture: &'a ColorTargetTexture2D<T>,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: Some(color_texture),
+            depth_texture: None,
+        })
+    }
+
+    pub fn new_depth(
+        context: &Context,
+        depth_texture: &'b DepthTargetTexture2D,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: None,
+            depth_texture: Some(depth_texture),
+        })
+    }
+
     ///
     /// Renders whatever rendered in the `render` closure into the textures defined at construction.
     /// Before writing, the textures are cleared based on the given clear state.
@@ -117,30 +141,6 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
                 tex.write(None, copy)
             }
         }
-    }
-
-    pub fn new_color(
-        context: &Context,
-        color_texture: &'a ColorTargetTexture2D<T>,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: new_framebuffer(context)?,
-            color_texture: Some(color_texture),
-            depth_texture: None,
-        })
-    }
-
-    pub fn new_depth(
-        context: &Context,
-        depth_texture: &'b DepthTargetTexture2D,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: new_framebuffer(context)?,
-            color_texture: None,
-            depth_texture: Some(depth_texture),
-        })
     }
 
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
