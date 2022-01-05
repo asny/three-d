@@ -38,9 +38,9 @@ impl ImageCubeEffect {
         side: CubeMapSide,
         clear_state: ClearState,
         render_states: RenderStates,
-        projection: Mat4,
-        viewport: Viewport,
     ) -> ThreeDResult<()> {
+        let viewport = Viewport::new_at_origo(render_target.width(), render_target.height());
+        let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
         render_target.write(side, clear_state, || {
             self.program
                 .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
@@ -59,9 +59,12 @@ impl ImageCubeEffect {
         mip_level: u32,
         clear_state: ClearState,
         render_states: RenderStates,
-        projection: Mat4,
-        viewport: Viewport,
     ) -> ThreeDResult<()> {
+        let viewport = Viewport::new_at_origo(
+            render_target.width() / 2u32.pow(mip_level),
+            render_target.height() / 2u32.pow(mip_level),
+        );
+        let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
         render_target.write_to_mip_level(side, mip_level, clear_state, || {
             self.program
                 .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
