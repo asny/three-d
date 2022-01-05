@@ -13,7 +13,7 @@ impl Environment {
             GeometryFunction::SmithSchlickGGX,
         );
         // Diffuse
-        let irradiance_map = TextureCubeMap::new_empty(
+        let mut irradiance_map = TextureCubeMap::new_empty(
             context,
             32,
             32,
@@ -32,8 +32,8 @@ impl Environment {
                 include_str!("shaders/irradiance.frag")
             );
             let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
-            let render_target = RenderTargetCubeMap::new_color(context, &irradiance_map)?;
             let viewport = Viewport::new_at_origo(irradiance_map.width(), irradiance_map.height());
+            let render_target = RenderTargetCubeMap::new_color(context, &mut irradiance_map)?;
             let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
             for side in CubeMapSide::iter() {
                 program.use_texture_cube("environmentMap", environment_map)?;
@@ -49,7 +49,7 @@ impl Environment {
         }
 
         // Prefilter
-        let prefilter_map = TextureCubeMap::new_empty(
+        let mut prefilter_map = TextureCubeMap::new_empty(
             context,
             128,
             128,
@@ -70,14 +70,15 @@ impl Environment {
                 include_str!("shaders/prefilter.frag")
             );
             let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
-            let render_target = RenderTargetCubeMap::new_color(context, &prefilter_map)?;
+            let width = prefilter_map.width();
+            let height = prefilter_map.height();
+            let render_target = RenderTargetCubeMap::new_color(context, &mut prefilter_map)?;
 
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
-                let width = prefilter_map.width() / 2u32.pow(mip);
-                let height = prefilter_map.height() / 2u32.pow(mip);
-                let viewport = Viewport::new_at_origo(width, height);
+                let viewport =
+                    Viewport::new_at_origo(width / 2u32.pow(mip), height / 2u32.pow(mip));
                 let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
                 for side in CubeMapSide::iter() {
                     program.use_texture_cube("environmentMap", environment_map)?;

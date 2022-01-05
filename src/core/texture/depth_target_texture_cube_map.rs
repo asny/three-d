@@ -54,12 +54,12 @@ impl DepthTargetTextureCubeMap {
     }
 
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &self,
+        &mut self,
         side: CubeMapSide,
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::<u8>::new_depth(&self.context, &self)?.write(
+        RenderTargetCubeMap::<u8>::new_depth(&self.context.clone(), self)?.write(
             side,
             ClearState {
                 depth: clear_state,

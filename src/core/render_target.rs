@@ -521,8 +521,8 @@ impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
 pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a TextureCubeMap<T>>,
-    depth_texture: Option<&'b DepthTargetTextureCubeMap>,
+    color_texture: Option<&'a mut TextureCubeMap<T>>,
+    depth_texture: Option<&'b mut DepthTargetTextureCubeMap>,
 }
 
 impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
@@ -532,8 +532,8 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a TextureCubeMap<T>,
-        depth_texture: &'b DepthTargetTextureCubeMap,
+        color_texture: &'a mut TextureCubeMap<T>,
+        depth_texture: &'b mut DepthTargetTextureCubeMap,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -545,7 +545,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
     pub fn new_color(
         context: &Context,
-        color_texture: &'a TextureCubeMap<T>,
+        color_texture: &'a mut TextureCubeMap<T>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -557,7 +557,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
     pub fn new_depth(
         context: &Context,
-        depth_texture: &'b DepthTargetTextureCubeMap,
+        depth_texture: &'b mut DepthTargetTextureCubeMap,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -574,7 +574,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         self.write_to_mip_level(side, 0, clear_state, render)?;
-        if let Some(color_texture) = self.color_texture {
+        if let Some(ref color_texture) = self.color_texture {
             color_texture.generate_mip_maps();
         }
         Ok(())
@@ -589,11 +589,11 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     ) -> ThreeDResult<()> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
-        if let Some(color_texture) = self.color_texture {
+        if let Some(ref color_texture) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
             color_texture.bind_as_color_target(side, 0, mip_level);
         }
-        if let Some(depth_texture) = self.depth_texture {
+        if let Some(ref depth_texture) = self.depth_texture {
             depth_texture.bind_as_depth_target(side);
         }
         #[cfg(feature = "debug")]
@@ -602,11 +602,11 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         clear(
             &self.context,
             &ClearState {
-                red: self.color_texture.and(clear_state.red),
-                green: self.color_texture.and(clear_state.green),
-                blue: self.color_texture.and(clear_state.blue),
-                alpha: self.color_texture.and(clear_state.alpha),
-                depth: self.depth_texture.and(clear_state.depth),
+                red: self.color_texture.as_ref().and(clear_state.red),
+                green: self.color_texture.as_ref().and(clear_state.green),
+                blue: self.color_texture.as_ref().and(clear_state.blue),
+                alpha: self.color_texture.as_ref().and(clear_state.alpha),
+                depth: self.depth_texture.as_ref().and(clear_state.depth),
             },
         );
         render()?;

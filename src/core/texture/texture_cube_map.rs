@@ -239,7 +239,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         context: &Context,
         cpu_texture: &CPUTexture<T_>,
     ) -> ThreeDResult<Self> {
-        let texture = Self::new_empty(
+        let mut texture = Self::new_empty(
             &context,
             cpu_texture.width / 4,
             cpu_texture.width / 4,
@@ -274,9 +274,9 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
             let program = ImageCubeEffect::new(context, fragment_shader_source)?;
-            let render_target = RenderTargetCubeMap::new_color(context, &texture)?;
             let viewport = Viewport::new_at_origo(texture.width(), texture.height());
             let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
+            let render_target = RenderTargetCubeMap::new_color(context, &mut texture)?;
 
             for side in CubeMapSide::iter() {
                 program.use_texture("equirectangularMap", &map)?;
@@ -294,22 +294,26 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     }
 
     pub fn write(
-        &self,
+        &mut self,
         side: CubeMapSide,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::new_color(&self.context, &self)?.write(side, clear_state, render)
+        RenderTargetCubeMap::new_color(&self.context.clone(), self)?.write(
+            side,
+            clear_state,
+            render,
+        )
     }
 
     pub fn write_to_mip_level(
-        &self,
+        &mut self,
         side: CubeMapSide,
         mip_level: u32,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::new_color(&self.context, &self)?.write_to_mip_level(
+        RenderTargetCubeMap::new_color(&self.context.clone(), self)?.write_to_mip_level(
             side,
             mip_level,
             clear_state,
