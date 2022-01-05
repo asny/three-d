@@ -70,11 +70,11 @@ impl DepthTargetTexture2D {
     /// Before writing, the texture is cleared based on the given clear state.
     ///
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &self,
+        &mut self,
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::<f32>::new_depth(&self.context, &self)?.write(
+        RenderTarget::<f32>::new_depth(&self.context.clone(), self)?.write(
             ClearState {
                 depth: clear_state,
                 ..ClearState::none()

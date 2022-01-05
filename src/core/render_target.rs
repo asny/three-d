@@ -163,15 +163,13 @@ impl Screen {
 pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
     /// Copies to the [Screen].
     Screen,
-    /// Copies to a [ColorTargetTexture2D].
-    ColorTexture(&'d ColorTargetTexture2D<T>),
+    /// Copies to a [Texture2D].
+    ColorTexture(&'d mut Texture2D<T>),
     /// Copies to a [DepthTargetTexture2D].
-    DepthTexture(&'d DepthTargetTexture2D),
+    DepthTexture(&'d mut DepthTargetTexture2D),
     /// Copies to a [RenderTarget].
     RenderTarget(&'c RenderTarget<'a, 'b, T>),
 }
-
-
 
 fn new_framebuffer(context: &Context) -> ThreeDResult<crate::context::Framebuffer> {
     Ok(context

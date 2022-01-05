@@ -9,10 +9,6 @@ mod texture_cube_map;
 #[doc(inline)]
 pub use texture_cube_map::*;
 
-mod color_target_texture2d;
-#[doc(inline)]
-pub use color_target_texture2d::*;
-
 mod depth_target_texture2d;
 #[doc(inline)]
 pub use depth_target_texture2d::*;

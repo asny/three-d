@@ -123,7 +123,7 @@ pub fn ray_intersect<S: Shadable>(
         0.0,
         max_depth,
     )?;
-    let texture = ColorTargetTexture2D::<f32>::new(
+    let texture = Texture2D::<f32>::new_empty(
         context,
         viewport.width,
         viewport.height,

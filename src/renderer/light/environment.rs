@@ -3,7 +3,7 @@ use crate::renderer::*;
 pub struct Environment {
     pub irradiance_map: TextureCubeMap<f32>,
     pub prefilter_map: TextureCubeMap<f32>,
-    pub brdf_map: ColorTargetTexture2D<f32>,
+    pub brdf_map: Texture2D<f32>,
 }
 
 impl Environment {
@@ -87,7 +87,7 @@ impl Environment {
         }
 
         // BRDF
-        let brdf_map = ColorTargetTexture2D::new(
+        let mut brdf_map = Texture2D::new_empty(
             context,
             512,
             512,
@@ -108,11 +108,9 @@ impl Environment {
                 include_str!("shaders/brdf.frag")
             ),
         )?;
+        let viewport = Viewport::new_at_origo(brdf_map.width(), brdf_map.height());
         brdf_map.write(ClearState::default(), || {
-            effect.apply(
-                RenderStates::default(),
-                Viewport::new_at_origo(brdf_map.width(), brdf_map.height()),
-            )
+            effect.apply(RenderStates::default(), viewport)
         })?;
 
         Ok(Self {
