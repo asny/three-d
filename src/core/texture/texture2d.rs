@@ -190,6 +190,20 @@ impl<T: TextureDataType> Texture2D<T> {
         if self.format != Format::RGBA {
             Err(CoreError::ReadWrongFormat)?;
         }
+        let id = crate::core::render_target::new_framebuffer(&self.context)?;
+
+        self.context
+            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&id));
+        self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+        self.bind_as_color_target(0);
+
+        self.context
+            .bind_framebuffer(consts::READ_FRAMEBUFFER, Some(&id));
+        self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+        self.bind_as_color_target(0);
+
+        #[cfg(feature = "debug")]
+        check(&self.context)?;
 
         let mut pixels = vec![
             T::default();
@@ -197,9 +211,6 @@ impl<T: TextureDataType> Texture2D<T> {
                 * viewport.height as usize
                 * self.format.color_channel_count() as usize
         ];
-        let render_target = RenderTarget::new_color(&self.context, self)?;
-        render_target.bind(consts::DRAW_FRAMEBUFFER)?;
-        render_target.bind(consts::READ_FRAMEBUFFER)?;
         T::read(&self.context, viewport, self.format, &mut pixels);
         Ok(pixels)
     }

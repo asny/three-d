@@ -171,7 +171,9 @@ pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
     RenderTarget(&'c RenderTarget<'a, 'b, T>),
 }
 
-fn new_framebuffer(context: &Context) -> ThreeDResult<crate::context::Framebuffer> {
+pub(in crate::core) fn new_framebuffer(
+    context: &Context,
+) -> ThreeDResult<crate::context::Framebuffer> {
     Ok(context
         .create_framebuffer()
         .ok_or(CoreError::RenderTargetCreation)?)
