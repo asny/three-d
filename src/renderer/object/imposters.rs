@@ -16,7 +16,7 @@ pub struct Imposters {
     positions_buffer: VertexBuffer,
     uvs_buffer: VertexBuffer,
     instance_count: u32,
-    texture: ColorTargetTexture2DArray<u8>,
+    texture: Texture2DArray<u8>,
 }
 
 impl Imposters {
@@ -37,7 +37,7 @@ impl Imposters {
 
         let center_buffer = InstanceBuffer::new(context)?;
         let rotation_buffer = InstanceBuffer::new(context)?;
-        let texture = ColorTargetTexture2DArray::<u8>::new(
+        let texture = Texture2DArray::<u8>::new(
             context,
             1,
             1,
@@ -85,7 +85,7 @@ impl Imposters {
             0.0,
             4.0 * (width + height),
         )?;
-        self.texture = ColorTargetTexture2DArray::<u8>::new(
+        self.texture = Texture2DArray::<u8>::new(
             &self.context,
             texture_width,
             texture_height,

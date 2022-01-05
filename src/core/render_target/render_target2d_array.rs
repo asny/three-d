@@ -1,25 +1,25 @@
 use crate::core::render_target::*;
 
 ///
-/// Adds additional functionality to write to and copy from both a [ColorTargetTexture2DArray]and
+/// Adds additional functionality to write to and copy from both a [Texture2DArray]and
 /// a [DepthTargetTexture2DArray] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
 pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a ColorTargetTexture2DArray<T>>,
+    color_texture: Option<&'a Texture2DArray<T>>,
     depth_texture: Option<&'b DepthTargetTexture2DArray>,
 }
 
 impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     /// Constructs a new render target array that enables rendering into the given
-    /// [ColorTargetTexture2DArray] and [DepthTargetTexture2DArray] array textures.
+    /// [Texture2DArray] and [DepthTargetTexture2DArray] array textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2DArray<T>,
+        color_texture: &'a Texture2DArray<T>,
         depth_texture: &'b DepthTargetTexture2DArray,
     ) -> ThreeDResult<Self> {
         Ok(Self {
@@ -32,7 +32,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
 
     pub fn new_color(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2DArray<T>,
+        color_texture: &'a Texture2DArray<T>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
