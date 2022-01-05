@@ -572,25 +572,25 @@ impl CubeMapSide {
 }
 
 ///
-/// Adds additional functionality to write to a [ColorTargetTextureCubeMap] and
+/// Adds additional functionality to write to a [TextureCubeMap] and
 /// a [DepthTargetTextureCubeMap] at the same time.
 /// It purely adds functionality, so it can be created each time it is needed, the data is saved in the textures.
 ///
 pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a ColorTargetTextureCubeMap<T>>,
+    color_texture: Option<&'a TextureCubeMap<T>>,
     depth_texture: Option<&'b DepthTargetTextureCubeMap>,
 }
 
 impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     ///
     /// Constructs a new render target cube map that enables rendering into the given
-    /// [ColorTargetTextureCubeMap] and [DepthTargetTextureCubeMap] textures.
+    /// [TextureCubeMap] and [DepthTargetTextureCubeMap] textures.
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a ColorTargetTextureCubeMap<T>,
+        color_texture: &'a TextureCubeMap<T>,
         depth_texture: &'b DepthTargetTextureCubeMap,
     ) -> ThreeDResult<Self> {
         Ok(Self {
@@ -603,7 +603,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
     pub fn new_color(
         context: &Context,
-        color_texture: &'a ColorTargetTextureCubeMap<T>,
+        color_texture: &'a TextureCubeMap<T>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
