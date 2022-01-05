@@ -123,7 +123,7 @@ pub fn ray_intersect<S: Shadable>(
         0.0,
         max_depth,
     )?;
-    let texture = Texture2D::<f32>::new_empty(
+    let mut texture = Texture2D::<f32>::new_empty(
         context,
         viewport.width,
         viewport.height,
@@ -134,7 +134,7 @@ pub fn ray_intersect<S: Shadable>(
         Wrapping::ClampToEdge,
         Format::RGBA,
     )?;
-    let depth_texture = DepthTargetTexture2D::new(
+    let mut depth_texture = DepthTargetTexture2D::new(
         context,
         viewport.width,
         viewport.height,
@@ -152,20 +152,22 @@ pub fn ray_intersect<S: Shadable>(
         },
         ..Default::default()
     };
-    let render_target = RenderTarget::new(context, &texture, &depth_texture)?;
-    render_target.write(
-        ClearState {
-            red: Some(1.0),
-            depth: Some(1.0),
-            ..ClearState::none()
-        },
-        || {
-            for geometry in geometries {
-                geometry.render_with_material(&depth_material, &camera, &Lights::default())?;
-            }
-            Ok(())
-        },
-    )?;
+    {
+        let render_target = RenderTarget::new(context, &mut texture, &mut depth_texture)?;
+        render_target.write(
+            ClearState {
+                red: Some(1.0),
+                depth: Some(1.0),
+                ..ClearState::none()
+            },
+            || {
+                for geometry in geometries {
+                    geometry.render_with_material(&depth_material, &camera, &Lights::default())?;
+                }
+                Ok(())
+            },
+        )?;
+    }
     let depth = texture.read(viewport)?[0];
     Ok(if depth < 1.0 {
         Some(position + direction * depth * max_depth)
