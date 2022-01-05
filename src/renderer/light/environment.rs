@@ -1,8 +1,8 @@
 use crate::core::*;
 use crate::renderer::*;
 pub struct Environment {
-    pub irradiance_map: ColorTargetTextureCubeMap<f32>,
-    pub prefilter_map: ColorTargetTextureCubeMap<f32>,
+    pub irradiance_map: TextureCubeMap<f32>,
+    pub prefilter_map: TextureCubeMap<f32>,
     pub brdf_map: ColorTargetTexture2D<f32>,
 }
 
@@ -13,7 +13,7 @@ impl Environment {
             GeometryFunction::SmithSchlickGGX,
         );
         // Diffuse
-        let irradiance_map = ColorTargetTextureCubeMap::new(
+        let irradiance_map = TextureCubeMap::new_empty(
             context,
             32,
             32,
@@ -46,7 +46,7 @@ impl Environment {
         }
 
         // Prefilter
-        let prefilter_map = ColorTargetTextureCubeMap::new(
+        let prefilter_map = TextureCubeMap::new_empty(
             context,
             128,
             128,

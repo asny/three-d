@@ -20,18 +20,15 @@ impl<T: TextureDataType> Skybox<TextureCubeMap<T>> {
         let texture = TextureCubeMap::new(&context, cpu_texture)?;
         Self::new_with_texture(context, texture)
     }
-}
 
-impl<T: TextureDataType> Skybox<ColorTargetTextureCubeMap<T>> {
     ///
     /// Creates a new skybox with a cube texture generated from the equirectangular texture given as input.
     ///
     pub fn new_from_equirectangular(
         context: &Context,
         cpu_texture: &CPUTexture<T>,
-    ) -> ThreeDResult<Skybox<ColorTargetTextureCubeMap<T>>> {
-        let texture =
-            ColorTargetTextureCubeMap::<T>::new_from_equirectangular(context, cpu_texture)?;
+    ) -> ThreeDResult<Skybox<TextureCubeMap<T>>> {
+        let texture = TextureCubeMap::<T>::new_from_equirectangular(context, cpu_texture)?;
         Self::new_with_texture(context, texture)
     }
 }
