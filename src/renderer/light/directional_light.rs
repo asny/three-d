@@ -99,7 +99,7 @@ impl DirectionalLight {
         self.light_buffer
             .update(4, &shadow_matrix(&shadow_camera).to_slice())?;
 
-        let shadow_texture = DepthTargetTexture2D::new(
+        let mut shadow_texture = DepthTargetTexture2D::new(
             &self.context,
             texture_width,
             texture_height,

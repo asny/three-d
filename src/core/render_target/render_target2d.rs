@@ -8,7 +8,7 @@ use crate::core::render_target::*;
 pub struct RenderTarget<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a ColorTargetTexture2D<T>>,
+    color_texture: Option<&'a Texture2D<T>>,
     depth_texture: Option<&'b DepthTargetTexture2D>,
 }
 
@@ -19,7 +19,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a ColorTargetTexture2D<T>,
+        color_texture: &'a Texture2D<T>,
         depth_texture: &'b DepthTargetTexture2D,
     ) -> ThreeDResult<Self> {
         Ok(Self {
@@ -30,10 +30,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         })
     }
 
-    pub fn new_color(
-        context: &Context,
-        color_texture: &'a ColorTargetTexture2D<T>,
-    ) -> ThreeDResult<Self> {
+    pub fn new_color(context: &Context, color_texture: &'a Texture2D<T>) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,

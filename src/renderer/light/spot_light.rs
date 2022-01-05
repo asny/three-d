@@ -141,7 +141,7 @@ impl SpotLight {
         self.light_buffer
             .update(10, &shadow_matrix(&shadow_camera).to_slice())?;
 
-        let shadow_texture = DepthTargetTexture2D::new(
+        let mut shadow_texture = DepthTargetTexture2D::new(
             &self.context,
             texture_size,
             texture_size,

@@ -54,7 +54,7 @@ impl ForwardPipeline {
         camera: &Camera,
         objects: &[impl Object],
     ) -> ThreeDResult<DepthTargetTexture2D> {
-        let depth_texture = DepthTargetTexture2D::new(
+        let mut depth_texture = DepthTargetTexture2D::new(
             &self.context,
             camera.viewport().width,
             camera.viewport().height,
