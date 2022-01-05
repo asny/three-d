@@ -53,19 +53,14 @@ impl DepthTargetTextureCubeMap {
         })
     }
 
-    ///
-    /// Writes the depth of whatever rendered in the `render` closure into the depth texture defined by the input parameter `depth_layer`.
-    /// Before writing, the texture is cleared based on the given clear state.
-    ///
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
         &self,
-        depth_layer: u32,
+        side: CubeMapSide,
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
         RenderTargetCubeMap::<u8>::new_depth(&self.context, &self)?.write(
-            0,
-            depth_layer,
+            side,
             ClearState {
                 depth: clear_state,
                 ..ClearState::none()
@@ -74,11 +69,11 @@ impl DepthTargetTextureCubeMap {
         )
     }
 
-    pub(in crate::core) fn bind_as_depth_target(&self, layer: u32) {
+    pub(in crate::core) fn bind_as_depth_target(&self, side: CubeMapSide) {
         self.context.framebuffer_texture_2d(
             consts::DRAW_FRAMEBUFFER,
             consts::DEPTH_ATTACHMENT,
-            consts::TEXTURE_CUBE_MAP_POSITIVE_X + layer,
+            side.to_const(),
             &self.id,
             0,
         );

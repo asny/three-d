@@ -192,10 +192,10 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Renders whatever rendered in the `render` closure into the textures defined at construction.
     /// Before writing, the textures are cleared based on the given clear state.
     ///
-    pub fn write<F: FnOnce() -> ThreeDResult<()>>(
+    pub fn write(
         &self,
         clear_state: ClearState,
-        render: F,
+        render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         self.bind(consts::DRAW_FRAMEBUFFER)?;
         clear(
@@ -513,6 +513,64 @@ impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     }
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+pub enum CubeMapSide {
+    Top,
+    Bottom,
+    Right,
+    Left,
+    Front,
+    Back,
+}
+
+impl CubeMapSide {
+    pub(in crate::core) fn to_const(&self) -> u32 {
+        match self {
+            CubeMapSide::Right => consts::TEXTURE_CUBE_MAP_POSITIVE_X,
+            CubeMapSide::Left => consts::TEXTURE_CUBE_MAP_NEGATIVE_X,
+            CubeMapSide::Top => consts::TEXTURE_CUBE_MAP_POSITIVE_Y,
+            CubeMapSide::Bottom => consts::TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            CubeMapSide::Front => consts::TEXTURE_CUBE_MAP_POSITIVE_Z,
+            CubeMapSide::Back => consts::TEXTURE_CUBE_MAP_NEGATIVE_Z,
+        }
+    }
+
+    pub(in crate::core) fn view(&self) -> Mat4 {
+        match self {
+            CubeMapSide::Right => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(1.0, 0.0, 0.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+            CubeMapSide::Left => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(-1.0, 0.0, 0.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+            CubeMapSide::Top => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, 1.0, 0.0),
+                vec3(0.0, 0.0, 1.0),
+            ),
+            CubeMapSide::Bottom => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, -1.0, 0.0),
+                vec3(0.0, 0.0, -1.0),
+            ),
+            CubeMapSide::Front => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, 0.0, 1.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+            CubeMapSide::Back => Mat4::look_at_rh(
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(0.0, 0.0, -1.0),
+                vec3(0.0, -1.0, 0.0),
+            ),
+        }
+    }
+}
+
 ///
 /// Adds additional functionality to write to a [ColorTargetTextureCubeMap] and
 /// a [DepthTargetTextureCubeMap] at the same time.
@@ -543,7 +601,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         })
     }
 
-    pub(super) fn new_color(
+    pub fn new_color(
         context: &Context,
         color_texture: &'a ColorTargetTextureCubeMap<T>,
     ) -> ThreeDResult<Self> {
@@ -555,7 +613,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         })
     }
 
-    pub(super) fn new_depth(
+    pub fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTextureCubeMap,
     ) -> ThreeDResult<Self> {
@@ -569,12 +627,11 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
     pub fn write(
         &self,
-        color_layer: u32,
-        depth_layer: u32,
+        side: CubeMapSide,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.write_to_mip_level(color_layer, depth_layer, 0, clear_state, render)?;
+        self.write_to_mip_level(side, 0, clear_state, render)?;
         if let Some(color_texture) = self.color_texture {
             color_texture.generate_mip_maps();
         }
@@ -583,13 +640,23 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
     pub fn write_to_mip_level(
         &self,
-        color_layer: u32,
-        depth_layer: u32,
+        side: CubeMapSide,
         mip_level: u32,
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.bind(Some(color_layer), Some(depth_layer), mip_level)?;
+        self.context
+            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
+        if let Some(color_texture) = self.color_texture {
+            self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+            color_texture.bind_as_color_target(side, 0, mip_level);
+        }
+        if let Some(depth_texture) = self.depth_texture {
+            depth_texture.bind_as_depth_target(side);
+        }
+        #[cfg(feature = "debug")]
+        check(&self.context)?;
+
         clear(
             &self.context,
             &ClearState {
@@ -600,30 +667,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
                 depth: self.depth_texture.and(clear_state.depth),
             },
         );
-        render()
-    }
-
-    fn bind(
-        &self,
-        color_layer: Option<u32>,
-        depth_layer: Option<u32>,
-        mip_level: u32,
-    ) -> ThreeDResult<()> {
-        self.context
-            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
-        if let Some(color_texture) = self.color_texture {
-            if let Some(color_layer) = color_layer {
-                self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
-                color_texture.bind_as_color_target(color_layer, 0, mip_level);
-            }
-        }
-        if let Some(depth_texture) = self.depth_texture {
-            if let Some(depth_layer) = depth_layer {
-                depth_texture.bind_as_depth_target(depth_layer);
-            }
-        }
-        #[cfg(feature = "debug")]
-        check(&self.context)?;
+        render()?;
         Ok(())
     }
 }
