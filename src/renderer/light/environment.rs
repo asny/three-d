@@ -35,14 +35,17 @@ impl Environment {
             let render_target = RenderTargetCubeMap::new_color(context, &irradiance_map)?;
             let viewport = Viewport::new_at_origo(irradiance_map.width(), irradiance_map.height());
             let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-            program.use_texture_cube("environmentMap", environment_map)?;
-            program.apply_all(
-                &render_target,
-                ClearState::default(),
-                RenderStates::default(),
-                projection,
-                viewport,
-            )?;
+            for side in CubeMapSide::iter() {
+                program.use_texture_cube("environmentMap", environment_map)?;
+                program.apply(
+                    &render_target,
+                    side,
+                    ClearState::default(),
+                    RenderStates::default(),
+                    projection,
+                    viewport,
+                )?;
+            }
         }
 
         // Prefilter
@@ -76,17 +79,20 @@ impl Environment {
                 let height = prefilter_map.height() / 2u32.pow(mip);
                 let viewport = Viewport::new_at_origo(width, height);
                 let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-                program.use_texture_cube("environmentMap", environment_map)?;
-                program.use_uniform_float("roughness", &roughness)?;
-                program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
-                program.write_all_to_mip_level(
-                    &render_target,
-                    mip,
-                    ClearState::default(),
-                    RenderStates::default(),
-                    projection,
-                    viewport,
-                )?;
+                for side in CubeMapSide::iter() {
+                    program.use_texture_cube("environmentMap", environment_map)?;
+                    program.use_uniform_float("roughness", &roughness)?;
+                    program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
+                    program.write_to_mip_level(
+                        &render_target,
+                        side,
+                        mip,
+                        ClearState::default(),
+                        RenderStates::default(),
+                        projection,
+                        viewport,
+                    )?;
+                }
             }
         }
 

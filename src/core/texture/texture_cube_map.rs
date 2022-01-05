@@ -189,14 +189,18 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             let render_target = RenderTargetCubeMap::new_color(context, &texture)?;
             let viewport = Viewport::new_at_origo(texture.width(), texture.height());
             let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-            program.use_texture("equirectangularMap", &map)?;
-            program.apply_all(
-                &render_target,
-                ClearState::default(),
-                RenderStates::default(),
-                projection,
-                viewport,
-            )?;
+
+            for side in CubeMapSide::iter() {
+                program.use_texture("equirectangularMap", &map)?;
+                program.apply(
+                    &render_target,
+                    side,
+                    ClearState::default(),
+                    RenderStates::default(),
+                    projection,
+                    viewport,
+                )?;
+            }
         }
         Ok(texture)
     }
