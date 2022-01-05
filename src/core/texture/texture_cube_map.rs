@@ -192,7 +192,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
 
             for side in CubeMapSide::iter() {
                 program.use_texture("equirectangularMap", &map)?;
-                program.apply(
+                program.render(
                     &render_target,
                     side,
                     ClearState::default(),

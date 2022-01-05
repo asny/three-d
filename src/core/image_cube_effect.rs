@@ -32,7 +32,7 @@ impl ImageCubeEffect {
         Ok(Self { program, positions })
     }
 
-    pub fn apply<T: TextureDataType>(
+    pub fn render<T: TextureDataType>(
         &self,
         render_target: &RenderTargetCubeMap<T>,
         side: CubeMapSide,
@@ -52,7 +52,7 @@ impl ImageCubeEffect {
         Ok(())
     }
 
-    pub fn write_to_mip_level<T: TextureDataType>(
+    pub fn render_to_mip_level<T: TextureDataType>(
         &self,
         render_target: &RenderTargetCubeMap<T>,
         side: CubeMapSide,
