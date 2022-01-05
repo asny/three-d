@@ -37,7 +37,7 @@ impl Environment {
             let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
             for side in CubeMapSide::iter() {
                 program.use_texture_cube("environmentMap", environment_map)?;
-                program.apply(
+                program.render(
                     &render_target,
                     side,
                     ClearState::default(),
@@ -83,7 +83,7 @@ impl Environment {
                     program.use_texture_cube("environmentMap", environment_map)?;
                     program.use_uniform_float("roughness", &roughness)?;
                     program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
-                    program.write_to_mip_level(
+                    program.render_to_mip_level(
                         &render_target,
                         side,
                         mip,
