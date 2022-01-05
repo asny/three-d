@@ -612,6 +612,20 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         render()?;
         Ok(())
     }
+
+    pub fn width(&self) -> u32 {
+        self.color_texture
+            .as_ref()
+            .map(|t| t.width())
+            .unwrap_or_else(|| self.depth_texture.as_ref().unwrap().width())
+    }
+
+    pub fn height(&self) -> u32 {
+        self.color_texture
+            .as_ref()
+            .map(|t| t.height())
+            .unwrap_or_else(|| self.depth_texture.as_ref().unwrap().height())
+    }
 }
 
 impl<T: TextureDataType> Drop for RenderTargetCubeMap<'_, '_, T> {

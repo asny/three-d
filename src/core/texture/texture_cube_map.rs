@@ -274,8 +274,6 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
             let program = ImageCubeEffect::new(context, fragment_shader_source)?;
-            let viewport = Viewport::new_at_origo(texture.width(), texture.height());
-            let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
             let render_target = RenderTargetCubeMap::new_color(context, &mut texture)?;
 
             for side in CubeMapSide::iter() {
@@ -285,8 +283,6 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                     side,
                     ClearState::default(),
                     RenderStates::default(),
-                    projection,
-                    viewport,
                 )?;
             }
         }
