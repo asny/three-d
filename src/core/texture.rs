@@ -13,9 +13,9 @@ mod depth_target_texture2d;
 #[doc(inline)]
 pub use depth_target_texture2d::*;
 
-mod color_target_texture2d_array;
+mod texture2d_array;
 #[doc(inline)]
-pub use color_target_texture2d_array::*;
+pub use texture2d_array::*;
 
 mod depth_target_texture2d_array;
 #[doc(inline)]
