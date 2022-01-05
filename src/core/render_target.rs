@@ -523,7 +523,37 @@ pub enum CubeMapSide {
     Back,
 }
 
+pub struct CubeMapSideIterator {
+    index: usize,
+}
+
+impl CubeMapSideIterator {
+    pub fn new() -> Self {
+        Self { index: 0 }
+    }
+}
+
+impl<'a> Iterator for CubeMapSideIterator {
+    type Item = CubeMapSide;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.index += 1;
+        match self.index {
+            1 => Some(CubeMapSide::Right),
+            2 => Some(CubeMapSide::Left),
+            3 => Some(CubeMapSide::Top),
+            4 => Some(CubeMapSide::Bottom),
+            5 => Some(CubeMapSide::Front),
+            6 => Some(CubeMapSide::Back),
+            _ => None,
+        }
+    }
+}
+
 impl CubeMapSide {
+    pub fn iter() -> CubeMapSideIterator {
+        CubeMapSideIterator::new()
+    }
+
     pub(in crate::core) fn to_const(&self) -> u32 {
         match self {
             CubeMapSide::Right => consts::TEXTURE_CUBE_MAP_POSITIVE_X,
