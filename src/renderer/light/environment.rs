@@ -25,15 +25,25 @@ impl Environment {
             Wrapping::ClampToEdge,
             Format::RGBA,
         )?;
-        irradiance_map.write_to_all(
-            ClearState::default(),
-            &format!(
+        {
+            let fragment_shader_source = format!(
                 "{}{}",
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/irradiance.frag")
-            ),
-            |program| program.use_texture_cube("environmentMap", environment_map),
-        )?;
+            );
+            let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
+            let render_target = RenderTargetCubeMap::new_color(context, &irradiance_map)?;
+            let viewport = Viewport::new_at_origo(irradiance_map.width(), irradiance_map.height());
+            let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
+            program.use_texture_cube("environmentMap", environment_map)?;
+            program.apply_all(
+                &render_target,
+                ClearState::default(),
+                RenderStates::default(),
+                projection,
+                viewport,
+            )?;
+        }
 
         // Prefilter
         let prefilter_map = ColorTargetTextureCubeMap::new(
@@ -48,25 +58,36 @@ impl Environment {
             Wrapping::ClampToEdge,
             Format::RGBA,
         )?;
-        let max_mip_levels = 5;
-        for mip in 0..max_mip_levels {
-            let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
-            prefilter_map.write_to_all_to_mip_level(
-                mip,
-                ClearState::default(),
-                &format!(
-                    "{}{}{}{}",
-                    lighting_model.shader(),
-                    include_str!("../../core/shared.frag"),
-                    include_str!("shaders/light_shared.frag"),
-                    include_str!("shaders/prefilter.frag")
-                ),
-                |program| {
-                    program.use_texture_cube("environmentMap", environment_map)?;
-                    program.use_uniform_float("roughness", &roughness)?;
-                    program.use_uniform_float("resolution", &(environment_map.width() as f32))
-                },
-            )?;
+        {
+            let fragment_shader_source = format!(
+                "{}{}{}{}",
+                lighting_model.shader(),
+                include_str!("../../core/shared.frag"),
+                include_str!("shaders/light_shared.frag"),
+                include_str!("shaders/prefilter.frag")
+            );
+            let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
+            let render_target = RenderTargetCubeMap::new_color(context, &prefilter_map)?;
+
+            let max_mip_levels = 5;
+            for mip in 0..max_mip_levels {
+                let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
+                let width = prefilter_map.width() / 2u32.pow(mip);
+                let height = prefilter_map.height() / 2u32.pow(mip);
+                let viewport = Viewport::new_at_origo(width, height);
+                let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
+                program.use_texture_cube("environmentMap", environment_map)?;
+                program.use_uniform_float("roughness", &roughness)?;
+                program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
+                program.write_all_to_mip_level(
+                    &render_target,
+                    mip,
+                    ClearState::default(),
+                    RenderStates::default(),
+                    projection,
+                    viewport,
+                )?;
+            }
         }
 
         // BRDF
