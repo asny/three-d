@@ -159,7 +159,7 @@ impl<T: TextureDataType> Texture2D<T> {
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::<T>::new_color(&self.context, self)?.write(clear_state, render)
+        RenderTarget::<T>::new_color(&self.context.clone(), self)?.write(clear_state, render)
     }
 
     ///
@@ -170,12 +170,16 @@ impl<T: TextureDataType> Texture2D<T> {
     /// Will return an error if the destination is a depth texture.
     ///
     pub fn copy_to(
-        &self,
+        &mut self,
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_color(&self.context, self)?.copy_to(destination, viewport, write_mask)
+        RenderTarget::new_color(&self.context.clone(), self)?.copy_to(
+            destination,
+            viewport,
+            write_mask,
+        )
     }
 
     ///

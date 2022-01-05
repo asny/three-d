@@ -385,6 +385,24 @@ impl<T: Texture + ?Sized> Texture for &T {
     }
 }
 
+impl<T: Texture + ?Sized> Texture for &mut T {
+    fn bind(&self, location: u32) {
+        (**self).bind(location)
+    }
+    fn width(&self) -> u32 {
+        (**self).width()
+    }
+    fn height(&self) -> u32 {
+        (**self).height()
+    }
+    fn format(&self) -> Format {
+        (**self).format()
+    }
+    fn is_transparent(&self) -> bool {
+        (**self).is_transparent()
+    }
+}
+
 ///
 /// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::core::Program::use_texture_array)).
 ///
@@ -419,6 +437,24 @@ impl<T: TextureArray + ?Sized> TextureArray for &T {
     }
 }
 
+impl<T: TextureArray + ?Sized> TextureArray for &mut T {
+    fn bind(&self, location: u32) {
+        (**self).bind(location)
+    }
+    fn width(&self) -> u32 {
+        (**self).width()
+    }
+    fn height(&self) -> u32 {
+        (**self).height()
+    }
+    fn depth(&self) -> u32 {
+        (**self).depth()
+    }
+    fn format(&self) -> Format {
+        (**self).format()
+    }
+}
+
 ///
 /// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::core::Program::use_texture_cube)).
 ///
@@ -450,6 +486,24 @@ impl<T: TextureCube + ?Sized> TextureCube for &T {
     }
     fn is_hdr(&self) -> bool {
         (*self).is_hdr()
+    }
+}
+
+impl<T: TextureCube + ?Sized> TextureCube for &mut T {
+    fn bind(&self, location: u32) {
+        (**self).bind(location)
+    }
+    fn width(&self) -> u32 {
+        (**self).width()
+    }
+    fn height(&self) -> u32 {
+        (**self).height()
+    }
+    fn format(&self) -> Format {
+        (**self).format()
+    }
+    fn is_hdr(&self) -> bool {
+        (**self).is_hdr()
     }
 }
 

@@ -90,11 +90,11 @@ impl DepthTargetTexture2D {
     /// Will return an error if the destination is a color texture.
     ///
     pub fn copy_to<T: TextureDataType>(
-        &self,
+        &mut self,
         destination: CopyDestination<T>,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_depth(&self.context, &self)?.copy_to(
+        RenderTarget::new_depth(&self.context.clone(), self)?.copy_to(
             destination,
             viewport,
             WriteMask::DEPTH,

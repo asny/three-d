@@ -8,8 +8,8 @@ use crate::core::render_target::*;
 pub struct RenderTarget<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a Texture2D<T>>,
-    depth_texture: Option<&'b DepthTargetTexture2D>,
+    color_texture: Option<&'a mut Texture2D<T>>,
+    depth_texture: Option<&'b mut DepthTargetTexture2D>,
 }
 
 impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
@@ -19,8 +19,8 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a Texture2D<T>,
-        depth_texture: &'b DepthTargetTexture2D,
+        color_texture: &'a mut Texture2D<T>,
+        depth_texture: &'b mut DepthTargetTexture2D,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -30,7 +30,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         })
     }
 
-    pub fn new_color(context: &Context, color_texture: &'a Texture2D<T>) -> ThreeDResult<Self> {
+    pub fn new_color(context: &Context, color_texture: &'a mut Texture2D<T>) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: new_framebuffer(context)?,
@@ -41,7 +41,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
 
     pub fn new_depth(
         context: &Context,
-        depth_texture: &'b DepthTargetTexture2D,
+        depth_texture: &'b mut DepthTargetTexture2D,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -64,15 +64,15 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         clear(
             &self.context,
             &ClearState {
-                red: self.color_texture.and(clear_state.red),
-                green: self.color_texture.and(clear_state.green),
-                blue: self.color_texture.and(clear_state.blue),
-                alpha: self.color_texture.and(clear_state.alpha),
-                depth: self.depth_texture.and(clear_state.depth),
+                red: self.color_texture.as_ref().and(clear_state.red),
+                green: self.color_texture.as_ref().and(clear_state.green),
+                blue: self.color_texture.as_ref().and(clear_state.blue),
+                alpha: self.color_texture.as_ref().and(clear_state.alpha),
+                depth: self.depth_texture.as_ref().and(clear_state.depth),
             },
         );
         render()?;
-        if let Some(color_texture) = self.color_texture {
+        if let Some(ref color_texture) = self.color_texture {
             color_texture.generate_mip_maps();
         }
         Ok(())
@@ -100,10 +100,10 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
                 gl_FragDepth = texture(depthMap, uv).r;
             }";
             self.context.effect(fragment_shader_source, |effect| {
-                if let Some(tex) = self.color_texture {
+                if let Some(ref tex) = self.color_texture {
                     effect.use_texture("colorMap", tex)?;
                 }
-                if let Some(tex) = self.depth_texture {
+                if let Some(ref tex) = self.depth_texture {
                     effect.use_texture("depthMap", tex)?;
                 }
                 effect.apply(
@@ -142,11 +142,11 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
 
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
         self.context.bind_framebuffer(target, Some(&self.id));
-        if let Some(tex) = self.color_texture {
+        if let Some(ref tex) = self.color_texture {
             self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
             tex.bind_as_color_target(0);
         }
-        if let Some(tex) = self.depth_texture {
+        if let Some(ref tex) = self.depth_texture {
             tex.bind_as_depth_target();
         }
         #[cfg(feature = "debug")]
