@@ -15,7 +15,7 @@ fn main() {
 
     let image = Loading::new(
         &context,
-        &["examples/assets/chinese_garden_4k.hdr"],
+        &["examples/assets/syferfontein_18d_clear_4k.hdr"],
         move |context, mut loaded| Texture2D::new(&context, &loaded.hdr_image("")?),
     );
 
@@ -30,7 +30,7 @@ fn main() {
                 use three_d::egui::*;
                 SidePanel::left("side_panel").show(gui_context, |ui| {
                     ui.heading("Debug Panel");
-                    ui.add(Slider::new(&mut tone_mapping, 0.0..=10.0).text("Tone mapping"));
+                    ui.add(Slider::new(&mut tone_mapping, 0.0..=50.0).text("Tone mapping"));
                 });
                 panel_width = gui_context.used_size().x as u32;
             })
