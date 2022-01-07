@@ -37,6 +37,10 @@
 
 ![Lighting example](https://asny.github.io/three-d/0.10/lighting.png)
 
+## Image [[code](https://github.com/asny/three-d/tree/master/examples/image/main.rs)] [[web](https://asny.github.io/three-d/0.10/image.html)]
+
+![Image example](https://asny.github.io/three-d/0.10/image.png)
+
 ## Fog [[code](https://github.com/asny/three-d/tree/master/examples/fog/main.rs)] [[web](https://asny.github.io/three-d/0.10/fog.html)]
 
 ![Fog example](https://asny.github.io/three-d/0.10/fog.png)
