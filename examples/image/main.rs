@@ -11,23 +11,12 @@ fn main() {
     })
     .unwrap();
     let context = window.gl().unwrap();
-    let image_effect = ImageEffect::new(
-        &context,
-        "
-    uniform sampler2D image;
-    in vec2 uv;
-    layout (location = 0) out vec4 color;
-    void main()
-    {
-        color = texture(image, vec2(uv.x, 1.0 - uv.y));
-    }",
-    )
-    .unwrap();
+    let image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
 
     let image = Loading::new(
         &context,
-        &["examples/assets/test_texture.jpg"],
-        move |context, mut loaded| Texture2D::new(&context, &loaded.image("")?),
+        &["examples/assets/chinese_garden_4k.hdr"],
+        move |context, mut loaded| Texture2D::new(&context, &loaded.hdr_image("")?),
     );
 
     // main loop
