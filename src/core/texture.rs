@@ -81,7 +81,7 @@ impl Format {
 }
 
 ///
-/// A CPU-side version of a texture, for example [Texture2D].
+/// A CPU-side version of a [Texture2D].
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 #[allow(missing_docs)]
@@ -89,7 +89,6 @@ pub struct CPUTexture<T: TextureDataType> {
     pub data: Vec<T>,
     pub width: u32,
     pub height: u32,
-    pub depth: u32,
     pub format: Format,
     pub min_filter: Interpolation,
     pub mag_filter: Interpolation,
@@ -98,7 +97,6 @@ pub struct CPUTexture<T: TextureDataType> {
     pub mip_map_filter: Option<Interpolation>,
     pub wrap_s: Wrapping,
     pub wrap_t: Wrapping,
-    pub wrap_r: Wrapping,
 }
 
 impl<T: TextureDataType> CPUTexture<T> {
@@ -135,14 +133,12 @@ impl<T: TextureDataType> Default for CPUTexture<T> {
             data: [T::default(), T::default(), T::default(), T::default()].into(),
             width: 1,
             height: 1,
-            depth: 1,
             format: Format::RGBA,
             min_filter: Interpolation::Linear,
             mag_filter: Interpolation::Linear,
             mip_map_filter: Some(Interpolation::Linear),
             wrap_s: Wrapping::Repeat,
             wrap_t: Wrapping::Repeat,
-            wrap_r: Wrapping::Repeat,
         }
     }
 }
@@ -154,7 +150,76 @@ impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
             .field("data length", &self.data.len())
             .field("width", &self.width)
             .field("height", &self.height)
-            .field("depth", &self.depth)
+            .field("min_filter", &self.min_filter)
+            .field("mag_filter", &self.mag_filter)
+            .field("mip_map_filter", &self.mip_map_filter)
+            .field("wrap_s", &self.wrap_s)
+            .field("wrap_t", &self.wrap_t)
+            .finish()
+    }
+}
+
+///
+/// A CPU-side version of a [TextureCubeMap]. All 6 images must have the same dimensions.
+/// Can be constructed manually or loaded via [Loader](crate::Loader).
+///
+#[allow(missing_docs)]
+pub struct CPUTextureCube<T: TextureDataType> {
+    /// The pixel data for the right image
+    pub right_data: Vec<T>,
+    /// The pixel data for the left image
+    pub left_data: Vec<T>,
+    /// The pixel data for the top image
+    pub top_data: Vec<T>,
+    /// The pixel data for the bottom image
+    pub bottom_data: Vec<T>,
+    /// The pixel data for the front image
+    pub front_data: Vec<T>,
+    /// The pixel data for the back image
+    pub back_data: Vec<T>,
+    /// The width of each of the 6 images
+    pub width: u32,
+    /// The height of each of the 6 images
+    pub height: u32,
+    pub format: Format,
+    pub min_filter: Interpolation,
+    pub mag_filter: Interpolation,
+    /// Specifies whether mipmaps should be created for this texture and what type of interpolation to use between the two closest mipmaps.
+    /// Note, however, that the mipmaps only will be created if the width and height of the texture are power of two.
+    pub mip_map_filter: Option<Interpolation>,
+    pub wrap_s: Wrapping,
+    pub wrap_t: Wrapping,
+    pub wrap_r: Wrapping,
+}
+
+impl<T: TextureDataType> Default for CPUTextureCube<T> {
+    fn default() -> Self {
+        Self {
+            right_data: vec![],
+            left_data: vec![],
+            top_data: vec![],
+            bottom_data: vec![],
+            front_data: vec![],
+            back_data: vec![],
+            width: 1,
+            height: 1,
+            format: Format::RGBA,
+            min_filter: Interpolation::Linear,
+            mag_filter: Interpolation::Linear,
+            mip_map_filter: Some(Interpolation::Linear),
+            wrap_s: Wrapping::Repeat,
+            wrap_t: Wrapping::Repeat,
+            wrap_r: Wrapping::Repeat,
+        }
+    }
+}
+
+impl<T: TextureDataType> std::fmt::Debug for CPUTextureCube<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CPUTexture")
+            .field("format", &self.format)
+            .field("width", &self.width)
+            .field("height", &self.height)
             .field("min_filter", &self.min_filter)
             .field("mag_filter", &self.mag_filter)
             .field("mip_map_filter", &self.mip_map_filter)

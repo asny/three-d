@@ -106,10 +106,13 @@ pub struct TextureCubeMap<T: TextureDataType> {
 impl<T: TextureDataType> TextureCubeMap<T> {
     ///
     /// Creates a new texture cube map from the given cpu texture.
-    /// The cpu texture data must contain 6 images all with the width and height specified in the cpu texture.
+    /// The cpu texture must contain 6 images all with the width and height specified in the cpu texture.
     /// The images are used in the following order; right, left, top, bottom, front, back.
     ///
-    pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> ThreeDResult<TextureCubeMap<T>> {
+    pub fn new(
+        context: &Context,
+        cpu_texture: &CPUTextureCube<T>,
+    ) -> ThreeDResult<TextureCubeMap<T>> {
         let mut texture = Self::new_empty(
             context,
             cpu_texture.width,
@@ -122,7 +125,14 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             cpu_texture.wrap_r,
             cpu_texture.format,
         )?;
-        texture.fill(&cpu_texture.data)?;
+        texture.fill(
+            &cpu_texture.right_data,
+            &cpu_texture.left_data,
+            &cpu_texture.top_data,
+            &cpu_texture.bottom_data,
+            &cpu_texture.front_data,
+            &cpu_texture.back_data,
+        )?;
         Ok(texture)
     }
 
@@ -181,24 +191,45 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     }
 
     ///
-    /// Fills the cube map texture with the given data which should contain pixel data for 6 images in the following order; right, left, top, bottom, front, back.
+    /// Fills the cube map texture with the given pixel data for the 6 images.
     ///
     /// # Errors
-    /// Returns an error if the length of the data does not correspond to 6 images with the width, height and format specified at construction.
+    /// Returns an error if the length of the data for all 6 images does not correspond to the width, height and format specified at construction.
     ///
-    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
-        let offset = data.len() / 6;
-        check_data_length(self.width, self.height, 1, self.format, offset)?;
+    pub fn fill(
+        &mut self,
+        right_data: &[T],
+        left_data: &[T],
+        top_data: &[T],
+        bottom_data: &[T],
+        front_data: &[T],
+        back_data: &[T],
+    ) -> ThreeDResult<()> {
+        check_data_length(self.width, self.height, 1, self.format, right_data.len())?;
+        check_data_length(self.width, self.height, 1, self.format, left_data.len())?;
+        check_data_length(self.width, self.height, 1, self.format, top_data.len())?;
+        check_data_length(self.width, self.height, 1, self.format, bottom_data.len())?;
+        check_data_length(self.width, self.height, 1, self.format, front_data.len())?;
+        check_data_length(self.width, self.height, 1, self.format, back_data.len())?;
         self.context
             .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
         for i in 0..6 {
+            let data = match i {
+                0 => right_data,
+                1 => left_data,
+                2 => top_data,
+                3 => bottom_data,
+                4 => front_data,
+                5 => back_data,
+                _ => unreachable!(),
+            };
             T::fill(
                 &self.context,
                 consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
                 self.width,
                 self.height,
                 self.format,
-                &data[i * offset..(i + 1) * offset],
+                data,
             );
         }
         self.generate_mip_maps();
