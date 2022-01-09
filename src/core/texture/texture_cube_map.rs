@@ -154,31 +154,6 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     }
 
     ///
-    /// Fills the cube map texture with the given data which should contain pixel data for 6 images in the following order; right, left, top, bottom, front, back.
-    ///
-    /// # Errors
-    /// Returns an error if the length of the data does not correspond to 6 images with the width, height and format specified at construction.
-    ///
-    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
-        let offset = data.len() / 6;
-        check_data_length(self.width, self.height, 1, self.format, offset)?;
-        self.context
-            .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
-        for i in 0..6 {
-            T::fill(
-                &self.context,
-                consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
-                self.width,
-                self.height,
-                self.format,
-                &data[i * offset..(i + 1) * offset],
-            );
-        }
-        self.generate_mip_maps();
-        Ok(())
-    }
-
-    ///
     /// Creates a new color target cube map.
     ///
     pub fn new_empty(
@@ -230,6 +205,31 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         };
         tex.generate_mip_maps();
         Ok(tex)
+    }
+
+    ///
+    /// Fills the cube map texture with the given data which should contain pixel data for 6 images in the following order; right, left, top, bottom, front, back.
+    ///
+    /// # Errors
+    /// Returns an error if the length of the data does not correspond to 6 images with the width, height and format specified at construction.
+    ///
+    pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
+        let offset = data.len() / 6;
+        check_data_length(self.width, self.height, 1, self.format, offset)?;
+        self.context
+            .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
+        for i in 0..6 {
+            T::fill(
+                &self.context,
+                consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
+                self.width,
+                self.height,
+                self.format,
+                &data[i * offset..(i + 1) * offset],
+            );
+        }
+        self.generate_mip_maps();
+        Ok(())
     }
 
     ///
