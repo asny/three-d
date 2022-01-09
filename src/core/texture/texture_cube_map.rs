@@ -110,51 +110,24 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     /// The images are used in the following order; right, left, top, bottom, front, back.
     ///
     pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> ThreeDResult<TextureCubeMap<T>> {
-        let id = generate(context)?;
-        let number_of_mip_maps = calculate_number_of_mip_maps(
-            cpu_texture.mip_map_filter,
+        let mut texture = Self::new_empty(
+            context,
             cpu_texture.width,
             cpu_texture.height,
-        );
-        set_parameters(
-            context,
-            &id,
-            consts::TEXTURE_CUBE_MAP,
             cpu_texture.min_filter,
             cpu_texture.mag_filter,
-            if number_of_mip_maps == 1 {
-                None
-            } else {
-                cpu_texture.mip_map_filter
-            },
+            cpu_texture.mip_map_filter,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
-            Some(cpu_texture.wrap_r),
-        );
-        context.bind_texture(consts::TEXTURE_CUBE_MAP, &id);
-        context.tex_storage_2d(
-            consts::TEXTURE_CUBE_MAP,
-            number_of_mip_maps,
-            T::internal_format(cpu_texture.format)?,
-            cpu_texture.width,
-            cpu_texture.height,
-        );
-        let mut texture = Self {
-            context: context.clone(),
-            id,
-            width: cpu_texture.width,
-            height: cpu_texture.height,
-            format: cpu_texture.format,
-            number_of_mip_maps,
-            is_hdr: T::bits_per_channel() > 8,
-            _dummy: T::default(),
-        };
+            cpu_texture.wrap_r,
+            cpu_texture.format,
+        )?;
         texture.fill(&cpu_texture.data)?;
         Ok(texture)
     }
 
     ///
-    /// Creates a new color target cube map.
+    /// Creates a new texture cube map.
     ///
     pub fn new_empty(
         context: &Context,
