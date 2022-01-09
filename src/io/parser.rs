@@ -64,9 +64,9 @@ mod image_io {
         }
 
         ///
-        /// Deserialize the 6 loaded image resources at the given paths into a [CPUTexture] using
+        /// Deserialize the 6 loaded image resources at the given paths into a [CPUTextureCube] using
         /// the [image](https://crates.io/crates/image/main.rs) crate.
-        /// The CPUTexture can then be used to create a [TextureCubeMap].
+        /// The CPUTextureCube can then be used to create a [TextureCubeMap].
         ///
         pub fn cube_image<P: AsRef<Path>>(
             &mut self,
@@ -76,20 +76,31 @@ mod image_io {
             bottom_path: P,
             front_path: P,
             back_path: P,
-        ) -> ThreeDResult<CPUTexture<u8>> {
-            let mut right = self.image(right_path)?;
+        ) -> ThreeDResult<CPUTextureCube<u8>> {
+            let right = self.image(right_path)?;
             let left = self.image(left_path)?;
             let top = self.image(top_path)?;
             let bottom = self.image(bottom_path)?;
             let front = self.image(front_path)?;
             let back = self.image(back_path)?;
 
-            right.data.extend(left.data);
-            right.data.extend(top.data);
-            right.data.extend(bottom.data);
-            right.data.extend(front.data);
-            right.data.extend(back.data);
-            Ok(right)
+            Ok(CPUTextureCube {
+                right_data: right.data,
+                left_data: left.data,
+                top_data: top.data,
+                bottom_data: bottom.data,
+                front_data: front.data,
+                back_data: back.data,
+                width: right.width,
+                height: right.height,
+                format: right.format,
+                min_filter: right.min_filter,
+                mag_filter: right.mag_filter,
+                mip_map_filter: right.mip_map_filter,
+                wrap_s: right.wrap_s,
+                wrap_t: right.wrap_t,
+                wrap_r: right.wrap_s,
+            })
         }
     }
 
