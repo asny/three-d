@@ -1,8 +1,5 @@
 use crate::core::texture::*;
 
-#[deprecated = "Use Texture2D instead"]
-pub type ColorTargetTexture2D<T> = Texture2D<T>;
-
 ///
 /// A 2D texture, basically an image that is transferred to the GPU.
 ///
@@ -258,5 +255,63 @@ impl<T: TextureDataType> Texture for Texture2D<T> {
 impl<T: TextureDataType> Drop for Texture2D<T> {
     fn drop(&mut self) {
         self.context.delete_texture(&self.id);
+    }
+}
+
+///
+/// A 2D color texture that can be rendered into and read from.
+///
+/// **Note:** [DepthTest] is disabled if not also writing to a depth texture.
+/// Use a [RenderTarget] to write to both color and depth.
+///
+#[deprecated = "Use Texture2D instead"]
+pub struct ColorTargetTexture2D<T: TextureDataType> {
+    tex: Texture2D<T>,
+}
+
+#[allow(deprecated)]
+impl<T: TextureDataType> ColorTargetTexture2D<T> {
+    ///
+    /// Constructs a new 2D color target texture.
+    ///
+    pub fn new(
+        context: &Context,
+        width: u32,
+        height: u32,
+        min_filter: Interpolation,
+        mag_filter: Interpolation,
+        mip_map_filter: Option<Interpolation>,
+        wrap_s: Wrapping,
+        wrap_t: Wrapping,
+        format: Format,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            tex: Texture2D::new_empty(
+                context,
+                width,
+                height,
+                min_filter,
+                mag_filter,
+                mip_map_filter,
+                wrap_s,
+                wrap_t,
+                format,
+            )?,
+        })
+    }
+}
+
+#[allow(deprecated)]
+impl<T: TextureDataType> std::ops::Deref for ColorTargetTexture2D<T> {
+    type Target = Texture2D<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.tex
+    }
+}
+
+#[allow(deprecated)]
+impl<T: TextureDataType> std::ops::DerefMut for ColorTargetTexture2D<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tex
     }
 }
