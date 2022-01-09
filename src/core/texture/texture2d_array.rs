@@ -23,8 +23,39 @@ pub struct Texture2DArray<T: TextureDataType> {
 
 impl<T: TextureDataType> Texture2DArray<T> {
     ///
-    /// Creates a new array of color target textures.
+    /// Creates a new array of 2D textures.
     ///
+    pub fn new_empty(
+        context: &Context,
+        width: u32,
+        height: u32,
+        depth: u32,
+        min_filter: Interpolation,
+        mag_filter: Interpolation,
+        mip_map_filter: Option<Interpolation>,
+        wrap_s: Wrapping,
+        wrap_t: Wrapping,
+        format: Format,
+    ) -> ThreeDResult<Self> {
+        #[allow(deprecated)]
+        Self::new(
+            context,
+            width,
+            height,
+            depth,
+            min_filter,
+            mag_filter,
+            mip_map_filter,
+            wrap_s,
+            wrap_t,
+            format,
+        )
+    }
+
+    ///
+    /// Creates a new array of 2D textures.
+    ///
+    #[deprecated = "Use new_empty instead"]
     pub fn new(
         context: &Context,
         width: u32,
