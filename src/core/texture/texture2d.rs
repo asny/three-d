@@ -19,46 +19,19 @@ impl<T: TextureDataType> Texture2D<T> {
     /// Construcs a new texture with the given data.
     ///
     pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> ThreeDResult<Texture2D<T>> {
-        let id = generate(context)?;
-        let number_of_mip_maps = calculate_number_of_mip_maps(
-            cpu_texture.mip_map_filter,
+        let mut texture = Self::new_empty(
+            context,
             cpu_texture.width,
             cpu_texture.height,
-        );
-        set_parameters(
-            context,
-            &id,
-            consts::TEXTURE_2D,
             cpu_texture.min_filter,
             cpu_texture.mag_filter,
-            if number_of_mip_maps == 1 {
-                None
-            } else {
-                cpu_texture.mip_map_filter
-            },
+            cpu_texture.mip_map_filter,
             cpu_texture.wrap_s,
             cpu_texture.wrap_t,
-            None,
-        );
-        context.tex_storage_2d(
-            consts::TEXTURE_2D,
-            number_of_mip_maps,
-            T::internal_format(cpu_texture.format)?,
-            cpu_texture.width as u32,
-            cpu_texture.height as u32,
-        );
-        let mut tex = Self {
-            context: context.clone(),
-            id,
-            width: cpu_texture.width,
-            height: cpu_texture.height,
-            format: cpu_texture.format,
-            number_of_mip_maps,
-            transparent: false,
-            _dummy: T::default(),
-        };
-        tex.fill(&cpu_texture.data)?;
-        Ok(tex)
+            cpu_texture.format,
+        )?;
+        texture.fill(&cpu_texture.data)?;
+        Ok(texture)
     }
 
     ///
@@ -99,7 +72,7 @@ impl<T: TextureDataType> Texture2D<T> {
             width,
             height,
         );
-        Ok(Self {
+        let texture = Self {
             context: context.clone(),
             id,
             width,
@@ -108,7 +81,9 @@ impl<T: TextureDataType> Texture2D<T> {
             format,
             transparent: format == Format::RGBA,
             _dummy: T::default(),
-        })
+        };
+        texture.generate_mip_maps();
+        Ok(texture)
     }
 
     ///
