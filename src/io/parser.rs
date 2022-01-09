@@ -51,11 +51,8 @@ mod image_io {
                 data: img
                     .iter()
                     .map(|rgbe| {
-                        if let Rgb(values) = rgbe.to_hdr() {
-                            values
-                        } else {
-                            unreachable!()
-                        }
+                        let Rgb(values) = rgbe.to_hdr();
+                        values
                     })
                     .flatten()
                     .collect::<Vec<_>>(),

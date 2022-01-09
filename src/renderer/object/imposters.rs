@@ -37,7 +37,7 @@ impl Imposters {
 
         let center_buffer = InstanceBuffer::new(context)?;
         let rotation_buffer = InstanceBuffer::new(context)?;
-        let texture = Texture2DArray::<u8>::new(
+        let texture = Texture2DArray::<u8>::new_empty(
             context,
             1,
             1,
@@ -85,7 +85,7 @@ impl Imposters {
             0.0,
             4.0 * (width + height),
         )?;
-        self.texture = Texture2DArray::<u8>::new(
+        self.texture = Texture2DArray::<u8>::new_empty(
             &self.context,
             texture_width,
             texture_height,
