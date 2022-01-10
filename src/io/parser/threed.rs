@@ -6,6 +6,7 @@ impl Loaded {
     ///
     /// Deserialize a loaded .3d file resource (a custom binary format for `three-d`) into a list of meshes and materials.
     ///
+    #[deprecated]
     pub fn three_d<P: AsRef<Path>>(
         &mut self,
         path: P,
@@ -120,6 +121,7 @@ impl Saver {
     ///
     /// Saves the given meshes and materials as a .3d file.
     ///
+    #[deprecated]
     pub fn save_3d_file<P: AsRef<Path>>(
         path: P,
         cpu_meshes: Vec<CPUMesh>,
