@@ -59,7 +59,7 @@ impl DepthTargetTextureCubeMap {
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTargetCubeMap::<u8>::new_depth(&self.context.clone(), self)?.write(
+        RenderTargetCubeMap::new_depth(&self.context.clone(), self)?.write(
             side,
             ClearState {
                 depth: clear_state,

@@ -74,7 +74,7 @@ impl DepthTargetTexture2D {
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTarget::<f32>::new_depth(&self.context.clone(), self)?.write(
+        RenderTarget::new_depth(&self.context.clone(), self)?.write(
             ClearState {
                 depth: clear_state,
                 ..ClearState::none()
@@ -94,7 +94,7 @@ impl DepthTargetTexture2D {
         destination: CopyDestination<T>,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        RenderTarget::new_depth(&self.context.clone(), self)?.copy_to(
+        RenderTarget::new_depth_internal(&self.context.clone(), self)?.copy_to(
             destination,
             viewport,
             WriteMask::DEPTH,

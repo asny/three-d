@@ -66,7 +66,7 @@ impl DepthTargetTexture2DArray {
         clear_state: Option<f32>,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTargetArray::<u8>::new_depth(&self.context, &self)?.write(
+        RenderTargetArray::new_depth(&self.context, &self)?.write(
             &[],
             depth_layer,
             ClearState {
@@ -89,7 +89,7 @@ impl DepthTargetTexture2DArray {
         destination: CopyDestination<T>,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        RenderTargetArray::new_depth(&self.context, &self)?.copy_to(
+        RenderTargetArray::new_depth_internal(&self.context, &self)?.copy_to(
             0,
             depth_layer,
             destination,

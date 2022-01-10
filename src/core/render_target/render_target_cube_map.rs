@@ -14,6 +14,20 @@ pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
     depth_texture: Option<&'b mut DepthTargetTextureCubeMap>,
 }
 
+impl<'a, 'b> RenderTargetCubeMap<'a, 'b, u8> {
+    pub fn new_depth(
+        context: &Context,
+        depth_texture: &'b mut DepthTargetTextureCubeMap,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: None,
+            depth_texture: Some(depth_texture),
+        })
+    }
+}
+
 impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
     ///
     /// Constructs a new render target cube map that enables rendering into the given
@@ -41,18 +55,6 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
             id: new_framebuffer(context)?,
             color_texture: Some(color_texture),
             depth_texture: None,
-        })
-    }
-
-    pub fn new_depth(
-        context: &Context,
-        depth_texture: &'b mut DepthTargetTextureCubeMap,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: new_framebuffer(context)?,
-            color_texture: None,
-            depth_texture: Some(depth_texture),
         })
     }
 
