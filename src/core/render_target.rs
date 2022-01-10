@@ -173,30 +173,60 @@ fn copy(
     viewport: Viewport,
     write_mask: WriteMask,
 ) -> ThreeDResult<()> {
-    let fragment_shader_source = "
-    uniform sampler2D colorMap;
-    uniform sampler2D depthMap;
-    in vec2 uv;
-    layout (location = 0) out vec4 color;
-    void main()
-    {
-        color = texture(colorMap, uv);
-        gl_FragDepth = texture(depthMap, uv).r;
-    }";
-    context.effect(fragment_shader_source, |effect| {
-        if let Some(ref tex) = color_texture {
-            effect.use_texture("colorMap", tex)?;
-        }
-        if let Some(ref tex) = depth_texture {
-            effect.use_texture("depthMap", tex)?;
-        }
-        effect.apply(
-            RenderStates {
-                depth_test: DepthTest::Always,
-                write_mask,
-                ..Default::default()
-            },
-            viewport,
-        )
-    })
+    if color_texture.is_some() || depth_texture.is_some() {
+        let fragment_shader_source = if color_texture.is_some() && depth_texture.is_some() {
+            "
+            uniform sampler2D colorMap;
+            uniform sampler2D depthMap;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                color = texture(colorMap, uv);
+                gl_FragDepth = texture(depthMap, uv).r;
+            }"
+        } else if color_texture.is_some() {
+            "
+            uniform sampler2D colorMap;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                color = texture(colorMap, uv);
+            }"
+        } else {
+            "
+            uniform sampler2D depthMap;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                gl_FragDepth = texture(depthMap, uv).r;
+            }"
+        };
+        context.effect(fragment_shader_source, |effect| {
+            if let Some(ref tex) = color_texture {
+                effect.use_texture("colorMap", tex)?;
+            }
+            if let Some(ref tex) = depth_texture {
+                effect.use_texture("depthMap", tex)?;
+            }
+            effect.apply(
+                RenderStates {
+                    depth_test: DepthTest::Always,
+                    write_mask: WriteMask {
+                        red: color_texture.is_some() && write_mask.red,
+                        green: color_texture.is_some() && write_mask.green,
+                        blue: color_texture.is_some() && write_mask.blue,
+                        alpha: color_texture.is_some() && write_mask.alpha,
+                        depth: depth_texture.is_some() && write_mask.depth,
+                    },
+                    ..Default::default()
+                },
+                viewport,
+            )
+        })
+    } else {
+        Ok(())
+    }
 }
