@@ -61,4 +61,20 @@ impl Screen {
         );
         Ok(pixels)
     }
+
+    ///
+    /// Copies the content of the color and depth texture to the specified viewport of this render target.
+    /// Only copies the channels given by the write mask.
+    ///
+    pub fn copy_from(
+        context: &Context,
+        color_texture: Option<&impl Texture>,
+        depth_texture: Option<&impl Texture>,
+        viewport: Viewport,
+        write_mask: WriteMask,
+    ) -> ThreeDResult<()> {
+        Self::write(context, ClearState::none(), || {
+            copy(context, color_texture, depth_texture, viewport, write_mask)
+        })
+    }
 }
