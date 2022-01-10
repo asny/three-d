@@ -11,6 +11,19 @@ pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     color_texture: Option<&'a Texture2DArray<T>>,
     depth_texture: Option<&'b DepthTargetTexture2DArray>,
 }
+impl<'a, 'b> RenderTargetArray<'a, 'b, u8> {
+    pub fn new_depth(
+        context: &Context,
+        depth_texture: &'b DepthTargetTexture2DArray,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            context: context.clone(),
+            id: new_framebuffer(context)?,
+            color_texture: None,
+            depth_texture: Some(depth_texture),
+        })
+    }
+}
 
 impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
@@ -42,7 +55,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         })
     }
 
-    pub fn new_depth(
+    pub fn new_depth_internal(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2DArray,
     ) -> ThreeDResult<Self> {
