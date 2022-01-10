@@ -1,0 +1,93 @@
+use three_d::Viewport;
+use three_d::*;
+
+fn main() {
+    let viewport = Viewport::new_at_origo(1280, 720);
+
+    // Create a headless graphics context
+    let context = Context::new().unwrap();
+
+    // Create a camera
+    let camera = Camera::new_perspective(
+        &context,
+        viewport,
+        vec3(0.0, 0.0, 2.0),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        degrees(60.0),
+        0.1,
+        10.0,
+    )
+    .unwrap();
+
+    // Create the scene - a single colored triangle
+    let mut model = Model::new(
+        &context,
+        &CPUMesh {
+            positions: vec![
+                0.5, -0.5, 0.0, // bottom right
+                -0.5, -0.5, 0.0, // bottom left
+                0.0, 0.5, 0.0, // top
+            ],
+            colors: Some(vec![
+                255, 0, 0, 255, // bottom right
+                0, 255, 0, 255, // bottom left
+                0, 0, 255, 255, // top
+            ]),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+
+    // Create a color texture to render into
+    let mut texture = Texture2D::<u8>::new_empty(
+        &context,
+        viewport.width,
+        viewport.height,
+        Interpolation::Nearest,
+        Interpolation::Nearest,
+        None,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+        Format::RGBA,
+    )
+    .unwrap();
+
+    // Also create a depth texture to support depth testing
+    let mut depth_texture = DepthTargetTexture2D::new(
+        &context,
+        viewport.width,
+        viewport.height,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge,
+        DepthFormat::Depth32F,
+    )
+    .unwrap();
+
+    // Render three frames
+    for frame_index in 0..3 {
+        // Create a render target (a combination of a color and a depth texture) to write into and clear the color and depth
+        RenderTarget::new(&context, &mut texture, &mut depth_texture)
+            .unwrap()
+            .write(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
+                // Set the current transformation of the triangle
+                model.set_transformation(Mat4::from_angle_y(radians(
+                    (frame_index as f32 * 0.6) as f32,
+                )));
+
+                // Render the triangle with the per vertex colors defined at construction
+                model.render(&camera, &Lights::default())
+            })
+            .unwrap();
+
+        // Save the rendered image
+        let pixels = texture.read(viewport).unwrap();
+        Saver::save_pixels(
+            format!("headless-{}.png", frame_index),
+            &pixels,
+            viewport.width,
+            viewport.height,
+        )
+        .unwrap();
+    }
+}
