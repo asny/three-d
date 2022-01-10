@@ -83,12 +83,14 @@ impl DepthTargetTexture2DArray {
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
+    #[deprecated = "Use RenderTarget::copy_from_array or Screen::copy_from_array instead"]
     pub fn copy_to<T: TextureDataType>(
         &self,
         depth_layer: u32,
         destination: CopyDestination<T>,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
+        #[allow(deprecated)]
         RenderTargetArray::new_depth_internal(&self.context, &self)?.copy_to(
             0,
             depth_layer,

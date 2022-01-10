@@ -135,6 +135,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
     /// # Errors
     /// Will return an error if the destination is a depth texture.
     ///
+    #[deprecated = "Use RenderTarget::copy_from_array or Screen::copy_from_array instead"]
     pub fn copy_to(
         &self,
         color_layer: u32,
@@ -142,6 +143,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
+        #[allow(deprecated)]
         RenderTargetArray::<T>::new_color(&self.context, &self)?.copy_to(
             color_layer,
             0,

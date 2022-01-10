@@ -324,7 +324,8 @@ impl DeferredPipeline {
     }
 
     pub fn geometry_pass_depth_texture(&self) -> DepthTargetTexture2D {
-        let depth_array = self.geometry_pass_depth_texture.as_ref().unwrap();
+        let depth_array: &DepthTargetTexture2DArray =
+            self.geometry_pass_depth_texture.as_ref().unwrap();
         let mut depth_texture = DepthTargetTexture2D::new(
             &self.context,
             depth_array.width(),
@@ -335,11 +336,13 @@ impl DeferredPipeline {
         )
         .unwrap();
 
-        depth_array
-            .copy_to(
-                0,
-                CopyDestination::<u8>::DepthTexture(&mut depth_texture),
+        RenderTarget::new_depth(&self.context, &mut depth_texture)
+            .unwrap()
+            .copy_from_array::<u8>(
+                None,
+                Some((&depth_array, 0)),
                 Viewport::new_at_origo(depth_array.width(), depth_array.height()),
+                WriteMask::default(),
             )
             .unwrap();
         depth_texture

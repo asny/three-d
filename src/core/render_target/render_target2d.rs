@@ -96,10 +96,10 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Copies the content of the color and depth texture to the specified viewport of this render target.
     /// Only copies the channels given by the write mask.
     ///
-    pub fn copy_from(
+    pub fn copy_from<S: TextureDataType>(
         &self,
-        color_texture: Option<&impl Texture>,
-        depth_texture: Option<&impl Texture>,
+        color_texture: Option<&Texture2D<S>>,
+        depth_texture: Option<&DepthTargetTexture2D>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
@@ -118,10 +118,10 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Copies the content of the given layers of the color and depth array textures to the specified viewport of this render target.
     /// Only copies the channels given by the write mask.
     ///
-    pub fn copy_from_array(
+    pub fn copy_from_array<S: TextureDataType>(
         &self,
-        color_texture: Option<(&impl TextureArray, u32)>,
-        depth_texture: Option<(&impl TextureArray, u32)>,
+        color_texture: Option<(&Texture2DArray<S>, u32)>,
+        depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
@@ -140,6 +140,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     /// Copies the content of the color and depth textures in this render target to the specified viewport of the specified destination.
     /// Only copies the channels given by the write mask.
     ///
+    #[deprecated = "Use RenderTarget::copy_from or Screen::copy_from instead"]
     pub fn copy_to(
         &self,
         destination: CopyDestination<T>,

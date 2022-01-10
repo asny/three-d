@@ -141,12 +141,14 @@ impl<T: TextureDataType> Texture2D<T> {
     /// # Errors
     /// Will return an error if the destination is a depth texture.
     ///
+    #[deprecated = "Use RenderTarget::copy_from or Screen::copy_from instead"]
     pub fn copy_to(
         &mut self,
         destination: CopyDestination<T>,
         viewport: Viewport,
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
+        #[allow(deprecated)]
         RenderTarget::new_color(&self.context.clone(), self)?.copy_to(
             destination,
             viewport,

@@ -89,11 +89,13 @@ impl DepthTargetTexture2D {
     /// # Errors
     /// Will return an error if the destination is a color texture.
     ///
+    #[deprecated = "Use RenderTarget::copy_from or Screen::copy_from instead"]
     pub fn copy_to<T: TextureDataType>(
         &mut self,
         destination: CopyDestination<T>,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
+        #[allow(deprecated)]
         RenderTarget::new_depth_internal(&self.context.clone(), self)?.copy_to(
             destination,
             viewport,
