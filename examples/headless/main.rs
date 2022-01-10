@@ -4,10 +4,8 @@ use three_d::*;
 fn main() {
     let viewport = Viewport::new_at_origo(1280, 720);
 
-    // create headless graphic context
-    let mut headless_context = HeadlessContext::new().unwrap();
-    // Get the graphics context from the HeadlessContext
-    let context = headless_context.gl();
+    // Create a headless graphics context
+    let context = Context::new().unwrap();
 
     // Create a camera
     let camera = Camera::new_perspective(
@@ -16,29 +14,32 @@ fn main() {
         vec3(0.0, 0.0, 2.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
-        degrees(45.0),
+        degrees(60.0),
         0.1,
         10.0,
     )
     .unwrap();
 
-    // Create a CPU-side mesh consisting of a single colored triangle
-    let positions: Vec<f32> = vec![
-        0.5, -0.5, 0.0, // bottom right
-        -0.5, -0.5, 0.0, // bottom left
-        0.0, 0.5, 0.0, // top
-    ];
-    let colors: Vec<u8> = vec![
-        255, 0, 0, 255, // bottom right
-        0, 255, 0, 255, // bottom left
-        0, 0, 255, 255, // top
-    ];
-    let cpu_mesh = CPUMesh {
-        positions,
-        colors: Some(colors),
-        ..Default::default()
-    };
+    // Create the scene - a single colored triangle
+    let mut model = Model::new(
+        &context,
+        &CPUMesh {
+            positions: vec![
+                0.5, -0.5, 0.0, // bottom right
+                -0.5, -0.5, 0.0, // bottom left
+                0.0, 0.5, 0.0, // top
+            ],
+            colors: Some(vec![
+                255, 0, 0, 255, // bottom right
+                0, 255, 0, 255, // bottom left
+                0, 0, 255, 255, // top
+            ]),
+            ..Default::default()
+        },
+    )
+    .unwrap();
 
+    // Create a color texture to render into
     let mut texture = Texture2D::<u8>::new_empty(
         &context,
         viewport.width,
@@ -51,6 +52,8 @@ fn main() {
         Format::RGBA,
     )
     .unwrap();
+
+    // Also create a depth texture to support depth testing
     let mut depth_texture = DepthTargetTexture2D::new(
         &context,
         viewport.width,
@@ -61,11 +64,9 @@ fn main() {
     )
     .unwrap();
 
-    let mut model = Model::new(&context, &cpu_mesh).unwrap();
-
     // Render three frames
     for frame_index in 0..3 {
-        // Start writing to the screen and clears the color and depth
+        // Create a render target (a combination of a color and a depth texture) to write into and clear the color and depth
         RenderTarget::new(&context, &mut texture, &mut depth_texture)
             .unwrap()
             .write(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0), || {
@@ -75,13 +76,18 @@ fn main() {
                 )));
 
                 // Render the triangle with the per vertex colors defined at construction
-                model.render(&camera, &Lights::default())?;
-                Ok(())
+                model.render(&camera, &Lights::default())
             })
             .unwrap();
 
-        let path = format!("headless-{}.png", frame_index);
+        // Save the rendered image
         let pixels = texture.read(viewport).unwrap();
-        Saver::save_pixels(path, &pixels, viewport.width, viewport.height).unwrap();
+        Saver::save_pixels(
+            format!("headless-{}.png", frame_index),
+            &pixels,
+            viewport.width,
+            viewport.height,
+        )
+        .unwrap();
     }
 }

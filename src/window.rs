@@ -21,6 +21,10 @@ mod glutin_window;
 pub use glutin_window::*;
 
 #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+#[cfg_attr(
+    docsrs,
+    doc(all(feature = "glutin-window", not(target_arch = "wasm32")))
+)]
 mod headless;
 #[doc(inline)]
 #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]

@@ -4,39 +4,20 @@ use glutin::{ContextBuilder, ContextCurrentState, CreationError, NotCurrent};
 
 use crate::context::GLContext;
 use crate::Context;
+use crate::ThreeDResult;
 
-///
-/// Error message from the [headless](crate::headless) module.
-///
-#[derive(Debug)]
-pub enum HeadlessError {
-    GlNotInitialized,
-}
-
-pub struct HeadlessContext {
-    gl: Context,
-}
-
-impl HeadlessContext {
+impl Context {
     ///
-    /// Prepares a headless context wrapper
-    ///
-    pub fn new() -> Result<HeadlessContext, HeadlessError> {
+    /// Creates a new headless graphics context (a graphics context that is not associated with any window).
+    /// 
+    /// 
+    pub fn new() -> ThreeDResult<Self> {
         let cb = ContextBuilder::new();
         let (headless_context, _el) = build_context(cb).unwrap();
         let current_context = unsafe { headless_context.make_current().unwrap() };
-        Ok(HeadlessContext {
-            gl: Context::from_gl_context(GLContext::load_with(|ptr| {
-                current_context.get_proc_address(ptr) as *const std::os::raw::c_void
-            })),
-        })
-    }
-
-    ///
-    /// Returns the graphics context for this "headless" window.
-    ///
-    pub fn gl(&mut self) -> &Context {
-        &self.gl
+        Ok(Self::from_gl_context(GLContext::load_with(|ptr| {
+            current_context.get_proc_address(ptr) as *const std::os::raw::c_void
+        })))
     }
 }
 
