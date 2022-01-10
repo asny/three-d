@@ -18,7 +18,6 @@ mod saver;
 #[cfg(not(target_arch = "wasm32"))]
 pub use saver::*;
 
-pub(crate) use crate::ThreeDResult;
 use thiserror::Error;
 ///
 /// Error from the [io](crate::io) module.
