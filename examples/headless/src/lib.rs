@@ -1,4 +1,4 @@
-include!("../main.rs");
+//include!("../main.rs"); // Headless contexts does not work on web
 
 use wasm_bindgen::prelude::*;
 
