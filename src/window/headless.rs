@@ -1,6 +1,6 @@
 use glutin::dpi::PhysicalSize;
 use glutin::event_loop::EventLoop;
-use glutin::{ContextBuilder, ContextCurrentState, CreationError, NotCurrent, PossiblyCurrent};
+use glutin::{ContextBuilder, ContextCurrentState, CreationError, NotCurrent};
 
 use crate::context::GLContext;
 use crate::Context;
@@ -14,8 +14,7 @@ pub enum HeadlessError {
 }
 
 pub struct HeadlessContext {
-    current_context: Option<glutin::Context<PossiblyCurrent>>,
-    gl: Option<GLContext>,
+    gl: Context,
 }
 
 impl HeadlessContext {
@@ -23,40 +22,21 @@ impl HeadlessContext {
     /// Prepares a headless context wrapper
     ///
     pub fn new() -> Result<HeadlessContext, HeadlessError> {
+        let cb = ContextBuilder::new();
+        let (headless_context, _el) = build_context(cb).unwrap();
+        let current_context = unsafe { headless_context.make_current().unwrap() };
         Ok(HeadlessContext {
-            current_context: None,
-            gl: None,
+            gl: Context::from_gl_context(GLContext::load_with(|ptr| {
+                current_context.get_proc_address(ptr) as *const std::os::raw::c_void
+            })),
         })
-    }
-
-    ///
-    /// Constructs a new headless context
-    ///
-    fn initialize_lazy(&mut self) {
-        unsafe {
-            if self.gl.is_none() {
-                // inspired by https://github.com/rust-windowing/glutin/blob/bab33a84dfb094ff65c059400bed7993434638e2/glutin_examples/examples/headless.rs#L80-L87
-                let cb = ContextBuilder::new();
-                let (headless_context, _el) = build_context(cb).unwrap();
-                let current_context = headless_context.make_current().unwrap();
-                self.gl = Some(GLContext::load_with(|ptr| {
-                    current_context.get_proc_address(ptr) as *const std::os::raw::c_void
-                }));
-                self.current_context = Some(current_context);
-            }
-        }
     }
 
     ///
     /// Returns the graphics context for this "headless" window.
     ///
-    pub fn gl(&mut self) -> Result<Context, HeadlessError> {
-        self.initialize_lazy();
-
-        return match &self.gl {
-            Some(gl) => Ok(Context::from_gl_context(gl.clone())),
-            None => Err(HeadlessError::GlNotInitialized),
-        };
+    pub fn gl(&mut self) -> &Context {
+        &self.gl
     }
 }
 

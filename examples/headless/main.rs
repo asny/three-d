@@ -7,10 +7,10 @@ fn main() {
     // create headless graphic context
     let mut headless_context = HeadlessContext::new().unwrap();
     // Get the graphics context from the HeadlessContext
-    let context = headless_context.gl().unwrap();
+    let context = headless_context.gl();
 
     // Create a camera
-    let mut camera = Camera::new_perspective(
+    let camera = Camera::new_perspective(
         &context,
         viewport,
         vec3(0.0, 0.0, 2.0),
