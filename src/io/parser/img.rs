@@ -2,6 +2,94 @@ use crate::core::*;
 use crate::io::*;
 use std::path::Path;
 
+pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8>> {
+    use crate::core::*;
+    use image::DynamicImage;
+    use image::GenericImageView;
+    let img = image::load_from_memory(bytes)?;
+    let format = match img {
+        DynamicImage::ImageLuma8(_) => Format::R,
+        DynamicImage::ImageLumaA8(_) => Format::RG,
+        DynamicImage::ImageRgb8(_) => Format::RGB,
+        DynamicImage::ImageRgba8(_) => Format::RGBA,
+        DynamicImage::ImageBgr8(_) => unimplemented!(),
+        DynamicImage::ImageBgra8(_) => unimplemented!(),
+        DynamicImage::ImageLuma16(_) => unimplemented!(),
+        DynamicImage::ImageLumaA16(_) => unimplemented!(),
+        DynamicImage::ImageRgb16(_) => unimplemented!(),
+        DynamicImage::ImageRgba16(_) => unimplemented!(),
+    };
+
+    Ok(CPUTexture {
+        data: img.to_bytes(),
+        width: img.width(),
+        height: img.height(),
+        format,
+        ..Default::default()
+    })
+}
+
+pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CPUTexture<f32>> {
+    use image::codecs::hdr::*;
+    use image::*;
+    let decoder = HdrDecoder::new(bytes)?;
+    let metadata = decoder.metadata();
+    let img = decoder.read_image_native()?;
+    Ok(CPUTexture {
+        data: img
+            .iter()
+            .map(|rgbe| {
+                let Rgb(values) = rgbe.to_hdr();
+                values
+            })
+            .flatten()
+            .collect::<Vec<_>>(),
+        width: metadata.width,
+        height: metadata.height,
+        format: Format::RGB,
+        ..Default::default()
+    })
+}
+
+///
+/// Deserialize the 6 images given as byte arrays into a [CPUTextureCube] using
+/// the [image](https://crates.io/crates/image/main.rs) crate.
+/// The CPUTextureCube can then be used to create a [TextureCubeMap].
+///
+pub fn cube_image_from_bytes(
+    right_bytes: &[u8],
+    left_bytes: &[u8],
+    top_bytes: &[u8],
+    bottom_bytes: &[u8],
+    front_bytes: &[u8],
+    back_bytes: &[u8],
+) -> ThreeDResult<CPUTextureCube<u8>> {
+    let right = image_from_bytes(right_bytes)?;
+    let left = image_from_bytes(left_bytes)?;
+    let top = image_from_bytes(top_bytes)?;
+    let bottom = image_from_bytes(bottom_bytes)?;
+    let front = image_from_bytes(front_bytes)?;
+    let back = image_from_bytes(back_bytes)?;
+
+    Ok(CPUTextureCube {
+        right_data: right.data,
+        left_data: left.data,
+        top_data: top.data,
+        bottom_data: bottom.data,
+        front_data: front.data,
+        back_data: back.data,
+        width: right.width,
+        height: right.height,
+        format: right.format,
+        min_filter: right.min_filter,
+        mag_filter: right.mag_filter,
+        mip_map_filter: right.mip_map_filter,
+        wrap_s: right.wrap_s,
+        wrap_t: right.wrap_t,
+        wrap_r: right.wrap_s,
+    })
+}
+
 impl Loaded {
     ///
     /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
@@ -13,26 +101,7 @@ impl Loaded {
     }
 
     pub fn hdr_image(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CPUTexture<f32>> {
-        use image::codecs::hdr::*;
-        use image::*;
-        let bytes = self.get_bytes(path)?;
-        let decoder = HdrDecoder::new(bytes)?;
-        let metadata = decoder.metadata();
-        let img = decoder.read_image_native()?;
-        Ok(CPUTexture {
-            data: img
-                .iter()
-                .map(|rgbe| {
-                    let Rgb(values) = rgbe.to_hdr();
-                    values
-                })
-                .flatten()
-                .collect::<Vec<_>>(),
-            width: metadata.width,
-            height: metadata.height,
-            format: Format::RGB,
-            ..Default::default()
-        })
+        hdr_image_from_bytes(&self.get_bytes(path)?)
     }
 
     ///
@@ -105,4 +174,5 @@ impl Saver {
             image::ColorType::Rgba8,
         )?;
         Ok(())
-    }}
+    }
+}
