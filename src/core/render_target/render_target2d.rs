@@ -90,7 +90,29 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
         self.write(ClearState::none(), || {
-            copy(
+            copy_from(
+                &self.context,
+                color_texture,
+                depth_texture,
+                viewport,
+                write_mask,
+            )
+        })
+    }
+
+    ///
+    /// Copies the content of the given layers of the color and depth array textures to the specified viewport of this render target.
+    /// Only copies the channels given by the write mask.
+    ///
+    pub fn copy_from_array(
+        &self,
+        color_texture: Option<(&impl TextureArray, u32)>,
+        depth_texture: Option<(&impl TextureArray, u32)>,
+        viewport: Viewport,
+        write_mask: WriteMask,
+    ) -> ThreeDResult<()> {
+        self.write(ClearState::none(), || {
+            copy_from_array(
                 &self.context,
                 color_texture,
                 depth_texture,

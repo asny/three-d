@@ -166,7 +166,7 @@ fn clear(context: &Context, clear_state: &ClearState) {
     });
 }
 
-fn copy(
+fn copy_from(
     context: &Context,
     color_texture: Option<&impl Texture>,
     depth_texture: Option<&impl Texture>,
@@ -205,11 +205,82 @@ fn copy(
             }"
         };
         context.effect(fragment_shader_source, |effect| {
-            if let Some(ref tex) = color_texture {
+            if let Some(tex) = color_texture {
                 effect.use_texture("colorMap", tex)?;
             }
-            if let Some(ref tex) = depth_texture {
+            if let Some(tex) = depth_texture {
                 effect.use_texture("depthMap", tex)?;
+            }
+            effect.apply(
+                RenderStates {
+                    depth_test: DepthTest::Always,
+                    write_mask: WriteMask {
+                        red: color_texture.is_some() && write_mask.red,
+                        green: color_texture.is_some() && write_mask.green,
+                        blue: color_texture.is_some() && write_mask.blue,
+                        alpha: color_texture.is_some() && write_mask.alpha,
+                        depth: depth_texture.is_some() && write_mask.depth,
+                    },
+                    ..Default::default()
+                },
+                viewport,
+            )
+        })
+    } else {
+        Ok(())
+    }
+}
+
+fn copy_from_array(
+    context: &Context,
+    color_texture: Option<(&impl TextureArray, u32)>,
+    depth_texture: Option<(&impl TextureArray, u32)>,
+    viewport: Viewport,
+    write_mask: WriteMask,
+) -> ThreeDResult<()> {
+    if color_texture.is_some() || depth_texture.is_some() {
+        let fragment_shader_source = if color_texture.is_some() && depth_texture.is_some() {
+            "
+            uniform sampler2DArray colorMap;
+            uniform sampler2DArray depthMap;
+            uniform int colorLayer;
+            uniform int depthLayer;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                color = texture(colorMap, vec3(uv, colorLayer));
+                gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
+            }"
+        } else if color_texture.is_some() {
+            "
+            uniform sampler2DArray colorMap;
+            uniform int colorLayer;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                color = texture(colorMap, vec3(uv, colorLayer));
+            }"
+        } else {
+            "
+            uniform sampler2DArray depthMap;
+            uniform int depthLayer;
+            in vec2 uv;
+            layout (location = 0) out vec4 color;
+            void main()
+            {
+                gl_FragDepth = texture(depthMap, vec3(uv, depthLayer)).r;
+            }"
+        };
+        context.effect(fragment_shader_source, |effect| {
+            if let Some((tex, layer)) = color_texture {
+                effect.use_texture_array("colorMap", tex)?;
+                effect.use_uniform_int("colorLayer", &(layer as i32))?;
+            }
+            if let Some((tex, layer)) = depth_texture {
+                effect.use_texture_array("depthMap", tex)?;
+                effect.use_uniform_int("depthLayer", &(layer as i32))?;
             }
             effect.apply(
                 RenderStates {

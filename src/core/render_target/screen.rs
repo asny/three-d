@@ -74,7 +74,7 @@ impl Screen {
         write_mask: WriteMask,
     ) -> ThreeDResult<()> {
         Self::write(context, ClearState::none(), || {
-            copy(context, color_texture, depth_texture, viewport, write_mask)
+            copy_from(context, color_texture, depth_texture, viewport, write_mask)
         })
     }
 }
