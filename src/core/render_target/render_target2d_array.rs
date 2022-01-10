@@ -103,6 +103,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     /// Copies the content of the specified color and depth layers in this render target to the given viewport of the given destination.
     /// Only copies the channels specified by the write mask.
     ///
+    #[deprecated = "Use RenderTarget::copy_from_array or Screen::copy_from_array instead"]
     pub fn copy_to(
         &self,
         color_layer: u32,
