@@ -165,3 +165,38 @@ fn clear(context: &Context, clear_state: &ClearState) {
         }
     });
 }
+
+fn copy(
+    context: &Context,
+    color_texture: Option<&impl Texture>,
+    depth_texture: Option<&impl Texture>,
+    viewport: Viewport,
+    write_mask: WriteMask,
+) -> ThreeDResult<()> {
+    let fragment_shader_source = "
+    uniform sampler2D colorMap;
+    uniform sampler2D depthMap;
+    in vec2 uv;
+    layout (location = 0) out vec4 color;
+    void main()
+    {
+        color = texture(colorMap, uv);
+        gl_FragDepth = texture(depthMap, uv).r;
+    }";
+    context.effect(fragment_shader_source, |effect| {
+        if let Some(ref tex) = color_texture {
+            effect.use_texture("colorMap", tex)?;
+        }
+        if let Some(ref tex) = depth_texture {
+            effect.use_texture("depthMap", tex)?;
+        }
+        effect.apply(
+            RenderStates {
+                depth_test: DepthTest::Always,
+                write_mask,
+                ..Default::default()
+            },
+            viewport,
+        )
+    })
+}

@@ -79,6 +79,28 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     }
 
     ///
+    /// Copies the content of the color and depth texture to the specified viewport of this render target.
+    /// Only copies the channels given by the write mask.
+    ///
+    pub fn copy_from(
+        &self,
+        color_texture: Option<&impl Texture>,
+        depth_texture: Option<&impl Texture>,
+        viewport: Viewport,
+        write_mask: WriteMask,
+    ) -> ThreeDResult<()> {
+        self.write(ClearState::none(), || {
+            copy(
+                &self.context,
+                color_texture,
+                depth_texture,
+                viewport,
+                write_mask,
+            )
+        })
+    }
+
+    ///
     /// Copies the content of the color and depth textures in this render target to the specified viewport of the specified destination.
     /// Only copies the channels given by the write mask.
     ///
