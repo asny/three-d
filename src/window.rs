@@ -20,6 +20,12 @@ mod glutin_window;
 #[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
 pub use glutin_window::*;
 
+#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+mod headless;
+#[doc(inline)]
+#[cfg(all(feature = "glutin-window", not(target_arch = "wasm32")))]
+pub use headless::*;
+
 #[cfg(all(feature = "canvas", target_arch = "wasm32"))]
 mod canvas;
 #[doc(inline)]
