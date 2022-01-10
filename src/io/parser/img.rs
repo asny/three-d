@@ -2,6 +2,13 @@ use crate::core::*;
 use crate::io::*;
 use std::path::Path;
 
+///
+/// Deserialize the given bytes representing an image into a [CPUTexture] using
+/// the [image](https://crates.io/crates/image/main.rs) crate.
+/// The CPUTexture can then be used to create a [Texture2D].
+/// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
+/// **Note:** If the image contains high dynamic range (hdr) information, use [hdr_image_from_bytes] instead.
+///
 pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8>> {
     use crate::core::*;
     use image::DynamicImage;
@@ -95,6 +102,8 @@ impl Loaded {
     /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
     /// The CPUTexture can then be used to create a [Texture2D].
+    /// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
+    /// **Note:** If the image contains high dynamic range (hdr) information, use [hdr_image](Loaded::hdr_image) instead.
     ///
     pub fn image<P: AsRef<Path>>(&mut self, path: P) -> ThreeDResult<CPUTexture<u8>> {
         image_from_bytes(&self.get_bytes(path)?)
