@@ -9,8 +9,8 @@ use crate::ThreeDResult;
 impl Context {
     ///
     /// Creates a new headless graphics context (a graphics context that is not associated with any window).
-    /// 
-    /// 
+    ///
+    ///
     pub fn new() -> ThreeDResult<Self> {
         let cb = ContextBuilder::new();
         let (headless_context, _el) = build_context(cb).unwrap();
