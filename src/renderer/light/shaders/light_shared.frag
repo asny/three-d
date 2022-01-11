@@ -146,11 +146,11 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 V, vec3 
     return (diffuse + specular) * light_color * NdL;
 }
 
-vec3 attenuate(vec3 light_color, Attenuation attenuation, float distance)
+vec3 attenuate(vec3 light_color, vec3 attenuation, float distance)
 {
-    float att =  attenuation.constant +
-        attenuation.linear * distance +
-        attenuation.exp * distance * distance;
+    float att =  attenuation.x +
+        attenuation.y * distance +
+        attenuation.z * distance * distance;
 
     return light_color / max(1.0, att);
 }

@@ -4,7 +4,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let window = Window::new(WindowSettings {
-        title: "PBR!".to_string(),
+        title: "Lights!".to_string(),
         min_size: (512, 512),
         max_size: Some((1280, 720)),
         ..Default::default()
@@ -43,6 +43,30 @@ fn main() {
                 Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
+            let mut directional = Vec::new();
+            for _ in 0..0 {
+                directional.push(
+                    DirectionalLight::new(&context, 0.2, Color::RED, &vec3(0.0, -1.0, 0.0))
+                        .unwrap(),
+                );
+            }
+
+            let mut point = Vec::new();
+            for _ in 0..30 {
+                point.push(
+                    PointLight::new(
+                        &context,
+                        0.2,
+                        Color::RED,
+                        &vec3(0.0, -1.0, 0.0),
+                        0.5,
+                        0.05,
+                        0.005,
+                    )
+                    .unwrap(),
+                );
+            }
+
             let lights = Lights {
                 ambient: Some(AmbientLight {
                     environment: Some(Environment::new(&context, skybox.texture())?),
@@ -52,6 +76,8 @@ fn main() {
                     NormalDistributionFunction::TrowbridgeReitzGGX,
                     GeometryFunction::SmithSchlickGGX,
                 ),
+                directional: directional,
+                point: point,
                 ..Default::default()
             };
             Ok((model, skybox, lights))
