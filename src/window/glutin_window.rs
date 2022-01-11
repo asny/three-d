@@ -154,6 +154,8 @@ impl Window {
                             windowed_context.window().request_redraw();
                         }
                     }
+
+                    #[cfg(feature = "image-io")]
                     if let Some(ref path) = frame_output.screenshot {
                         let pixels = crate::Screen::read_color(
                             &context,
