@@ -51,8 +51,26 @@ fn main() {
                 );
             }
 
+            let mut spot = Vec::new();
+            for _ in 0..6 {
+                spot.push(
+                    SpotLight::new(
+                        &context,
+                        2.0,
+                        Color::BLUE,
+                        &vec3(0.0, 0.0, 0.0),
+                        &vec3(0.0, -1.0, 0.0),
+                        degrees(25.0),
+                        0.1,
+                        0.001,
+                        0.0001,
+                    )
+                    .unwrap(),
+                );
+            }
+
             let mut point = Vec::new();
-            for _ in 0..30 {
+            for _ in 0..0 {
                 point.push(
                     PointLight::new(
                         &context,
@@ -78,6 +96,7 @@ fn main() {
                 ),
                 directional: directional,
                 point: point,
+                spot: spot,
                 ..Default::default()
             };
             Ok((model, skybox, lights))

@@ -5,14 +5,6 @@ struct BaseLight
     float intensity;
 };
 
-struct Attenuation
-{
-    float constant;
-    float linear;
-    float exp;
-    float padding;
-};
-
 // compute fresnel specular factor
 // cosTheta could be NdV or VdH depending on used technique
 vec3 fresnel_schlick(vec3 F0, float cosTheta)
