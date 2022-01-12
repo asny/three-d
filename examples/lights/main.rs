@@ -33,7 +33,12 @@ fn main() {
         ],
         move |context, mut loaded| {
             let environment_map = loaded.hdr_image("chinese").unwrap();
-            let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
+            let skybox = Skybox::new_with_texture(
+                &context,
+                TextureCubeMap::<f16>::new_from_equirectangular(&context, &environment_map)
+                    .unwrap(),
+            )
+            .unwrap();
 
             let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
             let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
