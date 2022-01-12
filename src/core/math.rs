@@ -3,6 +3,8 @@
 //! Basic math functionality. Mostly just an re-export of [cgmath](https://crates.io/crates/cgmath).
 //!
 
+pub use half::f16;
+
 pub(crate) use cgmath::ortho;
 pub(crate) use cgmath::perspective;
 pub use cgmath::prelude::*;
