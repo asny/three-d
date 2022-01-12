@@ -9,6 +9,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+pub use half::f16;
+
 ///
 /// Contains information about the graphics context to use for rendering and other "global" variables.
 ///
