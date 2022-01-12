@@ -29,8 +29,14 @@ fn main() {
         &context,
         &["examples/assets/chinese_garden_4k.hdr"],
         move |context, mut loaded| {
-            let environment_map = loaded.hdr_image("").unwrap();
-            let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
+            let skybox = Skybox::new_with_texture(
+                &context,
+                TextureCubeMap::<f16>::new_from_equirectangular(
+                    &context,
+                    &loaded.hdr_image("chinese_garden_4k")?,
+                )?,
+            )
+            .unwrap();
             let lights = Lights {
                 ambient: Some(AmbientLight {
                     environment: Some(Environment::new(&context, skybox.texture())?),
@@ -50,7 +56,6 @@ fn main() {
         &context,
         &CPUMesh::sphere(32),
         PhysicalMaterial {
-            albedo: Color::RED,
             roughness: 0.2,
             metallic: 0.8,
             ..Default::default()
@@ -60,6 +65,7 @@ fn main() {
     let mut gui = three_d::GUI::new(&context).unwrap();
 
     // main loop
+    let mut color = [1.0; 4];
     window
         .render_loop(move |mut frame_input| {
             let mut panel_width = 0;
@@ -69,10 +75,12 @@ fn main() {
                     ui.heading("Debug Panel");
                     ui.add(Slider::new(&mut model.material.metallic, 0.0..=1.0).text("Metallic"));
                     ui.add(Slider::new(&mut model.material.roughness, 0.0..=1.0).text("Roughness"));
+                    ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
                 panel_width = gui_context.used_size().x as u32;
             })
             .unwrap();
+            model.material.albedo = Color::from_rgba_slice(&color);
 
             let viewport = Viewport {
                 x: panel_width as i32,
