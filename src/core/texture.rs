@@ -53,8 +53,10 @@ pub trait TextureDataType:
 {
 }
 impl TextureDataType for u8 {}
-impl TextureDataType for f32 {}
+impl TextureDataType for u16 {}
 impl TextureDataType for u32 {}
+impl TextureDataType for f16 {}
+impl TextureDataType for f32 {}
 
 ///
 /// Possible formats for pixels in a texture.
@@ -300,6 +302,115 @@ pub(in crate::core) mod internal {
             8
         }
     }
+
+    impl TextureDataTypeExtension for u16 {
+        fn internal_format(format: Format) -> ThreeDResult<u32> {
+            Ok(match format {
+                Format::R => crate::context::consts::R16UI,
+                Format::RG => crate::context::consts::RG16UI,
+                Format::RGB => crate::context::consts::RGB16UI,
+                Format::RGBA => crate::context::consts::RGBA16UI,
+            })
+        }
+
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: u32,
+            height: u32,
+            format: Format,
+            data: &[Self],
+        ) {
+            context.tex_sub_image_2d_with_u16_data(
+                target,
+                0,
+                0,
+                0,
+                width,
+                height,
+                format_from(format),
+                DataType::UnsignedShort,
+                data,
+            );
+        }
+
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            context.read_pixels_with_u16_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width as u32,
+                viewport.height as u32,
+                format_from(format),
+                DataType::UnsignedShort,
+                pixels,
+            );
+        }
+
+        fn is_max(value: Self) -> bool {
+            value == std::u16::MAX
+        }
+
+        fn bits_per_channel() -> u8 {
+            16
+        }
+    }
+
+    impl TextureDataTypeExtension for f16 {
+        fn internal_format(format: Format) -> ThreeDResult<u32> {
+            Ok(match format {
+                Format::R => crate::context::consts::R16F,
+                Format::RG => crate::context::consts::RG16F,
+                Format::RGB => crate::context::consts::RGB16F,
+                Format::RGBA => crate::context::consts::RGBA16F,
+            })
+        }
+
+        fn fill(
+            context: &Context,
+            target: u32,
+            width: u32,
+            height: u32,
+            format: Format,
+            data: &[Self],
+        ) {
+            context.tex_sub_image_2d_with_u16_data(
+                target,
+                0,
+                0,
+                0,
+                width,
+                height,
+                format_from(format),
+                DataType::HalfFloat,
+                &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
+            );
+        }
+
+        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
+            let mut pixels_temp = vec![0u16; pixels.len()];
+            context.read_pixels_with_u16_data(
+                viewport.x as u32,
+                viewport.y as u32,
+                viewport.width as u32,
+                viewport.height as u32,
+                format_from(format),
+                DataType::HalfFloat,
+                &mut pixels_temp,
+            );
+            for i in 0..pixels.len() {
+                pixels[i] = f16::from_bits(pixels_temp[i]);
+            }
+        }
+
+        fn is_max(value: Self) -> bool {
+            value > f16::from_f32(0.99)
+        }
+
+        fn bits_per_channel() -> u8 {
+            16
+        }
+    }
+
     impl TextureDataTypeExtension for f32 {
         fn internal_format(format: Format) -> ThreeDResult<u32> {
             Ok(match format {

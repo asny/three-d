@@ -1,9 +1,9 @@
 use crate::core::*;
 use crate::renderer::*;
 pub struct Environment {
-    pub irradiance_map: TextureCubeMap<f32>,
-    pub prefilter_map: TextureCubeMap<f32>,
-    pub brdf_map: Texture2D<f32>,
+    pub irradiance_map: TextureCubeMap<f16>,
+    pub prefilter_map: TextureCubeMap<f16>,
+    pub brdf_map: Texture2D<f16>,
 }
 
 impl Environment {

@@ -30,6 +30,7 @@ pub enum ShaderType {
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub enum DataType {
+    HalfFloat,
     Float,
     Byte,
     UnsignedByte,
@@ -42,6 +43,7 @@ pub enum DataType {
 impl DataType {
     fn byte_size(&self) -> u32 {
         match self {
+            DataType::HalfFloat => 2,
             DataType::Float => std::mem::size_of::<f32>() as u32,
             DataType::UnsignedByte => std::mem::size_of::<u8>() as u32,
             DataType::UnsignedShort => std::mem::size_of::<u16>() as u32,
@@ -49,6 +51,21 @@ impl DataType {
             DataType::Byte => std::mem::size_of::<i8>() as u32,
             DataType::Short => std::mem::size_of::<i16>() as u32,
             DataType::Int => std::mem::size_of::<i32>() as u32,
+        }
+    }
+}
+
+impl DataType {
+    fn to_const(&self) -> u32 {
+        match self {
+            DataType::Float => consts::FLOAT,
+            DataType::HalfFloat => consts::HALF_FLOAT,
+            DataType::Byte => consts::BYTE,
+            DataType::UnsignedByte => consts::UNSIGNED_BYTE,
+            DataType::Short => consts::SHORT,
+            DataType::UnsignedShort => consts::UNSIGNED_SHORT,
+            DataType::Int => consts::INT,
+            DataType::UnsignedInt => consts::UNSIGNED_INT,
         }
     }
 }

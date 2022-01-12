@@ -229,8 +229,9 @@ pub struct FrameOutput {
 
     ///
     /// Takes a screenshot if this is set to some path and saves it at the given location.
-    /// Only works on desktop, will be ignored on web.
+    /// Only works on desktop and if the `image-io` feature is enabled.
     ///
+    #[cfg_attr(docsrs, doc(cfg(feature = "image-io")))]
     pub screenshot: Option<std::path::PathBuf>,
 
     ///
