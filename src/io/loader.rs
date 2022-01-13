@@ -57,7 +57,7 @@ impl<T: 'static> std::ops::DerefMut for Loading<T> {
 /// Use the [remove_bytes](crate::Loaded::remove_bytes) or [get_bytes](crate::Loaded::get_bytes) function to extract the raw byte array for the loaded resource
 /// or one of the other methods to both extract and deserialize a loaded resource.
 ///
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct Loaded {
     loaded: HashMap<PathBuf, std::result::Result<Vec<u8>, std::io::Error>>,
 }
@@ -133,6 +133,24 @@ impl Loaded {
     ///
     pub fn insert_bytes(&mut self, path: impl AsRef<Path>, bytes: Vec<u8>) {
         self.loaded.insert(path.as_ref().to_path_buf(), Ok(bytes));
+    }
+}
+
+impl std::fmt::Debug for Loaded {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("Loaded");
+        for (key, value) in self.loaded.iter() {
+            d.field("path", key);
+            match value {
+                Ok(value) => {
+                    d.field("byte length", &value.len());
+                }
+                Err(err) => {
+                    d.field("error", err);
+                }
+            }
+        }
+        d.finish()
     }
 }
 
