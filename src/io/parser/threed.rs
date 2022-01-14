@@ -52,7 +52,7 @@ impl Loaded {
                 name: material.name,
                 albedo: material
                     .color
-                    .map(|color| Color::from_rgba_slice(&[color.0, color.1, color.2, color.3]))
+                    .map(|color| [color.0, color.1, color.2, color.3].into())
                     .unwrap_or(Color::WHITE),
                 albedo_texture: if let Some(filename) = material.texture_path {
                     let texture_path = path
@@ -182,7 +182,7 @@ impl Saver {
                 .albedo_texture
                 .as_ref()
                 .map(|_| format!("{}_{}.png", filename, cpu_material.name));
-            let albedo = cpu_material.albedo.to_rgba_slice();
+            let albedo: [f32; 4] = cpu_material.albedo.into();
             materials.push(ThreeDMaterial {
                 name: cpu_material.name,
                 texture_path,

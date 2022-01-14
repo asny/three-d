@@ -52,12 +52,13 @@ impl Loaded {
 
                 cpu_materials.push(CPUMaterial {
                     name: material.name,
-                    albedo: Color::from_rgba_slice(&[
+                    albedo: [
                         color.r as f32,
                         color.g as f32,
                         color.b as f32,
                         material.alpha as f32,
-                    ]),
+                    ]
+                    .into(),
                     albedo_texture,
                     metallic: ((material.color_specular.r
                         + material.color_specular.g

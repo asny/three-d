@@ -103,6 +103,136 @@ impl Color {
     }
 }
 
+impl From<[u8; 3]> for Color {
+    fn from(rgba: [u8; 3]) -> Self {
+        Self {
+            r: rgba[0],
+            g: rgba[1],
+            b: rgba[2],
+            a: 255,
+        }
+    }
+}
+
+impl From<&[u8; 3]> for Color {
+    fn from(rgba: &[u8; 3]) -> Self {
+        Self {
+            r: rgba[0],
+            g: rgba[1],
+            b: rgba[2],
+            a: 255,
+        }
+    }
+}
+
+impl From<[u8; 4]> for Color {
+    fn from(rgba: [u8; 4]) -> Self {
+        Self {
+            r: rgba[0],
+            g: rgba[1],
+            b: rgba[2],
+            a: rgba[3],
+        }
+    }
+}
+
+impl From<&[u8; 4]> for Color {
+    fn from(rgba: &[u8; 4]) -> Self {
+        Self {
+            r: rgba[0],
+            g: rgba[1],
+            b: rgba[2],
+            a: rgba[3],
+        }
+    }
+}
+
+impl From<[f32; 3]> for Color {
+    fn from(rgba: [f32; 3]) -> Self {
+        Self {
+            r: (rgba[0] * 255.0) as u8,
+            g: (rgba[1] * 255.0) as u8,
+            b: (rgba[2] * 255.0) as u8,
+            a: 255,
+        }
+    }
+}
+
+impl From<&[f32; 3]> for Color {
+    fn from(rgba: &[f32; 3]) -> Self {
+        Self {
+            r: (rgba[0] * 255.0) as u8,
+            g: (rgba[1] * 255.0) as u8,
+            b: (rgba[2] * 255.0) as u8,
+            a: 255,
+        }
+    }
+}
+
+impl From<[f32; 4]> for Color {
+    fn from(rgba: [f32; 4]) -> Self {
+        Self {
+            r: (rgba[0] * 255.0) as u8,
+            g: (rgba[1] * 255.0) as u8,
+            b: (rgba[2] * 255.0) as u8,
+            a: (rgba[3] * 255.0) as u8,
+        }
+    }
+}
+
+impl From<&[f32; 4]> for Color {
+    fn from(rgba: &[f32; 4]) -> Self {
+        Self {
+            r: (rgba[0] * 255.0) as u8,
+            g: (rgba[1] * 255.0) as u8,
+            b: (rgba[2] * 255.0) as u8,
+            a: (rgba[3] * 255.0) as u8,
+        }
+    }
+}
+
+impl From<Color> for [f32; 3] {
+    fn from(color: Color) -> Self {
+        [
+            color.r as f32 / 255.0,
+            color.g as f32 / 255.0,
+            color.b as f32 / 255.0,
+        ]
+    }
+}
+
+impl From<Color> for [f32; 4] {
+    fn from(color: Color) -> Self {
+        [
+            color.r as f32 / 255.0,
+            color.g as f32 / 255.0,
+            color.b as f32 / 255.0,
+            color.a as f32 / 255.0,
+        ]
+    }
+}
+
+impl From<Color> for Vec3 {
+    fn from(color: Color) -> Self {
+        vec3(
+            color.r as f32 / 255.0,
+            color.g as f32 / 255.0,
+            color.b as f32 / 255.0,
+        )
+    }
+}
+
+impl From<Color> for Vec4 {
+    fn from(color: Color) -> Self {
+        vec4(
+            color.r as f32 / 255.0,
+            color.g as f32 / 255.0,
+            color.b as f32 / 255.0,
+            color.a as f32 / 255.0,
+        )
+    }
+}
+
 impl Default for Color {
     fn default() -> Self {
         Color::WHITE

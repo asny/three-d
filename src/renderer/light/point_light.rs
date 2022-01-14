@@ -34,12 +34,22 @@ impl PointLight {
     }
 
     pub fn set_color(&mut self, color: Color) {
-        self.light_buffer.update(0, &color.to_rgb_slice()).unwrap();
+        self.light_buffer
+            .update(
+                0,
+                &[
+                    color.r as f32 / 255.0,
+                    color.g as f32 / 255.0,
+                    color.b as f32 / 255.0,
+                    color.a as f32 / 255.0,
+                ],
+            )
+            .unwrap();
     }
 
     pub fn color(&self) -> Color {
         let c = self.light_buffer.get(0).unwrap();
-        Color::from_rgb_slice(&[c[0], c[1], c[2]])
+        [c[0], c[1], c[2]].into()
     }
 
     pub fn set_intensity(&mut self, intensity: f32) {

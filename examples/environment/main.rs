@@ -80,7 +80,7 @@ fn main() {
                 panel_width = gui_context.used_size().x as u32;
             })
             .unwrap();
-            model.material.albedo = Color::from_rgba_slice(&color);
+            model.material.albedo = color.into();
 
             let viewport = Viewport {
                 x: panel_width as i32,
