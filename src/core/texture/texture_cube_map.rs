@@ -261,10 +261,11 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         context: &Context,
         cpu_texture: &CPUTexture<U>,
     ) -> ThreeDResult<Self> {
+        let texture_size = cpu_texture.width / 4;
         let mut texture = Self::new_empty(
             &context,
-            cpu_texture.width / 4,
-            cpu_texture.width / 4,
+            texture_size,
+            texture_size,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
@@ -300,8 +301,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
 
             for side in CubeMapSide::iter() {
                 effect.use_texture("equirectangularMap", &map)?;
-                let viewport =
-                    Viewport::new_at_origo(render_target.width(), render_target.height());
+                let viewport = Viewport::new_at_origo(texture_size, texture_size);
                 render_target.write(side, ClearState::default(), || {
                     effect.render(side, RenderStates::default(), viewport)
                 })?;

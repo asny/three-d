@@ -13,10 +13,11 @@ impl Environment {
             GeometryFunction::SmithSchlickGGX,
         );
         // Diffuse
+        let irradiance_size = 32;
         let mut irradiance_map = TextureCubeMap::new_empty(
             context,
-            32,
-            32,
+            irradiance_size,
+            irradiance_size,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
@@ -35,8 +36,7 @@ impl Environment {
             let render_target = RenderTargetCubeMap::new_color(context, &mut irradiance_map)?;
             for side in CubeMapSide::iter() {
                 effect.use_texture_cube("environmentMap", environment_map)?;
-                let viewport =
-                    Viewport::new_at_origo(render_target.width(), render_target.height());
+                let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
                 render_target.write(side, ClearState::default(), || {
                     effect.render(side, RenderStates::default(), viewport)
                 })?;
@@ -44,10 +44,11 @@ impl Environment {
         }
 
         // Prefilter
+        let prefilter_size = 128;
         let mut prefilter_map = TextureCubeMap::new_empty(
             context,
-            128,
-            128,
+            prefilter_size,
+            prefilter_size,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
@@ -71,8 +72,8 @@ impl Environment {
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
                 let viewport = Viewport::new_at_origo(
-                    render_target.width() / 2u32.pow(mip),
-                    render_target.height() / 2u32.pow(mip),
+                    prefilter_size / 2u32.pow(mip),
+                    prefilter_size / 2u32.pow(mip),
                 );
                 for side in CubeMapSide::iter() {
                     program.use_texture_cube("environmentMap", environment_map)?;
