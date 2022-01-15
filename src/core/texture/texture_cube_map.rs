@@ -2,20 +2,35 @@ use crate::context::consts;
 use crate::core::texture::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+///
+/// The 6 sides of a cube map
+///
 pub enum CubeMapSide {
+    /// Positive y
     Top,
+    /// Negative y
     Bottom,
+    /// Positive x
     Right,
+    /// Negative x
     Left,
+    /// Negative z
     Front,
+    /// Positive z
     Back,
 }
 
+///
+/// Iterator over the 6 side of a cube map.
+///
 pub struct CubeMapSideIterator {
     index: usize,
 }
 
 impl CubeMapSideIterator {
+    ///
+    /// Creates a new iterator over the 6 side of a cube map.
+    ///
     pub fn new() -> Self {
         Self { index: 0 }
     }
@@ -38,6 +53,9 @@ impl<'a> Iterator for CubeMapSideIterator {
 }
 
 impl CubeMapSide {
+    ///
+    /// Iterator over the 6 side of a cube map.
+    ///
     pub fn iter() -> CubeMapSideIterator {
         CubeMapSideIterator::new()
     }

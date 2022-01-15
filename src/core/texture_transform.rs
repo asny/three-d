@@ -1,6 +1,12 @@
 use crate::core::*;
 
 #[derive(Clone, Copy, Debug)]
+#[allow(missing_docs)]
+///
+/// Transformation to offset and scale the uv coordinates which again is used to look up into a texture.
+/// Primarily used for texture atlasing where a single texture is used for multiple geometries
+/// or for changing the texture of some geometry quickly.
+///
 pub struct TextureTransform {
     pub offset_x: f32,
     pub offset_y: f32,
