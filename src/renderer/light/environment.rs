@@ -31,16 +31,15 @@ impl Environment {
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/irradiance.frag")
             );
-            let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, &fragment_shader_source)?;
             let render_target = RenderTargetCubeMap::new_color(context, &mut irradiance_map)?;
             for side in CubeMapSide::iter() {
-                program.use_texture_cube("environmentMap", environment_map)?;
-                program.render(
-                    &render_target,
-                    side,
-                    ClearState::default(),
-                    RenderStates::default(),
-                )?;
+                effect.use_texture_cube("environmentMap", environment_map)?;
+                let viewport =
+                    Viewport::new_at_origo(render_target.width(), render_target.height());
+                render_target.write(side, ClearState::default(), || {
+                    effect.render(side, RenderStates::default(), viewport)
+                })?;
             }
         }
 
@@ -71,17 +70,17 @@ impl Environment {
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
+                let viewport = Viewport::new_at_origo(
+                    render_target.width() / 2u32.pow(mip),
+                    render_target.height() / 2u32.pow(mip),
+                );
                 for side in CubeMapSide::iter() {
                     program.use_texture_cube("environmentMap", environment_map)?;
                     program.use_uniform_float("roughness", &roughness)?;
                     program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
-                    program.render_to_mip_level(
-                        &render_target,
-                        side,
-                        mip,
-                        ClearState::default(),
-                        RenderStates::default(),
-                    )?;
+                    render_target.write_to_mip_level(side, mip, ClearState::default(), || {
+                        program.render_to_mip_level(side, mip, RenderStates::default(), viewport)
+                    })?;
                 }
             }
         }

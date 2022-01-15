@@ -295,17 +295,16 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                 vec2 uv = sample_spherical_map(normalize(pos));
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
-            let program = ImageCubeEffect::new(context, fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, fragment_shader_source)?;
             let render_target = RenderTargetCubeMap::new_color(context, &mut texture)?;
 
             for side in CubeMapSide::iter() {
-                program.use_texture("equirectangularMap", &map)?;
-                program.render(
-                    &render_target,
-                    side,
-                    ClearState::default(),
-                    RenderStates::default(),
-                )?;
+                effect.use_texture("equirectangularMap", &map)?;
+                let viewport =
+                    Viewport::new_at_origo(render_target.width(), render_target.height());
+                render_target.write(side, ClearState::default(), || {
+                    effect.render(side, RenderStates::default(), viewport)
+                })?;
             }
         }
         Ok(texture)

@@ -38,23 +38,18 @@ impl ImageCubeEffect {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn render<T: TextureDataType>(
+    pub fn render(
         &self,
-        render_target: &RenderTargetCubeMap<T>,
         side: CubeMapSide,
-        clear_state: ClearState,
         render_states: RenderStates,
+        viewport: Viewport,
     ) -> ThreeDResult<()> {
-        let viewport = Viewport::new_at_origo(render_target.width(), render_target.height());
         let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-        render_target.write(side, clear_state, || {
-            self.program
-                .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
-            self.program
-                .use_attribute_vec3("position", &self.positions)?;
-            self.program.draw_arrays(render_states, viewport, 36);
-            Ok(())
-        })?;
+        self.program
+            .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
+        self.program
+            .use_attribute_vec3("position", &self.positions)?;
+        self.program.draw_arrays(render_states, viewport, 36);
         Ok(())
     }
 
@@ -63,27 +58,19 @@ impl ImageCubeEffect {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn render_to_mip_level<T: TextureDataType>(
+    pub fn render_to_mip_level(
         &self,
-        render_target: &RenderTargetCubeMap<T>,
         side: CubeMapSide,
         mip_level: u32,
-        clear_state: ClearState,
         render_states: RenderStates,
+        viewport: Viewport,
     ) -> ThreeDResult<()> {
-        let viewport = Viewport::new_at_origo(
-            render_target.width() / 2u32.pow(mip_level),
-            render_target.height() / 2u32.pow(mip_level),
-        );
         let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-        render_target.write_to_mip_level(side, mip_level, clear_state, || {
-            self.program
-                .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
-            self.program
-                .use_attribute_vec3("position", &self.positions)?;
-            self.program.draw_arrays(render_states, viewport, 36);
-            Ok(())
-        })?;
+        self.program
+            .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
+        self.program
+            .use_attribute_vec3("position", &self.positions)?;
+        self.program.draw_arrays(render_states, viewport, 36);
         Ok(())
     }
 }
