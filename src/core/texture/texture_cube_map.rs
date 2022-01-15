@@ -311,6 +311,10 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         Ok(texture)
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
+    /// Before writing, the texture side is cleared based on the given clear state.
+    ///
     pub fn write(
         &mut self,
         side: CubeMapSide,
@@ -324,6 +328,10 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         )
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into the given mip level of the color texture at the cube map side given by the input parameter `side`.
+    /// Before writing, the texture side is cleared based on the given clear state.
+    ///
     pub fn write_to_mip_level(
         &mut self,
         side: CubeMapSide,

@@ -36,8 +36,9 @@ pub struct CPUMaterial {
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<CPUTexture<u8>>,
-
+    /// Color of light shining from an object.
     pub emissive: Color,
+    /// Texture with color of light shining from an object.
     pub emissive_texture: Option<CPUTexture<u8>>,
     /// Alpha cutout value for transparency in deferred rendering pipeline.
     pub alpha_cutout: Option<f32>,

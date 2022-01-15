@@ -2,7 +2,7 @@ use crate::core::*;
 
 ///
 /// A customizable cube effect.
-/// Can be used for rendering into all 6 sides of a cube map texture.
+/// Used for rendering into all 6 sides of a cube map texture.
 ///
 pub struct ImageCubeEffect {
     program: Program,
@@ -11,7 +11,8 @@ pub struct ImageCubeEffect {
 
 impl ImageCubeEffect {
     ///
-    /// Creates a new image effect which applies the calculations defined in the given fragment shader source when calling the [ImageEffect::apply] function.
+    /// Creates a new cube effect which applies the effect defined in the given fragment shader source to a side of a cube map
+    /// when calling on of the render functions.
     ///
     pub fn new(context: &Context, fragment_shader_source: &str) -> ThreeDResult<Self> {
         let program = Program::from_source(
@@ -32,6 +33,11 @@ impl ImageCubeEffect {
         Ok(Self { program, positions })
     }
 
+    ///
+    /// Applies the effect defined in the fragment shader source given at construction to the given side of a cube map.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write].
+    ///
     pub fn render<T: TextureDataType>(
         &self,
         render_target: &RenderTargetCubeMap<T>,
@@ -52,6 +58,11 @@ impl ImageCubeEffect {
         Ok(())
     }
 
+    ///
+    /// Applies the effect defined in the fragment shader source given at construction to the given side and given mip map level of a cube map.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write].
+    ///
     pub fn render_to_mip_level<T: TextureDataType>(
         &self,
         render_target: &RenderTargetCubeMap<T>,
