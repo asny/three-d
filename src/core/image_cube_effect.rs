@@ -52,27 +52,6 @@ impl ImageCubeEffect {
         self.program.draw_arrays(render_states, viewport, 36);
         Ok(())
     }
-
-    ///
-    /// Applies the effect defined in the fragment shader source given at construction to the given side and given mip map level of a cube map.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
-    ///
-    pub fn render_to_mip_level(
-        &self,
-        side: CubeMapSide,
-        mip_level: u32,
-        render_states: RenderStates,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
-        self.program
-            .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
-        self.program
-            .use_attribute_vec3("position", &self.positions)?;
-        self.program.draw_arrays(render_states, viewport, 36);
-        Ok(())
-    }
 }
 
 impl std::ops::Deref for ImageCubeEffect {

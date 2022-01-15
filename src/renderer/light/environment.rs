@@ -79,7 +79,7 @@ impl Environment {
                     program.use_uniform_float("roughness", &roughness)?;
                     program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
                     render_target.write_to_mip_level(side, mip, ClearState::default(), || {
-                        program.render_to_mip_level(side, mip, RenderStates::default(), viewport)
+                        program.render(side, RenderStates::default(), viewport)
                     })?;
                 }
             }
