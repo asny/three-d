@@ -91,9 +91,9 @@ void main()
     mat3 texTransform = textureTransform;
 #ifdef INSTANCED
     mat3 instancedTexTransform;
-    instancedTexTransform[0] = vec3(row1.x, row2.x, 0.0);
-    instancedTexTransform[1] = vec3(row1.y, row2.y, 0.0);
-    instancedTexTransform[2] = vec3(row1.z, row2.z, 1.0);
+    instancedTexTransform[0] = vec3(tex_transform_row1.x, tex_transform_row2.x, 0.0);
+    instancedTexTransform[1] = vec3(tex_transform_row1.y, tex_transform_row2.y, 0.0);
+    instancedTexTransform[2] = vec3(tex_transform_row1.z, tex_transform_row2.z, 1.0);
     texTransform *= instancedTexTransform;
 #endif
     uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
