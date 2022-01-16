@@ -109,9 +109,14 @@ fn main() {
 
     // main loop
     let mut is_primary_camera = true;
+    let mut loaded = false;
     window
         .render_loop(move |mut frame_input| {
             let mut redraw = frame_input.first_frame;
+            if !loaded && scene.is_loaded() {
+                redraw = true;
+                loaded = true;
+            }
             redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
             redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
             redraw |= control
@@ -168,7 +173,6 @@ fn main() {
             } else {
                 FrameOutput {
                     swap_buffers: redraw,
-                    wait_next_event: true,
                     ..Default::default()
                 }
             }

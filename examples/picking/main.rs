@@ -68,9 +68,14 @@ fn main() {
     );
 
     // main loop
+    let mut loaded = false;
     window
         .render_loop(move |mut frame_input| {
             let mut change = frame_input.first_frame;
+            if !loaded && monkey.is_loaded() {
+                change = true;
+                loaded = true;
+            }
             change |= camera.set_viewport(frame_input.viewport).unwrap();
 
             for event in frame_input.events.iter() {
