@@ -10,7 +10,6 @@ fn main() {
     })
     .unwrap();
     let context = window.gl().unwrap();
-    let pipeline = ForwardPipeline::new(&context).unwrap();
 
     let mut camera = Camera::new_perspective(
         &context,
@@ -25,14 +24,15 @@ fn main() {
     .unwrap();
     let mut control = FlyControl::new(0.1);
 
-    Loader::load(
+    let scene = Loading::new(
+        &context,
         &[
             "examples/assets/Tree1.obj",
             "examples/assets/Tree1.mtl",
             "examples/assets/Tree1Bark.jpg",
             "examples/assets/Tree1Leave.png",
         ],
-        move |mut loaded| {
+        move |context, mut loaded| {
             // Tree
             let (mut meshes, materials) = loaded.obj("examples/assets/Tree1.obj").unwrap();
             let mut tree_cpu_mesh = meshes
@@ -99,7 +99,7 @@ fn main() {
             imposters
                 .update_texture(
                     |camera: &Camera| {
-                        pipeline.render_pass(&camera, &[&tree_mesh, &leaves_mesh], &lights)?;
+                        render_pass(&camera, &[&tree_mesh, &leaves_mesh], &lights)?;
                         Ok(())
                     },
                     (aabb.min(), aabb.max()),
@@ -141,50 +141,51 @@ fn main() {
             )
             .unwrap();
             plane.material.opaque_render_states.cull = Cull::Back;
-
-            // main loop
-            window
-                .render_loop(move |mut frame_input| {
-                    let mut redraw = frame_input.first_frame;
-                    redraw |= camera.set_viewport(frame_input.viewport).unwrap();
-
-                    redraw |= control
-                        .handle_events(&mut camera, &mut frame_input.events)
-                        .unwrap();
-
-                    if redraw {
-                        Screen::write(
-                            &context,
-                            ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
-                            || {
-                                pipeline.render_pass(
-                                    &camera,
-                                    &[&plane, &tree_mesh, &leaves_mesh],
-                                    &lights,
-                                )?;
-                                imposters.render(&camera)?;
-                                Ok(())
-                            },
-                        )
-                        .unwrap();
-                    }
-
-                    if args.len() > 1 {
-                        // To automatically generate screenshots of the examples, can safely be ignored.
-                        FrameOutput {
-                            screenshot: Some(args[1].clone().into()),
-                            exit: true,
-                            ..Default::default()
-                        }
-                    } else {
-                        FrameOutput {
-                            swap_buffers: redraw,
-                            wait_next_event: true,
-                            ..Default::default()
-                        }
-                    }
-                })
-                .unwrap();
+            Ok((plane, tree_mesh, leaves_mesh, imposters, lights))
         },
     );
+
+    // main loop
+    window
+        .render_loop(move |mut frame_input| {
+            let mut redraw = frame_input.first_frame;
+            redraw |= camera.set_viewport(frame_input.viewport).unwrap();
+
+            redraw |= control
+                .handle_events(&mut camera, &mut frame_input.events)
+                .unwrap();
+
+            if redraw {
+                Screen::write(
+                    &context,
+                    ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
+                    || {
+                        if let Some(ref scene) = *scene.borrow() {
+                            let (plane, tree_mesh, leaves_mesh, imposters, lights) =
+                                scene.as_ref().unwrap();
+                            render_pass(&camera, &[&plane, &tree_mesh, &leaves_mesh], &lights)?;
+                            imposters.render(&camera)?;
+                        }
+                        Ok(())
+                    },
+                )
+                .unwrap();
+            }
+
+            if args.len() > 1 {
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {
+                    screenshot: Some(args[1].clone().into()),
+                    exit: true,
+                    ..Default::default()
+                }
+            } else {
+                FrameOutput {
+                    swap_buffers: redraw,
+                    wait_next_event: true,
+                    ..Default::default()
+                }
+            }
+        })
+        .unwrap();
 }

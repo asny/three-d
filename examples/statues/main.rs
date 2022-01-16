@@ -41,7 +41,8 @@ fn main() {
     );
 
     // Models from http://texturedmesh.isti.cnr.it/
-    Loader::load(
+    let scene = Loading::new(
+        &context,
         &[
             "examples/assets/COLOMBE.obj",
             "examples/assets/COLOMBE.mtl",
@@ -50,7 +51,7 @@ fn main() {
             "examples/assets/pfboy.mtl",
             "examples/assets/pfboy.png",
         ],
-        move |mut loaded| {
+        move |context, mut loaded| {
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let mut statue_material =
@@ -102,71 +103,75 @@ fn main() {
             lights.directional[0]
                 .generate_shadow_map(1000.0, 1024, 1024, &models)
                 .unwrap();
-
-            // main loop
-            let mut is_primary_camera = true;
-            window
-                .render_loop(move |mut frame_input| {
-                    let mut redraw = frame_input.first_frame;
-                    redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
-                    redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
-                    redraw |= control
-                        .handle_events(&mut primary_camera, &mut frame_input.events)
-                        .unwrap();
-
-                    for event in frame_input.events.iter() {
-                        match event {
-                            Event::KeyPress { kind, .. } => {
-                                if *kind == Key::C {
-                                    is_primary_camera = !is_primary_camera;
-                                    redraw = true;
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-
-                    // draw
-                    if redraw {
-                        Screen::write(
-                            &context,
-                            ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
-                            || {
-                                for model in models
-                                    .iter()
-                                    .filter(|o| primary_camera.in_frustum(&o.aabb()))
-                                {
-                                    model.render(
-                                        if is_primary_camera {
-                                            &primary_camera
-                                        } else {
-                                            &secondary_camera
-                                        },
-                                        &lights,
-                                    )?;
-                                }
-                                Ok(())
-                            },
-                        )
-                        .unwrap();
-                    }
-
-                    if args.len() > 1 {
-                        // To automatically generate screenshots of the examples, can safely be ignored.
-                        FrameOutput {
-                            screenshot: Some(args[1].clone().into()),
-                            exit: true,
-                            ..Default::default()
-                        }
-                    } else {
-                        FrameOutput {
-                            swap_buffers: redraw,
-                            wait_next_event: true,
-                            ..Default::default()
-                        }
-                    }
-                })
-                .unwrap();
+            Ok((models, lights))
         },
     );
+
+    // main loop
+    let mut is_primary_camera = true;
+    window
+        .render_loop(move |mut frame_input| {
+            let mut redraw = frame_input.first_frame;
+            redraw |= primary_camera.set_viewport(frame_input.viewport).unwrap();
+            redraw |= secondary_camera.set_viewport(frame_input.viewport).unwrap();
+            redraw |= control
+                .handle_events(&mut primary_camera, &mut frame_input.events)
+                .unwrap();
+
+            for event in frame_input.events.iter() {
+                match event {
+                    Event::KeyPress { kind, .. } => {
+                        if *kind == Key::C {
+                            is_primary_camera = !is_primary_camera;
+                            redraw = true;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            // draw
+            if redraw {
+                Screen::write(
+                    &context,
+                    ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
+                    || {
+                        if let Some(ref scene) = *scene.borrow() {
+                            let (models, lights) = scene.as_ref().unwrap();
+                            for model in models
+                                .iter()
+                                .filter(|o| primary_camera.in_frustum(&o.aabb()))
+                            {
+                                model.render(
+                                    if is_primary_camera {
+                                        &primary_camera
+                                    } else {
+                                        &secondary_camera
+                                    },
+                                    &lights,
+                                )?;
+                            }
+                        }
+                        Ok(())
+                    },
+                )
+                .unwrap();
+            }
+
+            if args.len() > 1 {
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {
+                    screenshot: Some(args[1].clone().into()),
+                    exit: true,
+                    ..Default::default()
+                }
+            } else {
+                FrameOutput {
+                    swap_buffers: redraw,
+                    wait_next_event: true,
+                    ..Default::default()
+                }
+            }
+        })
+        .unwrap();
 }
