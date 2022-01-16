@@ -65,4 +65,7 @@
 
 ![Normals example](https://asny.github.io/three-d/0.10/normals.png)
 
+## Logo [[code](https://github.com/asny/three-d/tree/master/examples/logo/main.rs)] [[web](https://asny.github.io/three-d/0.10/logo.html)]
+
+![Logo example](https://asny.github.io/three-d/0.10/logo.png)
 
