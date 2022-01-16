@@ -1,5 +1,11 @@
 use crate::core::*;
 use crate::renderer::*;
+
+///
+/// Precalculations of light shining from an environment map (known as image based lighting - IBL).
+/// This allows for real-time rendering of ambient light from the environment (see [AmbientLight]).
+///
+#[allow(missing_docs)]
 pub struct Environment {
     pub irradiance_map: TextureCubeMap<f16>,
     pub prefilter_map: TextureCubeMap<f16>,
@@ -7,6 +13,9 @@ pub struct Environment {
 }
 
 impl Environment {
+    ///
+    /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map.
+    ///
     pub fn new(context: &Context, environment_map: &impl TextureCube) -> ThreeDResult<Self> {
         let lighting_model = LightingModel::Cook(
             NormalDistributionFunction::TrowbridgeReitzGGX,
