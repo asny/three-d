@@ -76,9 +76,6 @@ impl Default for Cull {
 /// when comparing its depth with the depth of the current fragment/pixel.
 ///
 /// **Note:** Depth test is disabled if the render call is not writing to a depth texture.
-/// This means depth testing does not work when writing to a [Texture2D] or [Texture2DArray],
-/// but do work when writing to the [Screen], a [RenderTarget], [RenderTargetArray],
-/// [DepthTargetTexture2D] or [DepthTargetTexture2DArray].
 ///
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq)]
