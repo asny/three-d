@@ -1,4 +1,4 @@
-![Logo](https://asny.github.io/three-d/logo.png)
+![Logo](https://asny.github.io/three-d/0.10/logo.png)
 
 # `three-d`
 
