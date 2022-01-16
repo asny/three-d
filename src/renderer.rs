@@ -4,8 +4,7 @@
 //!
 
 pub use crate::core::{
-    math::*, render_states::*, render_target::*, texture::*, Camera, Context, TextureTransform,
-    Viewport,
+    math::*, render_states::*, render_target::*, texture::*, Camera, Context, Viewport,
 };
 
 pub mod material;

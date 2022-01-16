@@ -138,7 +138,7 @@ fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     let mut instances = Vec::new();
     while let Some(v) = iter.next() {
         instances.push(ModelInstance {
-            mesh_transform: Mat4::from_translation(vec3(
+            geometry_transform: Mat4::from_translation(vec3(
                 *v,
                 *iter.next().unwrap(),
                 *iter.next().unwrap(),
@@ -181,7 +181,7 @@ fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     edge_transformations
         .drain()
         .map(|(_, v)| ModelInstance {
-            mesh_transform: v,
+            geometry_transform: v,
             ..Default::default()
         })
         .collect::<Vec<_>>()
