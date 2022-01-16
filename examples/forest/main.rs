@@ -146,9 +146,14 @@ fn main() {
     );
 
     // main loop
+    let mut loaded = false;
     window
         .render_loop(move |mut frame_input| {
             let mut redraw = frame_input.first_frame;
+            if !loaded && scene.is_loaded() {
+                redraw = true;
+                loaded = true;
+            }
             redraw |= camera.set_viewport(frame_input.viewport).unwrap();
 
             redraw |= control
@@ -182,7 +187,6 @@ fn main() {
             } else {
                 FrameOutput {
                     swap_buffers: redraw,
-                    wait_next_event: true,
                     ..Default::default()
                 }
             }
