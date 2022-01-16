@@ -52,8 +52,16 @@ pub fn render_pass(camera: &Camera, objects: &[impl Object], lights: &Lights) ->
     Ok(())
 }
 
-use std::cmp::Ordering;
-pub fn cmp_render_order(camera: &Camera, obj0: impl Object, obj1: impl Object) -> Ordering {
+///
+/// Compare function for sorting objects based on distance from the camera.
+/// The order is opaque objects from nearest to farthest away from the camera,
+/// then transparent objects from farthest away to closest to the camera.
+///
+pub fn cmp_render_order(
+    camera: &Camera,
+    obj0: impl Object,
+    obj1: impl Object,
+) -> std::cmp::Ordering {
     if obj0.is_transparent() == obj1.is_transparent() {
         let distance_a = camera.position().distance2(obj0.aabb().center());
         let distance_b = camera.position().distance2(obj1.aabb().center());
@@ -64,9 +72,9 @@ pub fn cmp_render_order(camera: &Camera, obj0: impl Object, obj1: impl Object) -
         }
     } else {
         if obj0.is_transparent() {
-            Ordering::Greater
+            std::cmp::Ordering::Greater
         } else {
-            Ordering::Less
+            std::cmp::Ordering::Less
         }
     }
 }

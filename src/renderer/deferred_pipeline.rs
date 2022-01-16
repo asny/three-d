@@ -5,6 +5,7 @@ use crate::renderer::*;
 /// Used for debug purposes.
 ///
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum DebugType {
     POSITION,
     NORMAL,
