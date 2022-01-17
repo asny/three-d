@@ -142,7 +142,7 @@ impl Light for DirectionalLight {
             &format!("color{}", i),
             &(self.color.to_vec3() * self.intensity),
         )?;
-        program.use_uniform_vec3(&format!("direction{}", i), &self.direction)?;
+        program.use_uniform_vec3(&format!("direction{}", i), &self.direction.normalize())?;
         Ok(())
     }
 }

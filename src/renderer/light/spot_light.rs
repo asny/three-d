@@ -181,7 +181,7 @@ impl Light for SpotLight {
             ),
         )?;
         program.use_uniform_vec3(&format!("position{}", i), &self.position)?;
-        program.use_uniform_vec3(&format!("direction{}", i), &self.direction)?;
+        program.use_uniform_vec3(&format!("direction{}", i), &self.direction.normalize())?;
         program.use_uniform_float(&format!("cutoff{}", i), &self.cutoff.0)?;
         Ok(())
     }
