@@ -79,30 +79,6 @@ impl DeferredPipeline {
         };
         Ok(renderer)
     }
-    ///
-    /// Render the given geometry and material parameters to a buffer.
-    /// This function must not be called in a render target render function and needs to be followed
-    /// by a call to [DeferredPipeline::lighting_pass].
-    ///
-    #[deprecated = "use render_pass instead"]
-    pub fn geometry_pass<G: Geometry>(
-        &mut self,
-        camera: &Camera,
-        objects: &[(G, impl std::borrow::Borrow<PhysicalMaterial>)],
-    ) -> ThreeDResult<()> {
-        self.render_pass(
-            camera,
-            &objects
-                .iter()
-                .map(|(g, m)| {
-                    (
-                        g,
-                        DeferredPhysicalMaterial::from_physical_material(m.borrow()),
-                    )
-                })
-                .collect::<Vec<_>>(),
-        )
-    }
 
     ///
     /// Render the given geometry and material parameters to a buffer.
@@ -174,89 +150,6 @@ impl DeferredPipeline {
             Ok(())
         })?;
         Ok(())
-    }
-
-    ///
-    /// Uses the geometry and surface material parameters written in the last [DeferredPipeline::render_pass] call
-    /// and all of the given lights to render the objects.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write].
-    ///
-    #[deprecated = "use lighting_pass instead"]
-    pub fn light_pass(
-        &mut self,
-        camera: &Camera,
-        ambient_light: Option<&AmbientLight>,
-        directional_lights: &[&DirectionalLight],
-        spot_lights: &[&SpotLight],
-        point_lights: &[&PointLight],
-    ) -> ThreeDResult<()> {
-        let render_states = RenderStates {
-            depth_test: DepthTest::LessOrEqual,
-            ..Default::default()
-        };
-
-        if self.debug_type != DebugType::NONE {
-            return self.context.effect(
-                &format!(
-                    "{}{}",
-                    include_str!("../core/shared.frag"),
-                    include_str!("material/shaders/debug.frag")
-                ),
-                |debug_effect| {
-                    debug_effect.use_uniform_mat4(
-                        "viewProjectionInverse",
-                        &(camera.projection() * camera.view()).invert().unwrap(),
-                    )?;
-                    debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-                    debug_effect
-                        .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
-                    if self.debug_type == DebugType::DEPTH {
-                        debug_effect.use_uniform_float("zNear", &camera.z_near())?;
-                        debug_effect.use_uniform_float("zFar", &camera.z_far())?;
-                        debug_effect.use_uniform_vec3("cameraPosition", &camera.position())?;
-                    }
-                    debug_effect.use_uniform_int("type", &(self.debug_type as i32))?;
-                    debug_effect.apply(render_states, camera.viewport())?;
-                    Ok(())
-                },
-            );
-        }
-        let mut lights: Vec<&dyn Light> = Vec::new();
-        if let Some(light) = ambient_light {
-            lights.push(light)
-        }
-        for light in directional_lights {
-            lights.push(light);
-        }
-        for light in spot_lights {
-            lights.push(light);
-        }
-        for light in point_lights {
-            lights.push(light);
-        }
-
-        let mut fragment_shader =
-            lights_fragment_shader_source(&mut lights.clone().into_iter(), self.lighting_model);
-        fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
-
-        self.context.effect(&fragment_shader, |effect| {
-            effect.use_uniform_vec3("eyePosition", camera.position())?;
-            for (i, light) in lights.iter().enumerate() {
-                light.use_uniforms(effect, i as u32)?;
-            }
-            effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
-            effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
-            if !directional_lights.is_empty() || !spot_lights.is_empty() || !point_lights.is_empty()
-            {
-                effect.use_uniform_mat4(
-                    "viewProjectionInverse",
-                    &(camera.projection() * camera.view()).invert().unwrap(),
-                )?;
-            }
-            effect.apply(render_states, camera.viewport())?;
-            Ok(())
-        })
     }
 
     ///
