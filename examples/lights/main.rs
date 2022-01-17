@@ -152,7 +152,7 @@ fn main() {
             }
 
             let mut point = Vec::new();
-            for _ in 0..4 {
+            for _ in 0..20 {
                 point.push(
                     PointLight::new(
                         &context,
