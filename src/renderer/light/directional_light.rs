@@ -38,7 +38,6 @@ impl DirectionalLight {
 
     pub fn generate_shadow_map(
         &mut self,
-        frustrum_height: f32,
         texture_width: u32,
         texture_height: u32,
         geometries: &[impl Geometry],
@@ -57,13 +56,14 @@ impl DirectionalLight {
         let position = target - self.direction * aabb.max().distance(aabb.min());
         let z_far = aabb.distance_max(&position);
         let z_near = aabb.distance(&position);
+        let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
         let shadow_camera = Camera::new_orthographic(
             &self.context,
             viewport,
             position,
             target,
             up,
-            frustrum_height,
+            frustum_height,
             z_near,
             z_far,
         )?;
