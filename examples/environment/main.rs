@@ -27,7 +27,7 @@ fn main() {
 
     let scene = Loading::new(
         &context,
-        &["examples/assets/chinese_garden_4k.hdr"],
+        &["examples/assets/chinese_garden_4k.hdr"], // Source: https://polyhaven.com/
         move |context, mut loaded| {
             let skybox = Skybox::new_with_texture(
                 &context,

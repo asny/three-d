@@ -2,20 +2,35 @@ use crate::context::consts;
 use crate::core::texture::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+///
+/// The 6 sides of a cube map
+///
 pub enum CubeMapSide {
+    /// Positive y
     Top,
+    /// Negative y
     Bottom,
+    /// Positive x
     Right,
+    /// Negative x
     Left,
+    /// Negative z
     Front,
+    /// Positive z
     Back,
 }
 
+///
+/// Iterator over the 6 side of a cube map.
+///
 pub struct CubeMapSideIterator {
     index: usize,
 }
 
 impl CubeMapSideIterator {
+    ///
+    /// Creates a new iterator over the 6 side of a cube map.
+    ///
     pub fn new() -> Self {
         Self { index: 0 }
     }
@@ -38,6 +53,9 @@ impl<'a> Iterator for CubeMapSideIterator {
 }
 
 impl CubeMapSide {
+    ///
+    /// Iterator over the 6 side of a cube map.
+    ///
     pub fn iter() -> CubeMapSideIterator {
         CubeMapSideIterator::new()
     }
@@ -243,10 +261,11 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         context: &Context,
         cpu_texture: &CPUTexture<U>,
     ) -> ThreeDResult<Self> {
+        let texture_size = cpu_texture.width / 4;
         let mut texture = Self::new_empty(
             &context,
-            cpu_texture.width / 4,
-            cpu_texture.width / 4,
+            texture_size,
+            texture_size,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
@@ -277,22 +296,24 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                 vec2 uv = sample_spherical_map(normalize(pos));
                 outColor = vec4(texture(equirectangularMap, uv).rgb, 1.0);
             }";
-            let program = ImageCubeEffect::new(context, fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, fragment_shader_source)?;
             let render_target = RenderTargetCubeMap::new_color(context, &mut texture)?;
 
             for side in CubeMapSide::iter() {
-                program.use_texture("equirectangularMap", &map)?;
-                program.render(
-                    &render_target,
-                    side,
-                    ClearState::default(),
-                    RenderStates::default(),
-                )?;
+                effect.use_texture("equirectangularMap", &map)?;
+                let viewport = Viewport::new_at_origo(texture_size, texture_size);
+                render_target.write(side, ClearState::default(), || {
+                    effect.render(side, RenderStates::default(), viewport)
+                })?;
             }
         }
         Ok(texture)
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into the color texture at the cube map side given by the input parameter `side`.
+    /// Before writing, the texture side is cleared based on the given clear state.
+    ///
     pub fn write(
         &mut self,
         side: CubeMapSide,
@@ -306,6 +327,10 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         )
     }
 
+    ///
+    /// Writes whatever rendered in the `render` closure into the given mip level of the color texture at the cube map side given by the input parameter `side`.
+    /// Before writing, the texture side is cleared based on the given clear state.
+    ///
     pub fn write_to_mip_level(
         &mut self,
         side: CubeMapSide,

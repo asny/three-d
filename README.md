@@ -1,4 +1,4 @@
-![Logo](https://asny.github.io/three-d/logo.png)
+![Logo](https://asny.github.io/three-d/0.10/logo.png)
 
 # `three-d`
 
@@ -32,6 +32,7 @@ The crate consist of three main modules for drawing, `context`, `core` and `rend
 
 ### Examples
 
+![PBR example](https://asny.github.io/three-d/0.10/pbr.png)
 Several examples covering most features can be found in the [examples folder](https://github.com/asny/three-d/tree/master/examples) where you will also find an overview and links where you can try out each example on web. 
 Check out the [triangle example](https://github.com/asny/three-d/blob/master/examples/triangle/main.rs) for a gentle introduction. 
 The examples that fit with a specific release can be found in the branch for that release, ie. the examples for the [0.9 release](https://crates.io/crates/three-d/0.9.0) can be found in the [0.9 branch](https://github.com/asny/three-d/tree/0.9/examples).

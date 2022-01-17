@@ -29,8 +29,8 @@ fn main() {
     let scene = Loading::new(
         &context,
         &[
-            "examples/assets/gltf/DamagedHelmet.glb",
-            "examples/assets/chinese_garden_4k.hdr",
+            "examples/assets/gltf/DamagedHelmet.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+            "examples/assets/chinese_garden_4k.hdr",  // Source: https://polyhaven.com/
         ],
         move |context, mut loaded| {
             let environment_map = loaded.hdr_image("chinese").unwrap();

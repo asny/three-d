@@ -12,7 +12,7 @@ pub struct Model<M: Material> {
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
     transformation: Mat4,
-    texture_transform: TextureTransform,
+    texture_transform: Mat3,
     /// The material applied to the model
     pub material: M,
 }
@@ -42,17 +42,17 @@ impl<M: Material> Model<M> {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
-            texture_transform: TextureTransform::default(),
+            texture_transform: Mat3::identity(),
             context: context.clone(),
             material,
         })
     }
 
-    pub fn texture_transform(&mut self) -> &TextureTransform {
+    pub fn texture_transform(&mut self) -> &Mat3 {
         &self.texture_transform
     }
 
-    pub fn set_texture_transform(&mut self, texture_transform: TextureTransform) {
+    pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
 
@@ -84,7 +84,7 @@ impl<M: Material> Model<M> {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
         transformation: &Mat4,
-        texture_transform: &TextureTransform,
+        texture_transform: &Mat3,
     ) -> ThreeDResult<()> {
         program.use_uniform_block("Camera", camera_buffer);
         program.use_uniform_mat4("modelMatrix", transformation)?;
@@ -93,7 +93,7 @@ impl<M: Material> Model<M> {
             program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
-            program.use_uniform_vec4("textureTransform", &texture_transform.to_vec4())?;
+            program.use_uniform_mat3("textureTransform", &texture_transform)?;
             let uv_buffer = self
                 .mesh
                 .uv_buffer

@@ -13,6 +13,10 @@ pub struct RenderTarget<'a, 'b, T: TextureDataType> {
 }
 
 impl<'a, 'b> RenderTarget<'a, 'b, u8> {
+    ///
+    /// Constructs a new render target that enables rendering into the given
+    /// [DepthTargetTexture2D].
+    ///
     pub fn new_depth(
         context: &Context,
         depth_texture: &'b mut DepthTargetTexture2D,
@@ -44,6 +48,10 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         })
     }
 
+    ///
+    /// Constructs a new render target that enables rendering into the given
+    /// [ColorTargetTexture2D].
+    ///
     pub fn new_color(context: &Context, color_texture: &'a mut Texture2D<T>) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),

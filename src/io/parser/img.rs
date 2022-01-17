@@ -7,7 +7,7 @@ use std::path::Path;
 /// the [image](https://crates.io/crates/image/main.rs) crate.
 /// The CPUTexture can then be used to create a [Texture2D].
 /// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
-/// **Note:** If the image contains high dynamic range (hdr) information, use [hdr_image_from_bytes] instead.
+/// **Note:** If the image contains and you want to load high dynamic range (hdr) information, use [hdr_image_from_bytes] instead.
 ///
 pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8>> {
     use crate::core::*;
@@ -36,6 +36,12 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8
     })
 }
 
+///
+/// Deserialize the given bytes representing a hdr image into a [CPUTexture] using
+/// the [image](https://crates.io/crates/image/main.rs) crate.
+/// The CPUTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
+/// Supported formats: HDR.
+///
 pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CPUTexture<f32>> {
     use image::codecs::hdr::*;
     use image::*;
@@ -109,6 +115,12 @@ impl Loaded {
         image_from_bytes(&self.get_bytes(path)?)
     }
 
+    ///
+    /// Deserialize the loaded image resource with hdr information at the given path into a [CPUTexture] using
+    /// the [image](https://crates.io/crates/image/main.rs) crate.
+    /// The CPUTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
+    /// Supported formats: HDR.
+    ///
     pub fn hdr_image(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CPUTexture<f32>> {
         hdr_image_from_bytes(&self.get_bytes(path)?)
     }

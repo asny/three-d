@@ -1,5 +1,5 @@
 [package]
-name = "triangle"
+name = "logo"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
@@ -12,4 +12,4 @@ three-d = { path = "../../" }
 log = "0.4"
 wasm-bindgen = "0.2"
 console_error_panic_hook = "0.1"
-console_log = "0.1"
+console_log = "0.2"

@@ -8,6 +8,7 @@ pub struct Mesh {
     pub position_buffer: VertexBuffer,
     /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
     pub normal_buffer: Option<VertexBuffer>,
+    /// Buffer with the tangent data, ie. `(x, y, z)` for each vertex.
     pub tangent_buffer: Option<VertexBuffer>,
     /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
     pub uv_buffer: Option<VertexBuffer>,

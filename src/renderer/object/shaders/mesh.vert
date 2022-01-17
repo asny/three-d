@@ -36,9 +36,10 @@ out vec3 bitang;
 
 #ifdef USE_UVS 
 #ifdef INSTANCED
-in vec4 subt;
+in vec3 tex_transform_row1;
+in vec3 tex_transform_row2;
 #endif
-uniform vec4 textureTransform;
+uniform mat3 textureTransform;
 in vec2 uv_coordinates;
 out vec2 uvs;
 #endif
@@ -87,10 +88,15 @@ void main()
 #endif
 
 #ifdef USE_UVS 
-    uvs = uv_coordinates * textureTransform.zw + textureTransform.xy;
+    mat3 texTransform = textureTransform;
 #ifdef INSTANCED
-    uvs = uvs * subt.zw + subt.xy;
+    mat3 instancedTexTransform;
+    instancedTexTransform[0] = vec3(tex_transform_row1.x, tex_transform_row2.x, 0.0);
+    instancedTexTransform[1] = vec3(tex_transform_row1.y, tex_transform_row2.y, 0.0);
+    instancedTexTransform[2] = vec3(tex_transform_row1.z, tex_transform_row2.z, 1.0);
+    texTransform *= instancedTexTransform;
 #endif
+    uvs = (texTransform * vec3(uv_coordinates, 1.0)).xy;
 #endif
 
 #ifdef USE_COLORS 

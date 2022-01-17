@@ -1,5 +1,11 @@
 use crate::core::*;
 use crate::renderer::*;
+
+///
+/// Precalculations of light shining from an environment map (known as image based lighting - IBL).
+/// This allows for real-time rendering of ambient light from the environment (see [AmbientLight]).
+///
+#[allow(missing_docs)]
 pub struct Environment {
     pub irradiance_map: TextureCubeMap<f16>,
     pub prefilter_map: TextureCubeMap<f16>,
@@ -7,16 +13,20 @@ pub struct Environment {
 }
 
 impl Environment {
+    ///
+    /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map.
+    ///
     pub fn new(context: &Context, environment_map: &impl TextureCube) -> ThreeDResult<Self> {
         let lighting_model = LightingModel::Cook(
             NormalDistributionFunction::TrowbridgeReitzGGX,
             GeometryFunction::SmithSchlickGGX,
         );
         // Diffuse
+        let irradiance_size = 32;
         let mut irradiance_map = TextureCubeMap::new_empty(
             context,
-            32,
-            32,
+            irradiance_size,
+            irradiance_size,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
@@ -31,24 +41,23 @@ impl Environment {
                 include_str!("../../core/shared.frag"),
                 include_str!("shaders/irradiance.frag")
             );
-            let program = ImageCubeEffect::new(context, &fragment_shader_source)?;
+            let effect = ImageCubeEffect::new(context, &fragment_shader_source)?;
             let render_target = RenderTargetCubeMap::new_color(context, &mut irradiance_map)?;
             for side in CubeMapSide::iter() {
-                program.use_texture_cube("environmentMap", environment_map)?;
-                program.render(
-                    &render_target,
-                    side,
-                    ClearState::default(),
-                    RenderStates::default(),
-                )?;
+                effect.use_texture_cube("environmentMap", environment_map)?;
+                let viewport = Viewport::new_at_origo(irradiance_size, irradiance_size);
+                render_target.write(side, ClearState::default(), || {
+                    effect.render(side, RenderStates::default(), viewport)
+                })?;
             }
         }
 
         // Prefilter
+        let prefilter_size = 128;
         let mut prefilter_map = TextureCubeMap::new_empty(
             context,
-            128,
-            128,
+            prefilter_size,
+            prefilter_size,
             Interpolation::Linear,
             Interpolation::Linear,
             Some(Interpolation::Linear),
@@ -71,17 +80,17 @@ impl Environment {
             let max_mip_levels = 5;
             for mip in 0..max_mip_levels {
                 let roughness = mip as f32 / (max_mip_levels as f32 - 1.0);
+                let viewport = Viewport::new_at_origo(
+                    prefilter_size / 2u32.pow(mip),
+                    prefilter_size / 2u32.pow(mip),
+                );
                 for side in CubeMapSide::iter() {
                     program.use_texture_cube("environmentMap", environment_map)?;
                     program.use_uniform_float("roughness", &roughness)?;
                     program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
-                    program.render_to_mip_level(
-                        &render_target,
-                        side,
-                        mip,
-                        ClearState::default(),
-                        RenderStates::default(),
-                    )?;
+                    render_target.write_to_mip_level(side, mip, ClearState::default(), || {
+                        program.render(side, RenderStates::default(), viewport)
+                    })?;
                 }
             }
         }

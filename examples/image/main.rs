@@ -15,7 +15,7 @@ fn main() {
 
     let image = Loading::new(
         &context,
-        &["examples/assets/syferfontein_18d_clear_4k.hdr"],
+        &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
         move |context, mut loaded| Texture2D::new(&context, &loaded.hdr_image("")?),
     );
 

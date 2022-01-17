@@ -643,7 +643,7 @@ pub trait TextureCube {
     fn height(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
-
+    /// Whether or not this texture contain hdr information.
     fn is_hdr(&self) -> bool;
 }
 
