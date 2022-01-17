@@ -1,3 +1,4 @@
+use rand::prelude::*;
 use three_d::*;
 
 fn main() {
@@ -123,53 +124,54 @@ fn main() {
                 models.push(Model::new_with_material(&context, &m, material).unwrap());
             }
 
+            let mut rng = rand::thread_rng();
             let mut directional = Vec::new();
             for _ in 0..0 {
                 directional.push(
-                    DirectionalLight::new(&context, 0.2, Color::RED, &vec3(0.0, -1.0, 0.0))
+                    DirectionalLight::new(&context, 0.2, Color::GREEN, &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()))
                         .unwrap(),
                 );
             }
 
             let mut spot = Vec::new();
-            for _ in 0..6 {
+            for _ in 0..0 {
                 spot.push(
                     SpotLight::new(
                         &context,
                         2.0,
                         Color::BLUE,
-                        &vec3(0.0, 0.0, 0.0),
-                        &vec3(0.0, -1.0, 0.0),
+                        &vec3(100.0*rng.gen::<f32>(), 100.0 + rng.gen::<f32>(), 100.0*rng.gen::<f32>()),
+                        &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()),
                         degrees(25.0),
-                        0.1,
                         0.001,
-                        0.0001,
+                        0.00001,
+                        0.000001,
                     )
                     .unwrap(),
                 );
             }
 
             let mut point = Vec::new();
-            for _ in 0..0 {
+            for _ in 0..4 {
                 point.push(
                     PointLight::new(
                         &context,
-                        0.2,
-                        Color::RED,
-                        &vec3(0.0, -1.0, 0.0),
-                        0.5,
-                        0.05,
+                        0.4,
+                        Color::WHITE,
+                        &vec3(1000.0*rng.gen::<f32>() - 500.0, 100.0, 1000.0*rng.gen::<f32>() - 500.0),
                         0.005,
+                        0.0005,
+                        0.00005,
                     )
                     .unwrap(),
                 );
             }
 
             let lights = Lights {
-                ambient: Some(AmbientLight {
+                /*ambient: Some(AmbientLight {
                     environment: Some(Environment::new(&context, skybox.texture())?),
                     ..Default::default()
-                }),
+                }),*/
                 lighting_model: LightingModel::Cook(
                     NormalDistributionFunction::TrowbridgeReitzGGX,
                     GeometryFunction::SmithSchlickGGX,
@@ -190,6 +192,23 @@ fn main() {
             control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
+
+            if let Some(ref mut scene) = *scene.borrow_mut() {
+                let (_, _, lights) = scene.as_mut().unwrap();
+                let time = 0.001 * frame_input.accumulated_time;
+                let c = time.cos() as f32;
+                let s = time.sin() as f32;
+                for i in 0..lights.directional.len() {
+                    lights.directional[i].direction += vec3(-1.0 - c, -1.0, 1.0 + s);
+                }
+                for i in 0..lights.spot.len() {
+                    lights.spot[i].position += vec3(3.0 + c, 0.0 + s, 3.0 - s);
+                    lights.spot[i].direction += -vec3(3.0 + c, 5.0 + s, 3.0 - s);
+                }
+                for i in 0..lights.point.len() {
+                    lights.point[i].position += vec3(-5.0 * c, 0.0, -5.0 * s);
+                }
+            }
 
             Screen::write(
                 &context,
