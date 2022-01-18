@@ -113,6 +113,22 @@ impl Program {
     }
 
     ///
+    /// Send the given array of uniform data to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of same type and length as the data, so if the data is an array of three [Vec2], the variable must be `uniform vec2[3]`.
+    /// The uniform variable is uniformly available across all processing of vertices and fragments.
+    ///
+    pub fn use_uniform_array<T: UniformDataType>(
+        &self,
+        name: &str,
+        data: &[T],
+    ) -> ThreeDResult<()> {
+        let location = self.get_uniform_location(name)?;
+        T::send_array(data, &self.context, location);
+        self.context.unuse_program();
+        Ok(())
+    }
+
+    ///
     /// Send the given integer value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
