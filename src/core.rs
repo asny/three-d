@@ -22,6 +22,7 @@ impl UniformDataType for Vec4 {}
 impl UniformDataType for [Vec4] {}
 
 impl UniformDataType for Quat {}
+impl UniformDataType for [Quat] {}
 
 impl UniformDataType for Mat2 {}
 impl UniformDataType for [Mat2] {}
@@ -117,7 +118,16 @@ pub(in crate::core) mod internal_uniform {
 
     impl UniformDataTypeExtension for Quat {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform4fv(location, &[self.v.x, self.v.y, self.v.z, self.s]);
+            context.uniform4fv(location, &self.to_slice());
+        }
+    }
+
+    impl UniformDataTypeExtension for [Quat] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform4fv(
+                location,
+                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+            );
         }
     }
 
