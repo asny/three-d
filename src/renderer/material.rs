@@ -1,3 +1,8 @@
+//!
+//! Contain a collection of common materials to apply to some geometry, for example a [Model].
+//! It is possible to create a custom material by extending the [Material] trait.
+//!
+
 use crate::core::*;
 use crate::renderer::*;
 

@@ -36,7 +36,7 @@ fn main() {
 
     let model = Loading::new(
         &context,
-        &["examples/assets/gltf/DamagedHelmet.glb"],
+        &["examples/assets/gltf/DamagedHelmet.glb"], // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
         move |context, mut loaded| {
             let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
             let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();

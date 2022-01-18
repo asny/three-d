@@ -85,7 +85,7 @@ impl SpotLight {
     }
 
     pub fn set_position(&mut self, position: &Vec3) {
-        self.light_buffer.update(6, &position.to_slice()).unwrap();
+        self.light_buffer.update(6, &position.as_array()).unwrap();
     }
 
     pub fn position(&self) -> Vec3 {
@@ -103,7 +103,7 @@ impl SpotLight {
 
     pub fn set_direction(&mut self, direction: &Vec3) {
         self.light_buffer
-            .update(8, &direction.normalize().to_slice())
+            .update(8, &direction.normalize().as_array())
             .unwrap();
     }
 
@@ -149,7 +149,7 @@ impl SpotLight {
             z_far,
         )?;
         self.light_buffer
-            .update(10, &shadow_matrix(&shadow_camera).to_slice())?;
+            .update(10, &shadow_matrix(&shadow_camera).as_array())?;
 
         let mut shadow_texture = DepthTargetTexture2D::new(
             &self.context,

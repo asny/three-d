@@ -11,7 +11,6 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let pipeline = ForwardPipeline::new(&context).unwrap();
     let target = vec3(0.0, 2.0, 0.0);
     let scene_radius = 6.0;
     let mut camera = Camera::new_perspective(
@@ -27,22 +26,20 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 0.1 * scene_radius, 100.0 * scene_radius);
 
-    Loader::load(
-        &[
-            "./examples/assets/suzanne.obj",
-            "./examples/assets/suzanne.mtl",
-        ],
-        move |mut loaded| {
-            let (mut meshes, materials) = loaded.obj("./examples/assets/suzanne.obj").unwrap();
+    let scene = Loading::new(
+        &context,
+        &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
+        move |context, mut loaded| {
+            let (mut meshes, materials) = loaded.obj("suzanne.obj").unwrap();
             let mut cpu_mesh = meshes.remove(0);
             cpu_mesh.transform(&Mat4::from_translation(vec3(0.0, 2.0, 0.0)));
-            let model = Model::new_with_material(
+            let mut model = Model::new_with_material(
                 &context,
                 &cpu_mesh,
                 PhysicalMaterial::new(&context, &materials[0]).unwrap(),
             )
             .unwrap();
-
+            model.material.opaque_render_states.cull = Cull::Back;
             let wireframe_material = PhysicalMaterial {
                 name: "wireframe".to_string(),
                 albedo: Color::new_opaque(220, 50, 50),
@@ -73,64 +70,70 @@ fn main() {
                 wireframe_material,
             )
             .unwrap();
-
-            let lights = Lights {
-                ambient: Some(AmbientLight {
-                    intensity: 0.7,
-                    ..Default::default()
-                }),
-                directional: vec![
-                    DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
-                        .unwrap(),
-                    DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0))
-                        .unwrap(),
-                ],
-                ..Default::default()
-            };
-
-            // main loop
-            window
-                .render_loop(move |mut frame_input| {
-                    let mut redraw = frame_input.first_frame;
-                    redraw |= camera.set_viewport(frame_input.viewport).unwrap();
-                    redraw |= control
-                        .handle_events(&mut camera, &mut frame_input.events)
-                        .unwrap();
-
-                    if redraw {
-                        Screen::write(
-                            &context,
-                            ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
-                            || {
-                                pipeline.render_pass(
-                                    &camera,
-                                    &[&model as &dyn Object, &vertices, &edges],
-                                    &lights,
-                                )?;
-                                Ok(())
-                            },
-                        )
-                        .unwrap();
-                    }
-
-                    if args.len() > 1 {
-                        // To automatically generate screenshots of the examples, can safely be ignored.
-                        FrameOutput {
-                            screenshot: Some(args[1].clone().into()),
-                            exit: true,
-                            ..Default::default()
-                        }
-                    } else {
-                        FrameOutput {
-                            swap_buffers: redraw,
-                            wait_next_event: true,
-                            ..Default::default()
-                        }
-                    }
-                })
-                .unwrap();
+            Ok((model, vertices, edges))
         },
     );
+
+    let lights = Lights {
+        ambient: Some(AmbientLight {
+            intensity: 0.7,
+            ..Default::default()
+        }),
+        directional: vec![
+            DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap(),
+            DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap(),
+        ],
+        ..Default::default()
+    };
+
+    // main loop
+    let mut loaded = false;
+    window
+        .render_loop(move |mut frame_input| {
+            let mut redraw = frame_input.first_frame;
+            if !loaded && scene.is_loaded() {
+                redraw = true;
+                loaded = true;
+            }
+            redraw |= camera.set_viewport(frame_input.viewport).unwrap();
+            redraw |= control
+                .handle_events(&mut camera, &mut frame_input.events)
+                .unwrap();
+
+            if redraw {
+                Screen::write(
+                    &context,
+                    ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
+                    || {
+                        if let Some(ref scene) = *scene.borrow() {
+                            let (model, vertices, edges) = scene.as_ref().unwrap();
+                            render_pass(
+                                &camera,
+                                &[&model as &dyn Object, &vertices, &edges],
+                                &lights,
+                            )?;
+                        }
+                        Ok(())
+                    },
+                )
+                .unwrap();
+            }
+
+            if args.len() > 1 {
+                // To automatically generate screenshots of the examples, can safely be ignored.
+                FrameOutput {
+                    screenshot: Some(args[1].clone().into()),
+                    exit: true,
+                    ..Default::default()
+                }
+            } else {
+                FrameOutput {
+                    swap_buffers: redraw,
+                    ..Default::default()
+                }
+            }
+        })
+        .unwrap();
 }
 
 fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
@@ -138,7 +141,7 @@ fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     let mut instances = Vec::new();
     while let Some(v) = iter.next() {
         instances.push(ModelInstance {
-            mesh_transform: Mat4::from_translation(vec3(
+            geometry_transform: Mat4::from_translation(vec3(
                 *v,
                 *iter.next().unwrap(),
                 *iter.next().unwrap(),
@@ -181,7 +184,7 @@ fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     edge_transformations
         .drain()
         .map(|(_, v)| ModelInstance {
-            mesh_transform: v,
+            geometry_transform: v,
             ..Default::default()
         })
         .collect::<Vec<_>>()

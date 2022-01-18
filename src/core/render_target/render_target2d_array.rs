@@ -12,6 +12,10 @@ pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     depth_texture: Option<&'b DepthTargetTexture2DArray>,
 }
 impl<'a, 'b> RenderTargetArray<'a, 'b, u8> {
+    ///
+    /// Constructs a new render target that enables rendering into the given
+    /// [DepthTargetTexture2DArray].
+    ///
     pub fn new_depth(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2DArray,
@@ -43,6 +47,10 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         })
     }
 
+    ///
+    /// Constructs a new render target array that enables rendering into the given
+    /// [Texture2DArray].
+    ///
     pub fn new_color(
         context: &Context,
         color_texture: &'a Texture2DArray<T>,
@@ -55,7 +63,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         })
     }
 
-    pub fn new_depth_internal(
+    pub(crate) fn new_depth_internal(
         context: &Context,
         depth_texture: &'b DepthTargetTexture2DArray,
     ) -> ThreeDResult<Self> {
@@ -128,11 +136,11 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
             self.context.effect(fragment_shader_source, |effect| {
                 if let Some(tex) = self.color_texture {
                     effect.use_texture_array("colorMap", tex)?;
-                    effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
+                    effect.use_uniform("colorLayer", color_layer as i32)?;
                 }
                 if let Some(tex) = self.depth_texture {
                     effect.use_texture_array("depthMap", tex)?;
-                    effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
+                    effect.use_uniform("depthLayer", depth_layer as i32)?;
                 }
                 effect.apply(
                     RenderStates {

@@ -10,12 +10,13 @@ pub struct InstancedModel<M: Material> {
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
-    instance_buffer4: InstanceBuffer,
+    instance_tex_transform1: InstanceBuffer,
+    instance_tex_transform2: InstanceBuffer,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     instances: Vec<ModelInstance>,
-    texture_transform: TextureTransform,
+    texture_transform: Mat3,
     /// The material applied to the instanced model
     pub material: M,
 }
@@ -49,23 +50,24 @@ impl<M: Material> InstancedModel<M> {
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
-            instance_buffer4: InstanceBuffer::new(context)?,
+            instance_tex_transform1: InstanceBuffer::new(context)?,
+            instance_tex_transform2: InstanceBuffer::new(context)?,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             instances: instances.to_vec(),
-            texture_transform: TextureTransform::default(),
+            texture_transform: Mat3::identity(),
             material,
         };
         model.update_buffers();
         Ok(model)
     }
 
-    pub fn texture_transform(&mut self) -> &TextureTransform {
+    pub fn texture_transform(&mut self) -> &Mat3 {
         &self.texture_transform
     }
 
-    pub fn set_texture_transform(&mut self, texture_transform: TextureTransform) {
+    pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
 
@@ -76,32 +78,39 @@ impl<M: Material> InstancedModel<M> {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
         let mut row3 = Vec::new();
-        let mut subt = Vec::new();
+        let mut instance_tex_transform1 = Vec::new();
+        let mut instance_tex_transform2 = Vec::new();
         for instance in self.instances.iter() {
-            row1.push(instance.mesh_transform.x.x);
-            row1.push(instance.mesh_transform.y.x);
-            row1.push(instance.mesh_transform.z.x);
-            row1.push(instance.mesh_transform.w.x);
+            row1.push(instance.geometry_transform.x.x);
+            row1.push(instance.geometry_transform.y.x);
+            row1.push(instance.geometry_transform.z.x);
+            row1.push(instance.geometry_transform.w.x);
 
-            row2.push(instance.mesh_transform.x.y);
-            row2.push(instance.mesh_transform.y.y);
-            row2.push(instance.mesh_transform.z.y);
-            row2.push(instance.mesh_transform.w.y);
+            row2.push(instance.geometry_transform.x.y);
+            row2.push(instance.geometry_transform.y.y);
+            row2.push(instance.geometry_transform.z.y);
+            row2.push(instance.geometry_transform.w.y);
 
-            row3.push(instance.mesh_transform.x.z);
-            row3.push(instance.mesh_transform.y.z);
-            row3.push(instance.mesh_transform.z.z);
-            row3.push(instance.mesh_transform.w.z);
+            row3.push(instance.geometry_transform.x.z);
+            row3.push(instance.geometry_transform.y.z);
+            row3.push(instance.geometry_transform.z.z);
+            row3.push(instance.geometry_transform.w.z);
 
-            subt.push(instance.texture_transform.offset_x);
-            subt.push(instance.texture_transform.offset_y);
-            subt.push(instance.texture_transform.scale_x);
-            subt.push(instance.texture_transform.scale_y);
+            instance_tex_transform1.push(instance.texture_transform.x.x);
+            instance_tex_transform1.push(instance.texture_transform.y.x);
+            instance_tex_transform1.push(instance.texture_transform.z.x);
+
+            instance_tex_transform2.push(instance.texture_transform.x.y);
+            instance_tex_transform2.push(instance.texture_transform.y.y);
+            instance_tex_transform2.push(instance.texture_transform.z.y);
         }
         self.instance_buffer1.fill_with_dynamic(&row1);
         self.instance_buffer2.fill_with_dynamic(&row2);
         self.instance_buffer3.fill_with_dynamic(&row3);
-        self.instance_buffer4.fill_with_dynamic(&subt);
+        self.instance_tex_transform1
+            .fill_with_dynamic(&instance_tex_transform1);
+        self.instance_tex_transform2
+            .fill_with_dynamic(&instance_tex_transform2);
         self.update_aabb();
     }
 
@@ -124,7 +133,7 @@ impl<M: Material> InstancedModel<M> {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for instance in self.instances.iter() {
             let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(instance.mesh_transform * self.transformation));
+            aabb2.transform(&(instance.geometry_transform * self.transformation));
             aabb.expand_with_aabb(&aabb2);
         }
         self.aabb = aabb;
@@ -148,8 +157,15 @@ impl<M: Material> InstancedModel<M> {
             program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
-            program.use_uniform_vec4("textureTransform", &self.texture_transform.to_vec4())?;
-            program.use_attribute_vec4_instanced("subt", &self.instance_buffer4)?;
+            program.use_uniform_mat3("textureTransform", &self.texture_transform)?;
+            program.use_attribute_vec3_instanced(
+                "tex_transform_row1",
+                &self.instance_tex_transform1,
+            )?;
+            program.use_attribute_vec3_instanced(
+                "tex_transform_row2",
+                &self.instance_tex_transform2,
+            )?;
             let uv_buffer = self
                 .mesh
                 .uv_buffer
@@ -295,15 +311,15 @@ impl<M: Material> Object for InstancedModel<M> {
 
 #[derive(Clone, Copy, Debug)]
 pub struct ModelInstance {
-    pub mesh_transform: Mat4,
-    pub texture_transform: TextureTransform,
+    pub geometry_transform: Mat4,
+    pub texture_transform: Mat3,
 }
 
 impl Default for ModelInstance {
     fn default() -> Self {
         Self {
-            mesh_transform: Mat4::identity(),
-            texture_transform: TextureTransform::default(),
+            geometry_transform: Mat4::identity(),
+            texture_transform: Mat3::identity(),
         }
     }
 }

@@ -56,7 +56,7 @@ impl<M: Material> BoundingBox<M> {
             &transformations
                 .iter()
                 .map(|t| ModelInstance {
-                    mesh_transform: *t,
+                    geometry_transform: *t,
                     ..Default::default()
                 })
                 .collect::<Vec<_>>(),

@@ -45,13 +45,22 @@ impl ImageEffect {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
+    pub fn render(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
         self.program
             .use_attribute_vec3("position", &self.positions)?;
         self.program
             .use_attribute_vec2("uv_coordinate", &self.uvs)?;
         self.program.draw_arrays(render_states, viewport, 3);
         Ok(())
+    }
+
+    ///
+    /// Applies the calculations defined in the fragment shader given at construction and output it to the current screen/render target.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write].
+    ///
+    pub fn apply(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
+        self.render(render_states, viewport)
     }
 }
 

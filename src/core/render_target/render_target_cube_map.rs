@@ -15,6 +15,10 @@ pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
 }
 
 impl<'a, 'b> RenderTargetCubeMap<'a, 'b, u8> {
+    ///
+    /// Constructs a new render target cube map that enables rendering into the given
+    /// [DepthTargetTextureCubeMap].
+    ///
     pub fn new_depth(
         context: &Context,
         depth_texture: &'b mut DepthTargetTextureCubeMap,
@@ -46,6 +50,10 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         })
     }
 
+    ///
+    /// Constructs a new render target cube map that enables rendering into the given
+    /// [TextureCubeMap].
+    ///
     pub fn new_color(
         context: &Context,
         color_texture: &'a mut TextureCubeMap<T>,
@@ -58,6 +66,10 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         })
     }
 
+    ///
+    /// Renders whatever rendered in the `render` closure into the textures at the given side of the cube map render target.
+    /// Before writing, the textures are cleared based on the given clear state.
+    ///
     pub fn write(
         &self,
         side: CubeMapSide,
@@ -71,6 +83,10 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         Ok(())
     }
 
+    ///
+    /// Renders whatever rendered in the `render` closure into the textures at the given side and at the given mip level of the cube map render target.
+    /// Before writing, the textures are cleared based on the given clear state.
+    ///
     pub fn write_to_mip_level(
         &self,
         side: CubeMapSide,
@@ -102,20 +118,6 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         );
         render()?;
         Ok(())
-    }
-
-    pub fn width(&self) -> u32 {
-        self.color_texture
-            .as_ref()
-            .map(|t| t.width())
-            .unwrap_or_else(|| self.depth_texture.as_ref().unwrap().width())
-    }
-
-    pub fn height(&self) -> u32 {
-        self.color_texture
-            .as_ref()
-            .map(|t| t.height())
-            .unwrap_or_else(|| self.depth_texture.as_ref().unwrap().height())
     }
 }
 
