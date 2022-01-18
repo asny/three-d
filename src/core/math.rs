@@ -35,10 +35,52 @@ pub const fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
     Vector4::new(x, y, z, w)
 }
 
+pub trait AsSlice<T> {
+    /// Work with `self` as a slice.
+    fn as_slice<'a>(&'a self) -> &'a [T];
+}
+
+impl<T> AsSlice<T> for [T] {
+    #[inline(always)]
+    fn as_slice<'a>(&'a self) -> &'a [T] {
+        self
+    }
+}
+impl<'a, T, U: ?Sized + AsSlice<T>> AsSlice<T> for &'a U {
+    #[inline(always)]
+    fn as_slice(&self) -> &[T] {
+        AsSlice::as_slice(*self)
+    }
+}
+
+impl<'a, T, U: ?Sized + AsSlice<T>> AsSlice<T> for &'a mut U {
+    #[inline(always)]
+    fn as_slice(&self) -> &[T] {
+        AsSlice::as_slice(*self)
+    }
+}
+
+impl AsSlice<f32> for Vec2 {
+    fn as_slice(&self) -> &[f32] {
+        &self[..]
+    }
+}
+
+impl AsSlice<f32> for Vec3 {
+    fn as_slice(&self) -> &[f32] {
+        &self[..]
+    }
+}
+
+impl AsSlice<f32> for Vec4 {
+    fn as_slice(&self) -> &[f32] {
+        &self[..]
+    }
+}
+
 pub(crate) trait Vec2Ext {
     fn to_slice(&self) -> [f32; 2];
 }
-
 impl Vec2Ext for Vec2 {
     fn to_slice(&self) -> [f32; 2] {
         [self.x, self.y]

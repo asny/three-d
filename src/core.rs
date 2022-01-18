@@ -6,6 +6,10 @@
 
 pub trait UniformDataType: std::fmt::Debug + internal_uniform::UniformDataTypeExtension {}
 
+impl UniformDataType for Vec2 {}
+impl UniformDataType for [Vec2] {}
+impl UniformDataType for Vec3 {}
+impl UniformDataType for [Vec3] {}
 impl UniformDataType for Vec4 {}
 impl UniformDataType for [Vec4] {}
 
@@ -25,19 +29,47 @@ pub(in crate::core) mod internal_uniform {
         }
     }
 
+    impl UniformDataTypeExtension for Vec2 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform2fv(location, self.as_slice());
+        }
+    }
+
+    impl UniformDataTypeExtension for [Vec2] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform2fv(location, &flatten(self));
+        }
+    }
+
+    impl UniformDataTypeExtension for Vec3 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform3fv(location, self.as_slice());
+        }
+    }
+
+    impl UniformDataTypeExtension for [Vec3] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform3fv(location, &flatten(self));
+        }
+    }
+
     impl UniformDataTypeExtension for Vec4 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform4fv(location, &mut self.to_slice());
+            context.uniform4fv(location, self.as_slice());
         }
     }
 
     impl UniformDataTypeExtension for [Vec4] {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform4fv(
-                location,
-                &mut self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
-            );
+            context.uniform4fv(location, &flatten(self));
         }
+    }
+
+    fn flatten<U: Copy, T: AsSlice<U>>(data: &[T]) -> Vec<U> {
+        data.iter()
+            .flat_map(|v| v.as_slice())
+            .map(|v| *v)
+            .collect::<Vec<_>>()
     }
 }
 
