@@ -4,6 +4,9 @@
 //! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
 //!
 
+///
+/// Possible types that can be send as a uniform to a shader (a variable that is uniformly available when processing all vertices and fragments).
+///
 pub trait UniformDataType: std::fmt::Debug + internal_uniform::UniformDataTypeExtension {}
 
 impl UniformDataType for i32 {}
@@ -21,8 +24,11 @@ impl UniformDataType for [Vec4] {}
 impl UniformDataType for Quat {}
 
 impl UniformDataType for Mat2 {}
+impl UniformDataType for [Mat2] {}
 impl UniformDataType for Mat3 {}
+impl UniformDataType for [Mat3] {}
 impl UniformDataType for Mat4 {}
+impl UniformDataType for [Mat4] {}
 
 impl<T: UniformDataType + ?Sized> UniformDataType for &T {}
 
@@ -121,15 +127,42 @@ pub(in crate::core) mod internal_uniform {
         }
     }
 
+    impl UniformDataTypeExtension for [Mat2] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform_matrix2fv(
+                location,
+                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+            );
+        }
+    }
+
     impl UniformDataTypeExtension for Mat3 {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform_matrix3fv(location, &self.to_slice());
         }
     }
 
+    impl UniformDataTypeExtension for [Mat3] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform_matrix3fv(
+                location,
+                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+            );
+        }
+    }
+
     impl UniformDataTypeExtension for Mat4 {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform_matrix4fv(location, &self.to_slice());
+        }
+    }
+
+    impl UniformDataTypeExtension for [Mat4] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform_matrix4fv(
+                location,
+                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+            );
         }
     }
 }

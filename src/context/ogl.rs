@@ -482,22 +482,34 @@ impl GLContext {
 
     pub fn uniform_matrix2fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner
-                .UniformMatrix2fv(location.0 as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix2fv(
+                location.0 as i32,
+                data.len() as i32 / 4,
+                consts::FALSE,
+                data.as_ptr(),
+            );
         }
     }
 
     pub fn uniform_matrix3fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner
-                .UniformMatrix3fv(location.0 as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix3fv(
+                location.0 as i32,
+                data.len() as i32 / 9,
+                consts::FALSE,
+                data.as_ptr(),
+            );
         }
     }
 
     pub fn uniform_matrix4fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner
-                .UniformMatrix4fv(location.0 as i32, 1, consts::FALSE, data.as_ptr());
+            self.inner.UniformMatrix4fv(
+                location.0 as i32,
+                data.len() as i32 / 16,
+                consts::FALSE,
+                data.as_ptr(),
+            );
         }
     }
 
