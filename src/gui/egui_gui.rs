@@ -218,7 +218,7 @@ impl GUI {
 
         self.program.use_texture("u_sampler", texture)?;
         self.program
-            .use_uniform_vec2("u_screen_size", &vec2(width as f32, height as f32))?;
+            .use_uniform("u_screen_size", vec2(width as f32, height as f32))?;
 
         self.program.use_attribute_vec2("a_pos", &position_buffer)?;
         self.program.use_attribute_vec4("a_srgba", &color_buffer)?;
