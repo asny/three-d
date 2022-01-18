@@ -91,6 +91,13 @@ impl Program {
         })
     }
 
+    pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
+        let location = self.get_uniform_location(name)?;
+        data.send(&self.context, location);
+        self.context.unuse_program();
+        Ok(())
+    }
+
     ///
     /// Send the given integer value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
@@ -140,10 +147,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform4fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///

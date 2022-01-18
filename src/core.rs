@@ -4,6 +4,43 @@
 //! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
 //!
 
+pub trait UniformDataType: std::fmt::Debug + internal_uniform::UniformDataTypeExtension {}
+
+impl UniformDataType for Vec4 {}
+impl UniformDataType for [Vec4] {}
+
+impl<T: UniformDataType + ?Sized> UniformDataType for &T {}
+
+pub(in crate::core) mod internal_uniform {
+    use crate::context::UniformLocation;
+    use crate::core::math::*;
+    use crate::core::Context;
+
+    pub trait UniformDataTypeExtension {
+        fn send(&self, context: &Context, location: &UniformLocation);
+    }
+    impl<T: UniformDataTypeExtension + ?Sized> UniformDataTypeExtension for &T {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            (*self).send(context, location)
+        }
+    }
+
+    impl UniformDataTypeExtension for Vec4 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform4fv(location, &mut self.to_slice());
+        }
+    }
+
+    impl UniformDataTypeExtension for [Vec4] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform4fv(
+                location,
+                &mut self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+            );
+        }
+    }
+}
+
 use crate::context::GLContext;
 use std::cell::RefCell;
 use std::collections::HashMap;

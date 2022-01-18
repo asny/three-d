@@ -459,7 +459,8 @@ impl GLContext {
 
     pub fn uniform4fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner.Uniform4fv(location.0 as i32, 1, data.as_ptr());
+            self.inner
+                .Uniform4fv(location.0 as i32, data.len() as i32 / 4, data.as_ptr());
         }
     }
 
