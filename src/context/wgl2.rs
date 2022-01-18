@@ -712,7 +712,7 @@ impl GLContext {
     }
 
     pub fn uniform1iv(&self, location: &UniformLocation, data: &[i32]) {
-        self.inner.uniform1iv_with_f32_array(Some(location), data);
+        self.inner.uniform1iv_with_i32_array(Some(location), data);
     }
 
     pub fn uniform1f(&self, location: &UniformLocation, data: f32) {
