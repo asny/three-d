@@ -19,9 +19,9 @@ impl Material for FireworksMaterial {
         _camera: &Camera,
         _lights: &Lights,
     ) -> ThreeDResult<()> {
-        program.use_uniform_vec4(
+        program.use_uniform(
             "color",
-            &vec4(
+            vec4(
                 self.color.x * self.fade,
                 self.color.y * self.fade,
                 self.color.z * self.fade,

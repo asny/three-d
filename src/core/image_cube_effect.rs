@@ -46,7 +46,7 @@ impl ImageCubeEffect {
     ) -> ThreeDResult<()> {
         let projection = perspective(degrees(90.0), viewport.aspect(), 0.1, 10.0);
         self.program
-            .use_uniform_mat4("viewProjection", &(projection * side.view()))?;
+            .use_uniform("viewProjection", projection * side.view())?;
         self.program
             .use_attribute_vec3("position", &self.positions)?;
         self.program.draw_arrays(render_states, viewport, 36);

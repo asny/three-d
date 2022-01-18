@@ -47,7 +47,7 @@ fn main() {
                 if let Some(ref image) = *image.borrow() {
                     let image = image.as_ref().unwrap();
                     image_effect.use_texture("image", &image)?;
-                    image_effect.use_uniform_float("parameter", &tone_mapping)?;
+                    image_effect.use_uniform("parameter", tone_mapping)?;
                     image_effect.apply(RenderStates::default(), viewport)?;
                 }
                 gui.render()?;

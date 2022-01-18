@@ -50,7 +50,7 @@ impl DirectionalLight {
 
     pub fn set_direction(&mut self, direction: &Vec3) {
         self.light_buffer
-            .update(2, &direction.normalize().to_slice())
+            .update(2, &direction.normalize().as_array())
             .unwrap();
     }
 
@@ -97,7 +97,7 @@ impl DirectionalLight {
             z_far,
         )?;
         self.light_buffer
-            .update(4, &shadow_matrix(&shadow_camera).to_slice())?;
+            .update(4, &shadow_matrix(&shadow_camera).as_array())?;
 
         let mut shadow_texture = DepthTargetTexture2D::new(
             &self.context,

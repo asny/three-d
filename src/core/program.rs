@@ -75,9 +75,18 @@ impl Program {
         for i in 0..num_uniforms {
             let info = context.get_active_uniform(&id, i);
             let location = context.get_uniform_location(&id, &info.name());
-            //println!("Uniform location: {:?}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
+            /*println!(
+                "Uniform location: {:?}, name: {}, type: {}, size: {}",
+                location,
+                info.name().split('[').collect::<Vec<_>>()[0].to_string(),
+                info.type_(),
+                info.size()
+            );*/
             if let Some(loc) = location {
-                uniforms.insert(info.name(), loc);
+                uniforms.insert(
+                    info.name().split('[').collect::<Vec<_>>()[0].to_string(),
+                    loc,
+                );
             }
         }
 
@@ -92,14 +101,23 @@ impl Program {
     }
 
     ///
+    /// Send the given uniform data to this shader program and associate it with the given named variable.
+    /// The glsl shader variable must be of type `uniform int` if the data is an integer, `uniform vec2` if it is of type [Vec2] etc.
+    /// The uniform variable is uniformly available across all processing of vertices and fragments.
+    ///
+    pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
+        let location = self.get_uniform_location(name)?;
+        data.send(&self.context, location);
+        self.context.unuse_program();
+        Ok(())
+    }
+
+    ///
     /// Send the given integer value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_int(&self, name: &str, data: &i32) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform1i(location, *data);
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -107,10 +125,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform float`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_float(&self, name: &str, data: &f32) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform1f(location, *data);
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -118,10 +133,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform vec2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform2fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -129,10 +141,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform vec3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform3fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -140,10 +149,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform4fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -151,10 +157,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_quat(&self, name: &str, data: &Quat) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform4fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -162,11 +165,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform mat2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform_matrix2fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -174,11 +173,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform mat3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform_matrix3fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -186,11 +181,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform mat4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform_matrix4fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     fn get_uniform_location(&self, name: &str) -> ThreeDResult<&crate::context::UniformLocation> {

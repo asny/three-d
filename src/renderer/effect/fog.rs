@@ -34,20 +34,16 @@ impl FogEffect {
         };
 
         self.image_effect.use_texture("depthMap", depth_texture)?;
-        self.image_effect.use_uniform_mat4(
+        self.image_effect.use_uniform(
             "viewProjectionInverse",
-            &(camera.projection() * camera.view()).invert().unwrap(),
+            (camera.projection() * camera.view()).invert().unwrap(),
         )?;
+        self.image_effect.use_uniform("fogColor", self.color)?;
+        self.image_effect.use_uniform("fogDensity", self.density)?;
+        self.image_effect.use_uniform("animation", self.animation)?;
+        self.image_effect.use_uniform("time", 0.001 * time)?;
         self.image_effect
-            .use_uniform_vec3("fogColor", &self.color)?;
-        self.image_effect
-            .use_uniform_float("fogDensity", &self.density)?;
-        self.image_effect
-            .use_uniform_float("animation", &self.animation)?;
-        self.image_effect
-            .use_uniform_float("time", &(0.001 * time))?;
-        self.image_effect
-            .use_uniform_vec3("eyePosition", camera.position())?;
+            .use_uniform("eyePosition", camera.position())?;
 
         self.image_effect.apply(render_states, camera.viewport())?;
         Ok(())

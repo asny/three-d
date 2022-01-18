@@ -136,11 +136,11 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
             self.context.effect(fragment_shader_source, |effect| {
                 if let Some(tex) = self.color_texture {
                     effect.use_texture_array("colorMap", tex)?;
-                    effect.use_uniform_int("colorLayer", &(color_layer as i32))?;
+                    effect.use_uniform("colorLayer", color_layer as i32)?;
                 }
                 if let Some(tex) = self.depth_texture {
                     effect.use_texture_array("depthMap", tex)?;
-                    effect.use_uniform_int("depthLayer", &(depth_layer as i32))?;
+                    effect.use_uniform("depthLayer", depth_layer as i32)?;
                 }
                 effect.apply(
                     RenderStates {

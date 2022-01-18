@@ -408,10 +408,10 @@ impl Camera {
 
     fn update_uniform_buffer(&mut self) -> ThreeDResult<()> {
         self.uniform_buffer
-            .update(0, &(self.projection * self.view).to_slice())?;
-        self.uniform_buffer.update(1, &self.view.to_slice())?;
-        self.uniform_buffer.update(2, &self.projection.to_slice())?;
-        self.uniform_buffer.update(3, &self.position.to_slice())?;
+            .update(0, &(self.projection * self.view).as_array())?;
+        self.uniform_buffer.update(1, &self.view.as_array())?;
+        self.uniform_buffer.update(2, &self.projection.as_array())?;
+        self.uniform_buffer.update(3, &self.position.as_array())?;
         Ok(())
     }
 
