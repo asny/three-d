@@ -73,7 +73,7 @@ pub(in crate::core) mod internal_uniform {
 
     impl UniformDataTypeExtension for Vec2 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform2fv(location, &self.to_slice());
+            context.uniform2fv(location, &self.as_array());
         }
     }
 
@@ -81,14 +81,14 @@ pub(in crate::core) mod internal_uniform {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform2fv(
                 location,
-                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+                &self.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
         }
     }
 
     impl UniformDataTypeExtension for Vec3 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform3fv(location, &self.to_slice());
+            context.uniform3fv(location, &self.as_array());
         }
     }
 
@@ -96,14 +96,14 @@ pub(in crate::core) mod internal_uniform {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform3fv(
                 location,
-                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+                &self.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
         }
     }
 
     impl UniformDataTypeExtension for Vec4 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform4fv(location, &self.to_slice());
+            context.uniform4fv(location, &self.as_array());
         }
     }
 
@@ -111,14 +111,14 @@ pub(in crate::core) mod internal_uniform {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform4fv(
                 location,
-                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+                &self.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
         }
     }
 
     impl UniformDataTypeExtension for Quat {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform4fv(location, &self.to_slice());
+            context.uniform4fv(location, &self.as_array());
         }
     }
 
@@ -126,14 +126,14 @@ pub(in crate::core) mod internal_uniform {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform4fv(
                 location,
-                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+                &self.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
         }
     }
 
     impl UniformDataTypeExtension for Mat2 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_matrix2fv(location, &self.to_slice());
+            context.uniform_matrix2fv(location, &self.as_array());
         }
     }
 
@@ -141,14 +141,14 @@ pub(in crate::core) mod internal_uniform {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform_matrix2fv(
                 location,
-                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+                &self.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
         }
     }
 
     impl UniformDataTypeExtension for Mat3 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_matrix3fv(location, &self.to_slice());
+            context.uniform_matrix3fv(location, &self.as_array());
         }
     }
 
@@ -156,14 +156,14 @@ pub(in crate::core) mod internal_uniform {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform_matrix3fv(
                 location,
-                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+                &self.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
         }
     }
 
     impl UniformDataTypeExtension for Mat4 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform_matrix4fv(location, &self.to_slice());
+            context.uniform_matrix4fv(location, &self.as_array());
         }
     }
 
@@ -171,7 +171,7 @@ pub(in crate::core) mod internal_uniform {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform_matrix4fv(
                 location,
-                &self.iter().flat_map(|v| v.to_slice()).collect::<Vec<_>>(),
+                &self.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
         }
     }

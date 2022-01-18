@@ -65,7 +65,7 @@ impl PointLight {
     }
 
     pub fn set_position(&mut self, position: &Vec3) {
-        self.light_buffer.update(6, &position.to_slice()).unwrap();
+        self.light_buffer.update(6, &position.as_array()).unwrap();
     }
 
     pub fn position(&self) -> Vec3 {

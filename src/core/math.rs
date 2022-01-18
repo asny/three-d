@@ -36,56 +36,56 @@ pub const fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
 }
 
 pub trait Vec2Ext {
-    fn to_slice(&self) -> [f32; 2];
+    fn as_array(&self) -> [f32; 2];
 }
 impl Vec2Ext for Vec2 {
-    fn to_slice(&self) -> [f32; 2] {
-        [self.x, self.y]
+    fn as_array(&self) -> [f32; 2] {
+        (*self).into()
     }
 }
 
 pub trait Vec3Ext {
-    fn to_slice(&self) -> [f32; 3];
+    fn as_array(&self) -> [f32; 3];
 }
 
 impl Vec3Ext for Vec3 {
-    fn to_slice(&self) -> [f32; 3] {
-        [self.x, self.y, self.z]
+    fn as_array(&self) -> [f32; 3] {
+        (*self).into()
     }
 }
 
 pub trait Vec4Ext {
-    fn to_slice(&self) -> [f32; 4];
+    fn as_array(&self) -> [f32; 4];
 }
 
 impl Vec4Ext for Vec4 {
-    fn to_slice(&self) -> [f32; 4] {
-        [self.x, self.y, self.z, self.w]
+    fn as_array(&self) -> [f32; 4] {
+        (*self).into()
     }
 }
 
 impl Vec4Ext for Quat {
-    fn to_slice(&self) -> [f32; 4] {
+    fn as_array(&self) -> [f32; 4] {
         [self.v.x, self.v.y, self.v.z, self.s]
     }
 }
 
 pub trait Mat2Ext {
-    fn to_slice(&self) -> [f32; 4];
+    fn as_array(&self) -> [f32; 4];
 }
 
 impl Mat2Ext for Mat2 {
-    fn to_slice(&self) -> [f32; 4] {
+    fn as_array(&self) -> [f32; 4] {
         [self.x.x, self.x.y, self.y.x, self.y.y]
     }
 }
 
 pub trait Mat3Ext {
-    fn to_slice(&self) -> [f32; 9];
+    fn as_array(&self) -> [f32; 9];
 }
 
 impl Mat3Ext for Mat3 {
-    fn to_slice(&self) -> [f32; 9] {
+    fn as_array(&self) -> [f32; 9] {
         [
             self.x.x, self.x.y, self.x.z, self.y.x, self.y.y, self.y.z, self.z.x, self.z.y,
             self.z.z,
@@ -94,11 +94,11 @@ impl Mat3Ext for Mat3 {
 }
 
 pub trait Mat4Ext {
-    fn to_slice(&self) -> [f32; 16];
+    fn as_array(&self) -> [f32; 16];
 }
 
 impl Mat4Ext for Mat4 {
-    fn to_slice(&self) -> [f32; 16] {
+    fn as_array(&self) -> [f32; 16] {
         [
             self.x.x, self.x.y, self.x.z, self.x.w, self.y.x, self.y.y, self.y.z, self.y.w,
             self.z.x, self.z.y, self.z.z, self.z.w, self.w.x, self.w.y, self.w.z, self.w.w,
