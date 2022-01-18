@@ -6,6 +6,11 @@
 
 pub trait UniformDataType: std::fmt::Debug + internal_uniform::UniformDataTypeExtension {}
 
+impl UniformDataType for i32 {}
+impl UniformDataType for [i32] {}
+
+impl UniformDataType for f32 {}
+impl UniformDataType for [f32] {}
 impl UniformDataType for Vec2 {}
 impl UniformDataType for [Vec2] {}
 impl UniformDataType for Vec3 {}
@@ -26,6 +31,30 @@ pub(in crate::core) mod internal_uniform {
     impl<T: UniformDataTypeExtension + ?Sized> UniformDataTypeExtension for &T {
         fn send(&self, context: &Context, location: &UniformLocation) {
             (*self).send(context, location)
+        }
+    }
+
+    impl UniformDataTypeExtension for i32 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform1i(location, *self);
+        }
+    }
+
+    impl UniformDataTypeExtension for [i32] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform1iv(location, self);
+        }
+    }
+
+    impl UniformDataTypeExtension for f32 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform1f(location, *self);
+        }
+    }
+
+    impl UniformDataTypeExtension for [f32] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform1fv(location, self);
         }
     }
 

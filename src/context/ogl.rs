@@ -439,21 +439,37 @@ impl GLContext {
         }
     }
 
+    pub fn uniform1iv(&self, location: &UniformLocation, data: &[i32]) {
+        unsafe {
+            self.inner
+                .Uniform1iv(location.0 as i32, data.len() as i32, data.as_ptr());
+        }
+    }
+
     pub fn uniform1f(&self, location: &UniformLocation, data: f32) {
         unsafe {
             self.inner.Uniform1f(location.0 as i32, data);
         }
     }
 
+    pub fn uniform1fv(&self, location: &UniformLocation, data: &[f32]) {
+        unsafe {
+            self.inner
+                .Uniform1fv(location.0 as i32, data.len() as i32, data.as_ptr());
+        }
+    }
+
     pub fn uniform2fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner.Uniform2fv(location.0 as i32, 1, data.as_ptr());
+            self.inner
+                .Uniform2fv(location.0 as i32, data.len() as i32 / 2, data.as_ptr());
         }
     }
 
     pub fn uniform3fv(&self, location: &UniformLocation, data: &[f32]) {
         unsafe {
-            self.inner.Uniform3fv(location.0 as i32, 1, data.as_ptr());
+            self.inner
+                .Uniform3fv(location.0 as i32, data.len() as i32 / 3, data.as_ptr());
         }
     }
 

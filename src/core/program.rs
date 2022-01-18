@@ -139,10 +139,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform vec2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform2fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -150,10 +147,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform vec3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context.uniform3fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
