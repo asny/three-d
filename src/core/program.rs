@@ -165,11 +165,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform mat2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform_matrix2fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -177,11 +173,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform mat3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform_matrix3fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     ///
@@ -189,11 +181,7 @@ impl Program {
     /// The glsl shader variable must be of type `uniform mat4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
     pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> ThreeDResult<()> {
-        let location = self.get_uniform_location(name)?;
-        self.context
-            .uniform_matrix4fv(location, &mut data.to_slice());
-        self.context.unuse_program();
-        Ok(())
+        self.use_uniform(name, data)
     }
 
     fn get_uniform_location(&self, name: &str) -> ThreeDResult<&crate::context::UniformLocation> {

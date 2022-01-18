@@ -20,6 +20,10 @@ impl UniformDataType for [Vec4] {}
 
 impl UniformDataType for Quat {}
 
+impl UniformDataType for Mat2 {}
+impl UniformDataType for Mat3 {}
+impl UniformDataType for Mat4 {}
+
 impl<T: UniformDataType + ?Sized> UniformDataType for &T {}
 
 pub(in crate::core) mod internal_uniform {
@@ -108,6 +112,24 @@ pub(in crate::core) mod internal_uniform {
     impl UniformDataTypeExtension for Quat {
         fn send(&self, context: &Context, location: &UniformLocation) {
             context.uniform4fv(location, &[self.v.x, self.v.y, self.v.z, self.s]);
+        }
+    }
+
+    impl UniformDataTypeExtension for Mat2 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform_matrix2fv(location, &self.to_slice());
+        }
+    }
+
+    impl UniformDataTypeExtension for Mat3 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform_matrix3fv(location, &self.to_slice());
+        }
+    }
+
+    impl UniformDataTypeExtension for Mat4 {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform_matrix4fv(location, &self.to_slice());
         }
     }
 }
