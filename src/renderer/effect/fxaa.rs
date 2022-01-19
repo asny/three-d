@@ -30,9 +30,9 @@ impl FXAAEffect {
         };
 
         self.image_effect.use_texture("colorMap", &color_texture)?;
-        self.image_effect.use_uniform_vec2(
+        self.image_effect.use_uniform(
             "resolution",
-            &vec2(color_texture.width() as f32, color_texture.height() as f32),
+            vec2(color_texture.width() as f32, color_texture.height() as f32),
         )?;
 
         self.image_effect.apply(render_states, viewport)?;

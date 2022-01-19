@@ -172,19 +172,19 @@ impl DeferredPipeline {
                     include_str!("material/shaders/debug.frag")
                 ),
                 |debug_effect| {
-                    debug_effect.use_uniform_mat4(
+                    debug_effect.use_uniform(
                         "viewProjectionInverse",
-                        &(camera.projection() * camera.view()).invert().unwrap(),
+                        (camera.projection() * camera.view()).invert().unwrap(),
                     )?;
                     debug_effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
                     debug_effect
                         .use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
                     if self.debug_type == DebugType::DEPTH {
-                        debug_effect.use_uniform_float("zNear", &camera.z_near())?;
-                        debug_effect.use_uniform_float("zFar", &camera.z_far())?;
-                        debug_effect.use_uniform_vec3("cameraPosition", &camera.position())?;
+                        debug_effect.use_uniform("zNear", camera.z_near())?;
+                        debug_effect.use_uniform("zFar", camera.z_far())?;
+                        debug_effect.use_uniform("cameraPosition", camera.position())?;
                     }
-                    debug_effect.use_uniform_int("type", &(self.debug_type as i32))?;
+                    debug_effect.use_uniform("type", self.debug_type as i32)?;
                     debug_effect.apply(render_states, camera.viewport())?;
                     Ok(())
                 },
@@ -200,9 +200,9 @@ impl DeferredPipeline {
             effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
             if !lights.directional.is_empty() || !lights.spot.is_empty() || !lights.point.is_empty()
             {
-                effect.use_uniform_mat4(
+                effect.use_uniform(
                     "viewProjectionInverse",
-                    &(camera.projection() * camera.view()).invert().unwrap(),
+                    (camera.projection() * camera.view()).invert().unwrap(),
                 )?;
             }
             effect.apply(render_states, camera.viewport())?;
