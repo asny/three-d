@@ -186,23 +186,25 @@ impl<'a> Iterator for LightsIterator<'a> {
     }
 }
 
-pub trait ShadowCaster {
-    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()>;
-}
-
 pub trait Light {
     fn shader_source(&self, i: u32) -> String;
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()>;
+    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()>
+    where
+        Self: Sized;
 }
 
-impl<T: Light + ?Sized> Light for &T {
+/*impl<T: Light + ?Sized> Light for &T {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
         (*self).use_uniforms(program, i)
     }
-}
+    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
+        (*self).update_shadow(geometries)
+    }
+}*/
 
 fn shadow_matrix(camera: &Camera) -> Mat4 {
     let bias_matrix = crate::Mat4::new(

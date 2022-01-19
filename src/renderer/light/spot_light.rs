@@ -259,4 +259,7 @@ impl Light for SpotLight {
         program.use_uniform_float(&format!("cutoff{}", i), &self.cutoff.0)?;
         Ok(())
     }
+    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
+        Ok(())
+    }
 }
