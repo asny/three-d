@@ -238,7 +238,7 @@ impl Light for SpotLight {
         }
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
-        if let Some(tex) = self.shadow_map() {
+        if let Some(ref tex) = self.shadow_texture {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
             program.use_uniform_mat4(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
         }

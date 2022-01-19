@@ -78,7 +78,7 @@ impl DirectionalLight {
                 return Ok(());
             }
             let target = aabb.center();
-            let position = target - self.direction * aabb.max().distance(aabb.min());
+            let position = target - self.direction;
             let z_far = aabb.distance_max(&position);
             let z_near = aabb.distance(&position);
             let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
@@ -167,7 +167,7 @@ impl Light for DirectionalLight {
         }
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
-        if let Some(tex) = self.shadow_map() {
+        if let Some(ref tex) = self.shadow_texture {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
             program.use_uniform_mat4(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
         }
