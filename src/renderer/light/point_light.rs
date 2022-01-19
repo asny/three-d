@@ -32,6 +32,44 @@ impl PointLight {
             attenuation_exponential,
         })
     }
+
+    pub fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    pub fn color(&self) -> Color {
+        self.color
+    }
+
+    pub fn set_intensity(&mut self, intensity: f32) {
+        self.intensity = intensity;
+    }
+
+    pub fn intensity(&self) -> f32 {
+        self.intensity
+    }
+
+    pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) {
+        self.attenuation_constant = constant;
+        self.attenuation_linear = linear;
+        self.attenuation_exponential = exponential;
+    }
+
+    pub fn attenuation(&self) -> (f32, f32, f32) {
+        (
+            self.attenuation_constant,
+            self.attenuation_linear,
+            self.attenuation_exponential,
+        )
+    }
+
+    pub fn set_position(&mut self, position: &Vec3) {
+        self.position = *position;
+    }
+
+    pub fn position(&self) -> Vec3 {
+        self.position
+    }
 }
 
 impl Light for PointLight {

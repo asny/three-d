@@ -34,6 +34,30 @@ impl DirectionalLight {
         })
     }
 
+    pub fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    pub fn color(&self) -> Color {
+        self.color
+    }
+
+    pub fn set_intensity(&mut self, intensity: f32) {
+        self.intensity = intensity;
+    }
+
+    pub fn intensity(&self) -> f32 {
+        self.intensity
+    }
+
+    pub fn set_direction(&mut self, direction: &Vec3) {
+        self.direction = *direction;
+    }
+
+    pub fn direction(&self) -> Vec3 {
+        self.direction
+    }
+
     pub fn clear_shadow_map(&mut self) {
         self.shadow_texture = None;
     }
