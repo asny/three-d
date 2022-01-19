@@ -134,6 +134,12 @@ impl DirectionalLight {
     }
 }
 
+impl ShadowCaster for DirectionalLight {
+    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
+        self.generate_shadow_map(geometries)
+    }
+}
+
 impl Light for DirectionalLight {
     fn shader_source(&self, i: u32) -> String {
         if self.shadow_texture.is_some() {

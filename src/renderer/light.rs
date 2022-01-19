@@ -25,6 +25,7 @@ mod environment;
 pub use environment::*;
 
 use crate::core::*;
+use crate::renderer::*;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ShadowParameters {
@@ -108,6 +109,13 @@ impl Lights {
         Ok(())
     }
 
+    pub fn update_shadows(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
+        for l in self.directional.iter_mut() {
+            l.update_shadow(geometries)?;
+        }
+        Ok(())
+    }
+
     pub fn iter<'a>(&'a self) -> LightsIterator<'a> {
         LightsIterator::new(self)
     }
@@ -176,6 +184,10 @@ impl<'a> Iterator for LightsIterator<'a> {
         self.index += 1;
         result
     }
+}
+
+pub trait ShadowCaster {
+    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()>;
 }
 
 pub trait Light {
