@@ -177,49 +177,69 @@ impl SpotLight {
 
 impl Light for SpotLight {
     fn shader_source(&self, i: u32) -> String {
-        format!(
-        "
-            uniform sampler2D shadowMap{};
-            uniform float shadowEnabled{};
-            uniform mat4 shadowMVP{};
-
-            uniform vec3 color{};
-            uniform vec3 attenuation{};
-            uniform vec3 position{};
-            uniform float cutoff{};
-            uniform vec3 direction{};
-            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
-            {{
-                vec3 light_direction = position{} - position;
-                float distance = length(light_direction);
-                light_direction = light_direction / distance;
-
-                float angle = acos(dot(-light_direction, normalize(direction{})));
-                float cutoff = cutoff{};
-            
-                vec3 result = vec3(0.0);
-                if (angle < cutoff) {{
-                    vec3 light_color = attenuate(color{}, attenuation{}, distance);
-                    result = calculate_light(light_color, light_direction, surface_color, view_direction, normal, 
-                        metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
-                    if(shadowEnabled{} > 0.5) {{
-                        result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
-                    }}
-                }}
-                return result;
-            }}
+        if self.shadow_texture.is_some() {
+            format!(
+                "
+                    uniform sampler2D shadowMap{};
+                    uniform mat4 shadowMVP{};
         
-        ", i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i)
+                    uniform vec3 color{};
+                    uniform vec3 attenuation{};
+                    uniform vec3 position{};
+                    uniform float cutoff{};
+                    uniform vec3 direction{};
+                    vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
+                    {{
+                        vec3 light_direction = position{} - position;
+                        float distance = length(light_direction);
+                        light_direction = light_direction / distance;
+        
+                        float angle = acos(dot(-light_direction, normalize(direction{})));
+                        float cutoff = cutoff{};
+                    
+                        vec3 result = vec3(0.0);
+                        if (angle < cutoff) {{
+                            vec3 light_color = attenuate(color{}, attenuation{}, distance);
+                            result = calculate_light(light_color, light_direction, surface_color, view_direction, normal, 
+                                metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+                            result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
+                        }}
+                        return result;
+                    }}
+                
+                ", i, i, i, i, i, i, i, i, i, i, i, i, i, i, i)
+        } else {
+            format!(
+                "
+                    uniform vec3 color{};
+                    uniform vec3 attenuation{};
+                    uniform vec3 position{};
+                    uniform float cutoff{};
+                    uniform vec3 direction{};
+                    vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
+                    {{
+                        vec3 light_direction = position{} - position;
+                        float distance = length(light_direction);
+                        light_direction = light_direction / distance;
+        
+                        float angle = acos(dot(-light_direction, normalize(direction{})));
+                        float cutoff = cutoff{};
+                    
+                        vec3 result = vec3(0.0);
+                        if (angle < cutoff) {{
+                            vec3 light_color = attenuate(color{}, attenuation{}, distance);
+                            result = calculate_light(light_color, light_direction, surface_color, view_direction, normal, 
+                                metallic, roughness) * (1.0 - smoothstep(0.75 * cutoff, cutoff, angle));
+                        }}
+                        return result;
+                    }}
+                
+                ", i, i, i, i, i, i, i, i, i, i, i)
+        }
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
         if let Some(tex) = self.shadow_map() {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
-            program.use_uniform_float(&format!("shadowEnabled{}", i), &1.0)?;
-            program.use_uniform_mat4(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
-        } else {
-            self.context
-                .use_texture_dummy(&program, &format!("shadowMap{}", i))?;
-            program.use_uniform_float(&format!("shadowEnabled{}", i), &0.0)?;
             program.use_uniform_mat4(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
         }
         program.use_uniform_vec3(
