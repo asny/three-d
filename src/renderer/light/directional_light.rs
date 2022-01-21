@@ -22,12 +22,13 @@ impl DirectionalLight {
         intensity: f32,
         color: Color,
         direction: &Vec3,
+        shadow: Option<ShadowParameters>,
     ) -> ThreeDResult<DirectionalLight> {
         Ok(DirectionalLight {
             context: context.clone(),
             shadow_matrix: Mat4::identity(),
             shadow_texture: None,
-            shadow: None,
+            shadow,
             intensity,
             color,
             direction: *direction,

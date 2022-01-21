@@ -10,6 +10,7 @@ pub struct SpotLight {
     context: Context,
     shadow_texture: Option<DepthTargetTexture2D>,
     shadow_matrix: Mat4,
+    pub shadow: Option<ShadowParameters>,
     pub intensity: f32,
     pub color: Color,
     pub position: Vec3,
@@ -31,9 +32,11 @@ impl SpotLight {
         attenuation_constant: f32,
         attenuation_linear: f32,
         attenuation_exponential: f32,
+        shadow: Option<ShadowParameters>,
     ) -> ThreeDResult<SpotLight> {
         Ok(SpotLight {
             context: context.clone(),
+            shadow,
             shadow_texture: None,
             intensity,
             color,
