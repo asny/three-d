@@ -60,72 +60,69 @@ impl DirectionalLight {
 
     pub fn clear_shadow_map(&mut self) {
         self.shadow_texture = None;
+        self.shadow_matrix = Mat4::identity();
     }
 
-    pub fn generate_shadow_map(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        if let Some(ref shadow_parameters) = self.shadow {
-            let up = compute_up_direction(self.direction);
+    pub fn generate_shadow_map(
+        &mut self,
+        texture_size: u32,
+        geometries: &[impl Geometry],
+    ) -> ThreeDResult<()> {
+        let up = compute_up_direction(self.direction);
 
-            let viewport = Viewport::new_at_origo(
-                shadow_parameters.texture_size,
-                shadow_parameters.texture_size,
-            );
-            let mut aabb = AxisAlignedBoundingBox::EMPTY;
-            for geometry in geometries {
-                aabb.expand_with_aabb(&geometry.aabb());
-            }
-            if aabb.is_empty() {
-                return Ok(());
-            }
-            let target = aabb.center();
-            let position = target - self.direction;
-            let z_far = aabb.distance_max(&position);
-            let z_near = aabb.distance(&position);
-            let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
-            let shadow_camera = Camera::new_orthographic(
-                &self.context,
-                viewport,
-                position,
-                target,
-                up,
-                frustum_height,
-                z_near,
-                z_far,
-            )?;
-            let mut shadow_texture = DepthTargetTexture2D::new(
-                &self.context,
-                shadow_parameters.texture_size,
-                shadow_parameters.texture_size,
-                Wrapping::ClampToEdge,
-                Wrapping::ClampToEdge,
-                DepthFormat::Depth32F,
-            )?;
-            let depth_material = DepthMaterial {
-                render_states: RenderStates {
-                    write_mask: WriteMask::DEPTH,
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
-            shadow_texture.write(Some(1.0), || {
-                for geometry in geometries
-                    .iter()
-                    .filter(|g| shadow_camera.in_frustum(&g.aabb()))
-                {
-                    geometry.render_with_material(
-                        &depth_material,
-                        &shadow_camera,
-                        &Lights::default(),
-                    )?;
-                }
-                Ok(())
-            })?;
-            self.shadow_texture = Some(shadow_texture);
-            self.shadow_matrix = shadow_matrix(&shadow_camera);
-        } else {
-            self.shadow_texture = None;
-            self.shadow_matrix = Mat4::identity();
+        let viewport = Viewport::new_at_origo(texture_size, texture_size);
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        for geometry in geometries {
+            aabb.expand_with_aabb(&geometry.aabb());
         }
+        if aabb.is_empty() {
+            return Ok(());
+        }
+        let target = aabb.center();
+        let position = target - self.direction;
+        let z_far = aabb.distance_max(&position);
+        let z_near = aabb.distance(&position);
+        let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
+        let shadow_camera = Camera::new_orthographic(
+            &self.context,
+            viewport,
+            position,
+            target,
+            up,
+            frustum_height,
+            z_near,
+            z_far,
+        )?;
+        let mut shadow_texture = DepthTargetTexture2D::new(
+            &self.context,
+            texture_size,
+            texture_size,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            DepthFormat::Depth32F,
+        )?;
+        let depth_material = DepthMaterial {
+            render_states: RenderStates {
+                write_mask: WriteMask::DEPTH,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        shadow_texture.write(Some(1.0), || {
+            for geometry in geometries
+                .iter()
+                .filter(|g| shadow_camera.in_frustum(&g.aabb()))
+            {
+                geometry.render_with_material(
+                    &depth_material,
+                    &shadow_camera,
+                    &Lights::default(),
+                )?;
+            }
+            Ok(())
+        })?;
+        self.shadow_texture = Some(shadow_texture);
+        self.shadow_matrix = shadow_matrix(&shadow_camera);
         Ok(())
     }
 
@@ -179,6 +176,11 @@ impl Light for DirectionalLight {
         Ok(())
     }
     fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        self.generate_shadow_map(geometries)
+        if let Some(shadow_parameters) = self.shadow {
+            self.generate_shadow_map(shadow_parameters.texture_size, geometries)
+        } else {
+            self.clear_shadow_map();
+            Ok(())
+        }
     }
 }
