@@ -16,6 +16,10 @@ impl UniformDataType for Vec2 {}
 impl UniformDataType for Vec3 {}
 impl UniformDataType for Vec4 {}
 
+impl UniformDataType for [f32; 2] {}
+impl UniformDataType for [f32; 3] {}
+impl UniformDataType for [f32; 4] {}
+
 impl UniformDataType for Quat {}
 
 impl UniformDataType for Mat2 {}
@@ -97,6 +101,33 @@ pub(in crate::core) mod internal_uniform {
                 location,
                 &data.iter().flat_map(|v| v.as_array()).collect::<Vec<_>>(),
             );
+        }
+    }
+
+    impl UniformDataTypeExtension for [f32; 2] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform4fv(location, self);
+        }
+        fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
+            context.uniform4fv(location, &data.iter().flat_map(|v| *v).collect::<Vec<_>>());
+        }
+    }
+
+    impl UniformDataTypeExtension for [f32; 3] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform4fv(location, self);
+        }
+        fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
+            context.uniform4fv(location, &data.iter().flat_map(|v| *v).collect::<Vec<_>>());
+        }
+    }
+
+    impl UniformDataTypeExtension for [f32; 4] {
+        fn send(&self, context: &Context, location: &UniformLocation) {
+            context.uniform4fv(location, self);
+        }
+        fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
+            context.uniform4fv(location, &data.iter().flat_map(|v| *v).collect::<Vec<_>>());
         }
     }
 
