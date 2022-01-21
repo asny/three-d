@@ -111,8 +111,8 @@ impl DeferredPhysicalMaterial {
 }
 
 impl Material for DeferredPhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
-        let mut output = lights.fragment_shader_source();
+    fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &Lights) -> String {
+        let mut output = include_str!("../../core/shared.frag").to_string();
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
