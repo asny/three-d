@@ -113,6 +113,9 @@ impl Lights {
         for l in self.directional.iter_mut() {
             l.update_shadow(geometries)?;
         }
+        for l in self.spot.iter_mut() {
+            l.update_shadow(geometries)?;
+        }
         Ok(())
     }
 

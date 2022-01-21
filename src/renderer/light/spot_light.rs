@@ -103,6 +103,7 @@ impl SpotLight {
 
     pub fn clear_shadow_map(&mut self) {
         self.shadow_texture = None;
+        self.shadow_matrix = Mat4::identity();
     }
 
     pub fn generate_shadow_map(
@@ -260,6 +261,11 @@ impl Light for SpotLight {
         Ok(())
     }
     fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        Ok(())
+        if let Some(shadow_parameters) = self.shadow {
+            self.generate_shadow_map(shadow_parameters.texture_size, geometries)
+        } else {
+            self.clear_shadow_map();
+            Ok(())
+        }
     }
 }
