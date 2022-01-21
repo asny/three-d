@@ -273,14 +273,12 @@ fn main() {
                 let model = model.as_ref().unwrap();
                 if shadows_enabled {
                     lights.directional[0]
-                        .generate_shadow_map(4.0, 1024, 1024, &[model, &plane])
+                        .generate_shadow_map(1024, &[model])
                         .unwrap();
                     lights.directional[1]
-                        .generate_shadow_map(4.0, 1024, 1024, &[model, &plane])
+                        .generate_shadow_map(1024, &[model])
                         .unwrap();
-                    lights.spot[0]
-                        .generate_shadow_map(1024, &[model, &plane])
-                        .unwrap();
+                    lights.spot[0].generate_shadow_map(1024, &[model]).unwrap();
                 }
 
                 // Geometry pass
