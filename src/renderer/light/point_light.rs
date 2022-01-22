@@ -108,7 +108,4 @@ impl Light for PointLight {
         program.use_uniform_vec3(&format!("position{}", i), &self.position)?;
         Ok(())
     }
-    fn update_shadow(&mut self, _geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        Ok(())
-    }
 }

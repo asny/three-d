@@ -67,9 +67,6 @@ impl Light for AmbientLight {
         }
         program.use_uniform_vec3("ambientColor", &(self.color.to_vec3() * self.intensity))
     }
-    fn update_shadow(&mut self, _geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        Ok(())
-    }
 }
 
 impl Default for AmbientLight {

@@ -10,7 +10,6 @@ pub struct SpotLight {
     context: Context,
     shadow_texture: Option<DepthTargetTexture2D>,
     shadow_matrix: Mat4,
-    pub shadow: Option<ShadowParameters>,
     pub intensity: f32,
     pub color: Color,
     pub position: Vec3,
@@ -32,11 +31,9 @@ impl SpotLight {
         attenuation_constant: f32,
         attenuation_linear: f32,
         attenuation_exponential: f32,
-        shadow: Option<ShadowParameters>,
     ) -> ThreeDResult<SpotLight> {
         Ok(SpotLight {
             context: context.clone(),
-            shadow,
             shadow_texture: None,
             intensity,
             color,
@@ -262,13 +259,5 @@ impl Light for SpotLight {
         program.use_uniform_vec3(&format!("direction{}", i), &self.direction.normalize())?;
         program.use_uniform_float(&format!("cutoff{}", i), &self.cutoff.0)?;
         Ok(())
-    }
-    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        if let Some(shadow_parameters) = self.shadow {
-            self.generate_shadow_map(shadow_parameters.texture_size, geometries)
-        } else {
-            self.clear_shadow_map();
-            Ok(())
-        }
     }
 }

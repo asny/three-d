@@ -10,7 +10,6 @@ pub struct DirectionalLight {
     context: Context,
     shadow_texture: Option<DepthTargetTexture2D>,
     shadow_matrix: Mat4,
-    pub shadow: Option<ShadowParameters>,
     pub intensity: f32,
     pub color: Color,
     pub direction: Vec3,
@@ -22,13 +21,11 @@ impl DirectionalLight {
         intensity: f32,
         color: Color,
         direction: &Vec3,
-        shadow: Option<ShadowParameters>,
     ) -> ThreeDResult<DirectionalLight> {
         Ok(DirectionalLight {
             context: context.clone(),
             shadow_matrix: Mat4::identity(),
             shadow_texture: None,
-            shadow,
             intensity,
             color,
             direction: *direction,
@@ -175,13 +172,5 @@ impl Light for DirectionalLight {
         )?;
         program.use_uniform_vec3(&format!("direction{}", i), &self.direction.normalize())?;
         Ok(())
-    }
-    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        if let Some(shadow_parameters) = self.shadow {
-            self.generate_shadow_map(shadow_parameters.texture_size, geometries)
-        } else {
-            self.clear_shadow_map();
-            Ok(())
-        }
     }
 }

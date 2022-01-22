@@ -25,7 +25,6 @@ mod environment;
 pub use environment::*;
 
 use crate::core::*;
-use crate::renderer::*;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ShadowParameters {
@@ -80,16 +79,6 @@ impl Lights {
         program.use_uniform_vec3("eyePosition", camera.position())?;
         for (i, light) in LightsIterator::new(self).enumerate() {
             light.use_uniforms(program, i as u32)?;
-        }
-        Ok(())
-    }
-
-    pub fn update_shadows(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        for l in self.directional.iter_mut() {
-            l.update_shadow(geometries)?;
-        }
-        for l in self.spot.iter_mut() {
-            l.update_shadow(geometries)?;
         }
         Ok(())
     }
@@ -167,22 +156,16 @@ impl<'a> Iterator for LightsIterator<'a> {
 pub trait Light {
     fn shader_source(&self, i: u32) -> String;
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()>;
-    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()>
-    where
-        Self: Sized;
 }
 
-/*impl<T: Light + ?Sized> Light for &T {
+impl<T: Light + ?Sized> Light for &T {
     fn shader_source(&self, i: u32) -> String {
         (*self).shader_source(i)
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
         (*self).use_uniforms(program, i)
     }
-    fn update_shadow(&mut self, geometries: &[impl Geometry]) -> ThreeDResult<()> {
-        (*self).update_shadow(geometries)
-    }
-}*/
+}
 
 pub(crate) fn lights_fragment_shader_source(lights: &Lights) -> String {
     let mut shader_source = LightingModel::Cook(
