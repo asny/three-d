@@ -73,7 +73,7 @@ impl<M: Material> Rectangle<M> {
 impl<M: Material> Shadable2D for Rectangle<M> {
     fn render_with_material(
         &self,
-        material: &dyn Material,
+        material: impl Material,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
@@ -82,7 +82,7 @@ impl<M: Material> Shadable2D for Rectangle<M> {
         })
     }
 
-    fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()> {
+    fn render_forward(&self, material: impl Material, viewport: Viewport) -> ThreeDResult<()> {
         self.render_with_material(material, viewport)
     }
 }

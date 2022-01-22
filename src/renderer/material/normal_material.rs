@@ -35,7 +35,11 @@ impl NormalMaterial {
 }
 
 impl Material for NormalMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
+    fn fragment_shader_source(
+        &self,
+        _use_vertex_colors: bool,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+    ) -> String {
         let mut shader = String::new();
         if self.normal_texture.is_some() {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");
@@ -47,7 +51,7 @@ impl Material for NormalMaterial {
         &self,
         program: &Program,
         _camera: &Camera,
-        _lights: &Lights,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
     ) -> ThreeDResult<()> {
         if let Some(ref tex) = self.normal_texture {
             program.use_uniform_float("normalScale", &self.normal_scale)?;

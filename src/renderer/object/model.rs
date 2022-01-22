@@ -201,7 +201,7 @@ impl<M: Material> GeometryMut for Model<M> {
 impl<M: Material> Shadable for Model<M> {
     fn render_with_material(
         &self,
-        material: &dyn Material,
+        material: impl Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
@@ -226,7 +226,7 @@ impl<M: Material> Shadable for Model<M> {
 
     fn render_forward(
         &self,
-        material: &dyn Material,
+        material: impl Material,
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {

@@ -43,7 +43,11 @@ impl ColorMaterial {
 }
 
 impl Material for ColorMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &Lights) -> String {
+    fn fragment_shader_source(
+        &self,
+        use_vertex_colors: bool,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+    ) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
@@ -59,7 +63,7 @@ impl Material for ColorMaterial {
         &self,
         program: &Program,
         _camera: &Camera,
-        _lights: &Lights,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
     ) -> ThreeDResult<()> {
         program.use_uniform_vec4("surfaceColor", &self.color.to_vec4())?;
         if let Some(ref tex) = self.texture {

@@ -111,7 +111,11 @@ impl DeferredPhysicalMaterial {
 }
 
 impl Material for DeferredPhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &Lights) -> String {
+    fn fragment_shader_source(
+        &self,
+        use_vertex_colors: bool,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+    ) -> String {
         let mut output = include_str!("../../core/shared.frag").to_string();
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
@@ -153,7 +157,7 @@ impl Material for DeferredPhysicalMaterial {
         &self,
         program: &Program,
         _camera: &Camera,
-        _lights: &Lights,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
     ) -> ThreeDResult<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;

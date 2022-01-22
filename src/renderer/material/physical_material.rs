@@ -104,7 +104,11 @@ impl PhysicalMaterial {
 }
 
 impl Material for PhysicalMaterial {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
+    fn fragment_shader_source(
+        &self,
+        use_vertex_colors: bool,
+        lights: impl std::iter::IntoIterator<Item = impl Light>,
+    ) -> String {
         let mut output = lights_fragment_shader_source(lights);
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
@@ -139,10 +143,10 @@ impl Material for PhysicalMaterial {
         &self,
         program: &Program,
         camera: &Camera,
-        lights: &Lights,
+        lights: impl std::iter::IntoIterator<Item = impl Light>,
     ) -> ThreeDResult<()> {
         program.use_uniform_vec3("eyePosition", camera.position())?;
-        for (i, light) in lights.iter().enumerate() {
+        for (i, light) in lights.into_iter().enumerate() {
             light.use_uniforms(program, i as u32)?;
         }
         program.use_uniform_float("metallic", &self.metallic)?;

@@ -167,7 +167,9 @@ impl<T: Light + ?Sized> Light for &T {
     }
 }
 
-pub(crate) fn lights_fragment_shader_source(lights: &Lights) -> String {
+pub(crate) fn lights_fragment_shader_source(
+    lights: impl std::iter::IntoIterator<Item = impl Light>,
+) -> String {
     let mut shader_source = LightingModel::Cook(
         NormalDistributionFunction::TrowbridgeReitzGGX,
         GeometryFunction::SmithSchlickGGX,
