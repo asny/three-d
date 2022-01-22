@@ -141,7 +141,10 @@ impl Material for PhysicalMaterial {
         camera: &Camera,
         lights: &Lights,
     ) -> ThreeDResult<()> {
-        lights.use_uniforms(program, camera)?;
+        program.use_uniform_vec3("eyePosition", camera.position())?;
+        for (i, light) in lights.iter().enumerate() {
+            light.use_uniforms(program, i as u32)?;
+        }
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;
         program.use_uniform("albedo", self.albedo.to_vec4())?;

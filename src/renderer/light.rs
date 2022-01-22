@@ -75,14 +75,6 @@ pub struct Lights {
 }
 
 impl Lights {
-    pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> ThreeDResult<()> {
-        program.use_uniform_vec3("eyePosition", camera.position())?;
-        for (i, light) in LightsIterator::new(self).enumerate() {
-            light.use_uniforms(program, i as u32)?;
-        }
-        Ok(())
-    }
-
     pub fn iter<'a>(&'a self) -> LightsIterator<'a> {
         LightsIterator::new(self)
     }

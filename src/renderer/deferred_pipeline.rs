@@ -195,7 +195,10 @@ impl DeferredPipeline {
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
-            lights.use_uniforms(effect, camera)?;
+            effect.use_uniform_vec3("eyePosition", camera.position())?;
+            for (i, light) in lights.iter().enumerate() {
+                light.use_uniforms(effect, i as u32)?;
+            }
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
             effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
             if !lights.directional.is_empty() || !lights.spot.is_empty() || !lights.point.is_empty()
