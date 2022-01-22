@@ -76,31 +76,6 @@ pub struct Lights {
 }
 
 impl Lights {
-    pub fn fragment_shader_source(&self) -> String {
-        let mut shader_source = self.lighting_model.shader().to_string();
-        shader_source.push_str(include_str!("../core/shared.frag"));
-        shader_source.push_str(include_str!("./light/shaders/light_shared.frag"));
-        let mut dir_fun = String::new();
-        for (i, light) in self.iter().enumerate() {
-            shader_source.push_str(&light.shader_source(i as u32));
-            dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, view_direction, metallic, roughness, occlusion);\n", i))
-        }
-        shader_source.push_str(&format!(
-            "
-                uniform vec3 eyePosition;
-                vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
-                {{
-                    vec3 color = vec3(0.0, 0.0, 0.0);
-                    vec3 view_direction = normalize(eyePosition - position);
-                    {}
-                    return color;
-                }}
-                ",
-            &dir_fun
-        ));
-        shader_source
-    }
-
     pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> ThreeDResult<()> {
         program.use_uniform_vec3("eyePosition", camera.position())?;
         for (i, light) in LightsIterator::new(self).enumerate() {
@@ -208,6 +183,36 @@ pub trait Light {
         (*self).update_shadow(geometries)
     }
 }*/
+
+pub(crate) fn lights_fragment_shader_source(lights: &Lights) -> String {
+    let mut shader_source = LightingModel::Cook(
+        NormalDistributionFunction::TrowbridgeReitzGGX,
+        GeometryFunction::SmithSchlickGGX,
+    )
+    .shader()
+    .to_string();
+    shader_source.push_str(include_str!("../core/shared.frag"));
+    shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
+    let mut dir_fun = String::new();
+    for (i, light) in lights.iter().enumerate() {
+        shader_source.push_str(&light.shader_source(i as u32));
+        dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, view_direction, metallic, roughness, occlusion);\n", i))
+    }
+    shader_source.push_str(&format!(
+        "
+            uniform vec3 eyePosition;
+            vec3 calculate_lighting(vec3 surface_color, vec3 position, vec3 normal, float metallic, float roughness, float occlusion)
+            {{
+                vec3 color = vec3(0.0, 0.0, 0.0);
+                vec3 view_direction = normalize(eyePosition - position);
+                {}
+                return color;
+            }}
+            ",
+        &dir_fun
+    ));
+    shader_source
+}
 
 fn shadow_matrix(camera: &Camera) -> Mat4 {
     let bias_matrix = crate::Mat4::new(

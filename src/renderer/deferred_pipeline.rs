@@ -191,7 +191,7 @@ impl DeferredPipeline {
             );
         }
 
-        let mut fragment_shader = lights.fragment_shader_source();
+        let mut fragment_shader = lights_fragment_shader_source(lights);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
