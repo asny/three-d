@@ -80,6 +80,14 @@ impl Lights {
     }
 }
 
+impl<'a> IntoIterator for &'a Lights {
+    type Item = &'a dyn Light;
+    type IntoIter = LightsIterator<'a>;
+    fn into_iter(self) -> LightsIterator<'a> {
+        LightsIterator::new(&self)
+    }
+}
+
 impl Default for Lights {
     fn default() -> Self {
         Self {
@@ -169,7 +177,7 @@ pub(crate) fn lights_fragment_shader_source(lights: &Lights) -> String {
     shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
     let mut dir_fun = String::new();
-    for (i, light) in lights.iter().enumerate() {
+    for (i, light) in lights.into_iter().enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
         dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, view_direction, metallic, roughness, occlusion);\n", i))
     }
