@@ -111,6 +111,12 @@ impl<'a> LightsIterator<'a> {
     }
 }
 
+impl<'a> std::clone::Clone for LightsIterator<'a> {
+    fn clone(&self) -> Self {
+        Self::new(self.lights)
+    }
+}
+
 impl<'a> Iterator for LightsIterator<'a> {
     type Item = &'a dyn Light;
     fn next(&mut self) -> Option<Self::Item> {
