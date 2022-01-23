@@ -17,19 +17,14 @@ impl<M: Material> BoundingBox<M> {
         let size = aabb.size();
         let thickness = 0.02 * size.x.max(size.y).max(size.z);
 
-        Self::new_with_line_thickness(
-            context,
-            aabb,
-            material,
-            thickness,
-        )
+        Self::new_with_material_and_thickness(context, aabb, material, thickness)
     }
 
     ///
     /// Creates a bounding box object from an axis aligned bounding box with a specified line
     /// thickness.
     ///
-    pub fn new_with_line_thickness(
+    pub fn new_with_material_and_thickness(
         context: &Context,
         aabb: AxisAlignedBoundingBox,
         material: M,
