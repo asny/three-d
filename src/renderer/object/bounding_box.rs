@@ -14,10 +14,30 @@ impl<M: Material> BoundingBox<M> {
         aabb: AxisAlignedBoundingBox,
         material: M,
     ) -> ThreeDResult<Self> {
+        let size = aabb.size();
+        let thickness = 0.02 * size.x.max(size.y).max(size.z);
+
+        Self::new_with_line_thickness(
+            context,
+            aabb,
+            material,
+            thickness,
+        )
+    }
+
+    ///
+    /// Creates a bounding box object from an axis aligned bounding box with a specified line
+    /// thickness.
+    ///
+    pub fn new_with_line_thickness(
+        context: &Context,
+        aabb: AxisAlignedBoundingBox,
+        material: M,
+        thickness: f32,
+    ) -> ThreeDResult<Self> {
         let max = aabb.max();
         let min = aabb.min();
         let size = aabb.size();
-        let thickness = 0.02 * size.x.max(size.y).max(size.z);
         let transformations = [
             Mat4::from_translation(min) * Mat4::from_nonuniform_scale(size.x, thickness, thickness),
             Mat4::from_translation(vec3(min.x, max.y, max.z))
