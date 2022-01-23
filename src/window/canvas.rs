@@ -270,7 +270,10 @@ impl Window {
             event.stop_propagation();
         }) as Box<dyn FnMut(_)>);
         self.canvas()?
-            .set_oncontextmenu(Some(closure.as_ref().unchecked_ref()));
+            .add_event_listener_with_callback("contextmenu", closure.as_ref().unchecked_ref())
+            .map_err(|e| {
+                CanvasError::EventListenerFail("contextmenu".to_string(), format!("{:?}", e))
+            })?;
         self.closures_with_event.push(closure);
         Ok(())
     }
@@ -717,6 +720,107 @@ impl Input {
                 )
                 .expect("Unable to request a new frame.");
         }
+    }
+}
+
+impl Drop for Window {
+    fn drop(&mut self) {
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "contextmenu",
+                self.closures_with_event[0].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "resize",
+                self.closures[0].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "mouseenter",
+                self.closures_with_mouseevent[0].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "mouseleave",
+                self.closures_with_mouseevent[1].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "mousedown",
+                self.closures_with_mouseevent[2].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "mouseup",
+                self.closures_with_mouseevent[3].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "mousemove",
+                self.closures_with_mouseevent[4].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "wheel",
+                self.closures_with_wheelevent[0].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "touchstart",
+                self.closures_with_touchevent[0].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "touchend",
+                self.closures_with_touchevent[1].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        self.canvas()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "touchmove",
+                self.closures_with_touchevent[2].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "keydown",
+                self.closures_with_keyboardevent[0].as_ref().unchecked_ref(),
+            )
+            .unwrap();
+        web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .remove_event_listener_with_callback(
+                "keyup",
+                self.closures_with_keyboardevent[1].as_ref().unchecked_ref(),
+            )
+            .unwrap();
     }
 }
 
