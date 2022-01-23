@@ -10,14 +10,18 @@ struct FireworksMaterial {
 }
 
 impl Material for FireworksMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
+    fn fragment_shader_source(
+        &self,
+        _use_vertex_colors: bool,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+    ) -> String {
         include_str!("../assets/shaders/particles.frag").to_string()
     }
     fn use_uniforms(
         &self,
         program: &Program,
         _camera: &Camera,
-        _lights: &Lights,
+        _lights: impl std::iter::IntoIterator<Item = impl Light>,
     ) -> ThreeDResult<()> {
         program.use_uniform(
             "color",
