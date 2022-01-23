@@ -175,14 +175,18 @@ impl Shadable for Particles {
         &self,
         material: impl Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
     ) -> ThreeDResult<()> {
-        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        let lights_iter = lights.into_iter();
+        let fragment_shader_source = material.fragment_shader_source(false, lights_iter.clone());
         self.context.program(
             &Particles::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, lights)?;
+                material.use_uniforms(program, camera, lights_iter)?;
 
                 program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 program.use_uniform_vec3("acceleration", &self.acceleration)?;
@@ -230,23 +234,5 @@ impl Shadable for Particles {
                 Ok(())
             },
         )
-    }
-
-    fn render_forward(
-        &self,
-        material: impl Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        self.render_with_material(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        _material: &DeferredPhysicalMaterial,
-        _camera: &Camera,
-        _viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        unimplemented!();
     }
 }

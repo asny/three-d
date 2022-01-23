@@ -59,7 +59,14 @@ pub trait Object: Geometry {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// You can use [Lights::default()] if you know the object does not require lights to be rendered.
     ///
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()>;
+    fn render(
+        &self,
+        camera: &Camera,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
+    ) -> ThreeDResult<()>;
 
     ///
     /// Returns whether or not this object should be considered transparent.
@@ -68,7 +75,14 @@ pub trait Object: Geometry {
 }
 
 impl<T: Object + ?Sized> Object for &T {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+    fn render(
+        &self,
+        camera: &Camera,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
+    ) -> ThreeDResult<()> {
         (*self).render(camera, lights)
     }
 
@@ -78,7 +92,14 @@ impl<T: Object + ?Sized> Object for &T {
 }
 
 impl<T: Object + ?Sized> Object for &mut T {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+    fn render(
+        &self,
+        camera: &Camera,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
+    ) -> ThreeDResult<()> {
         (**self).render(camera, lights)
     }
 
@@ -159,33 +180,10 @@ pub trait Shadable {
         &self,
         material: impl Material,
         camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()>;
-
-    ///
-    /// Render the object with the given material.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// You can use [Lights::default()] if you know the material does not require lights.
-    ///
-    #[deprecated = "use render_with_material instead"]
-    fn render_forward(
-        &self,
-        material: impl Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()>;
-
-    ///
-    /// Render the geometry and surface material parameters of the object.
-    /// Should usually not be called directly but used in [DeferredPipeline::geometry_pass].
-    ///
-    #[deprecated]
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
     ) -> ThreeDResult<()>;
 }
 
@@ -195,27 +193,12 @@ impl<T: Shadable + ?Sized> Shadable for &T {
         &self,
         material: impl Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
     ) -> ThreeDResult<()> {
         (*self).render_with_material(material, camera, lights)
-    }
-
-    fn render_forward(
-        &self,
-        material: impl Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
     }
 }
 
@@ -225,27 +208,12 @@ impl<T: Shadable + ?Sized> Shadable for &mut T {
         &self,
         material: impl Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
     ) -> ThreeDResult<()> {
         (**self).render_with_material(material, camera, lights)
-    }
-
-    fn render_forward(
-        &self,
-        material: impl Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (**self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (**self).render_deferred(material, camera, viewport)
     }
 }
 

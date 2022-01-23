@@ -203,15 +203,19 @@ impl<M: Material> Shadable for Model<M> {
         &self,
         material: impl Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
     ) -> ThreeDResult<()> {
+        let lights_iter = lights.into_iter();
         let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
+            material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights_iter.clone());
         self.context.program(
             &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, lights)?;
+                material.use_uniforms(program, camera, lights_iter)?;
                 self.draw(
                     program,
                     material.render_states(),
@@ -223,45 +227,17 @@ impl<M: Material> Shadable for Model<M> {
             },
         )
     }
-
-    fn render_forward(
-        &self,
-        material: impl Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        self.render_with_material(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        let lights = Lights::default();
-        let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some(), &lights);
-        self.context.program(
-            &Self::vertex_shader_source(&fragment_shader_source)?,
-            &fragment_shader_source,
-            |program| {
-                material.use_uniforms(program, camera, &lights)?;
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera.uniform_buffer(),
-                    viewport,
-                    &self.transformation,
-                    &self.texture_transform,
-                )
-            },
-        )
-    }
 }
 
 impl<M: Material> Object for Model<M> {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+    fn render(
+        &self,
+        camera: &Camera,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
+    ) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
     }
 
