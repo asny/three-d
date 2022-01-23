@@ -27,7 +27,10 @@ impl ForwardPipeline {
         &self,
         camera: &Camera,
         objects: &[impl Object],
-        lights: &Lights,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
     ) -> ThreeDResult<()> {
         render_pass(camera, objects, lights)
     }

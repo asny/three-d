@@ -43,15 +43,19 @@ pub enum RendererError {}
 pub fn render_pass(
     camera: &Camera,
     objects: impl std::iter::IntoIterator<Item = impl Object>,
-    lights: &Lights,
+    lights: impl std::iter::IntoIterator<
+        Item = impl Light,
+        IntoIter = impl Iterator<Item = impl Light> + Clone,
+    >,
 ) -> ThreeDResult<()> {
     let mut culled_objects = objects
         .into_iter()
         .filter(|o| camera.in_frustum(&o.aabb()))
         .collect::<Vec<_>>();
     culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
+    let lights_iter = lights.into_iter();
     for object in culled_objects {
-        object.render(camera, lights)?;
+        object.render(camera, lights_iter.clone())?;
     }
     Ok(())
 }

@@ -158,7 +158,14 @@ impl DeferredPipeline {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn lighting_pass(&mut self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+    pub fn lighting_pass(
+        &mut self,
+        camera: &Camera,
+        lights: impl std::iter::IntoIterator<
+            Item = impl Light,
+            IntoIter = impl Iterator<Item = impl Light> + Clone,
+        >,
+    ) -> ThreeDResult<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             ..Default::default()
@@ -191,23 +198,21 @@ impl DeferredPipeline {
             );
         }
 
-        let mut fragment_shader = lights_fragment_shader_source(lights);
+        let lights_iter = lights.into_iter();
+        let mut fragment_shader = lights_fragment_shader_source(lights_iter.clone());
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
             effect.use_uniform_vec3("eyePosition", camera.position())?;
-            for (i, light) in lights.iter().enumerate() {
+            for (i, light) in lights_iter.clone().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;
             effect.use_texture_array("depthMap", self.geometry_pass_depth_texture_array())?;
-            if !lights.directional.is_empty() || !lights.spot.is_empty() || !lights.point.is_empty()
-            {
-                effect.use_uniform(
-                    "viewProjectionInverse",
-                    (camera.projection() * camera.view()).invert().unwrap(),
-                )?;
-            }
+            effect.use_uniform(
+                "viewProjectionInverse",
+                (camera.projection() * camera.view()).invert().unwrap(),
+            )?;
             effect.apply(render_states, camera.viewport())?;
             Ok(())
         })
