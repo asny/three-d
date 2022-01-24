@@ -173,7 +173,7 @@ impl GeometryMut for Particles {
 impl Shadable for Particles {
     fn render_with_material<'a>(
         &self,
-        material: impl Material,
+        material: &dyn Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
             Item = &'a dyn Light,

@@ -201,7 +201,7 @@ impl<M: Material> GeometryMut for Model<M> {
 impl<M: Material> Shadable for Model<M> {
     fn render_with_material<'a>(
         &self,
-        material: impl Material,
+        material: &dyn Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
             Item = &'a dyn Light,

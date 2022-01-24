@@ -178,7 +178,7 @@ pub trait Shadable {
     ///
     fn render_with_material<'a>(
         &self,
-        material: impl Material,
+        material: &dyn Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
             Item = &'a dyn Light,
@@ -191,7 +191,7 @@ pub trait Shadable {
 impl<T: Shadable + ?Sized> Shadable for &T {
     fn render_with_material<'a>(
         &self,
-        material: impl Material,
+        material: &dyn Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
             Item = &'a dyn Light,
@@ -206,7 +206,7 @@ impl<T: Shadable + ?Sized> Shadable for &T {
 impl<T: Shadable + ?Sized> Shadable for &mut T {
     fn render_with_material<'a>(
         &self,
-        material: impl Material,
+        material: &dyn Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
             Item = &'a dyn Light,
@@ -228,45 +228,27 @@ pub trait Shadable2D {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     ///
-    fn render_with_material(&self, material: impl Material, viewport: Viewport)
+    fn render_with_material(&self, material: &dyn Material, viewport: Viewport)
         -> ThreeDResult<()>;
-
-    ///
-    /// Render the object with the given material.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    #[deprecated = "use render_with_material instead"]
-    fn render_forward(&self, material: impl Material, viewport: Viewport) -> ThreeDResult<()>;
 }
 
-#[allow(deprecated)]
 impl<T: Shadable2D + ?Sized> Shadable2D for &T {
     fn render_with_material(
         &self,
-        material: impl Material,
+        material: &dyn Material,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         (*self).render_with_material(material, viewport)
     }
-
-    fn render_forward(&self, material: impl Material, viewport: Viewport) -> ThreeDResult<()> {
-        (*self).render_forward(material, viewport)
-    }
 }
 
-#[allow(deprecated)]
 impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
     fn render_with_material(
         &self,
-        material: impl Material,
+        material: &dyn Material,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         (**self).render_with_material(material, viewport)
-    }
-
-    fn render_forward(&self, material: impl Material, viewport: Viewport) -> ThreeDResult<()> {
-        (**self).render_forward(material, viewport)
     }
 }
 // Object2D trait
