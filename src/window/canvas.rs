@@ -186,7 +186,9 @@ impl Window {
             first_frame = false;
             let frame_output = callback(frame_input);
 
-            if !frame_output.wait_next_event {
+            if frame_output.exit {
+                input_clone.borrow_mut().render_loop_closure = None;
+            } else if !frame_output.wait_next_event {
                 input_clone.borrow_mut().request_animation_frame();
             }
         })
@@ -727,6 +729,7 @@ impl Drop for Window {
                 self.closures_with_event[0].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_event.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -734,6 +737,7 @@ impl Drop for Window {
                 self.closures[0].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -770,6 +774,7 @@ impl Drop for Window {
                 self.closures_with_mouseevent[4].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_mouseevent.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -777,6 +782,7 @@ impl Drop for Window {
                 self.closures_with_wheelevent[0].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_wheelevent.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -798,6 +804,7 @@ impl Drop for Window {
                 self.closures_with_touchevent[2].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_touchevent.clear();
         web_sys::window()
             .unwrap()
             .document()
@@ -816,6 +823,7 @@ impl Drop for Window {
                 self.closures_with_keyboardevent[1].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_keyboardevent.clear();
     }
 }
 
