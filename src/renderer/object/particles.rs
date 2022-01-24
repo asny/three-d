@@ -171,22 +171,23 @@ impl GeometryMut for Particles {
 }
 
 impl Shadable for Particles {
-    fn render_with_material(
+    fn render_with_material<'a>(
         &self,
         material: impl Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
-        let lights_iter = lights.into_iter();
-        let fragment_shader_source = material.fragment_shader_source(false, lights_iter.clone());
+        let mut lights_iter = lights.into_iter();
+        let fragment_shader_source =
+            material.fragment_shader_source(false, &mut lights_iter.clone());
         self.context.program(
             &Particles::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, lights_iter)?;
+                material.use_uniforms(program, camera, &mut lights_iter)?;
 
                 program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 program.use_uniform_vec3("acceleration", &self.acceleration)?;

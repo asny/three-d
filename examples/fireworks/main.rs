@@ -13,7 +13,7 @@ impl Material for FireworksMaterial {
     fn fragment_shader_source(
         &self,
         _use_vertex_colors: bool,
-        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+        _lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> String {
         include_str!("../assets/shaders/particles.frag").to_string()
     }
@@ -21,7 +21,7 @@ impl Material for FireworksMaterial {
         &self,
         program: &Program,
         _camera: &Camera,
-        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+        _lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> ThreeDResult<()> {
         program.use_uniform(
             "color",

@@ -59,12 +59,12 @@ pub trait Object: Geometry {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// You can use [Lights::default()] if you know the object does not require lights to be rendered.
     ///
-    fn render(
+    fn render<'a>(
         &self,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()>;
 
@@ -75,12 +75,12 @@ pub trait Object: Geometry {
 }
 
 impl<T: Object + ?Sized> Object for &T {
-    fn render(
+    fn render<'a>(
         &self,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         (*self).render(camera, lights)
@@ -92,12 +92,12 @@ impl<T: Object + ?Sized> Object for &T {
 }
 
 impl<T: Object + ?Sized> Object for &mut T {
-    fn render(
+    fn render<'a>(
         &self,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         (**self).render(camera, lights)
@@ -176,26 +176,26 @@ pub trait Shadable {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// You can use [Lights::default()] if you know the material does not require lights.
     ///
-    fn render_with_material(
+    fn render_with_material<'a>(
         &self,
         material: impl Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()>;
 }
 
 #[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &T {
-    fn render_with_material(
+    fn render_with_material<'a>(
         &self,
         material: impl Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         (*self).render_with_material(material, camera, lights)
@@ -204,13 +204,13 @@ impl<T: Shadable + ?Sized> Shadable for &T {
 
 #[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &mut T {
-    fn render_with_material(
+    fn render_with_material<'a>(
         &self,
         material: impl Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         (**self).render_with_material(material, camera, lights)

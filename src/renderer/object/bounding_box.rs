@@ -83,13 +83,13 @@ impl<M: Material> BoundingBox<M> {
 }
 
 impl<M: Material> Shadable for BoundingBox<M> {
-    fn render_with_material(
+    fn render_with_material<'a>(
         &self,
         material: impl Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         self.model.render_with_material(material, camera, lights)
@@ -107,12 +107,12 @@ impl<M: Material> Geometry for BoundingBox<M> {
 }
 
 impl<M: Material> Object for BoundingBox<M> {
-    fn render(
+    fn render<'a>(
         &self,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         self.model.render(camera, lights)

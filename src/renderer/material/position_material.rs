@@ -10,7 +10,7 @@ impl Material for PositionMaterial {
     fn fragment_shader_source(
         &self,
         _use_vertex_colors: bool,
-        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+        _lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> String {
         include_str!("shaders/position_material.frag").to_string()
     }
@@ -18,7 +18,7 @@ impl Material for PositionMaterial {
         &self,
         _program: &Program,
         _camera: &Camera,
-        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+        _lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> ThreeDResult<()> {
         Ok(())
     }

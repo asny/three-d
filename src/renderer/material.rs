@@ -51,14 +51,14 @@ pub trait Material {
     fn fragment_shader_source(
         &self,
         use_vertex_colors: bool,
-        lights: impl std::iter::IntoIterator<Item = impl Light>,
+        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> String;
     /// Sends the uniform data needed for this material to the fragment shader.
     fn use_uniforms(
         &self,
         program: &Program,
         camera: &Camera,
-        lights: impl std::iter::IntoIterator<Item = impl Light>,
+        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> ThreeDResult<()>;
     /// Returns the render states needed to render with this material.
     fn render_states(&self) -> RenderStates;
@@ -70,7 +70,7 @@ impl<T: Material + ?Sized> Material for &T {
     fn fragment_shader_source(
         &self,
         use_vertex_colors: bool,
-        lights: impl std::iter::IntoIterator<Item = impl Light>,
+        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
@@ -78,7 +78,7 @@ impl<T: Material + ?Sized> Material for &T {
         &self,
         program: &Program,
         camera: &Camera,
-        lights: impl std::iter::IntoIterator<Item = impl Light>,
+        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
     ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }

@@ -37,13 +37,13 @@ impl Axes {
 }
 
 impl Shadable for Axes {
-    fn render_with_material(
+    fn render_with_material<'a>(
         &self,
         material: impl Material,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         let lights_iter = lights.into_iter();
@@ -75,12 +75,12 @@ impl GeometryMut for Axes {
 }
 
 impl Object for Axes {
-    fn render(
+    fn render<'a>(
         &self,
         camera: &Camera,
         _lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();

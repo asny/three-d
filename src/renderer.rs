@@ -40,12 +40,12 @@ pub enum RendererError {}
 /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
 /// Must be called in a render target render function, for example in the callback function of [Screen::write].
 ///
-pub fn render_pass(
+pub fn render_pass<'a>(
     camera: &Camera,
     objects: impl std::iter::IntoIterator<Item = impl Object>,
     lights: impl std::iter::IntoIterator<
-        Item = impl Light,
-        IntoIter = impl Iterator<Item = impl Light> + Clone,
+        Item = &'a dyn Light,
+        IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
     >,
 ) -> ThreeDResult<()> {
     let mut culled_objects = objects

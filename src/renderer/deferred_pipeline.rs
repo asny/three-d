@@ -158,12 +158,12 @@ impl DeferredPipeline {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn lighting_pass(
+    pub fn lighting_pass<'a>(
         &mut self,
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
-            Item = impl Light,
-            IntoIter = impl Iterator<Item = impl Light> + Clone,
+            Item = &'a dyn Light,
+            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
         >,
     ) -> ThreeDResult<()> {
         let render_states = RenderStates {
@@ -199,7 +199,7 @@ impl DeferredPipeline {
         }
 
         let lights_iter = lights.into_iter();
-        let mut fragment_shader = lights_fragment_shader_source(lights_iter.clone());
+        let mut fragment_shader = lights_fragment_shader_source(&mut lights_iter.clone());
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
