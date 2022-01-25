@@ -602,7 +602,6 @@ impl Window {
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
                     input.events.push(Event::ModifiersChange { modifiers });
-                    event.prevent_default();
                 }
                 let key = event.key();
                 let modifiers = input.modifiers;
@@ -612,12 +611,9 @@ impl Window {
                         modifiers,
                         handled: false,
                     });
-                    event.prevent_default();
                 }
                 if !modifiers.ctrl && !modifiers.command && !should_ignore_key(&key) {
                     input.events.push(Event::Text(key));
-                    event.prevent_default();
-
                     input.request_animation_frame();
                 }
             }
@@ -641,7 +637,6 @@ impl Window {
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
                     input.events.push(Event::ModifiersChange { modifiers });
-                    event.prevent_default();
                 }
                 if let Some(kind) = translate_key(&event.key()) {
                     let modifiers = input.modifiers;
@@ -650,8 +645,6 @@ impl Window {
                         modifiers,
                         handled: false,
                     });
-                    event.prevent_default();
-
                     input.request_animation_frame();
                 }
             }
