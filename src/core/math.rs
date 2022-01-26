@@ -4,6 +4,8 @@
 //!
 
 pub use half::f16;
+pub use half::slice::HalfFloatSliceExt;
+pub use half::vec::HalfFloatVecExt;
 
 pub(crate) use cgmath::ortho;
 pub(crate) use cgmath::perspective;

@@ -213,8 +213,9 @@ pub struct FrameInput {
 #[derive(Clone, Debug)]
 pub struct FrameOutput {
     ///
-    /// Closes the window and stops the renderloop if this is true.
-    /// Only relevant on desktop, ignored on web.
+    /// If this is true:
+    /// - On desktop, the window is closed and the renderloop is stopped.
+    /// - On web, the render loop is stopped, the event handlers are removed and the `Window` dropped. Note that the canvas is not removed.
     ///
     pub exit: bool,
 

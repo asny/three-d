@@ -186,7 +186,9 @@ impl Window {
             first_frame = false;
             let frame_output = callback(frame_input);
 
-            if !frame_output.wait_next_event {
+            if frame_output.exit {
+                input_clone.borrow_mut().render_loop_closure = None;
+            } else if !frame_output.wait_next_event {
                 input_clone.borrow_mut().request_animation_frame();
             }
         })
@@ -600,7 +602,6 @@ impl Window {
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
                     input.events.push(Event::ModifiersChange { modifiers });
-                    event.prevent_default();
                 }
                 let key = event.key();
                 let modifiers = input.modifiers;
@@ -610,12 +611,9 @@ impl Window {
                         modifiers,
                         handled: false,
                     });
-                    event.prevent_default();
                 }
                 if !modifiers.ctrl && !modifiers.command && !should_ignore_key(&key) {
                     input.events.push(Event::Text(key));
-                    event.prevent_default();
-
                     input.request_animation_frame();
                 }
             }
@@ -639,7 +637,6 @@ impl Window {
                 if update_modifiers(&mut input.modifiers, &event) {
                     let modifiers = input.modifiers;
                     input.events.push(Event::ModifiersChange { modifiers });
-                    event.prevent_default();
                 }
                 if let Some(kind) = translate_key(&event.key()) {
                     let modifiers = input.modifiers;
@@ -648,8 +645,6 @@ impl Window {
                         modifiers,
                         handled: false,
                     });
-                    event.prevent_default();
-
                     input.request_animation_frame();
                 }
             }
@@ -727,6 +722,7 @@ impl Drop for Window {
                 self.closures_with_event[0].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_event.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -734,6 +730,7 @@ impl Drop for Window {
                 self.closures[0].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -770,6 +767,7 @@ impl Drop for Window {
                 self.closures_with_mouseevent[4].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_mouseevent.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -777,6 +775,7 @@ impl Drop for Window {
                 self.closures_with_wheelevent[0].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_wheelevent.clear();
         self.canvas()
             .unwrap()
             .remove_event_listener_with_callback(
@@ -798,6 +797,7 @@ impl Drop for Window {
                 self.closures_with_touchevent[2].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_touchevent.clear();
         web_sys::window()
             .unwrap()
             .document()
@@ -816,6 +816,7 @@ impl Drop for Window {
                 self.closures_with_keyboardevent[1].as_ref().unchecked_ref(),
             )
             .unwrap();
+        self.closures_with_keyboardevent.clear();
     }
 }
 
