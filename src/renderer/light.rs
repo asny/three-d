@@ -78,6 +78,10 @@ impl Lights {
     pub fn iter<'a>(&'a self) -> LightsIterator<'a> {
         LightsIterator::new(self)
     }
+
+    pub fn to_vec<'a>(&'a self) -> Vec<&'a dyn Light> {
+        self.iter().collect::<Vec<_>>()
+    }
 }
 
 impl<'a> IntoIterator for &'a Lights {

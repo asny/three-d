@@ -157,10 +157,7 @@ impl DeferredPipeline {
     pub fn lighting_pass<'a>(
         &mut self,
         camera: &Camera,
-        lights: impl std::iter::IntoIterator<
-            Item = &'a dyn Light,
-            IntoIter = impl Iterator<Item = &'a dyn Light>,
-        >,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
@@ -194,8 +191,7 @@ impl DeferredPipeline {
             );
         }
 
-        let lights = lights.into_iter().collect::<Vec<_>>();
-        let mut fragment_shader = lights_fragment_shader_source(&lights);
+        let mut fragment_shader = lights_fragment_shader_source(lights);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
