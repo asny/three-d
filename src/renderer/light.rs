@@ -173,9 +173,7 @@ impl<T: Light + ?Sized> Light for &T {
     }
 }
 
-pub(crate) fn lights_fragment_shader_source(
-    lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
-) -> String {
+pub(crate) fn lights_fragment_shader_source(lights: &[&dyn Light]) -> String {
     let mut shader_source = LightingModel::Cook(
         NormalDistributionFunction::TrowbridgeReitzGGX,
         GeometryFunction::SmithSchlickGGX,
@@ -185,7 +183,7 @@ pub(crate) fn lights_fragment_shader_source(
     shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
     let mut dir_fun = String::new();
-    for (i, light) in lights.enumerate() {
+    for (i, light) in lights.iter().enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
         dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, view_direction, metallic, roughness, occlusion);\n", i))
     }

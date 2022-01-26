@@ -48,17 +48,13 @@ pub use deferred_physical_material::*;
 ///
 pub trait Material {
     /// Returns the fragment shader source for this material. Should output the final fragment color.
-    fn fragment_shader_source(
-        &self,
-        use_vertex_colors: bool,
-        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
-    ) -> String;
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String;
     /// Sends the uniform data needed for this material to the fragment shader.
     fn use_uniforms(
         &self,
         program: &Program,
         camera: &Camera,
-        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()>;
     /// Returns the render states needed to render with this material.
     fn render_states(&self) -> RenderStates;
@@ -67,18 +63,14 @@ pub trait Material {
 }
 
 impl<T: Material + ?Sized> Material for &T {
-    fn fragment_shader_source(
-        &self,
-        use_vertex_colors: bool,
-        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
-    ) -> String {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
     fn use_uniforms(
         &self,
         program: &Program,
         camera: &Camera,
-        lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }

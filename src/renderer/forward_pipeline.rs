@@ -29,7 +29,7 @@ impl ForwardPipeline {
         objects: &[impl Object],
         lights: impl std::iter::IntoIterator<
             Item = &'a dyn Light,
-            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
+            IntoIter = impl Iterator<Item = &'a dyn Light>,
         >,
     ) -> ThreeDResult<()> {
         render_pass(camera, objects, lights)
@@ -47,7 +47,7 @@ impl ForwardPipeline {
             .iter()
             .filter(|o| !o.is_transparent() && camera.in_frustum(&o.aabb()))
         {
-            object.render_with_material(&depth_material, camera, &Lights::default())?;
+            object.render_with_material(&depth_material, camera, &[])?;
         }
         Ok(())
     }

@@ -175,19 +175,14 @@ impl Shadable for Particles {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: impl std::iter::IntoIterator<
-            Item = &'a dyn Light,
-            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
-        >,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        let mut lights_iter = lights.into_iter();
-        let fragment_shader_source =
-            material.fragment_shader_source(false, &mut lights_iter.clone());
+        let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
             &Particles::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, &mut lights_iter)?;
+                material.use_uniforms(program, camera, lights)?;
 
                 program.use_uniform_mat4("modelMatrix", &self.transformation)?;
                 program.use_uniform_vec3("acceleration", &self.acceleration)?;

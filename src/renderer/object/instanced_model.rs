@@ -246,19 +246,15 @@ impl<M: Material> Shadable for InstancedModel<M> {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: impl std::iter::IntoIterator<
-            Item = &'a dyn Light,
-            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
-        >,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        let mut lights_iter = lights.into_iter();
-        let fragment_shader_source = material
-            .fragment_shader_source(self.mesh.color_buffer.is_some(), &mut lights_iter.clone());
+        let fragment_shader_source =
+            material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
         self.context.program(
             &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
             |program| {
-                material.use_uniforms(program, camera, &mut lights_iter)?;
+                material.use_uniforms(program, camera, lights)?;
                 self.draw(
                     program,
                     material.render_states(),
@@ -271,14 +267,7 @@ impl<M: Material> Shadable for InstancedModel<M> {
 }
 
 impl<M: Material> Object for InstancedModel<M> {
-    fn render<'a>(
-        &self,
-        camera: &Camera,
-        lights: impl std::iter::IntoIterator<
-            Item = &'a dyn Light,
-            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
-        >,
-    ) -> ThreeDResult<()> {
+    fn render<'a>(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
     }
 

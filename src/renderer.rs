@@ -45,7 +45,7 @@ pub fn render_pass<'a>(
     objects: impl std::iter::IntoIterator<Item = impl Object>,
     lights: impl std::iter::IntoIterator<
         Item = &'a dyn Light,
-        IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
+        IntoIter = impl Iterator<Item = &'a dyn Light>,
     >,
 ) -> ThreeDResult<()> {
     let mut culled_objects = objects
@@ -53,9 +53,9 @@ pub fn render_pass<'a>(
         .filter(|o| camera.in_frustum(&o.aabb()))
         .collect::<Vec<_>>();
     culled_objects.sort_by(|a, b| cmp_render_order(camera, a, b));
-    let lights_iter = lights.into_iter();
+    let lights = lights.into_iter().collect::<Vec<_>>();
     for object in culled_objects {
-        object.render(camera, lights_iter.clone())?;
+        object.render(camera, &lights)?;
     }
     Ok(())
 }
@@ -177,7 +177,7 @@ pub fn ray_intersect<S: Shadable>(
             },
             || {
                 for geometry in geometries {
-                    geometry.render_with_material(&depth_material, &camera, &Lights::default())?;
+                    geometry.render_with_material(&depth_material, &camera, &[])?;
                 }
                 Ok(())
             },

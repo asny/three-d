@@ -141,11 +141,7 @@ impl DeferredPipeline {
                 .iter()
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
             {
-                geometry.render_with_material(
-                    material.borrow(),
-                    &self.camera,
-                    &Lights::default(),
-                )?;
+                geometry.render_with_material(material.borrow(), &self.camera, &[])?;
             }
             Ok(())
         })?;
@@ -163,7 +159,7 @@ impl DeferredPipeline {
         camera: &Camera,
         lights: impl std::iter::IntoIterator<
             Item = &'a dyn Light,
-            IntoIter = impl Iterator<Item = &'a dyn Light> + Clone,
+            IntoIter = impl Iterator<Item = &'a dyn Light>,
         >,
     ) -> ThreeDResult<()> {
         let render_states = RenderStates {
@@ -198,13 +194,13 @@ impl DeferredPipeline {
             );
         }
 
-        let lights_iter = lights.into_iter();
-        let mut fragment_shader = lights_fragment_shader_source(&mut lights_iter.clone());
+        let lights = lights.into_iter().collect::<Vec<_>>();
+        let mut fragment_shader = lights_fragment_shader_source(&lights);
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
             effect.use_uniform_vec3("eyePosition", camera.position())?;
-            for (i, light) in lights_iter.clone().enumerate() {
+            for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }
             effect.use_texture_array("gbuffer", self.geometry_pass_texture())?;

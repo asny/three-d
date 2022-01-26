@@ -59,7 +59,7 @@ fn main() {
             model.set_transformation(Mat4::from_angle_y(radians((frame_input.accumulated_time * 0.005) as f32)));
 
             // Render the triangle with the color material which uses the per vertex colors defined at construction
-            model.render(&camera, &Lights::default())?;
+            model.render(&camera, &[])?;
             Ok(())
         }).unwrap();
 

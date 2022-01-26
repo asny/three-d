@@ -34,11 +34,7 @@ impl ORMMaterial {
 }
 
 impl Material for ORMMaterial {
-    fn fragment_shader_source(
-        &self,
-        _use_vertex_colors: bool,
-        _lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
-    ) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut output = String::new();
         if self.metallic_roughness_texture.is_some() || self.occlusion_texture.is_some() {
             output.push_str("in vec2 uvs;\n");
@@ -57,7 +53,7 @@ impl Material for ORMMaterial {
         &self,
         program: &Program,
         _camera: &Camera,
-        _lights: &mut dyn std::iter::Iterator<Item = &dyn Light>,
+        _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         program.use_uniform_float("metallic", &self.metallic)?;
         program.use_uniform_float("roughness", &self.roughness)?;

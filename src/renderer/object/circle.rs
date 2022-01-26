@@ -59,7 +59,7 @@ impl<M: Material> Shadable2D for Circle<M> {
     ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
             self.model
-                .render_with_material(material, camera2d, &Lights::default())
+                .render_with_material(material, camera2d, &[])
         })
     }
 }
@@ -67,7 +67,7 @@ impl<M: Material> Shadable2D for Circle<M> {
 impl<M: Material> Object2D for Circle<M> {
     fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
-            self.model.render(camera2d, &Lights::default())
+            self.model.render(camera2d, &[])
         })
     }
 
