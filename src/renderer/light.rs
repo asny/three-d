@@ -177,6 +177,24 @@ impl<T: Light + ?Sized> Light for &T {
     }
 }
 
+impl<T: Light> Light for Box<T> {
+    fn shader_source(&self, i: u32) -> String {
+        self.as_ref().shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        self.as_ref().use_uniforms(program, i)
+    }
+}
+
+impl<T: Light> Light for std::rc::Rc<T> {
+    fn shader_source(&self, i: u32) -> String {
+        self.as_ref().shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        self.as_ref().use_uniforms(program, i)
+    }
+}
+
 pub(crate) fn lights_fragment_shader_source(lights: &[&dyn Light]) -> String {
     let mut shader_source = LightingModel::Cook(
         NormalDistributionFunction::TrowbridgeReitzGGX,
