@@ -85,10 +85,13 @@ impl DeferredPipeline {
     /// This function must not be called in a render target render function and needs to be followed
     /// by a call to [DeferredPipeline::lighting_pass].
     ///
-    pub fn render_pass<G: Geometry>(
+    pub fn render_pass(
         &mut self,
         camera: &Camera,
-        objects: &[(G, impl std::borrow::Borrow<DeferredPhysicalMaterial>)],
+        objects: &[(
+            impl Geometry,
+            impl std::borrow::Borrow<DeferredPhysicalMaterial>,
+        )],
     ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         match camera.projection_type() {
@@ -154,11 +157,7 @@ impl DeferredPipeline {
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write].
     ///
-    pub fn lighting_pass<'a>(
-        &mut self,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
+    pub fn lighting_pass(&mut self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             ..Default::default()
