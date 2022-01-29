@@ -3,7 +3,6 @@ use crate::core::*;
 ///
 /// An array of indices. Supports different data types.
 ///
-#[derive(Debug)]
 pub enum Indices {
     /// Uses unsigned 8 bit integer for each index.
     U8(Vec<u8>),
@@ -26,12 +25,24 @@ impl Indices {
     }
 }
 
+impl std::fmt::Debug for Indices {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("Indices");
+        match self {
+            Self::U8(ind) => d.field("u8", &ind.len()),
+            Self::U16(ind) => d.field("u16", &ind.len()),
+            Self::U32(ind) => d.field("u32", &ind.len()),
+        };
+        d.finish()
+    }
+}
+
 ///
 /// A CPU-side version of a triangle mesh.
 /// Can be constructed manually or loaded via [io](crate::io)
 /// or via the utility functions for generating simple triangle meshes.
 ///
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct CPUMesh {
     /// Name.
     pub name: String,
@@ -52,6 +63,21 @@ pub struct CPUMesh {
     /// The colors of the vertices. Four contiguous bytes defines a color `(r, g, b, a)`, therefore the length must be divisable by 4.
     /// The colors are assumed to be in linear space.
     pub colors: Option<Vec<u8>>,
+}
+
+impl std::fmt::Debug for CPUMesh {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("CPUMesh");
+        d.field("name", &self.name);
+        d.field("material name", &self.material_name);
+        d.field("positions", &self.positions.len());
+        d.field("indices", &self.indices);
+        d.field("normals", &self.normals.as_ref().map(|v| v.len()));
+        d.field("tangents", &self.tangents.as_ref().map(|v| v.len()));
+        d.field("uvs", &self.uvs.as_ref().map(|v| v.len()));
+        d.field("colors", &self.colors.as_ref().map(|v| v.len()));
+        d.finish()
+    }
 }
 
 impl CPUMesh {

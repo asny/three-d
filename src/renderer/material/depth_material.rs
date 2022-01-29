@@ -9,14 +9,14 @@ pub struct DepthMaterial {
 }
 
 impl Material for DepthMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("shaders/depth_material.frag").to_string()
     }
     fn use_uniforms(
         &self,
         program: &Program,
         camera: &Camera,
-        _lights: &Lights,
+        _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         program.use_uniform_float("minDistance", &self.min_distance.unwrap_or(camera.z_near()))?;
         program.use_uniform_float("maxDistance", &self.max_distance.unwrap_or(camera.z_far()))?;

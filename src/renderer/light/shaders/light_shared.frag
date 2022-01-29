@@ -5,14 +5,6 @@ struct BaseLight
     float intensity;
 };
 
-struct Attenuation
-{
-    float constant;
-    float linear;
-    float exp;
-    float padding;
-};
-
 // compute fresnel specular factor
 // cosTheta could be NdV or VdH depending on used technique
 vec3 fresnel_schlick(vec3 F0, float cosTheta)
@@ -146,11 +138,11 @@ vec3 calculate_light(vec3 light_color, vec3 L, vec3 surface_color, vec3 V, vec3 
     return (diffuse + specular) * light_color * NdL;
 }
 
-vec3 attenuate(vec3 light_color, Attenuation attenuation, float distance)
+vec3 attenuate(vec3 light_color, vec3 attenuation, float distance)
 {
-    float att =  attenuation.constant +
-        attenuation.linear * distance +
-        attenuation.exp * distance * distance;
+    float att =  attenuation.x +
+        attenuation.y * distance +
+        attenuation.z * distance * distance;
 
     return light_color / max(1.0, att);
 }
@@ -158,9 +150,15 @@ vec3 attenuate(vec3 light_color, Attenuation attenuation, float distance)
 float is_visible(sampler2D shadowMap, vec4 shadow_coord, vec2 offset)
 {
     vec2 uv = (shadow_coord.xy + offset)/shadow_coord.w;
-    float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
+    if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+        return 1.0;
+    }
     float shadow_cast_distance = texture(shadowMap, uv).x;
-    return uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || shadow_cast_distance > true_distance ? 1.0 : 0.0;
+    if(shadow_cast_distance > 0.999) {
+        return 1.0;
+    }
+    float true_distance = (shadow_coord.z - 0.005)/shadow_coord.w;
+    return shadow_cast_distance > true_distance ? 1.0 : 0.0;
 }
 
 float calculate_shadow(sampler2D shadowMap, mat4 shadowMVP, vec3 position)

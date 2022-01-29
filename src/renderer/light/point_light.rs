@@ -5,76 +5,58 @@ use crate::renderer::*;
 /// A light which shines from the given position in all directions.
 ///
 pub struct PointLight {
-    light_buffer: UniformBuffer,
+    pub intensity: f32,
+    pub color: Color,
+    pub position: Vec3,
+    pub attenuation: Attenuation,
 }
 
 impl PointLight {
     pub fn new(
-        context: &Context,
+        _context: &Context,
         intensity: f32,
         color: Color,
         position: &Vec3,
-        attenuation_constant: f32,
-        attenuation_linear: f32,
-        attenuation_exponential: f32,
+        attenuation: Attenuation,
     ) -> ThreeDResult<PointLight> {
-        let mut light = PointLight {
-            light_buffer: UniformBuffer::new(context, &[3u32, 1, 1, 1, 1, 1, 3, 1])?,
-        };
-
-        light.set_intensity(intensity);
-        light.set_color(color);
-        light.set_position(position);
-        light.set_attenuation(
-            attenuation_constant,
-            attenuation_linear,
-            attenuation_exponential,
-        );
-        Ok(light)
+        Ok(PointLight {
+            intensity,
+            color,
+            position: *position,
+            attenuation,
+        })
     }
 
     pub fn set_color(&mut self, color: Color) {
-        self.light_buffer.update(0, &color.to_rgb_slice()).unwrap();
+        self.color = color;
     }
 
     pub fn color(&self) -> Color {
-        let c = self.light_buffer.get(0).unwrap();
-        Color::from_rgb_slice(&[c[0], c[1], c[2]])
+        self.color
     }
 
     pub fn set_intensity(&mut self, intensity: f32) {
-        self.light_buffer.update(1, &[intensity]).unwrap();
+        self.intensity = intensity;
     }
 
     pub fn intensity(&self) -> f32 {
-        self.light_buffer.get(1).unwrap()[0]
+        self.intensity
     }
 
-    pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) {
-        self.light_buffer.update(2, &[constant]).unwrap();
-        self.light_buffer.update(3, &[linear]).unwrap();
-        self.light_buffer.update(4, &[exponential]).unwrap();
+    pub fn set_attenuation(&mut self, attenuation: Attenuation) {
+        self.attenuation = attenuation
     }
 
-    pub fn attenuation(&self) -> (f32, f32, f32) {
-        (
-            self.light_buffer.get(2).unwrap()[0],
-            self.light_buffer.get(3).unwrap()[0],
-            self.light_buffer.get(4).unwrap()[0],
-        )
+    pub fn attenuation(&self) -> Attenuation {
+        self.attenuation
     }
 
     pub fn set_position(&mut self, position: &Vec3) {
-        self.light_buffer.update(6, &position.as_array()).unwrap();
+        self.position = *position;
     }
 
     pub fn position(&self) -> Vec3 {
-        let p = self.light_buffer.get(6).unwrap();
-        vec3(p[0], p[1], p[2])
-    }
-
-    pub fn buffer(&self) -> &UniformBuffer {
-        &self.light_buffer
+        self.position
     }
 }
 
@@ -82,33 +64,36 @@ impl Light for PointLight {
     fn shader_source(&self, i: u32) -> String {
         format!(
         "
-            layout (std140) uniform LightUniform{}
-            {{
-                BaseLight base{};
-                Attenuation attenuation{};
-                vec3 position{};
-                float padding{};
-            }};
+            uniform vec3 color{};
+            uniform vec3 attenuation{};
+            uniform vec3 position{};
+
             vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
             {{
-                if(base{}.intensity > 0.001) {{
-                    vec3 light_direction = position{} - position;
-                    float distance = length(light_direction);
-                    light_direction = light_direction / distance;
+                vec3 light_direction = position{} - position;
+                float distance = length(light_direction);
+                light_direction = light_direction / distance;
 
-                    vec3 light_color = base{}.intensity * base{}.color;
-                    light_color = attenuate(light_color, attenuation{}, distance);
-                    return calculate_light(light_color, light_direction, surface_color, view_direction, normal, metallic, roughness);
-                }}
-                else {{
-                    return vec3(0.0, 0.0, 0.0);
-                }}
+                vec3 light_color = attenuate(color{}, attenuation{}, distance);
+                return calculate_light(light_color, light_direction, surface_color, view_direction, normal, metallic, roughness);
             }}
         
-        ", i, i, i, i, i, i, i, i, i, i, i)
+        ", i, i, i, i, i, i, i)
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
-        program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
+        program.use_uniform_vec3(
+            &format!("color{}", i),
+            &(self.color.to_vec3() * self.intensity),
+        )?;
+        program.use_uniform_vec3(
+            &format!("attenuation{}", i),
+            &vec3(
+                self.attenuation.constant,
+                self.attenuation.linear,
+                self.attenuation.quadratic,
+            ),
+        )?;
+        program.use_uniform_vec3(&format!("position{}", i), &self.position)?;
         Ok(())
     }
 }

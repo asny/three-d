@@ -8,8 +8,11 @@ use crate::renderer::*;
 ///
 pub struct DirectionalLight {
     context: Context,
-    light_buffer: UniformBuffer,
     shadow_texture: Option<DepthTargetTexture2D>,
+    shadow_matrix: Mat4,
+    pub intensity: f32,
+    pub color: Color,
+    pub direction: Vec3,
 }
 
 impl DirectionalLight {
@@ -19,62 +22,53 @@ impl DirectionalLight {
         color: Color,
         direction: &Vec3,
     ) -> ThreeDResult<DirectionalLight> {
-        let mut light = DirectionalLight {
+        Ok(DirectionalLight {
             context: context.clone(),
-            light_buffer: UniformBuffer::new(context, &[3u32, 1, 3, 1, 16])?,
+            shadow_matrix: Mat4::identity(),
             shadow_texture: None,
-        };
-
-        light.set_intensity(intensity);
-        light.set_color(color);
-        light.set_direction(direction);
-        Ok(light)
+            intensity,
+            color,
+            direction: *direction,
+        })
     }
 
     pub fn set_color(&mut self, color: Color) {
-        self.light_buffer.update(0, &color.to_rgb_slice()).unwrap();
+        self.color = color;
     }
 
     pub fn color(&self) -> Color {
-        let c = self.light_buffer.get(0).unwrap();
-        Color::from_rgb_slice(&[c[0], c[1], c[2]])
+        self.color
     }
 
     pub fn set_intensity(&mut self, intensity: f32) {
-        self.light_buffer.update(1, &[intensity]).unwrap();
+        self.intensity = intensity;
     }
 
     pub fn intensity(&self) -> f32 {
-        self.light_buffer.get(1).unwrap()[0]
+        self.intensity
     }
 
     pub fn set_direction(&mut self, direction: &Vec3) {
-        self.light_buffer
-            .update(2, &direction.normalize().as_array())
-            .unwrap();
+        self.direction = *direction;
     }
 
     pub fn direction(&self) -> Vec3 {
-        let d = self.light_buffer.get(2).unwrap();
-        vec3(d[0], d[1], d[2])
+        self.direction
     }
 
     pub fn clear_shadow_map(&mut self) {
         self.shadow_texture = None;
-        self.light_buffer.update(3, &[0.0]).unwrap();
+        self.shadow_matrix = Mat4::identity();
     }
 
     pub fn generate_shadow_map(
         &mut self,
-        frustrum_height: f32,
-        texture_width: u32,
-        texture_height: u32,
+        texture_size: u32,
         geometries: &[impl Geometry],
     ) -> ThreeDResult<()> {
-        let direction = self.direction();
-        let up = compute_up_direction(direction);
+        let up = compute_up_direction(self.direction);
 
-        let viewport = Viewport::new_at_origo(texture_width, texture_height);
+        let viewport = Viewport::new_at_origo(texture_size, texture_size);
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
         for geometry in geometries {
             aabb.expand_with_aabb(&geometry.aabb());
@@ -83,26 +77,24 @@ impl DirectionalLight {
             return Ok(());
         }
         let target = aabb.center();
-        let position = target - direction * aabb.max().distance(aabb.min());
+        let position = target - self.direction;
         let z_far = aabb.distance_max(&position);
         let z_near = aabb.distance(&position);
+        let frustum_height = aabb.max().distance(aabb.min()); // TODO: more tight fit
         let shadow_camera = Camera::new_orthographic(
             &self.context,
             viewport,
             position,
             target,
             up,
-            frustrum_height,
+            frustum_height,
             z_near,
             z_far,
         )?;
-        self.light_buffer
-            .update(4, &shadow_matrix(&shadow_camera).as_array())?;
-
         let mut shadow_texture = DepthTargetTexture2D::new(
             &self.context,
-            texture_width,
-            texture_height,
+            texture_size,
+            texture_size,
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
             DepthFormat::Depth32F,
@@ -119,65 +111,62 @@ impl DirectionalLight {
                 .iter()
                 .filter(|g| shadow_camera.in_frustum(&g.aabb()))
             {
-                geometry.render_with_material(
-                    &depth_material,
-                    &shadow_camera,
-                    &Lights::default(),
-                )?;
+                geometry.render_with_material(&depth_material, &shadow_camera, &[])?;
             }
             Ok(())
         })?;
         self.shadow_texture = Some(shadow_texture);
-        self.light_buffer.update(3, &[1.0])?;
+        self.shadow_matrix = shadow_matrix(&shadow_camera);
         Ok(())
     }
 
     pub fn shadow_map(&self) -> Option<&DepthTargetTexture2D> {
         self.shadow_texture.as_ref()
     }
-
-    pub fn buffer(&self) -> &UniformBuffer {
-        &self.light_buffer
-    }
 }
 
 impl Light for DirectionalLight {
     fn shader_source(&self, i: u32) -> String {
-        format!(
-        "
-            uniform sampler2D shadowMap{};
-            layout (std140) uniform LightUniform{}
-            {{
-                BaseLight base{};
-                vec3 direction{};
-                float shadowEnabled{};
-                mat4 shadowMVP{};
-            }};
-            vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
-            {{
-                if(base{}.intensity > 0.001) {{
-                    vec3 light_color = base{}.intensity * base{}.color;
-                    vec3 result = calculate_light(light_color, -direction{}, surface_color, view_direction, normal, metallic, roughness);
-                    if(shadowEnabled{} > 0.5) {{
-                        result *= calculate_shadow(shadowMap{}, shadowMVP{}, position);
-                    }}
-                    return result;
-                }}
-                else {{
-                    return vec3(0.0, 0.0, 0.0);
-                }}
-            }}
+        if self.shadow_texture.is_some() {
+            format!(
+                "
+                    uniform sampler2D shadowMap{};
+                    uniform mat4 shadowMVP{};
         
-        ", i, i, i, i, i, i, i, i, i, i, i, i, i, i)
+                    uniform vec3 color{};
+                    uniform vec3 direction{};
+        
+                    vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
+                    {{
+                        return calculate_light(color{}, -direction{}, surface_color, view_direction, normal, metallic, roughness) 
+                            * calculate_shadow(shadowMap{}, shadowMVP{}, position);
+                    }}
+                
+                ", i, i, i, i, i, i, i, i, i)
+        } else {
+            format!(
+                "
+                    uniform vec3 color{};
+                    uniform vec3 direction{};
+        
+                    vec3 calculate_lighting{}(vec3 surface_color, vec3 position, vec3 normal, vec3 view_direction, float metallic, float roughness, float occlusion)
+                    {{
+                        return calculate_light(color{}, -direction{}, surface_color, view_direction, normal, metallic, roughness);
+                    }}
+                
+                ", i, i, i, i, i)
+        }
     }
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
-        if let Some(tex) = self.shadow_map() {
+        if let Some(ref tex) = self.shadow_texture {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
-        } else {
-            self.context
-                .use_texture_dummy(&program, &format!("shadowMap{}", i))?;
+            program.use_uniform_mat4(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
         }
-        program.use_uniform_block(&format!("LightUniform{}", i), self.buffer());
+        program.use_uniform_vec3(
+            &format!("color{}", i),
+            &(self.color.to_vec3() * self.intensity),
+        )?;
+        program.use_uniform_vec3(&format!("direction{}", i), &self.direction.normalize())?;
         Ok(())
     }
 }

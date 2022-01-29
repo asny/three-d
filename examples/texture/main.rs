@@ -11,7 +11,6 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
-    let pipeline = ForwardPipeline::new(&context).unwrap();
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -75,21 +74,9 @@ fn main() {
         },
     );
 
-    let lights = Lights {
-        ambient: Some(AmbientLight {
-            intensity: 0.4,
-            color: Color::WHITE,
-            ..Default::default()
-        }),
-        directional: vec![DirectionalLight::new(
-            &context,
-            2.0,
-            Color::WHITE,
-            &vec3(0.0, -1.0, -1.0),
-        )
-        .unwrap()],
-        ..Default::default()
-    };
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
+    let directional =
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
 
     // main loop
     let mut loaded = false;
@@ -110,10 +97,10 @@ fn main() {
                 Screen::write(&context, ClearState::default(), || {
                     if let Some(ref objects) = *objects.borrow() {
                         let (box_object, penguin_object) = objects.as_ref().unwrap();
-                        pipeline.render_pass(
+                        render_pass(
                             &camera,
                             &[box_object as &dyn Object, penguin_object],
-                            &lights,
+                            &[&ambient, &directional],
                         )?;
                     }
                     if let Some(ref skybox) = *skybox.borrow() {

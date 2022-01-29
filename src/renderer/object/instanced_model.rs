@@ -246,7 +246,7 @@ impl<M: Material> Shadable for InstancedModel<M> {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let fragment_shader_source =
             material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
@@ -264,43 +264,10 @@ impl<M: Material> Shadable for InstancedModel<M> {
             },
         )
     }
-
-    fn render_forward(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        self.render_with_material(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        let lights = Lights::default();
-        let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some(), &lights);
-        self.context.program(
-            &Self::vertex_shader_source(&fragment_shader_source)?,
-            &fragment_shader_source,
-            |program| {
-                material.use_uniforms(program, camera, &lights)?;
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera.uniform_buffer(),
-                    viewport,
-                )
-            },
-        )
-    }
 }
 
 impl<M: Material> Object for InstancedModel<M> {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
     }
 

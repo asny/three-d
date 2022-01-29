@@ -5,14 +5,14 @@ use three_d::window::*;
 struct MandelbrotMaterial {}
 
 impl Material for MandelbrotMaterial {
-    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &Lights) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("../assets/shaders/mandelbrot.frag").to_string()
     }
     fn use_uniforms(
         &self,
         _program: &Program,
         _camera: &Camera,
-        _lights: &Lights,
+        _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         Ok(())
     }
@@ -109,7 +109,7 @@ fn main() {
 
             if redraw {
                 Screen::write(&context, ClearState::color(0.0, 1.0, 1.0, 1.0), || {
-                    mesh.render(&camera, &Lights::default())
+                    mesh.render(&camera, &[])
                 })
                 .unwrap();
             }

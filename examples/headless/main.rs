@@ -76,7 +76,7 @@ fn main() {
                 )));
 
                 // Render the triangle with the per vertex colors defined at construction
-                model.render(&camera, &Lights::default())
+                model.render(&camera, &[])
             })
             .unwrap();
 

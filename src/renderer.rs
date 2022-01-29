@@ -4,7 +4,8 @@
 //!
 
 pub use crate::core::{
-    math::*, render_states::*, render_target::*, texture::*, Camera, Context, Viewport,
+    math::*, render_states::*, render_target::*, texture::*, Camera, Context, GeometryFunction,
+    LightingModel, NormalDistributionFunction, Viewport,
 };
 
 pub mod material;
@@ -40,7 +41,11 @@ pub enum RendererError {}
 /// Render the objects. Also avoids rendering objects outside the camera frustum and render the objects in the order given by [cmp_render_order].
 /// Must be called in a render target render function, for example in the callback function of [Screen::write].
 ///
-pub fn render_pass(camera: &Camera, objects: &[impl Object], lights: &Lights) -> ThreeDResult<()> {
+pub fn render_pass(
+    camera: &Camera,
+    objects: &[impl Object],
+    lights: &[&dyn Light],
+) -> ThreeDResult<()> {
     let mut culled_objects = objects
         .iter()
         .filter(|o| camera.in_frustum(&o.aabb()))
@@ -169,7 +174,7 @@ pub fn ray_intersect<S: Shadable>(
             },
             || {
                 for geometry in geometries {
-                    geometry.render_with_material(&depth_material, &camera, &Lights::default())?;
+                    geometry.render_with_material(&depth_material, &camera, &[])?;
                 }
                 Ok(())
             },

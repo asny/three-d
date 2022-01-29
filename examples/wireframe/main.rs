@@ -74,17 +74,11 @@ fn main() {
         },
     );
 
-    let lights = Lights {
-        ambient: Some(AmbientLight {
-            intensity: 0.7,
-            ..Default::default()
-        }),
-        directional: vec![
-            DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap(),
-            DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap(),
-        ],
-        ..Default::default()
-    };
+    let ambient = AmbientLight::new(&context, 0.7, Color::WHITE).unwrap();
+    let directional0 =
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
+    let directional1 =
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(1.0, 1.0, 1.0)).unwrap();
 
     // main loop
     let mut loaded = false;
@@ -110,7 +104,7 @@ fn main() {
                             render_pass(
                                 &camera,
                                 &[&model as &dyn Object, &vertices, &edges],
-                                &lights,
+                                &[&ambient, &directional0, &directional1],
                             )?;
                         }
                         Ok(())

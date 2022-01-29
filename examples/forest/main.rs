@@ -77,20 +77,10 @@ fn main() {
             .unwrap();
 
             // Lights
-            let lights = Lights {
-                ambient: Some(AmbientLight {
-                    intensity: 0.3,
-                    ..Default::default()
-                }),
-                directional: vec![DirectionalLight::new(
-                    &context,
-                    4.0,
-                    Color::WHITE,
-                    &vec3(-1.0, -1.0, -1.0),
-                )
-                .unwrap()],
-                ..Default::default()
-            };
+            let ambient = AmbientLight::new(&context, 0.3, Color::WHITE).unwrap();
+            let directional =
+                DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0))
+                    .unwrap();
 
             // Imposters
             let mut aabb = tree_cpu_mesh.compute_aabb();
@@ -99,7 +89,11 @@ fn main() {
             imposters
                 .update_texture(
                     |camera: &Camera| {
-                        render_pass(&camera, &[&tree_mesh, &leaves_mesh], &lights)?;
+                        render_pass(
+                            &camera,
+                            &[&tree_mesh, &leaves_mesh],
+                            &[&ambient, &directional],
+                        )?;
                         Ok(())
                     },
                     (aabb.min(), aabb.max()),
@@ -141,7 +135,14 @@ fn main() {
             )
             .unwrap();
             plane.material.opaque_render_states.cull = Cull::Back;
-            Ok((plane, tree_mesh, leaves_mesh, imposters, lights))
+            Ok((
+                plane,
+                tree_mesh,
+                leaves_mesh,
+                imposters,
+                ambient,
+                directional,
+            ))
         },
     );
 
@@ -166,9 +167,13 @@ fn main() {
                     ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                     || {
                         if let Some(ref scene) = *scene.borrow() {
-                            let (plane, tree_mesh, leaves_mesh, imposters, lights) =
+                            let (plane, tree_mesh, leaves_mesh, imposters, ambient, directional) =
                                 scene.as_ref().unwrap();
-                            render_pass(&camera, &[&plane, &tree_mesh, &leaves_mesh], &lights)?;
+                            render_pass(
+                                &camera,
+                                &[&plane, &tree_mesh, &leaves_mesh],
+                                &[&ambient, &directional],
+                            )?;
                             imposters.render(&camera)?;
                         }
                         Ok(())

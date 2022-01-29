@@ -26,67 +26,58 @@ pub use environment::*;
 
 use crate::core::*;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum LightingModel {
-    Phong,
-    Blinn,
-    Cook(NormalDistributionFunction, GeometryFunction),
+///
+/// Specifies how the intensity of a light fades over distance.
+/// The light intensity is scaled by ``` 1 / max(1, constant + distance * linear + distance * distance * quadratic) ```.
+///
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub struct Attenuation {
+    pub constant: f32,
+    pub linear: f32,
+    pub quadratic: f32,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum GeometryFunction {
-    SmithSchlickGGX,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum NormalDistributionFunction {
-    Blinn,
-    Beckmann,
-    TrowbridgeReitzGGX,
-}
-
-impl LightingModel {
-    pub(crate) fn shader(&self) -> &str {
-        match self {
-            LightingModel::Phong => "#define PHONG",
-            LightingModel::Blinn => "#define BLINN",
-            LightingModel::Cook(normal, _) => match normal {
-                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
-                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
-                NormalDistributionFunction::TrowbridgeReitzGGX => {
-                    "#define COOK\n#define COOK_GGX\n"
-                }
-            },
+impl Default for Attenuation {
+    fn default() -> Self {
+        Self {
+            constant: 1.0,
+            linear: 0.0,
+            quadratic: 0.0,
         }
     }
 }
 
+#[deprecated = "use slice of lights instead when making a render call"]
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
     pub directional: Vec<DirectionalLight>,
     pub spot: Vec<SpotLight>,
     pub point: Vec<PointLight>,
+    #[deprecated = "the lighting model is specified on each physical material"]
     pub lighting_model: LightingModel,
 }
 
+#[allow(deprecated)]
 impl Lights {
-    pub fn fragment_shader_source(&self) -> String {
-        lights_fragment_shader_source(&mut LightsIterator::new(self), self.lighting_model)
-    }
-
-    pub fn use_uniforms(&self, program: &Program, camera: &Camera) -> ThreeDResult<()> {
-        program.use_uniform_vec3("eyePosition", camera.position())?;
-        for (i, light) in LightsIterator::new(self).enumerate() {
-            light.use_uniforms(program, i as u32)?;
-        }
-        Ok(())
-    }
-
     pub fn iter<'a>(&'a self) -> LightsIterator<'a> {
         LightsIterator::new(self)
     }
+
+    pub fn to_vec<'a>(&'a self) -> Vec<&'a dyn Light> {
+        self.iter().collect::<Vec<_>>()
+    }
 }
 
+#[allow(deprecated)]
+impl<'a> IntoIterator for &'a Lights {
+    type Item = &'a dyn Light;
+    type IntoIter = LightsIterator<'a>;
+    fn into_iter(self) -> LightsIterator<'a> {
+        LightsIterator::new(&self)
+    }
+}
+
+#[allow(deprecated)]
 impl Default for Lights {
     fn default() -> Self {
         Self {
@@ -99,17 +90,26 @@ impl Default for Lights {
     }
 }
 
+#[allow(deprecated)]
 pub struct LightsIterator<'a> {
     lights: &'a Lights,
     index: usize,
 }
 
+#[allow(deprecated)]
 impl<'a> LightsIterator<'a> {
     pub fn new(lights: &'a Lights) -> Self {
         Self { index: 0, lights }
     }
 }
 
+impl<'a> std::clone::Clone for LightsIterator<'a> {
+    fn clone(&self) -> Self {
+        Self::new(self.lights)
+    }
+}
+
+#[allow(deprecated)]
 impl<'a> Iterator for LightsIterator<'a> {
     type Item = &'a dyn Light;
     fn next(&mut self) -> Option<Self::Item> {
@@ -152,15 +152,47 @@ impl<'a> Iterator for LightsIterator<'a> {
     }
 }
 
+pub trait Light {
+    fn shader_source(&self, i: u32) -> String;
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()>;
+}
+
+impl<T: Light + ?Sized> Light for &T {
+    fn shader_source(&self, i: u32) -> String {
+        (*self).shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        (*self).use_uniforms(program, i)
+    }
+}
+
+impl<T: Light> Light for Box<T> {
+    fn shader_source(&self, i: u32) -> String {
+        self.as_ref().shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        self.as_ref().use_uniforms(program, i)
+    }
+}
+
+impl<T: Light> Light for std::rc::Rc<T> {
+    fn shader_source(&self, i: u32) -> String {
+        self.as_ref().shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        self.as_ref().use_uniforms(program, i)
+    }
+}
+
 pub(crate) fn lights_fragment_shader_source(
-    lights: &mut dyn Iterator<Item = &dyn Light>,
+    lights: &[&dyn Light],
     lighting_model: LightingModel,
 ) -> String {
     let mut shader_source = lighting_model.shader().to_string();
     shader_source.push_str(include_str!("../core/shared.frag"));
-    shader_source.push_str(include_str!("./light/shaders/light_shared.frag"));
+    shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
     let mut dir_fun = String::new();
-    for (i, light) in lights.enumerate() {
+    for (i, light) in lights.iter().enumerate() {
         shader_source.push_str(&light.shader_source(i as u32));
         dir_fun.push_str(&format!("color += calculate_lighting{}(surface_color, position, normal, view_direction, metallic, roughness, occlusion);\n", i))
     }
@@ -178,20 +210,6 @@ pub(crate) fn lights_fragment_shader_source(
         &dir_fun
     ));
     shader_source
-}
-
-pub trait Light {
-    fn shader_source(&self, i: u32) -> String;
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()>;
-}
-
-impl<T: Light + ?Sized> Light for &T {
-    fn shader_source(&self, i: u32) -> String {
-        (*self).shader_source(i)
-    }
-    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
-        (*self).use_uniforms(program, i)
-    }
 }
 
 fn shadow_matrix(camera: &Camera) -> Mat4 {

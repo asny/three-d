@@ -10,6 +10,29 @@ pub struct AmbientLight {
     pub environment: Option<Environment>,
 }
 
+impl AmbientLight {
+    pub fn new(_context: &Context, intensity: f32, color: Color) -> ThreeDResult<Self> {
+        Ok(Self {
+            intensity,
+            color,
+            environment: None,
+        })
+    }
+
+    pub fn new_with_environment(
+        context: &Context,
+        intensity: f32,
+        color: Color,
+        environment_map: &impl TextureCube,
+    ) -> ThreeDResult<Self> {
+        Ok(Self {
+            intensity,
+            color,
+            environment: Some(Environment::new(context, environment_map)?),
+        })
+    }
+}
+
 impl Light for AmbientLight {
     fn shader_source(&self, i: u32) -> String {
         if self.environment.is_some() {

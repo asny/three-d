@@ -1,9 +1,8 @@
 use crate::core::*;
-use crate::renderer::*;
 
 ///
 /// Precalculations of light shining from an environment map (known as image based lighting - IBL).
-/// This allows for real-time rendering of ambient light from the environment (see [AmbientLight]).
+/// This allows for real-time rendering of ambient light from the environment (see [AmbientLight](crate::AmbientLight)).
 ///
 #[allow(missing_docs)]
 pub struct Environment {
@@ -15,12 +14,27 @@ pub struct Environment {
 impl Environment {
     ///
     /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map.
+    /// A default Cook-Torrance lighting model is used.
     ///
     pub fn new(context: &Context, environment_map: &impl TextureCube) -> ThreeDResult<Self> {
-        let lighting_model = LightingModel::Cook(
-            NormalDistributionFunction::TrowbridgeReitzGGX,
-            GeometryFunction::SmithSchlickGGX,
-        );
+        Self::new_with_lighting_model(
+            context,
+            environment_map,
+            LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            ),
+        )
+    }
+
+    ///
+    /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map and with the specified lighting model.
+    ///
+    pub fn new_with_lighting_model(
+        context: &Context,
+        environment_map: &impl TextureCube,
+        lighting_model: LightingModel,
+    ) -> ThreeDResult<Self> {
         // Diffuse
         let irradiance_size = 32;
         let mut irradiance_map = TextureCubeMap::new_empty(

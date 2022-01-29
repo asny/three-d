@@ -86,24 +86,16 @@ fn main() {
             fountain.set_transformation(Mat4::from_angle_x(degrees(-90.0)));
             models.push(fountain);
 
-            let mut lights = Lights {
-                ambient: Some(AmbientLight {
-                    intensity: 0.4,
-                    ..Default::default()
-                }),
-                directional: vec![DirectionalLight::new(
-                    &context,
-                    10.0,
-                    Color::new_opaque(204, 178, 127),
-                    &vec3(0.0, -1.0, -1.0),
-                )
-                .unwrap()],
-                ..Default::default()
-            };
-            lights.directional[0]
-                .generate_shadow_map(1000.0, 1024, 1024, &models)
-                .unwrap();
-            Ok((models, lights))
+            let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
+            let mut directional = DirectionalLight::new(
+                &context,
+                10.0,
+                Color::new_opaque(204, 178, 127),
+                &vec3(0.0, -1.0, -1.0),
+            )
+            .unwrap();
+            directional.generate_shadow_map(1024, &models).unwrap();
+            Ok((models, ambient, directional))
         },
     );
 
@@ -142,7 +134,7 @@ fn main() {
                     ClearState::color_and_depth(0.8, 0.8, 0.7, 1.0, 1.0),
                     || {
                         if let Some(ref scene) = *scene.borrow() {
-                            let (models, lights) = scene.as_ref().unwrap();
+                            let (models, ambient, directional) = scene.as_ref().unwrap();
                             for model in models
                                 .iter()
                                 .filter(|o| primary_camera.in_frustum(&o.aabb()))
@@ -153,7 +145,7 @@ fn main() {
                                     } else {
                                         &secondary_camera
                                     },
-                                    &lights,
+                                    &[ambient, directional],
                                 )?;
                             }
                         }

@@ -63,59 +63,53 @@ fn main() {
             * Mat4::from_angle_x(degrees(-90.0)),
     );
 
-    let mut lights = Lights {
-        ambient: Some(AmbientLight {
-            color: Color::WHITE,
-            intensity: 0.2,
-            ..Default::default()
-        }),
-        directional: vec![
-            DirectionalLight::new(&context, 1.0, Color::RED, &vec3(0.0, -1.0, 0.0)).unwrap(),
-            DirectionalLight::new(&context, 1.0, Color::GREEN, &vec3(0.0, -1.0, 0.0)).unwrap(),
-        ],
-        spot: vec![SpotLight::new(
-            &context,
-            2.0,
-            Color::BLUE,
-            &vec3(0.0, 0.0, 0.0),
-            &vec3(0.0, -1.0, 0.0),
-            degrees(25.0),
-            0.1,
-            0.001,
-            0.0001,
-        )
-        .unwrap()],
-        point: vec![
-            PointLight::new(
-                &context,
-                1.0,
-                Color::GREEN,
-                &vec3(0.0, 0.0, 0.0),
-                0.5,
-                0.05,
-                0.005,
-            )
-            .unwrap(),
-            PointLight::new(
-                &context,
-                1.0,
-                Color::RED,
-                &vec3(0.0, 0.0, 0.0),
-                0.5,
-                0.05,
-                0.005,
-            )
-            .unwrap(),
-        ],
-        ..Default::default()
-    };
+    let mut ambient = AmbientLight::new(&context, 0.2, Color::WHITE).unwrap();
+    let mut directional0 =
+        DirectionalLight::new(&context, 1.0, Color::RED, &vec3(0.0, -1.0, 0.0)).unwrap();
+    let mut directional1 =
+        DirectionalLight::new(&context, 1.0, Color::GREEN, &vec3(0.0, -1.0, 0.0)).unwrap();
+    let mut spot0 = SpotLight::new(
+        &context,
+        2.0,
+        Color::BLUE,
+        &vec3(0.0, 0.0, 0.0),
+        &vec3(0.0, -1.0, 0.0),
+        degrees(25.0),
+        Attenuation {
+            constant: 0.1,
+            linear: 0.001,
+            quadratic: 0.0001,
+        },
+    )
+    .unwrap();
+    let mut point0 = PointLight::new(
+        &context,
+        1.0,
+        Color::GREEN,
+        &vec3(0.0, 0.0, 0.0),
+        Attenuation {
+            constant: 0.5,
+            linear: 0.05,
+            quadratic: 0.005,
+        },
+    )
+    .unwrap();
+    let mut point1 = PointLight::new(
+        &context,
+        1.0,
+        Color::RED,
+        &vec3(0.0, 0.0, 0.0),
+        Attenuation {
+            constant: 0.5,
+            linear: 0.05,
+            quadratic: 0.005,
+        },
+    )
+    .unwrap();
 
     // main loop
     let mut shadows_enabled = true;
-    let mut directional_intensity = lights.directional[0].intensity();
-    let mut spot_intensity = lights.spot[0].intensity();
-    let mut point_intensity = lights.point[0].intensity();
-
+    let mut lighting_model = LightingModel::Blinn;
     let mut current_pipeline = Pipeline::Forward;
 
     window
@@ -163,35 +157,37 @@ fn main() {
 
                         ui.label("Light options");
                         ui.add(
-                            Slider::new(&mut lights.ambient.as_mut().unwrap().intensity, 0.0..=1.0)
+                            Slider::new(&mut ambient.intensity, 0.0..=1.0)
                                 .text("Ambient intensity"),
                         );
                         ui.add(
-                            Slider::new(&mut directional_intensity, 0.0..=1.0)
-                                .text("Directional intensity"),
+                            Slider::new(&mut directional0.intensity, 0.0..=1.0)
+                                .text("Directional 0 intensity"),
                         );
-                        lights.directional[0].set_intensity(directional_intensity);
-                        lights.directional[1].set_intensity(directional_intensity);
-                        ui.add(Slider::new(&mut spot_intensity, 0.0..=1.0).text("Spot intensity"));
-                        lights.spot[0].set_intensity(spot_intensity);
                         ui.add(
-                            Slider::new(&mut point_intensity, 0.0..=1.0).text("Point intensity"),
+                            Slider::new(&mut directional1.intensity, 0.0..=1.0)
+                                .text("Directional 1 intensity"),
                         );
-                        lights.point[0].set_intensity(point_intensity);
-                        lights.point[1].set_intensity(point_intensity);
+                        ui.add(Slider::new(&mut spot0.intensity, 0.0..=1.0).text("Spot intensity"));
+                        ui.add(
+                            Slider::new(&mut point0.intensity, 0.0..=1.0).text("Point 0 intensity"),
+                        );
+                        ui.add(
+                            Slider::new(&mut point1.intensity, 0.0..=1.0).text("Point 1 intensity"),
+                        );
                         if ui.checkbox(&mut shadows_enabled, "Shadows").clicked() {
                             if !shadows_enabled {
-                                lights.spot[0].clear_shadow_map();
-                                lights.directional[0].clear_shadow_map();
-                                lights.directional[1].clear_shadow_map();
+                                spot0.clear_shadow_map();
+                                directional0.clear_shadow_map();
+                                directional1.clear_shadow_map();
                             }
                         }
 
                         ui.label("Lighting model");
-                        ui.radio_value(&mut lights.lighting_model, LightingModel::Phong, "Phong");
-                        ui.radio_value(&mut lights.lighting_model, LightingModel::Blinn, "Blinn");
+                        ui.radio_value(&mut lighting_model, LightingModel::Phong, "Phong");
+                        ui.radio_value(&mut lighting_model, LightingModel::Blinn, "Blinn");
                         ui.radio_value(
-                            &mut lights.lighting_model,
+                            &mut lighting_model,
                             LightingModel::Cook(
                                 NormalDistributionFunction::Blinn,
                                 GeometryFunction::SmithSchlickGGX,
@@ -199,7 +195,7 @@ fn main() {
                             "Cook (Blinn)",
                         );
                         ui.radio_value(
-                            &mut lights.lighting_model,
+                            &mut lighting_model,
                             LightingModel::Cook(
                                 NormalDistributionFunction::Beckmann,
                                 GeometryFunction::SmithSchlickGGX,
@@ -207,7 +203,7 @@ fn main() {
                             "Cook (Beckmann)",
                         );
                         ui.radio_value(
-                            &mut lights.lighting_model,
+                            &mut lighting_model,
                             LightingModel::Cook(
                                 NormalDistributionFunction::TrowbridgeReitzGGX,
                                 GeometryFunction::SmithSchlickGGX,
@@ -261,26 +257,24 @@ fn main() {
             let time = 0.001 * frame_input.accumulated_time;
             let c = time.cos() as f32;
             let s = time.sin() as f32;
-            lights.directional[0].set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
-            lights.directional[1].set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
-            lights.spot[0].set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
-            lights.spot[0].set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
-            lights.point[0].set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
-            lights.point[1].set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
+            directional0.set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
+            directional1.set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
+            spot0.set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
+            spot0.set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
+            point0.set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
+            point1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
+
+            if let Some(ref mut model) = *model.borrow_mut() {
+                model.as_mut().unwrap().material.lighting_model = lighting_model;
+            }
 
             // Draw
             if let Some(ref model) = *model.borrow() {
                 let model = model.as_ref().unwrap();
                 if shadows_enabled {
-                    lights.directional[0]
-                        .generate_shadow_map(4.0, 1024, 1024, &[model, &plane])
-                        .unwrap();
-                    lights.directional[1]
-                        .generate_shadow_map(4.0, 1024, 1024, &[model, &plane])
-                        .unwrap();
-                    lights.spot[0]
-                        .generate_shadow_map(1024, &[model, &plane])
-                        .unwrap();
+                    directional0.generate_shadow_map(1024, &[model]).unwrap();
+                    directional1.generate_shadow_map(1024, &[model]).unwrap();
+                    spot0.generate_shadow_map(1024, &[model]).unwrap();
                 }
 
                 // Geometry pass
@@ -305,6 +299,15 @@ fn main() {
                         )
                         .unwrap();
                 }
+
+                let lights = [
+                    &ambient as &dyn Light,
+                    &spot0,
+                    &directional0,
+                    &directional1,
+                    &point0,
+                    &point1,
+                ];
 
                 // Light pass
                 Screen::write(&context, ClearState::default(), || {

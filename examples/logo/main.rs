@@ -42,6 +42,10 @@ fn main() {
         &CPUMaterial {
             roughness: 0.6,
             metallic: 0.6,
+            lighting_model: LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            ),
             ..Default::default()
         },
     )
@@ -49,24 +53,16 @@ fn main() {
     let mut model = Model::new_with_material(&context, &cpu_mesh, material).unwrap();
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 
-    let lights = Loading::new(
+    let light = Loading::new(
         &context,
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
         move |context, mut loaded| {
             let environment_map =
                 TextureCubeMap::<f32>::new_from_equirectangular(&context, &loaded.hdr_image("")?)?;
-            let lights = Lights {
-                ambient: Some(AmbientLight {
-                    environment: Some(Environment::new(&context, &environment_map)?),
-                    ..Default::default()
-                }),
-                lighting_model: LightingModel::Cook(
-                    NormalDistributionFunction::TrowbridgeReitzGGX,
-                    GeometryFunction::SmithSchlickGGX,
-                ),
+            Ok(AmbientLight {
+                environment: Some(Environment::new(&context, &environment_map)?),
                 ..Default::default()
-            };
-            Ok(lights)
+            })
         },
     );
 
@@ -80,9 +76,9 @@ fn main() {
                     /*model.set_transformation(Mat4::from_angle_y(radians(
                         (frame_input.accumulated_time * 0.0002) as f32,
                     )));*/
-                    if let Some(ref lights) = *lights.borrow() {
-                        let lights = lights.as_ref().unwrap();
-                        model.render(&camera, lights)?;
+                    if let Some(ref light) = *light.borrow() {
+                        let light = light.as_ref().unwrap();
+                        model.render(&camera, &[light])?;
                     }
                     Ok(())
                 },

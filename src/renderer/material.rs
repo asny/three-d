@@ -48,10 +48,14 @@ pub use deferred_physical_material::*;
 ///
 pub trait Material {
     /// Returns the fragment shader source for this material. Should output the final fragment color.
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String;
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String;
     /// Sends the uniform data needed for this material to the fragment shader.
-    fn use_uniforms(&self, program: &Program, camera: &Camera, lights: &Lights)
-        -> ThreeDResult<()>;
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()>;
     /// Returns the render states needed to render with this material.
     fn render_states(&self) -> RenderStates;
     /// Returns whether or not this material is transparent.
@@ -59,14 +63,14 @@ pub trait Material {
 }
 
 impl<T: Material + ?Sized> Material for &T {
-    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &Lights) -> String {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         (*self).fragment_shader_source(use_vertex_colors, lights)
     }
     fn use_uniforms(
         &self,
         program: &Program,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         (*self).use_uniforms(program, camera, lights)
     }
@@ -75,5 +79,47 @@ impl<T: Material + ?Sized> Material for &T {
     }
     fn is_transparent(&self) -> bool {
         (*self).is_transparent()
+    }
+}
+
+impl<T: Material> Material for Box<T> {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+        self.as_ref()
+            .fragment_shader_source(use_vertex_colors, lights)
+    }
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        self.as_ref().use_uniforms(program, camera, lights)
+    }
+    fn render_states(&self) -> RenderStates {
+        self.as_ref().render_states()
+    }
+    fn is_transparent(&self) -> bool {
+        self.as_ref().is_transparent()
+    }
+}
+
+impl<T: Material> Material for std::rc::Rc<T> {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+        self.as_ref()
+            .fragment_shader_source(use_vertex_colors, lights)
+    }
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        self.as_ref().use_uniforms(program, camera, lights)
+    }
+    fn render_states(&self) -> RenderStates {
+        self.as_ref().render_states()
+    }
+    fn is_transparent(&self) -> bool {
+        self.as_ref().is_transparent()
     }
 }

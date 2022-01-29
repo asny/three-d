@@ -291,14 +291,6 @@ impl Context {
         )?;
         callback(camera2d.as_ref().unwrap())
     }
-
-    pub(crate) fn use_texture_dummy(&self, program: &Program, name: &str) -> ThreeDResult<()> {
-        if self.dummy_tex.borrow().is_none() {
-            *self.dummy_tex.borrow_mut() =
-                Some(Texture2D::new(&self, &CPUTexture::<u8>::default())?);
-        }
-        program.use_texture(name, (*self.dummy_tex.borrow()).as_ref().unwrap())
-    }
 }
 
 impl std::ops::Deref for Context {

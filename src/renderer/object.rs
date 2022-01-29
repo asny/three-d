@@ -59,7 +59,7 @@ pub trait Object: Geometry {
     /// for example in the callback function of [Screen::write](crate::Screen::write).
     /// You can use [Lights::default()] if you know the object does not require lights to be rendered.
     ///
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()>;
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()>;
 
     ///
     /// Returns whether or not this object should be considered transparent.
@@ -68,7 +68,7 @@ pub trait Object: Geometry {
 }
 
 impl<T: Object + ?Sized> Object for &T {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         (*self).render(camera, lights)
     }
 
@@ -78,7 +78,7 @@ impl<T: Object + ?Sized> Object for &T {
 }
 
 impl<T: Object + ?Sized> Object for &mut T {
-    fn render(&self, camera: &Camera, lights: &Lights) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         (**self).render(camera, lights)
     }
 
@@ -159,93 +159,29 @@ pub trait Shadable {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()>;
-
-    ///
-    /// Render the object with the given material.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// You can use [Lights::default()] if you know the material does not require lights.
-    ///
-    #[deprecated = "use render_with_material instead"]
-    fn render_forward(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()>;
-
-    ///
-    /// Render the geometry and surface material parameters of the object.
-    /// Should usually not be called directly but used in [DeferredPipeline::geometry_pass].
-    ///
-    #[deprecated]
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()>;
 }
 
-#[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &T {
     fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         (*self).render_with_material(material, camera, lights)
     }
-
-    fn render_forward(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (*self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (*self).render_deferred(material, camera, viewport)
-    }
 }
 
-#[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &mut T {
     fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         (**self).render_with_material(material, camera, lights)
-    }
-
-    fn render_forward(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        (**self).render_forward(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        (**self).render_deferred(material, camera, viewport)
     }
 }
 
@@ -262,17 +198,8 @@ pub trait Shadable2D {
     ///
     fn render_with_material(&self, material: &dyn Material, viewport: Viewport)
         -> ThreeDResult<()>;
-
-    ///
-    /// Render the object with the given material.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    ///
-    #[deprecated = "use render_with_material instead"]
-    fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()>;
 }
 
-#[allow(deprecated)]
 impl<T: Shadable2D + ?Sized> Shadable2D for &T {
     fn render_with_material(
         &self,
@@ -281,13 +208,8 @@ impl<T: Shadable2D + ?Sized> Shadable2D for &T {
     ) -> ThreeDResult<()> {
         (*self).render_with_material(material, viewport)
     }
-
-    fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()> {
-        (*self).render_forward(material, viewport)
-    }
 }
 
-#[allow(deprecated)]
 impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
     fn render_with_material(
         &self,
@@ -295,10 +217,6 @@ impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         (**self).render_with_material(material, viewport)
-    }
-
-    fn render_forward(&self, material: &dyn Material, viewport: Viewport) -> ThreeDResult<()> {
-        (**self).render_forward(material, viewport)
     }
 }
 // Object2D trait

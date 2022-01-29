@@ -41,38 +41,14 @@ impl Shadable for Axes {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let mut model = self.model.clone();
-        model.render_with_material(material, camera, lights)?;
+        model.render_with_material(&material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_with_material(material, camera, lights)?;
+        model.render_with_material(&material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_with_material(material, camera, lights)
-    }
-
-    fn render_forward(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        self.render_with_material(material, camera, lights)
-    }
-
-    #[allow(deprecated)]
-    fn render_deferred(
-        &self,
-        material: &DeferredPhysicalMaterial,
-        camera: &Camera,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        let mut model = self.model.clone();
-        model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_deferred(material, camera, viewport)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_deferred(material, camera, viewport)
     }
 }
 
@@ -95,7 +71,7 @@ impl GeometryMut for Axes {
 }
 
 impl Object for Axes {
-    fn render(&self, camera: &Camera, _lights: &Lights) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, _lights: &[&dyn Light]) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_with_material(
             &ColorMaterial {
@@ -103,7 +79,7 @@ impl Object for Axes {
                 ..Default::default()
             },
             camera,
-            &Lights::default(),
+            &[],
         )?;
         model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
         model.render_with_material(
@@ -112,7 +88,7 @@ impl Object for Axes {
                 ..Default::default()
             },
             camera,
-            &Lights::default(),
+            &[],
         )?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_with_material(
@@ -121,7 +97,7 @@ impl Object for Axes {
                 ..Default::default()
             },
             camera,
-            &Lights::default(),
+            &[],
         )?;
         Ok(())
     }

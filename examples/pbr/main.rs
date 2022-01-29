@@ -44,18 +44,9 @@ fn main() {
                 Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
 
-            let lights = Lights {
-                ambient: Some(AmbientLight {
-                    environment: Some(Environment::new(&context, skybox.texture())?),
-                    ..Default::default()
-                }),
-                lighting_model: LightingModel::Cook(
-                    NormalDistributionFunction::TrowbridgeReitzGGX,
-                    GeometryFunction::SmithSchlickGGX,
-                ),
-                ..Default::default()
-            };
-            Ok((model, skybox, lights))
+            let light =
+                AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture())?;
+            Ok((model, skybox, light))
         },
     );
 
@@ -98,7 +89,7 @@ fn main() {
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
                     if let Some(ref scene) = *scene.borrow() {
-                        let (model, skybox, lights) = scene.as_ref().unwrap();
+                        let (model, skybox, light) = scene.as_ref().unwrap();
                         skybox.render(&camera)?;
                         let material = PhysicalMaterial {
                             name: model.material.name.clone(),
@@ -139,8 +130,12 @@ fn main() {
                             },
                             opaque_render_states: model.material.opaque_render_states,
                             transparent_render_states: model.material.transparent_render_states,
+                            lighting_model: LightingModel::Cook(
+                                NormalDistributionFunction::TrowbridgeReitzGGX,
+                                GeometryFunction::SmithSchlickGGX,
+                            ),
                         };
-                        model.render_with_material(&material, &camera, lights)?;
+                        model.render_with_material(&material, &camera, &[light])?;
                     }
                     gui.render()?;
                     Ok(())

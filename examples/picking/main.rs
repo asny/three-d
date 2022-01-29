@@ -36,20 +36,9 @@ fn main() {
     )
     .unwrap();
 
-    let lights = Lights {
-        ambient: Some(AmbientLight {
-            intensity: 0.4,
-            ..Default::default()
-        }),
-        directional: vec![DirectionalLight::new(
-            &context,
-            2.0,
-            Color::WHITE,
-            &vec3(-1.0, -1.0, -1.0),
-        )
-        .unwrap()],
-        ..Default::default()
-    };
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
+    let directional =
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
 
     let monkey = Loading::new(
         &context,
@@ -115,7 +104,7 @@ fn main() {
                     || {
                         if let Some(ref monkey) = *monkey.borrow() {
                             let monkey = monkey.as_ref().unwrap();
-                            render_pass(&camera, &[monkey, &pick_mesh], &lights)?;
+                            render_pass(&camera, &[monkey, &pick_mesh], &[&ambient, &directional])?;
                         }
                         Ok(())
                     },

@@ -175,7 +175,7 @@ impl Shadable for Particles {
         &self,
         material: &dyn Material,
         camera: &Camera,
-        lights: &Lights,
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
@@ -230,23 +230,5 @@ impl Shadable for Particles {
                 Ok(())
             },
         )
-    }
-
-    fn render_forward(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &Lights,
-    ) -> ThreeDResult<()> {
-        self.render_with_material(material, camera, lights)
-    }
-
-    fn render_deferred(
-        &self,
-        _material: &DeferredPhysicalMaterial,
-        _camera: &Camera,
-        _viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        unimplemented!();
     }
 }
