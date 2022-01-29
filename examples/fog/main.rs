@@ -86,7 +86,10 @@ fn main() {
 
             Screen::write(&context, ClearState::default(), || {
                 if let Some(ref monkey) = *monkey.borrow() {
-                    monkey.as_ref().unwrap().render(&camera, &[&ambient, &directional])?;
+                    monkey
+                        .as_ref()
+                        .unwrap()
+                        .render(&camera, &[&ambient, &directional])?;
                 }
                 if fog_enabled {
                     if let Some(ref depth_texture) = depth_texture {
