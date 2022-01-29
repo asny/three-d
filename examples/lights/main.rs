@@ -123,67 +123,65 @@ fn main() {
                 let material = materials.iter().find(|material| &material.name == m.material_name.as_ref().unwrap()).unwrap().clone();
                 models.push(Model::new_with_material(&context, &m, material).unwrap());
             }
-
-            let mut rng = rand::thread_rng();
-            let mut directional = Vec::new();
-            for _ in 0..0 {
-                directional.push(
-                    DirectionalLight::new(&context, 0.2, Color::GREEN, &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()))
-                        .unwrap(),
-                );
-            }
-
-            let mut spot = Vec::new();
-            for _ in 0..0 {
-                spot.push(
-                    SpotLight::new(
-                        &context,
-                        2.0,
-                        Color::BLUE,
-                        &vec3(100.0*rng.gen::<f32>(), 100.0 + rng.gen::<f32>(), 100.0*rng.gen::<f32>()),
-                        &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()),
-                        degrees(25.0),
-                        0.001,
-                        0.00001,
-                        0.000001,
-                    )
-                    .unwrap(),
-                );
-            }
-
-            let mut point = Vec::new();
-            for _ in 0..20 {
-                point.push(
-                    PointLight::new(
-                        &context,
-                        0.4,
-                        Color::WHITE,
-                        &vec3(1000.0*rng.gen::<f32>() - 500.0, 100.0, 1000.0*rng.gen::<f32>() - 500.0),
-                        0.005,
-                        0.0005,
-                        0.00005,
-                    )
-                    .unwrap(),
-                );
-            }
-
-            let lights = Lights {
-                /*ambient: Some(AmbientLight {
-                    environment: Some(Environment::new(&context, skybox.texture())?),
-                    ..Default::default()
-                }),*/
-                lighting_model: LightingModel::Cook(
-                    NormalDistributionFunction::TrowbridgeReitzGGX,
-                    GeometryFunction::SmithSchlickGGX,
-                ),
-                directional: directional,
-                point: point,
-                spot: spot,
-                ..Default::default()
-            };
-            Ok((models, skybox, lights))
+            Ok((models, skybox))
         },
     );
+
+    let mut rng = rand::thread_rng();
+    let mut directional = Vec::new();
+    for _ in 0..0 {
+        directional.push(
+            DirectionalLight::new(
+                &context,
+                0.2,
+                Color::GREEN,
+                &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()),
+            )
+            .unwrap(),
+        );
+    }
+
+    let mut spot = Vec::new();
+    for _ in 0..0 {
+        spot.push(
+            SpotLight::new(
+                &context,
+                2.0,
+                Color::BLUE,
+                &vec3(
+                    100.0 * rng.gen::<f32>(),
+                    100.0 + rng.gen::<f32>(),
+                    100.0 * rng.gen::<f32>(),
+                ),
+                &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()),
+                degrees(25.0),
+                0.001,
+                0.00001,
+                0.000001,
+            )
+            .unwrap(),
+        );
+    }
+
+    let mut point = Vec::new();
+    for _ in 0..20 {
+        point.push(
+            PointLight::new(
+                &context,
+                0.4,
+                Color::WHITE,
+                &vec3(
+                    1000.0 * rng.gen::<f32>() - 500.0,
+                    100.0,
+                    1000.0 * rng.gen::<f32>() - 500.0,
+                ),
+                0.005,
+                0.0005,
+                0.00005,
+            )
+            .unwrap(),
+        );
+    }
 
     // main loop
     window
@@ -193,21 +191,18 @@ fn main() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            if let Some(ref mut scene) = *scene.borrow_mut() {
-                let (_, _, lights) = scene.as_mut().unwrap();
-                let time = 0.001 * frame_input.accumulated_time;
-                let c = time.cos() as f32;
-                let s = time.sin() as f32;
-                for i in 0..lights.directional.len() {
-                    lights.directional[i].direction += vec3(-1.0 - c, -1.0, 1.0 + s);
-                }
-                for i in 0..lights.spot.len() {
-                    lights.spot[i].position += vec3(3.0 + c, 0.0 + s, 3.0 - s);
-                    lights.spot[i].direction += -vec3(3.0 + c, 5.0 + s, 3.0 - s);
-                }
-                for i in 0..lights.point.len() {
-                    lights.point[i].position += vec3(-5.0 * c, 0.0, -5.0 * s);
-                }
+            let time = 0.001 * frame_input.accumulated_time;
+            let c = time.cos() as f32;
+            let s = time.sin() as f32;
+            for light in directional.iter_mut() {
+                light.direction += vec3(-1.0 - c, -1.0, 1.0 + s);
+            }
+            for light in spot.iter_mut() {
+                light.position += vec3(3.0 + c, 0.0 + s, 3.0 - s);
+                light.direction += -vec3(3.0 + c, 5.0 + s, 3.0 - s);
+            }
+            for light in point.iter_mut() {
+                light.position += vec3(-5.0 * c, 0.0, -5.0 * s);
             }
 
             Screen::write(
@@ -215,10 +210,18 @@ fn main() {
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
                     if let Some(ref scene) = *scene.borrow() {
-                        let (models, skybox, lights) = scene.as_ref().unwrap();
+                        let (models, skybox) = scene.as_ref().unwrap();
                         skybox.render(&camera)?;
                         for model in models {
-                            model.render(&camera, lights)?;
+                            model.render(
+                                &camera,
+                                &point
+                                    .iter()
+                                    .map(|l| l as &dyn Light)
+                                    .chain(directional.iter().map(|l| l as &dyn Light))
+                                    .chain(spot.iter().map(|l| l as &dyn Light))
+                                    .collect::<Vec<_>>(),
+                            )?;
                         }
                     }
                     Ok(())
