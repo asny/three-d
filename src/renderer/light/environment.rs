@@ -15,6 +15,7 @@ pub struct Environment {
 impl Environment {
     ///
     /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map.
+    /// A default Cook-Torrance lighting model is used.
     ///
     pub fn new(context: &Context, environment_map: &impl TextureCube) -> ThreeDResult<Self> {
         Self::new_with_lighting_model(

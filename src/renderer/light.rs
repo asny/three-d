@@ -28,8 +28,14 @@ use crate::core::*;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum LightingModel {
+    /// Phong lighting model.
+    /// The fastest lighting model to calculate.
     Phong,
+    /// Blinn lighting model.
+    /// Almost as fast as Phong and has less artifacts.
     Blinn,
+    /// Cook-Torrance lighting model with the given normal distribution and geometry functions.
+    /// The most physically correct lighting model but also the most expensive.
     Cook(NormalDistributionFunction, GeometryFunction),
 }
 
