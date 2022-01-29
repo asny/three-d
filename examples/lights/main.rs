@@ -13,6 +13,8 @@ fn main() {
     .unwrap();
     let context = window.gl().unwrap();
 
+    let mut pipeline = DeferredPipeline::new(&context).unwrap();
+
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
@@ -106,7 +108,7 @@ fn main() {
 
             let mut materials = Vec::new();
             for m in cpu_materials.iter() {
-                materials.push(PhysicalMaterial::new(&context, &m).unwrap());
+                materials.push(DeferredPhysicalMaterial::new(&context, &m).unwrap());
             }
 
             let mut models = Vec::new();
@@ -119,54 +121,17 @@ fn main() {
     );
 
     let mut rng = rand::thread_rng();
-    let mut directional = Vec::new();
-    for _ in 0..0 {
-        directional.push(
-            DirectionalLight::new(
-                &context,
-                0.2,
-                Color::GREEN,
-                &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()),
-            )
-            .unwrap(),
-        );
-    }
-
-    let mut spot = Vec::new();
-    for _ in 0..0 {
-        spot.push(
-            SpotLight::new(
-                &context,
-                2.0,
-                Color::BLUE,
-                &vec3(
-                    100.0 * rng.gen::<f32>(),
-                    100.0 + rng.gen::<f32>(),
-                    100.0 * rng.gen::<f32>(),
-                ),
-                &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()),
-                degrees(25.0),
-                Attenuation {
-                    constant: 0.001,
-                    linear: 0.00001,
-                    quadratic: 0.000001,
-                },
-            )
-            .unwrap(),
-        );
-    }
-
     let mut point = Vec::new();
-    for _ in 0..20 {
+    for _ in 0..40 {
         point.push(
             PointLight::new(
                 &context,
                 0.4,
                 Color::WHITE,
                 &vec3(
-                    1000.0 * rng.gen::<f32>() - 500.0,
-                    100.0,
-                    1000.0 * rng.gen::<f32>() - 500.0,
+                    2000.0 * rng.gen::<f32>() - 1000.0,
+                    200.0 * rng.gen::<f32>() + 100.0,
+                    600.0 * rng.gen::<f32>() - 300.0,
                 ),
                 Attenuation {
                     constant: 0.005,
@@ -189,39 +154,42 @@ fn main() {
             let time = 0.001 * frame_input.accumulated_time;
             let c = time.cos() as f32;
             let s = time.sin() as f32;
-            for light in directional.iter_mut() {
-                light.direction += vec3(-1.0 - c, -1.0, 1.0 + s);
-            }
-            for light in spot.iter_mut() {
-                light.position += vec3(3.0 + c, 0.0 + s, 3.0 - s);
-                light.direction += -vec3(3.0 + c, 5.0 + s, 3.0 - s);
-            }
             for light in point.iter_mut() {
                 light.position += vec3(-5.0 * c, 0.0, -5.0 * s);
             }
 
-            Screen::write(
-                &context,
-                ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0),
-                || {
-                    if let Some(ref scene) = *scene.borrow() {
-                        let models = scene.as_ref().unwrap();
-                        for model in models {
-                            model.render(
-                                &camera,
-                                &point
-                                    .iter()
-                                    .map(|l| l as &dyn Light)
-                                    .chain(directional.iter().map(|l| l as &dyn Light))
-                                    .chain(spot.iter().map(|l| l as &dyn Light))
-                                    .collect::<Vec<_>>(),
-                            )?;
-                        }
-                    }
-                    Ok(())
-                },
-            )
-            .unwrap();
+            if let Some(ref scene) = *scene.borrow() {
+                let models = scene.as_ref().unwrap();
+                pipeline
+                    .render_pass(
+                        &camera,
+                        &models.iter().map(|m| (m, &m.material)).collect::<Vec<_>>(),
+                    )
+                    .unwrap();
+
+                Screen::write(
+                    &context,
+                    ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0),
+                    || {
+                        /*render_pass(
+                            &camera,
+                            &models.iter().collect::<Vec<_>>(),
+                            &point
+                                .iter()
+                                .map(|l| l as &dyn Light)
+                                .chain(directional.iter().map(|l| l as &dyn Light))
+                                .chain(spot.iter().map(|l| l as &dyn Light))
+                                .collect::<Vec<_>>(),
+                        )?;*/
+                        pipeline.lighting_pass(
+                            &camera,
+                            &point.iter().map(|l| l as &dyn Light).collect::<Vec<_>>(),
+                        )?;
+                        Ok(())
+                    },
+                )
+                .unwrap();
+            }
 
             if args.len() > 1 {
                 // To automatically generate screenshots of the examples, can safely be ignored.
