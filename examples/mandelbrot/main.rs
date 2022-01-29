@@ -5,18 +5,14 @@ use three_d::window::*;
 struct MandelbrotMaterial {}
 
 impl Material for MandelbrotMaterial {
-    fn fragment_shader_source(
-        &self,
-        _use_vertex_colors: bool,
-        _lights: impl std::iter::IntoIterator<Item = impl Light>,
-    ) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         include_str!("../assets/shaders/mandelbrot.frag").to_string()
     }
     fn use_uniforms(
         &self,
         _program: &Program,
         _camera: &Camera,
-        _lights: impl std::iter::IntoIterator<Item = impl Light>,
+        _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         Ok(())
     }
