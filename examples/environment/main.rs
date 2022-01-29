@@ -37,10 +37,8 @@ fn main() {
                 )?,
             )
             .unwrap();
-            let light = AmbientLight {
-                environment: Some(Environment::new(&context, skybox.texture())?),
-                ..Default::default()
-            };
+            let light =
+                AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture())?;
             Ok((skybox, light))
         },
     );

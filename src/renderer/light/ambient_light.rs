@@ -19,7 +19,7 @@ impl AmbientLight {
         })
     }
 
-    pub fn new_with_environment_light(
+    pub fn new_with_environment(
         context: &Context,
         intensity: f32,
         color: Color,
