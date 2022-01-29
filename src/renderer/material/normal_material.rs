@@ -35,11 +35,7 @@ impl NormalMaterial {
 }
 
 impl Material for NormalMaterial {
-    fn fragment_shader_source(
-        &self,
-        _use_vertex_colors: bool,
-        _lights: &[&dyn Light],
-    ) -> String {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut shader = String::new();
         if self.normal_texture.is_some() {
             shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\nin vec3 tang;\nin vec3 bitang;\n");

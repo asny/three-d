@@ -58,17 +58,15 @@ impl<M: Material> Shadable2D for Circle<M> {
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         self.context.camera2d(viewport, |camera2d| {
-            self.model
-                .render_with_material(material, camera2d, &[])
+            self.model.render_with_material(material, camera2d, &[])
         })
     }
 }
 
 impl<M: Material> Object2D for Circle<M> {
     fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
-        self.context.camera2d(viewport, |camera2d| {
-            self.model.render(camera2d, &[])
-        })
+        self.context
+            .camera2d(viewport, |camera2d| self.model.render(camera2d, &[]))
     }
 
     fn is_transparent(&self) -> bool {
