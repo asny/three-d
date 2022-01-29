@@ -16,8 +16,8 @@ fn main() {
     let mut camera = Camera::new_perspective(
         &context,
         window.viewport().unwrap(),
+        vec3(1200.0, 100.0, 0.0),
         vec3(0.0, 100.0, 0.0),
-        vec3(0.0, 100.0, -1.0),
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
@@ -100,17 +100,8 @@ fn main() {
             "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sponza/glTF/9288698199695299068.jpg",
             "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sponza/glTF/9916269861720640319.jpg",
             "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sponza/glTF/white.png",
-            "examples/assets/chinese_garden_4k.hdr",
         ],
         move |context, mut loaded| {
-            let environment_map = loaded.hdr_image("chinese").unwrap();
-            let skybox = Skybox::new_with_texture(
-                &context,
-                TextureCubeMap::<f16>::new_from_equirectangular(&context, &environment_map)
-                    .unwrap(),
-            )
-            .unwrap();
-
             let (cpu_meshes, cpu_materials) = loaded.gltf("Sponza.gltf").unwrap();
 
             let mut materials = Vec::new();
@@ -123,7 +114,7 @@ fn main() {
                 let material = materials.iter().find(|material| &material.name == m.material_name.as_ref().unwrap()).unwrap().clone();
                 models.push(Model::new_with_material(&context, &m, material).unwrap());
             }
-            Ok((models, skybox))
+            Ok(models)
         },
     );
 
@@ -211,11 +202,10 @@ fn main() {
 
             Screen::write(
                 &context,
-                ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
+                ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0),
                 || {
                     if let Some(ref scene) = *scene.borrow() {
-                        let (models, skybox) = scene.as_ref().unwrap();
-                        skybox.render(&camera)?;
+                        let models = scene.as_ref().unwrap();
                         for model in models {
                             model.render(
                                 &camera,
