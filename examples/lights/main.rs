@@ -158,7 +158,7 @@ fn main() {
                 Attenuation {
                     constant: 0.001,
                     linear: 0.00001,
-                    exponential: 0.000001,
+                    quadratic: 0.000001,
                 },
             )
             .unwrap(),
@@ -180,7 +180,7 @@ fn main() {
                 Attenuation {
                     constant: 0.005,
                     linear: 0.0005,
-                    exponential: 0.00005,
+                    quadratic: 0.00005,
                 },
             )
             .unwrap(),

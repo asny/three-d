@@ -236,7 +236,7 @@ impl Light for SpotLight {
             &vec3(
                 self.attenuation.constant,
                 self.attenuation.linear,
-                self.attenuation.exponential,
+                self.attenuation.quadratic,
             ),
         )?;
         program.use_uniform_vec3(&format!("position{}", i), &self.position)?;
