@@ -3,6 +3,8 @@
 //!
 use crate::core::*;
 
+/// Lighting models which specify how the lighting is computed when rendering a material.
+/// This is a trade-off between how fast the computations are versus how physically correct they look.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum LightingModel {
     /// Phong lighting model.
@@ -16,12 +18,16 @@ pub enum LightingModel {
     Cook(NormalDistributionFunction, GeometryFunction),
 }
 
+/// The geometry function used in a Cook-Torrance lighting model.
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[allow(missing_docs)]
 pub enum GeometryFunction {
     SmithSchlickGGX,
 }
 
+/// The normal distribution function used in a Cook-Torrance lighting model.
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[allow(missing_docs)]
 pub enum NormalDistributionFunction {
     Blinn,
     Beckmann,
