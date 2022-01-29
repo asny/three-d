@@ -99,6 +99,10 @@ fn main() {
     )
     .unwrap();
 
+    let light0 =
+        DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5)).unwrap();
+    let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5)).unwrap();
+
     window
         .render_loop(move |mut frame_input: FrameInput| {
             camera.set_viewport(frame_input.viewport).unwrap();
@@ -110,24 +114,6 @@ fn main() {
                 &context,
                 ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0),
                 || {
-                    let lights = Lights {
-                        directional: vec![
-                            DirectionalLight::new(
-                                &context,
-                                1.0,
-                                Color::WHITE,
-                                &vec3(0.0, -0.5, -0.5),
-                            )?,
-                            DirectionalLight::new(
-                                &context,
-                                1.0,
-                                Color::WHITE,
-                                &vec3(0.0, 0.5, 0.5),
-                            )?,
-                        ],
-                        ..Default::default()
-                    };
-
                     render_pass(
                         &camera,
                         &[
@@ -139,7 +125,7 @@ fn main() {
                             &bounding_box_cube,
                             &bounding_box_cylinder,
                         ],
-                        &lights,
+                        &[&light0, &light1],
                     )?;
                     Ok(())
                 },

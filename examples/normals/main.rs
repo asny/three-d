@@ -68,25 +68,10 @@ fn main() {
     )
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
-    let lights = Lights {
-        ambient: Some(AmbientLight {
-            color: Color::WHITE,
-            intensity: 0.4,
-            ..Default::default()
-        }),
-        directional: vec![DirectionalLight::new(
-            &context,
-            2.0,
-            Color::WHITE,
-            &vec3(0.0, -1.0, 0.0),
-        )
-        .unwrap()],
-        lighting_model: LightingModel::Cook(
-            NormalDistributionFunction::TrowbridgeReitzGGX,
-            GeometryFunction::SmithSchlickGGX,
-        ),
-        ..Default::default()
-    };
+
+    let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
+    let directional =
+        DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, 0.0)).unwrap();
 
     // main loop
     window
@@ -108,6 +93,7 @@ fn main() {
                             ref instanced_model_with_computed_tangents,
                             ref instanced_model_with_loaded_tangents,
                         ) = models.as_ref().unwrap();
+                        let lights: [&dyn Light; 2] = [&ambient, &directional];
                         model_with_computed_tangents.render(&camera, &lights)?;
                         model_with_loaded_tangents.render(&camera, &lights)?;
                         instanced_model_with_computed_tangents.render(&camera, &lights)?;

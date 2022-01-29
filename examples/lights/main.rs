@@ -155,9 +155,11 @@ fn main() {
                 ),
                 &vec3(rng.gen::<f32>(), -1.0, rng.gen::<f32>()),
                 degrees(25.0),
-                0.001,
-                0.00001,
-                0.000001,
+                Attenuation {
+                    constant: 0.001,
+                    linear: 0.00001,
+                    exponential: 0.000001,
+                },
             )
             .unwrap(),
         );
@@ -175,9 +177,11 @@ fn main() {
                     100.0,
                     1000.0 * rng.gen::<f32>() - 500.0,
                 ),
-                0.005,
-                0.0005,
-                0.00005,
+                Attenuation {
+                    constant: 0.005,
+                    linear: 0.0005,
+                    exponential: 0.00005,
+                },
             )
             .unwrap(),
         );
