@@ -26,11 +26,6 @@ pub use environment::*;
 
 use crate::core::*;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct ShadowParameters {
-    pub texture_size: u32,
-}
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum LightingModel {
     Phong,
