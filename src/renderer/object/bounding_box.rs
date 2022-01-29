@@ -83,7 +83,7 @@ impl<M: Material> BoundingBox<M> {
 }
 
 impl<M: Material> Shadable for BoundingBox<M> {
-    fn render_with_material<'a>(
+    fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,
@@ -104,7 +104,7 @@ impl<M: Material> Geometry for BoundingBox<M> {
 }
 
 impl<M: Material> Object for BoundingBox<M> {
-    fn render<'a>(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         self.model.render(camera, lights)
     }
 

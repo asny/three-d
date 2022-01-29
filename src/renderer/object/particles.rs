@@ -171,7 +171,7 @@ impl GeometryMut for Particles {
 }
 
 impl Shadable for Particles {
-    fn render_with_material<'a>(
+    fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,

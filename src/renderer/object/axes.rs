@@ -37,7 +37,7 @@ impl Axes {
 }
 
 impl Shadable for Axes {
-    fn render_with_material<'a>(
+    fn render_with_material(
         &self,
         material: &dyn Material,
         camera: &Camera,
@@ -71,7 +71,7 @@ impl GeometryMut for Axes {
 }
 
 impl Object for Axes {
-    fn render<'a>(&self, camera: &Camera, _lights: &[&dyn Light]) -> ThreeDResult<()> {
+    fn render(&self, camera: &Camera, _lights: &[&dyn Light]) -> ThreeDResult<()> {
         let mut model = self.model.clone();
         model.render_with_material(
             &ColorMaterial {
