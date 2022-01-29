@@ -34,9 +34,12 @@ pub struct PhysicalMaterial {
     pub opaque_render_states: RenderStates,
     /// Render states used when the color is transparent (does not have a maximal alpha value).
     pub transparent_render_states: RenderStates,
-
+    /// Color of light shining from an object.
     pub emissive: Color,
+    /// Texture with color of light shining from an object.
     pub emissive_texture: Option<Rc<Texture2D<u8>>>,
+    /// The lighting model used when rendering this material
+    pub lighting_model: LightingModel,
 }
 
 impl PhysicalMaterial {
@@ -99,13 +102,14 @@ impl PhysicalMaterial {
             },
             emissive: cpu_material.emissive,
             emissive_texture,
+            lighting_model: cpu_material.lighting_model,
         })
     }
 }
 
 impl Material for PhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
-        let mut output = lights_fragment_shader_source(lights);
+        let mut output = lights_fragment_shader_source(lights, self.lighting_model);
         if self.albedo_texture.is_some()
             || self.metallic_roughness_texture.is_some()
             || self.normal_texture.is_some()
@@ -211,6 +215,7 @@ impl Default for PhysicalMaterial {
             },
             emissive: Color::BLACK,
             emissive_texture: None,
+            lighting_model: LightingModel::Blinn,
         }
     }
 }

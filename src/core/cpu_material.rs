@@ -3,6 +3,47 @@
 //!
 use crate::core::*;
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum LightingModel {
+    /// Phong lighting model.
+    /// The fastest lighting model to calculate.
+    Phong,
+    /// Blinn lighting model.
+    /// Almost as fast as Phong and has less artifacts.
+    Blinn,
+    /// Cook-Torrance lighting model with the given normal distribution and geometry functions.
+    /// The most physically correct lighting model but also the most expensive.
+    Cook(NormalDistributionFunction, GeometryFunction),
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum GeometryFunction {
+    SmithSchlickGGX,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum NormalDistributionFunction {
+    Blinn,
+    Beckmann,
+    TrowbridgeReitzGGX,
+}
+
+impl LightingModel {
+    pub(crate) fn shader(&self) -> &str {
+        match self {
+            LightingModel::Phong => "#define PHONG",
+            LightingModel::Blinn => "#define BLINN",
+            LightingModel::Cook(normal, _) => match normal {
+                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
+                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
+                NormalDistributionFunction::TrowbridgeReitzGGX => {
+                    "#define COOK\n#define COOK_GGX\n"
+                }
+            },
+        }
+    }
+}
+
 ///
 /// A CPU-side version of a material.
 /// Can be constructed manually or loaded via [io](crate::io).
@@ -42,6 +83,8 @@ pub struct CPUMaterial {
     pub emissive_texture: Option<CPUTexture<u8>>,
     /// Alpha cutout value for transparency in deferred rendering pipeline.
     pub alpha_cutout: Option<f32>,
+    /// The lighting model used when rendering this material
+    pub lighting_model: LightingModel,
 }
 
 impl Default for CPUMaterial {
@@ -61,6 +104,7 @@ impl Default for CPUMaterial {
             emissive: Color::BLACK,
             emissive_texture: None,
             alpha_cutout: None,
+            lighting_model: LightingModel::Blinn,
         }
     }
 }

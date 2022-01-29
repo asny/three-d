@@ -26,53 +26,13 @@ pub use environment::*;
 
 use crate::core::*;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum LightingModel {
-    /// Phong lighting model.
-    /// The fastest lighting model to calculate.
-    Phong,
-    /// Blinn lighting model.
-    /// Almost as fast as Phong and has less artifacts.
-    Blinn,
-    /// Cook-Torrance lighting model with the given normal distribution and geometry functions.
-    /// The most physically correct lighting model but also the most expensive.
-    Cook(NormalDistributionFunction, GeometryFunction),
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum GeometryFunction {
-    SmithSchlickGGX,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum NormalDistributionFunction {
-    Blinn,
-    Beckmann,
-    TrowbridgeReitzGGX,
-}
-
-impl LightingModel {
-    pub(crate) fn shader(&self) -> &str {
-        match self {
-            LightingModel::Phong => "#define PHONG",
-            LightingModel::Blinn => "#define BLINN",
-            LightingModel::Cook(normal, _) => match normal {
-                NormalDistributionFunction::Blinn => "#define COOK\n#define COOK_BLINN\n",
-                NormalDistributionFunction::Beckmann => "#define COOK\n#define COOK_BECKMANN\n",
-                NormalDistributionFunction::TrowbridgeReitzGGX => {
-                    "#define COOK\n#define COOK_GGX\n"
-                }
-            },
-        }
-    }
-}
-
-#[deprecated = "Use slice of lights instead when making a render call"]
+#[deprecated = "use slice of lights instead when making a render call"]
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
     pub directional: Vec<DirectionalLight>,
     pub spot: Vec<SpotLight>,
     pub point: Vec<PointLight>,
+    #[deprecated = "the lighting model is specified on each physical material"]
     pub lighting_model: LightingModel,
 }
 
@@ -203,13 +163,11 @@ impl<T: Light> Light for std::rc::Rc<T> {
     }
 }
 
-pub(crate) fn lights_fragment_shader_source(lights: &[&dyn Light]) -> String {
-    let mut shader_source = LightingModel::Cook(
-        NormalDistributionFunction::TrowbridgeReitzGGX,
-        GeometryFunction::SmithSchlickGGX,
-    )
-    .shader()
-    .to_string();
+pub(crate) fn lights_fragment_shader_source(
+    lights: &[&dyn Light],
+    lighting_model: LightingModel,
+) -> String {
+    let mut shader_source = lighting_model.shader().to_string();
     shader_source.push_str(include_str!("../core/shared.frag"));
     shader_source.push_str(include_str!("light/shaders/light_shared.frag"));
     let mut dir_fun = String::new();

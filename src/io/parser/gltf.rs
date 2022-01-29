@@ -170,6 +170,10 @@ fn parse_tree<'a>(
                         emissive: Color::from_rgb_slice(&material.emissive_factor()),
                         emissive_texture,
                         alpha_cutout: None,
+                        lighting_model: LightingModel::Cook(
+                            NormalDistributionFunction::TrowbridgeReitzGGX,
+                            GeometryFunction::SmithSchlickGGX,
+                        ),
                     });
                 }
 

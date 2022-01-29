@@ -17,9 +17,9 @@ pub enum DebugType {
 }
 ///
 /// Deferred render pipeline which can render objects (implementing the [Geometry] trait) with a [DeferredPhysicalMaterial] and lighting.
-/// Supports different types of lighting models by changing the [DeferredPipeline::lighting_model] field.
 /// Deferred rendering draws the geometry information into a buffer in the [DeferredPipeline::render_pass] and use that information in the [DeferredPipeline::lighting_pass].
 /// This means that the lighting is only calculated once per pixel since the depth testing is happening in the render pass.
+/// For now only supports a cook-torrance [LightingModel].
 /// **Note:** Deferred rendering does not support blending and therefore does not support transparency!
 ///
 pub struct DeferredPipeline {
@@ -28,8 +28,6 @@ pub struct DeferredPipeline {
     /// Set this to visualize the positions, normals etc. for debug purposes.
     ///
     pub debug_type: DebugType,
-    #[deprecated = "use lighting_pass where Light struct contain lighting model"]
-    pub lighting_model: LightingModel,
     camera: Camera,
     geometry_pass_texture: Option<Texture2DArray<u8>>,
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
@@ -54,7 +52,6 @@ impl DeferredPipeline {
                 10.0,
             )?,
             debug_type: DebugType::NONE,
-            lighting_model: LightingModel::Blinn,
             geometry_pass_texture: Some(Texture2DArray::new(
                 context,
                 1,
@@ -190,7 +187,13 @@ impl DeferredPipeline {
             );
         }
 
-        let mut fragment_shader = lights_fragment_shader_source(lights);
+        let mut fragment_shader = lights_fragment_shader_source(
+            lights,
+            LightingModel::Cook(
+                NormalDistributionFunction::TrowbridgeReitzGGX,
+                GeometryFunction::SmithSchlickGGX,
+            ),
+        );
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
