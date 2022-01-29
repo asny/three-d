@@ -37,18 +37,11 @@ fn main() {
                 )?,
             )
             .unwrap();
-            let lights = Lights {
-                ambient: Some(AmbientLight {
-                    environment: Some(Environment::new(&context, skybox.texture())?),
-                    ..Default::default()
-                }),
-                lighting_model: LightingModel::Cook(
-                    NormalDistributionFunction::TrowbridgeReitzGGX,
-                    GeometryFunction::SmithSchlickGGX,
-                ),
+            let light = AmbientLight {
+                environment: Some(Environment::new(&context, skybox.texture())?),
                 ..Default::default()
             };
-            Ok((skybox, lights))
+            Ok((skybox, light))
         },
     );
 
@@ -98,9 +91,9 @@ fn main() {
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
                     if let Some(ref scene) = *scene.borrow() {
-                        let (skybox, lights) = scene.as_ref().unwrap();
+                        let (skybox, light) = scene.as_ref().unwrap();
                         skybox.render(&camera)?;
-                        model.render(&camera, lights)?;
+                        model.render(&camera, &[light])?;
                     }
                     gui.render()?;
                     Ok(())
