@@ -2,7 +2,7 @@ use crate::core::*;
 
 ///
 /// Precalculations of light shining from an environment map (known as image based lighting - IBL).
-/// This allows for real-time rendering of ambient light from the environment (see [AmbientLight]).
+/// This allows for real-time rendering of ambient light from the environment (see [AmbientLight](crate::AmbientLight)).
 ///
 #[allow(missing_docs)]
 pub struct Environment {

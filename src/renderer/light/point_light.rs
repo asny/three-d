@@ -8,9 +8,7 @@ pub struct PointLight {
     pub intensity: f32,
     pub color: Color,
     pub position: Vec3,
-    pub attenuation_constant: f32,
-    pub attenuation_linear: f32,
-    pub attenuation_exponential: f32,
+    pub attenuation: Attenuation,
 }
 
 impl PointLight {
@@ -19,17 +17,13 @@ impl PointLight {
         intensity: f32,
         color: Color,
         position: &Vec3,
-        attenuation_constant: f32,
-        attenuation_linear: f32,
-        attenuation_exponential: f32,
+        attenuation: Attenuation,
     ) -> ThreeDResult<PointLight> {
         Ok(PointLight {
             intensity,
             color,
             position: *position,
-            attenuation_constant,
-            attenuation_linear,
-            attenuation_exponential,
+            attenuation,
         })
     }
 
@@ -49,18 +43,12 @@ impl PointLight {
         self.intensity
     }
 
-    pub fn set_attenuation(&mut self, constant: f32, linear: f32, exponential: f32) {
-        self.attenuation_constant = constant;
-        self.attenuation_linear = linear;
-        self.attenuation_exponential = exponential;
+    pub fn set_attenuation(&mut self, attenuation: Attenuation) {
+        self.attenuation = attenuation
     }
 
-    pub fn attenuation(&self) -> (f32, f32, f32) {
-        (
-            self.attenuation_constant,
-            self.attenuation_linear,
-            self.attenuation_exponential,
-        )
+    pub fn attenuation(&self) -> Attenuation {
+        self.attenuation
     }
 
     pub fn set_position(&mut self, position: &Vec3) {
@@ -100,9 +88,9 @@ impl Light for PointLight {
         program.use_uniform_vec3(
             &format!("attenuation{}", i),
             &vec3(
-                self.attenuation_constant,
-                self.attenuation_linear,
-                self.attenuation_exponential,
+                self.attenuation.constant,
+                self.attenuation.linear,
+                self.attenuation.exponential,
             ),
         )?;
         program.use_uniform_vec3(&format!("position{}", i), &self.position)?;

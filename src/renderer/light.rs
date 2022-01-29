@@ -26,6 +26,27 @@ pub use environment::*;
 
 use crate::core::*;
 
+///
+/// Specifies how the intensity of a light fades over distance.
+/// The light intensity is scaled by ``` 1 / max(1, constant + distance * linear + distance * distance * exponential) ```.
+///
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub struct Attenuation {
+    pub constant: f32,
+    pub linear: f32,
+    pub exponential: f32,
+}
+
+impl Default for Attenuation {
+    fn default() -> Self {
+        Self {
+            constant: 1.0,
+            linear: 0.0,
+            exponential: 0.0,
+        }
+    }
+}
+
 #[deprecated = "use slice of lights instead when making a render call"]
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
