@@ -33,7 +33,6 @@ pub struct DeferredPipeline {
     geometry_pass_depth_texture: Option<DepthTargetTexture2DArray>,
 }
 
-#[allow(deprecated)]
 impl DeferredPipeline {
     ///
     /// Constructor.
@@ -52,7 +51,7 @@ impl DeferredPipeline {
                 10.0,
             )?,
             debug_type: DebugType::NONE,
-            geometry_pass_texture: Some(Texture2DArray::new(
+            geometry_pass_texture: Some(Texture2DArray::new_empty(
                 context,
                 1,
                 1,
@@ -110,7 +109,7 @@ impl DeferredPipeline {
         self.camera.set_viewport(viewport)?;
         self.camera
             .set_view(*camera.position(), *camera.target(), *camera.up())?;
-        self.geometry_pass_texture = Some(Texture2DArray::<u8>::new(
+        self.geometry_pass_texture = Some(Texture2DArray::<u8>::new_empty(
             &self.context,
             viewport.width,
             viewport.height,

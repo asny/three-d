@@ -163,7 +163,6 @@ pub trait Shadable {
     ) -> ThreeDResult<()>;
 }
 
-#[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &T {
     fn render_with_material(
         &self,
@@ -175,7 +174,6 @@ impl<T: Shadable + ?Sized> Shadable for &T {
     }
 }
 
-#[allow(deprecated)]
 impl<T: Shadable + ?Sized> Shadable for &mut T {
     fn render_with_material(
         &self,
