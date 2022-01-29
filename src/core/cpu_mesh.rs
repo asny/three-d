@@ -55,7 +55,8 @@ pub struct CPUMesh {
     pub indices: Option<Indices>,
     /// The normals of the vertices. Three contiguous floats defines a normal `(x, y, z)`, therefore the length must be divisable by 3.
     pub normals: Option<Vec<f32>>,
-    /// The tangents of the vertices, orthogonal direction to the normal. Three contiguous floats defines a tangent `(x, y, z)`, therefore the length must be divisable by 3.
+    /// The tangents of the vertices, orthogonal direction to the normal.
+    /// Three contiguous floats defines a tangent `(x, y, z)` and a value that specifies the handedness (either -1.0 or 1.0), therefore the length must be divisable by 4.
     pub tangents: Option<Vec<f32>>,
     /// The uv coordinates of the vertices. Two contiguous floats defines a coordinate `(u, v)`, therefore the length must be divisable by 2.
     pub uvs: Option<Vec<f32>>,
@@ -122,17 +123,17 @@ impl CPUMesh {
         }
 
         if let Some(ref mut tangents) = self.tangents {
-            for i in 0..tangents.len() / 3 {
+            for i in 0..tangents.len() / 4 {
                 let t = normal_transform
                     * vec4(
-                        tangents[i * 3],
-                        tangents[i * 3 + 1],
-                        tangents[i * 3 + 2],
+                        tangents[i * 4],
+                        tangents[i * 4 + 1],
+                        tangents[i * 4 + 2],
                         1.0,
                     );
-                tangents[i * 3] = t.x;
-                tangents[i * 3 + 1] = t.y;
-                tangents[i * 3 + 2] = t.z;
+                tangents[i * 4] = t.x;
+                tangents[i * 4 + 1] = t.y;
+                tangents[i * 4 + 2] = t.z;
             }
         }
     }
