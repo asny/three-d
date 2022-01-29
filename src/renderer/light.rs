@@ -66,6 +66,7 @@ impl LightingModel {
     }
 }
 
+#[deprecated = "Use slice of lights instead when making a render call"]
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
     pub directional: Vec<DirectionalLight>,
@@ -74,6 +75,7 @@ pub struct Lights {
     pub lighting_model: LightingModel,
 }
 
+#[allow(deprecated)]
 impl Lights {
     pub fn iter<'a>(&'a self) -> LightsIterator<'a> {
         LightsIterator::new(self)
@@ -84,6 +86,7 @@ impl Lights {
     }
 }
 
+#[allow(deprecated)]
 impl<'a> IntoIterator for &'a Lights {
     type Item = &'a dyn Light;
     type IntoIter = LightsIterator<'a>;
@@ -92,6 +95,7 @@ impl<'a> IntoIterator for &'a Lights {
     }
 }
 
+#[allow(deprecated)]
 impl Default for Lights {
     fn default() -> Self {
         Self {
@@ -104,11 +108,13 @@ impl Default for Lights {
     }
 }
 
+#[allow(deprecated)]
 pub struct LightsIterator<'a> {
     lights: &'a Lights,
     index: usize,
 }
 
+#[allow(deprecated)]
 impl<'a> LightsIterator<'a> {
     pub fn new(lights: &'a Lights) -> Self {
         Self { index: 0, lights }
@@ -121,6 +127,7 @@ impl<'a> std::clone::Clone for LightsIterator<'a> {
     }
 }
 
+#[allow(deprecated)]
 impl<'a> Iterator for LightsIterator<'a> {
     type Item = &'a dyn Light;
     fn next(&mut self) -> Option<Self::Item> {
