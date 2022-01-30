@@ -100,7 +100,10 @@ pub struct CPUMeshGenerator<'t, P> {
 
 impl<'t, P: Copy> CPUMeshGenerator<'t, P> {
     fn generate(&mut self, indices: Option<Indices>, name: impl ToString, params: &[P]) -> CPUMesh {
-        fn vec_gen<P: Copy, T, const N: usize>(params: &[P], gen: &mut (dyn FnMut(P) -> [T; N] + '_)) -> Vec<T> {
+        fn vec_gen<P: Copy, T, const N: usize>(
+            params: &[P],
+            gen: &mut (dyn FnMut(P) -> [T; N] + '_),
+        ) -> Vec<T> {
             let mut vec = Vec::with_capacity(params.len() * N);
 
             for &p in params {
@@ -232,13 +235,18 @@ impl CPUMesh {
     pub fn square() -> Self {
         let halfsize = 1.0;
 
-        Self::square_gen("square", CPUMeshGenerator {
-            positions: &mut |[u, v]| [(u * 2.0 - 1.0) * halfsize, (v * 2.0 - 1.0) * halfsize, 0.0],
-            normals: Some(&mut |_| [0.0, 0.0, 1.0]),
-            tangents: Some(&mut |_| [1.0, 0.0, 0.0, 1.0]),
-            uvs: Some(&mut |[u, v]| [u, v]),
-            colors: None,
-        })
+        Self::square_gen(
+            "square",
+            CPUMeshGenerator {
+                positions: &mut |[u, v]| {
+                    [(u * 2.0 - 1.0) * halfsize, (v * 2.0 - 1.0) * halfsize, 0.0]
+                },
+                normals: Some(&mut |_| [0.0, 0.0, 1.0]),
+                tangents: Some(&mut |_| [1.0, 0.0, 0.0, 1.0]),
+                uvs: Some(&mut |[u, v]| [u, v]),
+                colors: None,
+            },
+        )
     }
 
     ///
@@ -247,31 +255,38 @@ impl CPUMesh {
     pub fn square_gen(name: impl ToString, mut gen: CPUMeshGenerator<'_, [f32; 2]>) -> Self {
         let indices = vec![0u8, 1, 2, 2, 3, 0];
 
-        gen.generate(Some(Indices::U8(indices)), name, &[
-             [0.0, 0.0],
-             [1.0, 0.0],
-             [1.0, 1.0],
-             [0.0, 1.0],
-        ])
+        gen.generate(
+            Some(Indices::U8(indices)),
+            name,
+            &[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+        )
     }
 
     ///
     /// Returns a circle mesh spanning the xy-plane with radius 1 and center in `(0, 0, 0)`.
     ///
     pub fn circle(angle_subdivisions: u32) -> Self {
-        Self::circle_gen("circle", angle_subdivisions, CPUMeshGenerator {
-            positions: &mut |vertex| [vertex.x, vertex.y, 0.0],
-            normals: Some(&mut |_| [0.0, 0.0, 1.0]),
-            tangents: None,
-            uvs: None,
-            colors: None,
-        })
+        Self::circle_gen(
+            "circle",
+            angle_subdivisions,
+            CPUMeshGenerator {
+                positions: &mut |vertex| [vertex.x, vertex.y, 0.0],
+                normals: Some(&mut |_| [0.0, 0.0, 1.0]),
+                tangents: None,
+                uvs: None,
+                colors: None,
+            },
+        )
     }
 
     ///
     /// Generates a circle mesh using a generator.
     ///
-    pub fn circle_gen(name: impl ToString, angle_subdivisions: u32, mut gen: CPUMeshGenerator<'_, CircleVertex>) -> Self {
+    pub fn circle_gen(
+        name: impl ToString,
+        angle_subdivisions: u32,
+        mut gen: CPUMeshGenerator<'_, CircleVertex>,
+    ) -> Self {
         let mut params = Vec::new();
         let mut indices = Vec::new();
 
@@ -292,23 +307,37 @@ impl CPUMesh {
     /// Returns a sphere mesh with radius 1 and center in `(0, 0, 0)`.
     ///
     pub fn sphere(angle_subdivisions: u32) -> Self {
-        Self::sphere_gen("sphere", angle_subdivisions, CPUMeshGenerator {
-            positions: &mut |v| [v.x, v.y, v.z],
-            normals: Some(&mut |v| [v.x, v.y, v.z]),
-            tangents: None,
-            uvs: None,
-            colors: None,
-        })
+        Self::sphere_gen(
+            "sphere",
+            angle_subdivisions,
+            CPUMeshGenerator {
+                positions: &mut |v| [v.x, v.y, v.z],
+                normals: Some(&mut |v| [v.x, v.y, v.z]),
+                tangents: None,
+                uvs: None,
+                colors: None,
+            },
+        )
     }
 
     ///
     /// Generates a circle mesh using a generator.
     ///
-    pub fn sphere_gen(name: impl ToString, angle_subdivisions: u32, mut gen: CPUMeshGenerator<'_, SphereVertex>) -> Self {
+    pub fn sphere_gen(
+        name: impl ToString,
+        angle_subdivisions: u32,
+        mut gen: CPUMeshGenerator<'_, SphereVertex>,
+    ) -> Self {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
 
-        vertices.push(SphereVertex {x: 0.0, y: 0.0, z: 1.0, theta: 0.0, phi: 0.0});
+        vertices.push(SphereVertex {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+            theta: 0.0,
+            phi: 0.0,
+        });
 
         for j in 0..angle_subdivisions * 2 {
             let j1 = (j + 1) % (angle_subdivisions * 2);
@@ -329,7 +358,13 @@ impl CPUMesh {
                 let x = sin_theta * cos_phi;
                 let y = sin_theta * sin_phi;
                 let z = cos_theta;
-                vertices.push(SphereVertex{x, y, z, theta, phi});
+                vertices.push(SphereVertex {
+                    x,
+                    y,
+                    z,
+                    theta,
+                    phi,
+                });
 
                 if i != angle_subdivisions - 2 {
                     let j1 = (j + 1) % (angle_subdivisions * 2);
@@ -343,7 +378,13 @@ impl CPUMesh {
             }
         }
 
-        vertices.push(SphereVertex {x: 0.0, y: 0.0, z: -1.0, theta: std::f32::consts::PI, phi: 0.0});
+        vertices.push(SphereVertex {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+            theta: std::f32::consts::PI,
+            phi: 0.0,
+        });
 
         let i = 1 + (angle_subdivisions - 2) * angle_subdivisions * 2;
         for j in 0..angle_subdivisions * 2 {
@@ -390,13 +431,17 @@ impl CPUMesh {
     /// Returns a cylinder mesh around the x-axis in the range `[0..1]` and with radius 1.
     ///
     pub fn cylinder(angle_subdivisions: u32) -> Self {
-        let mut mesh = Self::cylinder_gen("cylinder", angle_subdivisions, CPUMeshGenerator {
-            positions: &mut |v| [v.x, v.y, v.z],
-            normals: None,
-            tangents: None,
-            uvs: None,
-            colors: None,
-        });
+        let mut mesh = Self::cylinder_gen(
+            "cylinder",
+            angle_subdivisions,
+            CPUMeshGenerator {
+                positions: &mut |v| [v.x, v.y, v.z],
+                normals: None,
+                tangents: None,
+                uvs: None,
+                colors: None,
+            },
+        );
         mesh.compute_normals();
         mesh
     }
@@ -404,7 +449,11 @@ impl CPUMesh {
     ///
     /// Generates a cylinder mesh using a generator.
     ///
-    pub fn cylinder_gen(name: impl ToString, angle_subdivisions: u32, mut gen: CPUMeshGenerator<'_, CylinderVertex>) -> Self {
+    pub fn cylinder_gen(
+        name: impl ToString,
+        angle_subdivisions: u32,
+        mut gen: CPUMeshGenerator<'_, CylinderVertex>,
+    ) -> Self {
         let mut vertices = Vec::new();
         let length_subdivisions = 1;
         let mut indices = Vec::new();
@@ -415,7 +464,7 @@ impl CPUMesh {
                 let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
                 let (z, y) = angle.sin_cos();
-                vertices.push(CylinderVertex{y, z, angle, x})
+                vertices.push(CylinderVertex { y, z, angle, x })
             }
         }
 
@@ -438,13 +487,17 @@ impl CPUMesh {
     /// Returns a cone mesh around the x-axis in the range `[0..1]` and with radius 1 at -1.0.
     ///
     pub fn cone(angle_subdivisions: u32) -> Self {
-        let mut mesh = Self::cylinder_gen("cone", angle_subdivisions, CPUMeshGenerator {
-            positions: &mut |v| [v.x, v.y * (1.0 - v.x), v.z * (1.0 - v.x)],
-            normals: None,
-            tangents: None,
-            uvs: None,
-            colors: None,
-        });
+        let mut mesh = Self::cylinder_gen(
+            "cone",
+            angle_subdivisions,
+            CPUMeshGenerator {
+                positions: &mut |v| [v.x, v.y * (1.0 - v.x), v.z * (1.0 - v.x)],
+                normals: None,
+                tangents: None,
+                uvs: None,
+                colors: None,
+            },
+        );
         mesh.compute_normals();
         mesh
     }
