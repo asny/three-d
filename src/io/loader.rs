@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::io::*;
+use reqwest::Url;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -181,7 +182,7 @@ impl Loader {
     pub fn load_blocking(paths: &[impl AsRef<Path>]) -> Loaded {
         let mut loaded = Loaded::new();
         for path in paths {
-            let result = if let Ok(url) = reqwest::Url::parse(path.as_ref().to_str().unwrap()) {
+            let result = if let Ok(url) = Url::parse(path.as_ref().to_str().unwrap()) {
                 Ok(reqwest::blocking::get(url)
                     .map(|r| (*r.bytes().unwrap()).to_vec())
                     .unwrap())
@@ -213,23 +214,36 @@ impl Loader {
         let client = reqwest::Client::new();
         let mut loads = Loaded::new();
         for path in paths.iter() {
-            let url = reqwest::Url::parse(path.to_str().unwrap()).unwrap_or_else(|_| {
-                let u = web_sys::window()
-                    .unwrap()
-                    .document()
-                    .unwrap()
-                    .url()
-                    .unwrap();
-                let p = if !u.ends_with("/") {
-                    std::path::PathBuf::from(u).parent().unwrap().join(path)
-                } else {
-                    std::path::PathBuf::from(u.clone()).join(path)
-                };
-                reqwest::Url::parse(p.to_str().unwrap()).unwrap()
-            });
-            let data = client.get(url).send().await.unwrap().bytes().await.unwrap();
-            loads.loaded.insert(path.clone(), Ok((*data).to_vec()));
+            let data = Self::load_file_web(&client, path).await;
+            loads.loaded.insert(path.clone(), Ok(data));
         }
         on_done(loads)
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    async fn load_file_web(client: &reqwest::Client, path: &PathBuf) -> Vec<u8> {
+        let url = Url::parse(path.to_str().unwrap()).unwrap_or_else(|_| {
+            let u = web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .url()
+                .unwrap();
+            let p = if !u.ends_with("/") {
+                PathBuf::from(u).parent().unwrap().join(path)
+            } else {
+                PathBuf::from(u.clone()).join(path)
+            };
+            Url::parse(p.to_str().unwrap()).unwrap()
+        });
+        client
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .bytes()
+            .await
+            .unwrap()
+            .to_vec()
     }
 }
