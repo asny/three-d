@@ -194,7 +194,6 @@ pub struct Context {
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
-    dummy_tex: Rc<RefCell<Option<Texture2D<u8>>>>,
 }
 
 impl Context {
@@ -207,7 +206,6 @@ impl Context {
             programs: Rc::new(RefCell::new(HashMap::new())),
             effects: Rc::new(RefCell::new(HashMap::new())),
             camera2d: Rc::new(RefCell::new(None)),
-            dummy_tex: Rc::new(RefCell::new(None)),
         }
     }
 
