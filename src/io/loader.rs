@@ -210,40 +210,30 @@ impl Loader {
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load_files_web(paths: Vec<PathBuf>, on_done: impl 'static + FnOnce(Loaded)) {
-        let client = reqwest::Client::new();
-        let mut loads = Loaded::new();
-        for path in paths.iter() {
-            let data = Self::load_file_web(&client, path).await;
-            loads.loaded.insert(path.clone(), Ok(data));
-        }
-        on_done(loads)
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    async fn load_file_web(client: &reqwest::Client, path: &PathBuf) -> Vec<u8> {
-        let url = Url::parse(path.to_str().unwrap()).unwrap_or_else(|_| {
-            let u = web_sys::window()
+    async fn load_files_web(mut paths: Vec<PathBuf>, on_done: impl 'static + FnOnce(Loaded)) {
+        let mut base_path = PathBuf::from(
+            web_sys::window()
                 .unwrap()
                 .document()
                 .unwrap()
                 .url()
-                .unwrap();
-            let p = if !u.ends_with("/") {
-                PathBuf::from(u).parent().unwrap().join(path)
-            } else {
-                PathBuf::from(u.clone()).join(path)
-            };
-            Url::parse(p.to_str().unwrap()).unwrap()
-        });
-        client
-            .get(url)
-            .send()
-            .await
-            .unwrap()
-            .bytes()
-            .await
-            .unwrap()
-            .to_vec()
+                .unwrap(),
+        );
+        if !base_path.ends_with("/") {
+            base_path = base_path.parent().unwrap().to_path_buf()
+        };
+        let mut loads = Loaded::new();
+        let mut handles = Vec::new();
+        for path in paths.drain(..) {
+            let url = Url::parse(path.to_str().unwrap())
+                .unwrap_or_else(|_| Url::parse(base_path.join(&path).to_str().unwrap()).unwrap());
+            handles.push((path.clone(), reqwest::get(url).await.unwrap()));
+        }
+
+        for (path, handle) in handles.drain(..) {
+            let data = handle.bytes().await.unwrap().to_vec();
+            loads.loaded.insert(path, Ok(data));
+        }
+        on_done(loads)
     }
 }
