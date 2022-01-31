@@ -45,7 +45,7 @@ gl_generator = {version = "0.14"}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 glutin = { version = "0.27", optional = true }
-tokio = "1.16"
+tokio = { version = "1.16", features = ["fs"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3"

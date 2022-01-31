@@ -221,30 +221,26 @@ impl Loader {
         let mut loaded = Loaded::new();
         for path in paths.iter() {
             let path = path.as_ref().to_path_buf();
-            if let Ok(url) = Url::parse(path.to_str().unwrap()) {
-                println!("start: {}", path.to_str().unwrap());
-                handles.push((
-                    path,
-                    tokio::spawn(async move {
-                        reqwest::get(url)
+            handles.push((
+                path.clone(),
+                tokio::spawn(async move {
+                    if let Ok(url) = Url::parse(path.to_str().unwrap()) {
+                        Ok(reqwest::get(url)
                             .await
                             .unwrap()
                             .bytes()
                             .await
                             .unwrap()
-                            .to_vec()
-                    }),
-                ));
-            } else {
-                let result = std::fs::read(&path);
-                loaded.loaded.insert(path, result);
-            }
+                            .to_vec())
+                    } else {
+                        tokio::fs::read(&path).await
+                    }
+                }),
+            ));
         }
 
         for (path, handle) in handles.drain(..) {
-            println!("end: {}", path.to_str().unwrap());
-            let data = handle.await.unwrap();
-            loaded.loaded.insert(path, Ok(data));
+            loaded.loaded.insert(path, handle.await.unwrap());
         }
         loaded
     }
