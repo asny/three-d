@@ -199,28 +199,17 @@ impl Loader {
             base_path = base_path.parent().unwrap().to_path_buf()
         };
 
-        let mut urls = Vec::new();
+        let mut handles = Vec::new();
         for path in paths.iter() {
             let p = path.as_ref().to_path_buf();
-            if let Ok(url) = Url::parse(p.to_str().unwrap()) {
-                urls.push((p, url));
-            } else {
-                urls.push((
-                    p,
-                    Url::parse(base_path.join(&path).to_str().unwrap()).unwrap(),
-                ));
-            }
-        }
-        let mut handles = Vec::new();
-        for (path, url) in urls.drain(..) {
-            println!("start: {}", path.to_str().unwrap());
-            handles.push((path, reqwest::get(url).await.unwrap()));
+            let url = Url::parse(p.to_str().unwrap())
+                .unwrap_or(Url::parse(base_path.join(&path).to_str().unwrap()).unwrap());
+            handles.push((p, reqwest::get(url).await.unwrap()));
         }
 
         let mut loaded = Loaded::new();
         for (path, handle) in handles.drain(..) {
             let data = handle.bytes().await.unwrap().to_vec();
-            println!("end: {}", path.to_str().unwrap());
             loaded.loaded.insert(path, Ok(data));
         }
         loaded
