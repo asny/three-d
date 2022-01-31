@@ -169,8 +169,7 @@ impl Loader {
         {
             let paths: Vec<PathBuf> = paths.iter().map(|p| p.as_ref().to_path_buf()).collect();
             wasm_bindgen_futures::spawn_local(async move {
-                let (urls, _) = Self::interpret(&paths);
-                let loaded = Self::load_files_web(urls).await;
+                let loaded = Self::load_async(&paths).await;
                 on_done(loaded);
             });
         }
@@ -187,21 +186,8 @@ impl Loader {
     }
 
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> Loaded {
-        let (urls, mut paths) = Self::interpret(paths);
-        let mut loaded = Self::load_files_web(urls).await;
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            for path in paths.drain(..) {
-                let result = std::fs::read(&path);
-                loaded.loaded.insert(path, result);
-            }
-        }
-        loaded
-    }
-
-    fn interpret(paths: &[impl AsRef<Path>]) -> (Vec<(PathBuf, Url)>, Vec<PathBuf>) {
         let mut urls = Vec::new();
-        let mut paths_ = Vec::new();
+        let mut paths_: Vec<PathBuf> = Vec::new();
         for path in paths.iter() {
             let p = path.as_ref().to_path_buf();
             if let Ok(url) = Url::parse(p.to_str().unwrap()) {
@@ -231,11 +217,16 @@ impl Loader {
                 }
             }
         }
-        (urls, paths_)
+        let mut loaded = Loaded::new();
+        Self::load_from_urls(&mut loaded, urls).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            Self::load_from_locals(&mut loaded, paths_);
+        }
+        loaded
     }
 
-    async fn load_files_web(mut paths: Vec<(PathBuf, Url)>) -> Loaded {
-        let mut loaded = Loaded::new();
+    async fn load_from_urls(loaded: &mut Loaded, mut paths: Vec<(PathBuf, Url)>) {
         let mut handles = Vec::new();
         for (path, url) in paths.drain(..) {
             handles.push((path, reqwest::get(url).await.unwrap()));
@@ -245,6 +236,13 @@ impl Loader {
             let data = handle.bytes().await.unwrap().to_vec();
             loaded.loaded.insert(path, Ok(data));
         }
-        loaded
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn load_from_locals(loaded: &mut Loaded, mut paths: Vec<PathBuf>) {
+        for path in paths.drain(..) {
+            let result = std::fs::read(&path);
+            loaded.loaded.insert(path, result);
+        }
     }
 }
