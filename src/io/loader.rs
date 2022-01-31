@@ -166,30 +166,51 @@ impl Loader {
     pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Loaded)) {
         #[cfg(target_arch = "wasm32")]
         {
-            wasm_bindgen_futures::spawn_local(Self::load_files_async(
+            wasm_bindgen_futures::spawn_local(Self::load_files_web(
                 paths.iter().map(|p| p.as_ref().to_path_buf()).collect(),
                 on_done,
             ));
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            let mut loaded = Loaded::new();
-            for path in paths {
-                let result = if let Ok(url) = reqwest::Url::parse(path.as_ref().to_str().unwrap()) {
-                    Ok(reqwest::blocking::get(url)
-                        .map(|r| (*r.bytes().unwrap()).to_vec())
-                        .unwrap())
-                } else {
-                    std::fs::read(path.as_ref())
-                };
-                loaded.loaded.insert(path.as_ref().to_path_buf(), result);
-            }
-            on_done(loaded)
+            on_done(Self::load_blocking(paths));
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn load_blocking(paths: &[impl AsRef<Path>]) -> Loaded {
+        let mut loaded = Loaded::new();
+        for path in paths {
+            let result = if let Ok(url) = reqwest::Url::parse(path.as_ref().to_str().unwrap()) {
+                Ok(reqwest::blocking::get(url)
+                    .map(|r| (*r.bytes().unwrap()).to_vec())
+                    .unwrap())
+            } else {
+                std::fs::read(path.as_ref())
+            };
+            loaded.loaded.insert(path.as_ref().to_path_buf(), result);
+        }
+        loaded
+    }
+
+    pub async fn load_async(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Loaded)) {
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            on_done(Self::load_blocking(paths));
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            Self::load_files_web(
+                paths.iter().map(|p| p.as_ref().to_path_buf()).collect(),
+                on_done,
+            )
+            .await;
         }
     }
 
     #[cfg(target_arch = "wasm32")]
-    async fn load_files_async(paths: Vec<PathBuf>, on_done: impl 'static + FnOnce(Loaded)) {
+    async fn load_files_web(paths: Vec<PathBuf>, on_done: impl 'static + FnOnce(Loaded)) {
+        let client = reqwest::Client::new();
         let mut loads = Loaded::new();
         for path in paths.iter() {
             let url = reqwest::Url::parse(path.to_str().unwrap()).unwrap_or_else(|_| {
@@ -206,7 +227,7 @@ impl Loader {
                 };
                 reqwest::Url::parse(p.to_str().unwrap()).unwrap()
             });
-            let data = reqwest::get(url).await.unwrap().bytes().await.unwrap();
+            let data = client.get(url).send().await.unwrap().bytes().await.unwrap();
             loads.loaded.insert(path.clone(), Ok((*data).to_vec()));
         }
         on_done(loads)
