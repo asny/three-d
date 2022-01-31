@@ -223,7 +223,18 @@ impl Loader {
             let path = path.as_ref().to_path_buf();
             if let Ok(url) = Url::parse(path.to_str().unwrap()) {
                 println!("start: {}", path.to_str().unwrap());
-                handles.push((path, reqwest::get(url).await.unwrap()));
+                handles.push((
+                    path,
+                    tokio::spawn(async move {
+                        reqwest::get(url)
+                            .await
+                            .unwrap()
+                            .bytes()
+                            .await
+                            .unwrap()
+                            .to_vec()
+                    }),
+                ));
             } else {
                 let result = std::fs::read(&path);
                 loaded.loaded.insert(path, result);
@@ -231,8 +242,8 @@ impl Loader {
         }
 
         for (path, handle) in handles.drain(..) {
-            let data = handle.bytes().await.unwrap().to_vec();
             println!("end: {}", path.to_str().unwrap());
+            let data = handle.await.unwrap();
             loaded.loaded.insert(path, Ok(data));
         }
         loaded
