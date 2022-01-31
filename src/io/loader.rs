@@ -185,6 +185,48 @@ impl Loader {
         runtime.block_on(Self::load_async(paths))
     }
 
+    #[cfg(target_arch = "wasm32")]
+    pub async fn load_async(paths: &[impl AsRef<Path>]) -> Loaded {
+        let mut base_path = PathBuf::from(
+            web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .url()
+                .unwrap(),
+        );
+        if !base_path.ends_with("/") {
+            base_path = base_path.parent().unwrap().to_path_buf()
+        };
+
+        let mut urls = Vec::new();
+        for path in paths.iter() {
+            let p = path.as_ref().to_path_buf();
+            if let Ok(url) = Url::parse(p.to_str().unwrap()) {
+                urls.push((p, url));
+            } else {
+                urls.push((
+                    p,
+                    Url::parse(base_path.join(&path).to_str().unwrap()).unwrap(),
+                ));
+            }
+        }
+        let mut handles = Vec::new();
+        for (path, url) in urls.drain(..) {
+            println!("start: {}", path.to_str().unwrap());
+            handles.push((path, reqwest::get(url).await.unwrap()));
+        }
+
+        let mut loaded = Loaded::new();
+        for (path, handle) in handles.drain(..) {
+            let data = handle.bytes().await.unwrap().to_vec();
+            println!("end: {}", path.to_str().unwrap());
+            loaded.loaded.insert(path, Ok(data));
+        }
+        loaded
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> Loaded {
         let mut urls = Vec::new();
         let mut paths_: Vec<PathBuf> = Vec::new();
@@ -193,56 +235,25 @@ impl Loader {
             if let Ok(url) = Url::parse(p.to_str().unwrap()) {
                 urls.push((p, url));
             } else {
-                #[cfg(not(target_arch = "wasm32"))]
-                {
-                    paths_.push(p);
-                }
-                #[cfg(target_arch = "wasm32")]
-                {
-                    let mut base_path = PathBuf::from(
-                        web_sys::window()
-                            .unwrap()
-                            .document()
-                            .unwrap()
-                            .url()
-                            .unwrap(),
-                    );
-                    if !base_path.ends_with("/") {
-                        base_path = base_path.parent().unwrap().to_path_buf()
-                    };
-                    urls.push((
-                        p,
-                        Url::parse(base_path.join(&path).to_str().unwrap()).unwrap(),
-                    ));
-                }
+                paths_.push(p);
             }
         }
-        let mut loaded = Loaded::new();
-        Self::load_from_urls(&mut loaded, urls).await;
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            Self::load_from_locals(&mut loaded, paths_);
-        }
-        loaded
-    }
-
-    async fn load_from_urls(loaded: &mut Loaded, mut paths: Vec<(PathBuf, Url)>) {
         let mut handles = Vec::new();
-        for (path, url) in paths.drain(..) {
+        for (path, url) in urls.drain(..) {
+            println!("start: {}", path.to_str().unwrap());
             handles.push((path, reqwest::get(url).await.unwrap()));
         }
 
+        let mut loaded = Loaded::new();
         for (path, handle) in handles.drain(..) {
             let data = handle.bytes().await.unwrap().to_vec();
+            println!("end: {}", path.to_str().unwrap());
             loaded.loaded.insert(path, Ok(data));
         }
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    fn load_from_locals(loaded: &mut Loaded, mut paths: Vec<PathBuf>) {
-        for path in paths.drain(..) {
+        for path in paths_.drain(..) {
             let result = std::fs::read(&path);
             loaded.loaded.insert(path, result);
         }
+        loaded
     }
 }
