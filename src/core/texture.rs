@@ -91,6 +91,7 @@ pub type CPUTexture<T> = CpuTexture<T>;
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 #[allow(missing_docs)]
+#[derive(Clone)]
 pub struct CpuTexture<T: TextureDataType> {
     pub data: Vec<T>,
     pub width: u32,
