@@ -54,7 +54,7 @@ fn main() {
                 .unwrap(),
             )
             .unwrap();
-            tree_mesh.material.transparent_render_states.cull = Cull::Back;
+            tree_mesh.material.render_states.cull = Cull::Back;
 
             let mut leaves_cpu_mesh = meshes
                 .iter()
@@ -134,7 +134,7 @@ fn main() {
                 },
             )
             .unwrap();
-            plane.material.opaque_render_states.cull = Cull::Back;
+            plane.material.render_states.cull = Cull::Back;
             Ok((
                 plane,
                 tree_mesh,

@@ -31,7 +31,7 @@ fn main() {
         move |context, mut loaded| {
             let (meshes, materials) = loaded.obj("suzanne.obj")?;
             let mut monkey_material = PhysicalMaterial::new(&context, &materials[0])?;
-            monkey_material.opaque_render_states.cull = Cull::Back;
+            monkey_material.render_states.cull = Cull::Back;
             Model::new_with_material(&context, &meshes[0], monkey_material)
         },
     );

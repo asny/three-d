@@ -38,7 +38,7 @@ fn main() {
 
             let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
             let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-            material.opaque_render_states.cull = Cull::Back;
+            material.render_states.cull = Cull::Back;
             cpu_meshes[0].compute_tangents().unwrap();
             let mut model =
                 Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
@@ -128,8 +128,8 @@ fn main() {
                             } else {
                                 None
                             },
-                            opaque_render_states: model.material.opaque_render_states,
-                            transparent_render_states: model.material.transparent_render_states,
+                            render_states: model.material.render_states,
+                            is_transparent: model.material.is_transparent,
                             lighting_model: LightingModel::Cook(
                                 NormalDistributionFunction::TrowbridgeReitzGGX,
                                 GeometryFunction::SmithSchlickGGX,

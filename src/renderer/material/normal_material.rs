@@ -29,7 +29,11 @@ impl NormalMaterial {
         Self {
             normal_scale: physical_material.normal_scale,
             normal_texture: physical_material.normal_texture.clone(),
-            render_states: physical_material.opaque_render_states,
+            render_states: RenderStates {
+                write_mask: WriteMask::default(),
+                blend: Blend::Disabled,
+                ..physical_material.render_states
+            },
         }
     }
 }

@@ -69,7 +69,7 @@ fn main() {
                 PhysicalMaterial::new(&context, &penguin_cpu_materials[0])?,
             )?;
             penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
-            penguin_object.material.opaque_render_states.cull = Cull::Back;
+            penguin_object.material.render_states.cull = Cull::Back;
             Ok((box_object, penguin_object))
         },
     );
