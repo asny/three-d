@@ -166,6 +166,15 @@ impl<T: Light + ?Sized> Light for &T {
     }
 }
 
+impl<T: Light + ?Sized> Light for &mut T {
+    fn shader_source(&self, i: u32) -> String {
+        (**self).shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        (**self).use_uniforms(program, i)
+    }
+}
+
 impl<T: Light> Light for Box<T> {
     fn shader_source(&self, i: u32) -> String {
         self.as_ref().shader_source(i)
