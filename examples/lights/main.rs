@@ -112,36 +112,37 @@ fn main() {
             }
 
             let mut models = Vec::new();
+            
             for m in cpu_meshes.iter() {
                 let material = materials.iter().find(|material| &material.name == m.material_name.as_ref().unwrap()).unwrap().clone();
                 models.push(Model::new_with_material(&context, &m, material).unwrap());
             }
-            Ok(models)
+
+            let mut rng = rand::thread_rng();
+            let mut lights = Vec::new();
+            for _ in 0..10 {
+                lights.push(
+                    PointLight::new(
+                        &context,
+                        0.4,
+                        Color::WHITE,
+                        &vec3(
+                            2000.0 * rng.gen::<f32>() - 1000.0,
+                            200.0 * rng.gen::<f32>() + 100.0,
+                            600.0 * rng.gen::<f32>() - 300.0,
+                        ),
+                        Attenuation {
+                            constant: 0.005,
+                            linear: 0.0005,
+                            quadratic: 0.00005,
+                        },
+                    )
+                    .unwrap(),
+                );
+            }
+            Ok((models, lights))
         },
     );
-
-    let mut rng = rand::thread_rng();
-    let mut point = Vec::new();
-    for _ in 0..40 {
-        point.push(
-            PointLight::new(
-                &context,
-                0.4,
-                Color::WHITE,
-                &vec3(
-                    2000.0 * rng.gen::<f32>() - 1000.0,
-                    200.0 * rng.gen::<f32>() + 100.0,
-                    600.0 * rng.gen::<f32>() - 300.0,
-                ),
-                Attenuation {
-                    constant: 0.005,
-                    linear: 0.0005,
-                    quadratic: 0.00005,
-                },
-            )
-            .unwrap(),
-        );
-    }
 
     // main loop
     window
@@ -151,15 +152,16 @@ fn main() {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            let time = 0.001 * frame_input.accumulated_time;
-            let c = time.cos() as f32;
-            let s = time.sin() as f32;
-            for light in point.iter_mut() {
-                light.position += vec3(-5.0 * c, 0.0, -5.0 * s);
-            }
+            if let Some(ref mut scene) = *scene.borrow_mut() {
+                let (models, lights) = scene.as_mut().unwrap();
 
-            if let Some(ref scene) = *scene.borrow() {
-                let models = scene.as_ref().unwrap();
+                let time = 0.001 * frame_input.accumulated_time;
+                let c = time.cos() as f32;
+                let s = time.sin() as f32;
+                for light in lights.iter_mut() {
+                    light.position += vec3(-5.0 * c, 0.0, -5.0 * s);
+                }
+
                 pipeline
                     .render_pass(
                         &camera,
@@ -171,19 +173,9 @@ fn main() {
                     &context,
                     ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0),
                     || {
-                        /*render_pass(
-                            &camera,
-                            &models.iter().collect::<Vec<_>>(),
-                            &point
-                                .iter()
-                                .map(|l| l as &dyn Light)
-                                .chain(directional.iter().map(|l| l as &dyn Light))
-                                .chain(spot.iter().map(|l| l as &dyn Light))
-                                .collect::<Vec<_>>(),
-                        )?;*/
                         pipeline.lighting_pass(
                             &camera,
-                            &point.iter().map(|l| l as &dyn Light).collect::<Vec<_>>(),
+                            &lights.iter().map(|l| l as &dyn Light).collect::<Vec<_>>(),
                         )?;
                         Ok(())
                     },
