@@ -70,7 +70,7 @@ impl<M: Material> Rectangle<M> {
     }
 }
 
-impl<M: Material> Shadable2D for Rectangle<M> {
+impl<M: Material> Geometry2D for Rectangle<M> {
     fn render_with_material(
         &self,
         material: &dyn Material,

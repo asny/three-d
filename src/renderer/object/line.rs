@@ -69,7 +69,7 @@ impl<M: Material> Line<M> {
     }
 }
 
-impl<M: Material> Shadable2D for Line<M> {
+impl<M: Material> Geometry2D for Line<M> {
     fn render_with_material(
         &self,
         material: &dyn Material,
