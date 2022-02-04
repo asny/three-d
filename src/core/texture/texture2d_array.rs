@@ -134,31 +134,6 @@ impl<T: TextureDataType> Texture2DArray<T> {
         )
     }
 
-    ///
-    /// Copies the content of the color texture at the given layer to the specified destination at the given viewport.
-    /// Will only copy the channels specified by the write mask.
-    ///
-    /// # Errors
-    /// Will return an error if the destination is a depth texture.
-    ///
-    #[deprecated = "Use RenderTarget::copy_from_array or Screen::copy_from_array instead"]
-    pub fn copy_to(
-        &self,
-        color_layer: u32,
-        destination: CopyDestination<T>,
-        viewport: Viewport,
-        write_mask: WriteMask,
-    ) -> ThreeDResult<()> {
-        #[allow(deprecated)]
-        RenderTargetArray::<T>::new_color(&self.context, &self)?.copy_to(
-            color_layer,
-            0,
-            destination,
-            viewport,
-            write_mask,
-        )
-    }
-
     pub(in crate::core) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context

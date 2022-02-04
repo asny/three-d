@@ -1,10 +1,3 @@
-#[cfg(feature = "3d-io")]
-#[cfg_attr(docsrs, doc(cfg(feature = "3d-io")))]
-mod threed;
-#[doc(inline)]
-#[cfg(feature = "3d-io")]
-pub use threed::*;
-
 #[cfg(feature = "obj-io")]
 #[cfg_attr(docsrs, doc(cfg(feature = "obj-io")))]
 mod obj;
