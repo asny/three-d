@@ -18,7 +18,7 @@ impl<T: TextureDataType> Texture2D<T> {
     ///
     /// Construcs a new texture with the given data.
     ///
-    pub fn new(context: &Context, cpu_texture: &CPUTexture<T>) -> ThreeDResult<Texture2D<T>> {
+    pub fn new(context: &Context, cpu_texture: &CpuTexture<T>) -> ThreeDResult<Texture2D<T>> {
         let mut texture = Self::new_empty(
             context,
             cpu_texture.width,

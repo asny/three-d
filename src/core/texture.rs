@@ -82,12 +82,16 @@ impl Format {
     }
 }
 
+/// See [CpuTexture]
+#[deprecated = "Renamed to CpuTexture"]
+pub type CPUTexture<T> = CpuTexture<T>;
+
 ///
 /// A CPU-side version of a [Texture2D].
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 #[allow(missing_docs)]
-pub struct CPUTexture<T: TextureDataType> {
+pub struct CpuTexture<T: TextureDataType> {
     pub data: Vec<T>,
     pub width: u32,
     pub height: u32,
@@ -101,7 +105,7 @@ pub struct CPUTexture<T: TextureDataType> {
     pub wrap_t: Wrapping,
 }
 
-impl<T: TextureDataType> CPUTexture<T> {
+impl<T: TextureDataType> CpuTexture<T> {
     ///
     /// Adds a padding of default values to the texture.
     /// 'left' number of pixels are added to the left of the original texture, 'right' number of pixels to the right and so on.
@@ -129,7 +133,7 @@ impl<T: TextureDataType> CPUTexture<T> {
     }
 }
 
-impl<T: TextureDataType> Default for CPUTexture<T> {
+impl<T: TextureDataType> Default for CpuTexture<T> {
     fn default() -> Self {
         Self {
             data: [T::default(), T::default(), T::default(), T::default()].into(),
@@ -145,9 +149,9 @@ impl<T: TextureDataType> Default for CPUTexture<T> {
     }
 }
 
-impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
+impl<T: TextureDataType> std::fmt::Debug for CpuTexture<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("CPUTexture")
+        f.debug_struct("CpuTexture")
             .field("format", &self.format)
             .field("data length", &self.data.len())
             .field("width", &self.width)
@@ -166,7 +170,7 @@ impl<T: TextureDataType> std::fmt::Debug for CPUTexture<T> {
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
 #[allow(missing_docs)]
-pub struct CPUTextureCube<T: TextureDataType> {
+pub struct CpuTextureCube<T: TextureDataType> {
     /// The pixel data for the right image
     pub right_data: Vec<T>,
     /// The pixel data for the left image
@@ -194,7 +198,7 @@ pub struct CPUTextureCube<T: TextureDataType> {
     pub wrap_r: Wrapping,
 }
 
-impl<T: TextureDataType> Default for CPUTextureCube<T> {
+impl<T: TextureDataType> Default for CpuTextureCube<T> {
     fn default() -> Self {
         Self {
             right_data: vec![],
@@ -216,9 +220,9 @@ impl<T: TextureDataType> Default for CPUTextureCube<T> {
     }
 }
 
-impl<T: TextureDataType> std::fmt::Debug for CPUTextureCube<T> {
+impl<T: TextureDataType> std::fmt::Debug for CpuTextureCube<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("CPUTexture")
+        f.debug_struct("CpuTexture")
             .field("format", &self.format)
             .field("width", &self.width)
             .field("height", &self.height)

@@ -129,7 +129,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     ///
     pub fn new(
         context: &Context,
-        cpu_texture: &CPUTextureCube<T>,
+        cpu_texture: &CpuTextureCube<T>,
     ) -> ThreeDResult<TextureCubeMap<T>> {
         let mut texture = Self::new_empty(
             context,
@@ -259,7 +259,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     ///
     pub fn new_from_equirectangular<U: TextureDataType>(
         context: &Context,
-        cpu_texture: &CPUTexture<U>,
+        cpu_texture: &CpuTexture<U>,
     ) -> ThreeDResult<Self> {
         let texture_size = cpu_texture.width / 4;
         let mut texture = Self::new_empty(

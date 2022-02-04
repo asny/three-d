@@ -3,13 +3,13 @@ use crate::io::*;
 use std::path::Path;
 
 ///
-/// Deserialize the given bytes representing an image into a [CPUTexture] using
+/// Deserialize the given bytes representing an image into a [CpuTexture] using
 /// the [image](https://crates.io/crates/image/main.rs) crate.
-/// The CPUTexture can then be used to create a [Texture2D].
+/// The CpuTexture can then be used to create a [Texture2D].
 /// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
 /// **Note:** If the image contains and you want to load high dynamic range (hdr) information, use [hdr_image_from_bytes] instead.
 ///
-pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8>> {
+pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CpuTexture<u8>> {
     use crate::core::*;
     use image::DynamicImage;
     use image::GenericImageView;
@@ -27,7 +27,7 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8
         DynamicImage::ImageRgba16(_) => unimplemented!(),
     };
 
-    Ok(CPUTexture {
+    Ok(CpuTexture {
         data: img.to_bytes(),
         width: img.width(),
         height: img.height(),
@@ -37,18 +37,18 @@ pub fn image_from_bytes(bytes: &[u8]) -> ThreeDResult<crate::core::CPUTexture<u8
 }
 
 ///
-/// Deserialize the given bytes representing a hdr image into a [CPUTexture] using
+/// Deserialize the given bytes representing a hdr image into a [CpuTexture] using
 /// the [image](https://crates.io/crates/image/main.rs) crate.
-/// The CPUTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
+/// The CpuTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
 /// Supported formats: HDR.
 ///
-pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CPUTexture<f32>> {
+pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CpuTexture<f32>> {
     use image::codecs::hdr::*;
     use image::*;
     let decoder = HdrDecoder::new(bytes)?;
     let metadata = decoder.metadata();
     let img = decoder.read_image_native()?;
-    Ok(CPUTexture {
+    Ok(CpuTexture {
         data: img
             .iter()
             .map(|rgbe| {
@@ -65,9 +65,9 @@ pub fn hdr_image_from_bytes(bytes: &[u8]) -> ThreeDResult<CPUTexture<f32>> {
 }
 
 ///
-/// Deserialize the 6 images given as byte arrays into a [CPUTextureCube] using
+/// Deserialize the 6 images given as byte arrays into a [CpuTextureCube] using
 /// the [image](https://crates.io/crates/image/main.rs) crate.
-/// The CPUTextureCube can then be used to create a [TextureCubeMap].
+/// The CpuTextureCube can then be used to create a [TextureCubeMap].
 ///
 pub fn cube_image_from_bytes(
     right_bytes: &[u8],
@@ -76,7 +76,7 @@ pub fn cube_image_from_bytes(
     bottom_bytes: &[u8],
     front_bytes: &[u8],
     back_bytes: &[u8],
-) -> ThreeDResult<CPUTextureCube<u8>> {
+) -> ThreeDResult<CpuTextureCube<u8>> {
     let right = image_from_bytes(right_bytes)?;
     let left = image_from_bytes(left_bytes)?;
     let top = image_from_bytes(top_bytes)?;
@@ -84,7 +84,7 @@ pub fn cube_image_from_bytes(
     let front = image_from_bytes(front_bytes)?;
     let back = image_from_bytes(back_bytes)?;
 
-    Ok(CPUTextureCube {
+    Ok(CpuTextureCube {
         right_data: right.data,
         left_data: left.data,
         top_data: top.data,
@@ -105,30 +105,30 @@ pub fn cube_image_from_bytes(
 
 impl Loaded {
     ///
-    /// Deserialize the loaded image resource at the given path into a [CPUTexture] using
+    /// Deserialize the loaded image resource at the given path into a [CpuTexture] using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [Texture2D].
+    /// The CpuTexture can then be used to create a [Texture2D].
     /// Supported formats: PNG, JPEG, GIF, WebP, pnm (pbm, pgm, ppm and pam), TIFF, DDS, BMP, ICO, HDR, farbfeld.
     /// **Note:** If the image contains high dynamic range (hdr) information, use [hdr_image](Loaded::hdr_image) instead.
     ///
-    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> ThreeDResult<CPUTexture<u8>> {
+    pub fn image<P: AsRef<Path>>(&mut self, path: P) -> ThreeDResult<CpuTexture<u8>> {
         image_from_bytes(&self.get_bytes(path)?)
     }
 
     ///
-    /// Deserialize the loaded image resource with hdr information at the given path into a [CPUTexture] using
+    /// Deserialize the loaded image resource with hdr information at the given path into a [CpuTexture] using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
+    /// The CpuTexture can then be used to create a [Texture2D] or a [TextureCubeMap] using the `new_from_equirectangular` method.
     /// Supported formats: HDR.
     ///
-    pub fn hdr_image(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CPUTexture<f32>> {
+    pub fn hdr_image(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CpuTexture<f32>> {
         hdr_image_from_bytes(&self.get_bytes(path)?)
     }
 
     ///
-    /// Deserialize the 6 loaded image resources at the given paths into a [CPUTextureCube] using
+    /// Deserialize the 6 loaded image resources at the given paths into a [CpuTextureCube] using
     /// the [image](https://crates.io/crates/image/main.rs) crate.
-    /// The CPUTextureCube can then be used to create a [TextureCubeMap].
+    /// The CpuTextureCube can then be used to create a [TextureCubeMap].
     ///
     pub fn cube_image<P: AsRef<Path>>(
         &mut self,
@@ -138,7 +138,7 @@ impl Loaded {
         bottom_path: P,
         front_path: P,
         back_path: P,
-    ) -> ThreeDResult<CPUTextureCube<u8>> {
+    ) -> ThreeDResult<CpuTextureCube<u8>> {
         let right = self.image(right_path)?;
         let left = self.image(left_path)?;
         let top = self.image(top_path)?;
@@ -146,7 +146,7 @@ impl Loaded {
         let front = self.image(front_path)?;
         let back = self.image(back_path)?;
 
-        Ok(CPUTextureCube {
+        Ok(CpuTextureCube {
             right_data: right.data,
             left_data: left.data,
             top_data: top.data,
