@@ -117,7 +117,7 @@ fn main() {
                     render_pass(
                         &camera,
                         &[
-                            &sphere as &dyn Object,
+                            &sphere,
                             &cylinder,
                             &cube,
                             &axes,

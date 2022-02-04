@@ -26,7 +26,7 @@ impl ForwardPipeline {
     pub fn render_pass(
         &self,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         render_pass(camera, objects, lights)

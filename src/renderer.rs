@@ -43,7 +43,7 @@ pub enum RendererError {}
 ///
 pub fn render_pass(
     camera: &Camera,
-    objects: &[impl Object],
+    objects: &[&dyn Object],
     lights: &[&dyn Light],
 ) -> ThreeDResult<()> {
     let mut culled_objects = objects
