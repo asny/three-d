@@ -99,7 +99,7 @@ fn main() {
                         let (box_object, penguin_object) = objects.as_ref().unwrap();
                         render_pass(
                             &camera,
-                            &[box_object as &dyn Object, penguin_object],
+                            &[box_object, penguin_object],
                             &[&ambient, &directional],
                         )?;
                     }

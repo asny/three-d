@@ -103,7 +103,7 @@ fn main() {
                             let (model, vertices, edges) = scene.as_ref().unwrap();
                             render_pass(
                                 &camera,
-                                &[&model as &dyn Object, &vertices, &edges],
+                                &[&model, &vertices, &edges],
                                 &[&ambient, &directional0, &directional1],
                             )?;
                         }
