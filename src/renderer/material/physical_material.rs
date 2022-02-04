@@ -186,11 +186,6 @@ impl Material for PhysicalMaterial {
     }
     fn is_transparent(&self) -> bool {
         self.albedo.a != 255
-            || self
-                .albedo_texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false)
     }
 }
 

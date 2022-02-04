@@ -131,6 +131,17 @@ impl<T: TextureDataType> CpuTexture<T> {
         self.width = width;
         self.height = height;
     }
+
+    pub fn is_transparent(&self) -> bool {
+        if self.format == Format::RGBA {
+            for i in 0..self.width as usize * self.height as usize {
+                if !T::is_max(self.data[i * 4 + 3]) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }
 
 impl<T: TextureDataType> Default for CpuTexture<T> {
@@ -547,8 +558,6 @@ pub trait Texture {
     fn height(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
-    /// Whether this texture contain pixels with alpha value less than maximum.
-    fn is_transparent(&self) -> bool;
 }
 
 impl<T: Texture + ?Sized> Texture for &T {
@@ -564,9 +573,6 @@ impl<T: Texture + ?Sized> Texture for &T {
     fn format(&self) -> Format {
         (*self).format()
     }
-    fn is_transparent(&self) -> bool {
-        (*self).is_transparent()
-    }
 }
 
 impl<T: Texture + ?Sized> Texture for &mut T {
@@ -581,9 +587,6 @@ impl<T: Texture + ?Sized> Texture for &mut T {
     }
     fn format(&self) -> Format {
         (**self).format()
-    }
-    fn is_transparent(&self) -> bool {
-        (**self).is_transparent()
     }
 }
 
