@@ -16,6 +16,7 @@ pub struct InstancedModel<M: Material> {
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     instances: Vec<ModelInstance>,
+    shown_instances: usize,
     texture_transform: Mat3,
     /// The material applied to the instanced model
     pub material: M,
@@ -56,6 +57,7 @@ impl<M: Material> InstancedModel<M> {
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
             instances: instances.to_vec(),
+            shown_instances: instances.len(),
             texture_transform: Mat3::identity(),
             material,
         };
@@ -69,6 +71,11 @@ impl<M: Material> InstancedModel<M> {
 
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
+    }
+
+    /// Displays the instances 0 to instance_count and hides any instancces beyond that.
+    pub fn show_instances(&mut self, instance_count: usize) {
+        self.shown_instances = instance_count.min(self.instances.len());
     }
 
     ///
@@ -125,7 +132,9 @@ impl<M: Material> InstancedModel<M> {
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
     pub fn set_instances(&mut self, instances: &[ModelInstance]) {
+        self.shown_instances = instances.len();
         self.instances = instances.to_vec();
+
         self.update_buffers();
     }
 
@@ -203,14 +212,14 @@ impl<M: Material> InstancedModel<M> {
                 render_states,
                 viewport,
                 index_buffer,
-                self.instances.len() as u32,
+                self.shown_instances as u32,
             );
         } else {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
                 self.mesh.position_buffer.count() as u32 / 3,
-                self.instances.len() as u32,
+                self.shown_instances as u32,
             );
         }
         Ok(())
