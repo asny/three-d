@@ -130,7 +130,7 @@ impl GUI {
             }
             self.texture = Some(Texture2D::new(
                 &self.context,
-                &CPUTexture {
+                &CpuTexture {
                     data: pixels,
                     format: Format::RGBA,
                     width: egui_texture.width as u32,
