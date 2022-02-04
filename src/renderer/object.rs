@@ -85,6 +85,26 @@ impl<T: Object + ?Sized> Object for &mut T {
     }
 }
 
+impl<T: Object> Object for Box<T> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+        self.as_ref().render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.as_ref().is_transparent()
+    }
+}
+
+impl<T: Object> Object for std::rc::Rc<T> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+        self.as_ref().render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.as_ref().is_transparent()
+    }
+}
+
 ///
 /// Represents a 3D geometry.
 ///
@@ -156,6 +176,44 @@ impl<T: Geometry + ?Sized> Geometry for &mut T {
     }
 }
 
+impl<T: Geometry> Geometry for Box<T> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        self.as_ref().render_with_material(material, camera, lights)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.as_ref().aabb()
+    }
+
+    fn transformation(&self) -> Mat4 {
+        self.as_ref().transformation()
+    }
+}
+
+impl<T: Geometry> Geometry for std::rc::Rc<T> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        self.as_ref().render_with_material(material, camera, lights)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.as_ref().aabb()
+    }
+
+    fn transformation(&self) -> Mat4 {
+        self.as_ref().transformation()
+    }
+}
+
 ///
 /// Represents a 3D geometry.
 ///
@@ -204,6 +262,27 @@ impl<T: Geometry2D + ?Sized> Geometry2D for &mut T {
         (**self).render_with_material(material, viewport)
     }
 }
+
+impl<T: Geometry2D> Geometry2D for Box<T> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        self.as_ref().render_with_material(material, viewport)
+    }
+}
+
+impl<T: Geometry2D> Geometry2D for std::rc::Rc<T> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        self.as_ref().render_with_material(material, viewport)
+    }
+}
+
 // Object2D trait
 
 ///
@@ -240,5 +319,25 @@ impl<T: Object2D + ?Sized> Object2D for &mut T {
 
     fn is_transparent(&self) -> bool {
         (**self).is_transparent()
+    }
+}
+
+impl<T: Object2D> Object2D for Box<T> {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        self.as_ref().render(viewport)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.as_ref().is_transparent()
+    }
+}
+
+impl<T: Object2D> Object2D for std::rc::Rc<T> {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        self.as_ref().render(viewport)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.as_ref().is_transparent()
     }
 }

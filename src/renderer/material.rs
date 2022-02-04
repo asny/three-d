@@ -82,6 +82,26 @@ impl<T: Material + ?Sized> Material for &T {
     }
 }
 
+impl<T: Material + ?Sized> Material for &mut T {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+        (**self).fragment_shader_source(use_vertex_colors, lights)
+    }
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        (**self).use_uniforms(program, camera, lights)
+    }
+    fn render_states(&self) -> RenderStates {
+        (**self).render_states()
+    }
+    fn is_transparent(&self) -> bool {
+        (**self).is_transparent()
+    }
+}
+
 impl<T: Material> Material for Box<T> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         self.as_ref()
