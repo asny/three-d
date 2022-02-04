@@ -94,7 +94,15 @@ fn main() {
                 &vec3(0.0, -1.0, -1.0),
             )
             .unwrap();
-            directional.generate_shadow_map(1024, &models).unwrap();
+            directional
+                .generate_shadow_map(
+                    1024,
+                    &models
+                        .iter()
+                        .map(|m| m as &dyn Geometry)
+                        .collect::<Vec<_>>(),
+                )
+                .unwrap();
             Ok((models, ambient, directional))
         },
     );

@@ -32,7 +32,7 @@ impl ForwardPipeline {
         render_pass(camera, objects, lights)
     }
 
-    pub fn depth_pass(&self, camera: &Camera, objects: &[impl Object]) -> ThreeDResult<()> {
+    pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> ThreeDResult<()> {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
                 write_mask: WriteMask::DEPTH,
@@ -52,7 +52,7 @@ impl ForwardPipeline {
     pub fn depth_pass_texture(
         &self,
         camera: &Camera,
-        objects: &[impl Object],
+        objects: &[&dyn Object],
     ) -> ThreeDResult<DepthTargetTexture2D> {
         let mut depth_texture = DepthTargetTexture2D::new(
             &self.context,
