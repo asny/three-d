@@ -63,18 +63,6 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         })
     }
 
-    pub(crate) fn new_depth_internal(
-        context: &Context,
-        depth_texture: &'b DepthTargetTexture2DArray,
-    ) -> ThreeDResult<Self> {
-        Ok(Self {
-            context: context.clone(),
-            id: new_framebuffer(context)?,
-            color_texture: None,
-            depth_texture: Some(depth_texture),
-        })
-    }
-
     ///
     /// Renders whatever rendered in the `render` closure into the textures defined at construction
     /// and defined by the input parameters `color_layers` and `depth_layer`.
