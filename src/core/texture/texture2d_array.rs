@@ -43,37 +43,6 @@ impl<T: TextureDataType> Texture2DArray<T> {
         wrap_t: Wrapping,
         format: Format,
     ) -> ThreeDResult<Self> {
-        #[allow(deprecated)]
-        Self::new(
-            context,
-            width,
-            height,
-            depth,
-            min_filter,
-            mag_filter,
-            mip_map_filter,
-            wrap_s,
-            wrap_t,
-            format,
-        )
-    }
-
-    ///
-    /// Creates a new array of 2D textures.
-    ///
-    #[deprecated = "Use new_empty instead"]
-    pub fn new(
-        context: &Context,
-        width: u32,
-        height: u32,
-        depth: u32,
-        min_filter: Interpolation,
-        mag_filter: Interpolation,
-        mip_map_filter: Option<Interpolation>,
-        wrap_s: Wrapping,
-        wrap_t: Wrapping,
-        format: Format,
-    ) -> ThreeDResult<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height);
         set_parameters(
