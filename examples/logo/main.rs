@@ -23,7 +23,7 @@ fn main() {
     )
     .unwrap();
 
-    let mut cpu_mesh = CPUMesh::sphere(37);
+    let mut cpu_mesh = CpuMesh::sphere(37);
     let mut colors: Vec<u8> = vec![];
     for i in 0..4 * cpu_mesh.positions.len() / 3 {
         colors.push(if i % 4 == 3 {

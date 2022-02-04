@@ -88,7 +88,7 @@ fn main() {
         vec3(0.3, 0.93, 0.15),
         vec3(0.16, 0.07, 0.87),
     ];
-    let mut square = CPUMesh::square();
+    let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6));
     let mut particles = Particles::new(&context, &square).unwrap();
     let mut fireworks_material = FireworksMaterial {

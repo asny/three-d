@@ -29,7 +29,7 @@ impl ImageCubeEffect {
             fragment_shader_source,
         )?;
 
-        let positions = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
+        let positions = VertexBuffer::new_with_static(context, &CpuMesh::cube().positions)?;
         Ok(Self { program, positions })
     }
 

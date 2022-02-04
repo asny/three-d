@@ -11,7 +11,7 @@ impl Loaded {
     pub fn gltf(
         &mut self,
         path: impl AsRef<Path>,
-    ) -> ThreeDResult<(Vec<CPUMesh>, Vec<CPUMaterial>)> {
+    ) -> ThreeDResult<(Vec<CpuMesh>, Vec<CPUMaterial>)> {
         let mut cpu_meshes = Vec::new();
         let mut cpu_materials = Vec::new();
 
@@ -53,7 +53,7 @@ fn parse_tree<'a>(
     loaded: &mut Loaded,
     path: &Path,
     buffers: &[::gltf::buffer::Data],
-    cpu_meshes: &mut Vec<CPUMesh>,
+    cpu_meshes: &mut Vec<CpuMesh>,
     cpu_materials: &mut Vec<CPUMaterial>,
 ) -> ThreeDResult<()> {
     if let Some(mesh) = node.mesh() {
@@ -196,7 +196,7 @@ fn parse_tree<'a>(
                     uvs
                 });
 
-                cpu_meshes.push(CPUMesh {
+                cpu_meshes.push(CpuMesh {
                     name: name.clone(),
                     positions,
                     normals,

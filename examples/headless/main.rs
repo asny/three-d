@@ -23,7 +23,7 @@ fn main() {
     // Create the scene - a single colored triangle
     let mut model = Model::new(
         &context,
-        &CPUMesh {
+        &CpuMesh {
             positions: vec![
                 0.5, -0.5, 0.0, // bottom right
                 -0.5, -0.5, 0.0, // bottom left

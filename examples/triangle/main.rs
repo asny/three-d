@@ -38,7 +38,7 @@ fn main() {
         0, 255, 0, 255, // bottom left
         0, 0, 255, 255, // top
     ];
-    let cpu_mesh = CPUMesh {
+    let cpu_mesh = CpuMesh {
         positions,
         colors: Some(colors),
         ..Default::default()

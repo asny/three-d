@@ -4,8 +4,8 @@
 //!
 
 pub use crate::core::{
-    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, CPUMesh,
-    Camera, Context, GeometryFunction, Indices, LightingModel, NormalDistributionFunction,
+    math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera,
+    Context, CpuMesh, GeometryFunction, Indices, LightingModel, NormalDistributionFunction,
     Viewport,
 };
 

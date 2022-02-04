@@ -75,7 +75,7 @@ impl<M: Material> BoundingBox<M> {
                     ..Default::default()
                 })
                 .collect::<Vec<_>>(),
-            &CPUMesh::cylinder(16),
+            &CpuMesh::cylinder(16),
             material,
         )?;
         Ok(Self { model, aabb })

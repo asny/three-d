@@ -50,7 +50,7 @@ fn main() {
     );
     let mut plane = Model::new_with_material(
         &context,
-        &CPUMesh::square(),
+        &CpuMesh::square(),
         PhysicalMaterial {
             albedo: Color::new_opaque(128, 200, 70),
             ..Default::default()

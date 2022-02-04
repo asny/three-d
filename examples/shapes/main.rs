@@ -26,7 +26,7 @@ fn main() {
 
     let mut sphere = Model::new_with_material(
         &context,
-        &CPUMesh::sphere(16),
+        &CpuMesh::sphere(16),
         PhysicalMaterial {
             albedo: Color {
                 r: 255,
@@ -41,7 +41,7 @@ fn main() {
     sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
     let mut cylinder = Model::new_with_material(
         &context,
-        &CPUMesh::cylinder(16),
+        &CpuMesh::cylinder(16),
         PhysicalMaterial {
             albedo: Color {
                 r: 0,
@@ -57,7 +57,7 @@ fn main() {
         .set_transformation(Mat4::from_translation(vec3(1.3, 0.0, 0.0)) * Mat4::from_scale(0.2));
     let mut cube = Model::new_with_material(
         &context,
-        &CPUMesh::cube(),
+        &CpuMesh::cube(),
         PhysicalMaterial {
             albedo: Color {
                 r: 0,

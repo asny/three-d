@@ -17,7 +17,7 @@ impl Axes {
     /// Creates a new axes object consisting of three arrows with the given radius and length.
     ///
     pub fn new(context: &Context, radius: f32, length: f32) -> ThreeDResult<Self> {
-        let mut mesh = CPUMesh::arrow(0.9, 0.6, 16);
+        let mut mesh = CpuMesh::arrow(0.9, 0.6, 16);
         mesh.transform(&Mat4::from_nonuniform_scale(length, radius, radius));
         let model = Model::new(context, &mesh)?;
         let mut aabb = model.aabb();
