@@ -30,7 +30,7 @@ impl InstancedModel<ColorMaterial> {
     pub fn new(
         context: &Context,
         instances: &[ModelInstance],
-        cpu_mesh: &CPUMesh,
+        cpu_mesh: &CpuMesh,
     ) -> ThreeDResult<Self> {
         Self::new_with_material(context, instances, cpu_mesh, ColorMaterial::default())
     }
@@ -40,7 +40,7 @@ impl<M: Material> InstancedModel<M> {
     pub fn new_with_material(
         context: &Context,
         instances: &[ModelInstance],
-        cpu_mesh: &CPUMesh,
+        cpu_mesh: &CpuMesh,
         material: M,
     ) -> ThreeDResult<Self> {
         let aabb = cpu_mesh.compute_aabb();

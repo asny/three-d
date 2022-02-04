@@ -59,7 +59,7 @@ fn main() {
     ];
     let mut mesh = Model::new_with_material(
         &context,
-        &CPUMesh {
+        &CpuMesh {
             indices: Some(Indices::U8(indices)),
             positions,
             ..Default::default()

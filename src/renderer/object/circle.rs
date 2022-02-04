@@ -15,7 +15,7 @@ impl<M: Material> Circle<M> {
         radius: f32,
         material: M,
     ) -> ThreeDResult<Self> {
-        let mesh = CPUMesh::circle(64);
+        let mesh = CpuMesh::circle(64);
         let mut circle = Self {
             context: context.clone(),
             model: Model::new_with_material(context, &mesh, material)?,

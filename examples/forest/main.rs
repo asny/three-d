@@ -119,7 +119,7 @@ fn main() {
             // Plane
             let mut plane = Model::new_with_material(
                 &context,
-                &CPUMesh {
+                &CpuMesh {
                     positions: vec![
                         -10000.0, 0.0, 10000.0, 10000.0, 0.0, 10000.0, 0.0, 0.0, -10000.0,
                     ],

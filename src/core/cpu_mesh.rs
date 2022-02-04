@@ -37,13 +37,17 @@ impl std::fmt::Debug for Indices {
     }
 }
 
+/// See [CpuMesh]
+#[deprecated = "Renamed to CpuMesh"]
+pub type CPUMesh = CpuMesh;
+
 ///
 /// A CPU-side version of a triangle mesh.
 /// Can be constructed manually or loaded via [io](crate::io)
 /// or via the utility functions for generating simple triangle meshes.
 ///
 #[derive(Default)]
-pub struct CPUMesh {
+pub struct CpuMesh {
     /// Name.
     pub name: String,
     /// Name of the associated material, use this to match with [CPUMaterial::name].
@@ -65,9 +69,9 @@ pub struct CPUMesh {
     pub colors: Option<Vec<u8>>,
 }
 
-impl std::fmt::Debug for CPUMesh {
+impl std::fmt::Debug for CpuMesh {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut d = f.debug_struct("CPUMesh");
+        let mut d = f.debug_struct("CpuMesh");
         d.field("name", &self.name);
         d.field("material name", &self.material_name);
         d.field("positions", &self.positions.len());
@@ -80,7 +84,7 @@ impl std::fmt::Debug for CPUMesh {
     }
 }
 
-impl CPUMesh {
+impl CpuMesh {
     ///
     /// Returns the material for this mesh in the given list of materials. Returns `None` if no suitable material can be found.
     ///
@@ -153,7 +157,7 @@ impl CPUMesh {
             1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
         ];
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
-        CPUMesh {
+        CpuMesh {
             name: "square".to_string(),
             indices: Some(Indices::U8(indices)),
             positions,
@@ -188,7 +192,7 @@ impl CPUMesh {
             indices.push(j as u16);
             indices.push(((j + 1) % angle_subdivisions) as u16);
         }
-        CPUMesh {
+        CpuMesh {
             name: "circle".to_string(),
             indices: Some(Indices::U16(indices)),
             positions,
@@ -267,7 +271,7 @@ impl CPUMesh {
             indices.push((i + j1) as u16);
         }
 
-        CPUMesh {
+        CpuMesh {
             name: "sphere".to_string(),
             indices: Some(Indices::U16(indices)),
             positions,
@@ -296,7 +300,7 @@ impl CPUMesh {
             0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0,
             1.0, 1.0, 0.0, 0.0,
         ];
-        let mut mesh = CPUMesh {
+        let mut mesh = CpuMesh {
             positions,
             uvs: Some(uvs),
             ..Default::default()

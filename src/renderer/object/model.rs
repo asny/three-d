@@ -21,7 +21,7 @@ impl Model<ColorMaterial> {
     ///
     /// Creates a new 3D model with a triangle mesh as geometry and a default [ColorMaterial].
     ///
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
         Self::new_with_material(context, cpu_mesh, ColorMaterial::default())
     }
 }
@@ -32,7 +32,7 @@ impl<M: Material> Model<M> {
     ///
     pub fn new_with_material(
         context: &Context,
-        cpu_mesh: &CPUMesh,
+        cpu_mesh: &CpuMesh,
         material: M,
     ) -> ThreeDResult<Self> {
         let mesh = Rc::new(Mesh::new(context, cpu_mesh)?);

@@ -51,7 +51,7 @@ fn main() {
                 },
                 ..Default::default()
             };
-            let mut cylinder = CPUMesh::cylinder(10);
+            let mut cylinder = CpuMesh::cylinder(10);
             cylinder.transform(&Mat4::from_nonuniform_scale(1.0, 0.007, 0.007));
             let edges = InstancedModel::new_with_material(
                 &context,
@@ -61,7 +61,7 @@ fn main() {
             )
             .unwrap();
 
-            let mut sphere = CPUMesh::sphere(8);
+            let mut sphere = CpuMesh::sphere(8);
             sphere.transform(&Mat4::from_scale(0.015));
             let vertices = InstancedModel::new_with_material(
                 &context,
@@ -130,7 +130,7 @@ fn main() {
         .unwrap();
 }
 
-fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
+fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<ModelInstance> {
     let mut iter = cpu_mesh.positions.iter();
     let mut instances = Vec::new();
     while let Some(v) = iter.next() {
@@ -146,7 +146,7 @@ fn vertex_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
     instances
 }
 
-fn edge_transformations(cpu_mesh: &CPUMesh) -> Vec<ModelInstance> {
+fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<ModelInstance> {
     let mut edge_transformations = std::collections::HashMap::new();
     let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
     for f in 0..indices.len() / 3 {

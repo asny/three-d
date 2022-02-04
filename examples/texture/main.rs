@@ -52,7 +52,7 @@ fn main() {
         move |context, mut loaded| {
             let mut box_object = Model::new_with_material(
                 &context,
-                &CPUMesh::cube(),
+                &CpuMesh::cube(),
                 ColorMaterial {
                     texture: Some(std::rc::Rc::new(Texture2D::new(
                         &context,

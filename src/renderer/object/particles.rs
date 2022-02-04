@@ -39,7 +39,7 @@ impl Particles {
     ///
     /// Creates a new set of particles with geometry defined by the given cpu mesh.
     ///
-    pub fn new(context: &Context, cpu_mesh: &CPUMesh) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
         cpu_mesh.validate()?;
         let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {

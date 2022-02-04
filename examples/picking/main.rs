@@ -24,7 +24,7 @@ fn main() {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut sphere = CPUMesh::sphere(8);
+    let mut sphere = CpuMesh::sphere(8);
     sphere.transform(&Mat4::from_scale(0.05));
     let mut pick_mesh = Model::new_with_material(
         &context,

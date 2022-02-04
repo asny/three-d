@@ -45,7 +45,7 @@ fn main() {
 
     let mut model = Model::new_with_material(
         &context,
-        &CPUMesh::sphere(32),
+        &CpuMesh::sphere(32),
         PhysicalMaterial {
             roughness: 0.2,
             metallic: 0.8,

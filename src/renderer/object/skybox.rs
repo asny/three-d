@@ -48,7 +48,7 @@ impl<T: TextureCube> Skybox<T> {
             ),
         )?;
 
-        let vertex_buffer = VertexBuffer::new_with_static(context, &CPUMesh::cube().positions)?;
+        let vertex_buffer = VertexBuffer::new_with_static(context, &CpuMesh::cube().positions)?;
 
         Ok(Skybox {
             program,
