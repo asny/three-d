@@ -26,6 +26,9 @@ pub use effect::*;
 pub mod light;
 pub use light::*;
 
+pub mod geometry;
+pub use geometry::*;
+
 pub mod object;
 pub use object::*;
 
