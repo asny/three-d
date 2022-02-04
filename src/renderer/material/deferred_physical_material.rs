@@ -104,8 +104,16 @@ impl DeferredPhysicalMaterial {
             normal_scale: physical_material.normal_scale,
             occlusion_texture: physical_material.occlusion_texture.clone(),
             occlusion_strength: physical_material.occlusion_strength,
-            render_states: physical_material.opaque_render_states,
-            alpha_cutout: None,
+            render_states: RenderStates {
+                write_mask: WriteMask::default(),
+                blend: Blend::Disabled,
+                ..physical_material.render_states
+            },
+            alpha_cutout: if physical_material.is_transparent {
+                Some(0.5)
+            } else {
+                None
+            },
         }
     }
 }

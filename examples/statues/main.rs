@@ -56,7 +56,7 @@ fn main() {
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let mut statue_material =
                 PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
-            statue_material.opaque_render_states.cull = Cull::Back;
+            statue_material.render_states.cull = Cull::Back;
             let mut statue =
                 Model::new_with_material(&context, &statue_cpu_meshes[0], statue_material).unwrap();
 
@@ -79,7 +79,7 @@ fn main() {
                 loaded.obj("examples/assets/pfboy.obj").unwrap();
             let mut fountain_material =
                 PhysicalMaterial::new(&context, &fountain_cpu_materials[0]).unwrap();
-            fountain_material.opaque_render_states.cull = Cull::Back;
+            fountain_material.render_states.cull = Cull::Back;
             let mut fountain =
                 Model::new_with_material(&context, &fountain_cpu_meshes[0], fountain_material)
                     .unwrap();

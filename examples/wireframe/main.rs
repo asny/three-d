@@ -39,13 +39,13 @@ fn main() {
                 PhysicalMaterial::new(&context, &materials[0]).unwrap(),
             )
             .unwrap();
-            model.material.opaque_render_states.cull = Cull::Back;
+            model.material.render_states.cull = Cull::Back;
             let wireframe_material = PhysicalMaterial {
                 name: "wireframe".to_string(),
                 albedo: Color::new_opaque(220, 50, 50),
                 roughness: 0.7,
                 metallic: 0.8,
-                opaque_render_states: RenderStates {
+                render_states: RenderStates {
                     cull: Cull::Back,
                     ..Default::default()
                 },

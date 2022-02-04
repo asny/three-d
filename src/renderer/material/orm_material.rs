@@ -28,7 +28,11 @@ impl ORMMaterial {
             metallic_roughness_texture: physical_material.metallic_roughness_texture.clone(),
             occlusion_strength: physical_material.occlusion_strength,
             occlusion_texture: physical_material.occlusion_texture.clone(),
-            render_states: physical_material.opaque_render_states,
+            render_states: RenderStates {
+                write_mask: WriteMask::default(),
+                blend: Blend::Disabled,
+                ..physical_material.render_states
+            },
         }
     }
 }

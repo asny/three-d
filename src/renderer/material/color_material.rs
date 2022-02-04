@@ -38,6 +38,7 @@ impl ColorMaterial {
         }
     }
 
+    /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
@@ -52,6 +53,7 @@ impl ColorMaterial {
         })
     }
 
+    /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
@@ -74,8 +76,8 @@ impl ColorMaterial {
         Self {
             color: physical_material.albedo,
             texture: physical_material.albedo_texture.clone(),
-            render_states: physical_material.opaque_render_states,
-            is_transparent: false,
+            render_states: physical_material.render_states,
+            is_transparent: physical_material.is_transparent,
         }
     }
 }

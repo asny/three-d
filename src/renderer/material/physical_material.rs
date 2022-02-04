@@ -30,10 +30,9 @@ pub struct PhysicalMaterial {
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<Rc<Texture2D<u8>>>,
-    /// Render states used when the color is opaque (has a maximal alpha value).
-    pub opaque_render_states: RenderStates,
-    /// Render states used when the color is transparent (does not have a maximal alpha value).
-    pub transparent_render_states: RenderStates,
+    /// Render states.
+    pub render_states: RenderStates,
+    pub is_transparent: bool,
     /// Color of light shining from an object.
     pub emissive: Color,
     /// Texture with color of light shining from an object.
@@ -47,8 +46,38 @@ impl PhysicalMaterial {
     /// Constructs a new physical material from a [CpuMaterial].
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
     /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
+    /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
+    /// Since this is not always correct, it is preferred to use [PhysicalMaterial::new_opaque] or [PhysicalMaterial::new_transparent].
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        let is_transparent = cpu_material.albedo.a == 255
+            || cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|t| t.is_transparent())
+                .unwrap_or(false);
+        Self::new_internal(context, cpu_material, is_transparent)
+    }
+
+    /// Constructs a new opaque physical material from a [CpuMaterial].
+    /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
+    /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
+    pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        Self::new_internal(context, cpu_material, false)
+    }
+
+    /// Constructs a new transparent physical material from a [CpuMaterial].
+    /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
+    /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
+    pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        Self::new_internal(context, cpu_material, true)
+    }
+
+    fn new_internal(
+        context: &Context,
+        cpu_material: &CpuMaterial,
+        is_transparent: bool,
+    ) -> ThreeDResult<Self> {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
@@ -94,12 +123,16 @@ impl PhysicalMaterial {
             normal_scale: cpu_material.normal_scale,
             occlusion_texture,
             occlusion_strength: cpu_material.occlusion_strength,
-            opaque_render_states: RenderStates::default(),
-            transparent_render_states: RenderStates {
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
+            render_states: if is_transparent {
+                RenderStates {
+                    write_mask: WriteMask::COLOR,
+                    blend: Blend::TRANSPARENCY,
+                    ..Default::default()
+                }
+            } else {
+                RenderStates::default()
             },
+            is_transparent,
             emissive: cpu_material.emissive,
             emissive_texture,
             lighting_model: cpu_material.lighting_model,
@@ -178,14 +211,10 @@ impl Material for PhysicalMaterial {
     }
 
     fn render_states(&self) -> RenderStates {
-        if self.is_transparent() {
-            self.transparent_render_states
-        } else {
-            self.opaque_render_states
-        }
+        self.render_states
     }
     fn is_transparent(&self) -> bool {
-        self.albedo.a != 255
+        self.is_transparent
     }
 }
 
@@ -202,12 +231,8 @@ impl Default for PhysicalMaterial {
             normal_scale: 1.0,
             occlusion_texture: None,
             occlusion_strength: 1.0,
-            opaque_render_states: RenderStates::default(),
-            transparent_render_states: RenderStates {
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
-            },
+            render_states: RenderStates::default(),
+            is_transparent: false,
             emissive: Color::BLACK,
             emissive_texture: None,
             lighting_model: LightingModel::Blinn,

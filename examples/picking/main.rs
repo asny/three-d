@@ -51,7 +51,7 @@ fn main() {
                 PhysicalMaterial::new(&context, &materials[0]).unwrap(),
             )
             .unwrap();
-            monkey.material.opaque_render_states.cull = Cull::Back;
+            monkey.material.render_states.cull = Cull::Back;
             Ok(monkey)
         },
     );
