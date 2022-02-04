@@ -162,7 +162,9 @@ pub struct Loader {}
 
 impl Loader {
     ///
-    /// Loads all of the resources in the given paths then calls `on_done` with all of the [loaded resources](crate::Loaded).
+    /// Loads all of the resources in the given paths then calls `on_done` with all of the [Loaded] resources.
+    /// Uses async loading when possible.
+    /// Alternatively use [Loader::load_async] on both web and desktop or [Loader::load_blocking] on desktop.
     ///
     pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Loaded)) {
         #[cfg(target_arch = "wasm32")]
@@ -179,12 +181,19 @@ impl Loader {
         }
     }
 
+    ///
+    /// Loads all of the resources in the given paths and returns the [Loaded] resources.
+    ///
+    #[cfg_attr(docsrs, doc(not(target_arch = "wasm32")))]
     #[cfg(not(target_arch = "wasm32"))]
     pub fn load_blocking(paths: &[impl AsRef<Path>]) -> Loaded {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime.block_on(Self::load_async(paths))
     }
 
+    ///
+    /// Async loads all of the resources in the given paths and returns the [Loaded] resources.
+    ///
     #[cfg(target_arch = "wasm32")]
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> Loaded {
         let mut base_path = PathBuf::from(
@@ -215,6 +224,9 @@ impl Loader {
         loaded
     }
 
+    ///
+    /// Async loads all of the resources in the given paths and returns the [Loaded] resources.
+    ///
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> Loaded {
         let mut handles = Vec::new();
