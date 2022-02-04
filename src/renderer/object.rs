@@ -175,7 +175,7 @@ impl<T: GeometryMut + ?Sized> GeometryMut for &mut T {
 ///
 /// Represents a 2D geometry that is possible to render with [Material]s.
 ///
-pub trait Shadable2D {
+pub trait Geometry2D {
     ///
     /// Render the object with the given material.
     /// Must be called in a render target render function,
@@ -185,7 +185,7 @@ pub trait Shadable2D {
         -> ThreeDResult<()>;
 }
 
-impl<T: Shadable2D + ?Sized> Shadable2D for &T {
+impl<T: Geometry2D + ?Sized> Geometry2D for &T {
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -195,7 +195,7 @@ impl<T: Shadable2D + ?Sized> Shadable2D for &T {
     }
 }
 
-impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
+impl<T: Geometry2D + ?Sized> Geometry2D for &mut T {
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -209,7 +209,7 @@ impl<T: Shadable2D + ?Sized> Shadable2D for &mut T {
 ///
 /// Represents a 2D object which can be rendered.
 ///
-pub trait Object2D: Shadable2D {
+pub trait Object2D: Geometry2D {
     ///
     /// Render the object.
     /// Must be called in a render target render function,

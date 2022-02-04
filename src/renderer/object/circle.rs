@@ -51,7 +51,7 @@ impl<M: Material> Circle<M> {
     }
 }
 
-impl<M: Material> Shadable2D for Circle<M> {
+impl<M: Material> Geometry2D for Circle<M> {
     fn render_with_material(
         &self,
         material: &dyn Material,
