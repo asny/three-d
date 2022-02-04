@@ -58,6 +58,7 @@ pub type CPUMaterial = CpuMaterial;
 /// A CPU-side version of a material.
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
+#[derive(Debug, Clone)]
 pub struct CpuMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,
