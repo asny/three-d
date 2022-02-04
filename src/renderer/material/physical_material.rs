@@ -44,11 +44,11 @@ pub struct PhysicalMaterial {
 
 impl PhysicalMaterial {
     ///
-    /// Constructs a new physical material from a [CPUMaterial].
-    /// If the input contains an [CPUMaterial::occlusion_metallic_roughness_texture], this texture is used for both
-    /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CPUMaterial::metallic_roughness_texture] or [CPUMaterial::occlusion_texture] are ignored.
+    /// Constructs a new physical material from a [CpuMaterial].
+    /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
+    /// [PhysicalMaterial::metallic_roughness_texture] and [PhysicalMaterial::occlusion_texture] while any [CpuMaterial::metallic_roughness_texture] or [CpuMaterial::occlusion_texture] are ignored.
     ///
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let albedo_texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {

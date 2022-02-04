@@ -50,11 +50,15 @@ impl LightingModel {
     }
 }
 
+/// See [CpuMaterial]
+#[deprecated = "Renamed to CpuMaterial"]
+pub type CPUMaterial = CpuMaterial;
+
 ///
 /// A CPU-side version of a material.
 /// Can be constructed manually or loaded via [io](crate::io).
 ///
-pub struct CPUMaterial {
+pub struct CpuMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
@@ -93,7 +97,7 @@ pub struct CPUMaterial {
     pub lighting_model: LightingModel,
 }
 
-impl Default for CPUMaterial {
+impl Default for CpuMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),

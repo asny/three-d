@@ -50,7 +50,7 @@ pub type CPUMesh = CpuMesh;
 pub struct CpuMesh {
     /// Name.
     pub name: String,
-    /// Name of the associated material, use this to match with [CPUMaterial::name].
+    /// Name of the associated material, use this to match with [CpuMaterial::name].
     pub material_name: Option<String>,
     /// The positions of the vertices. Three contiguous floats defines a 3D position `(x, y, z)`, therefore the length must be divisable by 3.
     /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must also be divisable by 9.
@@ -88,7 +88,7 @@ impl CpuMesh {
     ///
     /// Returns the material for this mesh in the given list of materials. Returns `None` if no suitable material can be found.
     ///
-    pub fn material<'a>(&self, materials: &'a [CPUMaterial]) -> Option<&'a CPUMaterial> {
+    pub fn material<'a>(&self, materials: &'a [CpuMaterial]) -> Option<&'a CpuMaterial> {
         self.material_name.as_ref().and_then(|name| {
             materials
                 .iter()
