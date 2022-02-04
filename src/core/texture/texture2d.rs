@@ -10,7 +10,6 @@ pub struct Texture2D<T: TextureDataType> {
     height: u32,
     format: Format,
     number_of_mip_maps: u32,
-    transparent: bool,
     _dummy: T,
 }
 
@@ -79,7 +78,6 @@ impl<T: TextureDataType> Texture2D<T> {
             height,
             number_of_mip_maps,
             format,
-            transparent: format == Format::RGBA,
             _dummy: T::default(),
         };
         texture.generate_mip_maps();
@@ -94,18 +92,6 @@ impl<T: TextureDataType> Texture2D<T> {
     ///
     pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         check_data_length(self.width, self.height, 1, self.format, data.len())?;
-        self.transparent = if self.format == Format::RGBA {
-            let mut transparent = false;
-            for i in 0..self.width as usize * self.height as usize {
-                if !T::is_max(data[i * 4 + 3]) {
-                    transparent = true;
-                    break;
-                }
-            }
-            transparent
-        } else {
-            false
-        };
         self.context.bind_texture(consts::TEXTURE_2D, &self.id);
         T::fill(
             &self.context,
@@ -201,9 +187,6 @@ impl<T: TextureDataType> Texture for Texture2D<T> {
     }
     fn format(&self) -> Format {
         self.format
-    }
-    fn is_transparent(&self) -> bool {
-        self.transparent
     }
 }
 

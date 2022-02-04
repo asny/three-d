@@ -61,7 +61,7 @@ fn main() {
                     ..Default::default()
                 },
             )?;
-            box_object.material.opaque_render_states.cull = Cull::Back;
+            box_object.material.render_states.cull = Cull::Back;
             let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("PenguinBaseMesh.obj")?;
             let mut penguin_object = Model::new_with_material(
                 &context,

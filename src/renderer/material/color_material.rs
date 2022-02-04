@@ -6,20 +6,39 @@ use std::rc::Rc;
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
 /// This material is not affected by lights.
 ///
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ColorMaterial {
     /// A color applied everywhere.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
     pub texture: Option<Rc<Texture2D<u8>>>,
-    /// Render states used when the color is opaque (has a maximal alpha value).
-    pub opaque_render_states: RenderStates,
-    /// Render states used when the color is transparent (does not have a maximal alpha value).
-    pub transparent_render_states: RenderStates,
+    /// Render states
+    pub render_states: RenderStates,
+
+    pub is_transparent: bool,
 }
 impl ColorMaterial {
+    ///
     /// Constructs a new color material from a [CpuMaterial].
+    /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
+    /// Since this is not always correct, it is preferred to use [ColorMaterial::new_opaque] or [ColorMaterial::new_transparent].
+    ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        let is_transparent = cpu_material.albedo.a == 255
+            || cpu_material
+                .albedo_texture
+                .as_ref()
+                .map(|t| t.is_transparent())
+                .unwrap_or(false);
+
+        if is_transparent {
+            Self::new_transparent(context, cpu_material)
+        } else {
+            Self::new_opaque(context, cpu_material)
+        }
+    }
+
+    pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
@@ -28,7 +47,26 @@ impl ColorMaterial {
         Ok(Self {
             color: cpu_material.albedo,
             texture,
-            ..Default::default()
+            is_transparent: false,
+            render_states: RenderStates::default(),
+        })
+    }
+
+    pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
+        let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+        } else {
+            None
+        };
+        Ok(Self {
+            color: cpu_material.albedo,
+            texture,
+            is_transparent: true,
+            render_states: RenderStates {
+                write_mask: WriteMask::COLOR,
+                blend: Blend::TRANSPARENCY,
+                ..Default::default()
+            },
         })
     }
 
@@ -36,8 +74,8 @@ impl ColorMaterial {
         Self {
             color: physical_material.albedo,
             texture: physical_material.albedo_texture.clone(),
-            opaque_render_states: physical_material.opaque_render_states,
-            transparent_render_states: physical_material.transparent_render_states,
+            render_states: physical_material.opaque_render_states,
+            is_transparent: false,
         }
     }
 }
@@ -68,33 +106,9 @@ impl Material for ColorMaterial {
         Ok(())
     }
     fn render_states(&self) -> RenderStates {
-        if self.is_transparent() {
-            self.transparent_render_states
-        } else {
-            self.opaque_render_states
-        }
+        self.render_states
     }
     fn is_transparent(&self) -> bool {
-        self.color.a != 255u8
-            || self
-                .texture
-                .as_ref()
-                .map(|t| t.is_transparent())
-                .unwrap_or(false)
-    }
-}
-
-impl Default for ColorMaterial {
-    fn default() -> Self {
-        Self {
-            color: Color::default(),
-            texture: None,
-            opaque_render_states: RenderStates::default(),
-            transparent_render_states: RenderStates {
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
-            },
-        }
+        self.is_transparent
     }
 }
