@@ -187,18 +187,7 @@ impl<M: Material> Geometry for Model<M> {
     fn transformation(&self) -> Mat4 {
         self.transformation
     }
-}
 
-impl<M: Material> GeometryMut for Model<M> {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        let mut aabb = self.aabb_local.clone();
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
-    }
-}
-
-impl<M: Material> Shadable for Model<M> {
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -222,6 +211,15 @@ impl<M: Material> Shadable for Model<M> {
                 )
             },
         )
+    }
+}
+
+impl<M: Material> GeometryMut for Model<M> {
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+        let mut aabb = self.aabb_local.clone();
+        aabb.transform(&self.transformation);
+        self.aabb = aabb;
     }
 }
 

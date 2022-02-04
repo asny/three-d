@@ -92,7 +92,25 @@ impl<T: Object + ?Sized> Object for &mut T {
 ///
 /// Represents a 3D geometry.
 ///
-pub trait Geometry: Shadable {
+/// It is possible to render the geometry with a material that implements the [Material] trait.
+///
+/// If requested by the material, the shadable object has to support the attributes position (in world space) `out vec3 pos;`,
+/// normal `out vec3 nor;`, uv coordinates `out vec2 uvs;` and color `out vec4 col;` in the vertex shader source code.
+///
+pub trait Geometry {
+    ///
+    /// Render the geometry with the given material.
+    /// Must be called in a render target render function,
+    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// You can use [Lights::default()] if you know the material does not require lights.
+    ///
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()>;
+
     ///
     /// Returns the [AxisAlignedBoundingBox] for this geometry.
     ///
@@ -105,6 +123,15 @@ pub trait Geometry: Shadable {
 }
 
 impl<T: Geometry + ?Sized> Geometry for &T {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        (*self).render_with_material(material, camera, lights)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (*self).aabb()
     }
@@ -115,6 +142,15 @@ impl<T: Geometry + ?Sized> Geometry for &T {
 }
 
 impl<T: Geometry + ?Sized> Geometry for &mut T {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        (**self).render_with_material(material, camera, lights)
+    }
+
     fn aabb(&self) -> AxisAlignedBoundingBox {
         (**self).aabb()
     }
@@ -137,51 +173,6 @@ pub trait GeometryMut: Geometry {
 impl<T: GeometryMut + ?Sized> GeometryMut for &mut T {
     fn set_transformation(&mut self, transformation: Mat4) {
         (*self).set_transformation(transformation);
-    }
-}
-
-// Shadable trait
-
-///
-/// Represents a 3D object that is possible to render with a material that implements the [Material] trait.
-///
-/// If requested by the material, the shadable object has to support the attributes position (in world space) `out vec3 pos;`,
-/// normal `out vec3 nor;`, uv coordinates `out vec2 uvs;` and color `out vec4 col;` in the vertex shader source code.
-///
-pub trait Shadable {
-    ///
-    /// Render the object with the given material.
-    /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// You can use [Lights::default()] if you know the material does not require lights.
-    ///
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()>;
-}
-
-impl<T: Shadable + ?Sized> Shadable for &T {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
-        (*self).render_with_material(material, camera, lights)
-    }
-}
-
-impl<T: Shadable + ?Sized> Shadable for &mut T {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
-        (**self).render_with_material(material, camera, lights)
     }
 }
 

@@ -232,16 +232,7 @@ impl<M: Material> Geometry for InstancedModel<M> {
     fn transformation(&self) -> Mat4 {
         self.transformation
     }
-}
 
-impl<M: Material> GeometryMut for InstancedModel<M> {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        self.update_aabb();
-    }
-}
-
-impl<M: Material> Shadable for InstancedModel<M> {
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -263,6 +254,13 @@ impl<M: Material> Shadable for InstancedModel<M> {
                 )
             },
         )
+    }
+}
+
+impl<M: Material> GeometryMut for InstancedModel<M> {
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+        self.update_aabb();
     }
 }
 

@@ -90,11 +90,11 @@ pub fn cmp_render_order(
 /// and (viewport.x + viewport.width, viewport.y + viewport.height) indicate the bottom right corner.
 /// Returns ```None``` if no geometry was hit between the near (`z_near`) and far (`z_far`) plane for this camera.
 ///
-pub fn pick<S: Shadable>(
+pub fn pick(
     context: &Context,
     camera: &Camera,
     pixel: (f32, f32),
-    geometries: &[S],
+    geometries: &[&dyn Geometry],
 ) -> ThreeDResult<Option<Vec3>> {
     let pos = camera.position_at_pixel(pixel);
     let dir = camera.view_direction_at_pixel(pixel);
@@ -111,12 +111,12 @@ pub fn pick<S: Shadable>(
 /// Finds the closest intersection between a ray starting at the given position in the given direction and the given geometries.
 /// Returns ```None``` if no geometry was hit before the given maximum depth.
 ///
-pub fn ray_intersect<S: Shadable>(
+pub fn ray_intersect(
     context: &Context,
     position: Vec3,
     direction: Vec3,
     max_depth: f32,
-    geometries: &[S],
+    geometries: &[&dyn Geometry],
 ) -> ThreeDResult<Option<Vec3>> {
     use crate::core::*;
     let viewport = Viewport::new_at_origo(1, 1);
