@@ -83,26 +83,6 @@ impl DepthTargetTexture2D {
         )
     }
 
-    ///
-    /// Copies the content of the depth texture to the specified destination at the given viewport.
-    ///
-    /// # Errors
-    /// Will return an error if the destination is a color texture.
-    ///
-    #[deprecated = "Use RenderTarget::copy_from or Screen::copy_from instead"]
-    pub fn copy_to<T: TextureDataType>(
-        &mut self,
-        destination: CopyDestination<T>,
-        viewport: Viewport,
-    ) -> ThreeDResult<()> {
-        #[allow(deprecated)]
-        RenderTarget::new_depth_internal(&self.context.clone(), self)?.copy_to(
-            destination,
-            viewport,
-            WriteMask::DEPTH,
-        )
-    }
-
     pub(in crate::core) fn bind_as_depth_target(&self) {
         self.context.framebuffer_texture_2d(
             consts::FRAMEBUFFER,

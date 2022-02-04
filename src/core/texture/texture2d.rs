@@ -135,28 +135,6 @@ impl<T: TextureDataType> Texture2D<T> {
     }
 
     ///
-    /// Copies the content of the color texture to the specified destination at the given viewport.
-    /// Will only copy the channels specified by the write mask.
-    ///
-    /// # Errors
-    /// Will return an error if the destination is a depth texture.
-    ///
-    #[deprecated = "Use RenderTarget::copy_from or Screen::copy_from instead"]
-    pub fn copy_to(
-        &mut self,
-        destination: CopyDestination<T>,
-        viewport: Viewport,
-        write_mask: WriteMask,
-    ) -> ThreeDResult<()> {
-        #[allow(deprecated)]
-        RenderTarget::new_color(&self.context.clone(), self)?.copy_to(
-            destination,
-            viewport,
-            write_mask,
-        )
-    }
-
-    ///
     /// Returns the color values of the pixels in this color texture inside the given viewport.
     ///
     /// **Note:** Only works for the RGBA format.

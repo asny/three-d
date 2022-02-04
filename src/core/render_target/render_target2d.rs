@@ -144,69 +144,6 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         })
     }
 
-    ///
-    /// Copies the content of the color and depth textures in this render target to the specified viewport of the specified destination.
-    /// Only copies the channels given by the write mask.
-    ///
-    #[deprecated = "Use RenderTarget::copy_from or Screen::copy_from instead"]
-    pub fn copy_to(
-        &self,
-        destination: CopyDestination<T>,
-        viewport: Viewport,
-        write_mask: WriteMask,
-    ) -> ThreeDResult<()> {
-        let copy = || {
-            let fragment_shader_source = "
-            uniform sampler2D colorMap;
-            uniform sampler2D depthMap;
-            in vec2 uv;
-            layout (location = 0) out vec4 color;
-            void main()
-            {
-                color = texture(colorMap, uv);
-                gl_FragDepth = texture(depthMap, uv).r;
-            }";
-            self.context.effect(fragment_shader_source, |effect| {
-                if let Some(ref tex) = self.color_texture {
-                    effect.use_texture("colorMap", tex)?;
-                }
-                if let Some(ref tex) = self.depth_texture {
-                    effect.use_texture("depthMap", tex)?;
-                }
-                effect.apply(
-                    RenderStates {
-                        depth_test: DepthTest::Always,
-                        write_mask,
-                        ..Default::default()
-                    },
-                    viewport,
-                )
-            })
-        };
-        match destination {
-            CopyDestination::RenderTarget(other) => other.write(ClearState::none(), copy),
-            CopyDestination::Screen => Screen::write(&self.context, ClearState::none(), copy),
-            CopyDestination::ColorTexture(tex) => {
-                if self.color_texture.is_none() {
-                    Err(CoreError::RenderTargetCopy(
-                        "color".to_string(),
-                        "depth".to_string(),
-                    ))?;
-                }
-                tex.write(ClearState::none(), copy)
-            }
-            CopyDestination::DepthTexture(tex) => {
-                if self.depth_texture.is_none() {
-                    Err(CoreError::RenderTargetCopy(
-                        "depth".to_string(),
-                        "color".to_string(),
-                    ))?;
-                }
-                tex.write(None, copy)
-            }
-        }
-    }
-
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
         self.context.bind_framebuffer(target, Some(&self.id));
         if let Some(ref tex) = self.color_texture {
