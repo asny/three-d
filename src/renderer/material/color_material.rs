@@ -3,14 +3,14 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// A material that renders a [Shadable] object in a color defined by multiplying a color with an optional texture and optional per vertex colors.
+/// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
 /// This material is not affected by lights.
 ///
 #[derive(Clone)]
 pub struct ColorMaterial {
     /// A color applied everywhere.
     pub color: Color,
-    /// An optional texture which is samples using uv coordinates (requires that the [Shadable] object supports uv coordinates).
+    /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
     pub texture: Option<Rc<Texture2D<u8>>>,
     /// Render states used when the color is opaque (has a maximal alpha value).
     pub opaque_render_states: RenderStates,

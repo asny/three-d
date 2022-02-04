@@ -41,7 +41,7 @@ mod deferred_physical_material;
 pub use deferred_physical_material::*;
 
 ///
-/// Represents a material that can be applied to a [Shadable] object.
+/// Represents a material that can be applied to a [Geometry].
 ///
 /// The material can use the attributes position (in world space) by adding `in vec3 pos;`,
 /// normal by `in vec3 nor;`, uv coordinates by `in vec2 uvs;` and color by `in vec4 col;` to the fragment shader source code.

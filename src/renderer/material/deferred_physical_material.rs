@@ -3,7 +3,7 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// The deferred part of a physically-based material that renders a [Shadable] object in an approximate correct physical manner based on Physically Based Rendering (PBR).
+/// The deferred part of a physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
 /// Must be used together with a [DeferredPipeline].
 /// This material is affected by lights.
 ///

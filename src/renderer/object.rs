@@ -47,8 +47,6 @@ pub use particles::*;
 use crate::core::*;
 use crate::renderer::*;
 
-// Object trait
-
 ///
 /// Represents a 3D object which can be rendered.
 ///
@@ -87,14 +85,12 @@ impl<T: Object + ?Sized> Object for &mut T {
     }
 }
 
-// Geometry trait
-
 ///
 /// Represents a 3D geometry.
 ///
 /// It is possible to render the geometry with a material that implements the [Material] trait.
 ///
-/// If requested by the material, the shadable object has to support the attributes position (in world space) `out vec3 pos;`,
+/// If requested by the material, the geometry has to support the attributes position (in world space) `out vec3 pos;`,
 /// normal `out vec3 nor;`, uv coordinates `out vec2 uvs;` and color `out vec4 col;` in the vertex shader source code.
 ///
 pub trait Geometry {
@@ -176,10 +172,8 @@ impl<T: GeometryMut + ?Sized> GeometryMut for &mut T {
     }
 }
 
-// Shadable2D trait
-
 ///
-/// Represents a 2D object that is possible to render with [Material]s.
+/// Represents a 2D geometry that is possible to render with [Material]s.
 ///
 pub trait Shadable2D {
     ///

@@ -3,7 +3,7 @@ use crate::renderer::*;
 use std::rc::Rc;
 
 ///
-/// A physically-based material that renders a [Shadable] object in an approximate correct physical manner based on Physically Based Rendering (PBR).
+/// A physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
 /// This material is affected by lights.
 ///
 #[derive(Clone)]
