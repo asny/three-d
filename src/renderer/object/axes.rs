@@ -36,7 +36,15 @@ impl Axes {
     }
 }
 
-impl Shadable for Axes {
+impl Geometry for Axes {
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.aabb
+    }
+
+    fn transformation(&self) -> Mat4 {
+        self.transformation
+    }
+
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -49,16 +57,6 @@ impl Shadable for Axes {
         model.render_with_material(&material, camera, lights)?;
         model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
         model.render_with_material(material, camera, lights)
-    }
-}
-
-impl Geometry for Axes {
-    fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.aabb
-    }
-
-    fn transformation(&self) -> Mat4 {
-        self.transformation
     }
 }
 impl GeometryMut for Axes {

@@ -82,17 +82,6 @@ impl<M: Material> BoundingBox<M> {
     }
 }
 
-impl<M: Material> Shadable for BoundingBox<M> {
-    fn render_with_material(
-        &self,
-        material: &dyn Material,
-        camera: &Camera,
-        lights: &[&dyn Light],
-    ) -> ThreeDResult<()> {
-        self.model.render_with_material(material, camera, lights)
-    }
-}
-
 impl<M: Material> Geometry for BoundingBox<M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
@@ -100,6 +89,15 @@ impl<M: Material> Geometry for BoundingBox<M> {
 
     fn transformation(&self) -> Mat4 {
         Mat4::identity()
+    }
+
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        self.model.render_with_material(material, camera, lights)
     }
 }
 
