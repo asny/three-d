@@ -11,7 +11,7 @@ impl Loaded {
     pub fn obj(
         &mut self,
         path: impl AsRef<Path>,
-    ) -> ThreeDResult<(Vec<CpuMesh>, Vec<CPUMaterial>)> {
+    ) -> ThreeDResult<(Vec<CpuMesh>, Vec<CpuMaterial>)> {
         let obj_bytes = self.remove_bytes(path.as_ref())?;
         let obj = wavefront_obj::obj::parse(String::from_utf8(obj_bytes).unwrap())?;
         let p = path.as_ref().parent().unwrap();
@@ -50,7 +50,7 @@ impl Loaded {
                     None
                 };
 
-                cpu_materials.push(CPUMaterial {
+                cpu_materials.push(CpuMaterial {
                     name: material.name,
                     albedo: Color::from_rgba_slice(&[
                         color.r as f32,

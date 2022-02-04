@@ -18,8 +18,8 @@ pub struct ColorMaterial {
     pub transparent_render_states: RenderStates,
 }
 impl ColorMaterial {
-    /// Constructs a new color material from a [CPUMaterial].
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
+    /// Constructs a new color material from a [CpuMaterial].
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {

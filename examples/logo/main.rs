@@ -39,7 +39,7 @@ fn main() {
     cpu_mesh.colors = Some(colors);
     let material = PhysicalMaterial::new(
         &context,
-        &CPUMaterial {
+        &CpuMaterial {
             roughness: 0.6,
             metallic: 0.6,
             lighting_model: LightingModel::Cook(

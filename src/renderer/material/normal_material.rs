@@ -12,7 +12,7 @@ pub struct NormalMaterial {
 }
 
 impl NormalMaterial {
-    pub fn new(context: &Context, cpu_material: &CPUMaterial) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
