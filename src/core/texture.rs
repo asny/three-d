@@ -165,6 +165,10 @@ impl<T: TextureDataType> std::fmt::Debug for CpuTexture<T> {
     }
 }
 
+/// See [CpuTextureCube]
+#[deprecated = "Renamed to CpuTextureCube"]
+pub type CPUTextureCube<T> = CpuTextureCube<T>;
+
 ///
 /// A CPU-side version of a [TextureCubeMap]. All 6 images must have the same dimensions.
 /// Can be constructed manually or loaded via [Loader](crate::Loader).

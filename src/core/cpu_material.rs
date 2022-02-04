@@ -1,5 +1,5 @@
 //!
-//! Definitions for a CPU- and GPU-side material.
+//! Definitions for a CPU-side material.
 //!
 use crate::core::*;
 
