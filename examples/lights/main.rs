@@ -112,7 +112,6 @@ fn main() {
             }
 
             let mut models = Vec::new();
-            
             for m in cpu_meshes.iter() {
                 let material = materials.iter().find(|material| &material.name == m.material_name.as_ref().unwrap()).unwrap().clone();
                 models.push(Model::new_with_material(&context, &m, material).unwrap());
