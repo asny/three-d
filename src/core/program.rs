@@ -528,7 +528,30 @@ impl Program {
         render_states: RenderStates,
         viewport: Viewport,
         element_buffer: &ElementBuffer,
+        instance_count: u32,
+    ) {
+        self.draw_subset_of_elements_instanced(
+            render_states,
+            viewport,
+            element_buffer,
+            0,
+            element_buffer.count() as u32,
+            instance_count,
+        )
+    }
+
+    ///
+    /// Same as [Program::draw_subset_of_elements] except it renders 'instance_count' instances of the same set of triangles.
+    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
+    ///
+    pub fn draw_subset_of_elements_instanced(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        element_buffer: &ElementBuffer,
+        first: u32,
         count: u32,
+        instance_count: u32,
     ) {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
@@ -536,10 +559,10 @@ impl Program {
         element_buffer.bind();
         self.context.draw_elements_instanced(
             consts::TRIANGLES,
-            element_buffer.count() as u32,
-            element_buffer.data_type(),
-            0,
             count,
+            element_buffer.data_type(),
+            first,
+            instance_count,
         );
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         for location in self.vertex_attributes.values() {
