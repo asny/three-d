@@ -592,6 +592,36 @@ impl<T: Texture + ?Sized> Texture for &mut T {
     }
 }
 
+impl<T: Texture> Texture for Box<T> {
+    fn bind(&self, location: u32) {
+        self.as_ref().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.as_ref().width()
+    }
+    fn height(&self) -> u32 {
+        self.as_ref().height()
+    }
+    fn format(&self) -> Format {
+        self.as_ref().format()
+    }
+}
+
+impl<T: Texture> Texture for std::rc::Rc<T> {
+    fn bind(&self, location: u32) {
+        self.as_ref().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.as_ref().width()
+    }
+    fn height(&self) -> u32 {
+        self.as_ref().height()
+    }
+    fn format(&self) -> Format {
+        self.as_ref().format()
+    }
+}
+
 ///
 /// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::core::Program::use_texture_array)).
 ///
@@ -644,6 +674,42 @@ impl<T: TextureArray + ?Sized> TextureArray for &mut T {
     }
 }
 
+impl<T: TextureArray> TextureArray for Box<T> {
+    fn bind(&self, location: u32) {
+        self.as_ref().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.as_ref().width()
+    }
+    fn height(&self) -> u32 {
+        self.as_ref().height()
+    }
+    fn depth(&self) -> u32 {
+        self.as_ref().depth()
+    }
+    fn format(&self) -> Format {
+        self.as_ref().format()
+    }
+}
+
+impl<T: TextureArray> TextureArray for std::rc::Rc<T> {
+    fn bind(&self, location: u32) {
+        self.as_ref().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.as_ref().width()
+    }
+    fn height(&self) -> u32 {
+        self.as_ref().height()
+    }
+    fn depth(&self) -> u32 {
+        self.as_ref().depth()
+    }
+    fn format(&self) -> Format {
+        self.as_ref().format()
+    }
+}
+
 ///
 /// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::core::Program::use_texture_cube)).
 ///
@@ -693,6 +759,42 @@ impl<T: TextureCube + ?Sized> TextureCube for &mut T {
     }
     fn is_hdr(&self) -> bool {
         (**self).is_hdr()
+    }
+}
+
+impl<T: TextureCube> TextureCube for Box<T> {
+    fn bind(&self, location: u32) {
+        self.as_ref().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.as_ref().width()
+    }
+    fn height(&self) -> u32 {
+        self.as_ref().height()
+    }
+    fn format(&self) -> Format {
+        self.as_ref().format()
+    }
+    fn is_hdr(&self) -> bool {
+        self.as_ref().is_hdr()
+    }
+}
+
+impl<T: TextureCube> TextureCube for std::rc::Rc<T> {
+    fn bind(&self, location: u32) {
+        self.as_ref().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.as_ref().width()
+    }
+    fn height(&self) -> u32 {
+        self.as_ref().height()
+    }
+    fn format(&self) -> Format {
+        self.as_ref().format()
+    }
+    fn is_hdr(&self) -> bool {
+        self.as_ref().is_hdr()
     }
 }
 
