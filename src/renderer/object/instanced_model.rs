@@ -16,7 +16,7 @@ pub struct InstancedModel<M: Material> {
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
     instances: Vec<ModelInstance>,
-    shown_instances: usize,
+    instance_count: u32,
     texture_transform: Mat3,
     /// The material applied to the instanced model
     pub material: M,
@@ -56,12 +56,12 @@ impl<M: Material> InstancedModel<M> {
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
-            instances: instances.to_vec(),
-            shown_instances: instances.len(),
+            instances: Vec::new(),
+            instance_count: 0,
             texture_transform: Mat3::identity(),
             material,
         };
-        model.update_buffers();
+        model.set_instances(instances);
         Ok(model)
     }
 
@@ -73,14 +73,35 @@ impl<M: Material> InstancedModel<M> {
         self.texture_transform = texture_transform;
     }
 
-    /// Displays the instances 0 to instance_count and hides any instancces beyond that.
-    pub fn show_instances(&mut self, instance_count: usize) {
-        self.shown_instances = instance_count.min(self.instances.len());
+    /// Returns the number of instances that is rendered.
+    pub fn instance_count(&mut self) -> u32 {
+        self.instance_count
+    }
+
+    /// Use this if you only want to render instance 0 through to instance `instance_count`.
+    /// This is the same as changing the instances using `set_instances`, except that it is faster since it doesn't update any buffers.
+    /// `instance_count` will be set to the number of instances when they are defined by `set_instances`, so all instanced are rendered by default.
+    pub fn set_instance_count(&mut self, instance_count: u32) {
+        self.instance_count = instance_count.min(self.instances.len() as u32);
+        self.update_aabb();
     }
 
     ///
-    /// Updates instance transform and uv buffers and aabb on demand.
+    /// Returns all instances
     ///
+    pub fn instances(&self) -> &[ModelInstance] {
+        &self.instances
+    }
+
+    ///
+    /// Create an instance for each element with the given mesh and texture transforms.
+    ///
+    pub fn set_instances(&mut self, instances: &[ModelInstance]) {
+        self.instance_count = instances.len() as u32;
+        self.instances = instances.to_vec();
+        self.update_buffers();
+    }
+
     fn update_buffers(&mut self) {
         let mut row1 = Vec::new();
         let mut row2 = Vec::new();
@@ -121,28 +142,11 @@ impl<M: Material> InstancedModel<M> {
         self.update_aabb();
     }
 
-    ///
-    /// Returns all instances
-    ///
-    pub fn instances(&self) -> &[ModelInstance] {
-        &self.instances
-    }
-
-    ///
-    /// Create an instance for each element with the given mesh and texture transforms.
-    ///
-    pub fn set_instances(&mut self, instances: &[ModelInstance]) {
-        self.shown_instances = instances.len();
-        self.instances = instances.to_vec();
-
-        self.update_buffers();
-    }
-
     fn update_aabb(&mut self) {
         let mut aabb = AxisAlignedBoundingBox::EMPTY;
-        for instance in self.instances.iter() {
+        for i in 0..self.instance_count as usize {
             let mut aabb2 = self.aabb_local.clone();
-            aabb2.transform(&(instance.geometry_transform * self.transformation));
+            aabb2.transform(&(self.instances[i].geometry_transform * self.transformation));
             aabb.expand_with_aabb(&aabb2);
         }
         self.aabb = aabb;
@@ -212,14 +216,14 @@ impl<M: Material> InstancedModel<M> {
                 render_states,
                 viewport,
                 index_buffer,
-                self.shown_instances as u32,
+                self.instance_count,
             );
         } else {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
                 self.mesh.position_buffer.count() as u32 / 3,
-                self.shown_instances as u32,
+                self.instance_count,
             );
         }
         Ok(())
