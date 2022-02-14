@@ -7,7 +7,6 @@ use std::rc::Rc;
 /// Must be used together with a [DeferredPipeline].
 /// This material is affected by lights.
 ///
-#[derive(Clone)]
 pub struct DeferredPhysicalMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,

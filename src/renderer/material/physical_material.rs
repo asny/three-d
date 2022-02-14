@@ -6,7 +6,6 @@ use std::rc::Rc;
 /// A physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
 /// This material is affected by lights.
 ///
-#[derive(Clone)]
 pub struct PhysicalMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,

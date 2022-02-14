@@ -2,7 +2,6 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
-#[derive(Clone)]
 pub struct NormalMaterial {
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,

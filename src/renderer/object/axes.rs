@@ -4,9 +4,8 @@ use crate::renderer::*;
 /// Three arrows indicating the three main axes; the x-axis (red), the y-axis (green) and the z-axis (blue).
 /// Used for easily debugging where objects are placed in the 3D world.
 ///
-#[derive(Clone)]
 pub struct Axes {
-    model: Model<ColorMaterial>,
+    model: std::cell::RefCell<Model<ColorMaterial>>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -28,7 +27,7 @@ impl Axes {
         aabb3.transform(&Mat4::from_angle_y(degrees(-90.0)));
         aabb.expand_with_aabb(&aabb3);
         Ok(Self {
-            model,
+            model: std::cell::RefCell::new(model),
             aabb: aabb.clone(),
             aabb_local: aabb,
             transformation: Mat4::identity(),
@@ -51,12 +50,24 @@ impl Geometry for Axes {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        let mut model = self.model.clone();
-        model.render_with_material(&material, camera, lights)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_with_material(&material, camera, lights)?;
-        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_with_material(material, camera, lights)
+        self.model
+            .borrow_mut()
+            .set_transformation(self.transformation);
+        self.model
+            .borrow()
+            .render_with_material(&material, camera, lights)?;
+        self.model
+            .borrow_mut()
+            .set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
+        self.model
+            .borrow()
+            .render_with_material(&material, camera, lights)?;
+        self.model
+            .borrow_mut()
+            .set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
+        self.model
+            .borrow()
+            .render_with_material(material, camera, lights)
     }
 }
 impl GeometryMut for Axes {
@@ -70,8 +81,10 @@ impl GeometryMut for Axes {
 
 impl Object for Axes {
     fn render(&self, camera: &Camera, _lights: &[&dyn Light]) -> ThreeDResult<()> {
-        let mut model = self.model.clone();
-        model.render_with_material(
+        self.model
+            .borrow_mut()
+            .set_transformation(self.transformation);
+        self.model.borrow().render_with_material(
             &ColorMaterial {
                 color: Color::RED,
                 ..Default::default()
@@ -79,8 +92,10 @@ impl Object for Axes {
             camera,
             &[],
         )?;
-        model.set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
-        model.render_with_material(
+        self.model
+            .borrow_mut()
+            .set_transformation(self.transformation * Mat4::from_angle_z(degrees(90.0)));
+        self.model.borrow().render_with_material(
             &ColorMaterial {
                 color: Color::GREEN,
                 ..Default::default()
@@ -88,8 +103,10 @@ impl Object for Axes {
             camera,
             &[],
         )?;
-        model.set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
-        model.render_with_material(
+        self.model
+            .borrow_mut()
+            .set_transformation(self.transformation * Mat4::from_angle_y(degrees(-90.0)));
+        self.model.borrow().render_with_material(
             &ColorMaterial {
                 color: Color::BLUE,
                 ..Default::default()
