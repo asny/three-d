@@ -22,7 +22,7 @@ pub struct InstancedModel<M: Material> {
     pub material: M,
 }
 
-impl InstancedModel<ColorMaterial<Texture2D<u8>>> {
+impl InstancedModel<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
     ///
     /// Creates a new instanced 3D model with a triangle mesh as geometry and a default [ColorMaterial].
     /// The transformations are applied to each model instance before they are rendered.

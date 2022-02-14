@@ -86,7 +86,7 @@ impl DeferredPipeline {
         camera: &Camera,
         objects: &[(
             impl Geometry,
-            impl std::borrow::Borrow<DeferredPhysicalMaterial>,
+            &DeferredPhysicalMaterial<impl Texture, impl Texture, impl Texture>,
         )],
     ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
@@ -140,7 +140,7 @@ impl DeferredPipeline {
                 .iter()
                 .filter(|(g, _)| self.camera.in_frustum(&g.aabb()))
             {
-                geometry.render_with_material(material.borrow(), &self.camera, &[])?;
+                geometry.render_with_material(material, &self.camera, &[])?;
             }
             Ok(())
         })?;

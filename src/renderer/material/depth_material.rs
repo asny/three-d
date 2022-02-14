@@ -1,7 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct DepthMaterial {
     pub min_distance: Option<f32>,
     pub max_distance: Option<f32>,

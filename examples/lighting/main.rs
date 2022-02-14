@@ -42,8 +42,7 @@ fn main() {
             let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
             material.render_states.cull = Cull::Back;
             cpu_meshes[0].compute_tangents().unwrap();
-            let mut model =
-                Model::new_with_material(&context, &cpu_meshes[0], material.clone()).unwrap();
+            let mut model = Model::new_with_material(&context, &cpu_meshes[0], material).unwrap();
             model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
             Ok(model)
         },
@@ -125,14 +124,14 @@ fn main() {
                         ui.label("Surface parameters");
                         if let Some(ref mut model) = *model.borrow_mut() {
                             ui.add(
-                                Slider::new(
+                                Slider::new::<f32>(
                                     &mut model.as_mut().unwrap().material.metallic,
                                     0.0..=1.0,
                                 )
                                 .text("Model Metallic"),
                             );
                             ui.add(
-                                Slider::new(
+                                Slider::new::<f32>(
                                     &mut model.as_mut().unwrap().material.roughness,
                                     0.0..=1.0,
                                 )
@@ -285,13 +284,13 @@ fn main() {
                             &[
                                 (
                                     model,
-                                    DeferredPhysicalMaterial::from_physical_material(
+                                    &DeferredPhysicalMaterial::from_physical_material(
                                         &model.material,
                                     ),
                                 ),
                                 (
                                     &plane,
-                                    DeferredPhysicalMaterial::from_physical_material(
+                                    &DeferredPhysicalMaterial::from_physical_material(
                                         &plane.material,
                                     ),
                                 ),

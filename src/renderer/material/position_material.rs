@@ -1,7 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct PositionMaterial {
     pub render_states: RenderStates,
 }

@@ -6,41 +6,41 @@ use std::rc::Rc;
 /// A physically-based material that renders a [Geometry] in an approximate correct physical manner based on Physically Based Rendering (PBR).
 /// This material is affected by lights.
 ///
-pub struct PhysicalMaterial {
+pub struct PhysicalMaterial<A: Texture, ORM: Texture, N: Texture, E: Texture> {
     /// Name. Used for matching geometry and material.
     pub name: String,
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
     /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
-    pub albedo_texture: Option<Rc<Texture2D<u8>>>,
+    pub albedo_texture: Option<A>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the material surface is.
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters which are multiplied with the [Self::metallic] and [Self::roughness] values in the shader.
     /// The metallic values are sampled from the blue channel and the roughness from the green channel.
-    pub metallic_roughness_texture: Option<Rc<Texture2D<u8>>>,
+    pub metallic_roughness_texture: Option<ORM>,
     /// A scalar multiplier controlling the amount of occlusion applied from the [Self::occlusion_texture]. A value of 0.0 means no occlusion. A value of 1.0 means full occlusion.
     pub occlusion_strength: f32,
     /// An occlusion map. Higher values indicate areas that should receive full indirect lighting and lower values indicate no indirect lighting.
     /// The occlusion values are sampled from the red channel.
-    pub occlusion_texture: Option<Rc<Texture2D<u8>>>,
+    pub occlusion_texture: Option<ORM>,
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
-    pub normal_texture: Option<Rc<Texture2D<u8>>>,
+    pub normal_texture: Option<N>,
     /// Render states.
     pub render_states: RenderStates,
     pub is_transparent: bool,
     /// Color of light shining from an object.
     pub emissive: Color,
     /// Texture with color of light shining from an object.
-    pub emissive_texture: Option<Rc<Texture2D<u8>>>,
+    pub emissive_texture: Option<E>,
     /// The lighting model used when rendering this material
     pub lighting_model: LightingModel,
 }
 
-impl PhysicalMaterial {
+impl PhysicalMaterial<Rc<Texture2D<u8>>, Rc<Texture2D<u8>>, Rc<Texture2D<u8>>, Rc<Texture2D<u8>>> {
     ///
     /// Constructs a new physical material from a [CpuMaterial].
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
@@ -139,7 +139,7 @@ impl PhysicalMaterial {
     }
 }
 
-impl Material for PhysicalMaterial {
+impl<A: Texture, ORM: Texture, N: Texture, E: Texture> Material for PhysicalMaterial<A, ORM, N, E> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         let mut output = lights_fragment_shader_source(lights, self.lighting_model);
         if self.albedo_texture.is_some()
@@ -188,22 +188,22 @@ impl Material for PhysicalMaterial {
             program.use_uniform_vec3("emissive", &self.emissive.to_vec3())?;
         }
         if let Some(ref texture) = self.albedo_texture {
-            program.use_texture("albedoTexture", texture.as_ref())?;
+            program.use_texture("albedoTexture", texture)?;
         }
         if let Some(ref texture) = self.metallic_roughness_texture {
-            program.use_texture("metallicRoughnessTexture", texture.as_ref())?;
+            program.use_texture("metallicRoughnessTexture", texture)?;
         }
         if let Some(ref texture) = self.occlusion_texture {
             program.use_uniform_float("occlusionStrength", &self.occlusion_strength)?;
-            program.use_texture("occlusionTexture", texture.as_ref())?;
+            program.use_texture("occlusionTexture", texture)?;
         }
         if let Some(ref texture) = self.normal_texture {
             program.use_uniform_float("normalScale", &self.normal_scale)?;
-            program.use_texture("normalTexture", texture.as_ref())?;
+            program.use_texture("normalTexture", texture)?;
         }
         if program.requires_uniform("emissiveTexture") {
             if let Some(ref texture) = self.emissive_texture {
-                program.use_texture("emissiveTexture", texture.as_ref())?;
+                program.use_texture("emissiveTexture", texture)?;
             }
         }
         Ok(())
@@ -217,7 +217,33 @@ impl Material for PhysicalMaterial {
     }
 }
 
-impl Default for PhysicalMaterial {
+impl<A: Texture + Clone, ORM: Texture + Clone, N: Texture + Clone, E: Texture + Clone> Clone
+    for PhysicalMaterial<A, ORM, N, E>
+{
+    fn clone(&self) -> Self {
+        Self {
+            name: self.name.clone(),
+            albedo: self.albedo.clone(),
+            albedo_texture: self.albedo_texture.clone(),
+            metallic: self.metallic,
+            roughness: self.roughness,
+            metallic_roughness_texture: self.metallic_roughness_texture.clone(),
+            normal_texture: self.normal_texture.clone(),
+            normal_scale: self.normal_scale,
+            occlusion_texture: self.occlusion_texture.clone(),
+            occlusion_strength: self.occlusion_strength,
+            render_states: self.render_states,
+            is_transparent: self.is_transparent,
+            emissive: self.emissive,
+            emissive_texture: self.emissive_texture.clone(),
+            lighting_model: self.lighting_model,
+        }
+    }
+}
+
+impl Default
+    for PhysicalMaterial<Rc<Texture2D<u8>>, Rc<Texture2D<u8>>, Rc<Texture2D<u8>>, Rc<Texture2D<u8>>>
+{
     fn default() -> Self {
         Self {
             name: "default".to_string(),
