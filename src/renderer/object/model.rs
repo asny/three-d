@@ -15,7 +15,7 @@ pub struct Model<M: Material> {
     pub material: M,
 }
 
-impl Model<ColorMaterial> {
+impl Model<ColorMaterial<Texture2D<u8>>> {
     ///
     /// Creates a new 3D model with a triangle mesh as geometry and a default [ColorMaterial].
     ///
