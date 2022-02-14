@@ -1,5 +1,6 @@
 use crate::core::*;
 use crate::renderer::*;
+use std::rc::Rc;
 
 ///
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
@@ -16,7 +17,7 @@ pub struct ColorMaterial<T: Texture> {
     pub is_transparent: bool,
 }
 
-impl ColorMaterial<Texture2D<u8>> {
+impl ColorMaterial<Rc<Texture2D<u8>>> {
     ///
     /// Constructs a new color material from a [CpuMaterial].
     /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
@@ -40,7 +41,7 @@ impl ColorMaterial<Texture2D<u8>> {
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Texture2D::new(&context, cpu_texture)?)
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
             None
         };
@@ -55,7 +56,7 @@ impl ColorMaterial<Texture2D<u8>> {
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Texture2D::new(&context, cpu_texture)?)
+            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
         } else {
             None
         };
@@ -72,9 +73,10 @@ impl ColorMaterial<Texture2D<u8>> {
     }
 }
 
-/*impl<T: Texture> ColorMaterial<T> {
-
-    pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
+impl<T: Texture + Clone> ColorMaterial<T> {
+    pub fn from_physical_material<ORM: Texture, N: Texture, E: Texture>(
+        physical_material: &PhysicalMaterial<T, ORM, N, E>,
+    ) -> Self {
         Self {
             color: physical_material.albedo,
             texture: physical_material.albedo_texture.clone(),
@@ -82,7 +84,7 @@ impl ColorMaterial<Texture2D<u8>> {
             is_transparent: physical_material.is_transparent,
         }
     }
-}*/
+}
 
 impl<T: Texture> Material for ColorMaterial<T> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
@@ -117,7 +119,18 @@ impl<T: Texture> Material for ColorMaterial<T> {
     }
 }
 
-impl Default for ColorMaterial<Texture2D<u8>> {
+impl<T: Texture + Clone> Clone for ColorMaterial<T> {
+    fn clone(&self) -> Self {
+        Self {
+            color: self.color,
+            texture: self.texture.clone(),
+            render_states: self.render_states,
+            is_transparent: self.is_transparent,
+        }
+    }
+}
+
+impl Default for ColorMaterial<Rc<Texture2D<u8>>> {
     fn default() -> Self {
         Self {
             color: Color::default(),
