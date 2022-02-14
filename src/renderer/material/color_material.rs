@@ -1,23 +1,22 @@
 use crate::core::*;
 use crate::renderer::*;
-use std::rc::Rc;
 
 ///
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
 /// This material is not affected by lights.
 ///
-#[derive(Default)]
-pub struct ColorMaterial {
+pub struct ColorMaterial<T: Texture> {
     /// A color applied everywhere.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
-    pub texture: Option<Rc<Texture2D<u8>>>,
+    pub texture: Option<T>,
     /// Render states
     pub render_states: RenderStates,
 
     pub is_transparent: bool,
 }
-impl ColorMaterial {
+
+impl ColorMaterial<Texture2D<u8>> {
     ///
     /// Constructs a new color material from a [CpuMaterial].
     /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
@@ -41,7 +40,7 @@ impl ColorMaterial {
     /// Constructs a new opaque color material from a [CpuMaterial].
     pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Texture2D::new(&context, cpu_texture)?)
         } else {
             None
         };
@@ -56,7 +55,7 @@ impl ColorMaterial {
     /// Constructs a new transparent color material from a [CpuMaterial].
     pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let texture = if let Some(ref cpu_texture) = cpu_material.albedo_texture {
-            Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
+            Some(Texture2D::new(&context, cpu_texture)?)
         } else {
             None
         };
@@ -71,6 +70,9 @@ impl ColorMaterial {
             },
         })
     }
+}
+
+/*impl<T: Texture> ColorMaterial<T> {
 
     pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
         Self {
@@ -80,9 +82,9 @@ impl ColorMaterial {
             is_transparent: physical_material.is_transparent,
         }
     }
-}
+}*/
 
-impl Material for ColorMaterial {
+impl<T: Texture> Material for ColorMaterial<T> {
     fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
@@ -103,7 +105,7 @@ impl Material for ColorMaterial {
     ) -> ThreeDResult<()> {
         program.use_uniform_vec4("surfaceColor", &self.color.to_vec4())?;
         if let Some(ref tex) = self.texture {
-            program.use_texture("tex", &**tex)?
+            program.use_texture("tex", tex)?
         }
         Ok(())
     }
@@ -112,5 +114,16 @@ impl Material for ColorMaterial {
     }
     fn is_transparent(&self) -> bool {
         self.is_transparent
+    }
+}
+
+impl Default for ColorMaterial<Texture2D<u8>> {
+    fn default() -> Self {
+        Self {
+            color: Color::default(),
+            texture: None,
+            render_states: RenderStates::default(),
+            is_transparent: false,
+        }
     }
 }
