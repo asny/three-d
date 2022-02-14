@@ -1,6 +1,5 @@
 use crate::renderer::*;
 
-#[derive(Clone)]
 pub struct Circle<M: Material> {
     context: Context,
     model: Model<M>,

@@ -6,7 +6,7 @@ use std::rc::Rc;
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
 /// This material is not affected by lights.
 ///
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct ColorMaterial {
     /// A color applied everywhere.
     pub color: Color,

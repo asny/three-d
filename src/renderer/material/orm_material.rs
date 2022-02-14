@@ -2,7 +2,7 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct ORMMaterial {
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,

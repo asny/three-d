@@ -1,6 +1,5 @@
 use crate::renderer::*;
 
-#[derive(Clone)]
 pub struct Rectangle<M: Material> {
     model: Model<M>,
     context: Context,

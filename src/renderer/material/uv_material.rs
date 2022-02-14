@@ -1,7 +1,7 @@
 use crate::core::*;
 use crate::renderer::*;
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct UVMaterial {
     pub render_states: RenderStates,
 }
