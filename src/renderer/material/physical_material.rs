@@ -50,7 +50,7 @@ impl PhysicalMaterial {
     /// Since this is not always correct, it is preferred to use [PhysicalMaterial::new_opaque] or [PhysicalMaterial::new_transparent].
     ///
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
-        let is_transparent = cpu_material.albedo.a == 255
+        let is_transparent = cpu_material.albedo.a != 255
             || cpu_material
                 .albedo_texture
                 .as_ref()
