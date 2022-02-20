@@ -21,7 +21,7 @@ impl<T: 'static> Loading<T> {
     pub fn new(
         context: &Context,
         paths: &[impl AsRef<Path>],
-        on_load: impl 'static + FnOnce(Context, Loaded) -> ThreeDResult<T>,
+        on_load: impl 'static + FnOnce(Context, ThreeDResult<Loaded>) -> ThreeDResult<T>,
     ) -> Self {
         let load = Rc::new(RefCell::new(None));
         let load_clone = load.clone();
@@ -60,7 +60,7 @@ impl<T: 'static> std::ops::DerefMut for Loading<T> {
 ///
 #[derive(Default)]
 pub struct Loaded {
-    loaded: HashMap<PathBuf, std::result::Result<Vec<u8>, std::io::Error>>,
+    loaded: HashMap<PathBuf, Vec<u8>>,
 }
 
 impl Loaded {
@@ -77,8 +77,8 @@ impl Loaded {
     /// The byte array then has to be deserialized to whatever type this resource is (image, 3D model etc.).
     ///
     pub fn remove_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<Vec<u8>> {
-        if let Some((path, bytes)) = self.loaded.remove_entry(path.as_ref()) {
-            Ok(bytes.map_err(|_| IOError::NotLoaded(path.to_str().unwrap().to_string()))?)
+        if let Some((_, bytes)) = self.loaded.remove_entry(path.as_ref()) {
+            Ok(bytes)
         } else {
             let key = self
                 .loaded
@@ -93,7 +93,7 @@ impl Loaded {
                 ))?
                 .0
                 .clone();
-            Ok(self.loaded.remove(&key).unwrap()?)
+            Ok(self.loaded.remove(&key).unwrap())
         }
     }
 
@@ -103,9 +103,7 @@ impl Loaded {
     ///
     pub fn get_bytes(&mut self, path: impl AsRef<Path>) -> ThreeDResult<&[u8]> {
         if let Some(bytes) = self.loaded.get(path.as_ref()) {
-            Ok(bytes
-                .as_ref()
-                .map_err(|_| IOError::NotLoaded(path.as_ref().to_str().unwrap().to_string()))?)
+            Ok(bytes.as_ref())
         } else {
             let key = self
                 .loaded
@@ -119,12 +117,7 @@ impl Loaded {
                     path.as_ref().to_str().unwrap().to_owned(),
                 ))?
                 .0;
-            Ok(self
-                .loaded
-                .get(key)
-                .unwrap()
-                .as_ref()
-                .map_err(|e| std::io::Error::from(e.kind()))?)
+            Ok(self.loaded.get(key).unwrap())
         }
     }
 
@@ -133,7 +126,7 @@ impl Loaded {
     /// The files can then be parsed as usual using the functionality on Loaded.
     ///
     pub fn insert_bytes(&mut self, path: impl AsRef<Path>, bytes: Vec<u8>) {
-        self.loaded.insert(path.as_ref().to_path_buf(), Ok(bytes));
+        self.loaded.insert(path.as_ref().to_path_buf(), bytes);
     }
 }
 
@@ -142,14 +135,7 @@ impl std::fmt::Debug for Loaded {
         let mut d = f.debug_struct("Loaded");
         for (key, value) in self.loaded.iter() {
             d.field("path", key);
-            match value {
-                Ok(value) => {
-                    d.field("byte length", &value.len());
-                }
-                Err(err) => {
-                    d.field("error", err);
-                }
-            }
+            d.field("byte length", &value.len());
         }
         d.finish()
     }
@@ -166,7 +152,7 @@ impl Loader {
     /// Uses async loading when possible.
     /// Alternatively use [Loader::load_async] on both web and desktop or [Loader::load_blocking] on desktop.
     ///
-    pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(Loaded)) {
+    pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(ThreeDResult<Loaded>)) {
         #[cfg(target_arch = "wasm32")]
         {
             let paths: Vec<PathBuf> = paths.iter().map(|p| p.as_ref().to_path_buf()).collect();
@@ -186,7 +172,7 @@ impl Loader {
     ///
     #[cfg_attr(docsrs, doc(not(target_arch = "wasm32")))]
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn load_blocking(paths: &[impl AsRef<Path>]) -> Loaded {
+    pub fn load_blocking(paths: &[impl AsRef<Path>]) -> ThreeDResult<Loaded> {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime.block_on(Self::load_async(paths))
     }
@@ -195,7 +181,7 @@ impl Loader {
     /// Async loads all of the resources in the given paths and returns the [Loaded] resources.
     ///
     #[cfg(target_arch = "wasm32")]
-    pub async fn load_async(paths: &[impl AsRef<Path>]) -> Loaded {
+    pub async fn load_async(paths: &[impl AsRef<Path>]) -> ThreeDResult<Loaded> {
         let mut base_path = PathBuf::from(
             web_sys::window()
                 .unwrap()
@@ -219,16 +205,16 @@ impl Loader {
         let mut loaded = Loaded::new();
         for (path, handle) in handles.drain(..) {
             let data = handle.bytes().await.unwrap().to_vec();
-            loaded.loaded.insert(path, Ok(data));
+            loaded.loaded.insert(path, data);
         }
-        loaded
+        Ok(loaded)
     }
 
     ///
     /// Async loads all of the resources in the given paths and returns the [Loaded] resources.
     ///
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn load_async(paths: &[impl AsRef<Path>]) -> Loaded {
+    pub async fn load_async(paths: &[impl AsRef<Path>]) -> ThreeDResult<Loaded> {
         let mut handles = Vec::new();
         let mut loaded = Loaded::new();
         for path in paths.iter() {
@@ -252,8 +238,8 @@ impl Loader {
         }
 
         for (path, handle) in handles.drain(..) {
-            loaded.loaded.insert(path, handle.await.unwrap());
+            loaded.loaded.insert(path, handle.await??);
         }
-        loaded
+        Ok(loaded)
     }
 }
