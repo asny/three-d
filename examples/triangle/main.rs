@@ -1,6 +1,6 @@
 use three_d::*;
 
-fn main() {
+pub fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     // Create a window (a canvas on web)
