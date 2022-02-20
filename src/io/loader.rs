@@ -215,7 +215,8 @@ impl Loader {
     ///
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> ThreeDResult<Loaded> {
-        let mut handles = Vec::new();
+        let mut handles: Vec<(PathBuf, tokio::task::JoinHandle<std::io::Result<Vec<u8>>>)> =
+            Vec::new();
         let mut loaded = Loaded::new();
         for path in paths.iter() {
             let path = path.as_ref().to_path_buf();
@@ -238,7 +239,10 @@ impl Loader {
         }
 
         for (path, handle) in handles.drain(..) {
-            loaded.loaded.insert(path, handle.await??);
+            let bytes = handle
+                .await?
+                .map_err(|e| IOError::FailedLoading(path.to_str().unwrap().to_string(), e))?;
+            loaded.loaded.insert(path, bytes);
         }
         Ok(loaded)
     }
