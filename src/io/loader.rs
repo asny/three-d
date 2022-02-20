@@ -227,7 +227,8 @@ impl Loader {
             handles.push((
                 path.clone(),
                 tokio::spawn(async move {
-                    if let Ok(url) = Url::parse(path.to_str().unwrap()) {
+                    if is_absolute_url(path.to_str().unwrap()) {
+                        let url = Url::parse(path.to_str().unwrap()).unwrap();
                         Ok(reqwest::get(url)
                             .await
                             .unwrap()
