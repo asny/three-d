@@ -46,6 +46,9 @@ pub enum IOError {
     #[cfg(not(target_arch = "wasm32"))]
     #[error("error while loading the file {0}: {1}")]
     FailedLoading(String, std::io::Error),
+    #[cfg(target_arch = "wasm32")]
+    #[error("error while loading the file {0}: {1}")]
+    FailedLoading(String, reqwest::Error),
     #[error("tried to use {0} which was not loaded")]
     NotLoaded(String),
 }

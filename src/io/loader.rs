@@ -182,7 +182,7 @@ impl Loader {
     ///
     #[cfg(target_arch = "wasm32")]
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> ThreeDResult<Loaded> {
-        let mut base_path = PathBuf::from(
+        let base_path = PathBuf::from(
             web_sys::window()
                 .unwrap()
                 .document()
@@ -190,22 +190,26 @@ impl Loader {
                 .url()
                 .unwrap(),
         );
-        if !base_path.ends_with("/") {
-            base_path = base_path.parent().unwrap().to_path_buf()
-        };
 
         let mut handles = Vec::new();
         for path in paths.iter() {
-            let p = path.as_ref().to_path_buf();
-            let url = Url::parse(p.to_str().unwrap())
-                .unwrap_or(Url::parse(base_path.join(&path).to_str().unwrap()).unwrap());
-            handles.push((p, reqwest::get(url).await.unwrap()));
+            let mut p = path.as_ref().to_path_buf();
+            if !is_absolute_url(p.to_str().unwrap()) {
+                p = base_path.join(p);
+            }
+            let url = Url::parse(p.to_str().unwrap())?;
+            handles.push((p, reqwest::get(url).await));
         }
 
         let mut loaded = Loaded::new();
         for (path, handle) in handles.drain(..) {
-            let data = handle.bytes().await.unwrap().to_vec();
-            loaded.loaded.insert(path, data);
+            let bytes = handle
+                .map_err(|e| IOError::FailedLoading(path.to_str().unwrap().to_string(), e))?
+                .bytes()
+                .await
+                .map_err(|e| IOError::FailedLoading(path.to_str().unwrap().to_string(), e))?
+                .to_vec();
+            loaded.loaded.insert(path, bytes);
         }
         Ok(loaded)
     }
@@ -246,4 +250,9 @@ impl Loader {
         }
         Ok(loaded)
     }
+}
+
+fn is_absolute_url(path: &str) -> bool {
+    path.find("://").map(|i| i > 0).unwrap_or(false)
+        || path.find("//").map(|i| i == 0).unwrap_or(false)
 }
