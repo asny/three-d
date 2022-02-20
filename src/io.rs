@@ -44,8 +44,8 @@ pub enum IOError {
     #[error("the .gltf file contain missing buffer data")]
     GltfMissingData,
     #[cfg(not(target_arch = "wasm32"))]
-    #[error("error while loading a file")]
-    Load(#[from] std::io::Error),
+    #[error("error while loading the file {0}: {1}")]
+    FailedLoading(String, std::io::Error),
     #[error("tried to use {0} which was not loaded")]
     NotLoaded(String),
 }
