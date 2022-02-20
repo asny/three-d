@@ -598,72 +598,53 @@ impl CpuMesh {
     /// Returns an error if the mesh is not valid.
     ///
     pub fn validate(&self) -> ThreeDResult<()> {
-        if let Some(ref indices) = self.indices {
+        let vertex_count = if let Some(ref indices) = self.indices {
             let index_count = match indices {
                 Indices::U8(ind) => ind.len(),
                 Indices::U16(ind) => ind.len(),
                 Indices::U32(ind) => ind.len(),
             };
             if index_count % 3 != 0 {
-                Err(CoreError::InvalidBufferLength(
-                    "index".to_string(),
-                    index_count,
-                ))?;
+                Err(CoreError::InvalidNumberOfVertices(index_count))?;
             }
+            match indices {
+                Indices::U8(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
+                Indices::U16(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
+                Indices::U32(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
+            }
+        } else {
             if self.positions.len() % 3 != 0 {
                 Err(CoreError::InvalidBufferLength(
                     "position".to_string(),
-                    index_count,
+                    (self.positions.len() as f32 / 3.0).ceil() as usize * 3,
+                    self.positions.len(),
                 ))?;
             }
-            if let Some(ref data) = self.normals {
-                if data.len() % 3 != 0 {
-                    Err(CoreError::InvalidBufferLength(
-                        "normal".to_string(),
-                        index_count,
-                    ))?;
-                }
+            let vertex_count = self.positions.len() / 3;
+            if vertex_count % 3 != 0 {
+                Err(CoreError::InvalidNumberOfVertices(vertex_count))?;
             }
-            if let Some(ref data) = self.colors {
-                if data.len() % 4 != 0 {
-                    Err(CoreError::InvalidBufferLength(
-                        "color".to_string(),
-                        index_count,
-                    ))?;
-                }
-            }
-            if let Some(ref data) = self.uvs {
-                if data.len() % 2 != 0 {
-                    Err(CoreError::InvalidBufferLength(
-                        "uv coordinate".to_string(),
-                        index_count,
-                    ))?;
-                }
-            }
-            if cfg!(debug) {
-                let indices_valid = match indices {
-                    Indices::U8(ind) => {
-                        let len = self.positions.len();
-                        ind.iter().all(|&i| (i as usize) < len)
-                    }
-                    Indices::U16(ind) => {
-                        let len = self.positions.len();
-                        ind.iter().all(|&i| (i as usize) < len)
-                    }
-                    Indices::U32(ind) => {
-                        let len = self.positions.len();
-                        ind.iter().all(|&i| (i as usize) < len)
-                    }
-                };
-                if !indices_valid {
-                    Err(CoreError::InvalidIndexBuffer(self.positions.len()))?;
-                }
-            }
-        } else {
-            if self.positions.len() % 9 != 0 {
-                Err(CoreError::InvalidPositionBuffer(self.positions.len()))?;
-            }
+            vertex_count
         };
+        let buffer_check = |length: Option<usize>, name: &str, size| -> ThreeDResult<()> {
+            if let Some(length) = length {
+                if length != size * vertex_count {
+                    Err(CoreError::InvalidBufferLength(
+                        name.to_string(),
+                        size * vertex_count,
+                        length,
+                    ))?;
+                }
+            }
+            Ok(())
+        };
+
+        buffer_check(Some(self.positions.len()), "position", 3)?;
+        buffer_check(self.normals.as_ref().map(|b| b.len()), "normal", 3)?;
+        buffer_check(self.tangents.as_ref().map(|b| b.len()), "tangent", 4)?;
+        buffer_check(self.colors.as_ref().map(|b| b.len()), "color", 4)?;
+        buffer_check(self.uvs.as_ref().map(|b| b.len()), "uv coordinate", 2)?;
+
         Ok(())
     }
 }

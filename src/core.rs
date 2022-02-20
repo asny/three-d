@@ -387,16 +387,12 @@ pub enum CoreError {
         "if the fragment shader defined 'in vec3 tang' it also needs to define 'in vec3 bitang'"
     )]
     MissingBitangent,
-    #[error("{0} buffer length must be divisible by 3, actual count is {1}")]
-    InvalidBufferLength(String, usize),
+    #[error("{0} buffer length must be {1}, actual length is {2}")]
+    InvalidBufferLength(String, usize, usize),
     #[error("mesh must have both normals and uv coordinates to be able to compute tangents")]
     FailedComputingTangents,
-    #[error("index buffer contains values larger than the length of the buffer which is {0}")]
-    InvalidIndexBuffer(usize),
-    #[error(
-        "when indices unspecified, positions length must be divisible by 9, actual count is {0}"
-    )]
-    InvalidPositionBuffer(usize),
+    #[error("the number of vertices must be divisable by 3, actual count is {0}")]
+    InvalidNumberOfVertices(usize),
     #[error("data for element at index {0} has length {1} but a length of {2} was expected")]
     InvalidUniformBufferElementLength(u32, usize, usize),
     #[error("the index {0} is outside the expected range [0, {1}]")]

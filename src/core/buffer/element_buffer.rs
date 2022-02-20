@@ -70,10 +70,7 @@ impl ElementBuffer {
     ///
     pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         if data.len() % 3 != 0 {
-            Err(CoreError::InvalidBufferLength(
-                "index".to_string(),
-                data.len(),
-            ))?;
+            Err(CoreError::InvalidNumberOfVertices(data.len()))?;
         }
 
         self.bind();

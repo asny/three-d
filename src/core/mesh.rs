@@ -26,6 +26,7 @@ impl Mesh {
     /// making it possible to render the mesh.
     ///
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
+        #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
         let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
