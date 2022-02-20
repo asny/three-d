@@ -100,7 +100,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sponza/glTF/9916269861720640319.jpg",
             "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sponza/glTF/white.png",
         ]
-    ).await;
+    ).await.unwrap();
 
     let (cpu_meshes, cpu_materials) = loaded.gltf("Sponza.gltf").unwrap();
 
