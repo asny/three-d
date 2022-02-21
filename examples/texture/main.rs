@@ -33,10 +33,10 @@ fn main() {
             "examples/assets/skybox_evening/front.jpg",
             "examples/assets/skybox_evening/back.jpg",
         ],
-        move |context, mut loaded| {
+        move |context, loaded| {
             Skybox::new(
                 &context,
-                &loaded.cube_image("right", "left", "top", "top", "front", "back")?,
+                &loaded?.cube_image("right", "left", "top", "top", "front", "back")?,
             )
         },
     );
@@ -49,7 +49,8 @@ fn main() {
             "examples/assets/PenguinBaseMesh.mtl",
             "examples/assets/penguin.png",
         ],
-        move |context, mut loaded| {
+        move |context, loaded| {
+            let mut loaded = loaded.unwrap();
             let mut box_object = Model::new_with_material(
                 &context,
                 &CpuMesh::cube(),
