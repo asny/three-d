@@ -187,15 +187,7 @@ impl Loader {
     ///
     #[cfg(target_arch = "wasm32")]
     pub async fn load_async(paths: &[impl AsRef<Path>]) -> ThreeDResult<Loaded> {
-        let base_path = PathBuf::from(
-            web_sys::window()
-                .unwrap()
-                .document()
-                .unwrap()
-                .url()
-                .unwrap(),
-        );
-
+        let base_path = base_path();
         let mut handles = Vec::new();
         let client = reqwest::Client::new();
         for path in paths.iter() {
@@ -259,4 +251,19 @@ async fn get(client: reqwest::Client, url: Url) -> reqwest::Result<Vec<u8>> {
 fn is_absolute_url(path: &str) -> bool {
     path.find("://").map(|i| i > 0).unwrap_or(false)
         || path.find("//").map(|i| i == 0).unwrap_or(false)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn base_path() -> PathBuf {
+    let base_url = web_sys::window()
+        .unwrap()
+        .document()
+        .unwrap()
+        .url()
+        .unwrap();
+    if !base_url.ends_with('/') {
+        PathBuf::from(base_url).parent().unwrap().to_path_buf()
+    } else {
+        PathBuf::from(base_url)
+    }
 }
