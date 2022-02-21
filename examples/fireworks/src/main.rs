@@ -51,13 +51,12 @@ impl Material for FireworksMaterial {
 }
 // Entry point for non-wasm
 #[cfg(not(target_arch = "wasm32"))]
-#[tokio::main]
-async fn main() {
+fn main() {
     let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+    run(args.get(1).map(|a| std::path::PathBuf::from(a)));
 }
 
-pub async fn run(screenshot: Option<std::path::PathBuf>) {
+pub fn run(screenshot: Option<std::path::PathBuf>) {
     let window = Window::new(WindowSettings {
         title: "Fireworks!".to_string(),
         max_size: Some((1280, 720)),
