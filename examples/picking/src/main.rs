@@ -46,31 +46,20 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let directional =
         DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
 
-    let monkey = Loading::new(
-        &context,
-        &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
-        move |context, loaded| {
-            let (meshes, materials) = loaded?.obj("examples/assets/suzanne.obj").unwrap();
-            let mut monkey = Model::new_with_material(
-                &context,
-                &meshes[0],
-                PhysicalMaterial::new(&context, &materials[0]).unwrap(),
-            )
+    let mut loaded =
+        Loader::load_async(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"])
+            .await
             .unwrap();
-            monkey.material.render_states.cull = Cull::Back;
-            Ok(monkey)
-        },
-    );
+
+    let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
+    let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
+    monkey_material.render_states.cull = Cull::Back;
+    let monkey = Model::new_with_material(&context, &meshes[0], monkey_material).unwrap();
 
     // main loop
-    let mut loaded = false;
     window
         .render_loop(move |mut frame_input| {
             let mut change = frame_input.first_frame;
-            if !loaded && monkey.is_loaded() {
-                change = true;
-                loaded = true;
-            }
             change |= camera.set_viewport(frame_input.viewport).unwrap();
 
             for event in frame_input.events.iter() {
@@ -83,14 +72,10 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                                 (frame_input.device_pixel_ratio * position.0) as f32,
                                 (frame_input.device_pixel_ratio * position.1) as f32,
                             );
-                            if let Some(ref monkey) = *monkey.borrow() {
-                                let monkey = monkey.as_ref().unwrap();
-                                if let Some(pick) =
-                                    pick(&context, &camera, pixel, &[monkey]).unwrap()
-                                {
-                                    pick_mesh.set_transformation(Mat4::from_translation(pick));
-                                    change = true;
-                                }
+                            if let Some(pick) = pick(&context, &camera, pixel, &[&monkey]).unwrap()
+                            {
+                                pick_mesh.set_transformation(Mat4::from_translation(pick));
+                                change = true;
                             }
                         }
                     }
@@ -108,10 +93,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                     &context,
                     ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0),
                     || {
-                        if let Some(ref monkey) = *monkey.borrow() {
-                            let monkey = monkey.as_ref().unwrap();
-                            render_pass(&camera, &[monkey, &pick_mesh], &[&ambient, &directional])?;
-                        }
+                        render_pass(&camera, &[&monkey, &pick_mesh], &[&ambient, &directional])?;
                         Ok(())
                     },
                 )

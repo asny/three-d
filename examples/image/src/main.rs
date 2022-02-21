@@ -19,11 +19,12 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let context = window.gl().unwrap();
     let image_effect = ImageEffect::new(&context, include_str!("shader.frag")).unwrap();
 
-    let image = Loading::new(
-        &context,
+    let mut loaded = Loader::load_async(
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
-        move |context, loaded| Texture2D::new(&context, &loaded?.hdr_image("")?),
-    );
+    )
+    .await
+    .unwrap();
+    let image = Texture2D::new(&context, &loaded.hdr_image("").unwrap()).unwrap();
 
     let mut gui = GUI::new(&context).unwrap();
 
@@ -50,12 +51,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             };
 
             Screen::write(&context, ClearState::default(), || {
-                if let Some(ref image) = *image.borrow() {
-                    let image = image.as_ref().unwrap();
-                    image_effect.use_texture("image", &image)?;
-                    image_effect.use_uniform("parameter", tone_mapping)?;
-                    image_effect.apply(RenderStates::default(), viewport)?;
-                }
+                image_effect.use_texture("image", &image)?;
+                image_effect.use_uniform("parameter", tone_mapping)?;
+                image_effect.apply(RenderStates::default(), viewport)?;
                 gui.render()?;
                 Ok(())
             })
