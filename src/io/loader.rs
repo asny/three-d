@@ -152,6 +152,8 @@ impl Loader {
     /// Uses async loading when possible.
     /// Alternatively use [Loader::load_async] on both web and desktop or [Loader::load_blocking] on desktop.
     ///
+    /// **Note:** This method must not be called from an async function. In that case, use [Loader::load_async] instead.
+    ///
     pub fn load(paths: &[impl AsRef<Path>], on_done: impl 'static + FnOnce(ThreeDResult<Loaded>)) {
         #[cfg(target_arch = "wasm32")]
         {
@@ -169,6 +171,9 @@ impl Loader {
 
     ///
     /// Loads all of the resources in the given paths and returns the [Loaded] resources.
+    /// Uses async loading when possible.
+    ///
+    /// **Note:** This method must not be called from an async function. In that case, use [Loader::load_async] instead.
     ///
     #[cfg_attr(docsrs, doc(not(target_arch = "wasm32")))]
     #[cfg(not(target_arch = "wasm32"))]
