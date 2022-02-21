@@ -227,13 +227,17 @@ impl Loader {
                 let url = Url::parse(path.to_str().unwrap())?;
                 url_handles.push((path.clone(), client.get(url).send().await));
             } else {
-                handles.push((path.clone(), tokio::fs::read(path)));
+                handles.push((
+                    path.clone(),
+                    std::thread::spawn(move || std::fs::read(path)),
+                ));
             }
         }
 
         for (path, handle) in handles.drain(..) {
             let bytes = handle
-                .await
+                .join()
+                .unwrap()
                 .map_err(|e| IOError::FailedLoading(path.to_str().unwrap().to_string(), e))?;
             loaded.loaded.insert(path, bytes);
         }
