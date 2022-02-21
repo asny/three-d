@@ -6,12 +6,7 @@ edition = "2021"
 default-run = "example"
 
 [lib]
-path = "src/lib.rs"
 crate-type = ["cdylib"]
-
-[[bin]]
-name = "example"
-path = "src/main.rs"
 
 [dependencies]
 three-d = { path = "../../" }

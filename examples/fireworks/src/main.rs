@@ -11,7 +11,7 @@ struct FireworksMaterial {
 
 impl Material for FireworksMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        include_str!("../assets/shaders/particles.frag").to_string()
+        include_str!("../../assets/shaders/particles.frag").to_string()
     }
     fn use_uniforms(
         &self,
@@ -49,10 +49,15 @@ impl Material for FireworksMaterial {
         false
     }
 }
-
-fn main() {
+// Entry point for non-wasm
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = std::env::args().collect();
+    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+}
 
+pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let window = Window::new(WindowSettings {
         title: "Fireworks!".to_string(),
         max_size: Some((1280, 720)),
@@ -144,10 +149,10 @@ fn main() {
             })
             .unwrap();
 
-            if args.len() > 1 && particles.time > explosion_time * 0.5 {
+            if let Some(ref screenshot) = screenshot {
                 // To automatically generate screenshots of the examples, can safely be ignored.
                 FrameOutput {
-                    screenshot: Some(args[1].clone().into()),
+                    screenshot: Some(screenshot.clone()),
                     exit: true,
                     ..Default::default()
                 }

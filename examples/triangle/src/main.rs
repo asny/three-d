@@ -1,3 +1,11 @@
+// Entry point for non-wasm
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+}
+
 use three_d::*;
 
 pub async fn run(screenshot: Option<std::path::PathBuf>) {
@@ -73,29 +81,4 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             FrameOutput::default()
         }
     }).unwrap();
-}
-
-// Entry point for wasm
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(start)]
-pub async fn start() -> Result<(), JsValue> {
-    console_log::init_with_level(log::Level::Debug).unwrap();
-
-    use log::info;
-    info!("Logging works!");
-
-    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    run(None).await;
-    Ok(())
-}
-
-// Entry point for non-wasm
-#[cfg(not(target_arch = "wasm32"))]
-#[tokio::main]
-async fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
 }

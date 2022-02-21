@@ -56,9 +56,9 @@ fn main() {
     let light = Loading::new(
         &context,
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
-        move |context, mut loaded| {
+        move |context, loaded| {
             let environment_map =
-                TextureCubeMap::<f32>::new_from_equirectangular(&context, &loaded.hdr_image("")?)?;
+                TextureCubeMap::<f32>::new_from_equirectangular(&context, &loaded?.hdr_image("")?)?;
             Ok(AmbientLight {
                 environment: Some(Environment::new(&context, &environment_map)?),
                 ..Default::default()

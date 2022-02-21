@@ -58,9 +58,73 @@ rand = "0.7"
 tokio = { version = "1.16", features = ["macros"] }
 
 [[example]]
+name = "triangle"
+path = "examples/triangle/src/main.rs"
+
+[[example]]
+name = "mandelbrot"
+path = "examples/mandelbrot/src/main.rs"
+
+[[example]]
+name = "shapes2d"
+path = "examples/shapes2d/src/main.rs"
+
+[[example]]
+name = "shapes"
+path = "examples/shapes/src/main.rs"
+
+[[example]]
+name = "texture"
+path = "examples/texture/src/main.rs"
+
+[[example]]
+name = "picking"
+path = "examples/picking/src/main.rs"
+
+[[example]]
+name = "environment"
+path = "examples/environment/src/main.rs"
+
+[[example]]
+name = "pbr"
+path = "examples/pbr/src/main.rs"
+
+[[example]]
+name = "lighting"
+path = "examples/lighting/src/main.rs"
+
+[[example]]
 name = "lights"
 path = "examples/lights/src/main.rs"
 
 [[example]]
-name = "triangle"
-path = "examples/triangle/src/main.rs"
+name = "image"
+path = "examples/image/src/main.rs"
+
+[[example]]
+name = "fog"
+path = "examples/fog/src/main.rs"
+
+[[example]]
+name = "fireworks"
+path = "examples/fireworks/src/main.rs"
+
+[[example]]
+name = "statues"
+path = "examples/statues/src/main.rs"
+
+[[example]]
+name = "wireframe"
+path = "examples/wireframe/src/main.rs"
+
+[[example]]
+name = "forest"
+path = "examples/forest/src/main.rs"
+
+[[example]]
+name = "normals"
+path = "examples/normals/src/main.rs"
+
+[[example]]
+name = "logo"
+path = "examples/logo/src/main.rs"

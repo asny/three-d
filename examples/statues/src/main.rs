@@ -1,8 +1,14 @@
+// Entry point for non-wasm
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+}
+
 use three_d::*;
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-
+pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let window = Window::new(WindowSettings {
         title: "Statues!".to_string(),
         max_size: Some((1280, 720)),
@@ -51,7 +57,8 @@ fn main() {
             "examples/assets/pfboy.mtl",
             "examples/assets/pfboy.png",
         ],
-        move |context, mut loaded| {
+        move |context, loaded| {
+            let mut loaded = loaded.unwrap();
             let (statue_cpu_meshes, statue_cpu_materials) =
                 loaded.obj("examples/assets/COLOMBE.obj").unwrap();
             let mut statue_material =
@@ -163,10 +170,10 @@ fn main() {
                 .unwrap();
             }
 
-            if args.len() > 1 {
+            if let Some(ref screenshot) = screenshot {
                 // To automatically generate screenshots of the examples, can safely be ignored.
                 FrameOutput {
-                    screenshot: Some(args[1].clone().into()),
+                    screenshot: Some(screenshot.clone()),
                     exit: true,
                     ..Default::default()
                 }
