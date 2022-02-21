@@ -118,36 +118,25 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     }
 
     let mut models = Vec::new();
+    let mut aabb = AxisAlignedBoundingBox::EMPTY;
     for m in cpu_meshes.iter() {
         let material = materials
             .iter()
             .find(|material| &material.name == m.material_name.as_ref().unwrap())
             .unwrap()
             .clone();
-        models.push(Model::new_with_material(&context, &m, material).unwrap());
+        let m = Model::new_with_material(&context, &m, material).unwrap();
+        aabb.expand_with_aabb(&m.aabb());
+        models.push(m);
     }
 
-    let mut rng = rand::thread_rng();
+    let min = aabb.min() + 0.1 * aabb.size();
+    let max = aabb.max() - 0.1 * aabb.size();
+    let light_box =
+        AxisAlignedBoundingBox::new_with_positions(&[min.x, min.y, min.z, max.x, max.y, max.z]);
     let mut lights = Vec::new();
     for _ in 0..10 {
-        lights.push(
-            PointLight::new(
-                &context,
-                0.4,
-                Color::WHITE,
-                &vec3(
-                    2000.0 * rng.gen::<f32>() - 1000.0,
-                    200.0 * rng.gen::<f32>() + 100.0,
-                    600.0 * rng.gen::<f32>() - 300.0,
-                ),
-                Attenuation {
-                    constant: 0.005,
-                    linear: 0.0005,
-                    quadratic: 0.00005,
-                },
-            )
-            .unwrap(),
-        );
+        lights.push(Glow::new(&context, light_box));
     }
 
     // main loop
@@ -158,11 +147,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
-            let time = 0.001 * frame_input.accumulated_time;
-            let c = time.cos() as f32;
-            let s = time.sin() as f32;
+            let time = frame_input.elapsed_time as f32;
             for light in lights.iter_mut() {
-                light.position += vec3(-5.0 * c, 0.0, -5.0 * s);
+                light.update(time);
             }
 
             pipeline
@@ -178,7 +165,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 || {
                     pipeline.lighting_pass(
                         &camera,
-                        &lights.iter().map(|l| l as &dyn Light).collect::<Vec<_>>(),
+                        &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
                     )?;
                     Ok(())
                 },
@@ -197,4 +184,61 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             }
         })
         .unwrap();
+}
+
+struct Glow {
+    light: PointLight,
+    velocity: Vec3,
+    aabb: AxisAlignedBoundingBox,
+}
+
+impl Glow {
+    pub fn new(context: &Context, aabb: AxisAlignedBoundingBox) -> Self {
+        let mut rng = rand::thread_rng();
+        let pos = vec3(
+            aabb.min().x + rng.gen::<f32>() * aabb.size().x,
+            aabb.min().y + rng.gen::<f32>() * aabb.size().y,
+            aabb.min().z + rng.gen::<f32>() * aabb.size().z,
+        );
+        Self {
+            aabb,
+            light: PointLight::new(
+                &context,
+                0.4,
+                Color::WHITE,
+                &pos,
+                Attenuation {
+                    constant: 0.005,
+                    linear: 0.0005,
+                    quadratic: 0.00005,
+                },
+            )
+            .unwrap(),
+            velocity: vec3(
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+            )
+            .normalize(),
+        }
+    }
+
+    pub fn light(&self) -> &dyn Light {
+        &self.light
+    }
+
+    pub fn update(&mut self, time: f32) {
+        let mut rng = rand::thread_rng();
+        let min = self.aabb.min();
+        let max = self.aabb.max();
+        let p = self.light.position;
+        self.velocity.x +=
+            (min.x - p.x).max(0.0) - (p.x - max.x).max(0.0) + rng.gen::<f32>() * 0.1 - 0.05;
+        self.velocity.y +=
+            (min.y - p.y).max(0.0) - (p.y - max.y).max(0.0) + rng.gen::<f32>() * 0.1 - 0.05;
+        self.velocity.z +=
+            (min.z - p.z).max(0.0) - (p.z - max.z).max(0.0) + rng.gen::<f32>() * 0.1 - 0.05;
+        self.velocity = self.velocity.normalize();
+        self.light.position += 0.2 * self.velocity * time;
+    }
 }
