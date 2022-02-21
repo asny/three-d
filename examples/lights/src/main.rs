@@ -130,12 +130,12 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         models.push(m);
     }
 
-    let min = aabb.min() + 0.1 * aabb.size();
-    let max = aabb.max() - 0.1 * aabb.size();
+    let min = aabb.min() + 0.3 * aabb.size();
+    let max = aabb.max() - 0.3 * aabb.size();
     let light_box =
         AxisAlignedBoundingBox::new_with_positions(&[min.x, min.y, min.z, max.x, max.y, max.z]);
     let mut lights = Vec::new();
-    for _ in 0..10 {
+    for _ in 0..20 {
         lights.push(Glow::new(&context, light_box));
     }
 
