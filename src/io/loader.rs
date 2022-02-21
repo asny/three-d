@@ -197,13 +197,14 @@ impl Loader {
         );
 
         let mut handles = Vec::new();
+        let client = reqwest::Client::new();
         for path in paths.iter() {
             let mut p = path.as_ref().to_path_buf();
             if !is_absolute_url(p.to_str().unwrap()) {
                 p = base_path.join(p);
             }
             let url = Url::parse(p.to_str().unwrap())?;
-            handles.push((p, get(url)));
+            handles.push((p, get(client.clone(), url)));
         }
 
         let mut loaded = Loaded::new();
@@ -224,11 +225,12 @@ impl Loader {
         let mut handles = Vec::new();
         let mut url_handles = Vec::new();
         let mut loaded = Loaded::new();
+        let client = reqwest::Client::new();
         for path in paths.iter() {
             let path = path.as_ref().to_path_buf();
             if is_absolute_url(path.to_str().unwrap()) {
                 let url = Url::parse(path.to_str().unwrap())?;
-                url_handles.push((path.clone(), get(url)));
+                url_handles.push((path.clone(), get(client.clone(), url)));
             } else {
                 handles.push((path.clone(), tokio::fs::read(path)));
             }
@@ -250,8 +252,8 @@ impl Loader {
     }
 }
 
-async fn get(url: Url) -> reqwest::Result<Vec<u8>> {
-    Ok(reqwest::get(url).await?.bytes().await?.to_vec())
+async fn get(client: reqwest::Client, url: Url) -> reqwest::Result<Vec<u8>> {
+    Ok(client.get(url).send().await?.bytes().await?.to_vec())
 }
 
 fn is_absolute_url(path: &str) -> bool {
