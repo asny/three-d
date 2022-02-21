@@ -2,11 +2,10 @@
 name = "triangle"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
-path = "src/main.rs"
 
 [dependencies]
 three-d = { path = "../../", default-features = false, features=["glutin-window", "canvas"] }

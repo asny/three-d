@@ -1,8 +1,14 @@
+// Entry point for non-wasm
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+}
+
 use three_d::*;
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-
+pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let window = Window::new(WindowSettings {
         title: "Environment!".to_string(),
         min_size: (512, 512),
@@ -28,12 +34,12 @@ fn main() {
     let scene = Loading::new(
         &context,
         &["examples/assets/chinese_garden_4k.hdr"], // Source: https://polyhaven.com/
-        move |context, mut loaded| {
+        move |context, loaded| {
             let skybox = Skybox::new_with_texture(
                 &context,
                 TextureCubeMap::<f16>::new_from_equirectangular(
                     &context,
-                    &loaded.hdr_image("chinese_garden_4k")?,
+                    &loaded?.hdr_image("chinese_garden_4k")?,
                 )?,
             )
             .unwrap();
@@ -99,10 +105,10 @@ fn main() {
             )
             .unwrap();
 
-            if args.len() > 1 {
+            if let Some(ref screenshot) = screenshot {
                 // To automatically generate screenshots of the examples, can safely be ignored.
                 FrameOutput {
-                    screenshot: Some(args[1].clone().into()),
+                    screenshot: Some(screenshot.clone()),
                     exit: true,
                     ..Default::default()
                 }

@@ -43,8 +43,8 @@ fn main() {
     let monkey = Loading::new(
         &context,
         &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
-        move |context, mut loaded| {
-            let (meshes, materials) = loaded.obj("examples/assets/suzanne.obj").unwrap();
+        move |context, loaded| {
+            let (meshes, materials) = loaded?.obj("examples/assets/suzanne.obj").unwrap();
             let mut monkey = Model::new_with_material(
                 &context,
                 &meshes[0],

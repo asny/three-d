@@ -1,9 +1,15 @@
+// Entry point for non-wasm
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+}
+
 use three_d::core::*;
 use three_d::*;
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-
+pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let window = Window::new(WindowSettings {
         title: "Image!".to_string(),
         max_size: Some((1280, 720)),
@@ -16,7 +22,7 @@ fn main() {
     let image = Loading::new(
         &context,
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
-        move |context, mut loaded| Texture2D::new(&context, &loaded.hdr_image("")?),
+        move |context, loaded| Texture2D::new(&context, &loaded?.hdr_image("")?),
     );
 
     let mut gui = GUI::new(&context).unwrap();
@@ -55,10 +61,10 @@ fn main() {
             })
             .unwrap();
 
-            if args.len() > 1 {
+            if let Some(ref screenshot) = screenshot {
                 // To automatically generate screenshots of the examples, can safely be ignored.
                 FrameOutput {
-                    screenshot: Some(args[1].clone().into()),
+                    screenshot: Some(screenshot.clone()),
                     exit: true,
                     ..Default::default()
                 }

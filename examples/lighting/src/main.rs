@@ -1,12 +1,19 @@
-use three_d::*;
+// Entry point for non-wasm
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    run(args.get(1).map(|a| std::path::PathBuf::from(a))).await;
+}
 
 #[derive(Debug, Eq, PartialEq)]
 enum Pipeline {
     Forward,
     Deferred,
 }
+use three_d::*;
 
-fn main() {
+pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let args: Vec<String> = std::env::args().collect();
 
     let window = Window::new(WindowSettings {
@@ -37,8 +44,8 @@ fn main() {
     let model = Loading::new(
         &context,
         &["examples/assets/gltf/DamagedHelmet.glb"], // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-        move |context, mut loaded| {
-            let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
+        move |context, loaded| {
+            let (mut cpu_meshes, cpu_materials) = loaded?.gltf("DamagedHelmet.glb").unwrap();
             let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
             material.render_states.cull = Cull::Back;
             cpu_meshes[0].compute_tangents().unwrap();
@@ -397,10 +404,10 @@ fn main() {
                 .unwrap();
             }
 
-            if args.len() > 1 {
+            if let Some(ref screenshot) = screenshot {
                 // To automatically generate screenshots of the examples, can safely be ignored.
                 FrameOutput {
-                    screenshot: Some(args[1].clone().into()),
+                    screenshot: Some(screenshot.clone()),
                     exit: true,
                     ..Default::default()
                 }

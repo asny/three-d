@@ -32,7 +32,8 @@ fn main() {
             "examples/assets/gltf/DamagedHelmet.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
             "examples/assets/chinese_garden_4k.hdr",  // Source: https://polyhaven.com/
         ],
-        move |context, mut loaded| {
+        move |context, loaded| {
+            let mut loaded = loaded.unwrap();
             let environment_map = loaded.hdr_image("chinese").unwrap();
             let skybox = Skybox::new_from_equirectangular(&context, &environment_map).unwrap();
 

@@ -19,7 +19,8 @@ fn main() {
             "examples/assets/gltf/NormalTangentTest.glb",
             "examples/assets/gltf/NormalTangentMirrorTest.glb",
         ],
-        move |context, mut loaded| {
+        move |context, loaded| {
+            let mut loaded = loaded.unwrap();
             let (mut cpu_meshes, cpu_materials) = loaded.gltf("NormalTangentTest.glb").unwrap();
             let material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
             cpu_meshes[0].compute_tangents().unwrap();

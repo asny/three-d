@@ -1,4 +1,3 @@
-use three_d::Viewport;
 use three_d::*;
 
 fn main() {
