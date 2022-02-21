@@ -14,8 +14,6 @@ enum Pipeline {
 use three_d::*;
 
 pub async fn run(screenshot: Option<std::path::PathBuf>) {
-    let args: Vec<String> = std::env::args().collect();
-
     let window = Window::new(WindowSettings {
         title: "Lighting!".to_string(),
         min_size: (512, 512),

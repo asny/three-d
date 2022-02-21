@@ -11,7 +11,7 @@ struct FireworksMaterial {
 
 impl Material for FireworksMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
-        include_str!("../../assets/shaders/particles.frag").to_string()
+        include_str!("particles.frag").to_string()
     }
     fn use_uniforms(
         &self,
