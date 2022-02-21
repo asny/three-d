@@ -1,7 +1,43 @@
 
 # Examples
 
+### Build
+
+#### Native:
+
+Build and run an example, in this case 'triangle':
+
+```console
+$ cargo run --example triangle --release
+```
+
+#### WebAssembly:
+
+Prerequisites: 
+- A server that properly defines the `application/wasm` mime type (for example [http-server](https://www.npmjs.com/package/http-server))
+- [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+
+Build and generate web output (webassembly, javascript and html files) into the pkg folder:
+
+```console
+$ wasm-pack build examples/triangle --target web --out-name web --out-dir ../../pkg
+```
+
+Start the server and go to http://localhost:8080 in a browser:
+
+```console
+$ http-server
+```
+
+### A note on async
+
+All of the examples builds to both native (desktop, mobile or whatever target specified) and WebAssembly (wasm) that can be run in a browser. 
+Because they should run in a browser and to keep the same code for native and wasm, all loading happens async. 
+If your application is native only, you can avoid the async runtime (`tokio` or `async-std`) and use `Loader::load_blocking` instead of `Loader::load_async`.
+
 ## Triangle [[code](https://github.com/asny/three-d/tree/master/examples/triangle/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/triangle.html)]
+
+This is the recomended starting point for a gentle introduction to `three-d`. 
 
 ![Triangle example](https://asny.github.io/three-d/0.11/triangle.png)
 
@@ -73,3 +109,6 @@
 
 ![Logo example](https://asny.github.io/three-d/0.11/logo.png)
 
+## Headless [[code](https://github.com/asny/three-d/tree/master/examples/headless/src/main.rs)]
+
+This example does not create a window but render directly to a render target and saves the result to disk. Therefore, this example does not work on web.
