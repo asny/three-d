@@ -1,71 +1,75 @@
 
 # Examples
 
-## Triangle [[code](https://github.com/asny/three-d/tree/master/examples/triangle/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/triangle.html)]
+## Triangle [[code](https://github.com/asny/three-d/tree/master/examples/triangle/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/triangle.html)]
 
-![Triangle example](https://asny.github.io/three-d/0.10/triangle.png)
+![Triangle example](https://asny.github.io/three-d/0.11/triangle.png)
 
-## Mandelbrot [[code](https://github.com/asny/three-d/tree/master/examples/mandelbrot/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/mandelbrot.html)]
+## Mandelbrot [[code](https://github.com/asny/three-d/tree/master/examples/mandelbrot/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/mandelbrot.html)]
 
-![Mandelbrot example](https://asny.github.io/three-d/0.10/mandelbrot.png)
+![Mandelbrot example](https://asny.github.io/three-d/0.11/mandelbrot.png)
 
-## Shapes2D [[code](https://github.com/asny/three-d/tree/master/examples/shapes2d/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/shapes2d.html)]
+## Shapes2D [[code](https://github.com/asny/three-d/tree/master/examples/shapes2d/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/shapes2d.html)]
 
-![Shapes2d example](https://asny.github.io/three-d/0.10/shapes2d.png)
+![Shapes2d example](https://asny.github.io/three-d/0.11/shapes2d.png)
 
-## Shapes [[code](https://github.com/asny/three-d/tree/master/examples/shapes/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/shapes.html)]
+## Shapes [[code](https://github.com/asny/three-d/tree/master/examples/shapes/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/shapes.html)]
 
-![Shapes example](https://asny.github.io/three-d/0.10/shapes.png)
+![Shapes example](https://asny.github.io/three-d/0.11/shapes.png)
 
-## Texture [[code](https://github.com/asny/three-d/tree/master/examples/texture/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/texture.html)]
+## Texture [[code](https://github.com/asny/three-d/tree/master/examples/texture/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/texture.html)]
 
-![Texture example](https://asny.github.io/three-d/0.10/texture.png)
+![Texture example](https://asny.github.io/three-d/0.11/texture.png)
 
-## Picking [[code](https://github.com/asny/three-d/tree/master/examples/picking/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/picking.html)]
+## Picking [[code](https://github.com/asny/three-d/tree/master/examples/picking/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/picking.html)]
 
-![Picking example](https://asny.github.io/three-d/0.10/picking.png)
+![Picking example](https://asny.github.io/three-d/0.11/picking.png)
 
-## Environment [[code](https://github.com/asny/three-d/tree/master/examples/environment/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/environment.html)]
+## Environment [[code](https://github.com/asny/three-d/tree/master/examples/environment/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/environment.html)]
 
-![Environment example](https://asny.github.io/three-d/0.10/environment.png)
+![Environment example](https://asny.github.io/three-d/0.11/environment.png)
 
-## PBR [[code](https://github.com/asny/three-d/tree/master/examples/pbr/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/pbr.html)]
+## PBR [[code](https://github.com/asny/three-d/tree/master/examples/pbr/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/pbr.html)]
 
-![PBR example](https://asny.github.io/three-d/0.10/pbr.png)
+![PBR example](https://asny.github.io/three-d/0.11/pbr.png)
 
-## Lighting [[code](https://github.com/asny/three-d/tree/master/examples/lighting/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/lighting.html)]
+## Lighting [[code](https://github.com/asny/three-d/tree/master/examples/lighting/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/lighting.html)]
 
-![Lighting example](https://asny.github.io/three-d/0.10/lighting.png)
+![Lighting example](https://asny.github.io/three-d/0.11/lighting.png)
 
-## Image [[code](https://github.com/asny/three-d/tree/master/examples/image/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/image.html)]
+## Lights [[code](https://github.com/asny/three-d/tree/master/examples/lights/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/lights.html)]
 
-![Image example](https://asny.github.io/three-d/0.10/image.png)
+![Lights example](https://asny.github.io/three-d/0.11/lights.png)
 
-## Fog [[code](https://github.com/asny/three-d/tree/master/examples/fog/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/fog.html)]
+## Image [[code](https://github.com/asny/three-d/tree/master/examples/image/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/image.html)]
 
-![Fog example](https://asny.github.io/three-d/0.10/fog.png)
+![Image example](https://asny.github.io/three-d/0.11/image.png)
 
-## Fireworks [[code](https://github.com/asny/three-d/tree/master/examples/fireworks/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/fireworks.html)]
+## Fog [[code](https://github.com/asny/three-d/tree/master/examples/fog/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/fog.html)]
 
-![Fireworks example](https://asny.github.io/three-d/0.10/fireworks.png)
+![Fog example](https://asny.github.io/three-d/0.11/fog.png)
 
-## Statues [[code](https://github.com/asny/three-d/tree/master/examples/statues/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/statues.html)]
+## Fireworks [[code](https://github.com/asny/three-d/tree/master/examples/fireworks/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/fireworks.html)]
 
-![Statues example](https://asny.github.io/three-d/0.10/statues.png)
+![Fireworks example](https://asny.github.io/three-d/0.11/fireworks.png)
 
-## Wireframe [[code](https://github.com/asny/three-d/tree/master/examples/wireframe/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/wireframe.html)]
+## Statues [[code](https://github.com/asny/three-d/tree/master/examples/statues/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/statues.html)]
 
-![Wireframe example](https://asny.github.io/three-d/0.10/wireframe.png)
+![Statues example](https://asny.github.io/three-d/0.11/statues.png)
 
-## Forest [[code](https://github.com/asny/three-d/tree/master/examples/forest/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/forest.html)]
+## Wireframe [[code](https://github.com/asny/three-d/tree/master/examples/wireframe/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/wireframe.html)]
 
-![Forest example](https://asny.github.io/three-d/0.10/forest.png)
+![Wireframe example](https://asny.github.io/three-d/0.11/wireframe.png)
 
-## Normals [[code](https://github.com/asny/three-d/tree/master/examples/normals/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/normals.html)]
+## Forest [[code](https://github.com/asny/three-d/tree/master/examples/forest/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/forest.html)]
 
-![Normals example](https://asny.github.io/three-d/0.10/normals.png)
+![Forest example](https://asny.github.io/three-d/0.11/forest.png)
 
-## Logo [[code](https://github.com/asny/three-d/tree/master/examples/logo/src/main.rs)] [[demo](https://asny.github.io/three-d/0.10/logo.html)]
+## Normals [[code](https://github.com/asny/three-d/tree/master/examples/normals/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/normals.html)]
 
-![Logo example](https://asny.github.io/three-d/0.10/logo.png)
+![Normals example](https://asny.github.io/three-d/0.11/normals.png)
+
+## Logo [[code](https://github.com/asny/three-d/tree/master/examples/logo/src/main.rs)] [[demo](https://asny.github.io/three-d/0.11/logo.html)]
+
+![Logo example](https://asny.github.io/three-d/0.11/logo.png)
 
