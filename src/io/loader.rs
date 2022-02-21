@@ -196,14 +196,17 @@ impl Loader {
                 p = base_path.join(p);
             }
             let url = Url::parse(p.to_str().unwrap())?;
-            handles.push((p, get(client.clone(), url)));
+            handles.push((p, client.get(url).send().await));
         }
 
         let mut loaded = Loaded::new();
         for (path, handle) in handles.drain(..) {
             let bytes = handle
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
+                .bytes()
                 .await
-                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?;
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
+                .to_vec();
             loaded.loaded.insert(path, bytes);
         }
         Ok(loaded)
@@ -222,7 +225,7 @@ impl Loader {
             let path = path.as_ref().to_path_buf();
             if is_absolute_url(path.to_str().unwrap()) {
                 let url = Url::parse(path.to_str().unwrap())?;
-                url_handles.push((path.clone(), get(client.clone(), url)));
+                url_handles.push((path.clone(), client.get(url).send().await));
             } else {
                 handles.push((path.clone(), tokio::fs::read(path)));
             }
@@ -236,16 +239,15 @@ impl Loader {
         }
         for (path, handle) in url_handles.drain(..) {
             let bytes = handle
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
+                .bytes()
                 .await
-                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?;
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
+                .to_vec();
             loaded.loaded.insert(path, bytes);
         }
         Ok(loaded)
     }
-}
-
-async fn get(client: reqwest::Client, url: Url) -> reqwest::Result<Vec<u8>> {
-    Ok(client.get(url).send().await?.bytes().await?.to_vec())
 }
 
 fn is_absolute_url(path: &str) -> bool {
