@@ -1,4 +1,4 @@
-mod main;
+// Headless contexts does not work on web so this is just so the build doesn't fail.
 
 // Entry point for wasm
 #[cfg(target_arch = "wasm32")]
@@ -13,6 +13,5 @@ pub fn start() -> Result<(), JsValue> {
     info!("Logging works!");
 
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    // main(); // Headless contexts does not work on web
     Ok(())
 }

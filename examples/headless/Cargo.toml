@@ -1,11 +1,11 @@
 [package]
-name = "mandelbrot"
+name = "headless"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
-edition = "2021
+edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]"
+crate-type = ["cdylib"]
 
 [dependencies]
 three-d = { path = "../../", default-features = false, features=["glutin-window"] }
