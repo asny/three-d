@@ -103,6 +103,7 @@ impl Window {
         let mut modifiers = Modifiers::default();
         let mut first_frame = true;
         let mut mouse_pressed = None;
+        #[cfg(feature = "image-io")]
         let context = self.gl.clone();
         self.event_loop.run(move |event, _, control_flow| {
             match event {
