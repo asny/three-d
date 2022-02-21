@@ -149,10 +149,10 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             })
             .unwrap();
 
-            if let Some(ref screenshot) = screenshot {
+            if screenshot.is_some() && particles.time > explosion_time * 0.5 {
                 // To automatically generate screenshots of the examples, can safely be ignored.
                 FrameOutput {
-                    screenshot: Some(screenshot.clone()),
+                    screenshot: screenshot.clone(),
                     exit: true,
                     ..Default::default()
                 }
