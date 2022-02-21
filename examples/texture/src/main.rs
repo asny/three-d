@@ -30,63 +30,54 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let skybox = Loading::new(
-        &context,
-        &[
-            "examples/assets/skybox_evening/right.jpg",
-            "examples/assets/skybox_evening/left.jpg",
-            "examples/assets/skybox_evening/top.jpg",
-            "examples/assets/skybox_evening/front.jpg",
-            "examples/assets/skybox_evening/back.jpg",
-        ],
-        move |context, loaded| {
-            Skybox::new(
-                &context,
-                &loaded?.cube_image("right", "left", "top", "top", "front", "back")?,
-            )
-        },
-    );
+    let mut loaded = Loader::load_async(&[
+        "examples/assets/skybox_evening/right.jpg",
+        "examples/assets/skybox_evening/left.jpg",
+        "examples/assets/skybox_evening/top.jpg",
+        "examples/assets/skybox_evening/front.jpg",
+        "examples/assets/skybox_evening/back.jpg",
+        "examples/assets/test_texture.jpg",
+        "examples/assets/PenguinBaseMesh.obj",
+        "examples/assets/PenguinBaseMesh.mtl",
+        "examples/assets/penguin.png",
+    ])
+    .await
+    .unwrap();
 
-    let objects = Loading::new(
+    let skybox = Skybox::new(
         &context,
-        &[
-            "examples/assets/test_texture.jpg",
-            "examples/assets/PenguinBaseMesh.obj",
-            "examples/assets/PenguinBaseMesh.mtl",
-            "examples/assets/penguin.png",
-        ],
-        move |context, loaded| {
-            let mut loaded = loaded.unwrap();
-            let mut box_object = Model::new_with_material(
-                &context,
-                &CpuMesh::cube(),
-                ColorMaterial {
-                    texture: Some(std::rc::Rc::new(Texture2D::new(
-                        &context,
-                        &loaded.image("test_texture")?,
-                    )?)),
-                    ..Default::default()
-                },
-            )?;
-            box_object.material.render_states.cull = Cull::Back;
-            let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("PenguinBaseMesh.obj")?;
-            let mut penguin_object = Model::new_with_material(
-                &context,
-                &penguin_cpu_meshes[0],
-                PhysicalMaterial::new(&context, &penguin_cpu_materials[0])?,
-            )?;
-            penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
-            penguin_object.material.render_states.cull = Cull::Back;
-            Ok((box_object, penguin_object))
+        &loaded
+            .cube_image("right", "left", "top", "top", "front", "back")
+            .unwrap(),
+    )
+    .unwrap();
+    let mut box_object = Model::new_with_material(
+        &context,
+        &CpuMesh::cube(),
+        ColorMaterial {
+            texture: Some(std::rc::Rc::new(
+                Texture2D::new(&context, &loaded.image("test_texture").unwrap()).unwrap(),
+            )),
+            ..Default::default()
         },
-    );
+    )
+    .unwrap();
+    box_object.material.render_states.cull = Cull::Back;
+    let (penguin_cpu_meshes, penguin_cpu_materials) = loaded.obj("PenguinBaseMesh.obj").unwrap();
+    let mut penguin_object = Model::new_with_material(
+        &context,
+        &penguin_cpu_meshes[0],
+        PhysicalMaterial::new(&context, &penguin_cpu_materials[0]).unwrap(),
+    )
+    .unwrap();
+    penguin_object.set_transformation(Mat4::from_translation(vec3(0.0, 1.0, 0.5)));
+    penguin_object.material.render_states.cull = Cull::Back;
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
         DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
 
     // main loop
-    let mut loaded = false;
     window
         .render_loop(move |mut frame_input| {
             let mut redraw = frame_input.first_frame;
@@ -94,25 +85,16 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             redraw |= control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
-            if !loaded && objects.is_loaded() && skybox.is_loaded() {
-                redraw = true;
-                loaded = true;
-            }
 
             // draw
             if redraw {
                 Screen::write(&context, ClearState::default(), || {
-                    if let Some(ref objects) = *objects.borrow() {
-                        let (box_object, penguin_object) = objects.as_ref().unwrap();
-                        render_pass(
-                            &camera,
-                            &[box_object, penguin_object],
-                            &[&ambient, &directional],
-                        )?;
-                    }
-                    if let Some(ref skybox) = *skybox.borrow() {
-                        skybox.as_ref().unwrap().render(&camera)?;
-                    }
+                    render_pass(
+                        &camera,
+                        &[&box_object, &penguin_object],
+                        &[&ambient, &directional],
+                    )?;
+                    skybox.render(&camera)?;
                     Ok(())
                 })
                 .unwrap();

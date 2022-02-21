@@ -39,19 +39,18 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context).unwrap();
 
-    let model = Loading::new(
-        &context,
+    let mut loaded = Loader::load_async(
         &["examples/assets/gltf/DamagedHelmet.glb"], // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-        move |context, loaded| {
-            let (mut cpu_meshes, cpu_materials) = loaded?.gltf("DamagedHelmet.glb").unwrap();
-            let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
-            material.render_states.cull = Cull::Back;
-            cpu_meshes[0].compute_tangents().unwrap();
-            let mut model = Model::new_with_material(&context, &cpu_meshes[0], material).unwrap();
-            model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
-            Ok(model)
-        },
-    );
+    )
+    .await
+    .unwrap();
+    let (mut cpu_meshes, cpu_materials) = loaded.gltf("DamagedHelmet.glb").unwrap();
+    let mut material = PhysicalMaterial::new(&context, &cpu_materials[0]).unwrap();
+    material.render_states.cull = Cull::Back;
+    cpu_meshes[0].compute_tangents().unwrap();
+    let mut model = Model::new_with_material(&context, &cpu_meshes[0], material).unwrap();
+    model.set_transformation(Mat4::from_angle_x(degrees(90.0)));
+
     let mut plane = Model::new_with_material(
         &context,
         &CpuMesh::square(),
@@ -127,29 +126,14 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                         ui.heading("Debug Panel");
 
                         ui.label("Surface parameters");
-                        if let Some(ref mut model) = *model.borrow_mut() {
-                            ui.add(
-                                Slider::new::<f32>(
-                                    &mut model.as_mut().unwrap().material.metallic,
-                                    0.0..=1.0,
-                                )
+                        ui.add(
+                            Slider::new::<f32>(&mut model.material.metallic, 0.0..=1.0)
                                 .text("Model Metallic"),
-                            );
-                            ui.add(
-                                Slider::new::<f32>(
-                                    &mut model.as_mut().unwrap().material.roughness,
-                                    0.0..=1.0,
-                                )
+                        );
+                        ui.add(
+                            Slider::new::<f32>(&mut model.material.roughness, 0.0..=1.0)
                                 .text("Model Roughness"),
-                            );
-                            ui.add(
-                                Slider::new(
-                                    &mut model.as_mut().unwrap().material.albedo.a,
-                                    0..=255,
-                                )
-                                .text("Model opacity"),
-                            );
-                        }
+                        );
                         ui.add(
                             Slider::new(&mut plane.material.metallic, 0.0..=1.0)
                                 .text("Plane Metallic"),
@@ -268,139 +252,112 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             point0.set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
             point1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
 
-            if let Some(ref mut model) = *model.borrow_mut() {
-                model.as_mut().unwrap().material.lighting_model = lighting_model;
-            }
+            model.material.lighting_model = lighting_model;
 
             // Draw
-            if let Some(ref model) = *model.borrow() {
-                let model = model.as_ref().unwrap();
-                if shadows_enabled {
-                    directional0.generate_shadow_map(1024, &[model]).unwrap();
-                    directional1.generate_shadow_map(1024, &[model]).unwrap();
-                    spot0.generate_shadow_map(1024, &[model]).unwrap();
-                }
-
-                // Geometry pass
-                if change && current_pipeline == Pipeline::Deferred {
-                    deferred_pipeline
-                        .render_pass(
-                            &camera,
-                            &[
-                                (
-                                    model,
-                                    &DeferredPhysicalMaterial::from_physical_material(
-                                        &model.material,
-                                    ),
-                                ),
-                                (
-                                    &plane,
-                                    &DeferredPhysicalMaterial::from_physical_material(
-                                        &plane.material,
-                                    ),
-                                ),
-                            ],
-                        )
-                        .unwrap();
-                }
-
-                let lights = [
-                    &ambient as &dyn Light,
-                    &spot0,
-                    &directional0,
-                    &directional1,
-                    &point0,
-                    &point1,
-                ];
-
-                // Light pass
-                Screen::write(&context, ClearState::default(), || {
-                    match current_pipeline {
-                        Pipeline::Forward => {
-                            match deferred_pipeline.debug_type {
-                                DebugType::NORMAL => {
-                                    plane.render_with_material(
-                                        &NormalMaterial::from_physical_material(&plane.material),
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                    model.render_with_material(
-                                        &NormalMaterial::from_physical_material(&model.material),
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                }
-                                DebugType::DEPTH => {
-                                    let depth_material = DepthMaterial::default();
-                                    plane.render_with_material(
-                                        &depth_material,
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                    model.render_with_material(
-                                        &depth_material,
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                }
-                                DebugType::ORM => {
-                                    plane.render_with_material(
-                                        &ORMMaterial::from_physical_material(&plane.material),
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                    model.render_with_material(
-                                        &ORMMaterial::from_physical_material(&model.material),
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                }
-                                DebugType::POSITION => {
-                                    let position_material = PositionMaterial::default();
-                                    plane.render_with_material(
-                                        &position_material,
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                    model.render_with_material(
-                                        &position_material,
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                }
-                                DebugType::UV => {
-                                    let uv_material = UVMaterial::default();
-                                    plane.render_with_material(&uv_material, &camera, &lights)?;
-                                    model.render_with_material(&uv_material, &camera, &lights)?;
-                                }
-                                DebugType::COLOR => {
-                                    plane.render_with_material(
-                                        &ColorMaterial::from_physical_material(&plane.material),
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                    model.render_with_material(
-                                        &ColorMaterial::from_physical_material(&model.material),
-                                        &camera,
-                                        &lights,
-                                    )?;
-                                }
-                                DebugType::NONE => forward_pipeline.render_pass(
-                                    &camera,
-                                    &[&plane, &model],
-                                    &lights,
-                                )?,
-                            };
-                        }
-                        Pipeline::Deferred => {
-                            deferred_pipeline.lighting_pass(&camera, &lights)?;
-                        }
-                    }
-                    gui.render()?;
-                    Ok(())
-                })
-                .unwrap();
+            if shadows_enabled {
+                directional0.generate_shadow_map(1024, &[&model]).unwrap();
+                directional1.generate_shadow_map(1024, &[&model]).unwrap();
+                spot0.generate_shadow_map(1024, &[&model]).unwrap();
             }
+
+            // Geometry pass
+            if change && current_pipeline == Pipeline::Deferred {
+                deferred_pipeline
+                    .render_pass(
+                        &camera,
+                        &[
+                            (
+                                &model,
+                                &DeferredPhysicalMaterial::from_physical_material(&model.material),
+                            ),
+                            (
+                                &plane,
+                                &DeferredPhysicalMaterial::from_physical_material(&plane.material),
+                            ),
+                        ],
+                    )
+                    .unwrap();
+            }
+
+            let lights = [
+                &ambient as &dyn Light,
+                &spot0,
+                &directional0,
+                &directional1,
+                &point0,
+                &point1,
+            ];
+
+            // Light pass
+            Screen::write(&context, ClearState::default(), || {
+                match current_pipeline {
+                    Pipeline::Forward => {
+                        match deferred_pipeline.debug_type {
+                            DebugType::NORMAL => {
+                                plane.render_with_material(
+                                    &NormalMaterial::from_physical_material(&plane.material),
+                                    &camera,
+                                    &lights,
+                                )?;
+                                model.render_with_material(
+                                    &NormalMaterial::from_physical_material(&model.material),
+                                    &camera,
+                                    &lights,
+                                )?;
+                            }
+                            DebugType::DEPTH => {
+                                let depth_material = DepthMaterial::default();
+                                plane.render_with_material(&depth_material, &camera, &lights)?;
+                                model.render_with_material(&depth_material, &camera, &lights)?;
+                            }
+                            DebugType::ORM => {
+                                plane.render_with_material(
+                                    &ORMMaterial::from_physical_material(&plane.material),
+                                    &camera,
+                                    &lights,
+                                )?;
+                                model.render_with_material(
+                                    &ORMMaterial::from_physical_material(&model.material),
+                                    &camera,
+                                    &lights,
+                                )?;
+                            }
+                            DebugType::POSITION => {
+                                let position_material = PositionMaterial::default();
+                                plane.render_with_material(&position_material, &camera, &lights)?;
+                                model.render_with_material(&position_material, &camera, &lights)?;
+                            }
+                            DebugType::UV => {
+                                let uv_material = UVMaterial::default();
+                                plane.render_with_material(&uv_material, &camera, &lights)?;
+                                model.render_with_material(&uv_material, &camera, &lights)?;
+                            }
+                            DebugType::COLOR => {
+                                plane.render_with_material(
+                                    &ColorMaterial::from_physical_material(&plane.material),
+                                    &camera,
+                                    &lights,
+                                )?;
+                                model.render_with_material(
+                                    &ColorMaterial::from_physical_material(&model.material),
+                                    &camera,
+                                    &lights,
+                                )?;
+                            }
+                            DebugType::NONE => {
+                                forward_pipeline.render_pass(&camera, &[&plane, &model], &lights)?
+                            }
+                        };
+                    }
+                    Pipeline::Deferred => {
+                        deferred_pipeline.lighting_pass(&camera, &lights)?;
+                    }
+                }
+                gui.render()?;
+                Ok(())
+            })
+            .unwrap();
 
             if let Some(ref screenshot) = screenshot {
                 // To automatically generate screenshots of the examples, can safely be ignored.

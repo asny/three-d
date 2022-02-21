@@ -59,18 +59,18 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut model = Model::new_with_material(&context, &cpu_mesh, material).unwrap();
     model.set_transformation(Mat4::from_angle_y(degrees(35.0)));
 
-    let light = Loading::new(
-        &context,
+    let mut loaded = Loader::load_async(
         &["examples/assets/syferfontein_18d_clear_4k.hdr"], // Source: https://polyhaven.com/
-        move |context, loaded| {
-            let environment_map =
-                TextureCubeMap::<f32>::new_from_equirectangular(&context, &loaded?.hdr_image("")?)?;
-            Ok(AmbientLight {
-                environment: Some(Environment::new(&context, &environment_map)?),
-                ..Default::default()
-            })
-        },
-    );
+    )
+    .await
+    .unwrap();
+    let environment_map =
+        TextureCubeMap::<f32>::new_from_equirectangular(&context, &loaded.hdr_image("").unwrap())
+            .unwrap();
+    let light = AmbientLight {
+        environment: Some(Environment::new(&context, &environment_map).unwrap()),
+        ..Default::default()
+    };
 
     window
         .render_loop(move |frame_input: FrameInput| {
@@ -82,10 +82,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                     /*model.set_transformation(Mat4::from_angle_y(radians(
                         (frame_input.accumulated_time * 0.0002) as f32,
                     )));*/
-                    if let Some(ref light) = *light.borrow() {
-                        let light = light.as_ref().unwrap();
-                        model.render(&camera, &[light])?;
-                    }
+                    model.render(&camera, &[&light])?;
                     Ok(())
                 },
             )

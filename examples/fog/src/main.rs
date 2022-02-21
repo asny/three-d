@@ -31,16 +31,15 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
     let mut control = FlyControl::new(0.05);
 
-    let monkey = Loading::new(
-        &context,
-        &["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"],
-        move |context, loaded| {
-            let (meshes, materials) = loaded?.obj("suzanne.obj")?;
-            let mut monkey_material = PhysicalMaterial::new(&context, &materials[0])?;
-            monkey_material.render_states.cull = Cull::Back;
-            Model::new_with_material(&context, &meshes[0], monkey_material)
-        },
-    );
+    let mut loaded =
+        Loader::load_async(&["examples/assets/suzanne.obj", "examples/assets/suzanne.mtl"])
+            .await
+            .unwrap();
+
+    let (meshes, materials) = loaded.obj("suzanne.obj").unwrap();
+    let mut monkey_material = PhysicalMaterial::new(&context, &materials[0]).unwrap();
+    monkey_material.render_states.cull = Cull::Back;
+    let monkey = Model::new_with_material(&context, &meshes[0], monkey_material);
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
@@ -53,7 +52,6 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
     // main loop
     let mut depth_texture = None;
-    let mut loaded = false;
     window
         .render_loop(move |mut frame_input| {
             let mut change = frame_input.first_frame;
@@ -61,10 +59,6 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             change |= control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
-            if !loaded && monkey.is_loaded() {
-                change = true;
-                loaded = true;
-            }
 
             for event in frame_input.events.iter() {
                 match event {
@@ -81,22 +75,18 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
             // draw
             if change && fog_enabled {
-                if let Some(ref monkey) = *monkey.borrow() {
-                    depth_texture = Some(
-                        pipeline
-                            .depth_pass_texture(&camera, &[monkey.as_ref().unwrap()])
-                            .unwrap(),
-                    );
-                }
+                depth_texture = Some(
+                    pipeline
+                        .depth_pass_texture(&camera, &[monkey.as_ref().unwrap()])
+                        .unwrap(),
+                );
             }
 
             Screen::write(&context, ClearState::default(), || {
-                if let Some(ref monkey) = *monkey.borrow() {
-                    monkey
-                        .as_ref()
-                        .unwrap()
-                        .render(&camera, &[&ambient, &directional])?;
-                }
+                monkey
+                    .as_ref()
+                    .unwrap()
+                    .render(&camera, &[&ambient, &directional])?;
                 if fog_enabled {
                     if let Some(ref depth_texture) = depth_texture {
                         fog_effect.apply(

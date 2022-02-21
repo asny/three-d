@@ -31,23 +31,22 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let scene = Loading::new(
-        &context,
+    let mut loaded = Loader::load_async(
         &["examples/assets/chinese_garden_4k.hdr"], // Source: https://polyhaven.com/
-        move |context, loaded| {
-            let skybox = Skybox::new_with_texture(
-                &context,
-                TextureCubeMap::<f16>::new_from_equirectangular(
-                    &context,
-                    &loaded?.hdr_image("chinese_garden_4k")?,
-                )?,
-            )
-            .unwrap();
-            let light =
-                AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture())?;
-            Ok((skybox, light))
-        },
-    );
+    )
+    .await
+    .unwrap();
+    let skybox = Skybox::new_with_texture(
+        &context,
+        TextureCubeMap::<f16>::new_from_equirectangular(
+            &context,
+            &loaded.hdr_image("chinese_garden_4k").unwrap(),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    let light =
+        AmbientLight::new_with_environment(&context, 1.0, Color::WHITE, skybox.texture()).unwrap();
 
     let mut model = Model::new_with_material(
         &context,
@@ -94,11 +93,8 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 &context,
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
-                    if let Some(ref scene) = *scene.borrow() {
-                        let (skybox, light) = scene.as_ref().unwrap();
-                        skybox.render(&camera)?;
-                        model.render(&camera, &[light])?;
-                    }
+                    skybox.render(&camera)?;
+                    model.render(&camera, &[&light])?;
                     gui.render()?;
                     Ok(())
                 },
