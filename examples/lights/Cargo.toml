@@ -3,13 +3,24 @@ name = "lights"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2018"
+default-run = "example"
 
 [lib]
-path = "web.rs"
+path = "src/lib.rs"
 crate-type = ["cdylib"]
+
+[[bin]]
+name = "example"
+path = "src/main.rs"
 
 [dependencies]
 three-d = { path = "../../" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rand = "0.7"
+tokio = { version = "1.16", features = ["macros"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
