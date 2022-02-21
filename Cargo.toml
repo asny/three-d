@@ -60,3 +60,7 @@ tokio = { version = "1.16", features = ["macros"] }
 [[example]]
 name = "lights"
 path = "examples/lights/src/main.rs"
+
+[[example]]
+name = "triangle"
+path = "examples/triangle/src/main.rs"

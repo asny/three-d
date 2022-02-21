@@ -1,8 +1,6 @@
 use three_d::*;
 
-pub fn main() {
-    let args: Vec<String> = std::env::args().collect();
-
+pub async fn run(screenshot: Option<std::path::PathBuf>) {
     // Create a window (a canvas on web)
     let window = Window::new(WindowSettings {
         title: "Triangle!".to_string(),
@@ -63,9 +61,13 @@ pub fn main() {
             Ok(())
         }).unwrap();
 
-        if args.len() > 1 {
+        if let Some(ref screenshot) = screenshot {
             // To automatically generate screenshots of the examples, can safely be ignored.
-            FrameOutput {screenshot: Some(args[1].clone().into()), exit: true, ..Default::default()}
+            FrameOutput {
+                screenshot: Some(screenshot.clone()),
+                exit: true,
+                ..Default::default()
+            }
         } else {
             // Returns default frame output to end the frame
             FrameOutput::default()
