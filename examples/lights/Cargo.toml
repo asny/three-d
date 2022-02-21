@@ -3,7 +3,6 @@ name = "lights"
 version = "0.1.0"
 authors = ["Asger Nyman Christiansen <asgernyman@gmail.com>"]
 edition = "2021"
-default-run = "example"
 
 [lib]
 crate-type = ["cdylib"]
