@@ -126,5 +126,9 @@ name = "normals"
 path = "examples/normals/src/main.rs"
 
 [[example]]
+name = "headless"
+path = "examples/headless/src/main.rs"
+
+[[example]]
 name = "logo"
 path = "examples/logo/src/main.rs"
