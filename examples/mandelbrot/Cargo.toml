@@ -10,9 +10,6 @@ crate-type = ["cdylib"]
 [dependencies]
 three-d = { path = "../../" }
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.16", features = ["macros"] }
-
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
 wasm-bindgen = "0.2"
