@@ -204,10 +204,10 @@ impl Loader {
         let mut loaded = Loaded::new();
         for (path, handle) in handles.drain(..) {
             let bytes = handle
-                .map_err(|e| IOError::FailedLoading(path.to_str().unwrap().to_string(), e))?
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
                 .bytes()
                 .await
-                .map_err(|e| IOError::FailedLoading(path.to_str().unwrap().to_string(), e))?
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
                 .to_vec();
             loaded.loaded.insert(path, bytes);
         }
