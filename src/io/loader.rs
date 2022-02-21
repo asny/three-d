@@ -198,17 +198,14 @@ impl Loader {
                 p = base_path.join(p);
             }
             let url = Url::parse(p.to_str().unwrap())?;
-            handles.push((p, reqwest::get(url).await));
+            handles.push((p, get(url)));
         }
 
         let mut loaded = Loaded::new();
         for (path, handle) in handles.drain(..) {
             let bytes = handle
-                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
-                .bytes()
                 .await
-                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
-                .to_vec();
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?;
             loaded.loaded.insert(path, bytes);
         }
         Ok(loaded)
@@ -225,7 +222,8 @@ impl Loader {
         for path in paths.iter() {
             let path = path.as_ref().to_path_buf();
             if is_absolute_url(path.to_str().unwrap()) {
-                url_handles.push((path.clone(), get(path)));
+                let url = Url::parse(path.to_str().unwrap())?;
+                url_handles.push((path.clone(), get(url)));
             } else {
                 handles.push((path.clone(), tokio::fs::read(path)));
             }
@@ -247,8 +245,7 @@ impl Loader {
     }
 }
 
-async fn get(path: PathBuf) -> reqwest::Result<Vec<u8>> {
-    let url = Url::parse(path.to_str().unwrap()).unwrap();
+async fn get(url: Url) -> reqwest::Result<Vec<u8>> {
     Ok(reqwest::get(url).await?.bytes().await?.to_vec())
 }
 
