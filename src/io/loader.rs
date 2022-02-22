@@ -227,8 +227,9 @@ impl Loader {
             }
         }
 
-        let mut loaded = Self::load_blocking(&local_paths)?;
+        let mut loaded = Loaded::new();
         load_urls(urls, &mut loaded).await?;
+        load_from_disk(local_paths, &mut loaded)?;
         Ok(loaded)
     }
 }
@@ -254,21 +255,22 @@ fn load_from_disk(mut paths: Vec<PathBuf>, loaded: &mut Loaded) -> ThreeDResult<
 }
 
 async fn load_urls(mut paths: Vec<PathBuf>, loaded: &mut Loaded) -> ThreeDResult<()> {
-    let mut handles = Vec::new();
-    let client = reqwest::Client::new();
-    for path in paths.drain(..) {
-        let url = Url::parse(path.to_str().unwrap())?;
-        handles.push((path, client.get(url).send().await));
-    }
-
-    for (path, handle) in handles.drain(..) {
-        let bytes = handle
-            .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
-            .bytes()
-            .await
-            .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
-            .to_vec();
-        loaded.loaded.insert(path, bytes);
+    if paths.len() > 0 {
+        let mut handles = Vec::new();
+        let client = reqwest::Client::new();
+        for path in paths.drain(..) {
+            let url = Url::parse(path.to_str().unwrap())?;
+            handles.push((path, client.get(url).send().await));
+        }
+        for (path, handle) in handles.drain(..) {
+            let bytes = handle
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
+                .bytes()
+                .await
+                .map_err(|e| IOError::FailedLoadingUrl(path.to_str().unwrap().to_string(), e))?
+                .to_vec();
+            loaded.loaded.insert(path, bytes);
+        }
     }
     Ok(())
 }
