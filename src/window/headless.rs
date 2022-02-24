@@ -82,16 +82,7 @@ fn build_context<T1: ContextCurrentState>(
     Err([err1, err2, err3])
 }
 
-#[cfg(target_os = "windows")]
-fn build_context<T1: ContextCurrentState>(
-    cb: ContextBuilder<T1>,
-) -> Result<(glutin::Context<NotCurrent>, EventLoop<()>), CreationError> {
-    use glutin::platform::windows::EventLoopExtWindows;
-    let el = EventLoopExtWindows::new_any_thread();
-    build_context_headless(cb.clone(), &el).map(|ctx| (ctx, el))
-}
-
-#[cfg(all(not(target_os = "windows"), not(target_os = "linux")))]
+#[cfg(not(target_os = "linux"))]
 fn build_context<T1: ContextCurrentState>(
     cb: ContextBuilder<T1>,
 ) -> Result<(glutin::Context<NotCurrent>, EventLoop<()>), CreationError> {
