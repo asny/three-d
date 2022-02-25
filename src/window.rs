@@ -4,6 +4,7 @@
 //! and canvas using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) for web, but
 //! can be replaced by any other window with similar functionality. Also contains camera control utilities.
 //!
+#![warn(missing_docs)]
 
 #[cfg(any(feature = "glutin-window", feature = "canvas"))]
 mod settings;
@@ -37,57 +38,93 @@ mod canvas;
 pub use canvas::*;
 
 /// Type of mouse button.
-#[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum MouseButton {
+    /// Left mouse button or one finger on touch.
     Left,
+    /// Left mouse button or two fingers on touch.
     Right,
+    /// Middle mouse button.
     Middle,
 }
 
 /// An input event (from mouse, keyboard or similar).
 #[derive(Clone, Debug)]
 pub enum Event {
+    /// Fired when a button is pressed or the screen is touched.
     MousePress {
+        /// Type of button
         button: MouseButton,
+        /// The screen position in logical pixels.
         position: (f64, f64),
+        /// The state of modifiers.
         modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
         handled: bool,
     },
+    /// Fired when a button is released or the screen is stopped being touched.
     MouseRelease {
+        /// Type of button
         button: MouseButton,
+        /// The screen position in logical pixels.
         position: (f64, f64),
+        /// The state of modifiers.
         modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
         handled: bool,
     },
+    /// Fired continuously when the mouse or a finger on the screen is moved.
     MouseMotion {
+        /// Type of button if a button is pressed.
         button: Option<MouseButton>,
+        /// The relative movement of the mouse/finger since last [MouseMotion] event.
         delta: (f64, f64),
+        /// The screen position in logical pixels.
         position: (f64, f64),
+        /// The state of modifiers.
         modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
         handled: bool,
     },
+    /// Fired continuously when the mouse wheel or equivalent is applied.
     MouseWheel {
+        /// The relative scrolling since the last [MouseWheel] event.
         delta: (f64, f64),
+        /// The screen position in logical pixels.
         position: (f64, f64),
+        /// The state of modifiers.
         modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
         handled: bool,
     },
+    /// Fired when the mouse enters the window.
     MouseEnter,
+    /// Fired when the mouse leaves the window.
     MouseLeave,
+    /// Fired when a key is pressed.
     KeyPress {
+        /// The type of key.
         kind: Key,
+        /// The state of modifiers.
         modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
         handled: bool,
     },
+    /// Fired when a key is released.
     KeyRelease {
+        /// The type of key.
         kind: Key,
+        /// The state of modifiers.
         modifiers: Modifiers,
+        /// Whether or not this event already have been handled.
         handled: bool,
     },
+    /// Fired when the modifiers change.
     ModifiersChange {
+        /// The state of modifiers after the change.
         modifiers: Modifiers,
     },
+    /// Fires when some text has been written.
     Text(String),
 }
 

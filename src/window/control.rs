@@ -1,3 +1,7 @@
+//!
+//! Contain a [CameraControl] struct that can be easily customized as well as a set of default camera controls.
+//!
+
 mod camera_control;
 #[doc(inline)]
 pub use camera_control::*;

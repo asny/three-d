@@ -1,39 +1,66 @@
 use crate::core::*;
 use crate::window::*;
 
+///
+/// A set of possible actions to apply to a camera when recieving input.
+///
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CameraAction {
+    /// No action.
     None,
+    /// Rotate the camera around the horizontal axis as seen from the camera.
     Pitch {
+        /// The speed of the rotation.
         speed: f32,
     },
+    /// Orbits around the given target in the up direction as seen from the camera.
     OrbitUp {
+        /// The target of the rotation.
         target: Vec3,
+        /// The speed of the rotation.
         speed: f32,
     },
+    /// Rotate the camera around the vertical axis as seen from the camera.
     Yaw {
+        /// The speed of the rotation.
         speed: f32,
     },
+    /// Orbits around the given target in the left direction as seen from the camera.
     OrbitLeft {
+        /// The target of the rotation.
         target: Vec3,
+        /// The speed of the rotation.
         speed: f32,
     },
+    /// Rotate the camera around the forward axis as seen from the camera.
     Roll {
+        /// The speed of the rotation.
         speed: f32,
     },
+    /// Moves the camera to the left.
     Left {
+        /// The speed of the translation.
         speed: f32,
     },
+    /// Moves the camera up.
     Up {
+        /// The speed of the translation.
         speed: f32,
     },
+    /// Moves the camera forward.
     Forward {
+        /// The speed of the translation.
         speed: f32,
     },
+    /// Zooms towards the given target.
     Zoom {
+        /// The target of the zoom.
         target: Vec3,
+        /// The speed of the zoom.
         speed: f32,
+        /// The minimum distance to the target.
         min: f32,
+        /// The maximum distance to the target.
         max: f32,
     },
 }
@@ -44,6 +71,10 @@ impl std::default::Default for CameraAction {
     }
 }
 
+///
+/// A customizable controller for the camera.
+/// It is possible to specify a [CameraAction] for each of the input events.
+///
 #[derive(Clone, Copy, Debug, Default)]
 pub struct CameraControl {
     pub left_drag_horizontal: CameraAction,
