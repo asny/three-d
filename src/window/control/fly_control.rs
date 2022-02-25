@@ -1,11 +1,15 @@
 use crate::core::*;
 use crate::window::*;
 
+///
+/// A control that makes the camera fly through the 3D scene.
+///
 pub struct FlyControl {
     control: CameraControl,
 }
 
 impl FlyControl {
+    /// Creates a new fly control with the given speed of movements.
     pub fn new(speed: f32) -> Self {
         Self {
             control: CameraControl {
@@ -23,6 +27,7 @@ impl FlyControl {
         }
     }
 
+    /// Handles the events. Must be called each frame.
     pub fn handle_events(
         &mut self,
         camera: &mut Camera,

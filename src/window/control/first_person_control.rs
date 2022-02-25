@@ -1,11 +1,15 @@
 use crate::renderer::*;
 use crate::window::*;
 
+///
+/// A control that makes the camera move like it is a person on the ground.
+///
 pub struct FirstPersonControl {
     control: CameraControl,
 }
 
 impl FirstPersonControl {
+    /// Creates a new first person control with the given speed of movements.
     pub fn new(speed: f32) -> Self {
         Self {
             control: CameraControl {
@@ -18,6 +22,7 @@ impl FirstPersonControl {
         }
     }
 
+    /// Handles the events. Must be called each frame.
     pub fn handle_events(
         &mut self,
         camera: &mut Camera,

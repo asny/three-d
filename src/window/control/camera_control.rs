@@ -77,21 +77,31 @@ impl std::default::Default for CameraAction {
 ///
 #[derive(Clone, Copy, Debug, Default)]
 pub struct CameraControl {
+    /// Specifies what happens when dragging horizontally with the left mouse button.
     pub left_drag_horizontal: CameraAction,
+    /// Specifies what happens when dragging vertically with the left mouse button.
     pub left_drag_vertical: CameraAction,
+    /// Specifies what happens when dragging horizontally with the middle mouse button.
     pub middle_drag_horizontal: CameraAction,
+    /// Specifies what happens when dragging vertically with the middle mouse button.
     pub middle_drag_vertical: CameraAction,
+    /// Specifies what happens when dragging horizontally with the right mouse button.
     pub right_drag_horizontal: CameraAction,
+    /// Specifies what happens when dragging vertically with the right mouse button.
     pub right_drag_vertical: CameraAction,
+    /// Specifies what happens when scrolling horizontally.
     pub scroll_horizontal: CameraAction,
+    /// Specifies what happens when scrolling vertically.
     pub scroll_vertical: CameraAction,
 }
 
 impl CameraControl {
+    /// Creates a new default CameraControl.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Handles the events. Must be called each frame.
     pub fn handle_events(
         &mut self,
         camera: &mut Camera,

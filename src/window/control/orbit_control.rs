@@ -1,11 +1,15 @@
 use crate::core::*;
 use crate::window::*;
 
+///
+/// A control that makes the camera orbit around a target.
+///
 pub struct OrbitControl {
     control: CameraControl,
 }
 
 impl OrbitControl {
+    /// Creates a new orbit control with the given target and minimum and maximum distance to the target.
     pub fn new(target: Vec3, min_distance: f32, max_distance: f32) -> Self {
         Self {
             control: CameraControl {
@@ -22,6 +26,7 @@ impl OrbitControl {
         }
     }
 
+    /// Handles the events. Must be called each frame.
     pub fn handle_events(
         &mut self,
         camera: &mut Camera,
