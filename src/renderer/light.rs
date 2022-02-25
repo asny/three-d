@@ -32,8 +32,11 @@ use crate::core::*;
 ///
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Attenuation {
+    /// Constant attenuation factor.
     pub constant: f32,
+    /// Linear attenuation factor.
     pub linear: f32,
+    /// Quadratic attenuation factor.
     pub quadratic: f32,
 }
 
@@ -48,6 +51,7 @@ impl Default for Attenuation {
 }
 
 #[deprecated = "use slice of lights instead when making a render call"]
+#[allow(missing_docs)]
 pub struct Lights {
     pub ambient: Option<AmbientLight>,
     pub directional: Vec<DirectionalLight>,
@@ -57,7 +61,7 @@ pub struct Lights {
     pub lighting_model: LightingModel,
 }
 
-#[allow(deprecated)]
+#[allow(deprecated, missing_docs)]
 impl Lights {
     pub fn iter<'a>(&'a self) -> LightsIterator<'a> {
         LightsIterator::new(self)
@@ -90,13 +94,13 @@ impl Default for Lights {
     }
 }
 
-#[allow(deprecated)]
+#[allow(deprecated, missing_docs)]
 pub struct LightsIterator<'a> {
     lights: &'a Lights,
     index: usize,
 }
 
-#[allow(deprecated)]
+#[allow(deprecated, missing_docs)]
 impl<'a> LightsIterator<'a> {
     pub fn new(lights: &'a Lights) -> Self {
         Self { index: 0, lights }
