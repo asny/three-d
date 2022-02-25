@@ -211,13 +211,17 @@ impl DeferredPipeline {
         })
     }
 
+    /// Returns the geometry pass texture
     pub fn geometry_pass_texture(&self) -> &Texture2DArray<u8> {
         self.geometry_pass_texture.as_ref().unwrap()
     }
+
+    /// Returns the geometry pass depth texture
     pub fn geometry_pass_depth_texture_array(&self) -> &DepthTargetTexture2DArray {
         self.geometry_pass_depth_texture.as_ref().unwrap()
     }
 
+    /// Returns the geometry pass depth texture
     pub fn geometry_pass_depth_texture(&self) -> DepthTargetTexture2D {
         let depth_array: &DepthTargetTexture2DArray =
             self.geometry_pass_depth_texture.as_ref().unwrap();

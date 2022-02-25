@@ -4,7 +4,6 @@
 //! and canvas using [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) for web, but
 //! can be replaced by any other window with similar functionality. Also contains camera control utilities.
 //!
-#![warn(missing_docs)]
 
 #[cfg(any(feature = "glutin-window", feature = "canvas"))]
 mod settings;

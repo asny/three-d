@@ -4,7 +4,6 @@ use crate::core::*;
 /// Precalculations of light shining from an environment map (known as image based lighting - IBL).
 /// This allows for real-time rendering of ambient light from the environment (see [AmbientLight](crate::AmbientLight)).
 ///
-#[allow(missing_docs)]
 pub struct Environment {
     pub irradiance_map: TextureCubeMap<f16>,
     pub prefilter_map: TextureCubeMap<f16>,

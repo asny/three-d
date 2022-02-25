@@ -1,4 +1,3 @@
-#![warn(missing_docs)]
 //!
 //! Graphical User Interface support.
 //!

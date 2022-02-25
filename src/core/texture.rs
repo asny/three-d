@@ -90,19 +90,26 @@ pub type CPUTexture<T> = CpuTexture<T>;
 /// A CPU-side version of a [Texture2D].
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
-#[allow(missing_docs)]
 #[derive(Clone)]
 pub struct CpuTexture<T: TextureDataType> {
+    /// The pixel data for the image
     pub data: Vec<T>,
+    /// The width of the image
     pub width: u32,
+    /// The height of the image
     pub height: u32,
+    /// The format of the image
     pub format: Format,
+    /// The way the pixel data is interpolated when the texture is far away
     pub min_filter: Interpolation,
+    /// The way the pixel data is interpolated when the texture is close
     pub mag_filter: Interpolation,
     /// Specifies whether mipmaps should be created for this texture and what type of interpolation to use between the two closest mipmaps.
     /// Note, however, that the mipmaps only will be created if the width and height of the texture are power of two.
     pub mip_map_filter: Option<Interpolation>,
+    /// Determines how the texture is sampled outside the [0..1] s coordinate range (the first value of the uv coordinates).
     pub wrap_s: Wrapping,
+    /// Determines how the texture is sampled outside the [0..1] t coordinate range (the second value of the uv coordinates).
     pub wrap_t: Wrapping,
 }
 
@@ -186,7 +193,6 @@ pub type CPUTextureCube<T> = CpuTextureCube<T>;
 /// A CPU-side version of a [TextureCubeMap]. All 6 images must have the same dimensions.
 /// Can be constructed manually or loaded via [Loader](crate::Loader).
 ///
-#[allow(missing_docs)]
 pub struct CpuTextureCube<T: TextureDataType> {
     /// The pixel data for the right image
     pub right_data: Vec<T>,
@@ -204,14 +210,20 @@ pub struct CpuTextureCube<T: TextureDataType> {
     pub width: u32,
     /// The height of each of the 6 images
     pub height: u32,
+    /// The format of the image
     pub format: Format,
+    /// The way the pixel data is interpolated when the texture is far away
     pub min_filter: Interpolation,
+    /// The way the pixel data is interpolated when the texture is close
     pub mag_filter: Interpolation,
     /// Specifies whether mipmaps should be created for this texture and what type of interpolation to use between the two closest mipmaps.
     /// Note, however, that the mipmaps only will be created if the width and height of the texture are power of two.
     pub mip_map_filter: Option<Interpolation>,
+    /// Determines how the texture is sampled outside the [0..1] s coordinate range.
     pub wrap_s: Wrapping,
+    /// Determines how the texture is sampled outside the [0..1] t coordinate range.
     pub wrap_t: Wrapping,
+    /// Determines how the texture is sampled outside the [0..1] r coordinate range.
     pub wrap_r: Wrapping,
 }
 
