@@ -54,7 +54,7 @@ pub enum Event {
     MousePress {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels.
+        /// The screen position in logical pixels. Multiply this with [FrameInput::device_pixel_ratio] to get physical pixels.
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
@@ -65,7 +65,7 @@ pub enum Event {
     MouseRelease {
         /// Type of button
         button: MouseButton,
-        /// The screen position in logical pixels.
+        /// The screen position in logical pixels. Multiply this with [FrameInput::device_pixel_ratio] to get physical pixels.
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
@@ -76,9 +76,9 @@ pub enum Event {
     MouseMotion {
         /// Type of button if a button is pressed.
         button: Option<MouseButton>,
-        /// The relative movement of the mouse/finger since last [MouseMotion] event.
+        /// The relative movement of the mouse/finger since last [Event::MouseMotion] event.
         delta: (f64, f64),
-        /// The screen position in logical pixels.
+        /// The screen position in logical pixels. Multiply this with [FrameInput::device_pixel_ratio] to get physical pixels.
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
@@ -87,9 +87,9 @@ pub enum Event {
     },
     /// Fired continuously when the mouse wheel or equivalent is applied.
     MouseWheel {
-        /// The relative scrolling since the last [MouseWheel] event.
+        /// The relative scrolling since the last [Event::MouseWheel] event.
         delta: (f64, f64),
-        /// The screen position in logical pixels.
+        /// The screen position in logical pixels. Multiply this with [FrameInput::device_pixel_ratio] to get physical pixels.
         position: (f64, f64),
         /// The state of modifiers.
         modifiers: Modifiers,
