@@ -105,6 +105,10 @@ impl Program {
     /// The glsl shader variable must be of type `uniform int` if the data is an integer, `uniform vec2` if it is of type [Vec2] etc.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
     ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
         let location = self.get_uniform_location(name)?;
         data.send(&self.context, location);
@@ -116,6 +120,10 @@ impl Program {
     /// Send the given array of uniform data to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of same type and length as the data, so if the data is an array of three [Vec2], the variable must be `uniform vec2[3]`.
     /// The uniform variable is uniformly available across all processing of vertices and fragments.
+    ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_uniform_array<T: UniformDataType>(
         &self,
@@ -132,6 +140,10 @@ impl Program {
     /// Send the given integer value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform int`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_uniform_int(&self, name: &str, data: &i32) -> ThreeDResult<()> {
         self.use_uniform(name, data)
     }
@@ -139,6 +151,10 @@ impl Program {
     ///
     /// Send the given float value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform float`, meaning it is uniformly available across all processing of vertices and fragments.
+    ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_uniform_float(&self, name: &str, data: &f32) -> ThreeDResult<()> {
         self.use_uniform(name, data)
@@ -148,6 +164,10 @@ impl Program {
     /// Send the given [Vec2](crate::Vec2) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_uniform_vec2(&self, name: &str, data: &Vec2) -> ThreeDResult<()> {
         self.use_uniform(name, data)
     }
@@ -155,6 +175,10 @@ impl Program {
     ///
     /// Send the given [Vec3](crate::Vec3) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec3`, meaning it is uniformly available across all processing of vertices and fragments.
+    ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_uniform_vec3(&self, name: &str, data: &Vec3) -> ThreeDResult<()> {
         self.use_uniform(name, data)
@@ -164,6 +188,10 @@ impl Program {
     /// Send the given [Vec4](crate::Vec4) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_uniform_vec4(&self, name: &str, data: &Vec4) -> ThreeDResult<()> {
         self.use_uniform(name, data)
     }
@@ -171,6 +199,10 @@ impl Program {
     ///
     /// Send the given [Quat](crate::Quat) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform vec4`, meaning it is uniformly available across all processing of vertices and fragments.
+    ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_uniform_quat(&self, name: &str, data: &Quat) -> ThreeDResult<()> {
         self.use_uniform(name, data)
@@ -180,6 +212,10 @@ impl Program {
     /// Send the given [Mat2](crate::Mat2) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat2`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_uniform_mat2(&self, name: &str, data: &Mat2) -> ThreeDResult<()> {
         self.use_uniform(name, data)
     }
@@ -188,6 +224,10 @@ impl Program {
     /// Send the given [Mat3](crate::Mat3) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat3`, meaning it is uniformly available across all processing of vertices and fragments.
     ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_uniform_mat3(&self, name: &str, data: &Mat3) -> ThreeDResult<()> {
         self.use_uniform(name, data)
     }
@@ -195,6 +235,10 @@ impl Program {
     ///
     /// Send the given [Mat4](crate::Mat4) value to this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform mat4`, meaning it is uniformly available across all processing of vertices and fragments.
+    ///
+    /// # Errors
+    /// Will return an error if the uniform is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_uniform_mat4(&self, name: &str, data: &Mat4) -> ThreeDResult<()> {
         self.use_uniform(name, data)
@@ -213,6 +257,10 @@ impl Program {
     /// Use the given [Texture2D] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2D` and can only be accessed in the fragment shader.
     ///
+    /// # Errors
+    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
@@ -224,6 +272,10 @@ impl Program {
     /// Use the given [TextureArray] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform sampler2DArray` and can only be accessed in the fragment shader.
     ///
+    /// # Errors
+    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_texture_array(&self, name: &str, texture: &impl TextureArray) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
@@ -234,6 +286,10 @@ impl Program {
     ///
     /// Use the given [TextureCube] in this shader program and associate it with the given named variable.
     /// The glsl shader variable must be of type `uniform samplerCube` and can only be accessed in the fragment shader.
+    ///
+    /// # Errors
+    /// Will return an error if the texture is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_texture_cube(&self, name: &str, texture: &impl TextureCube) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
@@ -273,6 +329,10 @@ impl Program {
     /// Each value in the buffer is used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain the same number of values as the number of vertices specified in those draw calls.
     ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -291,6 +351,10 @@ impl Program {
     /// Uses the given buffer data in this shader program and associates it with the given named variable.
     /// Each value in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain the same number of values as the number of instances specified in those draw calls.
+    ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_attribute_instanced(&self, name: &str, buffer: &InstanceBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
@@ -311,6 +375,10 @@ impl Program {
     /// Each contiguous 2 values in the buffer are used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain 2 times the number of values as the number of vertices specified in those draw calls.
     ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -329,6 +397,10 @@ impl Program {
     /// Uses the given buffer data in this shader program and associates it with the given named variable.
     /// Each contiguous 2 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 2 times the number of values as the number of instances specified in those draw calls.
+    ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_attribute_vec2_instanced(
         &self,
@@ -353,6 +425,10 @@ impl Program {
     /// Each contiguous 3 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 3 times the number of values as the number of instances specified in those draw calls.
     ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
     pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
@@ -371,6 +447,10 @@ impl Program {
     /// Uses the given buffer data in this shader program and associates it with the given named variable.
     /// Each contiguous 3 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 3 times the number of values as the number of instances specified in those draw calls.
+    ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_attribute_vec3_instanced(
         &self,
@@ -394,6 +474,10 @@ impl Program {
     /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// Each contiguous 4 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 4 times the number of values as the number of instances specified in those draw calls.
+    ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
     ///
     pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {

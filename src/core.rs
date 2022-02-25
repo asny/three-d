@@ -367,9 +367,9 @@ pub enum CoreError {
     ShaderCompilation(String, String),
     #[error("failed to link shader program: {0}")]
     ShaderLink(String),
-    #[error("the uniform {0} is sent to the shader but never used")]
+    #[error("the uniform {0} is sent to the shader but not defined or never used")]
     UnusedUniform(String),
-    #[error("the attribute {0} is sent to the shader but never used")]
+    #[error("the attribute {0} is sent to the shader but not defined or never used")]
     UnusedAttribute(String),
     #[error("failed creating a new render target")]
     RenderTargetCreation,
