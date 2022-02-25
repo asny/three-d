@@ -7,7 +7,6 @@ description = "2D/3D renderer - makes it simple to draw stuff across platforms (
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/asny/three-d"
-homepage = "https://asny.github.io/three-d/"
 categories = ["graphics", "rendering", "visualization", "wasm", "web-programming"]
 keywords = ["3d", "gamedev", "webassembly", "opengl", "webgl"]
 exclude = ["/examples", ".gitignore", "index.html"]
