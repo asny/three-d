@@ -264,7 +264,7 @@ impl Program {
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
-        self.use_uniform_int(name, &(index as i32))?;
+        self.use_uniform(name, index as i32)?;
         Ok(())
     }
 
@@ -279,7 +279,7 @@ impl Program {
     pub fn use_texture_array(&self, name: &str, texture: &impl TextureArray) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
-        self.use_uniform_int(name, &(index as i32))?;
+        self.use_uniform(name, index as i32)?;
         Ok(())
     }
 
@@ -294,7 +294,7 @@ impl Program {
     pub fn use_texture_cube(&self, name: &str, texture: &impl TextureCube) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
         texture.bind(index);
-        self.use_uniform_int(name, &(index as i32))?;
+        self.use_uniform(name, index as i32)?;
         Ok(())
     }
 
