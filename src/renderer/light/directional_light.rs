@@ -32,26 +32,38 @@ impl DirectionalLight {
         })
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn color(&self) -> Color {
         self.color
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn set_intensity(&mut self, intensity: f32) {
         self.intensity = intensity;
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn intensity(&self) -> f32 {
         self.intensity
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn set_direction(&mut self, direction: &Vec3) {
         self.direction = *direction;
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn direction(&self) -> Vec3 {
         self.direction
     }

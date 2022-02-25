@@ -27,34 +27,50 @@ impl PointLight {
         })
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn color(&self) -> Color {
         self.color
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn set_intensity(&mut self, intensity: f32) {
         self.intensity = intensity;
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn intensity(&self) -> f32 {
         self.intensity
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn set_attenuation(&mut self, attenuation: Attenuation) {
         self.attenuation = attenuation
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn attenuation(&self) -> Attenuation {
         self.attenuation
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn set_position(&mut self, position: &Vec3) {
         self.position = *position;
     }
 
+    #[deprecated]
+    #[allow(missing_docs)]
     pub fn position(&self) -> Vec3 {
         self.position
     }
