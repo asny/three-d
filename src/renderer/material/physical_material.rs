@@ -31,6 +31,7 @@ pub struct PhysicalMaterial<A: Texture, ORM: Texture, N: Texture, E: Texture> {
     pub normal_texture: Option<N>,
     /// Render states.
     pub render_states: RenderStates,
+    /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
     pub is_transparent: bool,
     /// Color of light shining from an object.
     pub emissive: Color,

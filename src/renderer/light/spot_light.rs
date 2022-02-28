@@ -10,15 +10,22 @@ pub struct SpotLight {
     context: Context,
     shadow_texture: Option<DepthTargetTexture2D>,
     shadow_matrix: Mat4,
+    /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
+    /// The base color of the light.
     pub color: Color,
+    /// The position of the light.
     pub position: Vec3,
+    /// The direction the light shines.
     pub direction: Vec3,
+    /// The cutoff angle for the light.
     pub cutoff: Radians,
+    /// The [Attenuation] of the light.
     pub attenuation: Attenuation,
 }
 
 impl SpotLight {
+    /// Constructs a new spot light.
     pub fn new(
         context: &Context,
         intensity: f32,

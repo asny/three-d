@@ -5,13 +5,18 @@ use crate::renderer::*;
 /// A light which shines from the given position in all directions.
 ///
 pub struct PointLight {
+    /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
+    /// The base color of the light.
     pub color: Color,
+    /// The position of the light.
     pub position: Vec3,
+    /// The [Attenuation] of the light.
     pub attenuation: Attenuation,
 }
 
 impl PointLight {
+    /// Constructs a new point light.
     pub fn new(
         _context: &Context,
         intensity: f32,

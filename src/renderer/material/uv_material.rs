@@ -1,8 +1,13 @@
 use crate::core::*;
 use crate::renderer::*;
 
+///
+/// Render the object with colors that reflect its uv coordinates which primarily is used for debug purposes.
+/// The u coordinate maps to the red channel and the v coordinate to the green channel.
+///
 #[derive(Default, Clone)]
 pub struct UVMaterial {
+    /// Render states.
     pub render_states: RenderStates,
 }
 

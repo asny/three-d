@@ -5,8 +5,12 @@ use crate::core::*;
 /// This allows for real-time rendering of ambient light from the environment (see [AmbientLight](crate::AmbientLight)).
 ///
 pub struct Environment {
+    /// A cube map used to calculate the diffuse contribution from the environment.
     pub irradiance_map: TextureCubeMap<f16>,
+    /// A cube map used to calculate the specular contribution from the environment.
+    /// Each mip-map level contain the prefiltered color for a certain surface roughness.
     pub prefilter_map: TextureCubeMap<f16>,
+    /// A 2D texture that contain the BRDF lookup tables (LUT).
     pub brdf_map: Texture2D<f16>,
 }
 

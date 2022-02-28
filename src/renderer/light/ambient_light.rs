@@ -2,15 +2,20 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// A light which shines equally on all parts of any surface.
+/// A light which shines on all surfaces.
+/// Can be uniform (a light that shines equally on any surface) or calculated from an environment map using the [Environment] struct.
 ///
 pub struct AmbientLight {
-    pub color: Color,
+    /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
+    /// The base color of the light.
+    pub color: Color,
+    /// The light shining from the environment. This is calculated based on an environment map.
     pub environment: Option<Environment>,
 }
 
 impl AmbientLight {
+    /// Constructs an ambient light that shines equally on all surfaces.
     pub fn new(_context: &Context, intensity: f32, color: Color) -> ThreeDResult<Self> {
         Ok(Self {
             intensity,
@@ -19,6 +24,7 @@ impl AmbientLight {
         })
     }
 
+    /// Constructs an ambient light that shines based on the given environment map.
     pub fn new_with_environment(
         context: &Context,
         intensity: f32,

@@ -10,12 +10,16 @@ pub struct DirectionalLight {
     context: Context,
     shadow_texture: Option<DepthTargetTexture2D>,
     shadow_matrix: Mat4,
+    /// The intensity of the light. This allows for higher intensity than 1 which can be used to simulate high intensity light sources like the sun.
     pub intensity: f32,
+    /// The base color of the light.
     pub color: Color,
+    /// The direction the light shines.
     pub direction: Vec3,
 }
 
 impl DirectionalLight {
+    /// Creates a new directional light.
     pub fn new(
         context: &Context,
         intensity: f32,

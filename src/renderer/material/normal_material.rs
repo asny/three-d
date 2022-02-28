@@ -2,15 +2,22 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
+///
+/// Render the object with colors that reflect its normals which primarily is used for debug purposes.
+/// A normal with an x value of -1 yields 0.0 in the red channel and an x value of 1 yields 1.0 in the red channel.
+/// The same mapping is applied from y value to green channel and z value to blue channel.
+///
 pub struct NormalMaterial<T: Texture> {
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
     pub normal_texture: Option<T>,
+    /// Render states.
     pub render_states: RenderStates,
 }
 
 impl NormalMaterial<Rc<Texture2D<u8>>> {
+    /// Constructs a new normal material from a [CpuMaterial] where only relevant information is used.
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let normal_texture = if let Some(ref cpu_texture) = cpu_material.normal_texture {
             Some(Rc::new(Texture2D::new(&context, cpu_texture)?))
@@ -26,6 +33,7 @@ impl NormalMaterial<Rc<Texture2D<u8>>> {
 }
 
 impl<T: Texture + Clone> NormalMaterial<T> {
+    /// Creates a normal material from a [PhysicalMaterial].
     pub fn from_physical_material<A: Texture, ORM: Texture, E: Texture>(
         physical_material: &PhysicalMaterial<A, ORM, T, E>,
     ) -> Self {

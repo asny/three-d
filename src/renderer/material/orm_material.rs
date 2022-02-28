@@ -2,6 +2,10 @@ use crate::core::*;
 use crate::renderer::*;
 use std::rc::Rc;
 
+///
+/// Render the object with colors that reflect its ORM (occlusion, roughness and metallic) values which primarily is used for debug purposes.
+/// Occlusion is red, roughness green and metallic blue.
+///
 pub struct ORMMaterial<T: Texture> {
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
@@ -20,6 +24,7 @@ pub struct ORMMaterial<T: Texture> {
 }
 
 impl ORMMaterial<Rc<Texture2D<u8>>> {
+    /// Constructs a new ORM material from a [CpuMaterial] where only relevant information is used.
     pub fn new(context: &Context, cpu_material: &CpuMaterial) -> ThreeDResult<Self> {
         let metallic_roughness_texture =
             if let Some(ref cpu_texture) = cpu_material.occlusion_metallic_roughness_texture {
@@ -52,6 +57,7 @@ impl ORMMaterial<Rc<Texture2D<u8>>> {
 }
 
 impl<T: Texture + Clone> ORMMaterial<T> {
+    /// Creates a ORM material from a [PhysicalMaterial].
     pub fn from_physical_material<A: Texture, N: Texture, E: Texture>(
         physical_material: &PhysicalMaterial<A, T, N, E>,
     ) -> Self {

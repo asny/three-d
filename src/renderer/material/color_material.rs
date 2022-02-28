@@ -11,9 +11,9 @@ pub struct ColorMaterial<T: Texture> {
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
     pub texture: Option<T>,
-    /// Render states
+    /// Render states.
     pub render_states: RenderStates,
-
+    /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
     pub is_transparent: bool,
 }
 
@@ -74,6 +74,7 @@ impl ColorMaterial<Rc<Texture2D<u8>>> {
 }
 
 impl<T: Texture + Clone> ColorMaterial<T> {
+    /// Creates a color material from a [PhysicalMaterial].
     pub fn from_physical_material<ORM: Texture, N: Texture, E: Texture>(
         physical_material: &PhysicalMaterial<T, ORM, N, E>,
     ) -> Self {
