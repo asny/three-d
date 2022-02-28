@@ -32,6 +32,10 @@ impl ForwardPipeline {
         render_pass(camera, objects, lights)
     }
 
+    ///
+    /// Render the distance from the camera to the objects in each pixel into a depth texture. Also, do not render transparent objects and objects outside the camera frustum.
+    /// Must be called in a render target render function, where a depth texture is bound, for example in the callback function of [Screen::write] or [DepthTargetTexture2D::write].
+    ///
     pub fn depth_pass(&self, camera: &Camera, objects: &[&dyn Object]) -> ThreeDResult<()> {
         let depth_material = DepthMaterial {
             render_states: RenderStates {
@@ -49,6 +53,9 @@ impl ForwardPipeline {
         Ok(())
     }
 
+    ///
+    /// Creates a new [DepthTargetTexture2D], applies a [ForwardPipeline::depth_pass] and returns the texture.
+    ///
     pub fn depth_pass_texture(
         &self,
         camera: &Camera,
