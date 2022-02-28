@@ -208,6 +208,7 @@ impl Loader {
         Ok(loaded)
     }
 
+    #[allow(rustdoc::bare_urls)]
     ///
     /// Loads all of the resources in the given paths and returns the [Loaded] resources.
     /// URLs are downloaded async and resources on disk are loaded in parallel.
