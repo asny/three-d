@@ -245,12 +245,12 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             let time = 0.001 * frame_input.accumulated_time;
             let c = time.cos() as f32;
             let s = time.sin() as f32;
-            directional0.set_direction(&vec3(-1.0 - c, -1.0, 1.0 + s));
-            directional1.set_direction(&vec3(1.0 + c, -1.0, -1.0 - s));
-            spot0.set_position(&vec3(3.0 + c, 5.0 + s, 3.0 - s));
-            spot0.set_direction(&-vec3(3.0 + c, 5.0 + s, 3.0 - s));
-            point0.set_position(&vec3(-5.0 * c, 5.0, -5.0 * s));
-            point1.set_position(&vec3(5.0 * c, 5.0, 5.0 * s));
+            directional0.direction = vec3(-1.0 - c, -1.0, 1.0 + s);
+            directional1.direction = vec3(1.0 + c, -1.0, -1.0 - s);
+            spot0.position = vec3(3.0 + c, 5.0 + s, 3.0 - s);
+            spot0.direction = -vec3(3.0 + c, 5.0 + s, 3.0 - s);
+            point0.position = vec3(-5.0 * c, 5.0, -5.0 * s);
+            point1.position = vec3(5.0 * c, 5.0, 5.0 * s);
 
             model.material.lighting_model = lighting_model;
 
