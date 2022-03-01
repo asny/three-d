@@ -46,8 +46,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
 
     // Fog
-    let mut fog_effect = FogEffect::new(&context).unwrap();
-    fog_effect.color = vec3(0.8, 0.8, 0.8);
+    let fog_effect = FogEffect::new(&context, Color::new_opaque(200, 200, 200), 0.2, 0.1).unwrap();
     let mut fog_enabled = true;
 
     // main loop
