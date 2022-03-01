@@ -91,18 +91,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     aabb.expand_with_aabb(&leaves_cpu_mesh.compute_aabb());
     let mut imposters = Imposters::new(&context).unwrap();
     imposters
-        .update_texture(
-            |camera: &Camera| {
-                render_pass(
-                    &camera,
-                    &[&tree_mesh, &leaves_mesh],
-                    &[&ambient, &directional],
-                )?;
-                Ok(())
-            },
-            (aabb.min(), aabb.max()),
-            256,
-        )
+        .update_texture(&[&tree_mesh, &leaves_mesh], &[&ambient, &directional], 256)
         .unwrap();
 
     let t = 100;

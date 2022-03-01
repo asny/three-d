@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::renderer::*;
 use std::f32::consts::PI;
 
 const NO_VIEW_ANGLES: u32 = 8;
@@ -20,6 +21,9 @@ pub struct Imposters {
 }
 
 impl Imposters {
+    ///
+    /// Constructs a new [Imposters].
+    ///
     pub fn new(context: &Context) -> ThreeDResult<Self> {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0];
         let positions_buffer = VertexBuffer::new(&context)?;
@@ -64,11 +68,16 @@ impl Imposters {
 
     pub fn update_texture(
         &mut self,
-        render: impl Fn(&Camera) -> ThreeDResult<()>,
-        aabb: (Vec3, Vec3),
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
         max_texture_size: u32,
     ) -> ThreeDResult<()> {
-        let (min, max) = aabb;
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        objects
+            .iter()
+            .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
+
+        let (min, max) = (aabb.min(), aabb.max());
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
         let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as u32;
@@ -120,7 +129,7 @@ impl Imposters {
                 0,
                 ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
                 || {
-                    render(&camera)?;
+                    render_pass(&camera, objects, lights)?;
                     Ok(())
                 },
             )?;
