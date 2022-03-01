@@ -1,5 +1,8 @@
 use crate::renderer::*;
 
+///
+/// A rectangle 2D object which can be rendered.
+///
 pub struct Rectangle<M: Material> {
     model: Model<M>,
     context: Context,
@@ -10,6 +13,9 @@ pub struct Rectangle<M: Material> {
 }
 
 impl<M: Material> Rectangle<M> {
+    ///
+    /// Constructs a new rectangle object with the given material.
+    ///
     pub fn new_with_material(
         context: &Context,
         center: Vec2,
@@ -32,30 +38,36 @@ impl<M: Material> Rectangle<M> {
         Ok(rectangle)
     }
 
+    /// Set the size of the rectangle.
     pub fn set_size(&mut self, width: f32, height: f32) {
         self.width = width;
         self.height = height;
         self.update();
     }
 
+    /// Get the size of the rectangle.
     pub fn size(&self) -> (f32, f32) {
         (self.width, self.height)
     }
 
+    /// Set the center of the rectangle.
     pub fn set_center(&mut self, center: Vec2) {
         self.center = center;
         self.update();
     }
 
+    /// Get the center of the rectangle.
     pub fn center(&self) -> &Vec2 {
         &self.center
     }
 
+    /// Set the rotation of the rectangle.
     pub fn set_rotation(&mut self, rotation: impl Into<Radians>) {
         self.rotation = rotation.into();
         self.update();
     }
 
+    /// Get the rotation of the rectangle.
     pub fn rotation(&self) -> Radians {
         self.rotation
     }

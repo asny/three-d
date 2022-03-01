@@ -1,5 +1,8 @@
 use crate::renderer::*;
 
+///
+/// A bounding box object used for visualising an [AxisAlignedBoundingBox].
+///
 pub struct BoundingBox<M: Material> {
     model: InstancedModel<M>,
     aabb: AxisAlignedBoundingBox,

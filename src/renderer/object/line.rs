@@ -1,19 +1,25 @@
 use crate::renderer::*;
 
+///
+/// A line 2D object which can be rendered.
+///
 pub struct Line<M: Material> {
     context: Context,
     model: Model<M>,
     pixel0: Vec2,
     pixel1: Vec2,
-    width: f32,
+    thickness: f32,
 }
 
 impl<M: Material> Line<M> {
+    ///
+    /// Constructs a new line object with the given material.
+    ///
     pub fn new_with_material(
         context: &Context,
         pixel0: Vec2,
         pixel1: Vec2,
-        width: f32,
+        thickness: f32,
         material: M,
     ) -> ThreeDResult<Self> {
         let mut mesh = CpuMesh::square();
@@ -23,16 +29,18 @@ impl<M: Material> Line<M> {
             model: Model::new_with_material(context, &mesh, material)?,
             pixel0,
             pixel1,
-            width,
+            thickness,
         };
         line.update();
         Ok(line)
     }
 
+    /// Get one of the end points of the line.
     pub fn end_point0(&self) -> Vec2 {
         self.pixel0
     }
 
+    /// Get one of the end points of the line.
     pub fn end_point1(&self) -> Vec2 {
         self.pixel1
     }
@@ -48,8 +56,9 @@ impl<M: Material> Line<M> {
         self.update();
     }
 
-    pub fn set_width(&mut self, width: f32) {
-        self.width = width;
+    /// Set the line thickness.
+    pub fn set_thickness(&mut self, thickness: f32) {
+        self.thickness = thickness;
         self.update();
     }
 
@@ -63,7 +72,7 @@ impl<M: Material> Line<M> {
         self.model.set_transformation_2d(
             Mat3::from_translation(self.pixel0)
                 * rot
-                * Mat3::from_nonuniform_scale(length, self.width),
+                * Mat3::from_nonuniform_scale(length, self.thickness),
         );
     }
 }

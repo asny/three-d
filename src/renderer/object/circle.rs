@@ -1,5 +1,8 @@
 use crate::renderer::*;
 
+///
+/// A circle 2D object which can be rendered.
+///
 pub struct Circle<M: Material> {
     context: Context,
     model: Model<M>,
@@ -8,6 +11,9 @@ pub struct Circle<M: Material> {
 }
 
 impl<M: Material> Circle<M> {
+    ///
+    /// Constructs a new circle object with the given material.
+    ///
     pub fn new_with_material(
         context: &Context,
         center: Vec2,
@@ -25,20 +31,24 @@ impl<M: Material> Circle<M> {
         Ok(circle)
     }
 
+    /// Set the radius of the circle.
     pub fn set_radius(&mut self, radius: f32) {
         self.radius = radius;
         self.update();
     }
 
+    /// Get the radius of the circle.
     pub fn radius(&self) -> f32 {
         self.radius
     }
 
+    /// Set the center of the circle.
     pub fn set_center(&mut self, center: Vec2) {
         self.center = center;
         self.update();
     }
 
+    /// Get the center of the circle.
     pub fn center(&self) -> &Vec2 {
         &self.center
     }

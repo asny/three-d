@@ -72,11 +72,21 @@ impl DirectionalLight {
         self.direction
     }
 
+    ///
+    /// Clear the shadow map, effectively disable the shadow.
+    /// Only necessary if you want to disable the shadow, if you want to update the shadow, just use [DirectionalLight::generate_shadow_map].
+    ///
     pub fn clear_shadow_map(&mut self) {
         self.shadow_texture = None;
         self.shadow_matrix = Mat4::identity();
     }
 
+    ///
+    /// Generate a shadow map which is used to simulate shadows from the directional light onto the geometries given as input.
+    /// It is recomended that the texture size is power of 2.
+    /// If the shadows are too low resolution (the edges between shadow and non-shadow are pixelated) try to increase the texture size
+    /// and/or split the scene by creating another light source with same parameters and let the two light sources shines on different parts of the scene.
+    ///
     pub fn generate_shadow_map(
         &mut self,
         texture_size: u32,
@@ -136,6 +146,9 @@ impl DirectionalLight {
         Ok(())
     }
 
+    ///
+    /// Returns a reference to the shadow map if it has been generated.
+    ///
     pub fn shadow_map(&self) -> Option<&DepthTargetTexture2D> {
         self.shadow_texture.as_ref()
     }
