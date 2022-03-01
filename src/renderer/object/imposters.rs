@@ -5,7 +5,8 @@ use std::f32::consts::PI;
 const NO_VIEW_ANGLES: u32 = 8;
 
 ///
-/// A level-of-detail technique to replace rendering high-poly meshes at a distance.
+/// A level-of-detail technique to replace rendering high-poly meshes.
+/// Should only be used where details cannot be seen, for example when the objects are far away.
 /// A mesh is rendered from different angles into a set of textures and the textures are then
 /// rendered continuously instead of the high-poly meshes.
 ///
@@ -22,9 +23,14 @@ pub struct Imposters {
 
 impl Imposters {
     ///
-    /// Constructs a new [Imposters].
+    /// Constructs a new [Imposters] and render the imposter texture from the given objects.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
+    pub fn new(
+        context: &Context,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+        max_texture_size: u32,
+    ) -> ThreeDResult<Self> {
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0];
         let positions_buffer = VertexBuffer::new(&context)?;
         let uvs_buffer = VertexBuffer::new_with_static(&context, &uvs)?;
@@ -54,7 +60,7 @@ impl Imposters {
             Format::RGBA,
         )?;
 
-        Ok(Imposters {
+        let mut imposters = Imposters {
             context: context.clone(),
             texture,
             program,
@@ -63,7 +69,9 @@ impl Imposters {
             positions_buffer,
             uvs_buffer,
             instance_count: 0,
-        })
+        };
+        imposters.update_texture(objects, lights, max_texture_size)?;
+        Ok(imposters)
     }
 
     pub fn update_texture(
@@ -76,6 +84,10 @@ impl Imposters {
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
+
+        if aabb.is_empty() {
+            return Ok(());
+        }
 
         let (min, max) = (aabb.min(), aabb.max());
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));

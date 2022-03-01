@@ -89,10 +89,13 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     // Imposters
     let mut aabb = tree_cpu_mesh.compute_aabb();
     aabb.expand_with_aabb(&leaves_cpu_mesh.compute_aabb());
-    let mut imposters = Imposters::new(&context).unwrap();
-    imposters
-        .update_texture(&[&tree_mesh, &leaves_mesh], &[&ambient, &directional], 256)
-        .unwrap();
+    let mut imposters = Imposters::new(
+        &context,
+        &[&tree_mesh, &leaves_mesh],
+        &[&ambient, &directional],
+        256,
+    )
+    .unwrap();
 
     let t = 100;
     let mut positions = Vec::new();
