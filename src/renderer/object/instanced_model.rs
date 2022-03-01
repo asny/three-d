@@ -25,8 +25,8 @@ pub struct InstancedModel<M: Material> {
 impl InstancedModel<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
     ///
     /// Creates a new instanced 3D model with a triangle mesh as geometry and a default [ColorMaterial].
-    /// The transformations are applied to each model instance before they are rendered.
     /// The model is rendered in as many instances as there are transformation matrices.
+    /// The transformation and texture transform in [ModelInstance] are applied to each model instance before they are rendered.
     ///
     pub fn new(
         context: &Context,
@@ -38,6 +38,11 @@ impl InstancedModel<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
 }
 
 impl<M: Material> InstancedModel<M> {
+    ///
+    /// Creates a new instanced 3D model with a triangle mesh as geometry and the given material.
+    /// The model is rendered in as many instances as there are [ModelInstance] structs given as input.
+    /// The transformation and texture transform in [ModelInstance] are applied to each model instance before they are rendered.
+    ///
     pub fn new_with_material(
         context: &Context,
         instances: &[ModelInstance],
@@ -65,10 +70,17 @@ impl<M: Material> InstancedModel<M> {
         Ok(model)
     }
 
+    ///
+    /// Get the texture transform applied to the uv coordinates of all of the instances.
+    ///
     pub fn texture_transform(&mut self) -> &Mat3 {
         &self.texture_transform
     }
 
+    ///
+    /// Set the texture transform applied to the uv coordinates of all of the model instances.
+    /// This is multiplied to the texture transform for each instance.
+    ///
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
@@ -287,9 +299,12 @@ impl<M: Material> Object for InstancedModel<M> {
     }
 }
 
+/// Defines an instance of the model defined in [InstancedModel].
 #[derive(Clone, Copy, Debug)]
 pub struct ModelInstance {
+    /// The local to world transformation applied to the positions of the model instance.
     pub geometry_transform: Mat4,
+    /// The texture transform applied to the uv coordinates of the model instance.
     pub texture_transform: Mat3,
 }
 

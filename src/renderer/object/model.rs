@@ -47,10 +47,16 @@ impl<M: Material> Model<M> {
         })
     }
 
+    ///
+    /// Get the texture transform applied to the uv coordinates of the model.
+    ///
     pub fn texture_transform(&mut self) -> &Mat3 {
         &self.texture_transform
     }
 
+    ///
+    /// Set the texture transform applied to the uv coordinates of the model.
+    ///
     pub fn set_texture_transform(&mut self, texture_transform: Mat3) {
         self.texture_transform = texture_transform;
     }
