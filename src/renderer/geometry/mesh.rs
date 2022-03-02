@@ -3,7 +3,7 @@ use crate::renderer::*;
 
 ///
 /// A triangle mesh that implements the [Geometry] trait.
-/// This mesh can be rendered together with a [Material].
+/// This mesh can be rendered together with a [material].
 ///
 pub struct Mesh {
     /// Buffer with the position data, ie. `(x, y, z)` for each vertex
