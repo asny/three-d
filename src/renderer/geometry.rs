@@ -1,5 +1,6 @@
 //!
-//! A collection of objects that can be rendered, for example a mesh.
+//! A collection of geometries implementing the [Geometry] trait, for example a [Mesh].
+//! A geometry together with a [material] can be rendered directly, or combined into an [object] (see [Shape]) that can be used in a render call, for example [render_pass].
 //!
 
 mod mesh;
@@ -22,13 +23,17 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// Represents a 3D geometry.
-/// It is possible to render the geometry with a [Material] using [Geometry::render_with_material].
-/// Alternatively, any geometry can be combined with any material in a [Shape],
+/// Represents a 3D geometry that, together with a [material], can be rendered using [Geometry::render_with_material].
+/// Alternatively, a geometry and a material can be combined in a [Shape],
 /// thereby creating an [Object] which can be used in a render call, for example [render_pass].
 ///
-/// If requested by the material, the geometry has to support the attributes position (in world space) `out vec3 pos;`,
-/// normal `out vec3 nor;`, uv coordinates `out vec2 uvs;` and color `out vec4 col;` in the vertex shader source code.
+/// If requested by the material, the geometry has to support the following attributes in the vertex shader source code.
+/// - position (in world space): `out vec3 pos;`
+/// - normal: `out vec3 nor;`
+/// - tangent: `out vec3 tang;`
+/// - bitangent: `out vec3 bitang;`
+/// - uv coordinates: `out vec2 uvs;`
+/// - color: `out vec4 col;`
 ///
 pub trait Geometry {
     ///

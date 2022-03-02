@@ -1,5 +1,6 @@
 //!
-//! A collection of objects that can be rendered, for example a mesh.
+//! A collection of objects (implementing the [Object] trait) that can be rendered directly or used in a render call, for example [render_pass].
+//! Can be a combination of any [geometry] and [material] by using the [Shape] struct.
 //!
 
 mod shape;
