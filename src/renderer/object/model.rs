@@ -1,5 +1,8 @@
 use crate::renderer::*;
 
+///
+/// A 3D model consisting of a triangle mesh and any material that implements the `Material` trait.
+///
 pub type Model<M> = Shape<Mesh, M>;
 
 impl Model<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
