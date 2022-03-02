@@ -87,30 +87,23 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
 
     // Imposters
-    let t = 100;
-    let mut instances = Vec::new();
+    let t = 10;
+    let mut positions = Vec::new();
     for x in -t..t + 1 {
         for y in -t..t + 1 {
             if x != 0 || y != 0 {
-                instances.push(ModelInstance {
-                    geometry_transform: Mat4::from_translation(vec3(
-                        10.0 * x as f32,
-                        0.0,
-                        10.0 * y as f32,
-                    )),
-                    ..Default::default()
-                });
+                positions.push(10.0 * x as f32);
+                positions.push(0.0);
+                positions.push(10.0 * y as f32);
             }
         }
     }
-
-    println!("{:?}", instances);
 
     let mut aabb = tree_cpu_mesh.compute_aabb();
     aabb.expand_with_aabb(&leaves_cpu_mesh.compute_aabb());
     let imposters = Imposters::new(
         &context,
-        &instances,
+        &positions,
         &[&tree_mesh, &leaves_mesh],
         &[&ambient, &directional],
         256,
