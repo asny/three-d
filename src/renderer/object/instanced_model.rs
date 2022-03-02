@@ -244,7 +244,7 @@ impl<M: Material> InstancedModel<M> {
     fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
         Ok(format!(
             "#define INSTANCED\n{}",
-            Model::<M>::vertex_shader_source(fragment_shader_source)?
+            Mesh::vertex_shader_source(fragment_shader_source)?
         ))
     }
 }
