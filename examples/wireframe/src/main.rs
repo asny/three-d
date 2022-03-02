@@ -126,11 +126,11 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         .unwrap();
 }
 
-fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<ModelInstance> {
+fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
     let mut iter = cpu_mesh.positions.iter();
     let mut instances = Vec::new();
     while let Some(v) = iter.next() {
-        instances.push(ModelInstance {
+        instances.push(Instance {
             geometry_transform: Mat4::from_translation(vec3(
                 *v,
                 *iter.next().unwrap(),
@@ -142,7 +142,7 @@ fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<ModelInstance> {
     instances
 }
 
-fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<ModelInstance> {
+fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
     let mut edge_transformations = std::collections::HashMap::new();
     let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
     for f in 0..indices.len() / 3 {
@@ -173,7 +173,7 @@ fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<ModelInstance> {
     }
     edge_transformations
         .drain()
-        .map(|(_, v)| ModelInstance {
+        .map(|(_, v)| Instance {
             geometry_transform: v,
             ..Default::default()
         })

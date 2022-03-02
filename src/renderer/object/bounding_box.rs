@@ -73,7 +73,7 @@ impl<M: Material> BoundingBox<M> {
             context,
             &transformations
                 .iter()
-                .map(|t| ModelInstance {
+                .map(|t| Instance {
                     geometry_transform: *t,
                     ..Default::default()
                 })

@@ -36,7 +36,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
     let mut instanced_model_with_computed_tangents = InstancedModel::new_with_material(
         &context,
-        &[ModelInstance::default()],
+        &[Instance::default()],
         &cpu_meshes[0],
         material.clone(),
     )
@@ -53,7 +53,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
     let mut instanced_model_with_loaded_tangents = InstancedModel::new_with_material(
         &context,
-        &[ModelInstance::default()],
+        &[Instance::default()],
         &cpu_meshes[0],
         material.clone(),
     )
