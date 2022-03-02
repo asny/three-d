@@ -6,6 +6,10 @@ mod mesh;
 #[doc(inline)]
 pub use mesh::*;
 
+mod instanced_mesh;
+#[doc(inline)]
+pub use instanced_mesh::*;
+
 mod sprites;
 #[doc(inline)]
 pub use sprites::*;
