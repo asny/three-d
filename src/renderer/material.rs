@@ -1,6 +1,6 @@
 //!
-//! Contain a collection of common materials to apply to some geometry, for example a [Model].
-//! It is possible to create a custom material by extending the [Material] trait.
+//! A collection of common materials implementing the [Material] trait.
+//! A material together with a [geometry] can be rendered directly, or combined into an [object] (see [Shape]) that can be used in a render call, for example [render_pass].
 //!
 
 use crate::core::*;
@@ -41,10 +41,18 @@ mod deferred_physical_material;
 pub use deferred_physical_material::*;
 
 ///
-/// Represents a material that can be applied to a [Geometry].
+/// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
+/// Alternatively, a geometry and a material can be combined in a [Shape],
+/// thereby creating an [Object] which can be used in a render call, for example [render_pass].
 ///
-/// The material can use the attributes position (in world space) by adding `in vec3 pos;`,
-/// normal by `in vec3 nor;`, uv coordinates by `in vec2 uvs;` and color by `in vec4 col;` to the fragment shader source code.
+/// The material can use an attribute by adding the folowing to the fragment shader source code.
+/// - position (in world space): `in vec3 pos;`
+/// - normal: `in vec3 nor;`,
+/// - tangent: `in vec3 tang;`
+/// - bitangent: `in vec3 bitang;`
+/// - uv coordinates: `in vec2 uvs;`
+/// - color: `in vec4 col;`
+/// The rendering will fail if the material requires one of these attributes and the [geometry] does not provide it.
 ///
 pub trait Material {
     /// Returns the fragment shader source for this material. Should output the final fragment color.
