@@ -150,12 +150,6 @@ impl Geometry for Imposters {
     }
 }
 
-/*impl GeometryMut for Imposters {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.model.set_transformation(transformation)
-    }
-}*/
-
 impl Object for Imposters {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
