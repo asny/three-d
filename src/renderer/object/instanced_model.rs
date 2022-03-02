@@ -39,3 +39,16 @@ impl<M: Material> InstancedModel<M> {
         })
     }
 }
+
+impl<M: Material> std::ops::Deref for InstancedModel<M> {
+    type Target = InstancedMesh;
+    fn deref(&self) -> &Self::Target {
+        &self.geometry
+    }
+}
+
+impl<M: Material> std::ops::DerefMut for InstancedModel<M> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.geometry
+    }
+}

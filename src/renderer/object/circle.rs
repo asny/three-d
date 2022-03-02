@@ -54,7 +54,7 @@ impl<M: Material> Circle<M> {
     }
 
     fn update(&mut self) {
-        self.model.geometry.set_transformation_2d(
+        self.model.set_transformation_2d(
             Mat3::from_translation(self.center) * Mat3::from_scale(self.radius),
         );
     }
