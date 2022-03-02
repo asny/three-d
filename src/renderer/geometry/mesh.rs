@@ -6,17 +6,17 @@ use crate::renderer::*;
 ///
 pub struct Mesh {
     /// Buffer with the position data, ie. `(x, y, z)` for each vertex
-    pub position_buffer: VertexBuffer,
+    position_buffer: VertexBuffer,
     /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
-    pub normal_buffer: Option<VertexBuffer>,
+    normal_buffer: Option<VertexBuffer>,
     /// Buffer with the tangent data, ie. `(x, y, z)` for each vertex.
-    pub tangent_buffer: Option<VertexBuffer>,
+    tangent_buffer: Option<VertexBuffer>,
     /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
-    pub uv_buffer: Option<VertexBuffer>,
+    uv_buffer: Option<VertexBuffer>,
     /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
-    pub color_buffer: Option<VertexBuffer>,
+    color_buffer: Option<VertexBuffer>,
     /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
-    pub index_buffer: Option<ElementBuffer>,
+    index_buffer: Option<ElementBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
@@ -93,7 +93,7 @@ impl Mesh {
         self.texture_transform = texture_transform;
     }
 
-    pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
+    fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
