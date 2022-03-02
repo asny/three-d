@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub struct Circle<M: Material> {
     context: Context,
-    model: Model<M>,
+    model: Model<Mesh, M>,
     radius: f32,
     center: Vec2,
 }

@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub struct Line<M: Material> {
     context: Context,
-    model: Model<M>,
+    model: Model<Mesh, M>,
     pixel0: Vec2,
     pixel1: Vec2,
     thickness: f32,

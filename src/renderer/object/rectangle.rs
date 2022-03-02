@@ -4,7 +4,7 @@ use crate::renderer::*;
 /// A rectangle 2D object which can be rendered.
 ///
 pub struct Rectangle<M: Material> {
-    model: Model<M>,
+    model: Model<Mesh, M>,
     context: Context,
     width: f32,
     height: f32,
