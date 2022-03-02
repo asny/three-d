@@ -3,7 +3,8 @@ use crate::renderer::*;
 
 pub struct Sprites {
     context: Context,
-    mesh: Mesh,
+    position_buffer: VertexBuffer,
+    uv_buffer: VertexBuffer,
     center_buffer: InstanceBuffer,
     instance_count: u32,
     transformation: Mat4,
@@ -11,9 +12,21 @@ pub struct Sprites {
 
 impl Sprites {
     pub fn new(context: &Context, centers: &[f32]) -> ThreeDResult<Self> {
+        let position_buffer = VertexBuffer::new_with_static(
+            &context,
+            &[
+                -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0,
+                -1.0, -1.0, 0.0,
+            ],
+        )?;
+        let uv_buffer = VertexBuffer::new_with_static(
+            &context,
+            &[0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0],
+        )?;
         Ok(Self {
             context: context.clone(),
-            mesh: Mesh::new(context, &CpuMesh::square())?,
+            position_buffer,
+            uv_buffer,
             center_buffer: InstanceBuffer::new_with_dynamic(context, centers)?,
             instance_count: centers.len() as u32 / 3,
             transformation: Mat4::identity(),
@@ -33,8 +46,7 @@ impl Geometry for Sprites {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
+        let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
             &include_str!("shaders/sprites.vert"),
             &fragment_shader_source,
@@ -42,14 +54,13 @@ impl Geometry for Sprites {
                 material.use_uniforms(program, camera, lights)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
                 program.use_uniform("transformation", self.transformation)?;
-                program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
-                program
-                    .use_attribute_vec2("uv_coordinate", self.mesh.uv_buffer.as_ref().unwrap())?;
+                program.use_attribute_vec3("position", &self.position_buffer)?;
+                program.use_attribute_vec2("uv_coordinate", &self.uv_buffer)?;
                 program.use_attribute_vec3_instanced("center", &self.center_buffer)?;
-                program.draw_elements_instanced(
+                program.draw_arrays_instanced(
                     material.render_states(),
                     camera.viewport(),
-                    self.mesh.index_buffer.as_ref().unwrap(),
+                    6,
                     self.instance_count,
                 );
                 Ok(())
