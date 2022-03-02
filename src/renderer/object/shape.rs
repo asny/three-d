@@ -1,6 +1,12 @@
 use crate::renderer::*;
 
+///
+/// A combination of a [Geometry] and a [Material] which implements [Object].
+/// Use this to combine any geometry and material into an object that can be used in a render function for example [render_pass].
+/// The only requirement is that the geometry provides all the per vertex information (normals, uv coordinates, etc.) that the material requires.
+///
 pub struct Shape<G: Geometry, M: Material> {
+    /// The geometry
     pub geometry: G,
     /// The material applied to the geometry
     pub material: M,
