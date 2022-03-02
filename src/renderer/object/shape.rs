@@ -39,3 +39,16 @@ impl<G: Geometry + Clone, M: Material + Clone> Clone for Shape<G, M> {
         }
     }
 }
+
+impl<G: Geometry, M: Material> std::ops::Deref for Shape<G, M> {
+    type Target = G;
+    fn deref(&self) -> &Self::Target {
+        &self.geometry
+    }
+}
+
+impl<G: Geometry, M: Material> std::ops::DerefMut for Shape<G, M> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.geometry
+    }
+}

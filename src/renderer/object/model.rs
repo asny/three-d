@@ -29,16 +29,3 @@ impl<M: Material> Model<M> {
         })
     }
 }
-
-impl<M: Material> std::ops::Deref for Model<M> {
-    type Target = Mesh;
-    fn deref(&self) -> &Self::Target {
-        &self.geometry
-    }
-}
-
-impl<M: Material> std::ops::DerefMut for Model<M> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.geometry
-    }
-}
