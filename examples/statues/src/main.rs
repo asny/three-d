@@ -60,10 +60,6 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
     let (statue_cpu_meshes, statue_cpu_materials) =
         loaded.obj("examples/assets/COLOMBE.obj").unwrap();
-    let mut statue_material = PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
-    statue_material.render_states.cull = Cull::Back;
-    let mut statue =
-        Model::new_with_material(&context, &statue_cpu_meshes[0], statue_material).unwrap();
 
     let mut models = Vec::new();
     let scale = Mat4::from_scale(10.0);
@@ -76,8 +72,13 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             (1.2 * std::f32::consts::PI - angle).cos() * 21.0 - 33.0,
             angle.sin() * dist,
         ));
+        let mut statue_material =
+            PhysicalMaterial::new(&context, &statue_cpu_materials[0]).unwrap();
+        statue_material.render_states.cull = Cull::Back;
+        let mut statue =
+            Model::new_with_material(&context, &statue_cpu_meshes[0], statue_material).unwrap();
         statue.set_transformation(translation * scale * rotation);
-        models.push(statue.clone());
+        models.push(statue);
     }
 
     let (fountain_cpu_meshes, fountain_cpu_materials) =
