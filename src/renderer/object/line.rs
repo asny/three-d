@@ -69,7 +69,7 @@ impl<M: Material> Line<M> {
         let c = dx / length;
         let s = dy / length;
         let rot = Mat3::new(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0);
-        self.model.geometry.set_transformation_2d(
+        self.model.set_transformation_2d(
             Mat3::from_translation(self.pixel0)
                 * rot
                 * Mat3::from_nonuniform_scale(length, self.thickness),
