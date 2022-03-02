@@ -12,7 +12,8 @@ const NO_VIEW_ANGLES: u32 = 8;
 ///
 pub struct Imposters {
     context: Context,
-    model: InstancedModel<ImpostersMaterial>,
+    sprites: Sprites,
+    material: ImpostersMaterial,
 }
 
 impl Imposters {
@@ -21,7 +22,7 @@ impl Imposters {
     ///
     pub fn new(
         context: &Context,
-        instances: &[ModelInstance],
+        positions: &[f32],
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,
@@ -41,12 +42,8 @@ impl Imposters {
 
         let mut imposters = Imposters {
             context: context.clone(),
-            model: InstancedModel::new_with_material(
-                context,
-                instances,
-                &CpuMesh::square(),
-                ImpostersMaterial { texture },
-            )?,
+            sprites: Sprites::new(context, positions)?,
+            material: ImpostersMaterial { texture },
         };
         imposters.update_texture(objects, lights, max_texture_size)?;
         Ok(imposters)
@@ -75,7 +72,7 @@ impl Imposters {
         let viewport = Viewport::new_at_origo(texture_width, texture_height);
         let center = 0.5 * min + 0.5 * max;
 
-        self.model.set_transformation(
+        self.sprites.set_transformation(
             Mat4::from_translation(center) * Mat4::from_nonuniform_scale(width, height, 0.0),
         );
         let mut camera = Camera::new_orthographic(
@@ -88,7 +85,7 @@ impl Imposters {
             0.0,
             4.0 * (width + height),
         )?;
-        self.model.material.texture = Texture2DArray::<u8>::new_empty(
+        self.material.texture = Texture2DArray::<u8>::new_empty(
             &self.context,
             texture_width,
             texture_height,
@@ -110,7 +107,7 @@ impl Imposters {
             DepthFormat::Depth32F,
         )?;
         let render_target =
-            RenderTargetArray::new(&self.context, &self.model.material.texture, &depth_texture)?;
+            RenderTargetArray::new(&self.context, &self.material.texture, &depth_texture)?;
 
         for i in 0..NO_VIEW_ANGLES {
             let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
@@ -140,15 +137,15 @@ impl Geometry for Imposters {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        self.model.render_with_material(material, camera, lights)
+        self.sprites.render_with_material(material, camera, lights)
     }
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.model.aabb()
+        self.sprites.aabb()
     }
 
     fn transformation(&self) -> Mat4 {
-        self.model.transformation()
+        self.sprites.transformation()
     }
 }
 
@@ -160,11 +157,11 @@ impl Geometry for Imposters {
 
 impl Object for Imposters {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
-        self.model.render(camera, lights)
+        self.render_with_material(&self.material, camera, lights)
     }
 
     fn is_transparent(&self) -> bool {
-        self.model.is_transparent()
+        self.material.is_transparent()
     }
 }
 

@@ -2,6 +2,10 @@
 //! A collection of objects that can be rendered, for example a mesh.
 //!
 
+mod sprites;
+#[doc(inline)]
+pub use sprites::*;
+
 use crate::core::*;
 use crate::renderer::*;
 
