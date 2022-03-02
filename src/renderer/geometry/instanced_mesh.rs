@@ -20,7 +20,7 @@ pub struct InstancedMesh {
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
-    instances: Vec<ModelInstance>,
+    instances: Vec<Instance>,
     instance_count: u32,
     texture_transform: Mat3,
 }
@@ -29,11 +29,11 @@ impl InstancedMesh {
     ///
     /// Creates a new instanced 3D mesh with a triangle mesh as geometry.
     /// The mesh is rendered in as many instances as there are defined instances.
-    /// The transformation and texture transform in [ModelInstance] are applied to each model instance before they are rendered.
+    /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
     ///
     pub fn new(
         context: &Context,
-        instances: &[ModelInstance],
+        instances: &[Instance],
         cpu_mesh: &CpuMesh,
     ) -> ThreeDResult<Self> {
         #[cfg(debug_assertions)]
@@ -137,14 +137,14 @@ impl InstancedMesh {
     ///
     /// Returns all instances
     ///
-    pub fn instances(&self) -> &[ModelInstance] {
+    pub fn instances(&self) -> &[Instance] {
         &self.instances
     }
 
     ///
     /// Create an instance for each element with the given mesh and texture transforms.
     ///
-    pub fn set_instances(&mut self, instances: &[ModelInstance]) {
+    pub fn set_instances(&mut self, instances: &[Instance]) {
         self.instance_count = instances.len() as u32;
         self.instances = instances.to_vec();
         self.update_buffers();
@@ -340,16 +340,20 @@ impl Geometry for InstancedMesh {
     }
 }
 
-/// Defines an instance of the model defined in [InstancedModel].
+#[deprecated = "Renamed to Instance"]
+#[allow(missing_docs)]
+pub type ModelInstance = Instance;
+
+/// Defines an instance of the model defined in [InstancedMesh] or [InstancedModel].
 #[derive(Clone, Copy, Debug)]
-pub struct ModelInstance {
+pub struct Instance {
     /// The local to world transformation applied to the positions of the model instance.
     pub geometry_transform: Mat4,
     /// The texture transform applied to the uv coordinates of the model instance.
     pub texture_transform: Mat3,
 }
 
-impl Default for ModelInstance {
+impl Default for Instance {
     fn default() -> Self {
         Self {
             geometry_transform: Mat4::identity(),
