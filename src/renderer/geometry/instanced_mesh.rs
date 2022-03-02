@@ -28,7 +28,7 @@ pub struct InstancedMesh {
 impl InstancedMesh {
     ///
     /// Creates a new instanced 3D mesh with a triangle mesh as geometry.
-    /// The mesh is rendered in as many instances as there are defined instances.
+    /// The mesh is rendered in as many instances as there are [Instance] structs given as input.
     /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
     ///
     pub fn new(
@@ -101,6 +101,9 @@ impl InstancedMesh {
         self.transformation
     }
 
+    ///
+    /// Set the local to world transformation applied to all instances.
+    ///
     pub fn set_transformation(&mut self, transformation: Mat4) {
         self.transformation = transformation;
         self.update_aabb();
