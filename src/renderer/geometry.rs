@@ -131,7 +131,7 @@ impl<T: Geometry> Geometry for std::rc::Rc<std::cell::RefCell<T>> {
 }
 
 ///
-/// Represents a 2D geometry that is possible to render with [Material]s.
+/// Represents a 2D geometry that is possible to render with a [Material].
 ///
 pub trait Geometry2D {
     ///
