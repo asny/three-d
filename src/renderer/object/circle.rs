@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub struct Circle<M: Material> {
     context: Context,
-    model: Model<Mesh, M>,
+    model: Model<M>,
     radius: f32,
     center: Vec2,
 }
@@ -54,7 +54,7 @@ impl<M: Material> Circle<M> {
     }
 
     fn update(&mut self) {
-        self.model.set_transformation_2d(
+        self.model.geometry.set_transformation_2d(
             Mat3::from_translation(self.center) * Mat3::from_scale(self.radius),
         );
     }
