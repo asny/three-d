@@ -33,6 +33,20 @@ impl Sprites {
         })
     }
 
+    ///
+    /// Returns the local to world transformation applied to all sprites.
+    ///
+    pub fn transformation(&self) -> Mat4 {
+        self.transformation
+    }
+
+    ///
+    /// Set the local to world transformation applied to all sprites.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+    }
+
     pub fn set_centers(&mut self, centers: &[f32]) {
         self.instance_count = centers.len() as u32 / 3;
         self.center_buffer.fill_with_dynamic(centers);
@@ -70,15 +84,5 @@ impl Geometry for Sprites {
 
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE
-    }
-
-    fn transformation(&self) -> Mat4 {
-        self.transformation
-    }
-}
-
-impl GeometryMut for Sprites {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
     }
 }

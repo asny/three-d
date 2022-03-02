@@ -90,10 +90,6 @@ impl<M: Material> Geometry for BoundingBox<M> {
         self.aabb
     }
 
-    fn transformation(&self) -> Mat4 {
-        Mat4::identity()
-    }
-
     fn render_with_material(
         &self,
         material: &dyn Material,

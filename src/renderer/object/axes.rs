@@ -33,15 +33,29 @@ impl Axes {
             transformation: Mat4::identity(),
         })
     }
+
+    ///
+    /// Returns the local to world transformation applied to the axes.
+    ///
+    pub fn transformation(&self) -> Mat4 {
+        self.transformation
+    }
+
+    ///
+    /// Set the local to world transformation applied to the axes.
+    /// Can be used to visualize a local coordinate system.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+        let mut aabb = self.aabb_local.clone();
+        aabb.transform(&self.transformation);
+        self.aabb = aabb;
+    }
 }
 
 impl Geometry for Axes {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
-    }
-
-    fn transformation(&self) -> Mat4 {
-        self.transformation
     }
 
     fn render_with_material(
@@ -68,14 +82,6 @@ impl Geometry for Axes {
         self.model
             .borrow()
             .render_with_material(material, camera, lights)
-    }
-}
-impl GeometryMut for Axes {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        let mut aabb = self.aabb_local.clone();
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
     }
 }
 

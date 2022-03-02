@@ -81,6 +81,21 @@ impl Particles {
     }
 
     ///
+    /// Returns the local to world transformation applied to all particles.
+    ///
+    pub fn transformation(&self) -> Mat4 {
+        self.transformation
+    }
+
+    ///
+    /// Set the local to world transformation applied to all particles.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+        self.normal_transformation = self.transformation.invert().unwrap().transpose();
+    }
+
+    ///
     /// Updates the particles with the given initial data.
     /// The list contain one entry for each particle.
     ///
@@ -160,10 +175,6 @@ impl Geometry for Particles {
         AxisAlignedBoundingBox::INFINITE
     }
 
-    fn transformation(&self) -> Mat4 {
-        self.transformation
-    }
-
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -223,12 +234,5 @@ impl Geometry for Particles {
                 Ok(())
             },
         )
-    }
-}
-
-impl GeometryMut for Particles {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        self.normal_transformation = self.transformation.invert().unwrap().transpose();
     }
 }
