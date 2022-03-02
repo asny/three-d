@@ -91,11 +91,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 Screen::write(&context, ClearState::default(), || {
                     render_pass(
                         &camera,
-                        &[&box_object, &penguin_object],
+                        &[&box_object, &penguin_object, &skybox],
                         &[&ambient, &directional],
-                    )?;
-                    skybox.render(&camera)?;
-                    Ok(())
+                    )
                 })
                 .unwrap();
             }

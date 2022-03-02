@@ -1,9 +1,11 @@
 use crate::core::*;
+use crate::renderer::*;
 
 ///
 /// An illusion of a sky.
 ///
 pub struct Skybox<T: TextureCube> {
+    context: Context,
     program: Program,
     vertex_buffer: VertexBuffer,
     texture: T,
@@ -51,6 +53,7 @@ impl<T: TextureCube> Skybox<T> {
         let vertex_buffer = VertexBuffer::new_with_static(context, &CpuMesh::cube().positions)?;
 
         Ok(Skybox {
+            context: context.clone(),
             program,
             vertex_buffer,
             texture,
@@ -63,11 +66,42 @@ impl<T: TextureCube> Skybox<T> {
     pub fn texture(&self) -> &impl TextureCube {
         &self.texture
     }
+}
 
-    ///
-    /// Render the skybox.
-    ///
-    pub fn render(&self, camera: &Camera) -> ThreeDResult<()> {
+impl<T: TextureCube> Geometry for Skybox<T> {
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox::INFINITE
+    }
+
+    fn transformation(&self) -> Mat4 {
+        Mat4::identity()
+    }
+
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        let fragment_shader_source = material.fragment_shader_source(false, lights);
+        self.context.program(
+            &include_str!("shaders/skybox.vert"),
+            &fragment_shader_source,
+            |program| {
+                material.use_uniforms(program, camera, lights)?;
+                program.use_uniform_int("isHDR", if self.texture.is_hdr() { &1 } else { &0 })?;
+                program.use_texture_cube("texture0", &self.texture)?;
+                program.use_uniform_block("Camera", camera.uniform_buffer());
+                program.use_attribute_vec3("position", &self.vertex_buffer)?;
+                program.draw_arrays(material.render_states(), camera.viewport(), 36);
+                Ok(())
+            },
+        )
+    }
+}
+
+impl<T: TextureCube> Object for Skybox<T> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         let render_states = RenderStates {
             depth_test: DepthTest::LessOrEqual,
             cull: Cull::Front,
@@ -86,5 +120,9 @@ impl<T: TextureCube> Skybox<T> {
         self.program
             .draw_arrays(render_states, camera.viewport(), 36);
         Ok(())
+    }
+
+    fn is_transparent(&self) -> bool {
+        false
     }
 }
