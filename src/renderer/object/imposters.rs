@@ -164,7 +164,7 @@ impl ImpostersMaterial {
                 Wrapping::ClampToEdge,
                 Format::RGBA,
             )?;
-            let depth_texture = DepthTargetTexture2DArray::new(
+            let mut depth_texture = DepthTargetTexture2DArray::new(
                 &self.context,
                 texture_width,
                 texture_height,
@@ -175,7 +175,7 @@ impl ImpostersMaterial {
             )?;
             {
                 let render_target =
-                    RenderTargetArray::new(&self.context, &self.texture, &depth_texture)?;
+                    RenderTargetArray::new(&self.context, &mut self.texture, &mut depth_texture)?;
                 for i in 0..NO_VIEW_ANGLES {
                     let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
                     camera.set_view(

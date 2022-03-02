@@ -132,8 +132,8 @@ impl DeferredPipeline {
         )?);
         RenderTargetArray::new(
             &self.context,
-            self.geometry_pass_texture.as_ref().unwrap(),
-            self.geometry_pass_depth_texture.as_ref().unwrap(),
+            self.geometry_pass_texture.as_mut().unwrap(),
+            self.geometry_pass_depth_texture.as_mut().unwrap(),
         )?
         .write(&[0, 1], 0, ClearState::default(), || {
             for (geometry, material) in objects

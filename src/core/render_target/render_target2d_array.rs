@@ -8,8 +8,8 @@ use crate::core::render_target::*;
 pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     context: Context,
     id: crate::context::Framebuffer,
-    color_texture: Option<&'a Texture2DArray<T>>,
-    depth_texture: Option<&'b DepthTargetTexture2DArray>,
+    color_texture: Option<&'a mut Texture2DArray<T>>,
+    depth_texture: Option<&'b mut DepthTargetTexture2DArray>,
 }
 impl<'a, 'b> RenderTargetArray<'a, 'b, u8> {
     ///
@@ -18,7 +18,7 @@ impl<'a, 'b> RenderTargetArray<'a, 'b, u8> {
     ///
     pub fn new_depth(
         context: &Context,
-        depth_texture: &'b DepthTargetTexture2DArray,
+        depth_texture: &'b mut DepthTargetTexture2DArray,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -36,8 +36,8 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     pub fn new(
         context: &Context,
-        color_texture: &'a Texture2DArray<T>,
-        depth_texture: &'b DepthTargetTexture2DArray,
+        color_texture: &'a mut Texture2DArray<T>,
+        depth_texture: &'b mut DepthTargetTexture2DArray,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -53,7 +53,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     ///
     pub fn new_color(
         context: &Context,
-        color_texture: &'a Texture2DArray<T>,
+        color_texture: &'a mut Texture2DArray<T>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
@@ -81,15 +81,15 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
         clear(
             &self.context,
             &ClearState {
-                red: self.color_texture.and(clear_state.red),
-                green: self.color_texture.and(clear_state.green),
-                blue: self.color_texture.and(clear_state.blue),
-                alpha: self.color_texture.and(clear_state.alpha),
-                depth: self.depth_texture.and(clear_state.depth),
+                red: self.color_texture.as_ref().and(clear_state.red),
+                green: self.color_texture.as_ref().and(clear_state.green),
+                blue: self.color_texture.as_ref().and(clear_state.blue),
+                alpha: self.color_texture.as_ref().and(clear_state.alpha),
+                depth: self.depth_texture.as_ref().and(clear_state.depth),
             },
         );
         render()?;
-        if let Some(color_texture) = self.color_texture {
+        if let Some(ref color_texture) = self.color_texture {
             color_texture.generate_mip_maps();
         }
         Ok(())
@@ -98,7 +98,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
     fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> ThreeDResult<()> {
         self.context
             .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
-        if let Some(color_texture) = self.color_texture {
+        if let Some(ref color_texture) = self.color_texture {
             if let Some(color_layers) = color_layers {
                 self.context.draw_buffers(
                     &(0..color_layers.len())
@@ -110,7 +110,7 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
                 }
             }
         }
-        if let Some(depth_texture) = self.depth_texture {
+        if let Some(ref depth_texture) = self.depth_texture {
             if let Some(depth_layer) = depth_layer {
                 depth_texture.bind_as_depth_target(depth_layer);
             }
