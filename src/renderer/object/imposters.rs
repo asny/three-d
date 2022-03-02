@@ -73,7 +73,8 @@ impl Imposters {
         let center = 0.5 * min + 0.5 * max;
 
         self.sprites.set_transformation(
-            Mat4::from_translation(center) * Mat4::from_nonuniform_scale(width, height, 0.0),
+            Mat4::from_translation(center)
+                * Mat4::from_nonuniform_scale(0.5 * width, 0.5 * height, 0.0),
         );
         let mut camera = Camera::new_orthographic(
             &self.context,

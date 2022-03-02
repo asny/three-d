@@ -42,6 +42,7 @@ impl Geometry for Sprites {
                 };
                 material.use_uniforms(program, camera, lights)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
+                program.use_uniform("transformation", self.transformation)?;
                 program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
                 program
                     .use_attribute_vec2("uv_coordinate", self.mesh.uv_buffer.as_ref().unwrap())?;
