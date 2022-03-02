@@ -90,12 +90,12 @@ impl<T: TextureDataType> Texture2DArray<T> {
     /// Use a [RenderTargetArray] to write to both color and depth.
     ///
     pub fn write<F: FnOnce() -> ThreeDResult<()>>(
-        &self,
+        &mut self,
         color_layers: &[u32],
         clear_state: ClearState,
         render: F,
     ) -> ThreeDResult<()> {
-        RenderTargetArray::new_color(&self.context, &self)?.write(
+        RenderTargetArray::new_color(&self.context.clone(), self)?.write(
             color_layers,
             0,
             clear_state,
