@@ -16,7 +16,7 @@ impl Sprites {
             context: context.clone(),
             mesh: Mesh::new(context, &CpuMesh::square())?,
             center_buffer,
-            instance_count: centers.len() as u32,
+            instance_count: centers.len() as u32 / 3,
             transformation: Mat4::identity(),
         })
     }
