@@ -310,10 +310,6 @@ mod cpu_mesh;
 #[doc(inline)]
 pub use cpu_mesh::*;
 
-mod mesh;
-#[doc(inline)]
-pub use mesh::*;
-
 pub mod render_states;
 pub use render_states::*;
 
