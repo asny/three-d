@@ -103,6 +103,16 @@ impl<T: Object> Object for std::rc::Rc<T> {
     }
 }
 
+impl<T: Object> Object for std::rc::Rc<std::cell::RefCell<T>> {
+    fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
+        self.borrow().render(camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.borrow().is_transparent()
+    }
+}
+
 // Object2D trait
 
 ///
@@ -159,5 +169,15 @@ impl<T: Object2D> Object2D for std::rc::Rc<T> {
 
     fn is_transparent(&self) -> bool {
         self.as_ref().is_transparent()
+    }
+}
+
+impl<T: Object2D> Object2D for std::rc::Rc<std::cell::RefCell<T>> {
+    fn render(&self, viewport: Viewport) -> ThreeDResult<()> {
+        self.borrow().render(viewport)
+    }
+
+    fn is_transparent(&self) -> bool {
+        self.borrow().is_transparent()
     }
 }
