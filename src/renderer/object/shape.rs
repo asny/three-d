@@ -1,8 +1,5 @@
 use crate::renderer::*;
 
-///
-/// A 3D model consisting of a triangle mesh and any material that implements the `Material` trait.
-///
 pub struct Shape<G: Geometry, M: Material> {
     pub geometry: G,
     /// The material applied to the geometry
