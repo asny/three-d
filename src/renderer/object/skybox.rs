@@ -6,9 +6,8 @@ use crate::renderer::*;
 ///
 pub struct Skybox<T: TextureCube> {
     context: Context,
-    program: Program,
     vertex_buffer: VertexBuffer,
-    texture: T,
+    material: SkyboxMaterial<T>,
 }
 
 impl<T: TextureDataType> Skybox<TextureCubeMap<T>> {
@@ -40,23 +39,12 @@ impl<T: TextureCube> Skybox<T> {
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
     pub fn new_with_texture(context: &Context, texture: T) -> ThreeDResult<Skybox<T>> {
-        let program = Program::from_source(
-            context,
-            include_str!("shaders/skybox.vert"),
-            &format!(
-                "{}{}",
-                include_str!("../../core/shared.frag"),
-                include_str!("shaders/skybox.frag")
-            ),
-        )?;
-
         let vertex_buffer = VertexBuffer::new_with_static(context, &CpuMesh::cube().positions)?;
 
         Ok(Skybox {
             context: context.clone(),
-            program,
             vertex_buffer,
-            texture,
+            material: SkyboxMaterial { texture },
         })
     }
 
@@ -64,7 +52,7 @@ impl<T: TextureCube> Skybox<T> {
     /// Returns a reference to the cube map texture
     ///
     pub fn texture(&self) -> &impl TextureCube {
-        &self.texture
+        &self.material.texture
     }
 }
 
@@ -89,8 +77,6 @@ impl<T: TextureCube> Geometry for Skybox<T> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                program.use_uniform_int("isHDR", if self.texture.is_hdr() { &1 } else { &0 })?;
-                program.use_texture_cube("texture0", &self.texture)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
                 program.use_attribute_vec3("position", &self.vertex_buffer)?;
                 program.draw_arrays(material.render_states(), camera.viewport(), 36);
@@ -102,24 +88,45 @@ impl<T: TextureCube> Geometry for Skybox<T> {
 
 impl<T: TextureCube> Object for Skybox<T> {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
-        let render_states = RenderStates {
+        self.render_with_material(&self.material, camera, lights)
+    }
+
+    fn is_transparent(&self) -> bool {
+        false
+    }
+}
+
+struct SkyboxMaterial<T: TextureCube> {
+    pub texture: T,
+}
+
+impl<T: TextureCube> Material for SkyboxMaterial<T> {
+    fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
+        format!(
+            "{}{}",
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/skybox.frag")
+        )
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        _lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        program.use_uniform_int("isHDR", if self.texture.is_hdr() { &1 } else { &0 })?;
+        program.use_texture_cube("texture0", &self.texture)?;
+        program.use_uniform_block("Camera", camera.uniform_buffer());
+        Ok(())
+    }
+
+    fn render_states(&self) -> RenderStates {
+        RenderStates {
             depth_test: DepthTest::LessOrEqual,
             cull: Cull::Front,
             ..Default::default()
-        };
-
-        self.program
-            .use_uniform_int("isHDR", if self.texture.is_hdr() { &1 } else { &0 })?;
-        self.program.use_texture_cube("texture0", &self.texture)?;
-        self.program
-            .use_uniform_block("Camera", camera.uniform_buffer());
-
-        self.program
-            .use_attribute_vec3("position", &self.vertex_buffer)?;
-
-        self.program
-            .draw_arrays(render_states, camera.viewport(), 36);
-        Ok(())
+        }
     }
 
     fn is_transparent(&self) -> bool {
