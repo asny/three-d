@@ -27,26 +27,17 @@ impl Imposters {
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) -> ThreeDResult<Self> {
-        let texture = Texture2DArray::<u8>::new_empty(
-            context,
-            1,
-            1,
-            NO_VIEW_ANGLES,
-            Interpolation::Nearest,
-            Interpolation::Nearest,
-            None,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            Format::RGBA,
-        )?;
-
-        let mut imposters = Imposters {
+        let mut aabb = AxisAlignedBoundingBox::EMPTY;
+        objects
+            .iter()
+            .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
+        let mut sprites = Sprites::new(context, positions)?;
+        sprites.set_transformation(get_sprite_transform(aabb));
+        Ok(Imposters {
             context: context.clone(),
-            sprites: Sprites::new(context, positions)?,
-            material: ImpostersMaterial { texture },
-        };
-        imposters.update_texture(objects, lights, max_texture_size)?;
-        Ok(imposters)
+            sprites,
+            material: ImpostersMaterial::new(context, aabb, objects, lights, max_texture_size)?,
+        })
     }
 
     pub fn update_texture(
@@ -59,23 +50,22 @@ impl Imposters {
         objects
             .iter()
             .for_each(|o| aabb.expand_with_aabb(&o.aabb()));
+        self.sprites.set_transformation(get_sprite_transform(aabb));
+        self.material =
+            ImpostersMaterial::new(&self.context, aabb, objects, lights, max_texture_size)?;
+        Ok(())
+    }
+}
 
-        if aabb.is_empty() {
-            return Ok(());
-        }
-
+fn get_sprite_transform(aabb: AxisAlignedBoundingBox) -> Mat4 {
+    if aabb.is_empty() {
+        Mat4::identity()
+    } else {
         let (min, max) = (aabb.min(), aabb.max());
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
         let center = 0.5 * min + 0.5 * max;
-
-        self.sprites.set_transformation(
-            Mat4::from_translation(center)
-                * Mat4::from_nonuniform_scale(0.5 * width, 0.5 * height, 0.0),
-        );
-        self.material =
-            ImpostersMaterial::new(&self.context, aabb, objects, lights, max_texture_size)?;
-        Ok(())
+        Mat4::from_translation(center) * Mat4::from_nonuniform_scale(0.5 * width, 0.5 * height, 0.0)
     }
 }
 
@@ -109,7 +99,7 @@ impl Object for Imposters {
 }
 
 struct ImpostersMaterial {
-    pub texture: Texture2DArray<u8>,
+    texture: Texture2DArray<u8>,
 }
 
 impl ImpostersMaterial {
@@ -120,6 +110,22 @@ impl ImpostersMaterial {
         lights: &[&dyn Light],
         max_texture_size: u32,
     ) -> ThreeDResult<Self> {
+        if aabb.is_empty() {
+            return Ok(Self {
+                texture: Texture2DArray::<u8>::new_empty(
+                    context,
+                    1,
+                    1,
+                    NO_VIEW_ANGLES,
+                    Interpolation::Nearest,
+                    Interpolation::Nearest,
+                    None,
+                    Wrapping::ClampToEdge,
+                    Wrapping::ClampToEdge,
+                    Format::RGBA,
+                )?,
+            });
+        }
         let (min, max) = (aabb.min(), aabb.max());
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
