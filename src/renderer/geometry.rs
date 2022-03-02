@@ -126,6 +126,25 @@ impl<T: Geometry> Geometry for std::rc::Rc<T> {
     }
 }
 
+impl<T: Geometry> Geometry for std::rc::Rc<std::cell::RefCell<T>> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        self.borrow().render_with_material(material, camera, lights)
+    }
+
+    fn aabb(&self) -> AxisAlignedBoundingBox {
+        self.borrow().aabb()
+    }
+
+    fn transformation(&self) -> Mat4 {
+        self.borrow().transformation()
+    }
+}
+
 ///
 /// Represents a 3D geometry.
 ///
@@ -139,6 +158,12 @@ pub trait GeometryMut: Geometry {
 impl<T: GeometryMut + ?Sized> GeometryMut for &mut T {
     fn set_transformation(&mut self, transformation: Mat4) {
         (*self).set_transformation(transformation);
+    }
+}
+
+impl<T: GeometryMut> GeometryMut for std::rc::Rc<std::cell::RefCell<T>> {
+    fn set_transformation(&mut self, transformation: Mat4) {
+        self.borrow_mut().set_transformation(transformation);
     }
 }
 
@@ -192,5 +217,15 @@ impl<T: Geometry2D> Geometry2D for std::rc::Rc<T> {
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         self.as_ref().render_with_material(material, viewport)
+    }
+}
+
+impl<T: Geometry2D> Geometry2D for std::rc::Rc<std::cell::RefCell<T>> {
+    fn render_with_material(
+        &self,
+        material: &dyn Material,
+        viewport: Viewport,
+    ) -> ThreeDResult<()> {
+        self.borrow().render_with_material(material, viewport)
     }
 }

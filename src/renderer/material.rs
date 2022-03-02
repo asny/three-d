@@ -143,3 +143,24 @@ impl<T: Material> Material for std::rc::Rc<T> {
         self.as_ref().is_transparent()
     }
 }
+
+impl<T: Material> Material for std::rc::Rc<std::cell::RefCell<T>> {
+    fn fragment_shader_source(&self, use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
+        self.borrow()
+            .fragment_shader_source(use_vertex_colors, lights)
+    }
+    fn use_uniforms(
+        &self,
+        program: &Program,
+        camera: &Camera,
+        lights: &[&dyn Light],
+    ) -> ThreeDResult<()> {
+        self.borrow().use_uniforms(program, camera, lights)
+    }
+    fn render_states(&self) -> RenderStates {
+        self.borrow().render_states()
+    }
+    fn is_transparent(&self) -> bool {
+        self.borrow().is_transparent()
+    }
+}

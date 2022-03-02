@@ -634,6 +634,21 @@ impl<T: Texture> Texture for std::rc::Rc<T> {
     }
 }
 
+impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {
+    fn bind(&self, location: u32) {
+        self.borrow().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.borrow().width()
+    }
+    fn height(&self) -> u32 {
+        self.borrow().height()
+    }
+    fn format(&self) -> Format {
+        self.borrow().format()
+    }
+}
+
 ///
 /// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::core::Program::use_texture_array)).
 ///
@@ -722,6 +737,24 @@ impl<T: TextureArray> TextureArray for std::rc::Rc<T> {
     }
 }
 
+impl<T: TextureArray> TextureArray for std::rc::Rc<std::cell::RefCell<T>> {
+    fn bind(&self, location: u32) {
+        self.borrow().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.borrow().width()
+    }
+    fn height(&self) -> u32 {
+        self.borrow().height()
+    }
+    fn depth(&self) -> u32 {
+        self.borrow().depth()
+    }
+    fn format(&self) -> Format {
+        self.borrow().format()
+    }
+}
+
 ///
 /// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::core::Program::use_texture_cube)).
 ///
@@ -807,6 +840,24 @@ impl<T: TextureCube> TextureCube for std::rc::Rc<T> {
     }
     fn is_hdr(&self) -> bool {
         self.as_ref().is_hdr()
+    }
+}
+
+impl<T: TextureCube> TextureCube for std::rc::Rc<std::cell::RefCell<T>> {
+    fn bind(&self, location: u32) {
+        self.borrow().bind(location)
+    }
+    fn width(&self) -> u32 {
+        self.borrow().width()
+    }
+    fn height(&self) -> u32 {
+        self.borrow().height()
+    }
+    fn format(&self) -> Format {
+        self.borrow().format()
+    }
+    fn is_hdr(&self) -> bool {
+        self.borrow().is_hdr()
     }
 }
 

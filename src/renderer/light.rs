@@ -204,6 +204,15 @@ impl<T: Light> Light for std::rc::Rc<T> {
     }
 }
 
+impl<T: Light> Light for std::rc::Rc<std::cell::RefCell<T>> {
+    fn shader_source(&self, i: u32) -> String {
+        self.borrow().shader_source(i)
+    }
+    fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
+        self.borrow().use_uniforms(program, i)
+    }
+}
+
 pub(crate) fn lights_fragment_shader_source(
     lights: &[&dyn Light],
     lighting_model: LightingModel,
