@@ -4,13 +4,13 @@ use crate::renderer::*;
 ///
 /// A 3D model consisting of a triangle mesh and any material that implements the `Material` trait.
 ///
-pub struct Model<M: Material> {
-    mesh: Mesh,
-    /// The material applied to the model
+pub struct Model<G: Geometry, M: Material> {
+    pub geometry: G,
+    /// The material applied to the geometry
     pub material: M,
 }
 
-impl Model<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
+impl Model<Mesh, ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
     ///
     /// Creates a new 3D model with a triangle mesh as geometry and a default [ColorMaterial].
     ///
@@ -19,7 +19,7 @@ impl Model<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
     }
 }
 
-impl<M: Material> Model<M> {
+impl<M: Material> Model<Mesh, M> {
     ///
     /// Creates a new 3D model with a triangle mesh as geometry and the given material.
     ///
@@ -29,7 +29,7 @@ impl<M: Material> Model<M> {
         material: M,
     ) -> ThreeDResult<Self> {
         Ok(Self {
-            mesh: Mesh::new(context, cpu_mesh)?,
+            geometry: Mesh::new(context, cpu_mesh)?,
             material,
         })
     }
@@ -56,13 +56,13 @@ impl<M: Material> Model<M> {
     }
 }
 
-impl<M: Material> Geometry for Model<M> {
+impl<G: Geometry, M: Material> Geometry for Model<G, M> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
-        self.mesh.aabb()
+        self.geometry.aabb()
     }
 
     fn transformation(&self) -> Mat4 {
-        self.mesh.transformation()
+        self.geometry.transformation()
     }
 
     fn render_with_material(
@@ -71,17 +71,17 @@ impl<M: Material> Geometry for Model<M> {
         camera: &Camera,
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        self.mesh.render_with_material(material, camera, lights)
+        self.geometry.render_with_material(material, camera, lights)
     }
 }
 
-impl<M: Material> GeometryMut for Model<M> {
+impl<G: GeometryMut, M: Material> GeometryMut for Model<G, M> {
     fn set_transformation(&mut self, transformation: Mat4) {
-        self.mesh.set_transformation(transformation);
+        self.geometry.set_transformation(transformation);
     }
 }
 
-impl<M: Material> Object for Model<M> {
+impl<G: Geometry, M: Material> Object for Model<G, M> {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
     }
@@ -90,13 +90,12 @@ impl<M: Material> Object for Model<M> {
         self.material.is_transparent()
     }
 }
-/*
-impl<M: Material + Clone> Clone for Model<M> {
+
+impl<G: Geometry + Clone, M: Material + Clone> Clone for Model<G, M> {
     fn clone(&self) -> Self {
         Self {
-            context: self.context.clone(),
-            mesh: self.mesh.clone(),
+            geometry: self.geometry.clone(),
             material: self.material.clone(),
         }
     }
-}*/
+}
