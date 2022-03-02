@@ -5,10 +5,10 @@ use std::f32::consts::PI;
 const NO_VIEW_ANGLES: u32 = 8;
 
 ///
-/// A level-of-detail technique to replace rendering high-poly meshes.
+/// A level-of-detail technique to replace rendering of high-poly meshes.
 /// Should only be used where details cannot be seen, for example when the objects are far away.
-/// A mesh is rendered from different angles into a set of textures and the textures are then
-/// rendered continuously instead of the high-poly meshes.
+/// A set of objects are rendered from different angles into a set of textures and the textures are then
+/// rendered continuously instead of the expensive objects.
 ///
 pub struct Imposters {
     sprites: Sprites,
@@ -17,7 +17,8 @@ pub struct Imposters {
 
 impl Imposters {
     ///
-    /// Constructs a new [Imposters] and render the imposter texture from the given objects.
+    /// Constructs a new [Imposters] and render the imposter texture from the given objects with the given lights.
+    /// The imposters are placed at the given positions.
     ///
     pub fn new(
         context: &Context,
@@ -38,6 +39,17 @@ impl Imposters {
         })
     }
 
+    ///
+    /// Set the positions of the imposters.
+    ///
+    pub fn set_positions(&mut self, positions: &[f32]) {
+        self.sprites.set_centers(positions);
+    }
+
+    ///
+    /// Render the imposter texture from the given objects with the given lights.
+    /// Use this if you want to update the look of the imposters.
+    ///
     pub fn update_texture(
         &mut self,
         objects: &[&dyn Object],
