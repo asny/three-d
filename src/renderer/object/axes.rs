@@ -5,7 +5,7 @@ use crate::renderer::*;
 /// Used for easily debugging where objects are placed in the 3D world.
 ///
 pub struct Axes {
-    model: std::cell::RefCell<Model<Mesh, ColorMaterial<std::rc::Rc<Texture2D<u8>>>>>,
+    model: std::cell::RefCell<Model<ColorMaterial<std::rc::Rc<Texture2D<u8>>>>>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,

@@ -4,7 +4,7 @@ use crate::renderer::*;
 /// A rectangle 2D object which can be rendered.
 ///
 pub struct Rectangle<M: Material> {
-    model: Model<Mesh, M>,
+    model: Model<M>,
     context: Context,
     width: f32,
     height: f32,
@@ -73,7 +73,7 @@ impl<M: Material> Rectangle<M> {
     }
 
     fn update(&mut self) {
-        self.model.set_transformation_2d(
+        self.model.geometry.set_transformation_2d(
             Mat3::from_translation(self.center)
                 * Mat3::from_angle_z(self.rotation)
                 * Mat3::from_nonuniform_scale(self.width, self.height),

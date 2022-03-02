@@ -79,6 +79,27 @@ impl Mesh {
         })
     }
 
+    pub(in crate::renderer) fn set_transformation_2d(&mut self, transformation: Mat3) {
+        self.set_transformation(Mat4::new(
+            transformation.x.x,
+            transformation.x.y,
+            0.0,
+            transformation.x.z,
+            transformation.y.x,
+            transformation.y.y,
+            0.0,
+            transformation.y.z,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            transformation.z.x,
+            transformation.z.y,
+            0.0,
+            transformation.z.z,
+        ));
+    }
+
     ///
     /// Get the texture transform applied to the uv coordinates of the model.
     ///
