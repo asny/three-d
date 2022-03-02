@@ -90,7 +90,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                 &context,
                 ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
                 || {
-                    skybox.render(&camera)?;
+                    skybox.render(&camera, &[])?;
                     let material = PhysicalMaterial {
                         name: model.material.name.clone(),
                         albedo: model.material.albedo,
