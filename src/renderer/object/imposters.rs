@@ -67,66 +67,14 @@ impl Imposters {
         let (min, max) = (aabb.min(), aabb.max());
         let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
         let height = max.y - min.y;
-        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as u32;
-        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as u32;
-        let viewport = Viewport::new_at_origo(texture_width, texture_height);
         let center = 0.5 * min + 0.5 * max;
 
         self.sprites.set_transformation(
             Mat4::from_translation(center)
                 * Mat4::from_nonuniform_scale(0.5 * width, 0.5 * height, 0.0),
         );
-        let mut camera = Camera::new_orthographic(
-            &self.context,
-            viewport,
-            center + vec3(0.0, 0.0, -1.0),
-            center,
-            vec3(0.0, 1.0, 0.0),
-            height,
-            0.0,
-            4.0 * (width + height),
-        )?;
-        self.material.texture = Texture2DArray::<u8>::new_empty(
-            &self.context,
-            texture_width,
-            texture_height,
-            NO_VIEW_ANGLES,
-            Interpolation::Nearest,
-            Interpolation::Nearest,
-            None,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            Format::RGBA,
-        )?;
-        let depth_texture = DepthTargetTexture2DArray::new(
-            &self.context,
-            texture_width,
-            texture_height,
-            NO_VIEW_ANGLES,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-            DepthFormat::Depth32F,
-        )?;
-        let render_target =
-            RenderTargetArray::new(&self.context, &self.material.texture, &depth_texture)?;
-
-        for i in 0..NO_VIEW_ANGLES {
-            let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
-            camera.set_view(
-                center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
-                center,
-                vec3(0.0, 1.0, 0.0),
-            )?;
-            render_target.write(
-                &[i],
-                0,
-                ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
-                || {
-                    render_pass(&camera, objects, lights)?;
-                    Ok(())
-                },
-            )?;
-        }
+        self.material =
+            ImpostersMaterial::new(&self.context, aabb, objects, lights, max_texture_size)?;
         Ok(())
     }
 }
@@ -164,7 +112,75 @@ struct ImpostersMaterial {
     pub texture: Texture2DArray<u8>,
 }
 
-impl ImpostersMaterial {}
+impl ImpostersMaterial {
+    pub fn new(
+        context: &Context,
+        aabb: AxisAlignedBoundingBox,
+        objects: &[&dyn Object],
+        lights: &[&dyn Light],
+        max_texture_size: u32,
+    ) -> ThreeDResult<Self> {
+        let (min, max) = (aabb.min(), aabb.max());
+        let width = f32::sqrt(f32::powi(max.x - min.x, 2) + f32::powi(max.z - min.z, 2));
+        let height = max.y - min.y;
+        let texture_width = (max_texture_size as f32 * (width / height).min(1.0)) as u32;
+        let texture_height = (max_texture_size as f32 * (height / width).min(1.0)) as u32;
+        let viewport = Viewport::new_at_origo(texture_width, texture_height);
+        let center = 0.5 * min + 0.5 * max;
+        let mut camera = Camera::new_orthographic(
+            context,
+            viewport,
+            center + vec3(0.0, 0.0, -1.0),
+            center,
+            vec3(0.0, 1.0, 0.0),
+            height,
+            0.0,
+            4.0 * (width + height),
+        )?;
+        let texture = Texture2DArray::<u8>::new_empty(
+            context,
+            texture_width,
+            texture_height,
+            NO_VIEW_ANGLES,
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            Format::RGBA,
+        )?;
+        let depth_texture = DepthTargetTexture2DArray::new(
+            context,
+            texture_width,
+            texture_height,
+            NO_VIEW_ANGLES,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            DepthFormat::Depth32F,
+        )?;
+        {
+            let render_target = RenderTargetArray::new(context, &texture, &depth_texture)?;
+            for i in 0..NO_VIEW_ANGLES {
+                let angle = i as f32 * 2.0 * PI / NO_VIEW_ANGLES as f32;
+                camera.set_view(
+                    center + width * vec3(f32::sin(-angle), 0.0, f32::cos(-angle)),
+                    center,
+                    vec3(0.0, 1.0, 0.0),
+                )?;
+                render_target.write(
+                    &[i],
+                    0,
+                    ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0),
+                    || {
+                        render_pass(&camera, objects, lights)?;
+                        Ok(())
+                    },
+                )?;
+            }
+        }
+        Ok(Self { texture })
+    }
+}
 
 impl Material for ImpostersMaterial {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
