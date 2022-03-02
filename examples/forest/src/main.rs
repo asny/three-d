@@ -87,7 +87,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         DirectionalLight::new(&context, 4.0, Color::WHITE, &vec3(-1.0, -1.0, -1.0)).unwrap();
 
     // Imposters
-    let t = 10;
+    let t = 100;
     let mut positions = Vec::new();
     for x in -t..t + 1 {
         for y in -t..t + 1 {
