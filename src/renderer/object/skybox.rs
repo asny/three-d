@@ -61,10 +61,6 @@ impl<T: TextureCube> Geometry for Skybox<T> {
         AxisAlignedBoundingBox::INFINITE
     }
 
-    fn transformation(&self) -> Mat4 {
-        Mat4::identity()
-    }
-
     fn render_with_material(
         &self,
         material: &dyn Material,

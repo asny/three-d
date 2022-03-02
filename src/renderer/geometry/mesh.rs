@@ -101,6 +101,23 @@ impl Mesh {
     }
 
     ///
+    /// Returns the local to world transformation applied to this mesh.
+    ///
+    pub fn transformation(&self) -> Mat4 {
+        self.transformation
+    }
+
+    ///
+    /// Set the local to world transformation applied to this mesh.
+    ///
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+        let mut aabb = self.aabb_local.clone();
+        aabb.transform(&self.transformation);
+        self.aabb = aabb;
+    }
+
+    ///
     /// Get the texture transform applied to the uv coordinates of the model.
     ///
     pub fn texture_transform(&mut self) -> &Mat3 {
@@ -155,10 +172,6 @@ impl Mesh {
 impl Geometry for Mesh {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.aabb
-    }
-
-    fn transformation(&self) -> Mat4 {
-        self.transformation
     }
 
     fn render_with_material(
@@ -229,14 +242,5 @@ impl Geometry for Mesh {
                 Ok(())
             },
         )
-    }
-}
-
-impl GeometryMut for Mesh {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        let mut aabb = self.aabb_local.clone();
-        aabb.transform(&self.transformation);
-        self.aabb = aabb;
     }
 }

@@ -80,10 +80,6 @@ impl Geometry for Imposters {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.sprites.aabb()
     }
-
-    fn transformation(&self) -> Mat4 {
-        self.sprites.transformation()
-    }
 }
 
 impl Object for Imposters {

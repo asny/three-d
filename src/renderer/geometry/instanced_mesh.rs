@@ -95,6 +95,18 @@ impl InstancedMesh {
     }
 
     ///
+    /// Returns the local to world transformation applied to all instances.
+    ///
+    pub fn transformation(&self) -> Mat4 {
+        self.transformation
+    }
+
+    pub fn set_transformation(&mut self, transformation: Mat4) {
+        self.transformation = transformation;
+        self.update_aabb();
+    }
+
+    ///
     /// Get the texture transform applied to the uv coordinates of all of the instances.
     ///
     pub fn texture_transform(&mut self) -> &Mat3 {
@@ -304,10 +316,6 @@ impl Geometry for InstancedMesh {
         self.aabb
     }
 
-    fn transformation(&self) -> Mat4 {
-        self.transformation
-    }
-
     fn render_with_material(
         &self,
         material: &dyn Material,
@@ -329,13 +337,6 @@ impl Geometry for InstancedMesh {
                 )
             },
         )
-    }
-}
-
-impl GeometryMut for InstancedMesh {
-    fn set_transformation(&mut self, transformation: Mat4) {
-        self.transformation = transformation;
-        self.update_aabb();
     }
 }
 
