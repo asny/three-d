@@ -44,7 +44,7 @@ pub trait Geometry {
     ) -> ThreeDResult<()>;
 
     ///
-    /// Returns the [AxisAlignedBoundingBox] for this geometry.
+    /// Returns the [AxisAlignedBoundingBox] for this geometry in the global coordinate system.
     ///
     fn aabb(&self) -> AxisAlignedBoundingBox;
 }
