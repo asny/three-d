@@ -102,7 +102,7 @@ impl Particles {
         self.instance_count = data.len() as u32;
     }
 
-    pub(crate) fn vertex_shader_source(fragment_shader_source: &str) -> String {
+    fn vertex_shader_source(fragment_shader_source: &str) -> String {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
         let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
@@ -172,7 +172,7 @@ impl Geometry for Particles {
     ) -> ThreeDResult<()> {
         let fragment_shader_source = material.fragment_shader_source(false, lights);
         self.context.program(
-            &Particles::vertex_shader_source(&fragment_shader_source),
+            &Self::vertex_shader_source(&fragment_shader_source),
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;

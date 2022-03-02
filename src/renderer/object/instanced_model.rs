@@ -6,7 +6,12 @@ use crate::renderer::*;
 ///
 pub struct InstancedModel<M: Material> {
     context: Context,
-    mesh: Mesh,
+    position_buffer: VertexBuffer,
+    normal_buffer: Option<VertexBuffer>,
+    tangent_buffer: Option<VertexBuffer>,
+    uv_buffer: Option<VertexBuffer>,
+    color_buffer: Option<VertexBuffer>,
+    index_buffer: Option<ElementBuffer>,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
     instance_buffer3: InstanceBuffer,
@@ -49,10 +54,48 @@ impl<M: Material> InstancedModel<M> {
         cpu_mesh: &CpuMesh,
         material: M,
     ) -> ThreeDResult<Self> {
+        #[cfg(debug_assertions)]
+        cpu_mesh.validate()?;
+
+        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
+        let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
+            Some(VertexBuffer::new_with_static(context, normals)?)
+        } else {
+            None
+        };
+        let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
+            Some(VertexBuffer::new_with_static(context, tangents)?)
+        } else {
+            None
+        };
+        let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
+            Some(match indices {
+                Indices::U8(ind) => ElementBuffer::new_with(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new_with(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new_with(context, ind)?,
+            })
+        } else {
+            None
+        };
+        let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
+            Some(VertexBuffer::new_with_static(context, uvs)?)
+        } else {
+            None
+        };
+        let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
+            Some(VertexBuffer::new_with_static(context, colors)?)
+        } else {
+            None
+        };
         let aabb = cpu_mesh.compute_aabb();
         let mut model = Self {
             context: context.clone(),
-            mesh: Mesh::new(context, cpu_mesh)?,
+            position_buffer,
+            normal_buffer,
+            tangent_buffer,
+            index_buffer,
+            uv_buffer,
+            color_buffer,
             instance_buffer1: InstanceBuffer::new(context)?,
             instance_buffer2: InstanceBuffer::new(context)?,
             instance_buffer3: InstanceBuffer::new(context)?,
@@ -179,7 +222,7 @@ impl<M: Material> InstancedModel<M> {
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
 
         if program.requires_attribute("position") {
-            program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
+            program.use_attribute_vec3("position", &self.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
             program.use_uniform_mat3("textureTransform", &self.texture_transform)?;
@@ -192,7 +235,6 @@ impl<M: Material> InstancedModel<M> {
                 &self.instance_tex_transform2,
             )?;
             let uv_buffer = self
-                .mesh
                 .uv_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
@@ -200,14 +242,12 @@ impl<M: Material> InstancedModel<M> {
         }
         if program.requires_attribute("normal") {
             let normal_buffer = self
-                .mesh
                 .normal_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
             program.use_attribute_vec3("normal", normal_buffer)?;
             if program.requires_attribute("tangent") {
                 let tangent_buffer = self
-                    .mesh
                     .tangent_buffer
                     .as_ref()
                     .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
@@ -216,14 +256,13 @@ impl<M: Material> InstancedModel<M> {
         }
         if program.requires_attribute("color") {
             let color_buffer = self
-                .mesh
                 .color_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
             program.use_attribute_vec4("color", color_buffer)?;
         }
 
-        if let Some(ref index_buffer) = self.mesh.index_buffer {
+        if let Some(ref index_buffer) = self.index_buffer {
             program.draw_elements_instanced(
                 render_states,
                 viewport,
@@ -234,7 +273,7 @@ impl<M: Material> InstancedModel<M> {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
-                self.mesh.position_buffer.count() as u32 / 3,
+                self.position_buffer.count() as u32 / 3,
                 self.instance_count,
             );
         }
@@ -242,9 +281,39 @@ impl<M: Material> InstancedModel<M> {
     }
 
     fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
+        let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
+        let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
+        let use_tangents = fragment_shader_source.find("in vec3 tang;").is_some();
+        let use_uvs = fragment_shader_source.find("in vec2 uvs;").is_some();
+        let use_colors = fragment_shader_source.find("in vec4 col;").is_some();
         Ok(format!(
-            "#define INSTANCED\n{}",
-            Mesh::vertex_shader_source(fragment_shader_source)?
+            "#define INSTANCED\n{}{}{}{}{}{}{}",
+            if use_positions {
+                "#define USE_POSITIONS\n"
+            } else {
+                ""
+            },
+            if use_normals {
+                "#define USE_NORMALS\n"
+            } else {
+                ""
+            },
+            if use_tangents {
+                if fragment_shader_source.find("in vec3 bitang;").is_none() {
+                    Err(CoreError::MissingBitangent)?;
+                }
+                "#define USE_TANGENTS\n"
+            } else {
+                ""
+            },
+            if use_uvs { "#define USE_UVS\n" } else { "" },
+            if use_colors {
+                "#define USE_COLORS\n"
+            } else {
+                ""
+            },
+            include_str!("../../core/shared.frag"),
+            include_str!("shaders/mesh.vert"),
         ))
     }
 }
@@ -265,7 +334,7 @@ impl<M: Material> Geometry for InstancedModel<M> {
         lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
         let fragment_shader_source =
-            material.fragment_shader_source(self.mesh.color_buffer.is_some(), lights);
+            material.fragment_shader_source(self.color_buffer.is_some(), lights);
         self.context.program(
             &Self::vertex_shader_source(&fragment_shader_source)?,
             &fragment_shader_source,
