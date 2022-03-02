@@ -2,6 +2,10 @@
 //! A collection of objects that can be rendered, for example a mesh.
 //!
 
+mod mesh;
+#[doc(inline)]
+pub use mesh::*;
+
 mod sprites;
 #[doc(inline)]
 pub use sprites::*;
