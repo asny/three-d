@@ -82,70 +82,6 @@ impl<M: Material> Model<M> {
         ));
     }
 
-    fn draw(
-        &self,
-        program: &Program,
-        render_states: RenderStates,
-        camera_buffer: &UniformBuffer,
-        viewport: Viewport,
-        transformation: &Mat4,
-        texture_transform: &Mat3,
-    ) -> ThreeDResult<()> {
-        program.use_uniform_block("Camera", camera_buffer);
-        program.use_uniform_mat4("modelMatrix", transformation)?;
-
-        if program.requires_attribute("position") {
-            program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
-        }
-        if program.requires_attribute("uv_coordinates") {
-            program.use_uniform_mat3("textureTransform", &texture_transform)?;
-            let uv_buffer = self
-                .mesh
-                .uv_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
-            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
-        }
-        if program.requires_attribute("normal") {
-            let normal_buffer = self
-                .mesh
-                .normal_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-            program.use_attribute_vec3("normal", normal_buffer)?;
-            program.use_uniform_mat4(
-                "normalMatrix",
-                &transformation.invert().unwrap().transpose(),
-            )?;
-            if program.requires_attribute("tangent") {
-                let tangent_buffer = self
-                    .mesh
-                    .tangent_buffer
-                    .as_ref()
-                    .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
-                program.use_attribute_vec4("tangent", tangent_buffer)?;
-            }
-        }
-        if program.requires_attribute("color") {
-            let color_buffer = self
-                .mesh
-                .color_buffer
-                .as_ref()
-                .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-            program.use_attribute_vec4("color", color_buffer)?;
-        }
-        if let Some(ref index_buffer) = self.mesh.index_buffer {
-            program.draw_elements(render_states, viewport, index_buffer);
-        } else {
-            program.draw_arrays(
-                render_states,
-                viewport,
-                self.mesh.position_buffer.count() as u32 / 3,
-            );
-        }
-        Ok(())
-    }
-
     pub(super) fn vertex_shader_source(fragment_shader_source: &str) -> ThreeDResult<String> {
         let use_positions = fragment_shader_source.find("in vec3 pos;").is_some();
         let use_normals = fragment_shader_source.find("in vec3 nor;").is_some();
@@ -206,14 +142,63 @@ impl<M: Material> Geometry for Model<M> {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                self.draw(
-                    program,
-                    material.render_states(),
-                    camera.uniform_buffer(),
-                    camera.viewport(),
-                    &self.transformation,
-                    &self.texture_transform,
-                )
+                program.use_uniform_block("Camera", camera.uniform_buffer());
+                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+
+                if program.requires_attribute("position") {
+                    program.use_attribute_vec3("position", &self.mesh.position_buffer)?;
+                }
+                if program.requires_attribute("uv_coordinates") {
+                    program.use_uniform_mat3("textureTransform", &self.texture_transform)?;
+                    let uv_buffer = self
+                        .mesh
+                        .uv_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
+                    program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+                }
+                if program.requires_attribute("normal") {
+                    let normal_buffer = self
+                        .mesh
+                        .normal_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
+                    program.use_attribute_vec3("normal", normal_buffer)?;
+                    program.use_uniform_mat4(
+                        "normalMatrix",
+                        &self.transformation.invert().unwrap().transpose(),
+                    )?;
+                    if program.requires_attribute("tangent") {
+                        let tangent_buffer = self
+                            .mesh
+                            .tangent_buffer
+                            .as_ref()
+                            .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
+                        program.use_attribute_vec4("tangent", tangent_buffer)?;
+                    }
+                }
+                if program.requires_attribute("color") {
+                    let color_buffer = self
+                        .mesh
+                        .color_buffer
+                        .as_ref()
+                        .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
+                    program.use_attribute_vec4("color", color_buffer)?;
+                }
+                if let Some(ref index_buffer) = self.mesh.index_buffer {
+                    program.draw_elements(
+                        material.render_states(),
+                        camera.viewport(),
+                        index_buffer,
+                    );
+                } else {
+                    program.draw_arrays(
+                        material.render_states(),
+                        camera.viewport(),
+                        self.mesh.position_buffer.count() as u32 / 3,
+                    );
+                }
+                Ok(())
             },
         )
     }
