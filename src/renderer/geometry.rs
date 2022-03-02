@@ -23,8 +23,9 @@ use crate::renderer::*;
 
 ///
 /// Represents a 3D geometry.
-///
-/// It is possible to render the geometry with a material that implements the [Material] trait.
+/// It is possible to render the geometry with a [Material] using [Geometry::render_with_material].
+/// Alternatively, any geometry can be combined with any material in a [Shape],
+/// thereby creating an [Object] which can be used in a render call, for example [render_pass].
 ///
 /// If requested by the material, the geometry has to support the attributes position (in world space) `out vec3 pos;`,
 /// normal `out vec3 nor;`, uv coordinates `out vec2 uvs;` and color `out vec4 col;` in the vertex shader source code.
@@ -34,7 +35,7 @@ pub trait Geometry {
     /// Render the geometry with the given material.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// You can use [Lights::default()] if you know the material does not require lights.
+    /// You can use an empty array for the `lights` argument, if you know the object does not require lights to be rendered.
     ///
     fn render_with_material(
         &self,

@@ -2,7 +2,8 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// A triangle mesh where the mesh data is transfered to the GPU.
+/// A triangle mesh that implements the [Geometry] trait.
+/// This mesh can be rendered together with a [Material].
 ///
 pub struct Mesh {
     /// Buffer with the position data, ie. `(x, y, z)` for each vertex
@@ -26,8 +27,8 @@ pub struct Mesh {
 
 impl Mesh {
     ///
-    /// Copies the per vertex data defined in the given [CpuMesh](crate::CpuMesh) to the GPU, thereby
-    /// making it possible to render the mesh.
+    /// Creates a new 3D mesh from the given [CpuMesh].
+    /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     ///
     pub fn new(context: &Context, cpu_mesh: &CpuMesh) -> ThreeDResult<Self> {
         #[cfg(debug_assertions)]
