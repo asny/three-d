@@ -42,10 +42,6 @@ mod bounding_box;
 #[doc(inline)]
 pub use bounding_box::*;
 
-mod particles;
-#[doc(inline)]
-pub use particles::*;
-
 use crate::core::*;
 use crate::renderer::*;
 
