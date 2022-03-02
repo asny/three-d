@@ -46,14 +46,14 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// Represents a 3D object which can be rendered.
+/// Represents a 3D object which can be rendered directly or used in a render call, for example [render_pass].
 ///
 pub trait Object: Geometry {
     ///
     /// Render the object.
     /// Must be called in a render target render function,
     /// for example in the callback function of [Screen::write](crate::Screen::write).
-    /// You can use [Lights::default()] if you know the object does not require lights to be rendered.
+    /// You can use an empty array for the `lights` argument, if you know the object does not require lights to be rendered.
     ///
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()>;
 

@@ -27,7 +27,8 @@ pub struct InstancedMesh {
 
 impl InstancedMesh {
     ///
-    /// Creates a new instanced 3D mesh with a triangle mesh as geometry.
+    /// Creates a new 3D mesh from the given [CpuMesh]. 
+    /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     /// The mesh is rendered in as many instances as there are [Instance] structs given as input.
     /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
     ///
