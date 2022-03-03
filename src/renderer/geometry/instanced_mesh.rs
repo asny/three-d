@@ -260,7 +260,7 @@ impl InstancedMesh {
                 .color_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-            program.use_attribute("color", color_buffer)?;
+            program.use_vertex_attributes("color", color_buffer)?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
