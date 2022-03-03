@@ -53,9 +53,9 @@ impl InstancedMesh {
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
             Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with(context, ind)?,
+                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
+                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
             })
         } else {
             None

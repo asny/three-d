@@ -42,9 +42,9 @@ impl ElementBuffer {
     ///
     /// Creates a new empty element buffer.
     ///
-    pub fn new<T: ElementBufferDataType>(context: &Context) -> ThreeDResult<ElementBuffer> {
+    pub fn new<T: ElementBufferDataType>(context: &Context) -> ThreeDResult<Self> {
         let id = context.create_buffer().unwrap();
-        Ok(ElementBuffer {
+        Ok(Self {
             context: context.clone(),
             id,
             count: 0,
@@ -55,24 +55,29 @@ impl ElementBuffer {
     ///
     /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
     ///
-    pub fn new_with<T: ElementBufferDataType>(
+    pub fn new_with_data<T: ElementBufferDataType>(
         context: &Context,
         data: &[T],
-    ) -> ThreeDResult<ElementBuffer> {
+    ) -> ThreeDResult<Self> {
         let mut buffer = Self::new::<T>(context)?;
         if data.len() > 0 {
-            buffer.fill_with(data)?;
+            buffer.fill(data)?;
         }
         Ok(buffer)
     }
+
+    ///
+    /// Creates a new element buffer and fills it with the given indices which must be divisable by 3.
+    ///
+    #[deprecated = "use new_with_data()"]
+    pub fn new_with<T: ElementBufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+        Self::new_with_data(context, data)
+    }
+
     ///
     /// Fills the buffer with the given indices which must be divisable by 3.
     ///
-    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
-        if data.len() % 3 != 0 {
-            Err(CoreError::InvalidNumberOfVertices(data.len()))?;
-        }
-
+    pub fn fill<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
         self.bind();
         T::buffer_data(
             &self.context,
@@ -80,17 +85,31 @@ impl ElementBuffer {
             data,
             consts::STATIC_DRAW,
         );
-        self.data_type = T::data_type();
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
         self.count = data.len();
         Ok(())
     }
 
     ///
-    /// The number of elements in the buffer.
+    /// Fills the buffer with the given indices which must be divisable by 3.
+    ///
+    #[deprecated = "use fill()"]
+    pub fn fill_with<T: ElementBufferDataType>(&mut self, data: &[T]) -> ThreeDResult<()> {
+        self.fill(data)
+    }
+
+    ///
+    /// The number of values in the buffer.
     ///
     pub fn count(&self) -> usize {
         self.count
+    }
+
+    ///
+    /// The number of triangles in the buffer.
+    ///
+    pub fn triangle_count(&self) -> usize {
+        self.count / 3
     }
 
     pub(crate) fn data_type(&self) -> DataType {
