@@ -20,6 +20,7 @@ impl<T: VertexBufferDataType> VertexAttribute<T> for T {}
 impl<T: VertexBufferDataType> VertexAttribute<T> for Vector2<T> {}
 impl<T: VertexBufferDataType> VertexAttribute<T> for Vector3<T> {}
 impl<T: VertexBufferDataType> VertexAttribute<T> for Vector4<T> {}
+impl VertexAttribute<u8> for Color {}
 
 pub(crate) mod vertex_attribute {
     use crate::core::*;
@@ -82,6 +83,23 @@ pub(crate) mod vertex_attribute {
                 res.push(d.y);
                 res.push(d.z);
                 res.push(d.w);
+            }
+            res
+        }
+    }
+
+    impl Extension<u8> for Color {
+        fn length() -> u32 {
+            4
+        }
+
+        fn flatten(data: &[Self]) -> Vec<u8> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.r);
+                res.push(d.g);
+                res.push(d.b);
+                res.push(d.a);
             }
             res
         }
