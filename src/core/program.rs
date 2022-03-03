@@ -333,13 +333,17 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
+    pub fn use_attribute<T: VertexBufferDataType>(
+        &self,
+        name: &str,
+        buffer: &VertexBuffer<T>,
+    ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 1, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 1, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -379,13 +383,17 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec2(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
+    pub fn use_attribute_vec2<T: VertexBufferDataType>(
+        &self,
+        name: &str,
+        buffer: &VertexBuffer<T>,
+    ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 2, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 2, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -429,13 +437,17 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec3(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
+    pub fn use_attribute_vec3<T: VertexBufferDataType>(
+        &self,
+        name: &str,
+        buffer: &VertexBuffer<T>,
+    ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 3, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 3, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -479,13 +491,17 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec4(&self, name: &str, buffer: &VertexBuffer) -> ThreeDResult<()> {
+    pub fn use_attribute_vec4<T: VertexBufferDataType>(
+        &self,
+        name: &str,
+        buffer: &VertexBuffer<T>,
+    ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 4, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 4, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();

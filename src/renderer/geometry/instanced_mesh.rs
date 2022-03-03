@@ -6,11 +6,11 @@ use crate::renderer::*;
 ///
 pub struct InstancedMesh {
     context: Context,
-    position_buffer: VertexBuffer,
-    normal_buffer: Option<VertexBuffer>,
-    tangent_buffer: Option<VertexBuffer>,
-    uv_buffer: Option<VertexBuffer>,
-    color_buffer: Option<VertexBuffer>,
+    position_buffer: VertexBuffer<f32>,
+    normal_buffer: Option<VertexBuffer<f32>>,
+    tangent_buffer: Option<VertexBuffer<f32>>,
+    uv_buffer: Option<VertexBuffer<f32>>,
+    color_buffer: Option<VertexBuffer<u8>>,
     index_buffer: Option<ElementBuffer>,
     instance_buffer1: InstanceBuffer,
     instance_buffer2: InstanceBuffer,
