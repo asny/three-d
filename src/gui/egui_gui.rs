@@ -186,20 +186,21 @@ impl GUI {
         let mut colors = Vec::new();
         let mut uvs = Vec::new();
         for v in mesh.vertices.iter() {
-            positions.push(v.pos.x);
-            positions.push(v.pos.y);
-            uvs.push(v.uv.x);
-            uvs.push(v.uv.y);
-            colors.push(v.color[0] as f32);
-            colors.push(v.color[1] as f32);
-            colors.push(v.color[2] as f32);
-            colors.push(v.color[3] as f32);
+            positions.push(vec2(v.pos.x, v.pos.y));
+            uvs.push(vec2(v.uv.x, v.uv.y));
+            colors.push(vec4(
+                v.color[0] as f32,
+                v.color[1] as f32,
+                v.color[2] as f32,
+                v.color[3] as f32,
+            ));
         }
         let indices: Vec<u32> = mesh.indices.iter().map(|idx| *idx as u32).collect();
 
-        let position_buffer = VertexBuffer::new_with_static(&self.context, &positions)?;
-        let uv_buffer = VertexBuffer::new_with_static(&self.context, &uvs)?;
-        let color_buffer = VertexBuffer::new_with_static(&self.context, &colors)?;
+        let position_buffer =
+            VertexBuffer::new_with_data(&self.context, BufferType::Static, &positions)?;
+        let uv_buffer = VertexBuffer::new_with_data(&self.context, BufferType::Static, &uvs)?;
+        let color_buffer = VertexBuffer::new_with_data(&self.context, BufferType::Static, &colors)?;
         let index_buffer = ElementBuffer::new_with(&self.context, &indices)?;
 
         let render_states = RenderStates {
@@ -220,9 +221,11 @@ impl GUI {
         self.program
             .use_uniform("u_screen_size", vec2(width as f32, height as f32))?;
 
-        self.program.use_attribute_vec2("a_pos", &position_buffer)?;
-        self.program.use_attribute_vec4("a_srgba", &color_buffer)?;
-        self.program.use_attribute_vec2("a_tc", &uv_buffer)?;
+        self.program
+            .use_vertex_attribute("a_pos", &position_buffer)?;
+        self.program
+            .use_vertex_attribute("a_srgba", &color_buffer)?;
+        self.program.use_vertex_attribute("a_tc", &uv_buffer)?;
 
         self.program
             .draw_elements(render_states, viewport, &index_buffer);

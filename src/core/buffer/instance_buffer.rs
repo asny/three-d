@@ -2,8 +2,8 @@ use crate::context::consts;
 use crate::core::*;
 
 ///
-/// A buffer containing per instance data. Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each instance.
-/// To send this data to a shader, use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], etc. functionality.
+/// A buffer containing per instance data. 
+/// To send this data to a shader, use the [Program::use_instance_attribute] method.
 ///
 pub struct InstanceBuffer<T: BufferDataType> {
     context: Context,

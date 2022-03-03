@@ -103,17 +103,11 @@ impl Particles {
         let mut start_position = Vec::new();
         let mut start_velocity = Vec::new();
         for particle in data {
-            start_position.push(particle.start_position.x);
-            start_position.push(particle.start_position.y);
-            start_position.push(particle.start_position.z);
-            start_velocity.push(particle.start_velocity.x);
-            start_velocity.push(particle.start_velocity.y);
-            start_velocity.push(particle.start_velocity.z);
+            start_position.push(particle.start_position);
+            start_velocity.push(particle.start_velocity);
         }
-        self.start_position_buffer
-            .fill_with_dynamic(&start_position);
-        self.start_velocity_buffer
-            .fill_with_dynamic(&start_velocity);
+        self.start_position_buffer.fill(&start_position);
+        self.start_velocity_buffer.fill(&start_velocity);
         self.instance_count = data.len() as u32;
     }
 
@@ -193,19 +187,17 @@ impl Geometry for Particles {
                 program.use_uniform("time", &self.time)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
 
-                program
-                    .use_attribute_vec3_instanced("start_position", &self.start_position_buffer)?;
-                program
-                    .use_attribute_vec3_instanced("start_velocity", &self.start_velocity_buffer)?;
+                program.use_instance_attribute("start_position", &self.start_position_buffer)?;
+                program.use_instance_attribute("start_velocity", &self.start_velocity_buffer)?;
                 if program.requires_attribute("position") {
-                    program.use_attribute_vec3("position", &self.position_buffer)?;
+                    program.use_vertex_attribute("position", &self.position_buffer)?;
                 }
                 if program.requires_attribute("uv_coordinates") {
                     let uv_buffer = self
                         .uv_buffer
                         .as_ref()
                         .ok_or(CoreError::MissingMeshBuffer("uv coordinate".to_string()))?;
-                    program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+                    program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
                 }
                 if program.requires_attribute("normal") {
                     let normal_buffer = self
@@ -213,7 +205,7 @@ impl Geometry for Particles {
                         .as_ref()
                         .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
                     program.use_uniform("normalMatrix", &self.normal_transformation)?;
-                    program.use_attribute_vec3("normal", normal_buffer)?;
+                    program.use_vertex_attribute("normal", normal_buffer)?;
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {

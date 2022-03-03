@@ -47,9 +47,9 @@ impl ImageEffect {
     ///
     pub fn render(&self, render_states: RenderStates, viewport: Viewport) -> ThreeDResult<()> {
         self.program
-            .use_attribute_vec3("position", &self.positions)?;
+            .use_vertex_attribute("position", &self.positions)?;
         self.program
-            .use_attribute_vec2("uv_coordinate", &self.uvs)?;
+            .use_vertex_attribute("uv_coordinate", &self.uvs)?;
         self.program.draw_arrays(render_states, viewport, 3);
         Ok(())
     }

@@ -39,7 +39,8 @@ impl<T: TextureCube> Skybox<T> {
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
     pub fn new_with_texture(context: &Context, texture: T) -> ThreeDResult<Skybox<T>> {
-        let vertex_buffer = VertexBuffer::new_with_static(context, &CpuMesh::cube().positions)?;
+        let vertex_buffer =
+            VertexBuffer::new_with_data(context, BufferType::Static, &CpuMesh::cube().positions)?;
 
         Ok(Skybox {
             context: context.clone(),
@@ -74,7 +75,7 @@ impl<T: TextureCube> Geometry for Skybox<T> {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
-                program.use_attribute_vec3("position", &self.vertex_buffer)?;
+                program.use_vertex_attribute("position", &self.vertex_buffer)?;
                 program.draw_arrays(material.render_states(), camera.viewport(), 36);
                 Ok(())
             },
