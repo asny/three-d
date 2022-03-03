@@ -1,16 +1,6 @@
 use crate::context::consts;
 use crate::core::*;
 
-/// The basic data type used for each element in a [VertexBuffer] or [InstancedBuffer].
-pub trait BufferDataType:
-    Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
-{
-}
-impl BufferDataType for u8 {}
-impl BufferDataType for u16 {}
-impl BufferDataType for f16 {}
-impl BufferDataType for f32 {}
-
 pub trait VertexAttribute<T: BufferDataType>:
     std::fmt::Debug + Clone + vertex_attribute::Extension<T>
 {
