@@ -3,13 +3,61 @@ use crate::core::*;
 
 /// The basic data type used for each element in a [VertexBuffer].
 pub trait VertexBufferDataType:
-    Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
+    Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
 {
 }
 impl VertexBufferDataType for u8 {}
 impl VertexBufferDataType for u16 {}
 impl VertexBufferDataType for f16 {}
 impl VertexBufferDataType for f32 {}
+
+pub trait VertexAttribute<T: VertexBufferDataType>:
+    std::fmt::Debug + Clone + vertex_attribute::Extension<T>
+{
+}
+
+impl<T: VertexBufferDataType> VertexAttribute<T> for Vector2<T> {}
+impl<T: VertexBufferDataType> VertexAttribute<T> for Vector3<T> {}
+
+pub(crate) mod vertex_attribute {
+    use crate::core::*;
+
+    pub trait Extension<T: VertexBufferDataType>: Clone {
+        fn length() -> u32;
+        fn flatten(data: &[Self]) -> Vec<T>;
+    }
+
+    impl<T: VertexBufferDataType> Extension<T> for Vector2<T> {
+        fn length() -> u32 {
+            2
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.x);
+                res.push(d.y);
+            }
+            res
+        }
+    }
+
+    impl<T: VertexBufferDataType> Extension<T> for Vector3<T> {
+        fn length() -> u32 {
+            3
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.x);
+                res.push(d.y);
+                res.push(d.z);
+            }
+            res
+        }
+    }
+}
 
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors.
@@ -20,6 +68,7 @@ pub struct VertexBuffer<T: VertexBufferDataType> {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
+    element_size: u32,
     _dummy: T,
 }
 
@@ -32,8 +81,18 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
             count: 0,
+            element_size: 0,
             _dummy: T::default(),
         })
+    }
+
+    pub fn new_with<V: VertexAttribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
+        let mut buffer = Self::new(context)?;
+        if data.len() > 0 {
+            buffer.fill_with_static(&V::flatten(data));
+        }
+        buffer.element_size = V::length();
+        Ok(buffer)
     }
 
     ///
@@ -101,6 +160,10 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     ///
     pub fn count(&self) -> usize {
         self.count
+    }
+
+    pub(crate) fn element_size(&self) -> u32 {
+        self.element_size
     }
 
     pub(crate) fn bind(&self) {
