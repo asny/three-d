@@ -44,6 +44,19 @@ pub(crate) mod internal {
         }
     }
 
+    impl BufferDataTypeExtension for f16 {
+        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
+            context.buffer_data_u16(
+                target,
+                &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
+                usage,
+            );
+        }
+        fn data_type() -> DataType {
+            DataType::HalfFloat
+        }
+    }
+
     impl BufferDataTypeExtension for f32 {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_f32(target, data, usage);

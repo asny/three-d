@@ -6,7 +6,7 @@ use crate::renderer::*;
 ///
 pub struct Skybox<T: TextureCube> {
     context: Context,
-    vertex_buffer: VertexBuffer<f32>,
+    vertex_buffer: VertexBuffer<f16>,
     material: SkyboxMaterial<T>,
 }
 
@@ -39,7 +39,14 @@ impl<T: TextureCube> Skybox<T> {
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
     pub fn new_with_texture(context: &Context, texture: T) -> ThreeDResult<Skybox<T>> {
-        let vertex_buffer = VertexBuffer::new_with_static(context, &CpuMesh::cube().positions)?;
+        let vertex_buffer = VertexBuffer::new_with_static(
+            context,
+            &CpuMesh::cube()
+                .positions
+                .drain(..)
+                .map(|v| f16::from_f32(v))
+                .collect::<Vec<_>>(),
+        )?;
 
         Ok(Skybox {
             context: context.clone(),

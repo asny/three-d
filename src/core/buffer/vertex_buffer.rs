@@ -8,6 +8,7 @@ pub trait VertexBufferDataType:
 }
 impl VertexBufferDataType for u8 {}
 impl VertexBufferDataType for u16 {}
+impl VertexBufferDataType for f16 {}
 impl VertexBufferDataType for f32 {}
 
 ///
