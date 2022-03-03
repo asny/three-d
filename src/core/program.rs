@@ -358,6 +358,39 @@ impl Program {
     }
 
     ///
+    /// Uses the given buffer data in this shader program and associates it with the given named variable.
+    /// Each value in the buffer is used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
+    /// Therefore the buffer must contain the same number of values as the number of instances specified in those draw calls.
+    ///
+    /// # Errors
+    /// Will return an error if the attribute is not defined in the shader code or not used.
+    /// In the latter case the variable is removed by the shader compiler.
+    ///
+    pub fn use_instance_attributes<T: BufferDataType>(
+        &self,
+        name: &str,
+        buffer: &InstanceBuffer<T>,
+    ) -> ThreeDResult<()> {
+        if buffer.count() > 0 {
+            buffer.bind();
+            let loc = self.location(name)?;
+            self.context.enable_vertex_attrib_array(loc);
+            self.context.vertex_attrib_pointer(
+                loc,
+                buffer.attribute_size(),
+                T::data_type(),
+                false,
+                0,
+                0,
+            );
+            self.context.vertex_attrib_divisor(loc, 1);
+            self.context.unbind_buffer(consts::ARRAY_BUFFER);
+            self.context.unuse_program();
+        }
+        Ok(())
+    }
+
+    ///
     /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// Each value in the buffer is used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain the same number of values as the number of vertices specified in those draw calls.
@@ -393,13 +426,17 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_instanced(&self, name: &str, buffer: &InstanceBuffer) -> ThreeDResult<()> {
+    pub fn use_attribute_instanced<T: BufferDataType>(
+        &self,
+        name: &str,
+        buffer: &InstanceBuffer<T>,
+    ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 1, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 1, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -443,17 +480,17 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec2_instanced(
+    pub fn use_attribute_vec2_instanced<T: BufferDataType>(
         &self,
         name: &str,
-        buffer: &InstanceBuffer,
+        buffer: &InstanceBuffer<T>,
     ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 2, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 2, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -497,17 +534,17 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec3_instanced(
+    pub fn use_attribute_vec3_instanced<T: BufferDataType>(
         &self,
         name: &str,
-        buffer: &InstanceBuffer,
+        buffer: &InstanceBuffer<T>,
     ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(&name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 3, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 3, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -547,17 +584,17 @@ impl Program {
     /// Each contiguous 4 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 4 times the number of values as the number of instances specified in those draw calls.
     ///
-    pub fn use_attribute_vec4_instanced(
+    pub fn use_attribute_vec4_instanced<T: BufferDataType>(
         &self,
         name: &str,
-        buffer: &InstanceBuffer,
+        buffer: &InstanceBuffer<T>,
     ) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
             self.context
-                .vertex_attrib_pointer(loc, 4, buffer.data_type(), false, 0, 0);
+                .vertex_attrib_pointer(loc, 4, T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();

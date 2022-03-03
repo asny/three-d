@@ -5,7 +5,7 @@ pub struct Sprites {
     context: Context,
     position_buffer: VertexBuffer<f32>,
     uv_buffer: VertexBuffer<f32>,
-    center_buffer: InstanceBuffer,
+    center_buffer: InstanceBuffer<f32>,
     instance_count: u32,
     transformation: Mat4,
 }
@@ -14,7 +14,7 @@ impl Sprites {
     pub fn new(context: &Context, centers: &[f32]) -> ThreeDResult<Self> {
         let position_buffer = VertexBuffer::new_with_data(
             &context,
-            VertexBufferType::Static,
+            BufferType::Static,
             &[
                 vec3(-1.0, -1.0, 0.0),
                 vec3(1.0, -1.0, 0.0),
@@ -26,7 +26,7 @@ impl Sprites {
         )?;
         let uv_buffer = VertexBuffer::new_with_data(
             &context,
-            VertexBufferType::Static,
+            BufferType::Static,
             &[
                 vec2(0.0, 0.0),
                 vec2(1.0, 0.0),

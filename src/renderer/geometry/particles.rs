@@ -20,8 +20,8 @@ pub struct ParticleData {
 ///
 pub struct Particles {
     context: Context,
-    start_position_buffer: InstanceBuffer,
-    start_velocity_buffer: InstanceBuffer,
+    start_position_buffer: InstanceBuffer<f32>,
+    start_velocity_buffer: InstanceBuffer<f32>,
     position_buffer: VertexBuffer<f32>,
     normal_buffer: Option<VertexBuffer<f32>>,
     uv_buffer: Option<VertexBuffer<f32>>,
@@ -70,8 +70,8 @@ impl Particles {
             index_buffer,
             normal_buffer,
             uv_buffer,
-            start_position_buffer: InstanceBuffer::new(context)?,
-            start_velocity_buffer: InstanceBuffer::new(context)?,
+            start_position_buffer: InstanceBuffer::new(context, BufferType::Dynamic)?,
+            start_velocity_buffer: InstanceBuffer::new(context, BufferType::Dynamic)?,
             acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),

@@ -1,11 +1,6 @@
 use crate::context::consts;
 use crate::core::*;
 
-pub enum VertexBufferType {
-    Static,
-    Dynamic,
-}
-
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors.
 /// Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each vertex.
@@ -17,7 +12,7 @@ pub struct VertexBuffer<T: BufferDataType> {
     count: usize,
     attribute_count: u32,
     attribute_size: u32,
-    buffer_type: VertexBufferType,
+    buffer_type: BufferType,
     _dummy: T,
 }
 
@@ -25,8 +20,8 @@ impl<T: BufferDataType> VertexBuffer<T> {
     ///
     /// Creates a new empty vertex buffer.
     ///
-    pub fn new(context: &Context, buffer_type: VertexBufferType) -> ThreeDResult<Self> {
-        Ok(VertexBuffer {
+    pub fn new(context: &Context, buffer_type: BufferType) -> ThreeDResult<Self> {
+        Ok(Self {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
             count: 0,
@@ -39,7 +34,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
 
     pub fn new_with_data<V: Attribute<T>>(
         context: &Context,
-        buffer_type: VertexBufferType,
+        buffer_type: BufferType,
         data: &[V],
     ) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context, buffer_type)?;
@@ -59,8 +54,8 @@ impl<T: BufferDataType> VertexBuffer<T> {
             consts::ARRAY_BUFFER,
             &V::flatten(data),
             match self.buffer_type {
-                VertexBufferType::Static => consts::STATIC_DRAW,
-                VertexBufferType::Dynamic => consts::DYNAMIC_DRAW,
+                BufferType::Static => consts::STATIC_DRAW,
+                BufferType::Dynamic => consts::DYNAMIC_DRAW,
             },
         );
         self.context.unbind_buffer(consts::ARRAY_BUFFER);
@@ -76,7 +71,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     ///
     #[deprecated = "use new() or new_with_data()"]
     pub fn new_with_static<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
-        Self::new_with_data(context, VertexBufferType::Static, data)
+        Self::new_with_data(context, BufferType::Static, data)
     }
 
     ///
@@ -96,7 +91,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     ///
     #[deprecated = "use new() or new_with_data()"]
     pub fn new_with_dynamic<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
-        Self::new_with_data(context, VertexBufferType::Dynamic, data)
+        Self::new_with_data(context, BufferType::Dynamic, data)
     }
 
     ///
