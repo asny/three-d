@@ -598,25 +598,18 @@ impl CpuMesh {
                 Indices::U32(ind) => ind.iter().max().map(|m| m + 1).unwrap_or(0) as usize,
             }
         } else {
-            if self.positions.len() % 3 != 0 {
-                Err(CoreError::InvalidBufferLength(
-                    "position".to_string(),
-                    (self.positions.len() as f32 / 3.0).ceil() as usize * 3,
-                    self.positions.len(),
-                ))?;
-            }
-            let vertex_count = self.positions.len() / 3;
+            let vertex_count = self.positions.len();
             if vertex_count % 3 != 0 {
                 Err(CoreError::InvalidNumberOfVertices(vertex_count))?;
             }
             vertex_count
         };
-        let buffer_check = |length: Option<usize>, name: &str, size| -> ThreeDResult<()> {
+        let buffer_check = |length: Option<usize>, name: &str| -> ThreeDResult<()> {
             if let Some(length) = length {
-                if length != size * vertex_count {
+                if length < vertex_count {
                     Err(CoreError::InvalidBufferLength(
                         name.to_string(),
-                        size * vertex_count,
+                        vertex_count,
                         length,
                     ))?;
                 }
@@ -624,11 +617,11 @@ impl CpuMesh {
             Ok(())
         };
 
-        buffer_check(Some(self.positions.len()), "position", 3)?;
-        buffer_check(self.normals.as_ref().map(|b| b.len()), "normal", 3)?;
-        buffer_check(self.tangents.as_ref().map(|b| b.len()), "tangent", 4)?;
-        buffer_check(self.colors.as_ref().map(|b| b.len()), "color", 4)?;
-        buffer_check(self.uvs.as_ref().map(|b| b.len()), "uv coordinate", 2)?;
+        buffer_check(Some(self.positions.len()), "position")?;
+        buffer_check(self.normals.as_ref().map(|b| b.len()), "normal")?;
+        buffer_check(self.tangents.as_ref().map(|b| b.len()), "tangent")?;
+        buffer_check(self.colors.as_ref().map(|b| b.len()), "color")?;
+        buffer_check(self.uvs.as_ref().map(|b| b.len()), "uv coordinate")?;
 
         Ok(())
     }
