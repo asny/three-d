@@ -333,7 +333,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute<T: BufferDataType>(
+    pub fn use_vertex_attributes<T: BufferDataType>(
         &self,
         name: &str,
         buffer: &VertexBuffer<T>,
@@ -366,7 +366,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_float<T: BufferDataType>(
+    pub fn use_attribute<T: BufferDataType>(
         &self,
         name: &str,
         buffer: &VertexBuffer<T>,
@@ -393,11 +393,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_instanced_float(
-        &self,
-        name: &str,
-        buffer: &InstanceBuffer,
-    ) -> ThreeDResult<()> {
+    pub fn use_attribute_instanced(&self, name: &str, buffer: &InstanceBuffer) -> ThreeDResult<()> {
         if buffer.count() > 0 {
             buffer.bind();
             let loc = self.location(name)?;
