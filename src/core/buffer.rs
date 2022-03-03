@@ -17,6 +17,16 @@ mod uniform_buffer;
 #[doc(inline)]
 pub use uniform_buffer::*;
 
+/// The basic data type used for each element in a [VertexBuffer] or [InstancedBuffer].
+pub trait BufferDataType:
+    Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
+{
+}
+impl BufferDataType for u8 {}
+impl BufferDataType for u16 {}
+impl BufferDataType for crate::f16 {}
+impl BufferDataType for f32 {}
+
 pub(crate) mod internal {
     use crate::context::DataType;
     use crate::core::*;
