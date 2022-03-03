@@ -29,6 +29,9 @@ impl<T: BufferDataType> InstanceBuffer<T> {
         })
     }
 
+    ///
+    /// Creates a new vertex buffer and fills it with the given data.
+    ///
     pub fn new_with_data<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
