@@ -114,7 +114,17 @@ impl GLContext {
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {
-        let header = "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2DArray;\n";
+        let header = "
+        #version 300 es
+        #ifdef GL_FRAGMENT_PRECISION_HIGH
+            precision highp float;
+            precision highp int;
+            precision highp sampler2DArray;
+        #else
+            precision mediump float;
+            precision mediump int;
+            precision mediump sampler2DArray;
+        #endif";
         let s: &str = &[header, source].concat();
 
         self.inner.shader_source(shader, s);
