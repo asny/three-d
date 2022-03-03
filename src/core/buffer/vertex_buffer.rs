@@ -1,18 +1,15 @@
 use crate::context::consts;
 use crate::core::*;
 
-pub trait VertexAttribute<T: BufferDataType>:
-    std::fmt::Debug + Clone + vertex_attribute::Extension<T>
-{
-}
+pub trait Attribute<T: BufferDataType>: std::fmt::Debug + Clone + attribute::Extension<T> {}
 
-impl<T: BufferDataType> VertexAttribute<T> for T {}
-impl<T: BufferDataType> VertexAttribute<T> for Vector2<T> {}
-impl<T: BufferDataType> VertexAttribute<T> for Vector3<T> {}
-impl<T: BufferDataType> VertexAttribute<T> for Vector4<T> {}
-impl VertexAttribute<u8> for Color {}
+impl<T: BufferDataType> Attribute<T> for T {}
+impl<T: BufferDataType> Attribute<T> for Vector2<T> {}
+impl<T: BufferDataType> Attribute<T> for Vector3<T> {}
+impl<T: BufferDataType> Attribute<T> for Vector4<T> {}
+impl Attribute<u8> for Color {}
 
-pub(crate) mod vertex_attribute {
+pub(crate) mod attribute {
     use crate::core::*;
 
     pub trait Extension<T: BufferDataType>: Clone {
@@ -132,7 +129,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
         })
     }
 
-    pub fn new_with_data<V: VertexAttribute<T>>(
+    pub fn new_with_data<V: Attribute<T>>(
         context: &Context,
         buffer_type: VertexBufferType,
         data: &[V],
@@ -147,7 +144,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     ///
     /// Fills the vertex buffer with the given data.
     ///
-    pub fn fill<V: VertexAttribute<T>>(&mut self, data: &[V]) {
+    pub fn fill<V: Attribute<T>>(&mut self, data: &[V]) {
         self.bind();
         T::buffer_data(
             &self.context,
@@ -170,10 +167,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use new() or new_with_data()"]
-    pub fn new_with_static<V: VertexAttribute<T>>(
-        context: &Context,
-        data: &[V],
-    ) -> ThreeDResult<Self> {
+    pub fn new_with_static<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
         Self::new_with_data(context, VertexBufferType::Static, data)
     }
 
@@ -183,7 +177,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use fill()"]
-    pub fn fill_with_static<V: VertexAttribute<T>>(&mut self, data: &[V]) {
+    pub fn fill_with_static<V: Attribute<T>>(&mut self, data: &[V]) {
         self.fill(data)
     }
 
@@ -193,10 +187,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     /// when you expect the data to change often.
     ///
     #[deprecated = "use new() or new_with_data()"]
-    pub fn new_with_dynamic<V: VertexAttribute<T>>(
-        context: &Context,
-        data: &[V],
-    ) -> ThreeDResult<Self> {
+    pub fn new_with_dynamic<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
         Self::new_with_data(context, VertexBufferType::Dynamic, data)
     }
 
@@ -206,7 +197,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     /// when you expect the data to change often.
     ///
     #[deprecated = "use fill()"]
-    pub fn fill_with_dynamic<V: VertexAttribute<T>>(&mut self, data: &[V]) {
+    pub fn fill_with_dynamic<V: Attribute<T>>(&mut self, data: &[V]) {
         self.fill(data)
     }
 
