@@ -6,12 +6,11 @@ pub struct Sprites {
     position_buffer: VertexBuffer<f32>,
     uv_buffer: VertexBuffer<f32>,
     center_buffer: InstanceBuffer<f32>,
-    instance_count: u32,
     transformation: Mat4,
 }
 
 impl Sprites {
-    pub fn new(context: &Context, centers: &[f32]) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, centers: &[Vec3]) -> ThreeDResult<Self> {
         let position_buffer = VertexBuffer::new_with_data(
             &context,
             &[
@@ -39,7 +38,6 @@ impl Sprites {
             position_buffer,
             uv_buffer,
             center_buffer: InstanceBuffer::new_with_data(context, centers)?,
-            instance_count: centers.len() as u32 / 3,
             transformation: Mat4::identity(),
         })
     }
@@ -59,8 +57,7 @@ impl Sprites {
     }
 
     pub fn set_centers(&mut self, centers: &[f32]) {
-        self.instance_count = centers.len() as u32 / 3;
-        self.center_buffer.fill_with_dynamic(centers);
+        self.center_buffer.fill(centers);
     }
 }
 
@@ -86,7 +83,7 @@ impl Geometry for Sprites {
                     material.render_states(),
                     camera.viewport(),
                     6,
-                    self.instance_count,
+                    self.center_buffer.attribute_count(),
                 );
                 Ok(())
             },

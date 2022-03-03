@@ -28,10 +28,14 @@ impl ImageEffect {
             fragment_shader,
         )?;
 
-        let positions = vec![-3.0, -1.0, 0.0, 3.0, -1.0, 0.0, 0.0, 2.0, 0.0];
-        let uvs = vec![-1.0, 0.0, 2.0, 0.0, 0.5, 1.5];
-        let positions = VertexBuffer::new_with_static(&context, &positions).unwrap();
-        let uvs = VertexBuffer::new_with_static(&context, &uvs).unwrap();
+        let positions = vec![
+            vec3(-3.0, -1.0, 0.0),
+            vec3(3.0, -1.0, 0.0),
+            vec3(0.0, 2.0, 0.0),
+        ];
+        let uvs = vec![vec2(-1.0, 0.0), vec2(2.0, 0.0), vec2(0.5, 1.5)];
+        let positions = VertexBuffer::new_with_data(&context, &positions).unwrap();
+        let uvs = VertexBuffer::new_with_data(&context, &uvs).unwrap();
 
         Ok(Self {
             program,
