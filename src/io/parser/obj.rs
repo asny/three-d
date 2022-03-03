@@ -114,7 +114,7 @@ impl Loaded {
                     }
 
                     if index.is_none() {
-                        index = Some(positions.len() / 3);
+                        index = Some(positions.len());
                         map.insert(i.0, index.unwrap());
                         let position = object.vertices[i.0];
                         positions.push(vec3(
