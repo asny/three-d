@@ -60,8 +60,8 @@ pub struct CpuMesh {
     /// The normals of the vertices.
     pub normals: Option<Vec<Vec3>>,
     /// The tangents of the vertices, orthogonal direction to the normal.
-    /// Three contiguous floats defines a tangent `(x, y, z)` and a value that specifies the handedness (either -1.0 or 1.0), therefore the length must be divisable by 4.
-    pub tangents: Option<Vec<f32>>,
+    /// The fourth value specifies the handedness (either -1.0 or 1.0).
+    pub tangents: Option<Vec<Vec4>>,
     /// The uv coordinates of the vertices. Two contiguous floats defines a coordinate `(u, v)`, therefore the length must be divisable by 2.
     pub uvs: Option<Vec<f32>>,
     /// The colors of the vertices.
@@ -113,17 +113,10 @@ impl CpuMesh {
         }
 
         if let Some(ref mut tangents) = self.tangents {
-            for i in 0..tangents.len() / 4 {
-                let t = normal_transform
-                    * vec4(
-                        tangents[i * 4],
-                        tangents[i * 4 + 1],
-                        tangents[i * 4 + 2],
-                        1.0,
-                    );
-                tangents[i * 4] = t.x;
-                tangents[i * 4 + 1] = t.y;
-                tangents[i * 4 + 2] = t.z;
+            for t in tangents.iter_mut() {
+                *t = (normal_transform * t.truncate().extend(1.0))
+                    .truncate()
+                    .extend(t.w);
             }
         }
     }
@@ -147,7 +140,10 @@ impl CpuMesh {
             vec3(0.0, 0.0, 1.0),
         ];
         let tangents = vec![
-            1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
+            vec4(1.0, 0.0, 0.0, 1.0),
+            vec4(1.0, 0.0, 0.0, 1.0),
+            vec4(1.0, 0.0, 0.0, 1.0),
+            vec4(1.0, 0.0, 0.0, 1.0),
         ];
         let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
         CpuMesh {
@@ -477,7 +473,7 @@ impl CpuMesh {
             }
         });
 
-        let mut tangents = vec![0.0f32; 4 * self.positions.len()];
+        let mut tangents = vec![vec4(0.0, 0.0, 0.0, 0.0); self.positions.len()];
         self.for_each_vertex(|index| {
             let normal = self.normals.as_ref().unwrap()[index];
             let t = tan1[index];
@@ -487,10 +483,7 @@ impl CpuMesh {
             } else {
                 -1.0
             };
-            tangents[index * 4] = tangent.x;
-            tangents[index * 4 + 1] = tangent.y;
-            tangents[index * 4 + 2] = tangent.z;
-            tangents[index * 4 + 3] = handedness;
+            tangents[index] = tangent.extend(handedness);
         });
 
         self.tangents = Some(tangents);
