@@ -16,8 +16,10 @@ pub trait VertexAttribute<T: VertexBufferDataType>:
 {
 }
 
+impl<T: VertexBufferDataType> VertexAttribute<T> for T {}
 impl<T: VertexBufferDataType> VertexAttribute<T> for Vector2<T> {}
 impl<T: VertexBufferDataType> VertexAttribute<T> for Vector3<T> {}
+impl<T: VertexBufferDataType> VertexAttribute<T> for Vector4<T> {}
 
 pub(crate) mod vertex_attribute {
     use crate::core::*;
@@ -25,6 +27,16 @@ pub(crate) mod vertex_attribute {
     pub trait Extension<T: VertexBufferDataType>: Clone {
         fn length() -> u32;
         fn flatten(data: &[Self]) -> Vec<T>;
+    }
+
+    impl<T: VertexBufferDataType> Extension<T> for T {
+        fn length() -> u32 {
+            1
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            data.to_vec()
+        }
     }
 
     impl<T: VertexBufferDataType> Extension<T> for Vector2<T> {
@@ -53,6 +65,23 @@ pub(crate) mod vertex_attribute {
                 res.push(d.x);
                 res.push(d.y);
                 res.push(d.z);
+            }
+            res
+        }
+    }
+
+    impl<T: VertexBufferDataType> Extension<T> for Vector4<T> {
+        fn length() -> u32 {
+            4
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.x);
+                res.push(d.y);
+                res.push(d.z);
+                res.push(d.w);
             }
             res
         }
