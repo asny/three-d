@@ -69,9 +69,13 @@ fn parse_tree<'a>(
                     positions.push(vec3(value[0], value[1], value[2]));
                 }
 
-                let normals = reader
-                    .read_normals()
-                    .map(|values| values.flatten().collect::<Vec<_>>());
+                let normals = reader.read_normals().map(|values| {
+                    let mut normals = Vec::new();
+                    for n in values {
+                        normals.push(vec3(n[0], n[1], n[2]));
+                    }
+                    normals
+                });
 
                 let tangents = reader
                     .read_tangents()
