@@ -92,9 +92,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     for x in -t..t + 1 {
         for y in -t..t + 1 {
             if x != 0 || y != 0 {
-                positions.push(10.0 * x as f32);
-                positions.push(0.0);
-                positions.push(10.0 * y as f32);
+                positions.push(vec3(10.0 * x as f32, 0.0, 10.0 * y as f32));
             }
         }
     }

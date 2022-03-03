@@ -22,7 +22,7 @@ impl Imposters {
     ///
     pub fn new(
         context: &Context,
-        positions: &[f32],
+        positions: &[Vec3],
         objects: &[&dyn Object],
         lights: &[&dyn Light],
         max_texture_size: u32,

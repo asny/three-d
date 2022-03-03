@@ -161,36 +161,44 @@ impl InstancedMesh {
         let mut instance_tex_transform1 = Vec::new();
         let mut instance_tex_transform2 = Vec::new();
         for instance in self.instances.iter() {
-            row1.push(instance.geometry_transform.x.x);
-            row1.push(instance.geometry_transform.y.x);
-            row1.push(instance.geometry_transform.z.x);
-            row1.push(instance.geometry_transform.w.x);
+            row1.push(vec4(
+                instance.geometry_transform.x.x,
+                instance.geometry_transform.y.x,
+                instance.geometry_transform.z.x,
+                instance.geometry_transform.w.x,
+            ));
 
-            row2.push(instance.geometry_transform.x.y);
-            row2.push(instance.geometry_transform.y.y);
-            row2.push(instance.geometry_transform.z.y);
-            row2.push(instance.geometry_transform.w.y);
+            row2.push(vec4(
+                instance.geometry_transform.x.y,
+                instance.geometry_transform.y.y,
+                instance.geometry_transform.z.y,
+                instance.geometry_transform.w.y,
+            ));
 
-            row3.push(instance.geometry_transform.x.z);
-            row3.push(instance.geometry_transform.y.z);
-            row3.push(instance.geometry_transform.z.z);
-            row3.push(instance.geometry_transform.w.z);
+            row3.push(vec4(
+                instance.geometry_transform.x.z,
+                instance.geometry_transform.y.z,
+                instance.geometry_transform.z.z,
+                instance.geometry_transform.w.z,
+            ));
 
-            instance_tex_transform1.push(instance.texture_transform.x.x);
-            instance_tex_transform1.push(instance.texture_transform.y.x);
-            instance_tex_transform1.push(instance.texture_transform.z.x);
+            instance_tex_transform1.push(vec3(
+                instance.texture_transform.x.x,
+                instance.texture_transform.y.x,
+                instance.texture_transform.z.x,
+            ));
 
-            instance_tex_transform2.push(instance.texture_transform.x.y);
-            instance_tex_transform2.push(instance.texture_transform.y.y);
-            instance_tex_transform2.push(instance.texture_transform.z.y);
+            instance_tex_transform2.push(vec3(
+                instance.texture_transform.x.y,
+                instance.texture_transform.y.y,
+                instance.texture_transform.z.y,
+            ));
         }
-        self.instance_buffer1.fill_with_dynamic(&row1);
-        self.instance_buffer2.fill_with_dynamic(&row2);
-        self.instance_buffer3.fill_with_dynamic(&row3);
-        self.instance_tex_transform1
-            .fill_with_dynamic(&instance_tex_transform1);
-        self.instance_tex_transform2
-            .fill_with_dynamic(&instance_tex_transform2);
+        self.instance_buffer1.fill(&row1);
+        self.instance_buffer2.fill(&row2);
+        self.instance_buffer3.fill(&row3);
+        self.instance_tex_transform1.fill(&instance_tex_transform1);
+        self.instance_tex_transform2.fill(&instance_tex_transform2);
         self.update_aabb();
     }
 
@@ -214,9 +222,9 @@ impl InstancedMesh {
         program.use_uniform_block("Camera", camera_buffer);
         program.use_uniform("modelMatrix", &self.transformation)?;
 
-        program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
-        program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
-        program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
+        program.use_instance_attribute("row1", &self.instance_buffer1)?;
+        program.use_instance_attribute("row2", &self.instance_buffer2)?;
+        program.use_instance_attribute("row3", &self.instance_buffer3)?;
 
         if program.requires_attribute("position") {
             program.use_vertex_attribute("position", &self.position_buffer)?;
@@ -242,7 +250,7 @@ impl InstancedMesh {
                     .tangent_buffer
                     .as_ref()
                     .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
-                program.use_attribute_vec4("tangent", tangent_buffer)?;
+                program.use_vertex_attribute("tangent", tangent_buffer)?;
             }
         }
         if program.requires_attribute("color") {
