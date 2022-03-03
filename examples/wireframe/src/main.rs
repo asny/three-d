@@ -131,11 +131,7 @@ fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
     let mut instances = Vec::new();
     while let Some(v) = iter.next() {
         instances.push(Instance {
-            geometry_transform: Mat4::from_translation(vec3(
-                *v,
-                *iter.next().unwrap(),
-                *iter.next().unwrap(),
-            )),
+            geometry_transform: Mat4::from_translation(*v),
             ..Default::default()
         });
     }
@@ -147,16 +143,8 @@ fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
     let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
     for f in 0..indices.len() / 3 {
         let mut fun = |i1, i2| {
-            let p1 = vec3(
-                cpu_mesh.positions[i1 * 3],
-                cpu_mesh.positions[i1 * 3 + 1],
-                cpu_mesh.positions[i1 * 3 + 2],
-            );
-            let p2 = vec3(
-                cpu_mesh.positions[i2 * 3],
-                cpu_mesh.positions[i2 * 3 + 1],
-                cpu_mesh.positions[i2 * 3 + 2],
-            );
+            let p1: Vec3 = cpu_mesh.positions[i1];
+            let p2: Vec3 = cpu_mesh.positions[i2];
             let scale = Mat4::from_nonuniform_scale((p1 - p2).magnitude(), 1.0, 1.0);
             let rotation =
                 rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), (p2 - p1).normalize());
