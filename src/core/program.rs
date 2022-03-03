@@ -333,7 +333,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute<T: VertexBufferDataType>(
+    pub fn use_attribute<T: BufferDataType>(
         &self,
         name: &str,
         buffer: &VertexBuffer<T>,
@@ -366,7 +366,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_float<T: VertexBufferDataType>(
+    pub fn use_attribute_float<T: BufferDataType>(
         &self,
         name: &str,
         buffer: &VertexBuffer<T>,
@@ -420,7 +420,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec2<T: VertexBufferDataType>(
+    pub fn use_attribute_vec2<T: BufferDataType>(
         &self,
         name: &str,
         buffer: &VertexBuffer<T>,
@@ -474,7 +474,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec3<T: VertexBufferDataType>(
+    pub fn use_attribute_vec3<T: BufferDataType>(
         &self,
         name: &str,
         buffer: &VertexBuffer<T>,
@@ -528,7 +528,7 @@ impl Program {
     /// Will return an error if the attribute is not defined in the shader code or not used.
     /// In the latter case the variable is removed by the shader compiler.
     ///
-    pub fn use_attribute_vec4<T: VertexBufferDataType>(
+    pub fn use_attribute_vec4<T: BufferDataType>(
         &self,
         name: &str,
         buffer: &VertexBuffer<T>,

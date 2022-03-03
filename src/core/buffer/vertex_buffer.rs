@@ -2,35 +2,35 @@ use crate::context::consts;
 use crate::core::*;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstancedBuffer].
-pub trait VertexBufferDataType:
+pub trait BufferDataType:
     Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
 {
 }
-impl VertexBufferDataType for u8 {}
-impl VertexBufferDataType for u16 {}
-impl VertexBufferDataType for f16 {}
-impl VertexBufferDataType for f32 {}
+impl BufferDataType for u8 {}
+impl BufferDataType for u16 {}
+impl BufferDataType for f16 {}
+impl BufferDataType for f32 {}
 
-pub trait VertexAttribute<T: VertexBufferDataType>:
+pub trait VertexAttribute<T: BufferDataType>:
     std::fmt::Debug + Clone + vertex_attribute::Extension<T>
 {
 }
 
-impl<T: VertexBufferDataType> VertexAttribute<T> for T {}
-impl<T: VertexBufferDataType> VertexAttribute<T> for Vector2<T> {}
-impl<T: VertexBufferDataType> VertexAttribute<T> for Vector3<T> {}
-impl<T: VertexBufferDataType> VertexAttribute<T> for Vector4<T> {}
+impl<T: BufferDataType> VertexAttribute<T> for T {}
+impl<T: BufferDataType> VertexAttribute<T> for Vector2<T> {}
+impl<T: BufferDataType> VertexAttribute<T> for Vector3<T> {}
+impl<T: BufferDataType> VertexAttribute<T> for Vector4<T> {}
 impl VertexAttribute<u8> for Color {}
 
 pub(crate) mod vertex_attribute {
     use crate::core::*;
 
-    pub trait Extension<T: VertexBufferDataType>: Clone {
+    pub trait Extension<T: BufferDataType>: Clone {
         fn length() -> u32;
         fn flatten(data: &[Self]) -> Vec<T>;
     }
 
-    impl<T: VertexBufferDataType> Extension<T> for T {
+    impl<T: BufferDataType> Extension<T> for T {
         fn length() -> u32 {
             1
         }
@@ -40,7 +40,7 @@ pub(crate) mod vertex_attribute {
         }
     }
 
-    impl<T: VertexBufferDataType> Extension<T> for Vector2<T> {
+    impl<T: BufferDataType> Extension<T> for Vector2<T> {
         fn length() -> u32 {
             2
         }
@@ -55,7 +55,7 @@ pub(crate) mod vertex_attribute {
         }
     }
 
-    impl<T: VertexBufferDataType> Extension<T> for Vector3<T> {
+    impl<T: BufferDataType> Extension<T> for Vector3<T> {
         fn length() -> u32 {
             3
         }
@@ -71,7 +71,7 @@ pub(crate) mod vertex_attribute {
         }
     }
 
-    impl<T: VertexBufferDataType> Extension<T> for Vector4<T> {
+    impl<T: BufferDataType> Extension<T> for Vector4<T> {
         fn length() -> u32 {
             4
         }
@@ -116,7 +116,7 @@ pub enum VertexBufferType {
 /// Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each vertex.
 /// Bind this using the [Program::use_attribute], [Program::use_attribute_vec2], etc. functionality.
 ///
-pub struct VertexBuffer<T: VertexBufferDataType> {
+pub struct VertexBuffer<T: BufferDataType> {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
@@ -126,7 +126,7 @@ pub struct VertexBuffer<T: VertexBufferDataType> {
     _dummy: T,
 }
 
-impl<T: VertexBufferDataType> VertexBuffer<T> {
+impl<T: BufferDataType> VertexBuffer<T> {
     ///
     /// Creates a new empty vertex buffer.
     ///
@@ -246,7 +246,7 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     }
 }
 
-impl<T: VertexBufferDataType> Drop for VertexBuffer<T> {
+impl<T: BufferDataType> Drop for VertexBuffer<T> {
     fn drop(&mut self) {
         self.context.delete_buffer(&self.id);
     }
