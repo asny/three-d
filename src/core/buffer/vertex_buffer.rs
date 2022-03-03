@@ -1,7 +1,7 @@
 use crate::context::consts;
 use crate::core::*;
 
-/// The basic data type used for each element in a [VertexBuffer].
+/// The basic data type used for each element in a [VertexBuffer] or [InstancedBuffer].
 pub trait VertexBufferDataType:
     Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
 {
