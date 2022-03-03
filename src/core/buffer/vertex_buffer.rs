@@ -180,12 +180,11 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use new() or new_with_data()"]
-    pub fn new_with_static(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context, VertexBufferType::Static)?;
-        if data.len() > 0 {
-            buffer.fill_with_static(data);
-        }
-        Ok(buffer)
+    pub fn new_with_static<V: VertexAttribute<T>>(
+        context: &Context,
+        data: &[V],
+    ) -> ThreeDResult<Self> {
+        Self::new_with_data(context, VertexBufferType::Static, data)
     }
 
     ///
@@ -194,16 +193,8 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use fill()"]
-    pub fn fill_with_static(&mut self, data: &[T]) {
-        self.bind();
-        T::buffer_data(
-            &self.context,
-            consts::ARRAY_BUFFER,
-            data,
-            consts::STATIC_DRAW,
-        );
-        self.context.unbind_buffer(consts::ARRAY_BUFFER);
-        self.count = data.len();
+    pub fn fill_with_static<V: VertexAttribute<T>>(&mut self, data: &[V]) {
+        self.fill(data)
     }
 
     ///
@@ -212,12 +203,11 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     /// when you expect the data to change often.
     ///
     #[deprecated = "use new() or new_with_data()"]
-    pub fn new_with_dynamic(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context, VertexBufferType::Dynamic).unwrap();
-        if data.len() > 0 {
-            buffer.fill_with_dynamic(data);
-        }
-        Ok(buffer)
+    pub fn new_with_dynamic<V: VertexAttribute<T>>(
+        context: &Context,
+        data: &[V],
+    ) -> ThreeDResult<Self> {
+        Self::new_with_data(context, VertexBufferType::Dynamic, data)
     }
 
     ///
@@ -226,16 +216,8 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     /// when you expect the data to change often.
     ///
     #[deprecated = "use fill()"]
-    pub fn fill_with_dynamic(&mut self, data: &[T]) {
-        self.bind();
-        T::buffer_data(
-            &self.context,
-            consts::ARRAY_BUFFER,
-            data,
-            consts::DYNAMIC_DRAW,
-        );
-        self.context.unbind_buffer(consts::ARRAY_BUFFER);
-        self.count = data.len();
+    pub fn fill_with_dynamic<V: VertexAttribute<T>>(&mut self, data: &[V]) {
+        self.fill(data)
     }
 
     ///
