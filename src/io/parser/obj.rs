@@ -83,7 +83,7 @@ impl Loaded {
                 // All meshes with different materials
                 let mut positions = Vec::new();
                 let mut normals: Vec<Vec3> = Vec::new();
-                let mut uvs = Vec::new();
+                let mut uvs: Vec<Vec2> = Vec::new();
                 let mut indices = Vec::new();
 
                 let mut map: HashMap<usize, usize> = HashMap::new();
@@ -96,9 +96,8 @@ impl Loaded {
 
                     if let Some(ind) = index {
                         if let Some(tex) = uvw {
-                            if ((uvs[ind * 2] - tex.u as f32) as f32).abs() > std::f32::EPSILON
-                                || ((uvs[ind * 2 + 1] - tex.v as f32) as f32).abs()
-                                    > std::f32::EPSILON
+                            if ((uvs[ind].x - tex.u as f32) as f32).abs() > std::f32::EPSILON
+                                || ((uvs[ind].y - tex.v as f32) as f32).abs() > std::f32::EPSILON
                             {
                                 index = None;
                             }
@@ -124,8 +123,7 @@ impl Loaded {
                         ));
 
                         if let Some(tex) = uvw {
-                            uvs.push(tex.u as f32);
-                            uvs.push(1.0 - tex.v as f32);
+                            uvs.push(vec2(tex.u as f32, 1.0 - tex.v as f32));
                         }
                         if let Some(n) = normal {
                             normals.push(vec3(n.x as f32, n.y as f32, n.z as f32));

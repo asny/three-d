@@ -62,8 +62,8 @@ pub struct CpuMesh {
     /// The tangents of the vertices, orthogonal direction to the normal.
     /// The fourth value specifies the handedness (either -1.0 or 1.0).
     pub tangents: Option<Vec<Vec4>>,
-    /// The uv coordinates of the vertices. Two contiguous floats defines a coordinate `(u, v)`, therefore the length must be divisable by 2.
-    pub uvs: Option<Vec<f32>>,
+    /// The uv coordinates of the vertices.
+    pub uvs: Option<Vec<Vec2>>,
     /// The colors of the vertices.
     /// The colors are assumed to be in linear space.
     pub colors: Option<Vec<Color>>,
@@ -145,7 +145,12 @@ impl CpuMesh {
             vec4(1.0, 0.0, 0.0, 1.0),
             vec4(1.0, 0.0, 0.0, 1.0),
         ];
-        let uvs = vec![0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
+        let uvs = vec![
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+        ];
         CpuMesh {
             name: "square".to_string(),
             indices: Some(Indices::U8(indices)),
@@ -292,11 +297,42 @@ impl CpuMesh {
             vec3(-1.0, -1.0, -1.0),
         ];
         let uvs = vec![
-            1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0,
-            0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-            0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 0.0,
+            vec2(1.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 0.0),
         ];
         let mut mesh = CpuMesh {
             positions,
@@ -449,9 +485,9 @@ impl CpuMesh {
             let a = self.positions[i0];
             let b = self.positions[i1];
             let c = self.positions[i2];
-            let uva = self.uv(i0).unwrap();
-            let uvb = self.uv(i1).unwrap();
-            let uvc = self.uv(i2).unwrap();
+            let uva = self.uvs.as_ref().unwrap()[i0];
+            let uvb = self.uvs.as_ref().unwrap()[i1];
+            let uvc = self.uvs.as_ref().unwrap()[i2];
 
             let ba = b - a;
             let ca = c - a;
@@ -534,15 +570,6 @@ impl CpuMesh {
                 }
             }
         }
-    }
-
-    ///
-    /// Returns the uv coordinates of the vertex with the given index.
-    ///
-    pub fn uv(&self, vertex_index: usize) -> Option<Vec2> {
-        self.uvs
-            .as_ref()
-            .map(|uvs| vec2(uvs[2 * vertex_index], uvs[2 * vertex_index + 1]))
     }
 
     ///

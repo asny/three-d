@@ -194,8 +194,7 @@ fn parse_tree<'a>(
                 let uvs = reader.read_tex_coords(0).map(|values| {
                     let mut uvs = Vec::new();
                     for value in values.into_f32() {
-                        uvs.push(value[0]);
-                        uvs.push(value[1]);
+                        uvs.push(vec2(value[0], value[1]));
                     }
                     uvs
                 });
