@@ -12,16 +12,27 @@ pub struct Sprites {
 
 impl Sprites {
     pub fn new(context: &Context, centers: &[f32]) -> ThreeDResult<Self> {
-        let position_buffer = VertexBuffer::new_with_static(
+        let position_buffer = VertexBuffer::new_with(
             &context,
             &[
-                -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0,
-                -1.0, -1.0, 0.0,
+                vec3(-1.0, -1.0, 0.0),
+                vec3(1.0, -1.0, 0.0),
+                vec3(1.0, 1.0, 0.0),
+                vec3(1.0, 1.0, 0.0),
+                vec3(-1.0, 1.0, 0.0),
+                vec3(-1.0, -1.0, 0.0),
             ],
         )?;
-        let uv_buffer = VertexBuffer::new_with_static(
+        let uv_buffer = VertexBuffer::new_with(
             &context,
-            &[0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0],
+            &[
+                vec2(0.0, 0.0),
+                vec2(1.0, 0.0),
+                vec2(1.0, 1.0),
+                vec2(1.0, 1.0),
+                vec2(0.0, 1.0),
+                vec2(0.0, 0.0),
+            ],
         )?;
         Ok(Self {
             context: context.clone(),
