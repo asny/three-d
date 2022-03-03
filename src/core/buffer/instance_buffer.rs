@@ -31,10 +31,7 @@ impl InstanceBuffer {
     /// Use this method instead of [new_with_dynamic](InstanceBuffer::new_with_dynamic)
     /// when you do not expect the data to change often.
     ///
-    pub fn new_with_static<T: VertexBufferDataType>(
-        context: &Context,
-        data: &[T],
-    ) -> ThreeDResult<Self> {
+    pub fn new_with_static<T: BufferDataType>(context: &Context, data: &[T]) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill_with_static(data);
@@ -48,7 +45,7 @@ impl InstanceBuffer {
     /// Use this method instead of [fill_with_dynamic](InstanceBuffer::fill_with_dynamic)
     /// when you do not expect the data to change often.
     ///
-    pub fn fill_with_static<T: VertexBufferDataType>(&mut self, data: &[T]) {
+    pub fn fill_with_static<T: BufferDataType>(&mut self, data: &[T]) {
         self.bind();
         T::buffer_data(
             &self.context,
@@ -67,7 +64,7 @@ impl InstanceBuffer {
     /// Use this method instead of [new_with_static](InstanceBuffer::new_with_static)
     /// when you expect the data to change often.
     ///
-    pub fn new_with_dynamic<T: VertexBufferDataType>(
+    pub fn new_with_dynamic<T: BufferDataType>(
         context: &Context,
         data: &[T],
     ) -> ThreeDResult<Self> {
@@ -84,7 +81,7 @@ impl InstanceBuffer {
     /// Use this method instead of [fill_with_static](InstanceBuffer::fill_with_static)
     /// when you expect the data to change often.
     ///
-    pub fn fill_with_dynamic<T: VertexBufferDataType>(&mut self, data: &[T]) {
+    pub fn fill_with_dynamic<T: BufferDataType>(&mut self, data: &[T]) {
         self.bind();
         T::buffer_data(
             &self.context,
