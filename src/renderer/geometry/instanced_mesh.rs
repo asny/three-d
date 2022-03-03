@@ -66,7 +66,11 @@ impl InstancedMesh {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with(context, colors)?)
+            Some(VertexBuffer::new_with_data(
+                context,
+                VertexBufferType::Static,
+                colors,
+            )?)
         } else {
             None
         };

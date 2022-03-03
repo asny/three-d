@@ -106,6 +106,11 @@ pub(crate) mod vertex_attribute {
     }
 }
 
+pub enum VertexBufferType {
+    Static,
+    Dynamic,
+}
+
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors.
 /// Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each vertex.
@@ -115,7 +120,9 @@ pub struct VertexBuffer<T: VertexBufferDataType> {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
+    element_count: u32,
     element_size: u32,
+    buffer_type: VertexBufferType,
     _dummy: T,
 }
 
@@ -123,23 +130,48 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     ///
     /// Creates a new empty vertex buffer.
     ///
-    pub fn new(context: &Context) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, buffer_type: VertexBufferType) -> ThreeDResult<Self> {
         Ok(VertexBuffer {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
             count: 0,
+            element_count: 0,
             element_size: 0,
+            buffer_type,
             _dummy: T::default(),
         })
     }
 
-    pub fn new_with<V: VertexAttribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context)?;
+    pub fn new_with_data<V: VertexAttribute<T>>(
+        context: &Context,
+        buffer_type: VertexBufferType,
+        data: &[V],
+    ) -> ThreeDResult<Self> {
+        let mut buffer = Self::new(context, buffer_type)?;
         if data.len() > 0 {
-            buffer.fill_with_static(&V::flatten(data));
+            buffer.fill(data);
         }
-        buffer.element_size = V::length();
         Ok(buffer)
+    }
+
+    ///
+    /// Fills the vertex buffer with the given data.
+    ///
+    pub fn fill<V: VertexAttribute<T>>(&mut self, data: &[V]) {
+        self.bind();
+        T::buffer_data(
+            &self.context,
+            consts::ARRAY_BUFFER,
+            &V::flatten(data),
+            match self.buffer_type {
+                VertexBufferType::Static => consts::STATIC_DRAW,
+                VertexBufferType::Dynamic => consts::DYNAMIC_DRAW,
+            },
+        );
+        self.context.unbind_buffer(consts::ARRAY_BUFFER);
+        self.count = data.len() * V::length() as usize;
+        self.element_count = data.len() as u32;
+        self.element_size = V::length();
     }
 
     ///
@@ -148,7 +180,7 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     /// when you do not expect the data to change often.
     ///
     pub fn new_with_static(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context)?;
+        let mut buffer = Self::new(context, VertexBufferType::Static)?;
         if data.len() > 0 {
             buffer.fill_with_static(data);
         }
@@ -178,7 +210,7 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
     /// when you expect the data to change often.
     ///
     pub fn new_with_dynamic(context: &Context, data: &[T]) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context).unwrap();
+        let mut buffer = Self::new(context, VertexBufferType::Dynamic).unwrap();
         if data.len() > 0 {
             buffer.fill_with_dynamic(data);
         }
@@ -209,7 +241,17 @@ impl<T: VertexBufferDataType> VertexBuffer<T> {
         self.count
     }
 
-    pub(crate) fn element_size(&self) -> u32 {
+    ///
+    /// The number of vertex elements in the buffer.
+    ///
+    pub fn element_count(&self) -> u32 {
+        self.element_count
+    }
+
+    ///
+    /// The size of each vertex element, for example 3 if the vertex attribute is a [Vector3].
+    ///
+    pub fn element_size(&self) -> u32 {
         self.element_size
     }
 
