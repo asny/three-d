@@ -200,7 +200,7 @@ impl GUI {
         let position_buffer = VertexBuffer::new_with_data(&self.context, &positions)?;
         let uv_buffer = VertexBuffer::new_with_data(&self.context, &uvs)?;
         let color_buffer = VertexBuffer::new_with_data(&self.context, &colors)?;
-        let index_buffer = ElementBuffer::new_with(&self.context, &indices)?;
+        let index_buffer = ElementBuffer::new_with_data(&self.context, &indices)?;
 
         let render_states = RenderStates {
             blend: Blend::Enabled {
