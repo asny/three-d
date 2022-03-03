@@ -52,8 +52,8 @@ pub struct CpuMesh {
     pub name: String,
     /// Name of the associated material, use this to match with [CpuMaterial::name].
     pub material_name: Option<String>,
-    /// The positions of the vertices. Three contiguous floats defines a 3D position `(x, y, z)`, therefore the length must be divisable by 3.
-    /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must also be divisable by 9.
+    /// The positions of the vertices.
+    /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must be divisable by 3.
     pub positions: Vec<Vec3>,
     /// The indices into the positions, normals, uvs and colors arrays which defines the three vertices of a triangle. Three contiguous indices defines a triangle, therefore the length must be divisable by 3.
     pub indices: Option<Indices>,
