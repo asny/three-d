@@ -79,8 +79,8 @@ impl Geometry for Sprites {
                 material.use_uniforms(program, camera, lights)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
                 program.use_uniform("transformation", self.transformation)?;
-                program.use_attribute_vec3("position", &self.position_buffer)?;
-                program.use_attribute_vec2("uv_coordinate", &self.uv_buffer)?;
+                program.use_attribute("position", &self.position_buffer)?;
+                program.use_attribute("uv_coordinate", &self.uv_buffer)?;
                 program.use_attribute_vec3_instanced("center", &self.center_buffer)?;
                 program.draw_arrays_instanced(
                     material.render_states(),
