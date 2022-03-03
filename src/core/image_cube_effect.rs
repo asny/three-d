@@ -6,7 +6,7 @@ use crate::core::*;
 ///
 pub struct ImageCubeEffect {
     program: Program,
-    positions: VertexBuffer,
+    positions: VertexBuffer<f32>,
 }
 
 impl ImageCubeEffect {

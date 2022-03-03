@@ -22,9 +22,9 @@ pub struct Particles {
     context: Context,
     start_position_buffer: InstanceBuffer,
     start_velocity_buffer: InstanceBuffer,
-    position_buffer: VertexBuffer,
-    normal_buffer: Option<VertexBuffer>,
-    uv_buffer: Option<VertexBuffer>,
+    position_buffer: VertexBuffer<f32>,
+    normal_buffer: Option<VertexBuffer<f32>>,
+    uv_buffer: Option<VertexBuffer<f32>>,
     index_buffer: Option<ElementBuffer>,
     /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,
