@@ -54,7 +54,7 @@ pub struct CpuMesh {
     pub material_name: Option<String>,
     /// The positions of the vertices. Three contiguous floats defines a 3D position `(x, y, z)`, therefore the length must be divisable by 3.
     /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must also be divisable by 9.
-    pub positions: Vec<f32>,
+    pub positions: Vec<Vec3>,
     /// The indices into the positions, normals, uvs and colors arrays which defines the three vertices of a triangle. Three contiguous indices defines a triangle, therefore the length must be divisable by 3.
     pub indices: Option<Indices>,
     /// The normals of the vertices. Three contiguous floats defines a normal `(x, y, z)`, therefore the length must be divisable by 3.
@@ -101,18 +101,8 @@ impl CpuMesh {
     /// Transforms the mesh by the given transformation.
     ///
     pub fn transform(&mut self, transform: &Mat4) {
-        for i in 0..self.positions.len() / 3 {
-            let p = (transform
-                * vec4(
-                    self.positions[i * 3],
-                    self.positions[i * 3 + 1],
-                    self.positions[i * 3 + 2],
-                    1.0,
-                ))
-            .truncate();
-            self.positions[i * 3] = p.x;
-            self.positions[i * 3 + 1] = p.y;
-            self.positions[i * 3 + 2] = p.z;
+        for pos in self.positions.iter_mut() {
+            *pos = (transform * pos.extend(1.0)).truncate();
         }
         let normal_transform = transform.invert().unwrap().transpose();
 
@@ -149,8 +139,10 @@ impl CpuMesh {
         let indices = vec![0u8, 1, 2, 2, 3, 0];
         let halfsize = 1.0;
         let positions = vec![
-            -halfsize, -halfsize, 0.0, halfsize, -halfsize, 0.0, halfsize, halfsize, 0.0,
-            -halfsize, halfsize, 0.0,
+            vec3(-halfsize, -halfsize, 0.0),
+            vec3(halfsize, -halfsize, 0.0),
+            vec3(halfsize, halfsize, 0.0),
+            vec3(-halfsize, halfsize, 0.0),
         ];
         let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];
         let tangents = vec![
@@ -178,9 +170,7 @@ impl CpuMesh {
         for j in 0..angle_subdivisions {
             let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-            positions.push(angle.cos());
-            positions.push(angle.sin());
-            positions.push(0.0);
+            positions.push(vec3(angle.cos(), angle.sin(), 0.0));
 
             normals.push(0.0);
             normals.push(0.0);
@@ -209,9 +199,7 @@ impl CpuMesh {
         let mut indices = Vec::new();
         let mut normals = Vec::new();
 
-        positions.push(0.0);
-        positions.push(0.0);
-        positions.push(1.0);
+        positions.push(vec3(0.0, 0.0, 1.0));
 
         normals.push(0.0);
         normals.push(0.0);
@@ -236,9 +224,7 @@ impl CpuMesh {
                 let x = sin_theta * phi.cos();
                 let y = sin_theta * phi.sin();
                 let z = cos_theta;
-                positions.push(x);
-                positions.push(y);
-                positions.push(z);
+                positions.push(vec3(x, y, z));
 
                 normals.push(x);
                 normals.push(y);
@@ -255,9 +241,7 @@ impl CpuMesh {
                 }
             }
         }
-        positions.push(0.0);
-        positions.push(0.0);
-        positions.push(-1.0);
+        positions.push(vec3(0.0, 0.0, -1.0));
 
         normals.push(0.0);
         normals.push(0.0);
@@ -285,13 +269,42 @@ impl CpuMesh {
     ///
     pub fn cube() -> Self {
         let positions = vec![
-            1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
-            1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
-            -1.0, 1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0,
-            1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0,
-            -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0,
+            vec3(1.0, 1.0, -1.0),
+            vec3(-1.0, 1.0, -1.0),
+            vec3(1.0, 1.0, 1.0),
+            vec3(-1.0, 1.0, 1.0),
+            vec3(1.0, 1.0, 1.0),
+            vec3(-1.0, 1.0, -1.0),
+            vec3(-1.0, -1.0, -1.0),
+            vec3(1.0, -1.0, -1.0),
+            vec3(1.0, -1.0, 1.0),
+            vec3(1.0, -1.0, 1.0),
+            vec3(-1.0, -1.0, 1.0),
+            vec3(-1.0, -1.0, -1.0),
+            vec3(1.0, -1.0, -1.0),
+            vec3(-1.0, -1.0, -1.0),
+            vec3(1.0, 1.0, -1.0),
+            vec3(-1.0, 1.0, -1.0),
+            vec3(1.0, 1.0, -1.0),
+            vec3(-1.0, -1.0, -1.0),
+            vec3(-1.0, -1.0, 1.0),
+            vec3(1.0, -1.0, 1.0),
+            vec3(1.0, 1.0, 1.0),
+            vec3(1.0, 1.0, 1.0),
+            vec3(-1.0, 1.0, 1.0),
+            vec3(-1.0, -1.0, 1.0),
+            vec3(1.0, -1.0, -1.0),
+            vec3(1.0, 1.0, -1.0),
+            vec3(1.0, 1.0, 1.0),
+            vec3(1.0, 1.0, 1.0),
+            vec3(1.0, -1.0, 1.0),
+            vec3(1.0, -1.0, -1.0),
+            vec3(-1.0, 1.0, -1.0),
+            vec3(-1.0, -1.0, -1.0),
+            vec3(-1.0, 1.0, 1.0),
+            vec3(-1.0, -1.0, 1.0),
+            vec3(-1.0, 1.0, 1.0),
+            vec3(-1.0, -1.0, -1.0),
         ];
         let uvs = vec![
             1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
@@ -322,9 +335,7 @@ impl CpuMesh {
             for j in 0..angle_subdivisions {
                 let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-                positions.push(x);
-                positions.push(angle.cos());
-                positions.push(angle.sin());
+                positions.push(vec3(x, angle.cos(), angle.sin()));
             }
         }
         for i in 0..length_subdivisions {
@@ -360,9 +371,7 @@ impl CpuMesh {
             for j in 0..angle_subdivisions {
                 let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
-                positions.push(x);
-                positions.push(angle.cos() * (1.0 - x));
-                positions.push(angle.sin() * (1.0 - x));
+                positions.push(vec3(x, angle.cos() * (1.0 - x), angle.sin() * (1.0 - x)));
             }
         }
         for i in 0..length_subdivisions {
@@ -425,9 +434,9 @@ impl CpuMesh {
     pub fn compute_normals(&mut self) {
         let mut normals = vec![0.0f32; self.positions.len()];
         self.for_each_triangle(|i0, i1, i2| {
-            let p0 = self.position(i0);
-            let p1 = self.position(i1);
-            let p2 = self.position(i2);
+            let p0 = self.positions[i0];
+            let p1 = self.positions[i1];
+            let p2 = self.positions[i2];
             let normal = (p1 - p0).cross(p2 - p0);
             normals[i0 * 3] += normal.x;
             normals[i0 * 3 + 1] += normal.y;
@@ -461,9 +470,9 @@ impl CpuMesh {
         let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
 
         self.for_each_triangle(|i0, i1, i2| {
-            let a = self.position(i0);
-            let b = self.position(i1);
-            let c = self.position(i2);
+            let a = self.positions[i0];
+            let b = self.positions[i1];
+            let c = self.positions[i2];
             let uva = self.uv(i0).unwrap();
             let uvb = self.uv(i1).unwrap();
             let uvc = self.uv(i2).unwrap();
@@ -552,17 +561,6 @@ impl CpuMesh {
                 }
             }
         }
-    }
-
-    ///
-    /// Returns the position of the vertex with the given index.
-    ///
-    pub fn position(&self, vertex_index: usize) -> Vec3 {
-        vec3(
-            self.positions[3 * vertex_index],
-            self.positions[3 * vertex_index + 1],
-            self.positions[3 * vertex_index + 2],
-        )
     }
 
     ///

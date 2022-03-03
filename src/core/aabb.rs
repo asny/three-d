@@ -32,9 +32,8 @@ impl AxisAlignedBoundingBox {
 
     ///
     /// Constructs a new bounding box and expands it such that all of the given positions are contained inside the bounding box.
-    /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
     ///
-    pub fn new_with_positions(positions: &[f32]) -> Self {
+    pub fn new_with_positions(positions: &[Vec3]) -> Self {
         let mut aabb = Self::EMPTY;
         aabb.expand(positions);
         aabb
@@ -44,7 +43,7 @@ impl AxisAlignedBoundingBox {
     /// Constructs a new bounding box and expands it such that all of the given positions transformed with the given transformation are contained inside the bounding box.
     /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
     ///
-    pub fn new_with_transformed_positions(positions: &[f32], transformation: &Mat4) -> Self {
+    pub fn new_with_transformed_positions(positions: &[Vec3], transformation: &Mat4) -> Self {
         let mut aabb = Self::EMPTY;
         aabb.expand_with_transformation(positions, transformation);
         aabb
@@ -100,25 +99,15 @@ impl AxisAlignedBoundingBox {
     /// Expands the bounding box such that all of the given positions are contained inside the bounding box.
     /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
     ///
-    pub fn expand(&mut self, positions: &[f32]) {
-        for i in 0..positions.len() {
-            match i % 3 {
-                0 => {
-                    self.min.x = f32::min(positions[i], self.min.x);
-                    self.max.x = f32::max(positions[i], self.max.x);
-                }
-                1 => {
-                    self.min.y = f32::min(positions[i], self.min.y);
-                    self.max.y = f32::max(positions[i], self.max.y);
-                }
-                2 => {
-                    self.min.z = f32::min(positions[i], self.min.z);
-                    self.max.z = f32::max(positions[i], self.max.z);
-                }
-                _ => {
-                    unreachable!()
-                }
-            };
+    pub fn expand(&mut self, positions: &[Vec3]) {
+        for p in positions {
+            self.min.x = self.min.x.min(p.x);
+            self.min.y = self.min.y.min(p.y);
+            self.min.z = self.min.z.min(p.z);
+
+            self.max.x = self.max.x.max(p.x);
+            self.max.y = self.max.y.max(p.y);
+            self.max.z = self.max.z.max(p.z);
         }
     }
 
@@ -126,22 +115,13 @@ impl AxisAlignedBoundingBox {
     /// Expands the bounding box such that all of the given positions transformed with the given transformation are contained inside the bounding box.
     /// A position consisting of an x, y and z coordinate corresponds to three consecutive value in the positions array.
     ///
-    pub fn expand_with_transformation(&mut self, positions: &[f32], transformation: &Mat4) {
-        for i in 0..positions.len() / 3 {
-            let pos = transformation
-                * vec4(
-                    positions[i * 3],
-                    positions[i * 3 + 1],
-                    positions[i * 3 + 2],
-                    1.0,
-                );
-            self.min.x = f32::min(pos.x, self.min.x);
-            self.max.x = f32::max(pos.x, self.max.x);
-            self.min.y = f32::min(pos.y, self.min.y);
-            self.max.y = f32::max(pos.y, self.max.y);
-            self.min.z = f32::min(pos.z, self.min.z);
-            self.max.z = f32::max(pos.z, self.max.z);
-        }
+    pub fn expand_with_transformation(&mut self, positions: &[Vec3], transformation: &Mat4) {
+        self.expand(
+            &positions
+                .iter()
+                .map(|p| (transformation * p.extend(1.0)).truncate())
+                .collect::<Vec<_>>(),
+        )
     }
 
     ///
@@ -169,10 +149,14 @@ impl AxisAlignedBoundingBox {
     pub fn transform(&mut self, transformation: &Mat4) {
         let aabb = Self::new_with_transformed_positions(
             &[
-                self.min.x, self.min.y, self.min.z, self.max.x, self.min.y, self.min.z, self.min.x,
-                self.max.y, self.min.z, self.min.x, self.min.y, self.max.z, self.min.x, self.max.y,
-                self.max.z, self.max.x, self.min.y, self.max.z, self.max.x, self.max.y, self.min.z,
-                self.max.x, self.max.y, self.max.z,
+                self.min,
+                vec3(self.max.x, self.min.y, self.min.z),
+                vec3(self.min.x, self.max.y, self.min.z),
+                vec3(self.min.x, self.min.y, self.max.z),
+                vec3(self.min.x, self.max.y, self.max.z),
+                vec3(self.max.x, self.min.y, self.max.z),
+                vec3(self.max.x, self.max.y, self.min.z),
+                self.max,
             ],
             transformation,
         );
