@@ -223,30 +223,24 @@ impl InstancedMesh {
         program.use_attribute_vec4_instanced("row3", &self.instance_buffer3)?;
 
         if program.requires_attribute("position") {
-            program.use_attribute_vec3("position", &self.position_buffer)?;
+            program.use_vertex_attribute("position", &self.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
             program.use_uniform("textureTransform", &self.texture_transform)?;
-            program.use_attribute_vec3_instanced(
-                "tex_transform_row1",
-                &self.instance_tex_transform1,
-            )?;
-            program.use_attribute_vec3_instanced(
-                "tex_transform_row2",
-                &self.instance_tex_transform2,
-            )?;
+            program.use_instance_attribute("tex_transform_row1", &self.instance_tex_transform1)?;
+            program.use_instance_attribute("tex_transform_row2", &self.instance_tex_transform2)?;
             let uv_buffer = self
                 .uv_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
-            program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+            program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
         }
         if program.requires_attribute("normal") {
             let normal_buffer = self
                 .normal_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-            program.use_attribute_vec3("normal", normal_buffer)?;
+            program.use_vertex_attribute("normal", normal_buffer)?;
             if program.requires_attribute("tangent") {
                 let tangent_buffer = self
                     .tangent_buffer
@@ -260,7 +254,7 @@ impl InstancedMesh {
                 .color_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-            program.use_vertex_attributes("color", color_buffer)?;
+            program.use_vertex_attribute("color", color_buffer)?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {

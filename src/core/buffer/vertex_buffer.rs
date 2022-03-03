@@ -3,8 +3,7 @@ use crate::core::*;
 
 ///
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors.
-/// Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each vertex.
-/// Bind this using the [Program::use_attribute], [Program::use_attribute_vec2], etc. functionality.
+/// To send this data to a shader, use the [Program::use_vertex_attribute] method.
 ///
 pub struct VertexBuffer<T: BufferDataType> {
     context: Context,

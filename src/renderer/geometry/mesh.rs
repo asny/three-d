@@ -196,7 +196,7 @@ impl Geometry for Mesh {
                 program.use_uniform("modelMatrix", &self.transformation)?;
 
                 if program.requires_attribute("position") {
-                    program.use_attribute_vec3("position", &self.position_buffer)?;
+                    program.use_vertex_attribute("position", &self.position_buffer)?;
                 }
                 if program.requires_attribute("uv_coordinates") {
                     program.use_uniform("textureTransform", &self.texture_transform)?;
@@ -204,14 +204,14 @@ impl Geometry for Mesh {
                         .uv_buffer
                         .as_ref()
                         .ok_or(CoreError::MissingMeshBuffer("uv coordinates".to_string()))?;
-                    program.use_attribute_vec2("uv_coordinates", uv_buffer)?;
+                    program.use_vertex_attribute("uv_coordinates", uv_buffer)?;
                 }
                 if program.requires_attribute("normal") {
                     let normal_buffer = self
                         .normal_buffer
                         .as_ref()
                         .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-                    program.use_attribute_vec3("normal", normal_buffer)?;
+                    program.use_vertex_attribute("normal", normal_buffer)?;
                     program.use_uniform(
                         "normalMatrix",
                         &self.transformation.invert().unwrap().transpose(),
@@ -229,7 +229,7 @@ impl Geometry for Mesh {
                         .color_buffer
                         .as_ref()
                         .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-                    program.use_vertex_attributes("color", color_buffer)?;
+                    program.use_vertex_attribute("color", color_buffer)?;
                 }
                 if let Some(ref index_buffer) = self.index_buffer {
                     program.draw_elements(
