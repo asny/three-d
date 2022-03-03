@@ -57,8 +57,8 @@ pub struct CpuMesh {
     pub positions: Vec<Vec3>,
     /// The indices into the positions, normals, uvs and colors arrays which defines the three vertices of a triangle. Three contiguous indices defines a triangle, therefore the length must be divisable by 3.
     pub indices: Option<Indices>,
-    /// The normals of the vertices. Three contiguous floats defines a normal `(x, y, z)`, therefore the length must be divisable by 3.
-    pub normals: Option<Vec<f32>>,
+    /// The normals of the vertices.
+    pub normals: Option<Vec<Vec3>>,
     /// The tangents of the vertices, orthogonal direction to the normal.
     /// Three contiguous floats defines a tangent `(x, y, z)` and a value that specifies the handedness (either -1.0 or 1.0), therefore the length must be divisable by 4.
     pub tangents: Option<Vec<f32>>,
@@ -107,12 +107,8 @@ impl CpuMesh {
         let normal_transform = transform.invert().unwrap().transpose();
 
         if let Some(ref mut normals) = self.normals {
-            for i in 0..normals.len() / 3 {
-                let n = normal_transform
-                    * vec4(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2], 1.0);
-                normals[i * 3] = n.x;
-                normals[i * 3 + 1] = n.y;
-                normals[i * 3 + 2] = n.z;
+            for n in normals.iter_mut() {
+                *n = (normal_transform * n.extend(1.0)).truncate();
             }
         }
 
@@ -144,7 +140,12 @@ impl CpuMesh {
             vec3(halfsize, halfsize, 0.0),
             vec3(-halfsize, halfsize, 0.0),
         ];
-        let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];
+        let normals = vec![
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+        ];
         let tangents = vec![
             1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
         ];
@@ -171,10 +172,7 @@ impl CpuMesh {
             let angle = 2.0 * std::f32::consts::PI * j as f32 / angle_subdivisions as f32;
 
             positions.push(vec3(angle.cos(), angle.sin(), 0.0));
-
-            normals.push(0.0);
-            normals.push(0.0);
-            normals.push(1.0);
+            normals.push(vec3(0.0, 0.0, 1.0));
         }
 
         for j in 0..angle_subdivisions {
@@ -200,10 +198,7 @@ impl CpuMesh {
         let mut normals = Vec::new();
 
         positions.push(vec3(0.0, 0.0, 1.0));
-
-        normals.push(0.0);
-        normals.push(0.0);
-        normals.push(1.0);
+        normals.push(vec3(0.0, 0.0, 1.0));
 
         for j in 0..angle_subdivisions * 2 {
             let j1 = (j + 1) % (angle_subdivisions * 2);
@@ -225,10 +220,7 @@ impl CpuMesh {
                 let y = sin_theta * phi.sin();
                 let z = cos_theta;
                 positions.push(vec3(x, y, z));
-
-                normals.push(x);
-                normals.push(y);
-                normals.push(z);
+                normals.push(vec3(x, y, z));
 
                 if i != angle_subdivisions - 2 {
                     let j1 = (j + 1) % (angle_subdivisions * 2);
@@ -242,10 +234,7 @@ impl CpuMesh {
             }
         }
         positions.push(vec3(0.0, 0.0, -1.0));
-
-        normals.push(0.0);
-        normals.push(0.0);
-        normals.push(-1.0);
+        normals.push(vec3(0.0, 0.0, -1.0));
 
         let i = 1 + (angle_subdivisions - 2) * angle_subdivisions * 2;
         for j in 0..angle_subdivisions * 2 {
@@ -432,29 +421,20 @@ impl CpuMesh {
     /// It will override the current normals if they already exist.
     ///
     pub fn compute_normals(&mut self) {
-        let mut normals = vec![0.0f32; self.positions.len()];
+        let mut normals = vec![vec3(0.0, 0.0, 0.0); self.positions.len()];
         self.for_each_triangle(|i0, i1, i2| {
             let p0 = self.positions[i0];
             let p1 = self.positions[i1];
             let p2 = self.positions[i2];
             let normal = (p1 - p0).cross(p2 - p0);
-            normals[i0 * 3] += normal.x;
-            normals[i0 * 3 + 1] += normal.y;
-            normals[i0 * 3 + 2] += normal.z;
-            normals[i1 * 3] += normal.x;
-            normals[i1 * 3 + 1] += normal.y;
-            normals[i1 * 3 + 2] += normal.z;
-            normals[i2 * 3] += normal.x;
-            normals[i2 * 3 + 1] += normal.y;
-            normals[i2 * 3 + 2] += normal.z;
+            normals[i0] += normal;
+            normals[i1] += normal;
+            normals[i2] += normal;
         });
 
-        self.for_each_vertex(|i| {
-            let normal = vec3(normals[3 * i], normals[3 * i + 1], normals[3 * i + 2]).normalize();
-            normals[3 * i] = normal.x;
-            normals[3 * i + 1] = normal.y;
-            normals[3 * i + 2] = normal.z;
-        });
+        for n in normals.iter_mut() {
+            *n = n.normalize();
+        }
         self.normals = Some(normals);
     }
 
@@ -466,8 +446,8 @@ impl CpuMesh {
         if self.normals.is_none() || self.uvs.is_none() {
             Err(CoreError::FailedComputingTangents)?;
         }
-        let mut tan1 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
-        let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len() / 3];
+        let mut tan1 = vec![vec3(0.0, 0.0, 0.0); self.positions.len()];
+        let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len()];
 
         self.for_each_triangle(|i0, i1, i2| {
             let a = self.positions[i0];
@@ -497,9 +477,9 @@ impl CpuMesh {
             }
         });
 
-        let mut tangents = vec![0.0f32; 4 * self.positions.len() / 3];
+        let mut tangents = vec![0.0f32; 4 * self.positions.len()];
         self.for_each_vertex(|index| {
-            let normal = self.normal(index).unwrap();
+            let normal = self.normals.as_ref().unwrap()[index];
             let t = tan1[index];
             let tangent = (t - normal * normal.dot(t)).normalize();
             let handedness = if normal.cross(tangent).dot(tan2[index]) < 0.0 {
@@ -521,7 +501,7 @@ impl CpuMesh {
     ///  Iterates over all vertices in this mesh and calls the callback function with the index for each vertex.
     ///
     pub fn for_each_vertex(&self, mut callback: impl FnMut(usize)) {
-        for i in 0..self.positions.len() / 3 {
+        for i in 0..self.positions.len() {
             callback(i);
         }
     }
@@ -556,24 +536,11 @@ impl CpuMesh {
                 }
             }
             None => {
-                for face in 0..self.positions.len() / 9 {
+                for face in 0..self.positions.len() / 3 {
                     callback(face * 3, face * 3 + 1, face * 3 + 2);
                 }
             }
         }
-    }
-
-    ///
-    /// Returns the normal of the vertex with the given index.
-    ///
-    pub fn normal(&self, vertex_index: usize) -> Option<Vec3> {
-        self.normals.as_ref().map(|normals| {
-            vec3(
-                normals[3 * vertex_index],
-                normals[3 * vertex_index + 1],
-                normals[3 * vertex_index + 2],
-            )
-        })
     }
 
     ///

@@ -82,7 +82,7 @@ impl Loaded {
             for mesh in object.geometry.iter() {
                 // All meshes with different materials
                 let mut positions = Vec::new();
-                let mut normals = Vec::new();
+                let mut normals: Vec<Vec3> = Vec::new();
                 let mut uvs = Vec::new();
                 let mut indices = Vec::new();
 
@@ -104,11 +104,9 @@ impl Loaded {
                             }
                         }
                         if let Some(n) = normal {
-                            if ((normals[ind * 3] - n.x as f32) as f32).abs() > std::f32::EPSILON
-                                || ((normals[ind * 3 + 1] - n.y as f32) as f32).abs()
-                                    > std::f32::EPSILON
-                                || ((normals[ind * 3 + 2] - n.z as f32) as f32).abs()
-                                    > std::f32::EPSILON
+                            if ((normals[ind].x - n.x as f32) as f32).abs() > std::f32::EPSILON
+                                || ((normals[ind].y - n.y as f32) as f32).abs() > std::f32::EPSILON
+                                || ((normals[ind].z - n.z as f32) as f32).abs() > std::f32::EPSILON
                             {
                                 index = None;
                             }
@@ -130,9 +128,7 @@ impl Loaded {
                             uvs.push(1.0 - tex.v as f32);
                         }
                         if let Some(n) = normal {
-                            normals.push(n.x as f32);
-                            normals.push(n.y as f32);
-                            normals.push(n.z as f32);
+                            normals.push(vec3(n.x as f32, n.y as f32, n.z as f32));
                         }
                     }
 
