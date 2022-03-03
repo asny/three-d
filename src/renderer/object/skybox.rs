@@ -39,8 +39,7 @@ impl<T: TextureCube> Skybox<T> {
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
     pub fn new_with_texture(context: &Context, texture: T) -> ThreeDResult<Skybox<T>> {
-        let vertex_buffer =
-            VertexBuffer::new_with_data(context, BufferType::Static, &CpuMesh::cube().positions)?;
+        let vertex_buffer = VertexBuffer::new_with_data(context, &CpuMesh::cube().positions)?;
 
         Ok(Skybox {
             context: context.clone(),

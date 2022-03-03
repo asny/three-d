@@ -43,9 +43,9 @@ impl Particles {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
+        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static(context, normals)?)
+            Some(VertexBuffer::new_with_data(context, normals)?)
         } else {
             None
         };
@@ -59,7 +59,7 @@ impl Particles {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static(context, uvs)?)
+            Some(VertexBuffer::new_with_data(context, uvs)?)
         } else {
             None
         };
@@ -70,8 +70,8 @@ impl Particles {
             index_buffer,
             normal_buffer,
             uv_buffer,
-            start_position_buffer: InstanceBuffer::new(context, BufferType::Dynamic)?,
-            start_velocity_buffer: InstanceBuffer::new(context, BufferType::Dynamic)?,
+            start_position_buffer: InstanceBuffer::new(context)?,
+            start_velocity_buffer: InstanceBuffer::new(context)?,
             acceleration: vec3(0.0, -9.82, 0.0),
             instance_count: 0,
             transformation: Mat4::identity(),

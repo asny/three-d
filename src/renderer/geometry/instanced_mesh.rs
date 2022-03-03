@@ -40,14 +40,14 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
+        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static(context, normals)?)
+            Some(VertexBuffer::new_with_data(context, normals)?)
         } else {
             None
         };
         let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
-            Some(VertexBuffer::new_with_static(context, tangents)?)
+            Some(VertexBuffer::new_with_data(context, tangents)?)
         } else {
             None
         };
@@ -61,16 +61,12 @@ impl InstancedMesh {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static(context, uvs)?)
+            Some(VertexBuffer::new_with_data(context, uvs)?)
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_data(
-                context,
-                BufferType::Static,
-                colors,
-            )?)
+            Some(VertexBuffer::new_with_data(context, colors)?)
         } else {
             None
         };
@@ -83,11 +79,11 @@ impl InstancedMesh {
             index_buffer,
             uv_buffer,
             color_buffer,
-            instance_buffer1: InstanceBuffer::new(context, BufferType::Dynamic)?,
-            instance_buffer2: InstanceBuffer::new(context, BufferType::Dynamic)?,
-            instance_buffer3: InstanceBuffer::new(context, BufferType::Dynamic)?,
-            instance_tex_transform1: InstanceBuffer::new(context, BufferType::Dynamic)?,
-            instance_tex_transform2: InstanceBuffer::new(context, BufferType::Dynamic)?,
+            instance_buffer1: InstanceBuffer::new(context)?,
+            instance_buffer2: InstanceBuffer::new(context)?,
+            instance_buffer3: InstanceBuffer::new(context)?,
+            instance_tex_transform1: InstanceBuffer::new(context)?,
+            instance_tex_transform2: InstanceBuffer::new(context)?,
             aabb,
             aabb_local: aabb.clone(),
             transformation: Mat4::identity(),
