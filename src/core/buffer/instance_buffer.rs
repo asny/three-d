@@ -1,15 +1,6 @@
 use crate::context::{consts, DataType};
 use crate::core::*;
 
-/// The basic data type used for each element in a [InstanceBuffer].
-pub trait InstanceBufferDataType:
-    Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
-{
-}
-impl InstanceBufferDataType for u8 {}
-impl InstanceBufferDataType for u16 {}
-impl InstanceBufferDataType for f32 {}
-
 ///
 /// A buffer containing per instance data. Can send between 1 and 4 values of [InstanceBufferDataType] to a shader program for each instance.
 /// To send this data to a shader, use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], etc. functionality.
@@ -40,7 +31,7 @@ impl InstanceBuffer {
     /// Use this method instead of [new_with_dynamic](InstanceBuffer::new_with_dynamic)
     /// when you do not expect the data to change often.
     ///
-    pub fn new_with_static<T: InstanceBufferDataType>(
+    pub fn new_with_static<T: VertexBufferDataType>(
         context: &Context,
         data: &[T],
     ) -> ThreeDResult<Self> {
@@ -57,7 +48,7 @@ impl InstanceBuffer {
     /// Use this method instead of [fill_with_dynamic](InstanceBuffer::fill_with_dynamic)
     /// when you do not expect the data to change often.
     ///
-    pub fn fill_with_static<T: InstanceBufferDataType>(&mut self, data: &[T]) {
+    pub fn fill_with_static<T: VertexBufferDataType>(&mut self, data: &[T]) {
         self.bind();
         T::buffer_data(
             &self.context,
@@ -76,7 +67,7 @@ impl InstanceBuffer {
     /// Use this method instead of [new_with_static](InstanceBuffer::new_with_static)
     /// when you expect the data to change often.
     ///
-    pub fn new_with_dynamic<T: InstanceBufferDataType>(
+    pub fn new_with_dynamic<T: VertexBufferDataType>(
         context: &Context,
         data: &[T],
     ) -> ThreeDResult<Self> {
@@ -93,7 +84,7 @@ impl InstanceBuffer {
     /// Use this method instead of [fill_with_static](InstanceBuffer::fill_with_static)
     /// when you expect the data to change often.
     ///
-    pub fn fill_with_dynamic<T: InstanceBufferDataType>(&mut self, data: &[T]) {
+    pub fn fill_with_dynamic<T: VertexBufferDataType>(&mut self, data: &[T]) {
         self.bind();
         T::buffer_data(
             &self.context,
