@@ -344,7 +344,7 @@ impl Program {
             self.context.enable_vertex_attrib_array(loc);
             self.context.vertex_attrib_pointer(
                 loc,
-                buffer.element_size(),
+                buffer.attribute_size(),
                 T::data_type(),
                 false,
                 0,
