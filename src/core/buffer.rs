@@ -17,6 +17,8 @@ mod uniform_buffer;
 #[doc(inline)]
 pub use uniform_buffer::*;
 
+use crate::core::*;
+
 /// The basic data type used for each element in a [VertexBuffer] or [InstancedBuffer].
 pub trait BufferDataType:
     Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
@@ -24,8 +26,19 @@ pub trait BufferDataType:
 }
 impl BufferDataType for u8 {}
 impl BufferDataType for u16 {}
-impl BufferDataType for crate::f16 {}
+impl BufferDataType for f16 {}
 impl BufferDataType for f32 {}
+
+pub trait Attribute<T: BufferDataType>:
+    std::fmt::Debug + Clone + internal::AttributeExtension<T>
+{
+}
+
+impl<T: BufferDataType> Attribute<T> for T {}
+impl<T: BufferDataType> Attribute<T> for Vector2<T> {}
+impl<T: BufferDataType> Attribute<T> for Vector3<T> {}
+impl<T: BufferDataType> Attribute<T> for Vector4<T> {}
+impl Attribute<u8> for Color {}
 
 pub(crate) mod internal {
     use crate::context::DataType;
@@ -82,6 +95,86 @@ pub(crate) mod internal {
         }
         fn data_type() -> DataType {
             DataType::UnsignedInt
+        }
+    }
+
+    pub trait AttributeExtension<T: BufferDataType>: Clone {
+        fn length() -> u32;
+        fn flatten(data: &[Self]) -> Vec<T>;
+    }
+
+    impl<T: BufferDataType> AttributeExtension<T> for T {
+        fn length() -> u32 {
+            1
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            data.to_vec()
+        }
+    }
+
+    impl<T: BufferDataType> AttributeExtension<T> for Vector2<T> {
+        fn length() -> u32 {
+            2
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.x);
+                res.push(d.y);
+            }
+            res
+        }
+    }
+
+    impl<T: BufferDataType> AttributeExtension<T> for Vector3<T> {
+        fn length() -> u32 {
+            3
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.x);
+                res.push(d.y);
+                res.push(d.z);
+            }
+            res
+        }
+    }
+
+    impl<T: BufferDataType> AttributeExtension<T> for Vector4<T> {
+        fn length() -> u32 {
+            4
+        }
+
+        fn flatten(data: &[Self]) -> Vec<T> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.x);
+                res.push(d.y);
+                res.push(d.z);
+                res.push(d.w);
+            }
+            res
+        }
+    }
+
+    impl AttributeExtension<u8> for Color {
+        fn length() -> u32 {
+            4
+        }
+
+        fn flatten(data: &[Self]) -> Vec<u8> {
+            let mut res = Vec::with_capacity(data.len() * Self::length() as usize);
+            for d in data {
+                res.push(d.r);
+                res.push(d.g);
+                res.push(d.b);
+                res.push(d.a);
+            }
+            res
         }
     }
 }
