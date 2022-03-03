@@ -196,7 +196,7 @@ impl DeferredPipeline {
         fragment_shader.push_str(include_str!("material/shaders/deferred_lighting.frag"));
 
         self.context.effect(&fragment_shader, |effect| {
-            effect.use_uniform_vec3("eyePosition", camera.position())?;
+            effect.use_uniform("eyePosition", camera.position())?;
             for (i, light) in lights.iter().enumerate() {
                 light.use_uniforms(effect, i as u32)?;
             }

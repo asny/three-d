@@ -106,7 +106,7 @@ impl<T: Texture> Material for ColorMaterial<T> {
         _camera: &Camera,
         _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        program.use_uniform_vec4("surfaceColor", &self.color.to_vec4())?;
+        program.use_uniform("surfaceColor", &self.color.to_vec4())?;
         if let Some(ref tex) = self.texture {
             program.use_texture("tex", tex)?
         }

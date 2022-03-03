@@ -188,9 +188,9 @@ impl Geometry for Particles {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
 
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
-                program.use_uniform_vec3("acceleration", &self.acceleration)?;
-                program.use_uniform_float("time", &self.time)?;
+                program.use_uniform("modelMatrix", &self.transformation)?;
+                program.use_uniform("acceleration", &self.acceleration)?;
+                program.use_uniform("time", &self.time)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
 
                 program
@@ -212,7 +212,7 @@ impl Geometry for Particles {
                         .normal_buffer
                         .as_ref()
                         .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
-                    program.use_uniform_mat4("normalMatrix", &self.normal_transformation)?;
+                    program.use_uniform("normalMatrix", &self.normal_transformation)?;
                     program.use_attribute_vec3("normal", normal_buffer)?;
                 }
 
