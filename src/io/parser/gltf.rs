@@ -180,7 +180,7 @@ fn parse_tree<'a>(
                 let colors = reader.read_colors(0).map(|values| {
                     let mut cols = Vec::new();
                     for value in values.into_rgba_u8() {
-                        cols.push(Vector4::new(value[0], value[1], value[2], value[3]));
+                        cols.push(Color::new(value[0], value[1], value[2], value[3]));
                     }
                     cols
                 });

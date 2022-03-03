@@ -64,9 +64,9 @@ pub struct CpuMesh {
     pub tangents: Option<Vec<f32>>,
     /// The uv coordinates of the vertices. Two contiguous floats defines a coordinate `(u, v)`, therefore the length must be divisable by 2.
     pub uvs: Option<Vec<f32>>,
-    /// The colors of the vertices. Four contiguous bytes defines a color `(r, g, b, a)`, therefore the length must be divisable by 4.
+    /// The colors of the vertices.
     /// The colors are assumed to be in linear space.
-    pub colors: Option<Vec<Vector4<u8>>>,
+    pub colors: Option<Vec<Color>>,
 }
 
 impl std::fmt::Debug for CpuMesh {

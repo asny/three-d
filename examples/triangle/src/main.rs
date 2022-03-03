@@ -39,9 +39,9 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
         0.0, 0.5, 0.0, // top
     ];
     let colors = vec![
-        Vector4::new(255, 0, 0, 255), // bottom right
-        Vector4::new(0, 255, 0, 255), // bottom left
-        Vector4::new(0, 0, 255, 255), // top
+        Color::new(255, 0, 0, 255), // bottom right
+        Color::new(0, 255, 0, 255), // bottom left
+        Color::new(0, 0, 255, 255), // top
     ];
     let cpu_mesh = CpuMesh {
         positions,
