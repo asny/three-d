@@ -77,9 +77,13 @@ fn parse_tree<'a>(
                     normals
                 });
 
-                let tangents = reader
-                    .read_tangents()
-                    .map(|values| values.flatten().collect::<Vec<_>>());
+                let tangents = reader.read_tangents().map(|values| {
+                    let mut tangents = Vec::new();
+                    for t in values {
+                        tangents.push(vec4(t[0], t[1], t[2], t[3]));
+                    }
+                    tangents
+                });
 
                 let indices = reader.read_indices().map(|values| match values {
                     ::gltf::mesh::util::ReadIndices::U8(iter) => {
