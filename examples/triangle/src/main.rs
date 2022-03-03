@@ -33,10 +33,10 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
 
     // Create a CPU-side mesh consisting of a single colored triangle
-    let positions: Vec<f32> = vec![
-        0.5, -0.5, 0.0, // bottom right
-        -0.5, -0.5, 0.0, // bottom left
-        0.0, 0.5, 0.0, // top
+    let positions = vec![
+        vec3(0.5, -0.5, 0.0),  // bottom right
+        vec3(-0.5, -0.5, 0.0), // bottom left
+        vec3(0.0, 0.5, 0.0),   // top
     ];
     let colors = vec![
         Color::new(255, 0, 0, 255), // bottom right

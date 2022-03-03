@@ -66,9 +66,7 @@ fn parse_tree<'a>(
             if let Some(read_positions) = reader.read_positions() {
                 let mut positions = Vec::new();
                 for value in read_positions {
-                    positions.push(value[0]);
-                    positions.push(value[1]);
-                    positions.push(value[2]);
+                    positions.push(vec3(value[0], value[1], value[2]));
                 }
 
                 let normals = reader
