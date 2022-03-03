@@ -189,13 +189,13 @@ impl Geometry for Mesh {
             |program| {
                 material.use_uniforms(program, camera, lights)?;
                 program.use_uniform_block("Camera", camera.uniform_buffer());
-                program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+                program.use_uniform("modelMatrix", &self.transformation)?;
 
                 if program.requires_attribute("position") {
                     program.use_attribute_vec3("position", &self.position_buffer)?;
                 }
                 if program.requires_attribute("uv_coordinates") {
-                    program.use_uniform_mat3("textureTransform", &self.texture_transform)?;
+                    program.use_uniform("textureTransform", &self.texture_transform)?;
                     let uv_buffer = self
                         .uv_buffer
                         .as_ref()
@@ -208,7 +208,7 @@ impl Geometry for Mesh {
                         .as_ref()
                         .ok_or(CoreError::MissingMeshBuffer("normal".to_string()))?;
                     program.use_attribute_vec3("normal", normal_buffer)?;
-                    program.use_uniform_mat4(
+                    program.use_uniform(
                         "normalMatrix",
                         &self.transformation.invert().unwrap().transpose(),
                     )?;

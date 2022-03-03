@@ -268,13 +268,13 @@ impl Light for SpotLight {
     fn use_uniforms(&self, program: &Program, i: u32) -> ThreeDResult<()> {
         if let Some(ref tex) = self.shadow_texture {
             program.use_texture(&format!("shadowMap{}", i), tex)?;
-            program.use_uniform_mat4(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
+            program.use_uniform(&format!("shadowMVP{}", i), &self.shadow_matrix)?;
         }
-        program.use_uniform_vec3(
+        program.use_uniform(
             &format!("color{}", i),
             &(self.color.to_vec3() * self.intensity),
         )?;
-        program.use_uniform_vec3(
+        program.use_uniform(
             &format!("attenuation{}", i),
             &vec3(
                 self.attenuation.constant,
@@ -282,9 +282,9 @@ impl Light for SpotLight {
                 self.attenuation.quadratic,
             ),
         )?;
-        program.use_uniform_vec3(&format!("position{}", i), &self.position)?;
-        program.use_uniform_vec3(&format!("direction{}", i), &self.direction.normalize())?;
-        program.use_uniform_float(&format!("cutoff{}", i), &self.cutoff.0)?;
+        program.use_uniform(&format!("position{}", i), &self.position)?;
+        program.use_uniform(&format!("direction{}", i), &self.direction.normalize())?;
+        program.use_uniform(&format!("cutoff{}", i), &self.cutoff.0)?;
         Ok(())
     }
 }

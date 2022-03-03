@@ -222,7 +222,7 @@ impl Material for ImpostersMaterial {
         camera: &Camera,
         _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        program.use_uniform_int("no_views", &(NO_VIEW_ANGLES as i32))?;
+        program.use_uniform("no_views", &(NO_VIEW_ANGLES as i32))?;
         program.use_uniform_block("Camera", camera.uniform_buffer());
         program.use_texture_array("tex", &self.texture)?;
         Ok(())

@@ -27,7 +27,7 @@ pub struct InstancedMesh {
 
 impl InstancedMesh {
     ///
-    /// Creates a new 3D mesh from the given [CpuMesh]. 
+    /// Creates a new 3D mesh from the given [CpuMesh].
     /// All data in the [CpuMesh] is transfered to the GPU, so make sure to remove all unnecessary data from the [CpuMesh] before calling this method.
     /// The mesh is rendered in as many instances as there are [Instance] structs given as input.
     /// The transformation and texture transform in [Instance] are applied to each instance before they are rendered.
@@ -212,7 +212,7 @@ impl InstancedMesh {
         viewport: Viewport,
     ) -> ThreeDResult<()> {
         program.use_uniform_block("Camera", camera_buffer);
-        program.use_uniform_mat4("modelMatrix", &self.transformation)?;
+        program.use_uniform("modelMatrix", &self.transformation)?;
 
         program.use_attribute_vec4_instanced("row1", &self.instance_buffer1)?;
         program.use_attribute_vec4_instanced("row2", &self.instance_buffer2)?;
@@ -222,7 +222,7 @@ impl InstancedMesh {
             program.use_attribute_vec3("position", &self.position_buffer)?;
         }
         if program.requires_attribute("uv_coordinates") {
-            program.use_uniform_mat3("textureTransform", &self.texture_transform)?;
+            program.use_uniform("textureTransform", &self.texture_transform)?;
             program.use_attribute_vec3_instanced(
                 "tex_transform_row1",
                 &self.instance_tex_transform1,

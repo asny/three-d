@@ -103,8 +103,8 @@ impl Environment {
                 );
                 for side in CubeMapSide::iter() {
                     program.use_texture_cube("environmentMap", environment_map)?;
-                    program.use_uniform_float("roughness", &roughness)?;
-                    program.use_uniform_float("resolution", &(environment_map.width() as f32))?;
+                    program.use_uniform("roughness", &roughness)?;
+                    program.use_uniform("resolution", &(environment_map.width() as f32))?;
                     render_target.write_to_mip_level(side, mip, ClearState::default(), || {
                         program.render(side, RenderStates::default(), viewport)
                     })?;
