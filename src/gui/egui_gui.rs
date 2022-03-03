@@ -197,10 +197,9 @@ impl GUI {
         }
         let indices: Vec<u32> = mesh.indices.iter().map(|idx| *idx as u32).collect();
 
-        let position_buffer =
-            VertexBuffer::new_with_data(&self.context, BufferType::Static, &positions)?;
-        let uv_buffer = VertexBuffer::new_with_data(&self.context, BufferType::Static, &uvs)?;
-        let color_buffer = VertexBuffer::new_with_data(&self.context, BufferType::Static, &colors)?;
+        let position_buffer = VertexBuffer::new_with_data(&self.context, &positions)?;
+        let uv_buffer = VertexBuffer::new_with_data(&self.context, &uvs)?;
+        let color_buffer = VertexBuffer::new_with_data(&self.context, &colors)?;
         let index_buffer = ElementBuffer::new_with(&self.context, &indices)?;
 
         let render_states = RenderStates {

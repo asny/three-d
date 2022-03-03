@@ -19,11 +19,6 @@ pub use uniform_buffer::*;
 
 use crate::core::*;
 
-pub enum BufferType {
-    Static,
-    Dynamic,
-}
-
 /// The basic data type used for each element in a [VertexBuffer] or [InstancedBuffer].
 pub trait BufferDataType:
     Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension

@@ -34,14 +34,14 @@ impl Mesh {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = VertexBuffer::new_with_static(context, &cpu_mesh.positions)?;
+        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_static(context, normals)?)
+            Some(VertexBuffer::new_with_data(context, normals)?)
         } else {
             None
         };
         let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
-            Some(VertexBuffer::new_with_static(context, tangents)?)
+            Some(VertexBuffer::new_with_data(context, tangents)?)
         } else {
             None
         };
@@ -55,16 +55,12 @@ impl Mesh {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_static(context, uvs)?)
+            Some(VertexBuffer::new_with_data(context, uvs)?)
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_data(
-                context,
-                BufferType::Static,
-                colors,
-            )?)
+            Some(VertexBuffer::new_with_data(context, colors)?)
         } else {
             None
         };
@@ -221,7 +217,7 @@ impl Geometry for Mesh {
                             .tangent_buffer
                             .as_ref()
                             .ok_or(CoreError::MissingMeshBuffer("tangent".to_string()))?;
-                        program.use_attribute_vec4("tangent", tangent_buffer)?;
+                        program.use_vertex_attribute("tangent", tangent_buffer)?;
                     }
                 }
                 if program.requires_attribute("color") {

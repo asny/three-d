@@ -2,7 +2,7 @@ use crate::context::consts;
 use crate::core::*;
 
 ///
-/// A buffer containing per instance data. 
+/// A buffer containing per instance data.
 /// To send this data to a shader, use the [Program::use_instance_attribute] method.
 ///
 pub struct InstanceBuffer<T: BufferDataType> {
@@ -11,7 +11,6 @@ pub struct InstanceBuffer<T: BufferDataType> {
     count: usize,
     attribute_count: u32,
     attribute_size: u32,
-    buffer_type: BufferType,
     _dummy: T,
 }
 
@@ -19,24 +18,19 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     ///
     /// Creates a new empty instance buffer.
     ///
-    pub fn new(context: &Context, buffer_type: BufferType) -> ThreeDResult<Self> {
+    pub fn new(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
             count: 0,
             attribute_count: 0,
             attribute_size: 0,
-            buffer_type,
             _dummy: T::default(),
         })
     }
 
-    pub fn new_with_data<V: Attribute<T>>(
-        context: &Context,
-        buffer_type: BufferType,
-        data: &[V],
-    ) -> ThreeDResult<Self> {
-        let mut buffer = Self::new(context, buffer_type)?;
+    pub fn new_with_data<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
+        let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill(data);
         }
@@ -52,9 +46,10 @@ impl<T: BufferDataType> InstanceBuffer<T> {
             &self.context,
             consts::ARRAY_BUFFER,
             &V::flatten(data),
-            match self.buffer_type {
-                BufferType::Static => consts::STATIC_DRAW,
-                BufferType::Dynamic => consts::DYNAMIC_DRAW,
+            if self.attribute_count > 0 {
+                consts::DYNAMIC_DRAW
+            } else {
+                consts::STATIC_DRAW
             },
         );
         self.context.unbind_buffer(consts::ARRAY_BUFFER);
@@ -71,7 +66,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     ///
     #[deprecated = "use new() or new_with_data()"]
     pub fn new_with_static<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
-        Self::new_with_data(context, BufferType::Static, data)
+        Self::new_with_data(context, data)
     }
 
     ///
@@ -93,7 +88,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     ///
     #[deprecated = "use new() or new_with_data()"]
     pub fn new_with_dynamic<V: Attribute<T>>(context: &Context, data: &[V]) -> ThreeDResult<Self> {
-        Self::new_with_data(context, BufferType::Dynamic, data)
+        Self::new_with_data(context, data)
     }
 
     ///
