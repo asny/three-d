@@ -66,7 +66,7 @@ impl InstancedMesh {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_static(context, colors)?)
+            Some(VertexBuffer::new_with(context, colors)?)
         } else {
             None
         };
@@ -256,7 +256,7 @@ impl InstancedMesh {
                 .color_buffer
                 .as_ref()
                 .ok_or(CoreError::MissingMeshBuffer("color".to_string()))?;
-            program.use_attribute_vec4("color", color_buffer)?;
+            program.use_attribute("color", color_buffer)?;
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
