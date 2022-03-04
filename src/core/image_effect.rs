@@ -6,8 +6,8 @@ use crate::core::*;
 ///
 pub struct ImageEffect {
     program: Program,
-    positions: VertexBuffer<f32>,
-    uvs: VertexBuffer<f32>,
+    positions: Buffer<f32>,
+    uvs: Buffer<f32>,
 }
 
 impl ImageEffect {
@@ -34,8 +34,8 @@ impl ImageEffect {
             vec3(0.0, 2.0, 0.0),
         ];
         let uvs = vec![vec2(-1.0, 0.0), vec2(2.0, 0.0), vec2(0.5, 1.5)];
-        let positions = VertexBuffer::new_with_data(&context, &positions).unwrap();
-        let uvs = VertexBuffer::new_with_data(&context, &uvs).unwrap();
+        let positions = Buffer::new_with_data(&context, &positions).unwrap();
+        let uvs = Buffer::new_with_data(&context, &uvs).unwrap();
 
         Ok(Self {
             program,

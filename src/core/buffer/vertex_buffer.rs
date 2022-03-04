@@ -5,7 +5,7 @@ use crate::core::*;
 /// A buffer containing per vertex data, for example positions, normals, uv coordinates or colors.
 /// To send this data to a shader, use the [Program::use_vertex_attribute] method.
 ///
-pub struct VertexBuffer<T: BufferDataType> {
+pub struct Buffer<T: BufferDataType> {
     context: Context,
     id: crate::context::Buffer,
     count: usize,
@@ -14,7 +14,7 @@ pub struct VertexBuffer<T: BufferDataType> {
     _dummy: T,
 }
 
-impl<T: BufferDataType> VertexBuffer<T> {
+impl<T: BufferDataType> Buffer<T> {
     ///
     /// Creates a new empty vertex buffer.
     ///
@@ -63,7 +63,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
 
     ///
     /// Creates a new vertex buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_dynamic](VertexBuffer::new_with_dynamic)
+    /// Use this method instead of [new_with_dynamic](Buffer::new_with_dynamic)
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use new() or new_with_data()"]
@@ -73,7 +73,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
 
     ///
     /// Fills the vertex buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_dynamic](VertexBuffer::fill_with_dynamic)
+    /// Use this method instead of [fill_with_dynamic](Buffer::fill_with_dynamic)
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use fill()"]
@@ -83,7 +83,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
 
     ///
     /// Creates a new vertex buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_static](VertexBuffer::new_with_static)
+    /// Use this method instead of [new_with_static](Buffer::new_with_static)
     /// when you expect the data to change often.
     ///
     #[deprecated = "use new() or new_with_data()"]
@@ -93,7 +93,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
 
     ///
     /// Fills the vertex buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_static](VertexBuffer::fill_with_static)
+    /// Use this method instead of [fill_with_static](Buffer::fill_with_static)
     /// when you expect the data to change often.
     ///
     #[deprecated = "use fill()"]
@@ -127,7 +127,7 @@ impl<T: BufferDataType> VertexBuffer<T> {
     }
 }
 
-impl<T: BufferDataType> Drop for VertexBuffer<T> {
+impl<T: BufferDataType> Drop for Buffer<T> {
     fn drop(&mut self) {
         self.context.delete_buffer(&self.id);
     }

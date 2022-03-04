@@ -22,9 +22,9 @@ pub struct Particles {
     context: Context,
     start_position_buffer: InstanceBuffer<f32>,
     start_velocity_buffer: InstanceBuffer<f32>,
-    position_buffer: VertexBuffer<f32>,
-    normal_buffer: Option<VertexBuffer<f32>>,
-    uv_buffer: Option<VertexBuffer<f32>>,
+    position_buffer: Buffer<f32>,
+    normal_buffer: Option<Buffer<f32>>,
+    uv_buffer: Option<Buffer<f32>>,
     index_buffer: Option<IndexBuffer>,
     /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,
@@ -43,9 +43,9 @@ impl Particles {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions)?;
+        let position_buffer = Buffer::new_with_data(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_data(context, normals)?)
+            Some(Buffer::new_with_data(context, normals)?)
         } else {
             None
         };
@@ -55,7 +55,7 @@ impl Particles {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_data(context, uvs)?)
+            Some(Buffer::new_with_data(context, uvs)?)
         } else {
             None
         };
