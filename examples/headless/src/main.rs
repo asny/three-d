@@ -24,14 +24,14 @@ fn main() {
         &context,
         &CpuMesh {
             positions: vec![
-                0.5, -0.5, 0.0, // bottom right
-                -0.5, -0.5, 0.0, // bottom left
-                0.0, 0.5, 0.0, // top
+                vec3(0.5, -0.5, 0.0),  // bottom right
+                vec3(-0.5, -0.5, 0.0), // bottom left
+                vec3(0.0, 0.5, 0.0),   // top
             ],
             colors: Some(vec![
-                255, 0, 0, 255, // bottom right
-                0, 255, 0, 255, // bottom left
-                0, 0, 255, 255, // top
+                Color::new(255, 0, 0, 255), // bottom right
+                Color::new(0, 255, 0, 255), // bottom left
+                Color::new(0, 0, 255, 255), // top
             ]),
             ..Default::default()
         },

@@ -30,17 +30,22 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
 
     let mut cpu_mesh = CpuMesh::sphere(37);
-    let mut colors: Vec<u8> = vec![];
-    for i in 0..4 * cpu_mesh.positions.len() / 3 {
-        colors.push(if i % 4 == 3 {
-            255
-        } else {
-            if i % 3 == 1 {
-                (100 / ((i + 1) % 2 + 1)) as u8
+    let mut colors = Vec::new();
+    for i in 0..cpu_mesh.positions.len() {
+        let mut c = [0, 0, 0, 0];
+        for j in 0..4 {
+            let t = i * 4 + j;
+            c[j] = if t % 4 == 3 {
+                255
             } else {
-                (100 / ((i + 2) % 3 + 1)) as u8
-            }
-        })
+                if t % 3 == 1 {
+                    (100 / ((t + 1) % 2 + 1)) as u8
+                } else {
+                    (100 / ((t + 2) % 3 + 1)) as u8
+                }
+            };
+        }
+        colors.push(Color::new(c[0], c[1], c[2], c[3]));
     }
     cpu_mesh.colors = Some(colors);
     let material = PhysicalMaterial::new(
