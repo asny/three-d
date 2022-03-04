@@ -11,7 +11,7 @@ pub struct InstancedMesh {
     tangent_buffer: Option<VertexBuffer<f32>>,
     uv_buffer: Option<VertexBuffer<f32>>,
     color_buffer: Option<VertexBuffer<u8>>,
-    index_buffer: Option<ElementBuffer>,
+    index_buffer: Option<IndexBuffer>,
     instance_buffer1: InstanceBuffer<f32>,
     instance_buffer2: InstanceBuffer<f32>,
     instance_buffer3: InstanceBuffer<f32>,
@@ -52,11 +52,7 @@ impl InstancedMesh {
             None
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
-            })
+            Some(IndexBuffer::new(context, indices)?)
         } else {
             None
         };
@@ -262,7 +258,7 @@ impl InstancedMesh {
         }
 
         if let Some(ref index_buffer) = self.index_buffer {
-            program.draw_elements_instanced(
+            program.draw_instances_with_indices(
                 render_states,
                 viewport,
                 index_buffer,

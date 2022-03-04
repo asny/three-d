@@ -17,7 +17,7 @@ pub struct Mesh {
     /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
     color_buffer: Option<VertexBuffer<u8>>,
     /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
-    index_buffer: Option<ElementBuffer>,
+    index_buffer: Option<IndexBuffer>,
     context: Context,
     aabb: AxisAlignedBoundingBox,
     aabb_local: AxisAlignedBoundingBox,
@@ -46,11 +46,7 @@ impl Mesh {
             None
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
-            })
+            Some(IndexBuffer::new(context, indices)?)
         } else {
             None
         };
@@ -228,7 +224,7 @@ impl Geometry for Mesh {
                     program.use_vertex_attribute("color", color_buffer)?;
                 }
                 if let Some(ref index_buffer) = self.index_buffer {
-                    program.draw_elements(
+                    program.draw_with_indices(
                         material.render_states(),
                         camera.viewport(),
                         index_buffer,
