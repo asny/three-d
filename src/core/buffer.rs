@@ -19,7 +19,7 @@ pub use uniform_buffer::*;
 
 use crate::core::*;
 
-/// The basic data type used for each element in a [VertexBuffer] or [InstancedBuffer].
+/// The basic data type used for each element in a [Buffer] or [InstancedBuffer].
 pub trait BufferDataType:
     Default + std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
 {

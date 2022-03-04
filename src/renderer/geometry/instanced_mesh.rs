@@ -6,11 +6,11 @@ use crate::renderer::*;
 ///
 pub struct InstancedMesh {
     context: Context,
-    position_buffer: VertexBuffer<f32>,
-    normal_buffer: Option<VertexBuffer<f32>>,
-    tangent_buffer: Option<VertexBuffer<f32>>,
-    uv_buffer: Option<VertexBuffer<f32>>,
-    color_buffer: Option<VertexBuffer<u8>>,
+    position_buffer: Buffer<f32>,
+    normal_buffer: Option<Buffer<f32>>,
+    tangent_buffer: Option<Buffer<f32>>,
+    uv_buffer: Option<Buffer<f32>>,
+    color_buffer: Option<Buffer<u8>>,
     index_buffer: Option<IndexBuffer>,
     instance_buffer1: InstanceBuffer<f32>,
     instance_buffer2: InstanceBuffer<f32>,
@@ -40,14 +40,14 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions)?;
+        let position_buffer = Buffer::new_with_data(context, &cpu_mesh.positions)?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(VertexBuffer::new_with_data(context, normals)?)
+            Some(Buffer::new_with_data(context, normals)?)
         } else {
             None
         };
         let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
-            Some(VertexBuffer::new_with_data(context, tangents)?)
+            Some(Buffer::new_with_data(context, tangents)?)
         } else {
             None
         };
@@ -57,12 +57,12 @@ impl InstancedMesh {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(VertexBuffer::new_with_data(context, uvs)?)
+            Some(Buffer::new_with_data(context, uvs)?)
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(VertexBuffer::new_with_data(context, colors)?)
+            Some(Buffer::new_with_data(context, colors)?)
         } else {
             None
         };
