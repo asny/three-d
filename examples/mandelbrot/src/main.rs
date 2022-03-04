@@ -60,7 +60,10 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
 
     let indices = vec![0u8, 1, 2, 2, 3, 0];
     let positions = vec![
-        -2.0, -2.0, 0.0, 2.0, -2.0, 0.0, 2.0, 2.0, 0.0, -2.0, 2.0, 0.0,
+        vec3(-2.0, -2.0, 0.0),
+        vec3(2.0, -2.0, 0.0),
+        vec3(2.0, 2.0, 0.0),
+        vec3(-2.0, 2.0, 0.0),
     ];
     let mut mesh = Model::new_with_material(
         &context,
