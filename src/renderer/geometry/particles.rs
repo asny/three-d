@@ -25,7 +25,7 @@ pub struct Particles {
     position_buffer: VertexBuffer<f32>,
     normal_buffer: Option<VertexBuffer<f32>>,
     uv_buffer: Option<VertexBuffer<f32>>,
-    index_buffer: Option<ElementBuffer>,
+    index_buffer: Option<IndexBuffer>,
     /// The acceleration applied to all particles. Default is gravity.
     pub acceleration: Vec3,
     instance_count: u32,
@@ -50,11 +50,7 @@ impl Particles {
             None
         };
         let index_buffer = if let Some(ref indices) = cpu_mesh.indices {
-            Some(match indices {
-                Indices::U8(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U16(ind) => ElementBuffer::new_with_data(context, ind)?,
-                Indices::U32(ind) => ElementBuffer::new_with_data(context, ind)?,
-            })
+            Some(IndexBuffer::new(context, indices)?)
         } else {
             None
         };
@@ -209,7 +205,7 @@ impl Geometry for Particles {
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {
-                    program.draw_elements_instanced(
+                    program.draw_instances_with_indices(
                         material.render_states(),
                         camera.viewport(),
                         index_buffer,

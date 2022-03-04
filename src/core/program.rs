@@ -655,11 +655,29 @@ impl Program {
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays]. If you only want to draw a subset of the triangles in the given [ElementBuffer], see [Program::draw_subset_of_elements].
     ///
-    pub fn draw_elements(
+    pub fn draw_with_indices(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        index_buffer: &IndexBuffer,
+    ) {
+        match index_buffer {
+            IndexBuffer::U8(ref buffer) => self.draw_elements(render_states, viewport, buffer),
+            IndexBuffer::U16(ref buffer) => self.draw_elements(render_states, viewport, buffer),
+            IndexBuffer::U32(ref buffer) => self.draw_elements(render_states, viewport, buffer),
+        }
+    }
+
+    ///
+    /// Draws the triangles defined by the given [ElementBuffer] with the given render states and viewport using this shader program.
+    /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
+    /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays]. If you only want to draw a subset of the triangles in the given [ElementBuffer], see [Program::draw_subset_of_elements].
+    ///
+    pub fn draw_elements<T: ElementBufferDataType>(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        element_buffer: &ElementBuffer<T>,
     ) {
         self.draw_subset_of_elements(
             render_states,
@@ -675,11 +693,11 @@ impl Program {
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays].
     ///
-    pub fn draw_subset_of_elements(
+    pub fn draw_subset_of_elements<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
         first: u32,
         count: u32,
     ) {
@@ -688,7 +706,7 @@ impl Program {
         self.set_used();
         element_buffer.bind();
         self.context
-            .draw_elements(consts::TRIANGLES, count, element_buffer.data_type(), first);
+            .draw_elements(consts::TRIANGLES, count, T::data_type(), first);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
         for location in self.vertex_attributes.values() {
@@ -701,11 +719,35 @@ impl Program {
     /// Same as [Program::draw_elements] except it renders 'instance_count' instances of the same set of triangles.
     /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
     ///
-    pub fn draw_elements_instanced(
+    pub fn draw_instances_with_indices(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        index_buffer: &IndexBuffer,
+        instance_count: u32,
+    ) {
+        match index_buffer {
+            IndexBuffer::U8(ref buffer) => {
+                self.draw_elements_instanced(render_states, viewport, buffer, instance_count)
+            }
+            IndexBuffer::U16(ref buffer) => {
+                self.draw_elements_instanced(render_states, viewport, buffer, instance_count)
+            }
+            IndexBuffer::U32(ref buffer) => {
+                self.draw_elements_instanced(render_states, viewport, buffer, instance_count)
+            }
+        }
+    }
+
+    ///
+    /// Same as [Program::draw_elements] except it renders 'instance_count' instances of the same set of triangles.
+    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
+    ///
+    pub fn draw_elements_instanced<T: ElementBufferDataType>(
+        &self,
+        render_states: RenderStates,
+        viewport: Viewport,
+        element_buffer: &ElementBuffer<T>,
         instance_count: u32,
     ) {
         self.draw_subset_of_elements_instanced(
@@ -722,11 +764,11 @@ impl Program {
     /// Same as [Program::draw_subset_of_elements] except it renders 'instance_count' instances of the same set of triangles.
     /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
     ///
-    pub fn draw_subset_of_elements_instanced(
+    pub fn draw_subset_of_elements_instanced<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
         viewport: Viewport,
-        element_buffer: &ElementBuffer,
+        element_buffer: &ElementBuffer<T>,
         first: u32,
         count: u32,
         instance_count: u32,
@@ -738,7 +780,7 @@ impl Program {
         self.context.draw_elements_instanced(
             consts::TRIANGLES,
             count,
-            element_buffer.data_type(),
+            T::data_type(),
             first,
             instance_count,
         );
