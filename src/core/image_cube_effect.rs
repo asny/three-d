@@ -6,7 +6,7 @@ use crate::core::*;
 ///
 pub struct ImageCubeEffect {
     program: Program,
-    positions: Buffer<Vector3<f32>>,
+    positions: Buffer<Vec3>,
 }
 
 impl ImageCubeEffect {

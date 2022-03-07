@@ -3,8 +3,8 @@ use crate::renderer::*;
 
 pub struct Sprites {
     context: Context,
-    position_buffer: Buffer<Vector3<f32>>,
-    uv_buffer: Buffer<Vector2<f32>>,
+    position_buffer: Buffer<Vec3>,
+    uv_buffer: Buffer<Vec2>,
     center_buffer: InstanceBuffer<Vector3<f32>>,
     transformation: Mat4,
 }

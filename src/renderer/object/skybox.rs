@@ -6,7 +6,7 @@ use crate::renderer::*;
 ///
 pub struct Skybox<T: TextureCube> {
     context: Context,
-    vertex_buffer: Buffer<Vector3<f32>>,
+    vertex_buffer: Buffer<Vec3>,
     material: SkyboxMaterial<T>,
 }
 
