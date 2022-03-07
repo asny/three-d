@@ -643,24 +643,6 @@ impl Program {
     /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
     /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays]. If you only want to draw a subset of the triangles in the given [ElementBuffer], see [Program::draw_subset_of_elements].
     ///
-    pub fn draw_with_indices(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        index_buffer: &IndexBuffer,
-    ) {
-        match index_buffer {
-            IndexBuffer::U8(ref buffer) => self.draw_elements(render_states, viewport, buffer),
-            IndexBuffer::U16(ref buffer) => self.draw_elements(render_states, viewport, buffer),
-            IndexBuffer::U32(ref buffer) => self.draw_elements(render_states, viewport, buffer),
-        }
-    }
-
-    ///
-    /// Draws the triangles defined by the given [ElementBuffer] with the given render states and viewport using this shader program.
-    /// Requires that all attributes and uniforms have been defined using the use_attribute and use_uniform methods.
-    /// If you do not want to use an [ElementBuffer], see [Program::draw_arrays]. If you only want to draw a subset of the triangles in the given [ElementBuffer], see [Program::draw_subset_of_elements].
-    ///
     pub fn draw_elements<T: ElementBufferDataType>(
         &self,
         render_states: RenderStates,
@@ -701,30 +683,6 @@ impl Program {
             self.context.disable_vertex_attrib_array(*location);
         }
         self.context.unuse_program();
-    }
-
-    ///
-    /// Same as [Program::draw_elements] except it renders 'instance_count' instances of the same set of triangles.
-    /// Use the [Program::use_attribute_instanced], [Program::use_attribute_vec2_instanced], [Program::use_attribute_vec3_instanced] and [Program::use_attribute_vec4_instanced] methods to send unique data for each instance to the shader.
-    ///
-    pub fn draw_instances_with_indices(
-        &self,
-        render_states: RenderStates,
-        viewport: Viewport,
-        index_buffer: &IndexBuffer,
-        instance_count: u32,
-    ) {
-        match index_buffer {
-            IndexBuffer::U8(ref buffer) => {
-                self.draw_elements_instanced(render_states, viewport, buffer, instance_count)
-            }
-            IndexBuffer::U16(ref buffer) => {
-                self.draw_elements_instanced(render_states, viewport, buffer, instance_count)
-            }
-            IndexBuffer::U32(ref buffer) => {
-                self.draw_elements_instanced(render_states, viewport, buffer, instance_count)
-            }
-        }
     }
 
     ///

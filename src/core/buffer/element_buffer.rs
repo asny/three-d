@@ -1,25 +1,6 @@
 use crate::context::consts;
 use crate::core::*;
 
-pub enum IndexBuffer {
-    /// Uses unsigned 8 bit integer for each index.
-    U8(ElementBuffer<u8>),
-    /// Uses unsigned 16 bit integer for each index.
-    U16(ElementBuffer<u16>),
-    /// Uses unsigned 32 bit integer for each index.
-    U32(ElementBuffer<u32>),
-}
-
-impl IndexBuffer {
-    pub fn new(context: &Context, indices: &Indices) -> ThreeDResult<Self> {
-        Ok(match indices {
-            Indices::U8(ind) => IndexBuffer::U8(ElementBuffer::new_with_data(context, ind)?),
-            Indices::U16(ind) => IndexBuffer::U16(ElementBuffer::new_with_data(context, ind)?),
-            Indices::U32(ind) => IndexBuffer::U32(ElementBuffer::new_with_data(context, ind)?),
-        })
-    }
-}
-
 /// The basic data type used for each index in an element buffer.
 pub trait ElementBufferDataType:
     std::fmt::Debug + Clone + internal::BufferDataTypeExtension
