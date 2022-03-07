@@ -34,11 +34,7 @@ impl<T: BufferDataType> BufferDataType for Vector3<T> {}
 impl<T: BufferDataType> BufferDataType for Vector4<T> {}
 impl BufferDataType for Color {}
 
-///
-/// A buffer containing per vertex or per instance data, for example positions, normals, uv coordinates or colors.
-/// Do not create this directly, instead create a [VertexBuffer] or [InstanceBuffer].
-///
-pub struct Buffer<T: BufferDataType> {
+struct Buffer<T: BufferDataType> {
     context: Context,
     id: crate::context::Buffer,
     attribute_count: u32,
@@ -46,7 +42,7 @@ pub struct Buffer<T: BufferDataType> {
 }
 
 impl<T: BufferDataType> Buffer<T> {
-    fn new(context: &Context) -> ThreeDResult<Self> {
+    pub fn new(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
             id: context.create_buffer().unwrap(),
@@ -55,7 +51,7 @@ impl<T: BufferDataType> Buffer<T> {
         })
     }
 
-    fn new_with_data(context: &Context, data: &[T]) -> ThreeDResult<Self> {
+    pub fn new_with_data(context: &Context, data: &[T]) -> ThreeDResult<Self> {
         let mut buffer = Self::new(context)?;
         if data.len() > 0 {
             buffer.fill(data);
@@ -63,10 +59,6 @@ impl<T: BufferDataType> Buffer<T> {
         Ok(buffer)
     }
 
-    ///
-    /// Fills the buffer with the given data. The data should be in the same format as specified in the shader.
-    /// As an example, if specified as `vec3` in the shader it needs to be specified as an array of `Vector3<T>` where `T` is a primitive type that implements [BufferDataType], for example can be f16 or f32.
-    ///
     pub fn fill(&mut self, data: &[T]) {
         self.bind();
         T::buffer_data(
@@ -83,41 +75,11 @@ impl<T: BufferDataType> Buffer<T> {
         self.attribute_count = data.len() as u32;
     }
 
-    ///
-    /// Fills the vertex buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_dynamic](Buffer::fill_with_dynamic)
-    /// when you do not expect the data to change often.
-    ///
-    #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn fill_with_static(&mut self, data: &[T]) {
-        self.fill(data)
-    }
-
-    ///
-    /// Fills the vertex buffer with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [fill_with_static](Buffer::fill_with_static)
-    /// when you expect the data to change often.
-    ///
-    #[deprecated = "use fill() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
-    pub fn fill_with_dynamic(&mut self, data: &[T]) {
-        self.fill(data)
-    }
-
-    ///
-    /// The number of values in the buffer.
-    ///
-    pub fn count(&self) -> u32 {
-        self.attribute_count * T::size()
-    }
-
-    ///
-    /// The number of vertex attributes in the buffer.
-    ///
     pub fn attribute_count(&self) -> u32 {
         self.attribute_count
     }
 
-    pub(crate) fn bind(&self) {
+    pub fn bind(&self) {
         self.context.bind_buffer(consts::ARRAY_BUFFER, &self.id);
     }
 }

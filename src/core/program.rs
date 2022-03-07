@@ -325,7 +325,7 @@ impl Program {
     }
 
     ///
-    /// Uses the given [Buffer] in this shader program and associates it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// Each value in the buffer is used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain the same number of values as the number of vertices specified in those draw calls.
     ///
@@ -379,7 +379,7 @@ impl Program {
     }
 
     ///
-    /// Uses the given [Buffer] in this shader program and associates it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// Each value in the buffer is used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain the same number of values as the number of vertices specified in those draw calls.
     ///
@@ -435,7 +435,7 @@ impl Program {
     }
 
     ///
-    /// Uses the given [Buffer] in this shader program and associates it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// Each contiguous 2 values in the buffer are used when rendering one vertex using the [Program::draw_arrays] or [Program::draw_elements] methods.
     /// Therefore the buffer must contain 2 times the number of values as the number of vertices specified in those draw calls.
     ///
@@ -491,7 +491,7 @@ impl Program {
     }
 
     ///
-    /// Uses the given [Buffer] in this shader program and associates it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// Each contiguous 3 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 3 times the number of values as the number of instances specified in those draw calls.
     ///
@@ -547,7 +547,7 @@ impl Program {
     }
 
     ///
-    /// Uses the given [Buffer] in this shader program and associates it with the given named variable.
+    /// Uses the given [VertexBuffer] in this shader program and associates it with the given named variable.
     /// Each contiguous 4 values in the buffer are used when rendering one instance using the [Program::draw_arrays_instanced] or [Program::draw_elements_instanced] methods.
     /// Therefore the buffer must contain 4 times the number of values as the number of instances specified in those draw calls.
     ///

@@ -47,7 +47,7 @@ impl ElementBufferDataType for u32 {
 
 ///
 /// A buffer containing 3 indices for each triangle to be rendered, which is why it is also known as an index buffer.
-/// The three indices refer to three places in a set of [Buffer] where the data (position, normal etc.) is found for the three vertices of the triangle.
+/// The three indices refer to three places in a set of [VertexBuffer] where the data (position, normal etc.) is found for the three vertices of the triangle.
 /// See for example [Program::draw_elements] to use this for drawing.
 ///
 pub struct ElementBuffer<T: ElementBufferDataType> {
