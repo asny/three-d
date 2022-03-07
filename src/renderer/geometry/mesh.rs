@@ -7,15 +7,15 @@ use crate::renderer::*;
 ///
 pub struct Mesh {
     /// Buffer with the position data, ie. `(x, y, z)` for each vertex
-    position_buffer: Buffer<Vec3>,
+    position_buffer: VertexBuffer<Vec3>,
     /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
-    normal_buffer: Option<Buffer<Vec3>>,
+    normal_buffer: Option<VertexBuffer<Vec3>>,
     /// Buffer with the tangent data, ie. `(x, y, z)` for each vertex.
-    tangent_buffer: Option<Buffer<Vec4>>,
+    tangent_buffer: Option<VertexBuffer<Vec4>>,
     /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
-    uv_buffer: Option<Buffer<Vec2>>,
+    uv_buffer: Option<VertexBuffer<Vec2>>,
     /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
-    color_buffer: Option<Buffer<Color>>,
+    color_buffer: Option<VertexBuffer<Color>>,
     /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
     index_buffer: Option<IndexBuffer>,
     context: Context,
@@ -34,14 +34,14 @@ impl Mesh {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = Buffer::new_with_data(context, &cpu_mesh.positions.to_f32())?;
+        let position_buffer = VertexBuffer::new_with_data(context, &cpu_mesh.positions.to_f32())?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
-            Some(Buffer::new_with_data(context, normals)?)
+            Some(VertexBuffer::new_with_data(context, normals)?)
         } else {
             None
         };
         let tangent_buffer = if let Some(ref tangents) = cpu_mesh.tangents {
-            Some(Buffer::new_with_data(context, tangents)?)
+            Some(VertexBuffer::new_with_data(context, tangents)?)
         } else {
             None
         };
@@ -51,12 +51,12 @@ impl Mesh {
             None
         };
         let uv_buffer = if let Some(ref uvs) = cpu_mesh.uvs {
-            Some(Buffer::new_with_data(context, uvs)?)
+            Some(VertexBuffer::new_with_data(context, uvs)?)
         } else {
             None
         };
         let color_buffer = if let Some(ref colors) = cpu_mesh.colors {
-            Some(Buffer::new_with_data(context, colors)?)
+            Some(VertexBuffer::new_with_data(context, colors)?)
         } else {
             None
         };

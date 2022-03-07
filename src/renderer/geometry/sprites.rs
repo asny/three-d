@@ -3,15 +3,15 @@ use crate::renderer::*;
 
 pub struct Sprites {
     context: Context,
-    position_buffer: Buffer<Vec3>,
-    uv_buffer: Buffer<Vec2>,
+    position_buffer: VertexBuffer<Vec3>,
+    uv_buffer: VertexBuffer<Vec2>,
     center_buffer: InstanceBuffer<Vector3<f32>>,
     transformation: Mat4,
 }
 
 impl Sprites {
     pub fn new(context: &Context, centers: &[Vec3]) -> ThreeDResult<Self> {
-        let position_buffer = Buffer::new_with_data(
+        let position_buffer = VertexBuffer::new_with_data(
             &context,
             &[
                 vec3(-1.0, -1.0, 0.0),
@@ -22,7 +22,7 @@ impl Sprites {
                 vec3(-1.0, -1.0, 0.0),
             ],
         )?;
-        let uv_buffer = Buffer::new_with_data(
+        let uv_buffer = VertexBuffer::new_with_data(
             &context,
             &[
                 vec2(0.0, 0.0),
