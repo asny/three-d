@@ -69,7 +69,7 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
         &context,
         &CpuMesh {
             indices: Some(Indices::U8(indices)),
-            positions,
+            positions: Positions::F32(positions),
             ..Default::default()
         },
         MandelbrotMaterial {},

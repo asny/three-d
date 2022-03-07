@@ -127,11 +127,11 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 }
 
 fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
-    let mut iter = cpu_mesh.positions.iter();
+    let positions = cpu_mesh.positions.to_f32();
     let mut instances = Vec::new();
-    while let Some(v) = iter.next() {
+    for p in positions {
         instances.push(Instance {
-            geometry_transform: Mat4::from_translation(*v),
+            geometry_transform: Mat4::from_translation(p),
             ..Default::default()
         });
     }
@@ -140,11 +140,12 @@ fn vertex_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
 
 fn edge_transformations(cpu_mesh: &CpuMesh) -> Vec<Instance> {
     let mut edge_transformations = std::collections::HashMap::new();
-    let indices = cpu_mesh.indices.as_ref().unwrap().into_u32();
+    let indices = cpu_mesh.indices.as_ref().unwrap().to_u32();
+    let positions = cpu_mesh.positions.to_f32();
     for f in 0..indices.len() / 3 {
         let mut fun = |i1, i2| {
-            let p1: Vec3 = cpu_mesh.positions[i1];
-            let p2: Vec3 = cpu_mesh.positions[i2];
+            let p1: Vec3 = positions[i1];
+            let p2: Vec3 = positions[i2];
             let scale = Mat4::from_nonuniform_scale((p1 - p2).magnitude(), 1.0, 1.0);
             let rotation =
                 rotation_matrix_from_dir_to_dir(vec3(1.0, 0.0, 0.0), (p2 - p1).normalize());

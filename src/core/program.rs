@@ -342,14 +342,8 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer(
-                loc,
-                buffer.attribute_size(),
-                T::data_type(),
-                false,
-                0,
-                0,
-            );
+            self.context
+                .vertex_attrib_pointer(loc, T::size(), T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 0);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();
@@ -375,14 +369,8 @@ impl Program {
             buffer.bind();
             let loc = self.location(name)?;
             self.context.enable_vertex_attrib_array(loc);
-            self.context.vertex_attrib_pointer(
-                loc,
-                buffer.attribute_size(),
-                T::data_type(),
-                false,
-                0,
-                0,
-            );
+            self.context
+                .vertex_attrib_pointer(loc, T::size(), T::data_type(), false, 0, 0);
             self.context.vertex_attrib_divisor(loc, 1);
             self.context.unbind_buffer(consts::ARRAY_BUFFER);
             self.context.unuse_program();

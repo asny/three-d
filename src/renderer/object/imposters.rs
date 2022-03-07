@@ -42,7 +42,7 @@ impl Imposters {
     ///
     /// Set the positions of the imposters.
     ///
-    pub fn set_positions(&mut self, positions: &[f32]) {
+    pub fn set_positions(&mut self, positions: &[Vec3]) {
         self.sprites.set_centers(positions);
     }
 

@@ -7,15 +7,15 @@ use crate::renderer::*;
 ///
 pub struct Mesh {
     /// Buffer with the position data, ie. `(x, y, z)` for each vertex
-    position_buffer: Buffer<f32>,
+    position_buffer: Buffer<Vector3<f32>>,
     /// Buffer with the normal data, ie. `(x, y, z)` for each vertex.
-    normal_buffer: Option<Buffer<f32>>,
+    normal_buffer: Option<Buffer<Vector3<f32>>>,
     /// Buffer with the tangent data, ie. `(x, y, z)` for each vertex.
-    tangent_buffer: Option<Buffer<f32>>,
+    tangent_buffer: Option<Buffer<Vector4<f32>>>,
     /// Buffer with the uv coordinate data, ie. `(u, v)` for each vertex.
-    uv_buffer: Option<Buffer<f32>>,
+    uv_buffer: Option<Buffer<Vector2<f32>>>,
     /// Buffer with the color data, ie. `(r, g, b)` for each vertex.
-    color_buffer: Option<Buffer<u8>>,
+    color_buffer: Option<Buffer<Color>>,
     /// Buffer with the index data, ie. three contiguous integers define the triangle where each integer is and index into the other vertex buffers.
     index_buffer: Option<IndexBuffer>,
     context: Context,
@@ -34,7 +34,7 @@ impl Mesh {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = Buffer::new_with_data(context, &cpu_mesh.positions)?;
+        let position_buffer = Buffer::new_with_data(context, &cpu_mesh.positions.to_f32())?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(Buffer::new_with_data(context, normals)?)
         } else {

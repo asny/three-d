@@ -112,11 +112,11 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut plane = Model::new_with_material(
         &context,
         &CpuMesh {
-            positions: vec![
+            positions: Positions::F32(vec![
                 vec3(-10000.0, 0.0, 10000.0),
                 vec3(10000.0, 0.0, 10000.0),
                 vec3(0.0, 0.0, -10000.0),
-            ],
+            ]),
             normals: Some(vec![
                 vec3(0.0, 1.0, 0.0),
                 vec3(0.0, 1.0, 0.0),

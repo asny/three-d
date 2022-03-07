@@ -6,7 +6,7 @@ use crate::core::*;
 ///
 pub struct ImageCubeEffect {
     program: Program,
-    positions: Buffer<f32>,
+    positions: Buffer<Vector3<f32>>,
 }
 
 impl ImageCubeEffect {
@@ -29,7 +29,47 @@ impl ImageCubeEffect {
             fragment_shader_source,
         )?;
 
-        let positions = Buffer::new_with_data(context, &CpuMesh::cube().positions)?;
+        let positions = Buffer::new_with_data(
+            context,
+            &[
+                vec3(1.0, 1.0, -1.0),
+                vec3(-1.0, 1.0, -1.0),
+                vec3(1.0, 1.0, 1.0),
+                vec3(-1.0, 1.0, 1.0),
+                vec3(1.0, 1.0, 1.0),
+                vec3(-1.0, 1.0, -1.0),
+                vec3(-1.0, -1.0, -1.0),
+                vec3(1.0, -1.0, -1.0),
+                vec3(1.0, -1.0, 1.0),
+                vec3(1.0, -1.0, 1.0),
+                vec3(-1.0, -1.0, 1.0),
+                vec3(-1.0, -1.0, -1.0),
+                vec3(1.0, -1.0, -1.0),
+                vec3(-1.0, -1.0, -1.0),
+                vec3(1.0, 1.0, -1.0),
+                vec3(-1.0, 1.0, -1.0),
+                vec3(1.0, 1.0, -1.0),
+                vec3(-1.0, -1.0, -1.0),
+                vec3(-1.0, -1.0, 1.0),
+                vec3(1.0, -1.0, 1.0),
+                vec3(1.0, 1.0, 1.0),
+                vec3(1.0, 1.0, 1.0),
+                vec3(-1.0, 1.0, 1.0),
+                vec3(-1.0, -1.0, 1.0),
+                vec3(1.0, -1.0, -1.0),
+                vec3(1.0, 1.0, -1.0),
+                vec3(1.0, 1.0, 1.0),
+                vec3(1.0, 1.0, 1.0),
+                vec3(1.0, -1.0, 1.0),
+                vec3(1.0, -1.0, -1.0),
+                vec3(-1.0, 1.0, -1.0),
+                vec3(-1.0, -1.0, -1.0),
+                vec3(-1.0, 1.0, 1.0),
+                vec3(-1.0, -1.0, 1.0),
+                vec3(-1.0, 1.0, 1.0),
+                vec3(-1.0, -1.0, -1.0),
+            ],
+        )?;
         Ok(Self { program, positions })
     }
 

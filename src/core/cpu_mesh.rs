@@ -3,6 +3,7 @@ use crate::core::*;
 ///
 /// An array of indices. Supports different data types.
 ///
+#[derive(Clone)]
 pub enum Indices {
     /// Uses unsigned 8 bit integer for each index.
     U8(Vec<u8>),
@@ -14,14 +15,42 @@ pub enum Indices {
 
 impl Indices {
     ///
-    /// Returns all the indices as an `u32` data type. Clones all of the indices, so do not use it too often.
+    /// Converts all the indices as `u32` data type.
     ///
-    pub fn into_u32(&self) -> Vec<u32> {
+    pub fn into_u32(self) -> Vec<u32> {
         match self {
-            Self::U8(ind) => ind.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
-            Self::U16(ind) => ind.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
-            Self::U32(ind) => ind.clone(),
+            Self::U8(mut values) => values.drain(..).map(|i| i as u32).collect::<Vec<u32>>(),
+            Self::U16(mut values) => values.drain(..).map(|i| i as u32).collect::<Vec<u32>>(),
+            Self::U32(values) => values,
         }
+    }
+
+    ///
+    /// Clones and converts all the indices as `u32` data type.
+    ///
+    pub fn to_u32(&self) -> Vec<u32> {
+        match self {
+            Self::U8(values) => values.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
+            Self::U16(values) => values.iter().map(|i| *i as u32).collect::<Vec<u32>>(),
+            Self::U32(values) => values.clone(),
+        }
+    }
+
+    ///
+    /// Returns the number of indices.
+    ///
+    pub fn len(&self) -> usize {
+        match self {
+            Self::U8(values) => values.len(),
+            Self::U16(values) => values.len(),
+            Self::U32(values) => values.len(),
+        }
+    }
+}
+
+impl std::default::Default for Indices {
+    fn default() -> Self {
+        Self::U32(Vec::new())
     }
 }
 
@@ -32,6 +61,69 @@ impl std::fmt::Debug for Indices {
             Self::U8(ind) => d.field("u8", &ind.len()),
             Self::U16(ind) => d.field("u16", &ind.len()),
             Self::U32(ind) => d.field("u32", &ind.len()),
+        };
+        d.finish()
+    }
+}
+
+#[derive(Clone)]
+pub enum Positions {
+    /// Uses 32 bit float for the vertex positions.
+    F32(Vec<Vector3<f32>>),
+    /// Uses 64 bit float for the vertex positions.
+    F64(Vec<Vector3<f64>>),
+}
+
+impl Positions {
+    ///
+    /// Converts and returns all the indices as `f32` data type.
+    ///
+    pub fn into_f32(self) -> Vec<Vec3> {
+        match self {
+            Self::F32(values) => values,
+            Self::F64(mut values) => values
+                .drain(..)
+                .map(|v| vec3(v.x as f32, v.y as f32, v.z as f32))
+                .collect::<Vec<_>>(),
+        }
+    }
+
+    ///
+    /// Clones and converts all the positions as `f32` data type.
+    ///
+    pub fn to_f32(&self) -> Vec<Vec3> {
+        match self {
+            Self::F32(values) => values.clone(),
+            Self::F64(values) => values
+                .iter()
+                .map(|v| vec3(v.x as f32, v.y as f32, v.z as f32))
+                .collect::<Vec<_>>(),
+        }
+    }
+
+    ///
+    /// Returns the number of positions.
+    ///
+    pub fn len(&self) -> usize {
+        match self {
+            Self::F32(values) => values.len(),
+            Self::F64(values) => values.len(),
+        }
+    }
+}
+
+impl std::default::Default for Positions {
+    fn default() -> Self {
+        Self::F32(Vec::new())
+    }
+}
+
+impl std::fmt::Debug for Positions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut d = f.debug_struct("Positions");
+        match self {
+            Self::F32(ind) => d.field("f32", &ind.len()),
+            Self::F64(ind) => d.field("f64", &ind.len()),
         };
         d.finish()
     }
@@ -54,7 +146,7 @@ pub struct CpuMesh {
     pub material_name: Option<String>,
     /// The positions of the vertices.
     /// If there is no indices associated with this mesh, three contiguous positions defines a triangle, in that case, the length must be divisable by 3.
-    pub positions: Vec<Vec3>,
+    pub positions: Positions,
     /// The indices into the positions, normals, uvs and colors arrays which defines the three vertices of a triangle. Three contiguous indices defines a triangle, therefore the length must be divisable by 3.
     pub indices: Option<Indices>,
     /// The normals of the vertices.
@@ -101,9 +193,36 @@ impl CpuMesh {
     /// Transforms the mesh by the given transformation.
     ///
     pub fn transform(&mut self, transform: &Mat4) {
-        for pos in self.positions.iter_mut() {
-            *pos = (transform * pos.extend(1.0)).truncate();
-        }
+        match self.positions {
+            Positions::F32(ref mut positions) => {
+                for pos in positions.iter_mut() {
+                    *pos = (transform * pos.extend(1.0)).truncate();
+                }
+            }
+            Positions::F64(ref mut positions) => {
+                let t = Matrix4::new(
+                    transform.x.x as f64,
+                    transform.x.y as f64,
+                    transform.x.z as f64,
+                    transform.x.w as f64,
+                    transform.y.x as f64,
+                    transform.y.y as f64,
+                    transform.y.z as f64,
+                    transform.y.w as f64,
+                    transform.z.x as f64,
+                    transform.z.y as f64,
+                    transform.z.z as f64,
+                    transform.z.w as f64,
+                    transform.w.x as f64,
+                    transform.w.y as f64,
+                    transform.w.z as f64,
+                    transform.w.w as f64,
+                );
+                for pos in positions.iter_mut() {
+                    *pos = (t * pos.extend(1.0)).truncate();
+                }
+            }
+        };
         let normal_transform = transform.invert().unwrap().transpose();
 
         if let Some(ref mut normals) = self.normals {
@@ -154,7 +273,7 @@ impl CpuMesh {
         CpuMesh {
             name: "square".to_string(),
             indices: Some(Indices::U8(indices)),
-            positions,
+            positions: Positions::F32(positions),
             normals: Some(normals),
             tangents: Some(tangents),
             uvs: Some(uvs),
@@ -184,7 +303,7 @@ impl CpuMesh {
         CpuMesh {
             name: "circle".to_string(),
             indices: Some(Indices::U16(indices)),
-            positions,
+            positions: Positions::F32(positions),
             normals: Some(normals),
             ..Default::default()
         }
@@ -248,7 +367,7 @@ impl CpuMesh {
         CpuMesh {
             name: "sphere".to_string(),
             indices: Some(Indices::U16(indices)),
-            positions,
+            positions: Positions::F32(positions),
             normals: Some(normals),
             ..Default::default()
         }
@@ -335,7 +454,7 @@ impl CpuMesh {
             vec2(0.0, 0.0),
         ];
         let mut mesh = CpuMesh {
-            positions,
+            positions: Positions::F32(positions),
             uvs: Some(uvs),
             ..Default::default()
         };
@@ -372,7 +491,7 @@ impl CpuMesh {
         }
         let mut mesh = Self {
             name: "cylinder".to_string(),
-            positions,
+            positions: Positions::F32(positions),
             indices: Some(Indices::U16(indices)),
             ..Default::default()
         };
@@ -408,7 +527,7 @@ impl CpuMesh {
         }
         let mut mesh = Self {
             name: "cone".to_string(),
-            positions,
+            positions: Positions::F32(positions),
             indices: Some(Indices::U16(indices)),
             ..Default::default()
         };
@@ -439,7 +558,11 @@ impl CpuMesh {
         indices.extend(cone_indices.iter().map(|i| i + offset));
         arrow.indices = Some(Indices::U16(indices.iter().map(|i| *i as u16).collect()));
 
-        arrow.positions.extend(cone.positions);
+        if let Positions::F32(ref mut p) = arrow.positions {
+            if let Positions::F32(ref p2) = cone.positions {
+                p.extend(p2);
+            }
+        }
         arrow
             .normals
             .as_mut()
@@ -455,10 +578,21 @@ impl CpuMesh {
     pub fn compute_normals(&mut self) {
         let mut normals = vec![vec3(0.0, 0.0, 0.0); self.positions.len()];
         self.for_each_triangle(|i0, i1, i2| {
-            let p0 = self.positions[i0];
-            let p1 = self.positions[i1];
-            let p2 = self.positions[i2];
-            let normal = (p1 - p0).cross(p2 - p0);
+            let normal = match self.positions {
+                Positions::F32(ref positions) => {
+                    let p0 = positions[i0];
+                    let p1 = positions[i1];
+                    let p2 = positions[i2];
+                    (p1 - p0).cross(p2 - p0)
+                }
+                Positions::F64(ref positions) => {
+                    let p0 = positions[i0];
+                    let p1 = positions[i1];
+                    let p2 = positions[i2];
+                    let n = (p1 - p0).cross(p2 - p0);
+                    vec3(n.x as f32, n.y as f32, n.z as f32)
+                }
+            };
             normals[i0] += normal;
             normals[i1] += normal;
             normals[i2] += normal;
@@ -482,9 +616,17 @@ impl CpuMesh {
         let mut tan2 = vec![vec3(0.0, 0.0, 0.0); self.positions.len()];
 
         self.for_each_triangle(|i0, i1, i2| {
-            let a = self.positions[i0];
-            let b = self.positions[i1];
-            let c = self.positions[i2];
+            let (a, b, c) = match self.positions {
+                Positions::F32(ref positions) => (positions[i0], positions[i1], positions[i2]),
+                Positions::F64(ref positions) => {
+                    let (a, b, c) = (positions[i0], positions[i1], positions[i2]);
+                    (
+                        vec3(a.x as f32, a.y as f32, a.z as f32),
+                        vec3(b.x as f32, b.y as f32, b.z as f32),
+                        vec3(c.x as f32, c.y as f32, c.z as f32),
+                    )
+                }
+            };
             let uva = self.uvs.as_ref().unwrap()[i0];
             let uvb = self.uvs.as_ref().unwrap()[i1];
             let uvc = self.uvs.as_ref().unwrap()[i2];
@@ -576,7 +718,15 @@ impl CpuMesh {
     /// Computes the axis aligned bounding box of the mesh.
     ///
     pub fn compute_aabb(&self) -> AxisAlignedBoundingBox {
-        AxisAlignedBoundingBox::new_with_positions(&self.positions)
+        match self.positions {
+            Positions::F32(ref positions) => AxisAlignedBoundingBox::new_with_positions(positions),
+            Positions::F64(ref positions) => AxisAlignedBoundingBox::new_with_positions(
+                &positions
+                    .iter()
+                    .map(|v| vec3(v.x as f32, v.y as f32, v.z as f32))
+                    .collect::<Vec<_>>(),
+            ),
+        }
     }
 
     ///

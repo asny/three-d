@@ -3,9 +3,9 @@ use crate::renderer::*;
 
 pub struct Sprites {
     context: Context,
-    position_buffer: Buffer<f32>,
-    uv_buffer: Buffer<f32>,
-    center_buffer: InstanceBuffer<f32>,
+    position_buffer: Buffer<Vector3<f32>>,
+    uv_buffer: Buffer<Vector2<f32>>,
+    center_buffer: InstanceBuffer<Vector3<f32>>,
     transformation: Mat4,
 }
 
@@ -56,7 +56,7 @@ impl Sprites {
         self.transformation = transformation;
     }
 
-    pub fn set_centers(&mut self, centers: &[f32]) {
+    pub fn set_centers(&mut self, centers: &[Vec3]) {
         self.center_buffer.fill(centers);
     }
 }
