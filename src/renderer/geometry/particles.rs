@@ -1,3 +1,4 @@
+use super::IndexBuffer;
 use crate::core::*;
 use crate::renderer::*;
 
@@ -205,12 +206,26 @@ impl Geometry for Particles {
                 }
 
                 if let Some(ref index_buffer) = self.index_buffer {
-                    program.draw_instances_with_indices(
-                        material.render_states(),
-                        camera.viewport(),
-                        index_buffer,
-                        self.instance_count,
-                    );
+                    match index_buffer {
+                        IndexBuffer::U8(ref buffer) => program.draw_elements_instanced(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                            self.instance_count,
+                        ),
+                        IndexBuffer::U16(ref buffer) => program.draw_elements_instanced(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                            self.instance_count,
+                        ),
+                        IndexBuffer::U32(ref buffer) => program.draw_elements_instanced(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                            self.instance_count,
+                        ),
+                    }
                 } else {
                     program.draw_arrays_instanced(
                         material.render_states(),

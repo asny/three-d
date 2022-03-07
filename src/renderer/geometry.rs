@@ -192,3 +192,22 @@ impl<T: Geometry2D> Geometry2D for std::rc::Rc<std::cell::RefCell<T>> {
         self.borrow().render_with_material(material, viewport)
     }
 }
+
+enum IndexBuffer {
+    /// Uses unsigned 8 bit integer for each index.
+    U8(ElementBuffer<u8>),
+    /// Uses unsigned 16 bit integer for each index.
+    U16(ElementBuffer<u16>),
+    /// Uses unsigned 32 bit integer for each index.
+    U32(ElementBuffer<u32>),
+}
+
+impl IndexBuffer {
+    pub fn new(context: &Context, indices: &Indices) -> ThreeDResult<Self> {
+        Ok(match indices {
+            Indices::U8(ind) => IndexBuffer::U8(ElementBuffer::new_with_data(context, ind)?),
+            Indices::U16(ind) => IndexBuffer::U16(ElementBuffer::new_with_data(context, ind)?),
+            Indices::U32(ind) => IndexBuffer::U32(ElementBuffer::new_with_data(context, ind)?),
+        })
+    }
+}

@@ -1,3 +1,4 @@
+use super::IndexBuffer;
 use crate::core::*;
 use crate::renderer::*;
 
@@ -224,11 +225,23 @@ impl Geometry for Mesh {
                     program.use_vertex_attribute("color", color_buffer)?;
                 }
                 if let Some(ref index_buffer) = self.index_buffer {
-                    program.draw_with_indices(
-                        material.render_states(),
-                        camera.viewport(),
-                        index_buffer,
-                    );
+                    match index_buffer {
+                        IndexBuffer::U8(ref buffer) => program.draw_elements(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                        ),
+                        IndexBuffer::U16(ref buffer) => program.draw_elements(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                        ),
+                        IndexBuffer::U32(ref buffer) => program.draw_elements(
+                            material.render_states(),
+                            camera.viewport(),
+                            buffer,
+                        ),
+                    };
                 } else {
                     program.draw_arrays(
                         material.render_states(),
