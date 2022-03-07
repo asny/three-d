@@ -6,7 +6,7 @@ use crate::core::*;
 ///
 pub struct ImageCubeEffect {
     program: Program,
-    positions: Buffer<Vec3>,
+    positions: VertexBuffer<Vec3>,
 }
 
 impl ImageCubeEffect {
@@ -29,7 +29,7 @@ impl ImageCubeEffect {
             fragment_shader_source,
         )?;
 
-        let positions = Buffer::new_with_data(
+        let positions = VertexBuffer::new_with_data(
             context,
             &[
                 vec3(1.0, 1.0, -1.0),
