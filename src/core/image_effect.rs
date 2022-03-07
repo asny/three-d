@@ -6,8 +6,8 @@ use crate::core::*;
 ///
 pub struct ImageEffect {
     program: Program,
-    positions: Buffer<f32>,
-    uvs: Buffer<f32>,
+    positions: Buffer<Vector3<f32>>,
+    uvs: Buffer<Vector2<f32>>,
 }
 
 impl ImageEffect {

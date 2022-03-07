@@ -116,11 +116,7 @@ impl Loaded {
                         index = Some(positions.len());
                         map.insert(i.0, index.unwrap());
                         let position = object.vertices[i.0];
-                        positions.push(vec3(
-                            position.x as f32,
-                            position.y as f32,
-                            position.z as f32,
-                        ));
+                        positions.push(Vector3::new(position.x, position.y, position.z));
 
                         if let Some(tex) = uvw {
                             uvs.push(vec2(tex.u as f32, 1.0 - tex.v as f32));
@@ -149,7 +145,7 @@ impl Loaded {
                 cpu_meshes.push(CpuMesh {
                     name: object.name.to_string(),
                     material_name: mesh.material_name.clone(),
-                    positions,
+                    positions: Positions::F64(positions),
                     indices: Some(Indices::U32(indices)),
                     normals: if normals.len() == 3 * vertex_count {
                         Some(normals)

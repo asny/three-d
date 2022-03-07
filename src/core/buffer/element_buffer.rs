@@ -22,25 +22,25 @@ impl IndexBuffer {
 
 /// The basic data type used for each index in an element buffer.
 pub trait ElementBufferDataType:
-    Default + std::fmt::Debug + Clone + internal::BufferDataTypeExtension
+    std::fmt::Debug + Clone + internal::BufferDataTypeExtension
 {
     ///
     /// Converts the index to `u32`.
     ///
-    fn into_u32(&self) -> u32;
+    fn as_u32(&self) -> u32;
 }
 impl ElementBufferDataType for u8 {
-    fn into_u32(&self) -> u32 {
+    fn as_u32(&self) -> u32 {
         *self as u32
     }
 }
 impl ElementBufferDataType for u16 {
-    fn into_u32(&self) -> u32 {
+    fn as_u32(&self) -> u32 {
         *self as u32
     }
 }
 impl ElementBufferDataType for u32 {
-    fn into_u32(&self) -> u32 {
+    fn as_u32(&self) -> u32 {
         *self
     }
 }

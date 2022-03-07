@@ -6,17 +6,17 @@ use crate::renderer::*;
 ///
 pub struct InstancedMesh {
     context: Context,
-    position_buffer: Buffer<f32>,
-    normal_buffer: Option<Buffer<f32>>,
-    tangent_buffer: Option<Buffer<f32>>,
-    uv_buffer: Option<Buffer<f32>>,
-    color_buffer: Option<Buffer<u8>>,
+    position_buffer: Buffer<Vector3<f32>>,
+    normal_buffer: Option<Buffer<Vector3<f32>>>,
+    tangent_buffer: Option<Buffer<Vector4<f32>>>,
+    uv_buffer: Option<Buffer<Vector2<f32>>>,
+    color_buffer: Option<Buffer<Color>>,
     index_buffer: Option<IndexBuffer>,
-    instance_buffer1: InstanceBuffer<f32>,
-    instance_buffer2: InstanceBuffer<f32>,
-    instance_buffer3: InstanceBuffer<f32>,
-    instance_tex_transform1: InstanceBuffer<f32>,
-    instance_tex_transform2: InstanceBuffer<f32>,
+    instance_buffer1: InstanceBuffer<Vector4<f32>>,
+    instance_buffer2: InstanceBuffer<Vector4<f32>>,
+    instance_buffer3: InstanceBuffer<Vector4<f32>>,
+    instance_tex_transform1: InstanceBuffer<Vector3<f32>>,
+    instance_tex_transform2: InstanceBuffer<Vector3<f32>>,
     aabb_local: AxisAlignedBoundingBox,
     aabb: AxisAlignedBoundingBox,
     transformation: Mat4,
@@ -40,7 +40,7 @@ impl InstancedMesh {
         #[cfg(debug_assertions)]
         cpu_mesh.validate()?;
 
-        let position_buffer = Buffer::new_with_data(context, &cpu_mesh.positions)?;
+        let position_buffer = Buffer::new_with_data(context, &cpu_mesh.positions.to_f32())?;
         let normal_buffer = if let Some(ref normals) = cpu_mesh.normals {
             Some(Buffer::new_with_data(context, normals)?)
         } else {

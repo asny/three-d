@@ -6,7 +6,7 @@
 pub use crate::core::{
     math::*, render_states::*, render_target::*, texture::*, AxisAlignedBoundingBox, Camera,
     Context, CpuMesh, GeometryFunction, Indices, LightingModel, NormalDistributionFunction,
-    Viewport,
+    Positions, Viewport,
 };
 
 pub mod material;

@@ -44,7 +44,7 @@ pub fn run(screenshot: Option<std::path::PathBuf>) {
         Color::new(0, 0, 255, 255), // top
     ];
     let cpu_mesh = CpuMesh {
-        positions,
+        positions: Positions::F32(positions),
         colors: Some(colors),
         ..Default::default()
     };

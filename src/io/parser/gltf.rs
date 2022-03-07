@@ -201,7 +201,7 @@ fn parse_tree<'a>(
 
                 cpu_meshes.push(CpuMesh {
                     name: name.clone(),
-                    positions,
+                    positions: Positions::F32(positions),
                     normals,
                     tangents,
                     indices,

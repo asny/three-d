@@ -23,11 +23,11 @@ fn main() {
     let mut model = Model::new(
         &context,
         &CpuMesh {
-            positions: vec![
+            positions: Positions::F32(vec![
                 vec3(0.5, -0.5, 0.0),  // bottom right
                 vec3(-0.5, -0.5, 0.0), // bottom left
                 vec3(0.0, 0.5, 0.0),   // top
-            ],
+            ]),
             colors: Some(vec![
                 Color::new(255, 0, 0, 255), // bottom right
                 Color::new(0, 255, 0, 255), // bottom left
