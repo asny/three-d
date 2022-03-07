@@ -31,7 +31,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
 
     ///
     /// Creates a new instance buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_dynamic](Buffer::new_with_dynamic)
+    /// Use this method instead of [new_with_dynamic](InstanceBuffer::new_with_dynamic)
     /// when you do not expect the data to change often.
     ///
     #[deprecated = "use new_with_data() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
@@ -41,7 +41,7 @@ impl<T: BufferDataType> InstanceBuffer<T> {
 
     ///
     /// Creates a new instance buffer and fills it with the given data which must contain between 1 and 4 contiguous values for each vertex.
-    /// Use this method instead of [new_with_static](Buffer::new_with_static)
+    /// Use this method instead of [new_with_static](InstanceBuffer::new_with_static)
     /// when you expect the data to change often.
     ///
     #[deprecated = "use new_with_data() and specify the data in the same format as in the shader (for example an array of Vec3 instead of f32)"]
