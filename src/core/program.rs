@@ -259,6 +259,7 @@ impl Program {
     /// - `uniform sampler2D` if [Texture2D] or [DepthTargetTexture2D]
     /// - `uniform sampler2DArray` if [Texture2DArray] or [DepthTargetTexture2DArray]
     /// - `uniform samplerCube` if [TextureCubeMap] or [DepthTargetTextureCubeMap]
+    /// - `uniform sampler3D` if [Texture3D]
     ///
     /// # Errors
     /// Will return an error if the texture is not defined in the shader code or not used.
