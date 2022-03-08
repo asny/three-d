@@ -4,20 +4,17 @@ use crate::renderer::*;
 ///
 /// An illusion of a sky.
 ///
-pub struct Skybox<T: TextureCube> {
+pub struct Skybox<T: TextureDataType> {
     context: Context,
     vertex_buffer: VertexBuffer<Vec3>,
     material: SkyboxMaterial<T>,
 }
 
-impl<T: TextureDataType> Skybox<TextureCubeMap<T>> {
+impl<T: TextureDataType> Skybox<T> {
     ///
     /// Creates a new skybox with the given cpu-side version of a [TextureCubeMap].
     ///
-    pub fn new(
-        context: &Context,
-        cpu_texture: &CpuTextureCube<T>,
-    ) -> ThreeDResult<Skybox<TextureCubeMap<T>>> {
+    pub fn new(context: &Context, cpu_texture: &CpuTextureCube<T>) -> ThreeDResult<Skybox<T>> {
         let texture = TextureCubeMap::new(&context, cpu_texture)?;
         Self::new_with_texture(context, texture)
     }
@@ -28,17 +25,18 @@ impl<T: TextureDataType> Skybox<TextureCubeMap<T>> {
     pub fn new_from_equirectangular(
         context: &Context,
         cpu_texture: &CpuTexture<T>,
-    ) -> ThreeDResult<Skybox<TextureCubeMap<T>>> {
+    ) -> ThreeDResult<Skybox<T>> {
         let texture = TextureCubeMap::new_from_equirectangular(context, cpu_texture)?;
         Self::new_with_texture(context, texture)
     }
-}
 
-impl<T: TextureCube> Skybox<T> {
     ///
     /// Creates a new skybox with the given [TextureCubeMap].
     ///
-    pub fn new_with_texture(context: &Context, texture: T) -> ThreeDResult<Skybox<T>> {
+    pub fn new_with_texture(
+        context: &Context,
+        texture: TextureCubeMap<T>,
+    ) -> ThreeDResult<Skybox<T>> {
         let vertex_buffer = VertexBuffer::new_with_data(
             context,
             &[
@@ -91,12 +89,12 @@ impl<T: TextureCube> Skybox<T> {
     ///
     /// Returns a reference to the cube map texture
     ///
-    pub fn texture(&self) -> &impl TextureCube {
+    pub fn texture(&self) -> &TextureCubeMap<impl TextureDataType> {
         &self.material.texture
     }
 }
 
-impl<T: TextureCube> Geometry for Skybox<T> {
+impl<T: TextureDataType> Geometry for Skybox<T> {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox::INFINITE
     }
@@ -122,7 +120,7 @@ impl<T: TextureCube> Geometry for Skybox<T> {
     }
 }
 
-impl<T: TextureCube> Object for Skybox<T> {
+impl<T: TextureDataType> Object for Skybox<T> {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         self.render_with_material(&self.material, camera, lights)
     }
@@ -132,11 +130,11 @@ impl<T: TextureCube> Object for Skybox<T> {
     }
 }
 
-struct SkyboxMaterial<T: TextureCube> {
-    pub texture: T,
+struct SkyboxMaterial<T: TextureDataType> {
+    pub texture: TextureCubeMap<T>,
 }
 
-impl<T: TextureCube> Material for SkyboxMaterial<T> {
+impl<T: TextureDataType> Material for SkyboxMaterial<T> {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         format!(
             "{}{}",

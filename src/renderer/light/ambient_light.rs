@@ -29,7 +29,7 @@ impl AmbientLight {
         context: &Context,
         intensity: f32,
         color: Color,
-        environment_map: &impl TextureCube,
+        environment_map: &TextureCubeMap<impl TextureDataType>,
     ) -> ThreeDResult<Self> {
         Ok(Self {
             intensity,

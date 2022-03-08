@@ -19,7 +19,10 @@ impl Environment {
     /// Computes the maps needed for physically based rendering with lighting from an environment from the given environment map.
     /// A default Cook-Torrance lighting model is used.
     ///
-    pub fn new(context: &Context, environment_map: &impl TextureCube) -> ThreeDResult<Self> {
+    pub fn new(
+        context: &Context,
+        environment_map: &TextureCubeMap<impl TextureDataType>,
+    ) -> ThreeDResult<Self> {
         Self::new_with_lighting_model(
             context,
             environment_map,
@@ -35,7 +38,7 @@ impl Environment {
     ///
     pub fn new_with_lighting_model(
         context: &Context,
-        environment_map: &impl TextureCube,
+        environment_map: &TextureCubeMap<impl TextureDataType>,
         lighting_model: LightingModel,
     ) -> ThreeDResult<Self> {
         // Diffuse
