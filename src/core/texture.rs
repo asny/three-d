@@ -743,11 +743,14 @@ fn calculate_number_of_mip_maps(
     mip_map_filter: Option<Interpolation>,
     width: u32,
     height: u32,
+    depth: Option<u32>,
 ) -> u32 {
-    if mip_map_filter.is_some() && width == height && height.is_power_of_two() {
-        let w = (width as f64).log2().ceil();
-        let h = (height as f64).log2().ceil();
-        w.max(h).floor() as u32 + 1
+    if mip_map_filter.is_some()
+        && width == height
+        && depth.map(|d| d == width).unwrap_or(true)
+        && width.is_power_of_two()
+    {
+        (width as f64).log2() as u32 + 1
     } else {
         1
     }
