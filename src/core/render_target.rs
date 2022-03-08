@@ -233,8 +233,8 @@ fn copy_from(
 
 fn copy_from_array(
     context: &Context,
-    color_texture: Option<(&impl TextureArray, u32)>,
-    depth_texture: Option<(&impl TextureArray, u32)>,
+    color_texture: Option<(&Texture2DArray<impl TextureDataType>, u32)>,
+    depth_texture: Option<(&DepthTargetTexture2DArray, u32)>,
     viewport: Viewport,
     write_mask: WriteMask,
 ) -> ThreeDResult<()> {
