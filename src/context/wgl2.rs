@@ -114,8 +114,7 @@ impl GLContext {
     }
 
     pub fn compile_shader(&self, source: &str, shader: &Shader) {
-        let header = "
-        #version 300 es
+        let header = "#version 300 es
         #ifdef GL_FRAGMENT_PRECISION_HIGH
             precision highp float;
             precision highp int;
@@ -124,7 +123,7 @@ impl GLContext {
             precision mediump float;
             precision mediump int;
             precision mediump sampler2DArray;
-        #endif";
+        #endif\n";
         let s: &str = &[header, source].concat();
 
         self.inner.shader_source(shader, s);
@@ -428,7 +427,7 @@ impl GLContext {
         data_type: DataType,
     ) {
         self.inner
-            .tex_image_3d_with_i32_and_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
+            .tex_image_3d_with_opt_u8_array(
                 target,
                 level as i32,
                 internalformat as i32,
@@ -458,7 +457,7 @@ impl GLContext {
         pixels: &[u8],
     ) {
         self.inner
-            .tex_sub_image_3d_with_i32_and_i32_and_i32_and_u32_and_type_and_opt_u8_array(
+            .tex_sub_image_3d_with_opt_u8_array(
                 target,
                 level as i32,
                 x_offset as i32,
