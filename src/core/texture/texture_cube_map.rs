@@ -117,7 +117,6 @@ pub struct TextureCubeMap<T: TextureDataType> {
     height: u32,
     format: Format,
     number_of_mip_maps: u32,
-    is_hdr: bool,
     _dummy: T,
 }
 
@@ -201,7 +200,6 @@ impl<T: TextureDataType> TextureCubeMap<T> {
             height,
             number_of_mip_maps,
             format,
-            is_hdr: T::bits_per_channel() > 8,
             _dummy: T::default(),
         };
         tex.generate_mip_maps();
@@ -384,9 +382,6 @@ impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
     }
     fn format(&self) -> Format {
         self.format
-    }
-    fn is_hdr(&self) -> bool {
-        self.is_hdr
     }
 }
 

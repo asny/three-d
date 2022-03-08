@@ -767,8 +767,6 @@ pub trait TextureCube {
     fn height(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
-    /// Whether or not this texture contain hdr information.
-    fn is_hdr(&self) -> bool;
 }
 
 impl<T: TextureCube + ?Sized> TextureCube for &T {
@@ -783,9 +781,6 @@ impl<T: TextureCube + ?Sized> TextureCube for &T {
     }
     fn format(&self) -> Format {
         (*self).format()
-    }
-    fn is_hdr(&self) -> bool {
-        (*self).is_hdr()
     }
 }
 
@@ -802,9 +797,6 @@ impl<T: TextureCube + ?Sized> TextureCube for &mut T {
     fn format(&self) -> Format {
         (**self).format()
     }
-    fn is_hdr(&self) -> bool {
-        (**self).is_hdr()
-    }
 }
 
 impl<T: TextureCube> TextureCube for Box<T> {
@@ -819,9 +811,6 @@ impl<T: TextureCube> TextureCube for Box<T> {
     }
     fn format(&self) -> Format {
         self.as_ref().format()
-    }
-    fn is_hdr(&self) -> bool {
-        self.as_ref().is_hdr()
     }
 }
 
@@ -838,9 +827,6 @@ impl<T: TextureCube> TextureCube for std::rc::Rc<T> {
     fn format(&self) -> Format {
         self.as_ref().format()
     }
-    fn is_hdr(&self) -> bool {
-        self.as_ref().is_hdr()
-    }
 }
 
 impl<T: TextureCube> TextureCube for std::rc::Rc<std::cell::RefCell<T>> {
@@ -855,9 +841,6 @@ impl<T: TextureCube> TextureCube for std::rc::Rc<std::cell::RefCell<T>> {
     }
     fn format(&self) -> Format {
         self.borrow().format()
-    }
-    fn is_hdr(&self) -> bool {
-        self.borrow().is_hdr()
     }
 }
 

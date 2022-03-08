@@ -149,7 +149,7 @@ impl<T: TextureDataType> Material for SkyboxMaterial<T> {
         camera: &Camera,
         _lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
-        program.use_uniform("isHDR", if self.texture.is_hdr() { &1 } else { &0 })?;
+        program.use_uniform("isHDR", if T::bits_per_channel() > 8 { &1 } else { &0 })?;
         program.use_texture_cube("texture0", &self.texture)?;
         program.use_uniform_block("Camera", camera.uniform_buffer());
         Ok(())
