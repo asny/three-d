@@ -344,6 +344,21 @@ impl<T: TextureDataType> TextureCubeMap<T> {
         )
     }
 
+    /// The width of this texture.
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// The height of this texture.
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// The format of this texture.
+    pub fn format(&self) -> Format {
+        self.format
+    }
+
     pub(in crate::core) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context
@@ -371,20 +386,6 @@ impl<T: TextureDataType> TextureCubeMap<T> {
 impl<T: TextureDataType> Texture for TextureCubeMap<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
-    }
-
-    fn width(&self) -> u32 {
-        self.width
-    }
-
-    fn height(&self) -> u32 {
-        self.height
-    }
-    fn depth(&self) -> u32 {
-        1
-    }
-    fn format(&self) -> Format {
-        self.format
     }
 }
 

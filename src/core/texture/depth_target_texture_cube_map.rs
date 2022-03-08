@@ -73,6 +73,16 @@ impl DepthTargetTextureCubeMap {
         )
     }
 
+    /// The width of this texture.
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// The height of this texture.
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
     pub(in crate::core) fn bind_as_depth_target(&self, side: CubeMapSide) {
         self.context.framebuffer_texture_2d(
             consts::DRAW_FRAMEBUFFER,
@@ -87,18 +97,6 @@ impl DepthTargetTextureCubeMap {
 impl Texture for DepthTargetTextureCubeMap {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
-    }
-    fn width(&self) -> u32 {
-        self.width
-    }
-    fn height(&self) -> u32 {
-        self.height
-    }
-    fn depth(&self) -> u32 {
-        1
-    }
-    fn format(&self) -> Format {
-        Format::R
     }
 }
 

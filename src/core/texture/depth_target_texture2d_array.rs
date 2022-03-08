@@ -77,6 +77,21 @@ impl DepthTargetTexture2DArray {
         )
     }
 
+    /// The width of this texture.
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// The height of this texture.
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// The number of layers.
+    pub fn depth(&self) -> u32 {
+        self.depth
+    }
+
     pub(in crate::core) fn bind_as_depth_target(&self, layer: u32) {
         self.context.framebuffer_texture_layer(
             consts::DRAW_FRAMEBUFFER,
@@ -91,18 +106,6 @@ impl DepthTargetTexture2DArray {
 impl Texture for DepthTargetTexture2DArray {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
-    }
-    fn width(&self) -> u32 {
-        self.width
-    }
-    fn height(&self) -> u32 {
-        self.height
-    }
-    fn depth(&self) -> u32 {
-        self.depth
-    }
-    fn format(&self) -> Format {
-        Format::R
     }
 }
 

@@ -113,6 +113,26 @@ impl<T: TextureDataType> Texture3D<T> {
         Ok(())
     }
 
+    /// The width of this texture.
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// The height of this texture.
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// The depth of this texture.
+    pub fn depth(&self) -> u32 {
+        self.depth
+    }
+
+    /// The format of this texture.
+    pub fn format(&self) -> Format {
+        self.format
+    }
+
     fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
             self.context.bind_texture(consts::TEXTURE_3D, &self.id);
@@ -124,18 +144,6 @@ impl<T: TextureDataType> Texture3D<T> {
 impl<T: TextureDataType> Texture for Texture3D<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_3D, location);
-    }
-    fn width(&self) -> u32 {
-        self.width
-    }
-    fn height(&self) -> u32 {
-        self.height
-    }
-    fn depth(&self) -> u32 {
-        self.depth
-    }
-    fn format(&self) -> Format {
-        self.format
     }
 }
 

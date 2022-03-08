@@ -636,31 +636,11 @@ use crate::core::*;
 pub trait Texture {
     /// Binds this texture to the current shader program.
     fn bind(&self, location: u32);
-    /// The width of this texture.
-    fn width(&self) -> u32;
-    /// The height of this texture.
-    fn height(&self) -> u32;
-    /// The depth of this texture (the number of layers for a [Texture2DArray]).
-    fn depth(&self) -> u32;
-    /// The format of this texture.
-    fn format(&self) -> Format;
 }
 
 impl<T: Texture + ?Sized> Texture for &T {
     fn bind(&self, location: u32) {
         (*self).bind(location)
-    }
-    fn width(&self) -> u32 {
-        (*self).width()
-    }
-    fn height(&self) -> u32 {
-        (*self).height()
-    }
-    fn depth(&self) -> u32 {
-        (*self).depth()
-    }
-    fn format(&self) -> Format {
-        (*self).format()
     }
 }
 
@@ -668,35 +648,11 @@ impl<T: Texture + ?Sized> Texture for &mut T {
     fn bind(&self, location: u32) {
         (**self).bind(location)
     }
-    fn width(&self) -> u32 {
-        (**self).width()
-    }
-    fn height(&self) -> u32 {
-        (**self).height()
-    }
-    fn depth(&self) -> u32 {
-        (**self).depth()
-    }
-    fn format(&self) -> Format {
-        (**self).format()
-    }
 }
 
 impl<T: Texture> Texture for Box<T> {
     fn bind(&self, location: u32) {
         self.as_ref().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.as_ref().width()
-    }
-    fn height(&self) -> u32 {
-        self.as_ref().height()
-    }
-    fn depth(&self) -> u32 {
-        self.as_ref().depth()
-    }
-    fn format(&self) -> Format {
-        self.as_ref().format()
     }
 }
 
@@ -704,35 +660,11 @@ impl<T: Texture> Texture for std::rc::Rc<T> {
     fn bind(&self, location: u32) {
         self.as_ref().bind(location)
     }
-    fn width(&self) -> u32 {
-        self.as_ref().width()
-    }
-    fn height(&self) -> u32 {
-        self.as_ref().height()
-    }
-    fn depth(&self) -> u32 {
-        self.as_ref().depth()
-    }
-    fn format(&self) -> Format {
-        self.as_ref().format()
-    }
 }
 
 impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {
     fn bind(&self, location: u32) {
         self.borrow().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.borrow().width()
-    }
-    fn height(&self) -> u32 {
-        self.borrow().height()
-    }
-    fn depth(&self) -> u32 {
-        self.borrow().depth()
-    }
-    fn format(&self) -> Format {
-        self.borrow().format()
     }
 }
 
