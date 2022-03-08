@@ -66,6 +66,9 @@ impl std::fmt::Debug for Indices {
     }
 }
 
+///
+/// An array of positions. Supports f32 and f64 data types.
+///
 #[derive(Clone)]
 pub enum Positions {
     /// Uses 32 bit float for the vertex positions.
