@@ -267,7 +267,8 @@ impl Program {
     ///
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
-        texture.bind(index);
+        self.context.active_texture(consts::TEXTURE0 + index);
+        texture.bind();
         self.use_uniform(name, index as i32)?;
         Ok(())
     }

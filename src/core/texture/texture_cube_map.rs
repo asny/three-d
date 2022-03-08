@@ -384,11 +384,14 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     }
 }
 
-impl<T: TextureDataType> Texture for TextureCubeMap<T> {
-    fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
+impl<T: TextureDataType> internal::TextureExtensions for TextureCubeMap<T> {
+    fn bind(&self) {
+        self.context
+            .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
     }
 }
+
+impl<T: TextureDataType> Texture for TextureCubeMap<T> {}
 
 impl<T: TextureDataType> Drop for TextureCubeMap<T> {
     fn drop(&mut self) {

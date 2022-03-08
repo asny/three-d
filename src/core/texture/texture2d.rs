@@ -191,11 +191,13 @@ impl<T: TextureDataType> Texture2D<T> {
     }
 }
 
-impl<T: TextureDataType> Texture for Texture2D<T> {
-    fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_2D, location);
+impl<T: TextureDataType> internal::TextureExtensions for Texture2D<T> {
+    fn bind(&self) {
+        self.context.bind_texture(consts::TEXTURE_2D, &self.id);
     }
 }
+
+impl<T: TextureDataType> Texture for Texture2D<T> {}
 
 impl<T: TextureDataType> Drop for Texture2D<T> {
     fn drop(&mut self) {

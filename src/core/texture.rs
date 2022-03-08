@@ -663,59 +663,56 @@ mod internal {
             Format::RGBA => consts::RGBA,
         }
     }
+
+    pub trait TextureExtensions {
+        fn bind(&self);
+    }
+    impl<T: TextureExtensions + ?Sized> TextureExtensions for &T {
+        fn bind(&self) {
+            (*self).bind()
+        }
+    }
+    impl<T: TextureExtensions + ?Sized> TextureExtensions for &mut T {
+        fn bind(&self) {
+            (**self).bind()
+        }
+    }
+    impl<T: TextureExtensions> TextureExtensions for Box<T> {
+        fn bind(&self) {
+            self.as_ref().bind()
+        }
+    }
+    impl<T: TextureExtensions> TextureExtensions for std::rc::Rc<T> {
+        fn bind(&self) {
+            self.as_ref().bind()
+        }
+    }
+    impl<T: TextureExtensions> TextureExtensions for std::rc::Rc<std::cell::RefCell<T>> {
+        fn bind(&self) {
+            self.borrow().bind()
+        }
+    }
 }
 
 use crate::context::consts;
 use crate::core::*;
 
 ///
-/// A texture that can be sampled in a fragment shader (see [use_texture](crate::core::Program::use_texture)).
+/// A texture that can be sampled in a fragment shader (see [Program::use_texture].
 ///
-pub trait Texture {
-    /// Binds this texture to the current shader program.
-    fn bind(&self, location: u32);
-}
+pub trait Texture: internal::TextureExtensions {}
 
-impl<T: Texture + ?Sized> Texture for &T {
-    fn bind(&self, location: u32) {
-        (*self).bind(location)
-    }
-}
-
-impl<T: Texture + ?Sized> Texture for &mut T {
-    fn bind(&self, location: u32) {
-        (**self).bind(location)
-    }
-}
-
-impl<T: Texture> Texture for Box<T> {
-    fn bind(&self, location: u32) {
-        self.as_ref().bind(location)
-    }
-}
-
-impl<T: Texture> Texture for std::rc::Rc<T> {
-    fn bind(&self, location: u32) {
-        self.as_ref().bind(location)
-    }
-}
-
-impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {
-    fn bind(&self, location: u32) {
-        self.borrow().bind(location)
-    }
-}
+impl<T: Texture + ?Sized> Texture for &T {}
+impl<T: Texture + ?Sized> Texture for &mut T {}
+impl<T: Texture> Texture for Box<T> {}
+impl<T: Texture> Texture for std::rc::Rc<T> {}
+impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {}
 
 // COMMON TEXTURE FUNCTIONS
 fn generate(context: &Context) -> ThreeDResult<crate::context::Texture> {
     Ok(context
         .create_texture()
         .ok_or_else(|| CoreError::TextureCreation)?)
-}
-
-fn bind_at(context: &Context, id: &crate::context::Texture, target: u32, location: u32) {
-    context.active_texture(consts::TEXTURE0 + location);
-    context.bind_texture(target, id);
 }
 
 fn set_parameters(

@@ -142,11 +142,13 @@ impl<T: TextureDataType> Texture3D<T> {
     }
 }
 
-impl<T: TextureDataType> Texture for Texture3D<T> {
-    fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_3D, location);
+impl<T: TextureDataType> super::internal::TextureExtensions for Texture3D<T> {
+    fn bind(&self) {
+        self.context.bind_texture(consts::TEXTURE_3D, &self.id);
     }
 }
+
+impl<T: TextureDataType> Texture for Texture3D<T> {}
 
 impl<T: TextureDataType> Drop for Texture3D<T> {
     fn drop(&mut self) {

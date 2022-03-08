@@ -94,11 +94,14 @@ impl DepthTargetTextureCubeMap {
     }
 }
 
-impl Texture for DepthTargetTextureCubeMap {
-    fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
+impl super::internal::TextureExtensions for DepthTargetTextureCubeMap {
+    fn bind(&self) {
+        self.context
+            .bind_texture(consts::TEXTURE_CUBE_MAP, &self.id);
     }
 }
+
+impl Texture for DepthTargetTextureCubeMap {}
 
 impl Drop for DepthTargetTextureCubeMap {
     fn drop(&mut self) {

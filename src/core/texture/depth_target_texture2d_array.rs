@@ -103,11 +103,14 @@ impl DepthTargetTexture2DArray {
     }
 }
 
-impl Texture for DepthTargetTexture2DArray {
-    fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
+impl super::internal::TextureExtensions for DepthTargetTexture2DArray {
+    fn bind(&self) {
+        self.context
+            .bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
     }
 }
+
+impl Texture for DepthTargetTexture2DArray {}
 
 impl Drop for DepthTargetTexture2DArray {
     fn drop(&mut self) {

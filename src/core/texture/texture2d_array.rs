@@ -142,11 +142,14 @@ impl<T: TextureDataType> Texture2DArray<T> {
     }
 }
 
-impl<T: TextureDataType> Texture for Texture2DArray<T> {
-    fn bind(&self, location: u32) {
-        bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
+impl<T: TextureDataType> super::internal::TextureExtensions for Texture2DArray<T> {
+    fn bind(&self) {
+        self.context
+            .bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
     }
 }
+
+impl<T: TextureDataType> Texture for Texture2DArray<T> {}
 
 impl<T: TextureDataType> Drop for Texture2DArray<T> {
     fn drop(&mut self) {
