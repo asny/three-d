@@ -283,7 +283,7 @@ impl InstancedMesh {
             program.draw_arrays_instanced(
                 render_states,
                 viewport,
-                self.position_buffer.count() as u32 / 3,
+                self.position_buffer.vertex_count() as u32,
                 self.instance_count,
             );
         }
