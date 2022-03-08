@@ -244,6 +244,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
                 consts::TEXTURE_CUBE_MAP_POSITIVE_X + i as u32,
                 self.width,
                 self.height,
+                None,
                 self.format,
                 data,
             );

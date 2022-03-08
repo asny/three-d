@@ -968,6 +968,7 @@ impl GLContext {
         width: u32,
         height: u32,
         depth: u32,
+        border: u32,
         format: u32,
         data_type: DataType,
     ) {
@@ -979,10 +980,41 @@ impl GLContext {
                 width as i32,
                 height as i32,
                 depth as i32,
-                0,
+                border as i32,
                 format,
                 data_type.to_const(),
                 std::ptr::null() as *const consts::types::GLvoid,
+            );
+        }
+    }
+
+    pub fn tex_sub_image_3d_with_u8_data(
+        &self,
+        target: u32,
+        level: u32,
+        x_offset: i32,
+        y_offset: i32,
+        z_offset: i32,
+        width: u32,
+        height: u32,
+        depth: u32,
+        format: u32,
+        data_type: DataType,
+        pixels: &[u8],
+    ) {
+        unsafe {
+            self.inner.TexSubImage3D(
+                target,
+                level as i32,
+                x_offset as i32,
+                y_offset as i32,
+                z_offset as i32,
+                width as i32,
+                height as i32,
+                depth as i32,
+                format,
+                data_type.to_const(),
+                pixels.as_ptr() as *const consts::types::GLvoid,
             );
         }
     }

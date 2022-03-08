@@ -346,6 +346,7 @@ mod internal {
             target: u32,
             width: u32,
             height: u32,
+            depth: Option<u32>,
             format: Format,
             data: &[Self],
         );
@@ -369,20 +370,37 @@ mod internal {
             target: u32,
             width: u32,
             height: u32,
+            depth: Option<u32>,
             format: Format,
             data: &[Self],
         ) {
-            context.tex_sub_image_2d_with_u8_data(
-                target,
-                0,
-                0,
-                0,
-                width,
-                height,
-                format_from(format),
-                DataType::UnsignedByte,
-                data,
-            );
+            if let Some(depth) = depth {
+                context.tex_sub_image_3d_with_u8_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    depth,
+                    format_from(format),
+                    DataType::UnsignedByte,
+                    data,
+                );
+            } else {
+                context.tex_sub_image_2d_with_u8_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    format_from(format),
+                    DataType::UnsignedByte,
+                    data,
+                );
+            }
         }
 
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
@@ -421,20 +439,25 @@ mod internal {
             target: u32,
             width: u32,
             height: u32,
+            depth: Option<u32>,
             format: Format,
             data: &[Self],
         ) {
-            context.tex_sub_image_2d_with_u16_data(
-                target,
-                0,
-                0,
-                0,
-                width,
-                height,
-                format_from(format),
-                DataType::UnsignedShort,
-                data,
-            );
+            if let Some(_depth) = depth {
+                unimplemented!();
+            } else {
+                context.tex_sub_image_2d_with_u16_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    format_from(format),
+                    DataType::UnsignedShort,
+                    data,
+                );
+            }
         }
 
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
@@ -473,20 +496,25 @@ mod internal {
             target: u32,
             width: u32,
             height: u32,
+            depth: Option<u32>,
             format: Format,
             data: &[Self],
         ) {
-            context.tex_sub_image_2d_with_u16_data(
-                target,
-                0,
-                0,
-                0,
-                width,
-                height,
-                format_from(format),
-                DataType::HalfFloat,
-                &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
-            );
+            if let Some(_depth) = depth {
+                unimplemented!();
+            } else {
+                context.tex_sub_image_2d_with_u16_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    format_from(format),
+                    DataType::HalfFloat,
+                    &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
+                );
+            }
         }
 
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
@@ -529,20 +557,25 @@ mod internal {
             target: u32,
             width: u32,
             height: u32,
+            depth: Option<u32>,
             format: Format,
             data: &[Self],
         ) {
-            context.tex_sub_image_2d_with_f32_data(
-                target,
-                0,
-                0,
-                0,
-                width,
-                height,
-                format_from(format),
-                DataType::Float,
-                data,
-            );
+            if let Some(_depth) = depth {
+                unimplemented!();
+            } else {
+                context.tex_sub_image_2d_with_f32_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    format_from(format),
+                    DataType::Float,
+                    data,
+                );
+            }
         }
 
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
@@ -581,20 +614,25 @@ mod internal {
             target: u32,
             width: u32,
             height: u32,
+            depth: Option<u32>,
             format: Format,
             data: &[Self],
         ) {
-            context.tex_sub_image_2d_with_u32_data(
-                target,
-                0,
-                0,
-                0,
-                width,
-                height,
-                format_from(format),
-                DataType::UnsignedInt,
-                data,
-            );
+            if let Some(_depth) = depth {
+                unimplemented!();
+            } else {
+                context.tex_sub_image_2d_with_u32_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    format_from(format),
+                    DataType::UnsignedInt,
+                    data,
+                );
+            }
         }
         fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
             context.read_pixels_with_u32_data(

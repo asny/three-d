@@ -96,8 +96,9 @@ impl<T: TextureDataType> Texture2D<T> {
         T::fill(
             &self.context,
             consts::TEXTURE_2D,
-            self.width(),
-            self.height(),
+            self.width,
+            self.height,
+            None,
             self.format,
             data,
         );

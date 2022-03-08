@@ -104,8 +104,9 @@ impl<T: TextureDataType> Texture3D<T> {
         T::fill(
             &self.context,
             consts::TEXTURE_3D,
-            self.width(),
-            self.height(),
+            self.width,
+            self.height,
+            Some(self.depth),
             self.format,
             data,
         );
