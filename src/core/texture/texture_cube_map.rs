@@ -368,7 +368,7 @@ impl<T: TextureDataType> TextureCubeMap<T> {
     }
 }
 
-impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
+impl<T: TextureDataType> Texture for TextureCubeMap<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
     }
@@ -379,6 +379,9 @@ impl<T: TextureDataType> TextureCube for TextureCubeMap<T> {
 
     fn height(&self) -> u32 {
         self.height
+    }
+    fn depth(&self) -> u32 {
+        1
     }
     fn format(&self) -> Format {
         self.format

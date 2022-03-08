@@ -122,7 +122,7 @@ impl<T: TextureDataType> Texture2DArray<T> {
     }
 }
 
-impl<T: TextureDataType> TextureArray for Texture2DArray<T> {
+impl<T: TextureDataType> Texture for Texture2DArray<T> {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }

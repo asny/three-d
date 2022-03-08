@@ -570,102 +570,13 @@ pub trait Texture {
     fn width(&self) -> u32;
     /// The height of this texture.
     fn height(&self) -> u32;
-    /// The format of this texture.
-    fn format(&self) -> Format;
-}
-
-impl<T: Texture + ?Sized> Texture for &T {
-    fn bind(&self, location: u32) {
-        (*self).bind(location)
-    }
-    fn width(&self) -> u32 {
-        (*self).width()
-    }
-    fn height(&self) -> u32 {
-        (*self).height()
-    }
-    fn format(&self) -> Format {
-        (*self).format()
-    }
-}
-
-impl<T: Texture + ?Sized> Texture for &mut T {
-    fn bind(&self, location: u32) {
-        (**self).bind(location)
-    }
-    fn width(&self) -> u32 {
-        (**self).width()
-    }
-    fn height(&self) -> u32 {
-        (**self).height()
-    }
-    fn format(&self) -> Format {
-        (**self).format()
-    }
-}
-
-impl<T: Texture> Texture for Box<T> {
-    fn bind(&self, location: u32) {
-        self.as_ref().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.as_ref().width()
-    }
-    fn height(&self) -> u32 {
-        self.as_ref().height()
-    }
-    fn format(&self) -> Format {
-        self.as_ref().format()
-    }
-}
-
-impl<T: Texture> Texture for std::rc::Rc<T> {
-    fn bind(&self, location: u32) {
-        self.as_ref().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.as_ref().width()
-    }
-    fn height(&self) -> u32 {
-        self.as_ref().height()
-    }
-    fn format(&self) -> Format {
-        self.as_ref().format()
-    }
-}
-
-impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {
-    fn bind(&self, location: u32) {
-        self.borrow().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.borrow().width()
-    }
-    fn height(&self) -> u32 {
-        self.borrow().height()
-    }
-    fn format(&self) -> Format {
-        self.borrow().format()
-    }
-}
-
-///
-/// A texture array that can be sampled in a fragment shader (see [use_texture_array](crate::core::Program::use_texture_array)).
-///
-pub trait TextureArray {
-    /// Binds this texture array to the current shader program.
-    fn bind(&self, location: u32);
-    /// The width of this texture.
-    fn width(&self) -> u32;
-    /// The height of this texture.
-    fn height(&self) -> u32;
-    /// The depth of this texture, ie. the number of layers.
+    /// The depth of this texture (the number of layers for a [Texture2DArray]).
     fn depth(&self) -> u32;
     /// The format of this texture.
     fn format(&self) -> Format;
 }
 
-impl<T: TextureArray + ?Sized> TextureArray for &T {
+impl<T: Texture + ?Sized> Texture for &T {
     fn bind(&self, location: u32) {
         (*self).bind(location)
     }
@@ -683,7 +594,7 @@ impl<T: TextureArray + ?Sized> TextureArray for &T {
     }
 }
 
-impl<T: TextureArray + ?Sized> TextureArray for &mut T {
+impl<T: Texture + ?Sized> Texture for &mut T {
     fn bind(&self, location: u32) {
         (**self).bind(location)
     }
@@ -701,7 +612,7 @@ impl<T: TextureArray + ?Sized> TextureArray for &mut T {
     }
 }
 
-impl<T: TextureArray> TextureArray for Box<T> {
+impl<T: Texture> Texture for Box<T> {
     fn bind(&self, location: u32) {
         self.as_ref().bind(location)
     }
@@ -719,7 +630,7 @@ impl<T: TextureArray> TextureArray for Box<T> {
     }
 }
 
-impl<T: TextureArray> TextureArray for std::rc::Rc<T> {
+impl<T: Texture> Texture for std::rc::Rc<T> {
     fn bind(&self, location: u32) {
         self.as_ref().bind(location)
     }
@@ -737,7 +648,7 @@ impl<T: TextureArray> TextureArray for std::rc::Rc<T> {
     }
 }
 
-impl<T: TextureArray> TextureArray for std::rc::Rc<std::cell::RefCell<T>> {
+impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {
     fn bind(&self, location: u32) {
         self.borrow().bind(location)
     }
@@ -749,95 +660,6 @@ impl<T: TextureArray> TextureArray for std::rc::Rc<std::cell::RefCell<T>> {
     }
     fn depth(&self) -> u32 {
         self.borrow().depth()
-    }
-    fn format(&self) -> Format {
-        self.borrow().format()
-    }
-}
-
-///
-/// A texture cube that can be sampled in a fragment shader (see [use_texture_cube](crate::core::Program::use_texture_cube)).
-///
-pub trait TextureCube {
-    /// Binds this texture cube to the current shader program.
-    fn bind(&self, location: u32);
-    /// The width of one of the sides of this texture.
-    fn width(&self) -> u32;
-    /// The height of one of the sides of this texture.
-    fn height(&self) -> u32;
-    /// The format of this texture.
-    fn format(&self) -> Format;
-}
-
-impl<T: TextureCube + ?Sized> TextureCube for &T {
-    fn bind(&self, location: u32) {
-        (*self).bind(location)
-    }
-    fn width(&self) -> u32 {
-        (*self).width()
-    }
-    fn height(&self) -> u32 {
-        (*self).height()
-    }
-    fn format(&self) -> Format {
-        (*self).format()
-    }
-}
-
-impl<T: TextureCube + ?Sized> TextureCube for &mut T {
-    fn bind(&self, location: u32) {
-        (**self).bind(location)
-    }
-    fn width(&self) -> u32 {
-        (**self).width()
-    }
-    fn height(&self) -> u32 {
-        (**self).height()
-    }
-    fn format(&self) -> Format {
-        (**self).format()
-    }
-}
-
-impl<T: TextureCube> TextureCube for Box<T> {
-    fn bind(&self, location: u32) {
-        self.as_ref().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.as_ref().width()
-    }
-    fn height(&self) -> u32 {
-        self.as_ref().height()
-    }
-    fn format(&self) -> Format {
-        self.as_ref().format()
-    }
-}
-
-impl<T: TextureCube> TextureCube for std::rc::Rc<T> {
-    fn bind(&self, location: u32) {
-        self.as_ref().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.as_ref().width()
-    }
-    fn height(&self) -> u32 {
-        self.as_ref().height()
-    }
-    fn format(&self) -> Format {
-        self.as_ref().format()
-    }
-}
-
-impl<T: TextureCube> TextureCube for std::rc::Rc<std::cell::RefCell<T>> {
-    fn bind(&self, location: u32) {
-        self.borrow().bind(location)
-    }
-    fn width(&self) -> u32 {
-        self.borrow().width()
-    }
-    fn height(&self) -> u32 {
-        self.borrow().height()
     }
     fn format(&self) -> Format {
         self.borrow().format()

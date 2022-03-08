@@ -185,6 +185,9 @@ impl<T: TextureDataType> Texture for Texture2D<T> {
     fn height(&self) -> u32 {
         self.height
     }
+    fn depth(&self) -> u32 {
+        1
+    }
     fn format(&self) -> Format {
         self.format
     }

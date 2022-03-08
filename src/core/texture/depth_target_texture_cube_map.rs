@@ -84,7 +84,7 @@ impl DepthTargetTextureCubeMap {
     }
 }
 
-impl TextureCube for DepthTargetTextureCubeMap {
+impl Texture for DepthTargetTextureCubeMap {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_CUBE_MAP, location);
     }
@@ -93,6 +93,9 @@ impl TextureCube for DepthTargetTextureCubeMap {
     }
     fn height(&self) -> u32 {
         self.height
+    }
+    fn depth(&self) -> u32 {
+        1
     }
     fn format(&self) -> Format {
         Format::R

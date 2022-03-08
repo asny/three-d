@@ -104,6 +104,9 @@ impl Texture for DepthTargetTexture2D {
     fn height(&self) -> u32 {
         self.height
     }
+    fn depth(&self) -> u32 {
+        1
+    }
     fn format(&self) -> Format {
         Format::R
     }

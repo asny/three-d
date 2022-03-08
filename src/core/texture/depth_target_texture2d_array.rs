@@ -88,7 +88,7 @@ impl DepthTargetTexture2DArray {
     }
 }
 
-impl TextureArray for DepthTargetTexture2DArray {
+impl Texture for DepthTargetTexture2DArray {
     fn bind(&self, location: u32) {
         bind_at(&self.context, &self.id, consts::TEXTURE_2D_ARRAY, location);
     }
