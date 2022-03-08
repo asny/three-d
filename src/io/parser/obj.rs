@@ -148,13 +148,23 @@ impl Loaded {
                     }
                 }
 
+                let vertex_count = positions.len() / 3;
+
                 cpu_meshes.push(CpuMesh {
                     name: object.name.to_string(),
                     material_name: mesh.material_name.clone(),
                     positions,
                     indices: Some(Indices::U32(indices)),
-                    normals: Some(normals),
-                    uvs: Some(uvs),
+                    normals: if normals.len() == 3 * vertex_count {
+                        Some(normals)
+                    } else {
+                        None
+                    },
+                    uvs: if uvs.len() == 2 * vertex_count {
+                        Some(uvs)
+                    } else {
+                        None
+                    },
                     colors: None,
                     tangents: None,
                 });
