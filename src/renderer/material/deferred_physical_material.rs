@@ -7,36 +7,37 @@ use std::rc::Rc;
 /// Must be used together with a [DeferredPipeline].
 /// This material is affected by lights.
 ///
-pub struct DeferredPhysicalMaterial<A: Texture, ORM: Texture, N: Texture> {
+#[derive(Clone)]
+pub struct DeferredPhysicalMaterial {
     /// Name. Used for matching geometry and material.
     pub name: String,
     /// Albedo base color, also called diffuse color. Assumed to be in linear color space.
     pub albedo: Color,
     /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
-    pub albedo_texture: Option<A>,
+    pub albedo_texture: Option<Rc<Texture2D<u8>>>,
     /// A value in the range `[0..1]` specifying how metallic the material is.
     pub metallic: f32,
     /// A value in the range `[0..1]` specifying how rough the material surface is.
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters which are multiplied with the [Self::metallic] and [Self::roughness] values in the shader.
     /// The metallic values are sampled from the blue channel and the roughness from the green channel.
-    pub metallic_roughness_texture: Option<ORM>,
+    pub metallic_roughness_texture: Option<Rc<Texture2D<u8>>>,
     /// A scalar multiplier controlling the amount of occlusion applied from the [Self::occlusion_texture]. A value of 0.0 means no occlusion. A value of 1.0 means full occlusion.
     pub occlusion_strength: f32,
     /// An occlusion map. Higher values indicate areas that should receive full indirect lighting and lower values indicate no indirect lighting.
     /// The occlusion values are sampled from the red channel.
-    pub occlusion_texture: Option<ORM>,
+    pub occlusion_texture: Option<Rc<Texture2D<u8>>>,
     /// A scalar multiplier applied to each normal vector of the [Self::normal_texture].
     pub normal_scale: f32,
     /// A tangent space normal map, also known as bump map.
-    pub normal_texture: Option<N>,
+    pub normal_texture: Option<Rc<Texture2D<u8>>>,
     /// Render states
     pub render_states: RenderStates,
     /// Alpha cutout value for transparency in deferred rendering pipeline.
     pub alpha_cutout: Option<f32>,
 }
 
-impl DeferredPhysicalMaterial<Rc<Texture2D<u8>>, Rc<Texture2D<u8>>, Rc<Texture2D<u8>>> {
+impl DeferredPhysicalMaterial {
     ///
     /// Constructs a new deferred physical material from a [CpuMaterial].
     /// If the input contains an [CpuMaterial::occlusion_metallic_roughness_texture], this texture is used for both
@@ -87,17 +88,11 @@ impl DeferredPhysicalMaterial<Rc<Texture2D<u8>>, Rc<Texture2D<u8>>, Rc<Texture2D
             alpha_cutout: cpu_material.alpha_cutout,
         })
     }
-}
 
-impl<A: Texture + Clone, ORM: Texture + Clone, N: Texture + Clone>
-    DeferredPhysicalMaterial<A, ORM, N>
-{
     ///
     /// Constructs a deferred physical material from a physical material.
     ///
-    pub fn from_physical_material<E: Texture>(
-        physical_material: &PhysicalMaterial<A, ORM, N, E>,
-    ) -> Self {
+    pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
         Self {
             name: physical_material.name.clone(),
             albedo: physical_material.albedo,
@@ -123,7 +118,7 @@ impl<A: Texture + Clone, ORM: Texture + Clone, N: Texture + Clone>
     }
 }
 
-impl<A: Texture, ORM: Texture, N: Texture> Material for DeferredPhysicalMaterial<A, ORM, N> {
+impl Material for DeferredPhysicalMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut output = include_str!("../../core/shared.frag").to_string();
         if self.albedo_texture.is_some()
@@ -197,28 +192,7 @@ impl<A: Texture, ORM: Texture, N: Texture> Material for DeferredPhysicalMaterial
     }
 }
 
-impl<A: Texture + Clone, ORM: Texture + Clone, N: Texture + Clone> Clone
-    for DeferredPhysicalMaterial<A, ORM, N>
-{
-    fn clone(&self) -> Self {
-        Self {
-            name: self.name.clone(),
-            albedo: self.albedo.clone(),
-            albedo_texture: self.albedo_texture.clone(),
-            metallic: self.metallic,
-            roughness: self.roughness,
-            metallic_roughness_texture: self.metallic_roughness_texture.clone(),
-            normal_texture: self.normal_texture.clone(),
-            normal_scale: self.normal_scale,
-            occlusion_texture: self.occlusion_texture.clone(),
-            occlusion_strength: self.occlusion_strength,
-            render_states: self.render_states,
-            alpha_cutout: self.alpha_cutout,
-        }
-    }
-}
-
-impl Default for DeferredPhysicalMaterial<Rc<Texture2D<u8>>, Rc<Texture2D<u8>>, Rc<Texture2D<u8>>> {
+impl Default for DeferredPhysicalMaterial {
     fn default() -> Self {
         Self {
             name: "default".to_string(),

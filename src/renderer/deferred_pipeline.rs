@@ -84,10 +84,7 @@ impl DeferredPipeline {
     pub fn render_pass(
         &mut self,
         camera: &Camera,
-        objects: &[(
-            impl Geometry,
-            &DeferredPhysicalMaterial<impl Texture, impl Texture, impl Texture>,
-        )],
+        objects: &[(impl Geometry, &DeferredPhysicalMaterial)],
     ) -> ThreeDResult<()> {
         let viewport = Viewport::new_at_origo(camera.viewport().width, camera.viewport().height);
         match camera.projection_type() {

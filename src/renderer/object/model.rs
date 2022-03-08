@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub type Model<M> = Shape<Mesh, M>;
 
-impl Model<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
+impl Model<ColorMaterial> {
     ///
     /// Creates a new 3D model with a [Mesh] as geometry and a default [ColorMaterial].
     ///

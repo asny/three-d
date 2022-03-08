@@ -5,7 +5,7 @@ use crate::renderer::*;
 ///
 pub type InstancedModel<M> = Shape<InstancedMesh, M>;
 
-impl InstancedModel<ColorMaterial<std::rc::Rc<Texture2D<u8>>>> {
+impl InstancedModel<ColorMaterial> {
     ///
     /// Creates a new instanced 3D model with a triangle mesh as geometry and a default [ColorMaterial].
     /// The model is rendered in as many instances as there are [Instance] structs given as input.

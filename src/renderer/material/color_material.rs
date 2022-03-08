@@ -6,18 +6,19 @@ use std::rc::Rc;
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
 /// This material is not affected by lights.
 ///
-pub struct ColorMaterial<T: Texture> {
+#[derive(Clone, Default)]
+pub struct ColorMaterial {
     /// A color applied everywhere.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
-    pub texture: Option<T>,
+    pub texture: Option<Rc<Texture2D<u8>>>,
     /// Render states.
     pub render_states: RenderStates,
     /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
     pub is_transparent: bool,
 }
 
-impl ColorMaterial<Rc<Texture2D<u8>>> {
+impl ColorMaterial {
     ///
     /// Constructs a new color material from a [CpuMaterial].
     /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
@@ -71,13 +72,9 @@ impl ColorMaterial<Rc<Texture2D<u8>>> {
             },
         })
     }
-}
 
-impl<T: Texture + Clone> ColorMaterial<T> {
     /// Creates a color material from a [PhysicalMaterial].
-    pub fn from_physical_material<ORM: Texture, N: Texture, E: Texture>(
-        physical_material: &PhysicalMaterial<T, ORM, N, E>,
-    ) -> Self {
+    pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
         Self {
             color: physical_material.albedo,
             texture: physical_material.albedo_texture.clone(),
@@ -87,7 +84,7 @@ impl<T: Texture + Clone> ColorMaterial<T> {
     }
 }
 
-impl<T: Texture> Material for ColorMaterial<T> {
+impl Material for ColorMaterial {
     fn fragment_shader_source(&self, use_vertex_colors: bool, _lights: &[&dyn Light]) -> String {
         let mut shader = String::new();
         if self.texture.is_some() {
@@ -117,27 +114,5 @@ impl<T: Texture> Material for ColorMaterial<T> {
     }
     fn is_transparent(&self) -> bool {
         self.is_transparent
-    }
-}
-
-impl<T: Texture + Clone> Clone for ColorMaterial<T> {
-    fn clone(&self) -> Self {
-        Self {
-            color: self.color,
-            texture: self.texture.clone(),
-            render_states: self.render_states,
-            is_transparent: self.is_transparent,
-        }
-    }
-}
-
-impl Default for ColorMaterial<Rc<Texture2D<u8>>> {
-    fn default() -> Self {
-        Self {
-            color: Color::default(),
-            texture: None,
-            render_states: RenderStates::default(),
-            is_transparent: false,
-        }
     }
 }
