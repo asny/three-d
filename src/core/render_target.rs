@@ -168,8 +168,8 @@ fn clear(context: &Context, clear_state: &ClearState) {
 
 fn copy_from(
     context: &Context,
-    color_texture: Option<&impl Texture>,
-    depth_texture: Option<&impl Texture>,
+    color_texture: Option<&Texture2D<impl TextureDataType>>,
+    depth_texture: Option<&DepthTargetTexture2D>,
     viewport: Viewport,
     write_mask: WriteMask,
 ) -> ThreeDResult<()> {
