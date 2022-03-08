@@ -41,13 +41,13 @@ impl<T: BufferDataType> InstanceBuffer<T> {
     /// The number of values in the buffer.
     ///
     pub fn count(&self) -> u32 {
-        self.attribute_count() * T::size()
+        self.buffer.attribute_count() * T::size()
     }
 
     ///
     /// The number of instance attributes in the buffer.
     ///
-    pub fn attribute_count(&self) -> u32 {
+    pub fn instance_count(&self) -> u32 {
         self.buffer.attribute_count()
     }
 

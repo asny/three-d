@@ -246,7 +246,7 @@ impl Geometry for Mesh {
                     program.draw_arrays(
                         material.render_states(),
                         camera.viewport(),
-                        self.position_buffer.count() as u32 / 3,
+                        self.position_buffer.vertex_count() as u32,
                     );
                 }
                 Ok(())
