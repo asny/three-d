@@ -90,7 +90,7 @@ impl<T: BufferDataType> Drop for Buffer<T> {
     }
 }
 
-pub(crate) mod internal {
+pub(super) mod internal {
     use crate::context::DataType;
     use crate::core::*;
 

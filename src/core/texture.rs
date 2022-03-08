@@ -265,7 +265,7 @@ impl<T: TextureDataType> std::fmt::Debug for CpuTextureCube<T> {
     }
 }
 
-pub(in crate::core) mod internal {
+mod internal {
     use crate::context::{consts, DataType};
     use crate::core::*;
 

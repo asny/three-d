@@ -3,7 +3,7 @@ use super::math::*;
 ///
 /// Possible types that can be send as a uniform to a shader (a variable that is uniformly available when processing all vertices and fragments).
 ///
-pub trait UniformDataType: std::fmt::Debug + internal_uniform::UniformDataTypeExtension {}
+pub trait UniformDataType: std::fmt::Debug + internal::UniformDataTypeExtension {}
 
 impl UniformDataType for i32 {}
 
@@ -24,7 +24,7 @@ impl UniformDataType for Mat4 {}
 
 impl<T: UniformDataType + ?Sized> UniformDataType for &T {}
 
-pub(in crate::core) mod internal_uniform {
+mod internal {
     use crate::context::UniformLocation;
     use crate::core::math::*;
     use crate::core::Context;
