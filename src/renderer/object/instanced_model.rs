@@ -3,7 +3,7 @@ use crate::renderer::*;
 ///
 /// Similar to [Model], except it is possible to render many instances of the same model efficiently.
 ///
-pub type InstancedModel<M> = Shape<InstancedMesh, M>;
+pub type InstancedModel<M> = Gm<InstancedMesh, M>;
 
 impl InstancedModel<ColorMaterial> {
     ///
@@ -32,7 +32,7 @@ impl<M: Material> InstancedModel<M> {
         cpu_mesh: &CpuMesh,
         material: M,
     ) -> ThreeDResult<Self> {
-        Ok(Shape {
+        Ok(Self {
             geometry: InstancedMesh::new(context, instances, cpu_mesh)?,
             material,
         })

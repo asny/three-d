@@ -1,6 +1,6 @@
 //!
 //! A collection of geometries implementing the [Geometry] trait, for example a [Mesh].
-//! A geometry together with a [material] can be rendered directly, or combined into an [object] (see [Shape]) that can be used in a render call, for example [render_pass].
+//! A geometry together with a [material] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [render_pass].
 //!
 
 mod mesh;
@@ -24,7 +24,7 @@ use crate::renderer::*;
 
 ///
 /// Represents a 3D geometry that, together with a [material], can be rendered using [Geometry::render_with_material].
-/// Alternatively, a geometry and a material can be combined in a [Shape],
+/// Alternatively, a geometry and a material can be combined in a [Gm],
 /// thereby creating an [Object] which can be used in a render call, for example [render_pass].
 ///
 /// If requested by the material, the geometry has to support the following attributes in the vertex shader source code.
@@ -39,7 +39,7 @@ pub trait Geometry {
     ///
     /// Render the geometry with the given material.
     /// Must be called in a render target render function,
-    /// for example in the callback function of [Screen::write](crate::Screen::write).
+    /// for example in the callback function of [Screen::write].
     /// You can use an empty array for the `lights` argument, if you know the object does not require lights to be rendered.
     ///
     fn render_with_material(

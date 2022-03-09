@@ -3,7 +3,7 @@ use crate::renderer::*;
 ///
 /// A 3D model consisting of a [Mesh] and any [material] that implements [Material].
 ///
-pub type Model<M> = Shape<Mesh, M>;
+pub type Model<M> = Gm<Mesh, M>;
 
 impl Model<ColorMaterial> {
     ///

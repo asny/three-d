@@ -1,11 +1,11 @@
 //!
 //! A collection of objects (implementing the [Object] trait) that can be rendered directly or used in a render call, for example [render_pass].
-//! Can be a combination of any [geometry] and [material] by using the [Shape] struct.
+//! Can be a combination of any [geometry] and [material] by using the [Gm] struct.
 //!
 
-mod shape;
+mod gm;
 #[doc(inline)]
-pub use shape::*;
+pub use gm::*;
 
 mod model;
 #[doc(inline)]

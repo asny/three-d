@@ -1,6 +1,6 @@
 //!
 //! A collection of common materials implementing the [Material] trait.
-//! A material together with a [geometry] can be rendered directly, or combined into an [object] (see [Shape]) that can be used in a render call, for example [render_pass].
+//! A material together with a [geometry] can be rendered directly, or combined into an [object] (see [Gm]) that can be used in a render call, for example [render_pass].
 //!
 
 use crate::core::*;
@@ -42,7 +42,7 @@ pub use deferred_physical_material::*;
 
 ///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
-/// Alternatively, a geometry and a material can be combined in a [Shape],
+/// Alternatively, a geometry and a material can be combined in a [Gm],
 /// thereby creating an [Object] which can be used in a render call, for example [render_pass].
 ///
 /// The material can use an attribute by adding the folowing to the fragment shader source code.
