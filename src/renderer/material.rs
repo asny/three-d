@@ -40,6 +40,10 @@ mod deferred_physical_material;
 #[doc(inline)]
 pub use deferred_physical_material::*;
 
+mod skybox_material;
+#[doc(inline)]
+pub(in crate::renderer) use skybox_material::*;
+
 ///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].
 /// Alternatively, a geometry and a material can be combined in a [Gm],
