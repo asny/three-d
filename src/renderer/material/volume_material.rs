@@ -17,8 +17,11 @@ impl<T: TextureDataType> Material for VolumeMaterial<T> {
         &self,
         program: &Program,
         camera: &Camera,
-        _lights: &[&dyn Light],
+        lights: &[&dyn Light],
     ) -> ThreeDResult<()> {
+        for (i, light) in lights.iter().enumerate() {
+            light.use_uniforms(program, i as u32)?;
+        }
         program.use_uniform_block("Camera", camera.uniform_buffer());
         program.use_texture("tex", &self.texture)
     }
