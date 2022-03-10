@@ -26,7 +26,10 @@ impl<T: TextureDataType> Material for VolumeMaterial<T> {
         program.use_texture("tex", &self.texture)
     }
     fn render_states(&self) -> RenderStates {
-        RenderStates::default()
+        RenderStates {
+            blend: Blend::TRANSPARENCY,
+            ..Default::default()
+        }
     }
     fn is_transparent(&self) -> bool {
         false
