@@ -5,7 +5,7 @@ pub struct VolumeMaterial<T: TextureDataType> {
     pub texture: Texture3D<T>,
     /// The lighting model used when rendering this material
     pub lighting_model: LightingModel,
-    pub max_distance: f32,
+    pub size: Vec3,
 }
 
 impl<T: TextureDataType> Material for VolumeMaterial<T> {
@@ -24,7 +24,7 @@ impl<T: TextureDataType> Material for VolumeMaterial<T> {
             light.use_uniforms(program, i as u32)?;
         }
         program.use_uniform_block("Camera", camera.uniform_buffer());
-        program.use_uniform("max_distance", self.max_distance)?;
+        program.use_uniform("size", self.size)?;
         program.use_texture("tex", &self.texture)
     }
     fn render_states(&self) -> RenderStates {

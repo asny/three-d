@@ -8,22 +8,22 @@ layout (std140) uniform Camera
 } camera;
 
 uniform sampler3D tex;
-uniform float max_distance;
+uniform vec3 size;
 in vec3 pos;
 
 layout (location = 0) out vec4 outColor;
 
 void main() {
     int steps = 200;
-    float step_size = max_distance / float(steps);
+    float step_size = length(size) / float(steps);
     vec3 step = step_size * normalize(pos - camera.position);
     vec3 p = pos;
     for(int i = 0; i < 200; i++) {
-        if(i == steps-1 || p.x < -1.0 || p.y < -1.0 || p.z < -1.0 || p.x > 1.0 || p.y > 1.0 || p.z > 1.0) {
+        if(i == steps-1 || p.x < -0.501*size.x || p.y < -0.501*size.y || p.z < -0.501*size.z || p.x > 0.501*size.x || p.y > 0.501*size.y || p.z > 0.501*size.z) {
             outColor = vec4(0.0, 0.0, 0.0, 0.0);
             break;
         }
-        float color = texture(tex, 0.5*(p + 1.0)).r;
+        float color = texture(tex, (p / size) + 0.5).r;
         if(color >= 0.9) {
             vec3 normal = vec3(0.0, 1.0, 0.0);
 

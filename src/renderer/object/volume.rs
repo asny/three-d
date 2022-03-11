@@ -13,7 +13,7 @@ impl Volume {
                 VolumeMaterial {
                     texture: Texture3D::new(context, &cpu_volume.voxels)?,
                     lighting_model: LightingModel::Blinn,
-                    max_distance: cpu_volume.size.magnitude(),
+                    size: cpu_volume.size,
                 },
             )?,
         })
