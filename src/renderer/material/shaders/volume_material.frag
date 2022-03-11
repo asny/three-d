@@ -9,6 +9,7 @@ layout (std140) uniform Camera
 
 uniform sampler3D tex;
 uniform vec3 size;
+uniform float threshold;
 in vec3 pos;
 
 layout (location = 0) out vec4 outColor;
@@ -24,7 +25,7 @@ void main() {
             break;
         }
         float color = texture(tex, (p / size) + 0.5).r;
-        if(color >= 0.9) {
+        if(color >= threshold) {
             vec3 normal = vec3(0.0, 1.0, 0.0);
 
             vec4 surface_color = vec4(1.0, 0.5, 0.5, 1.0);

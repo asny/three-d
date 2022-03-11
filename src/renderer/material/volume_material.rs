@@ -6,6 +6,7 @@ pub struct VolumeMaterial<T: TextureDataType> {
     /// The lighting model used when rendering this material
     pub lighting_model: LightingModel,
     pub size: Vec3,
+    pub threshold: f32,
 }
 
 impl<T: TextureDataType> Material for VolumeMaterial<T> {
@@ -25,6 +26,7 @@ impl<T: TextureDataType> Material for VolumeMaterial<T> {
         }
         program.use_uniform_block("Camera", camera.uniform_buffer());
         program.use_uniform("size", self.size)?;
+        program.use_uniform("threshold", self.threshold)?;
         program.use_texture("tex", &self.texture)
     }
     fn render_states(&self) -> RenderStates {

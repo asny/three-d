@@ -36,30 +36,60 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         .unwrap()
         .vol("")
         .unwrap();
-    let volume = Volume::new(&context, &cpu_volume).unwrap();
+    let mut volume = Volume::new_volume(
+        &context,
+        VolumeMaterial {
+            texture: Texture3D::new(&context, &cpu_volume.voxels).unwrap(),
+            lighting_model: LightingModel::Blinn,
+            size: cpu_volume.size,
+            threshold: 0.9,
+        },
+    )
+    .unwrap();
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
         DirectionalLight::new(&context, 2.0, Color::WHITE, &vec3(0.0, -1.0, -1.0)).unwrap();
 
     // main loop
+    let mut gui = three_d::GUI::new(&context).unwrap();
     window
         .render_loop(move |mut frame_input| {
-            let mut redraw = frame_input.first_frame;
-            redraw |= camera.set_viewport(frame_input.viewport).unwrap();
-            redraw |= control
+            let mut panel_width = 0;
+            gui.update(&mut frame_input, |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.add(
+                        Slider::new(&mut volume.material.threshold, 0.0..=1.0).text("Threshold"),
+                    );
+                });
+                panel_width = gui_context.used_size().x as u32;
+            })
+            .unwrap();
+
+            let viewport = Viewport {
+                x: panel_width as i32,
+                y: 0,
+                width: frame_input.viewport.width - panel_width,
+                height: frame_input.viewport.height,
+            };
+            camera.set_viewport(viewport).unwrap();
+            control
                 .handle_events(&mut camera, &mut frame_input.events)
                 .unwrap();
 
             // draw
-            if redraw {
-                Screen::write(
-                    &context,
-                    ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
-                    || render_pass(&camera, &[&volume], &[&ambient, &directional]),
-                )
-                .unwrap();
-            }
+            Screen::write(
+                &context,
+                ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0),
+                || {
+                    render_pass(&camera, &[&volume], &[&ambient, &directional])?;
+                    gui.render()?;
+                    Ok(())
+                },
+            )
+            .unwrap();
 
             if let Some(ref screenshot) = screenshot {
                 // To automatically generate screenshots of the examples, can safely be ignored.
@@ -69,10 +99,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                     ..Default::default()
                 }
             } else {
-                FrameOutput {
-                    swap_buffers: redraw,
-                    ..Default::default()
-                }
+                FrameOutput::default()
             }
         })
         .unwrap();
