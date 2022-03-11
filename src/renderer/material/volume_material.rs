@@ -1,14 +1,14 @@
 use crate::core::*;
 use crate::renderer::*;
 
-pub struct VolumeMaterial {
-    pub texture: Texture3D<u8>,
+pub struct VolumeMaterial<T: TextureDataType> {
+    pub texture: Texture3D<T>,
     /// The lighting model used when rendering this material
     pub lighting_model: LightingModel,
     pub max_distance: f32,
 }
 
-impl Material for VolumeMaterial {
+impl<T: TextureDataType> Material for VolumeMaterial<T> {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         let mut output = lights_fragment_shader_source(lights, self.lighting_model);
         output.push_str(include_str!("shaders/volume_material.frag"));

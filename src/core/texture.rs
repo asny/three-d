@@ -561,8 +561,20 @@ mod internal {
             format: Format,
             data: &[Self],
         ) {
-            if let Some(_depth) = depth {
-                unimplemented!();
+            if let Some(depth) = depth {
+                context.tex_sub_image_3d_with_f32_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    depth,
+                    format_from(format),
+                    DataType::Float,
+                    data,
+                );
             } else {
                 context.tex_sub_image_2d_with_f32_data(
                     target,

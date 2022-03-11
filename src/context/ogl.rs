@@ -1048,6 +1048,37 @@ impl GLContext {
         }
     }
 
+    pub fn tex_sub_image_3d_with_f32_data(
+        &self,
+        target: u32,
+        level: u32,
+        x_offset: i32,
+        y_offset: i32,
+        z_offset: i32,
+        width: u32,
+        height: u32,
+        depth: u32,
+        format: u32,
+        data_type: DataType,
+        pixels: &[f32],
+    ) {
+        unsafe {
+            self.inner.TexSubImage3D(
+                target,
+                level as i32,
+                x_offset as i32,
+                y_offset as i32,
+                z_offset as i32,
+                width as i32,
+                height as i32,
+                depth as i32,
+                format,
+                data_type.to_const(),
+                pixels.as_ptr() as *const consts::types::GLvoid,
+            );
+        }
+    }
+
     pub fn tex_parameteri(&self, target: u32, pname: u32, param: i32) {
         unsafe {
             self.inner.TexParameteri(target, pname, param);
