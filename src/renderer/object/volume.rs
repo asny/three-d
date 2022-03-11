@@ -5,7 +5,7 @@ pub struct Volume {
 }
 
 impl Volume {
-    pub fn new(context: &Context, cpu_volume: &CpuVolume) -> ThreeDResult<Self> {
+    pub fn new(context: &Context, cpu_volume: &CpuVolume<u8>) -> ThreeDResult<Self> {
         Ok(Self {
             model: Model::new_with_material(
                 context,
