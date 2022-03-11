@@ -1,4 +1,3 @@
-use crate::context::{consts, AttributeLocation, ShaderType};
 use crate::core::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -12,7 +11,7 @@ use std::collections::HashMap;
 pub struct Program {
     context: Context,
     id: crate::context::Program,
-    vertex_attributes: HashMap<String, AttributeLocation>,
+    vertex_attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
     uniforms: HashMap<String, crate::context::UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
@@ -27,46 +26,63 @@ impl Program {
         vertex_shader_source: &str,
         fragment_shader_source: &str,
     ) -> ThreeDResult<Program> {
+        use glow::*;
         let vert_shader = context
-            .create_shader(ShaderType::Vertex)
-            .ok_or(CoreError::ShaderCreation)?;
+            .create_shader(VERTEX_SHADER)
+            .map_err(|e| CoreError::ShaderCreation(e))?;
         let frag_shader = context
-            .create_shader(ShaderType::Fragment)
-            .ok_or(CoreError::ShaderCreation)?;
-        context.compile_shader(vertex_shader_source, &vert_shader);
-        context.compile_shader(fragment_shader_source, &frag_shader);
+            .create_shader(FRAGMENT_SHADER)
+            .map_err(|e| CoreError::ShaderCreation(e))?;
 
-        let id = context.create_program();
-        context.attach_shader(&id, &vert_shader);
-        context.attach_shader(&id, &frag_shader);
-        let success = context.link_program(&id);
+        context.shader_source(
+            vert_shader,
+            format!("#version 330 core\n{}", vertex_shader_source),
+        );
+        context.shader_source(
+            frag_shader,
+            format!("#version 330 core\n{}", fragment_shader_source),
+        );
+        context.compile_shader(vert_shader);
+        context.compile_shader(frag_shader);
 
-        if !success {
-            if let Some(log) = context.get_shader_info_log(&vert_shader) {
+        let id = context
+            .create_program()
+            .map_err(|e| CoreError::ProgramCreation(e))?;
+        context.attach_shader(id, vert_shader);
+        context.attach_shader(id, frag_shader);
+        context.link_program(id);
+
+        if !context.get_program_link_status(id) {
+            let log = context.get_shader_info_log(vert_shader);
+            if log.len() > 0 {
                 Err(CoreError::ShaderCompilation("vertex".to_string(), log))?;
             }
-            if let Some(log) = context.get_shader_info_log(&frag_shader) {
+            let log = context.get_shader_info_log(frag_shader);
+            if log.len() > 0 {
                 Err(CoreError::ShaderCompilation("fragment".to_string(), log))?;
             }
-            if let Some(log) = context.get_program_info_log(&id) {
+            let log = context.get_program_info_log(id);
+            if log.len() > 0 {
                 Err(CoreError::ShaderLink(log))?;
             }
             unreachable!();
         }
 
-        context.detach_shader(&id, &vert_shader);
-        context.detach_shader(&id, &frag_shader);
-        context.delete_shader(Some(&vert_shader));
-        context.delete_shader(Some(&frag_shader));
+        context.detach_shader(id, vert_shader);
+        context.detach_shader(id, frag_shader);
+        context.delete_shader(vert_shader);
+        context.delete_shader(frag_shader);
 
         // Init vertex attributes
-        let num_attribs = context.get_program_parameter(&id, consts::ACTIVE_ATTRIBUTES);
+        let num_attribs = context.get_active_attributes(id);
         let mut vertex_attributes = HashMap::new();
         for i in 0..num_attribs {
-            let info = context.get_active_attrib(&id, i);
-            let location = context.get_attrib_location(&id, &info.name()).unwrap();
-            //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, info.name(), info.type_(), info.size());
-            vertex_attributes.insert(info.name(), location);
+            if let Some(ActiveAttribute { name, size, atype }) = context.get_active_attribute(id, i)
+            {
+                let location = context.get_attrib_location(id, &name).unwrap();
+                //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, name, atype, size);
+                vertex_attributes.insert(name, location);
+            }
         }
 
         // Init uniforms
