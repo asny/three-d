@@ -1,7 +1,7 @@
 use crate::renderer::*;
 
 pub struct Volume {
-    model: Model<VolumeMaterial>,
+    model: Model<VolumeMaterial<u8>>,
 }
 
 impl Volume {
