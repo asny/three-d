@@ -30,11 +30,16 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     .unwrap();
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let bytes = include_bytes!("../../assets/C60Small.vol");
+    let data = Loader::load_async(&["examples/assets/C60Small.vol"])
+        .await
+        .unwrap()
+        .get_bytes("")
+        .unwrap()[28..]
+        .to_vec();
     let volume = Volume::new(
         &context,
         &CpuTexture3D {
-            data: bytes[28..].to_vec(),
+            data,
             width: 64,
             height: 64,
             depth: 64,
