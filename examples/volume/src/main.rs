@@ -36,7 +36,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         .unwrap()
         .vol("")
         .unwrap();
-    let mut volume = Volume::new_volume(
+    let mut volume = Volume::new(
         &context,
         VolumeMaterial {
             texture: Texture3D::new(&context, &cpu_volume.voxels).unwrap(),
