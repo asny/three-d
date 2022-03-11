@@ -31,10 +31,6 @@ mod skybox;
 #[doc(inline)]
 pub use skybox::*;
 
-mod volume;
-#[doc(inline)]
-pub use volume::*;
-
 mod imposters;
 #[doc(inline)]
 pub use imposters::*;

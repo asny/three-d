@@ -36,8 +36,9 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         .unwrap()
         .vol("")
         .unwrap();
-    let mut volume = Volume::new(
+    let mut volume = Model::new_with_material(
         &context,
+        &CpuMesh::cube(),
         VolumeMaterial {
             texture: Texture3D::new(&context, &cpu_volume.voxels).unwrap(),
             lighting_model: LightingModel::Blinn,
@@ -46,6 +47,11 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         },
     )
     .unwrap();
+    volume.set_transformation(Mat4::from_nonuniform_scale(
+        0.5 * cpu_volume.size.x,
+        0.5 * cpu_volume.size.y,
+        0.5 * cpu_volume.size.z,
+    ));
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =
