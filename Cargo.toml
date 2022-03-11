@@ -76,6 +76,10 @@ name = "texture"
 path = "examples/texture/src/main.rs"
 
 [[example]]
+name = "volume"
+path = "examples/volume/src/main.rs"
+
+[[example]]
 name = "picking"
 path = "examples/picking/src/main.rs"
 
