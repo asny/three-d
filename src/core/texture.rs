@@ -500,8 +500,20 @@ mod internal {
             format: Format,
             data: &[Self],
         ) {
-            if let Some(_depth) = depth {
-                unimplemented!();
+            if let Some(depth) = depth {
+                context.tex_sub_image_3d_with_u16_data(
+                    target,
+                    0,
+                    0,
+                    0,
+                    0,
+                    width,
+                    height,
+                    depth,
+                    format_from(format),
+                    DataType::HalfFloat,
+                    &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
+                );
             } else {
                 context.tex_sub_image_2d_with_u16_data(
                     target,
