@@ -43,8 +43,9 @@ impl Window {
         }
 
         let windowed_context = unsafe { wc?.make_current().unwrap() };
-        let context = crate::context::GLContext::load_with(|s| {
-            windowed_context.get_proc_address(s) as *const std::os::raw::c_void
+
+        let context = glow::Context::from_loader_function(|s| {
+            windowed_context.get_proc_address(s) as *const _
         });
         Ok(Window {
             windowed_context,

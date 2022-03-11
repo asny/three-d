@@ -2,7 +2,6 @@ use glutin::dpi::PhysicalSize;
 use glutin::event_loop::EventLoop;
 use glutin::{ContextBuilder, ContextCurrentState, CreationError, NotCurrent};
 
-use crate::context::GLContext;
 use crate::Context;
 use crate::ThreeDResult;
 
@@ -15,9 +14,9 @@ impl Context {
         let cb = ContextBuilder::new();
         let (headless_context, _el) = build_context(cb).unwrap();
         let current_context = unsafe { headless_context.make_current().unwrap() };
-        Ok(Self::from_gl_context(GLContext::load_with(|ptr| {
-            current_context.get_proc_address(ptr) as *const std::os::raw::c_void
-        })))
+        Ok(Self::from_gl_context(glow::Context::from_loader_function(
+            |s| current_context.get_proc_address(s) as *const _,
+        )))
     }
 }
 

@@ -26,6 +26,7 @@ gltf-io = ["gltf", "image-io"]
 debug = [] # Prints OpenGL debug information (only available when NOT building for the wasm32 architecture)
 
 [dependencies]
+glow = "0.11"
 log = "0.4"
 cgmath = "0.18"
 half = {version="1.8", features=["std", "num-traits", "zerocopy", "serde"]}
