@@ -4,7 +4,7 @@ use crate::renderer::*;
 ///
 /// A material that renders the surface defined by the voxel data in the [VolumeMaterial::texture].
 /// The surface is defined by all the positions in the volume where the red channel of the voxel data is larger than [VolumeMaterial::threshold].
-///
+/// This material should be applied to a cube with center in origo, for example [CpuMesh::cube].
 ///
 #[derive(Clone)]
 pub struct VolumeSurfaceMaterial<T: TextureDataType> {
