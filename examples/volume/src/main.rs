@@ -44,7 +44,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             lighting_model: LightingModel::Blinn,
             size: cpu_volume.size,
             threshold: 0.9,
-            color: Color::RED,
+            color: Color::WHITE,
             roughness: 0.6,
             metallic: 0.8,
         },
@@ -62,6 +62,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
 
     // main loop
     let mut gui = three_d::GUI::new(&context).unwrap();
+    let mut color = [1.0; 4];
     window
         .render_loop(move |mut frame_input| {
             let mut panel_width = 0;
@@ -76,8 +77,10 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                         Slider::new(&mut volume.material.roughness, 0.0..=1.0).text("Roughness"),
                     );
                     ui.add(Slider::new(&mut volume.material.metallic, 0.0..=1.0).text("Metallic"));
+                    ui.color_edit_button_rgba_unmultiplied(&mut color);
                 });
                 panel_width = gui_context.used_size().x as u32;
+                volume.material.color = Color::from_rgba_slice(&color);
             })
             .unwrap();
 
