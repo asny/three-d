@@ -13,19 +13,16 @@ use std::rc::Rc;
 ///
 #[derive(Clone)]
 pub struct Context {
-    context: GLContext,
+    context: Rc<glow::Context>,
     programs: Rc<RefCell<HashMap<String, Program>>>,
     effects: Rc<RefCell<HashMap<String, ImageEffect>>>,
     camera2d: Rc<RefCell<Option<Camera>>>,
 }
 
 impl Context {
-    ///
-    /// Creates a new context from a [OpenGL/WebGL context](GLContext).
-    ///
-    pub fn from_gl_context(context: GLContext) -> Self {
+    pub fn from_gl_context(context: glow::Context) -> Self {
         Self {
-            context,
+            context: Rc::new(context),
             programs: Rc::new(RefCell::new(HashMap::new())),
             effects: Rc::new(RefCell::new(HashMap::new())),
             camera2d: Rc::new(RefCell::new(None)),
@@ -115,7 +112,7 @@ impl Context {
 }
 
 impl std::ops::Deref for Context {
-    type Target = crate::context::GLContext;
+    type Target = glow::Context;
     fn deref(&self) -> &Self::Target {
         &self.context
     }
