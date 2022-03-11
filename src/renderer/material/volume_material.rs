@@ -34,6 +34,6 @@ impl Material for VolumeMaterial {
         }
     }
     fn is_transparent(&self) -> bool {
-        false
+        true
     }
 }
