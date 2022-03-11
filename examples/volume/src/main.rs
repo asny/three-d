@@ -39,7 +39,7 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
     let mut volume = Model::new_with_material(
         &context,
         &CpuMesh::cube(),
-        VolumeMaterial {
+        VolumeSurfaceMaterial {
             texture: std::rc::Rc::new(Texture3D::new(&context, &cpu_volume.voxels).unwrap()),
             lighting_model: LightingModel::Blinn,
             size: cpu_volume.size,
