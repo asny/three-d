@@ -44,9 +44,9 @@ mod skybox_material;
 #[doc(inline)]
 pub(in crate::renderer) use skybox_material::*;
 
-mod volume_surface_material;
+mod isosurface_material;
 #[doc(inline)]
-pub use volume_surface_material::*;
+pub use isosurface_material::*;
 
 ///
 /// Represents a material that, together with a [geometry], can be rendered using [Geometry::render_with_material].

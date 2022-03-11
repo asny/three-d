@@ -1,15 +1,17 @@
 use crate::core::*;
 
 ///
-/// A CPU-side version of volume data consisting of voxels.
+/// Volume data consisting of voxel data inside a cube.
 ///
 #[derive(Debug)]
 pub struct CpuVolume<T: TextureDataType> {
     /// Name.
     pub name: String,
 
+    /// Voxel data, ie. small cubes in 3D (analogue to pixels in 2D) that contain 1-4 values.
     pub voxels: CpuTexture3D<T>,
 
+    /// The size of the cube that is spanned by the voxel data.
     pub size: Vec3,
 }
 

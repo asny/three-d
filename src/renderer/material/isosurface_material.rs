@@ -2,13 +2,16 @@ use crate::core::*;
 use crate::renderer::*;
 
 ///
-/// A material that renders the surface defined by the voxel data in the [VolumeMaterial::texture].
-/// The surface is defined by all the positions in the volume where the red channel of the voxel data is larger than [VolumeMaterial::threshold].
+/// A material that renders the isosurface defined by the voxel data in the [VolumeMaterial::voxels] and the [VolumeMaterial::threshold].
+/// The surface is defined by all the points in the volume where the red channel of the voxel data is equal to the threshold.
 /// This material should be applied to a cube with center in origo, for example [CpuMesh::cube].
 ///
 #[derive(Clone)]
-pub struct VolumeSurfaceMaterial<T: TextureDataType> {
-    pub texture: std::rc::Rc<Texture3D<T>>,
+pub struct IsourfaceMaterial<T: TextureDataType> {
+    /// The voxel data that defines the isosurface.
+    pub voxels: std::rc::Rc<Texture3D<T>>,
+    /// Threshold (in the range [0..1]) that defines the surface in the voxel data.
+    pub threshold: f32,
     /// Base surface color. Assumed to be in linear color space.
     pub color: Color,
     /// A value in the range `[0..1]` specifying how metallic the surface is.
@@ -17,16 +20,14 @@ pub struct VolumeSurfaceMaterial<T: TextureDataType> {
     pub roughness: f32,
     /// The size of the cube that is used to render the voxel data. The texture is scaled to fill the entire cube.
     pub size: Vec3,
-    /// Threshold (in the range [0..1]) that defines the surface in the voxel data.
-    pub threshold: f32,
     /// The lighting model used when rendering this material
     pub lighting_model: LightingModel,
 }
 
-impl<T: TextureDataType> Material for VolumeSurfaceMaterial<T> {
+impl<T: TextureDataType> Material for IsourfaceMaterial<T> {
     fn fragment_shader_source(&self, _use_vertex_colors: bool, lights: &[&dyn Light]) -> String {
         let mut output = lights_fragment_shader_source(lights, self.lighting_model);
-        output.push_str(include_str!("shaders/volume_surface_material.frag"));
+        output.push_str(include_str!("shaders/isosurface_material.frag"));
         output
     }
     fn use_uniforms(
@@ -44,7 +45,7 @@ impl<T: TextureDataType> Material for VolumeSurfaceMaterial<T> {
         program.use_uniform("roughness", self.roughness)?;
         program.use_uniform("size", self.size)?;
         program.use_uniform("threshold", self.threshold)?;
-        program.use_texture("tex", &self.texture)
+        program.use_texture("tex", &self.voxels)
     }
     fn render_states(&self) -> RenderStates {
         RenderStates {
