@@ -316,10 +316,19 @@ impl GLContext {
         y_offset: u32,
         width: u32,
         height: u32,
-        format: u32,
+        mut format: u32,
         data_type: DataType,
         pixels: &[u16],
     ) {
+        if data_type == DataType::UnsignedShort || data_type == DataType::Short {
+            format = match format {
+                consts::RED => consts::RED_INTEGER,
+                consts::RG => consts::RG_INTEGER,
+                consts::RGB => consts::RGB_INTEGER,
+                consts::RGBA => consts::RGBA_INTEGER,
+                _ => format,
+            };
+        }
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
@@ -352,10 +361,19 @@ impl GLContext {
         y_offset: u32,
         width: u32,
         height: u32,
-        format: u32,
+        mut format: u32,
         data_type: DataType,
         pixels: &[u32],
     ) {
+        if data_type == DataType::UnsignedInt || data_type == DataType::Int {
+            format = match format {
+                consts::RED => consts::RED_INTEGER,
+                consts::RG => consts::RG_INTEGER,
+                consts::RGB => consts::RGB_INTEGER,
+                consts::RGBA => consts::RGBA_INTEGER,
+                _ => format,
+            };
+        }
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
@@ -485,10 +503,20 @@ impl GLContext {
         width: u32,
         height: u32,
         depth: u32,
-        format: u32,
+        mut format: u32,
         data_type: DataType,
         pixels: &[u16],
     ) {
+        if data_type == DataType::UnsignedShort || data_type == DataType::Short {
+            format = match format {
+                consts::RED => consts::RED_INTEGER,
+                consts::RG => consts::RG_INTEGER,
+                consts::RGB => consts::RGB_INTEGER,
+                consts::RGBA => consts::RGBA_INTEGER,
+                _ => format,
+            };
+        }
+
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
@@ -524,10 +552,19 @@ impl GLContext {
         height: u32,
         depth: u32,
         border: u32,
-        format: u32,
+        mut format: u32,
         data_type: DataType,
         pixels: &[u16],
     ) {
+        if data_type == DataType::UnsignedShort || data_type == DataType::Short {
+            format = match format {
+                consts::RED => consts::RED_INTEGER,
+                consts::RG => consts::RG_INTEGER,
+                consts::RGB => consts::RGB_INTEGER,
+                consts::RGBA => consts::RGBA_INTEGER,
+                _ => format,
+            };
+        }
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
@@ -656,10 +693,19 @@ impl GLContext {
         y: u32,
         width: u32,
         height: u32,
-        format: u32,
+        mut format: u32,
         data_type: DataType,
         dst_data: &mut [u16],
     ) {
+        if data_type == DataType::UnsignedShort || data_type == DataType::Short {
+            format = match format {
+                consts::RED => consts::RED_INTEGER,
+                consts::RG => consts::RG_INTEGER,
+                consts::RGB => consts::RGB_INTEGER,
+                consts::RGBA => consts::RGBA_INTEGER,
+                _ => format,
+            };
+        }
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
@@ -718,10 +764,19 @@ impl GLContext {
         y: u32,
         width: u32,
         height: u32,
-        format: u32,
+        mut format: u32,
         data_type: DataType,
         dst_data: &mut [u32],
     ) {
+        if data_type == DataType::UnsignedInt || data_type == DataType::Int {
+            format = match format {
+                consts::RED => consts::RED_INTEGER,
+                consts::RG => consts::RG_INTEGER,
+                consts::RGB => consts::RGB_INTEGER,
+                consts::RGBA => consts::RGBA_INTEGER,
+                _ => format,
+            };
+        }
         use wasm_bindgen::JsCast;
         let memory_buffer = wasm_bindgen::memory()
             .dyn_into::<js_sys::WebAssembly::Memory>()
