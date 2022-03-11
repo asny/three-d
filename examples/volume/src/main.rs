@@ -37,9 +37,8 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         .get_bytes("")
         .unwrap()
         .to_vec();
-    let volume = Volume::new(
-        &context,
-        &CpuTexture3D {
+    let cpu_volume = CpuVolume {
+        voxels: CpuTexture3D {
             data: bytes[28..].to_vec(),
             width: u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
             height: u32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]),
@@ -47,8 +46,14 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
             format: Format::R,
             ..Default::default()
         },
-    )
-    .unwrap();
+        size: vec3(
+            f32::from_be_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]),
+            f32::from_be_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]),
+            f32::from_be_bytes([bytes[24], bytes[25], bytes[26], bytes[27]]),
+        ),
+        ..Default::default()
+    };
+    let volume = Volume::new(&context, &cpu_volume).unwrap();
 
     let ambient = AmbientLight::new(&context, 0.4, Color::WHITE).unwrap();
     let directional =

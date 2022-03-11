@@ -148,6 +148,10 @@ mod cpu_material;
 #[doc(inline)]
 pub use cpu_material::*;
 
+mod cpu_volume;
+#[doc(inline)]
+pub use cpu_volume::*;
+
 mod camera;
 #[doc(inline)]
 pub use camera::*;

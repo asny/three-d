@@ -1,11 +1,11 @@
 use crate::renderer::*;
 
-pub struct Volume<T: TextureDataType> {
-    model: Model<VolumeMaterial<T>>,
+pub struct Volume {
+    model: Model<VolumeMaterial>,
 }
 
-impl<T: TextureDataType> Volume<T> {
-    pub fn new(context: &Context, cpu_texture: &CpuTexture3D<T>) -> ThreeDResult<Self> {
+impl Volume {
+    pub fn new(context: &Context, cpu_volume: &CpuVolume) -> ThreeDResult<Self> {
         Ok(Self {
             model: Model::new_with_material(
                 context,
@@ -51,7 +51,7 @@ impl<T: TextureDataType> Volume<T> {
                     ..Default::default()
                 },
                 VolumeMaterial {
-                    texture: Texture3D::new(context, cpu_texture)?,
+                    texture: Texture3D::new(context, &cpu_volume.voxels)?,
                     lighting_model: LightingModel::Blinn,
                 },
             )?,
@@ -59,7 +59,7 @@ impl<T: TextureDataType> Volume<T> {
     }
 }
 
-impl<T: TextureDataType> Geometry for Volume<T> {
+impl Geometry for Volume {
     fn aabb(&self) -> AxisAlignedBoundingBox {
         self.model.aabb()
     }
@@ -74,7 +74,7 @@ impl<T: TextureDataType> Geometry for Volume<T> {
     }
 }
 
-impl<T: TextureDataType> Object for Volume<T> {
+impl Object for Volume {
     fn render(&self, camera: &Camera, lights: &[&dyn Light]) -> ThreeDResult<()> {
         self.render_with_material(&self.model.material, camera, lights)
     }
