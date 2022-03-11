@@ -57,8 +57,6 @@ pub trait TextureDataType:
 {
 }
 impl TextureDataType for u8 {}
-impl TextureDataType for u16 {}
-impl TextureDataType for u32 {}
 impl TextureDataType for f16 {}
 impl TextureDataType for f32 {}
 
@@ -424,63 +422,6 @@ mod internal {
         }
     }
 
-    impl TextureDataTypeExtension for u16 {
-        fn internal_format(format: Format) -> ThreeDResult<u32> {
-            Ok(match format {
-                Format::R => crate::context::consts::R16UI,
-                Format::RG => crate::context::consts::RG16UI,
-                Format::RGB => crate::context::consts::RGB16UI,
-                Format::RGBA => crate::context::consts::RGBA16UI,
-            })
-        }
-
-        fn fill(
-            context: &Context,
-            target: u32,
-            width: u32,
-            height: u32,
-            depth: Option<u32>,
-            format: Format,
-            data: &[Self],
-        ) {
-            if let Some(_depth) = depth {
-                unimplemented!();
-            } else {
-                context.tex_sub_image_2d_with_u16_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    format_from(format),
-                    DataType::UnsignedShort,
-                    data,
-                );
-            }
-        }
-
-        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
-            context.read_pixels_with_u16_data(
-                viewport.x as u32,
-                viewport.y as u32,
-                viewport.width as u32,
-                viewport.height as u32,
-                format_from(format),
-                DataType::UnsignedShort,
-                pixels,
-            );
-        }
-
-        fn is_max(value: Self) -> bool {
-            value == std::u16::MAX
-        }
-
-        fn bits_per_channel() -> u8 {
-            16
-        }
-    }
-
     impl TextureDataTypeExtension for f16 {
         fn internal_format(format: Format) -> ThreeDResult<u32> {
             Ok(match format {
@@ -616,62 +557,6 @@ mod internal {
 
         fn is_max(value: Self) -> bool {
             value > 0.99
-        }
-
-        fn bits_per_channel() -> u8 {
-            32
-        }
-    }
-
-    impl TextureDataTypeExtension for u32 {
-        fn internal_format(format: Format) -> ThreeDResult<u32> {
-            Ok(match format {
-                Format::R => crate::context::consts::R32UI,
-                Format::RG => crate::context::consts::RG32UI,
-                Format::RGB => crate::context::consts::RGB32UI,
-                Format::RGBA => crate::context::consts::RGBA32UI,
-            })
-        }
-
-        fn fill(
-            context: &Context,
-            target: u32,
-            width: u32,
-            height: u32,
-            depth: Option<u32>,
-            format: Format,
-            data: &[Self],
-        ) {
-            if let Some(_depth) = depth {
-                unimplemented!();
-            } else {
-                context.tex_sub_image_2d_with_u32_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    format_from(format),
-                    DataType::UnsignedInt,
-                    data,
-                );
-            }
-        }
-        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
-            context.read_pixels_with_u32_data(
-                viewport.x as u32,
-                viewport.y as u32,
-                viewport.width,
-                viewport.height,
-                format_from(format),
-                DataType::UnsignedInt,
-                pixels,
-            );
-        }
-
-        fn is_max(_value: Self) -> bool {
-            true
         }
 
         fn bits_per_channel() -> u8 {
