@@ -8,13 +8,14 @@ layout (std140) uniform Camera
 } camera;
 
 uniform sampler3D tex;
+uniform float max_distance;
 in vec3 pos;
 
 layout (location = 0) out vec4 outColor;
 
 void main() {
     int steps = 200;
-    float step_size = 3.5 / float(steps);
+    float step_size = max_distance / float(steps);
     vec3 step = step_size * normalize(pos - camera.position);
     vec3 p = pos;
     for(int i = 0; i < 200; i++) {
