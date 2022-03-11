@@ -18,3 +18,7 @@ mod img;
 #[cfg(feature = "image-io")]
 #[doc(inline)]
 pub use img::*;
+
+mod vol;
+#[doc(inline)]
+pub use vol::*;
