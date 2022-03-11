@@ -14,9 +14,9 @@ pub struct PhysicalMaterial {
     pub albedo: Color,
     /// Texture with albedo base colors, also called diffuse color. Assumed to be in sRGB with or without an alpha channel.
     pub albedo_texture: Option<Rc<Texture2D<u8>>>,
-    /// A value in the range `[0..1]` specifying how metallic the material is.
+    /// A value in the range `[0..1]` specifying how metallic the surface is.
     pub metallic: f32,
-    /// A value in the range `[0..1]` specifying how rough the material surface is.
+    /// A value in the range `[0..1]` specifying how rough the surface is.
     pub roughness: f32,
     /// Texture containing the metallic and roughness parameters which are multiplied with the [Self::metallic] and [Self::roughness] values in the shader.
     /// The metallic values are sampled from the blue channel and the roughness from the green channel.

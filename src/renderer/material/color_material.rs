@@ -8,7 +8,7 @@ use std::rc::Rc;
 ///
 #[derive(Clone, Default)]
 pub struct ColorMaterial {
-    /// A color applied everywhere.
+    /// Base surface color. Assumed to be in linear color space.
     pub color: Color,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
     pub texture: Option<Rc<Texture2D<u8>>>,

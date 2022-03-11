@@ -40,10 +40,13 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
         &context,
         &CpuMesh::cube(),
         VolumeMaterial {
-            texture: Texture3D::new(&context, &cpu_volume.voxels).unwrap(),
+            texture: std::rc::Rc::new(Texture3D::new(&context, &cpu_volume.voxels).unwrap()),
             lighting_model: LightingModel::Blinn,
             size: cpu_volume.size,
             threshold: 0.9,
+            color: Color::RED,
+            roughness: 0.6,
+            metallic: 0.8,
         },
     )
     .unwrap();
@@ -69,6 +72,10 @@ pub async fn run(screenshot: Option<std::path::PathBuf>) {
                     ui.add(
                         Slider::new(&mut volume.material.threshold, 0.0..=1.0).text("Threshold"),
                     );
+                    ui.add(
+                        Slider::new(&mut volume.material.roughness, 0.0..=1.0).text("Roughness"),
+                    );
+                    ui.add(Slider::new(&mut volume.material.metallic, 0.0..=1.0).text("Metallic"));
                 });
                 panel_width = gui_context.used_size().x as u32;
             })
