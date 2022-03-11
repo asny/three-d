@@ -42,6 +42,8 @@ pub enum IOError {
     #[cfg(feature = "gltf-io")]
     #[error("the .gltf file contain missing buffer data")]
     GltfMissingData,
+    #[error("the .vol file contain wrong data size")]
+    VolCorruptData,
     #[cfg(not(target_arch = "wasm32"))]
     #[error("error while loading the file {0}: {1}")]
     FailedLoading(String, std::io::Error),

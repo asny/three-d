@@ -10,13 +10,23 @@ impl Loaded {
     ///
     pub fn vol(&mut self, path: impl AsRef<Path>) -> ThreeDResult<CpuVolume> {
         let bytes = self.remove_bytes(path.as_ref())?;
+        let width = u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
+        let height = u32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
+        let depth = u32::from_be_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]);
+        let format = match (bytes.len() as u32 - 28) / (width * height * depth) {
+            1 => Ok(Format::R),
+            2 => Ok(Format::RG),
+            3 => Ok(Format::RGB),
+            4 => Ok(Format::RGBA),
+            _ => Err(IOError::VolCorruptData),
+        }?;
         Ok(CpuVolume {
             voxels: CpuTexture3D {
                 data: bytes[28..].to_vec(),
-                width: u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
-                height: u32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]),
-                depth: u32::from_be_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]),
-                format: Format::R,
+                width,
+                height,
+                depth,
+                format,
                 ..Default::default()
             },
             size: vec3(
