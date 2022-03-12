@@ -93,22 +93,22 @@ impl<T: BufferDataType> Drop for Buffer<T> {
 }
 
 pub(super) mod internal {
-    use crate::context::DataType;
     use crate::core::*;
+    use glow::HasContext;
 
     pub trait BufferDataTypeExtension: Clone {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32);
-        fn data_type() -> DataType;
+        fn data_type() -> u32;
         fn size() -> u32;
         fn default() -> Self;
     }
 
     impl BufferDataTypeExtension for u8 {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            context.buffer_data_u8(target, data, usage);
+            context.buffer_data_u8_slice(target, data, usage);
         }
-        fn data_type() -> DataType {
-            DataType::UnsignedByte
+        fn data_type() -> u32 {
+            glow::UNSIGNED_BYTE
         }
         fn size() -> u32 {
             1
@@ -122,8 +122,8 @@ pub(super) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u16(target, data, usage);
         }
-        fn data_type() -> DataType {
-            DataType::UnsignedShort
+        fn data_type() -> u32 {
+            glow::UNSIGNED_SHORT
         }
         fn size() -> u32 {
             1
@@ -141,8 +141,8 @@ pub(super) mod internal {
                 usage,
             );
         }
-        fn data_type() -> DataType {
-            DataType::HalfFloat
+        fn data_type() -> u32 {
+            glow::HALF_FLOAT
         }
         fn size() -> u32 {
             1
@@ -156,8 +156,8 @@ pub(super) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_f32(target, data, usage);
         }
-        fn data_type() -> DataType {
-            DataType::Float
+        fn data_type() -> u32 {
+            glow::FLOAT
         }
         fn size() -> u32 {
             1
@@ -171,8 +171,8 @@ pub(super) mod internal {
         fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
             context.buffer_data_u32(target, data, usage);
         }
-        fn data_type() -> DataType {
-            DataType::UnsignedInt
+        fn data_type() -> u32 {
+            glow::UNSIGNED_INT
         }
         fn size() -> u32 {
             1
@@ -191,7 +191,7 @@ pub(super) mod internal {
             }
             T::buffer_data(context, target, &flattened_data, usage)
         }
-        fn data_type() -> DataType {
+        fn data_type() -> u32 {
             T::data_type()
         }
         fn size() -> u32 {
@@ -212,7 +212,7 @@ pub(super) mod internal {
             }
             T::buffer_data(context, target, &flattened_data, usage)
         }
-        fn data_type() -> DataType {
+        fn data_type() -> u32 {
             T::data_type()
         }
         fn size() -> u32 {
@@ -234,7 +234,7 @@ pub(super) mod internal {
             }
             T::buffer_data(context, target, &flattened_data, usage)
         }
-        fn data_type() -> DataType {
+        fn data_type() -> u32 {
             T::data_type()
         }
         fn size() -> u32 {
@@ -256,7 +256,7 @@ pub(super) mod internal {
             }
             u8::buffer_data(context, target, &flattened_data, usage)
         }
-        fn data_type() -> DataType {
+        fn data_type() -> u32 {
             u8::data_type()
         }
         fn size() -> u32 {
