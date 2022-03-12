@@ -12,7 +12,7 @@ use std::collections::HashMap;
 pub struct Program {
     context: Context,
     id: glow::Program,
-    vertex_attributes: HashMap<String, u32>,
+    attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
     uniforms: HashMap<String, UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
@@ -75,14 +75,14 @@ impl Program {
 
         // Init vertex attributes
         let num_attribs = context.get_active_attributes(id);
-        let mut vertex_attributes = HashMap::new();
+        let mut attributes = HashMap::new();
         for i in 0..num_attribs {
             if let Some(glow::ActiveAttribute { name, size, atype }) =
                 context.get_active_attribute(id, i)
             {
                 let location = context.get_attrib_location(id, &name).unwrap();
                 //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, name, atype, size);
-                vertex_attributes.insert(name, location);
+                attributes.insert(name, location);
             }
         }
 
@@ -93,7 +93,7 @@ impl Program {
             if let Some(glow::ActiveUniform { name, size, utype }) =
                 context.get_active_uniform(id, i)
             {
-                let location = context.get_uniform_location(id, &name);
+                let location = context.get_uniform_location(id, &name).unwrap();
                 name = name.split('[').collect::<Vec<_>>()[0].to_string();
                 /*println!(
                     "Uniform location: {:?}, name: {}, type: {}, size: {}",
@@ -102,16 +102,14 @@ impl Program {
                     atype,
                     size
                 );*/
-                if let Some(loc) = location {
-                    uniforms.insert(name, loc);
-                }
+                uniforms.insert(name, location);
             }
         }
 
         Ok(Program {
             context: context.clone(),
             id,
-            vertex_attributes,
+            attributes,
             uniforms,
             uniform_blocks: RefCell::new(HashMap::new()),
             textures: RefCell::new(HashMap::new()),
@@ -617,8 +615,8 @@ impl Program {
         Self::set_viewport(&self.context, viewport);
         Self::set_states(&self.context, render_states);
         self.set_used();
-        self.context.draw_arrays(consts::TRIANGLES, 0, count);
-        for location in self.vertex_attributes.values() {
+        self.context.draw_arrays(glow::TRIANGLES, 0, count);
+        for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
         self.context.unuse_program();
@@ -641,7 +639,7 @@ impl Program {
         self.context
             .draw_arrays_instanced(consts::TRIANGLES, 0, count, instance_count);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
-        for location in self.vertex_attributes.values() {
+        for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
         self.context.unuse_program();
@@ -688,7 +686,7 @@ impl Program {
             .draw_elements(consts::TRIANGLES, count, T::data_type(), first);
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
 
-        for location in self.vertex_attributes.values() {
+        for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
         self.context.unuse_program();
@@ -740,7 +738,7 @@ impl Program {
             instance_count,
         );
         self.context.unbind_buffer(consts::ELEMENT_ARRAY_BUFFER);
-        for location in self.vertex_attributes.values() {
+        for location in self.attributes.values() {
             self.context.disable_vertex_attrib_array(*location);
         }
         self.context.unuse_program();
@@ -757,13 +755,13 @@ impl Program {
     /// Returns true if this program uses the attribute with the given name.
     ///
     pub fn requires_attribute(&self, name: &str) -> bool {
-        self.vertex_attributes.contains_key(name)
+        self.attributes.contains_key(name)
     }
 
     fn location(&self, name: &str) -> ThreeDResult<AttributeLocation> {
         self.set_used();
         let location = self
-            .vertex_attributes
+            .attributes
             .get(name)
             .ok_or_else(|| CoreError::UnusedAttribute(name.to_string()))?;
         Ok(*location)
