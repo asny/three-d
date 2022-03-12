@@ -3,7 +3,6 @@
 //! Can be combined with low-level calls in the `context` module as long as any graphics state changes are reset.
 //!
 
-use crate::context::GLContext;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -20,9 +19,9 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn from_gl_context(context: glow::Context) -> Self {
+    pub fn from_gl_context(context: Rc<glow::Context>) -> Self {
         Self {
-            context: Rc::new(context),
+            context,
             programs: Rc::new(RefCell::new(HashMap::new())),
             effects: Rc::new(RefCell::new(HashMap::new())),
             camera2d: Rc::new(RefCell::new(None)),
