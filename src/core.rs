@@ -198,8 +198,8 @@ pub enum CoreError {
     UnusedUniform(String),
     #[error("the attribute {0} is sent to the shader but not defined or never used")]
     UnusedAttribute(String),
-    #[error("failed creating a new render target")]
-    RenderTargetCreation,
+    #[error("failed creating a new render target: {0}")]
+    RenderTargetCreation(String),
     #[error("cannot copy {0} from a {1} texture")]
     RenderTargetCopy(String, String),
     #[error("cannot read color from anything else but an RGBA texture")]

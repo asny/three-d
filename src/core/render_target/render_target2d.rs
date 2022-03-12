@@ -1,4 +1,5 @@
 use crate::core::render_target::*;
+use glow::HasContext;
 
 ///
 /// Adds additional functionality to write to and copy from both a [ColorTargetTexture2D] and
@@ -7,7 +8,7 @@ use crate::core::render_target::*;
 ///
 pub struct RenderTarget<'a, 'b, T: TextureDataType> {
     context: Context,
-    id: crate::context::Framebuffer,
+    id: glow::Framebuffer,
     color_texture: Option<&'a mut Texture2D<T>>,
     depth_texture: Option<&'b mut DepthTargetTexture2D>,
 }
@@ -70,7 +71,7 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
         clear_state: ClearState,
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
-        self.bind(consts::DRAW_FRAMEBUFFER)?;
+        self.bind(glow::DRAW_FRAMEBUFFER)?;
         clear(
             &self.context,
             &ClearState {
@@ -133,9 +134,9 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
     }
 
     pub(in crate::core) fn bind(&self, target: u32) -> ThreeDResult<()> {
-        self.context.bind_framebuffer(target, Some(&self.id));
+        self.context.bind_framebuffer(target, Some(self.id));
         if let Some(ref tex) = self.color_texture {
-            self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+            self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
             tex.bind_as_color_target(0);
         }
         if let Some(ref tex) = self.depth_texture {
@@ -149,6 +150,6 @@ impl<'a, 'b, T: TextureDataType> RenderTarget<'a, 'b, T> {
 
 impl<T: TextureDataType> Drop for RenderTarget<'_, '_, T> {
     fn drop(&mut self) {
-        self.context.delete_framebuffer(Some(&self.id));
+        self.context.delete_framebuffer(self.id);
     }
 }

@@ -1,6 +1,6 @@
-use crate::context::consts;
 use crate::core::render_target::*;
 use crate::core::*;
+use glow::HasContext;
 
 ///
 /// Adds additional functionality to write to a [TextureCubeMap] and
@@ -9,7 +9,7 @@ use crate::core::*;
 ///
 pub struct RenderTargetCubeMap<'a, 'b, T: TextureDataType> {
     context: Context,
-    id: crate::context::Framebuffer,
+    id: glow::Framebuffer,
     color_texture: Option<&'a mut TextureCubeMap<T>>,
     depth_texture: Option<&'b mut DepthTargetTextureCubeMap>,
 }
@@ -95,9 +95,9 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
         render: impl FnOnce() -> ThreeDResult<()>,
     ) -> ThreeDResult<()> {
         self.context
-            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
+            .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
         if let Some(ref color_texture) = self.color_texture {
-            self.context.draw_buffers(&[consts::COLOR_ATTACHMENT0]);
+            self.context.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
             color_texture.bind_as_color_target(side, 0, mip_level);
         }
         if let Some(ref depth_texture) = self.depth_texture {
@@ -123,6 +123,6 @@ impl<'a, 'b, T: TextureDataType> RenderTargetCubeMap<'a, 'b, T> {
 
 impl<T: TextureDataType> Drop for RenderTargetCubeMap<'_, '_, T> {
     fn drop(&mut self) {
-        self.context.delete_framebuffer(Some(&self.id));
+        self.context.delete_framebuffer(self.id);
     }
 }

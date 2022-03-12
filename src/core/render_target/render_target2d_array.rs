@@ -1,4 +1,5 @@
 use crate::core::render_target::*;
+use glow::HasContext;
 
 ///
 /// Adds additional functionality to write to and copy from both a [Texture2DArray]and
@@ -7,7 +8,7 @@ use crate::core::render_target::*;
 ///
 pub struct RenderTargetArray<'a, 'b, T: TextureDataType> {
     context: Context,
-    id: crate::context::Framebuffer,
+    id: glow::Framebuffer,
     color_texture: Option<&'a mut Texture2DArray<T>>,
     depth_texture: Option<&'b mut DepthTargetTexture2DArray>,
 }
@@ -97,12 +98,12 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
 
     fn bind(&self, color_layers: Option<&[u32]>, depth_layer: Option<u32>) -> ThreeDResult<()> {
         self.context
-            .bind_framebuffer(consts::DRAW_FRAMEBUFFER, Some(&self.id));
+            .bind_framebuffer(glow::DRAW_FRAMEBUFFER, Some(self.id));
         if let Some(ref color_texture) = self.color_texture {
             if let Some(color_layers) = color_layers {
                 self.context.draw_buffers(
                     &(0..color_layers.len())
-                        .map(|i| consts::COLOR_ATTACHMENT0 + i as u32)
+                        .map(|i| glow::COLOR_ATTACHMENT0 + i as u32)
                         .collect::<Vec<u32>>(),
                 );
                 for channel in 0..color_layers.len() {
@@ -123,6 +124,6 @@ impl<'a, 'b, T: TextureDataType> RenderTargetArray<'a, 'b, T> {
 
 impl<T: TextureDataType> Drop for RenderTargetArray<'_, '_, T> {
     fn drop(&mut self) {
-        self.context.delete_framebuffer(Some(&self.id));
+        self.context.delete_framebuffer(self.id);
     }
 }
