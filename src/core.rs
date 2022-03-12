@@ -189,6 +189,8 @@ pub enum CoreError {
     ShaderCreation(String),
     #[error("failed creating program: {0}")]
     ProgramCreation(String),
+    #[error("failed creating buffer: {0}")]
+    BufferCreation(String),
     #[error("failed compiling {0} shader: {1}")]
     ShaderCompilation(String, String),
     #[error("failed to link shader program: {0}")]

@@ -25,9 +25,10 @@ impl UniformDataType for Mat4 {}
 impl<T: UniformDataType + ?Sized> UniformDataType for &T {}
 
 mod internal {
-    use crate::context::UniformLocation;
     use crate::core::math::*;
     use crate::core::Context;
+    use glow::HasContext;
+    use glow::UniformLocation;
 
     pub trait UniformDataTypeExtension: Copy {
         fn send(&self, context: &Context, location: &UniformLocation);
@@ -48,16 +49,16 @@ mod internal {
 
     impl UniformDataTypeExtension for i32 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform1i(location, *self);
+            context.uniform_1_i32(location, *self);
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
-            context.uniform1iv(location, &data);
+            context.uniform_1_i32_slice(location, &data);
         }
     }
 
     impl UniformDataTypeExtension for f32 {
         fn send(&self, context: &Context, location: &UniformLocation) {
-            context.uniform1f(location, *self);
+            context.uniform_1_f32(location, *self);
         }
         fn send_array(data: &[Self], context: &Context, location: &UniformLocation) {
             context.uniform1fv(location, &data);
