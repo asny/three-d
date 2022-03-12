@@ -1,4 +1,5 @@
 use crate::core::*;
+use glow::{HasContext, UniformLocation};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -10,10 +11,10 @@ use std::collections::HashMap;
 ///
 pub struct Program {
     context: Context,
-    id: crate::context::Program,
+    id: glow::Program,
     vertex_attributes: HashMap<String, u32>,
     textures: RefCell<HashMap<String, u32>>,
-    uniforms: HashMap<String, crate::context::UniformLocation>,
+    uniforms: HashMap<String, UniformLocation>,
     uniform_blocks: RefCell<HashMap<String, (u32, u32)>>,
 }
 
@@ -26,12 +27,11 @@ impl Program {
         vertex_shader_source: &str,
         fragment_shader_source: &str,
     ) -> ThreeDResult<Program> {
-        use glow::*;
         let vert_shader = context
-            .create_shader(VERTEX_SHADER)
+            .create_shader(glow::VERTEX_SHADER)
             .map_err(|e| CoreError::ShaderCreation(e))?;
         let frag_shader = context
-            .create_shader(FRAGMENT_SHADER)
+            .create_shader(glow::FRAGMENT_SHADER)
             .map_err(|e| CoreError::ShaderCreation(e))?;
 
         context.shader_source(
@@ -77,7 +77,8 @@ impl Program {
         let num_attribs = context.get_active_attributes(id);
         let mut vertex_attributes = HashMap::new();
         for i in 0..num_attribs {
-            if let Some(ActiveAttribute { name, size, atype }) = context.get_active_attribute(id, i)
+            if let Some(glow::ActiveAttribute { name, size, atype }) =
+                context.get_active_attribute(id, i)
             {
                 let location = context.get_attrib_location(id, &name).unwrap();
                 //println!("Attribute location: {}, name: {}, type: {}, size: {}", location, name, atype, size);
@@ -86,23 +87,24 @@ impl Program {
         }
 
         // Init uniforms
-        let num_uniforms = context.get_program_parameter(&id, consts::ACTIVE_UNIFORMS);
+        let num_uniforms = context.get_active_uniforms(id);
         let mut uniforms = HashMap::new();
         for i in 0..num_uniforms {
-            let info = context.get_active_uniform(&id, i);
-            let location = context.get_uniform_location(&id, &info.name());
-            /*println!(
-                "Uniform location: {:?}, name: {}, type: {}, size: {}",
-                location,
-                info.name().split('[').collect::<Vec<_>>()[0].to_string(),
-                info.type_(),
-                info.size()
-            );*/
-            if let Some(loc) = location {
-                uniforms.insert(
-                    info.name().split('[').collect::<Vec<_>>()[0].to_string(),
-                    loc,
-                );
+            if let Some(glow::ActiveUniform { name, size, utype }) =
+                context.get_active_uniform(id, i)
+            {
+                let location = context.get_uniform_location(id, &name);
+                name = name.split('[').collect::<Vec<_>>()[0].to_string();
+                /*println!(
+                    "Uniform location: {:?}, name: {}, type: {}, size: {}",
+                    location,
+                    name,
+                    atype,
+                    size
+                );*/
+                if let Some(loc) = location {
+                    uniforms.insert(name, loc);
+                }
             }
         }
 
@@ -128,7 +130,7 @@ impl Program {
     pub fn use_uniform<T: UniformDataType>(&self, name: &str, data: T) -> ThreeDResult<()> {
         let location = self.get_uniform_location(name)?;
         data.send(&self.context, location);
-        self.context.unuse_program();
+        self.context.use_program(None);
         Ok(())
     }
 
@@ -148,7 +150,7 @@ impl Program {
     ) -> ThreeDResult<()> {
         let location = self.get_uniform_location(name)?;
         T::send_array(data, &self.context, location);
-        self.context.unuse_program();
+        self.context.use_program(None);
         Ok(())
     }
 
@@ -260,7 +262,7 @@ impl Program {
         self.use_uniform(name, data)
     }
 
-    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&crate::context::UniformLocation> {
+    fn get_uniform_location(&self, name: &str) -> ThreeDResult<&UniformLocation> {
         self.set_used();
         let loc = self
             .uniforms
@@ -283,7 +285,7 @@ impl Program {
     ///
     pub fn use_texture(&self, name: &str, texture: &impl Texture) -> ThreeDResult<()> {
         let index = self.get_texture_index(name);
-        self.context.active_texture(consts::TEXTURE0 + index);
+        self.context.active_texture(glow::TEXTURE0 + index);
         texture.bind();
         self.use_uniform(name, index as i32)?;
         Ok(())
@@ -328,7 +330,7 @@ impl Program {
     pub fn use_uniform_block(&self, name: &str, buffer: &UniformBuffer) {
         if !self.uniform_blocks.borrow().contains_key(name) {
             let mut map = self.uniform_blocks.borrow_mut();
-            let location = self.context.get_uniform_block_index(&self.id, name);
+            let location = self.context.get_uniform_block_index(self.id, name);
             let index = map.len() as u32;
             map.insert(name.to_owned(), (location, index));
         };

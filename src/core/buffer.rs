@@ -17,8 +17,8 @@ mod uniform_buffer;
 #[doc(inline)]
 pub use uniform_buffer::*;
 
-use crate::context::consts;
 use crate::core::*;
+use glow::HasContext;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstanceBuffer].
 pub trait BufferDataType:
@@ -36,7 +36,7 @@ impl BufferDataType for Color {}
 
 struct Buffer<T: BufferDataType> {
     context: Context,
-    id: crate::context::Buffer,
+    id: glow::Buffer,
     attribute_count: u32,
     _dummy: T,
 }
@@ -45,7 +45,9 @@ impl<T: BufferDataType> Buffer<T> {
     pub fn new(context: &Context) -> ThreeDResult<Self> {
         Ok(Self {
             context: context.clone(),
-            id: context.create_buffer().unwrap(),
+            id: context
+                .create_buffer()
+                .map_err(|e| CoreError::BufferCreation(e))?,
             attribute_count: 0,
             _dummy: T::default(),
         })
@@ -63,15 +65,15 @@ impl<T: BufferDataType> Buffer<T> {
         self.bind();
         T::buffer_data(
             &self.context,
-            consts::ARRAY_BUFFER,
+            glow::ARRAY_BUFFER,
             data,
             if self.attribute_count > 0 {
-                consts::DYNAMIC_DRAW
+                glow::DYNAMIC_DRAW
             } else {
-                consts::STATIC_DRAW
+                glow::STATIC_DRAW
             },
         );
-        self.context.unbind_buffer(consts::ARRAY_BUFFER);
+        self.context.bind_buffer(glow::ARRAY_BUFFER, None);
         self.attribute_count = data.len() as u32;
     }
 
@@ -80,13 +82,13 @@ impl<T: BufferDataType> Buffer<T> {
     }
 
     pub fn bind(&self) {
-        self.context.bind_buffer(consts::ARRAY_BUFFER, &self.id);
+        self.context.bind_buffer(glow::ARRAY_BUFFER, Some(self.id));
     }
 }
 
 impl<T: BufferDataType> Drop for Buffer<T> {
     fn drop(&mut self) {
-        self.context.delete_buffer(&self.id);
+        self.context.delete_buffer(self.id);
     }
 }
 
