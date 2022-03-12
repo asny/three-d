@@ -18,8 +18,8 @@ mod render_target_cube_map;
 #[doc(inline)]
 pub use render_target_cube_map::*;
 
-use crate::context::consts;
 use crate::core::*;
+use glow::HasContext;
 
 ///
 /// Defines which channels (red, green, blue, alpha and depth) to clear when starting to write to a
@@ -114,19 +114,44 @@ pub enum CopyDestination<'a, 'b, 'c, 'd, T: TextureDataType> {
     RenderTarget(&'c RenderTarget<'a, 'b, T>),
 }
 
-pub(in crate::core) fn new_framebuffer(
-    context: &Context,
-) -> ThreeDResult<crate::context::Framebuffer> {
+pub(in crate::core) fn new_framebuffer(context: &Context) -> ThreeDResult<glow::Framebuffer> {
     Ok(context
         .create_framebuffer()
-        .ok_or(CoreError::RenderTargetCreation)?)
+        .map_err(|e| CoreError::RenderTargetCreation(e))?)
 }
 
 #[cfg(feature = "debug")]
 fn check(context: &Context) -> ThreeDResult<()> {
-    context
-        .check_framebuffer_status()
-        .or_else(|status| Err(CoreError::RenderTargetCreation))
+    match context.check_framebuffer_status() {
+        consts::FRAMEBUFFER_COMPLETE => Ok(()),
+        consts::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_INCOMPLETE_ATTACHMENT".to_string(),
+        )),
+        consts::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER".to_string(),
+        )),
+        consts::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT".to_string(),
+        )),
+        consts::FRAMEBUFFER_UNSUPPORTED => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_UNSUPPORTED".to_string(),
+        )),
+        consts::FRAMEBUFFER_UNDEFINED => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_UNDEFINED".to_string(),
+        )),
+        consts::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_INCOMPLETE_READ_BUFFER".to_string(),
+        )),
+        consts::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE".to_string(),
+        )),
+        consts::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => Err(CoreError::RenderTargetCreation(
+            "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS".to_string(),
+        )),
+        _ => Err(CoreError::RenderTargetCreation(
+            "Unknown framebuffer error".to_string(),
+        )),
+    }
 }
 
 fn clear(context: &Context, clear_state: &ClearState) {
@@ -153,15 +178,15 @@ fn clear(context: &Context, clear_state: &ClearState) {
         );
     }
     if let Some(depth) = clear_state.depth {
-        context.clear_depth(depth);
+        context.clear_depth_f32(depth);
     }
     context.clear(if clear_color && clear_state.depth.is_some() {
-        consts::COLOR_BUFFER_BIT | consts::DEPTH_BUFFER_BIT
+        glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT
     } else {
         if clear_color {
-            consts::COLOR_BUFFER_BIT
+            glow::COLOR_BUFFER_BIT
         } else {
-            consts::DEPTH_BUFFER_BIT
+            glow::DEPTH_BUFFER_BIT
         }
     });
 }
