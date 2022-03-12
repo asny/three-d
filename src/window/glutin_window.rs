@@ -50,7 +50,7 @@ impl Window {
         Ok(Window {
             windowed_context,
             event_loop,
-            gl: crate::core::Context::from_gl_context(context),
+            gl: crate::core::Context::from_gl_context(std::rc::Rc::new(context)),
         })
     }
 
