@@ -65,7 +65,7 @@ impl<T: BufferDataType> Buffer<T> {
         unsafe {
             self.context.buffer_data_u8_slice(
                 glow::ARRAY_BUFFER,
-                &T::to_bytes(data),
+                super::internal::to_byte_slice(data),
                 if self.attribute_count > 0 {
                     glow::DYNAMIC_DRAW
                 } else {

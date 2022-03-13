@@ -233,26 +233,31 @@ pub enum CoreError {
 mod internal {
     use crate::core::*;
 
+    pub fn to_byte_slice<'a, T: DataType>(data: &'a [T]) -> &'a [u8] {
+        unsafe {
+            std::slice::from_raw_parts(
+                data.as_ptr() as *const _,
+                data.len() * std::mem::size_of::<T>(),
+            )
+        }
+    }
+
+    pub fn from_byte_slice<'a, T: DataType>(data: &'a [u8]) -> &'a [T] {
+        unsafe {
+            let (_prefix, values, _suffix) = data.align_to::<T>();
+            values
+        }
+    }
+
     pub trait DataType: std::fmt::Debug + Clone {
-        fn to_bytes(data: &[Self]) -> Vec<u8>;
-        fn from_bytes(data: &[u8]) -> Vec<Self>;
         fn internal_format(format: Format) -> u32;
         fn data_type() -> u32;
         fn is_max(&self) -> bool;
-        fn bits_per_channel() -> u8;
         fn size() -> u32;
         fn default() -> Self;
     }
 
     impl DataType for u8 {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            data.to_vec()
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            data.to_vec()
-        }
-
         fn data_type() -> u32 {
             glow::UNSIGNED_BYTE
         }
@@ -274,26 +279,12 @@ mod internal {
             *self == 255u8
         }
 
-        fn bits_per_channel() -> u8 {
-            8
-        }
-
         fn default() -> Self {
             0
         }
     }
 
     impl DataType for u16 {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            data.iter()
-                .flat_map(|v| v.to_ne_bytes())
-                .collect::<Vec<_>>()
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             glow::UNSIGNED_SHORT
         }
@@ -315,26 +306,12 @@ mod internal {
             *self == u16::MAX
         }
 
-        fn bits_per_channel() -> u8 {
-            16
-        }
-
         fn default() -> Self {
             0
         }
     }
 
     impl DataType for u32 {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            data.iter()
-                .flat_map(|v| v.to_ne_bytes())
-                .collect::<Vec<_>>()
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             glow::UNSIGNED_INT
         }
@@ -356,26 +333,12 @@ mod internal {
             *self == u32::MAX
         }
 
-        fn bits_per_channel() -> u8 {
-            32
-        }
-
         fn default() -> Self {
             0
         }
     }
 
     impl DataType for f16 {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            data.iter()
-                .flat_map(|v| v.to_ne_bytes())
-                .collect::<Vec<_>>()
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             glow::HALF_FLOAT
         }
@@ -397,26 +360,12 @@ mod internal {
             *self > f16::from_f32(0.99)
         }
 
-        fn bits_per_channel() -> u8 {
-            16
-        }
-
         fn default() -> Self {
             f16::from_f32(0.0)
         }
     }
 
     impl DataType for f32 {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            data.iter()
-                .flat_map(|v| v.to_ne_bytes())
-                .collect::<Vec<_>>()
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             glow::FLOAT
         }
@@ -438,24 +387,12 @@ mod internal {
             *self > 0.99
         }
 
-        fn bits_per_channel() -> u8 {
-            32
-        }
-
         fn default() -> Self {
             0.0
         }
     }
 
     impl<T: DataType> DataType for Vector2<T> {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            T::to_bytes(&data.iter().flat_map(|v| [v.x, v.y]).collect::<Vec<_>>())
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             T::data_type()
         }
@@ -472,29 +409,12 @@ mod internal {
             self.x.is_max() && self.y.is_max()
         }
 
-        fn bits_per_channel() -> u8 {
-            T::bits_per_channel()
-        }
-
         fn default() -> Self {
             Self::new(T::default(), T::default())
         }
     }
 
     impl<T: DataType> DataType for Vector3<T> {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            T::to_bytes(
-                &data
-                    .iter()
-                    .flat_map(|v| [v.x, v.y, v.z])
-                    .collect::<Vec<_>>(),
-            )
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             T::data_type()
         }
@@ -511,29 +431,12 @@ mod internal {
             self.x.is_max() && self.y.is_max() && self.z.is_max()
         }
 
-        fn bits_per_channel() -> u8 {
-            T::bits_per_channel()
-        }
-
         fn default() -> Self {
             Self::new(T::default(), T::default(), T::default())
         }
     }
 
     impl<T: DataType> DataType for Vector4<T> {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            T::to_bytes(
-                &data
-                    .iter()
-                    .flat_map(|v| [v.x, v.y, v.z, v.w])
-                    .collect::<Vec<_>>(),
-            )
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             T::data_type()
         }
@@ -550,26 +453,12 @@ mod internal {
             self.x.is_max() && self.y.is_max() && self.z.is_max() && self.w.is_max()
         }
 
-        fn bits_per_channel() -> u8 {
-            T::bits_per_channel()
-        }
-
         fn default() -> Self {
             Self::new(T::default(), T::default(), T::default(), T::default())
         }
     }
 
     impl DataType for Color {
-        fn to_bytes(data: &[Self]) -> Vec<u8> {
-            data.iter()
-                .flat_map(|v| [v.r, v.g, v.b, v.a])
-                .collect::<Vec<_>>()
-        }
-
-        fn from_bytes(data: &[u8]) -> Vec<Self> {
-            unimplemented!();
-        }
-
         fn data_type() -> u32 {
             u8::data_type()
         }
@@ -584,10 +473,6 @@ mod internal {
 
         fn is_max(&self) -> bool {
             self.r.is_max() && self.g.is_max() && self.b.is_max() && self.a.is_max()
-        }
-
-        fn bits_per_channel() -> u8 {
-            u8::bits_per_channel()
         }
 
         fn default() -> Self {

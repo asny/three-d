@@ -76,7 +76,7 @@ impl<T: ElementBufferDataType> ElementBuffer<T> {
         self.bind();
         self.context.buffer_data_u8_slice(
             glow::ELEMENT_ARRAY_BUFFER,
-            &T::to_bytes(data),
+            super::internal::to_byte_slice(data),
             glow::STATIC_DRAW,
         );
         self.context.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, None);
