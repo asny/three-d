@@ -185,7 +185,7 @@ impl Geometry for Mesh {
             &fragment_shader_source,
             |program| {
                 material.use_uniforms(program, camera, lights)?;
-                program.use_uniform_block("Camera", camera.uniform_buffer())?;
+                program.use_uniform("viewProjection", camera.view() * camera.projection())?;
                 program.use_uniform("modelMatrix", &self.transformation)?;
 
                 if program.requires_attribute("position") {
