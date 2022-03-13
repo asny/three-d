@@ -182,7 +182,7 @@ impl Geometry for Particles {
                 program.use_uniform("modelMatrix", &self.transformation)?;
                 program.use_uniform("acceleration", &self.acceleration)?;
                 program.use_uniform("time", &self.time)?;
-                program.use_uniform_block("Camera", camera.uniform_buffer());
+                program.use_uniform_block("Camera", camera.uniform_buffer())?;
 
                 program.use_instance_attribute("start_position", &self.start_position_buffer)?;
                 program.use_instance_attribute("start_velocity", &self.start_velocity_buffer)?;

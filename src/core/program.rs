@@ -78,7 +78,7 @@ impl Program {
             let num_attribs = context.get_active_attributes(id);
             let mut attributes = HashMap::new();
             for i in 0..num_attribs {
-                if let Some(glow::ActiveAttribute { name, size, atype }) =
+                if let Some(glow::ActiveAttribute { name, .. }) =
                     context.get_active_attribute(id, i)
                 {
                     let location = context.get_attrib_location(id, &name).unwrap();
@@ -91,9 +91,7 @@ impl Program {
             let num_uniforms = context.get_active_uniforms(id);
             let mut uniforms = HashMap::new();
             for i in 0..num_uniforms {
-                if let Some(glow::ActiveUniform { name, size, utype }) =
-                    context.get_active_uniform(id, i)
-                {
+                if let Some(glow::ActiveUniform { name, .. }) = context.get_active_uniform(id, i) {
                     let location = context.get_uniform_location(id, &name).unwrap();
                     let name = name.split('[').collect::<Vec<_>>()[0].to_string();
                     /*println!(
