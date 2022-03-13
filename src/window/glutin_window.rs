@@ -44,9 +44,11 @@ impl Window {
 
         let windowed_context = unsafe { wc?.make_current().unwrap() };
 
-        let context = glow::Context::from_loader_function(|s| {
-            windowed_context.get_proc_address(s) as *const _
-        });
+        let context = unsafe {
+            glow::Context::from_loader_function(|s| {
+                windowed_context.get_proc_address(s) as *const _
+            })
+        };
         Ok(Window {
             windowed_context,
             event_loop,
