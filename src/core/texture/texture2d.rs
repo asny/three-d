@@ -103,7 +103,7 @@ impl<T: TextureDataType> Texture2D<T> {
             self.height as i32,
             self.format.as_const(),
             T::data_type(),
-            glow::PixelUnpackData::Slice(T::as_bytes(data)),
+            glow::PixelUnpackData::Slice(&T::to_bytes(data)),
         );
         self.generate_mip_maps();
         Ok(())
@@ -152,10 +152,12 @@ impl<T: TextureDataType> Texture2D<T> {
         check(&self.context)?;
 
         let mut pixels = vec![
-            T::default();
+            0u8;
             viewport.width as usize
                 * viewport.height as usize
                 * self.format.color_channel_count() as usize
+                * T::bits_per_channel() as usize
+                / 8
         ];
         self.context.read_pixels(
             viewport.x as i32,
@@ -166,7 +168,7 @@ impl<T: TextureDataType> Texture2D<T> {
             T::data_type(),
             glow::PixelPackData::Slice(&mut pixels),
         );
-        Ok(pixels)
+        Ok(T::from_bytes(&pixels))
     }
 
     /// The width of this texture.

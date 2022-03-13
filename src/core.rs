@@ -235,6 +235,7 @@ mod internal {
 
     pub trait DataType: std::fmt::Debug + Clone {
         fn to_bytes(data: &[Self]) -> Vec<u8>;
+        fn from_bytes(data: &[u8]) -> Vec<Self>;
         fn internal_format(format: Format) -> u32;
         fn data_type() -> u32;
         fn is_max(value: Self) -> bool;
@@ -245,6 +246,10 @@ mod internal {
 
     impl DataType for u8 {
         fn to_bytes(data: &[Self]) -> Vec<u8> {
+            data.to_vec()
+        }
+
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
             data.to_vec()
         }
 
@@ -285,6 +290,10 @@ mod internal {
                 .collect::<Vec<_>>()
         }
 
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
+        }
+
         fn data_type() -> u32 {
             glow::UNSIGNED_SHORT
         }
@@ -320,6 +329,10 @@ mod internal {
             data.iter()
                 .flat_map(|v| v.to_ne_bytes())
                 .collect::<Vec<_>>()
+        }
+
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
         }
 
         fn data_type() -> u32 {
@@ -359,6 +372,10 @@ mod internal {
                 .collect::<Vec<_>>()
         }
 
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
+        }
+
         fn data_type() -> u32 {
             glow::HALF_FLOAT
         }
@@ -396,6 +413,10 @@ mod internal {
                 .collect::<Vec<_>>()
         }
 
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
+        }
+
         fn data_type() -> u32 {
             glow::FLOAT
         }
@@ -429,6 +450,10 @@ mod internal {
     impl<T: DataType> DataType for Vector2<T> {
         fn to_bytes(data: &[Self]) -> Vec<u8> {
             T::to_bytes(&data.iter().flat_map(|v| [v.x, v.y]).collect::<Vec<_>>())
+        }
+
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
         }
 
         fn data_type() -> u32 {
@@ -466,6 +491,10 @@ mod internal {
             )
         }
 
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
+        }
+
         fn data_type() -> u32 {
             T::data_type()
         }
@@ -501,6 +530,10 @@ mod internal {
             )
         }
 
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
+        }
+
         fn data_type() -> u32 {
             T::data_type()
         }
@@ -531,6 +564,10 @@ mod internal {
             data.iter()
                 .flat_map(|v| [v.r, v.g, v.b, v.a])
                 .collect::<Vec<_>>()
+        }
+
+        fn from_bytes(data: &[u8]) -> Vec<Self> {
+            unimplemented!();
         }
 
         fn data_type() -> u32 {

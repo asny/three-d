@@ -93,11 +93,12 @@ impl UniformBuffer {
     }
 
     fn send(&self) {
+        use super::internal::*;
         self.context
             .bind_buffer(glow::UNIFORM_BUFFER, Some(self.id));
         self.context.buffer_data_u8_slice(
             glow::UNIFORM_BUFFER,
-            ,
+            &f32::to_bytes(&self.data),
             glow::STATIC_DRAW,
         );
         self.context.bind_buffer(glow::UNIFORM_BUFFER, None);
