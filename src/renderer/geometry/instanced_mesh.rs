@@ -216,7 +216,7 @@ impl InstancedMesh {
         camera_buffer: &UniformBuffer,
         viewport: Viewport,
     ) -> ThreeDResult<()> {
-        program.use_uniform_block("Camera", camera_buffer);
+        program.use_uniform_block("Camera", camera_buffer)?;
         program.use_uniform("modelMatrix", &self.transformation)?;
 
         program.use_instance_attribute("row1", &self.instance_buffer1)?;
