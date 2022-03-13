@@ -36,7 +36,7 @@ impl DepthTargetTexture2DArray {
         texture.bind();
         set_parameters(
             context,
-            consts::TEXTURE_2D_ARRAY,
+            glow::TEXTURE_2D_ARRAY,
             Interpolation::Nearest,
             Interpolation::Nearest,
             None,
@@ -52,7 +52,7 @@ impl DepthTargetTexture2DArray {
             height as i32,
             depth as i32,
         );
-        Ok()
+        Ok(texture)
     }
 
     ///

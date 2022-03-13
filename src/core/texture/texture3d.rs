@@ -112,7 +112,7 @@ impl<T: TextureDataType> Texture3D<T> {
             self.depth as i32,
             self.format.as_const(),
             T::data_type(),
-            data,
+            glow::PixelUnpackData::Slice(&T::to_bytes(data)),
         );
         self.generate_mip_maps();
         Ok(())

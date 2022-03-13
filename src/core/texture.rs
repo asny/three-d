@@ -52,10 +52,7 @@ pub enum Wrapping {
 }
 
 /// The basic data type used for each channel of each pixel in a texture.
-pub trait TextureDataType:
-    Default + std::fmt::Debug + Clone + Copy + internal::TextureDataTypeExtension
-{
-}
+pub trait TextureDataType: std::fmt::Debug + crate::core::internal::DataType {}
 impl TextureDataType for u8 {}
 impl TextureDataType for f16 {}
 impl TextureDataType for f32 {}
@@ -343,84 +340,6 @@ impl<T: TextureDataType> std::fmt::Debug for CpuTextureCube<T> {
 }
 
 mod internal {
-    use crate::core::*;
-
-    pub trait TextureDataTypeExtension: Clone {
-        fn internal_format(format: Format) -> u32;
-        fn data_type() -> u32;
-        fn is_max(value: Self) -> bool;
-        fn bits_per_channel() -> u8;
-    }
-
-    impl TextureDataTypeExtension for u8 {
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => glow::R8,
-                Format::RG => glow::RG8,
-                Format::RGB => glow::RGB8,
-                Format::RGBA => glow::RGBA8,
-            }
-        }
-
-        fn data_type() -> u32 {
-            glow::UNSIGNED_BYTE
-        }
-
-        fn is_max(value: Self) -> bool {
-            value == 255u8
-        }
-
-        fn bits_per_channel() -> u8 {
-            8
-        }
-    }
-
-    impl TextureDataTypeExtension for f16 {
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => crate::context::consts::R16F,
-                Format::RG => crate::context::consts::RG16F,
-                Format::RGB => crate::context::consts::RGB16F,
-                Format::RGBA => crate::context::consts::RGBA16F,
-            }
-        }
-
-        fn data_type() -> u32 {
-            glow::HALF_FLOAT
-        }
-
-        fn is_max(value: Self) -> bool {
-            value > f16::from_f32(0.99)
-        }
-
-        fn bits_per_channel() -> u8 {
-            16
-        }
-    }
-
-    impl TextureDataTypeExtension for f32 {
-        fn internal_format(format: Format) -> u32 {
-            match format {
-                Format::R => crate::context::consts::R32F,
-                Format::RG => crate::context::consts::RG32F,
-                Format::RGB => crate::context::consts::RGB32F,
-                Format::RGBA => crate::context::consts::RGBA32F,
-            }
-        }
-
-        fn data_type() -> u32 {
-            glow::FLOAT
-        }
-
-        fn is_max(value: Self) -> bool {
-            value > 0.99
-        }
-
-        fn bits_per_channel() -> u8 {
-            32
-        }
-    }
-
     pub trait TextureExtensions {
         fn bind(&self);
     }

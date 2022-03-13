@@ -21,10 +21,7 @@ use crate::core::*;
 use glow::HasContext;
 
 /// The basic data type used for each element in a [VertexBuffer] or [InstanceBuffer].
-pub trait BufferDataType:
-    std::fmt::Debug + Clone + Copy + internal::BufferDataTypeExtension
-{
-}
+pub trait BufferDataType: std::fmt::Debug + Clone + Copy + internal::DataType {}
 impl BufferDataType for u8 {}
 impl BufferDataType for u16 {}
 impl BufferDataType for f16 {}
@@ -63,10 +60,9 @@ impl<T: BufferDataType> Buffer<T> {
 
     pub fn fill(&mut self, data: &[T]) {
         self.bind();
-        T::buffer_data(
-            &self.context,
+        self.context.buffer_data_u8_slice(
             glow::ARRAY_BUFFER,
-            data,
+            &T::to_bytes(data),
             if self.attribute_count > 0 {
                 glow::DYNAMIC_DRAW
             } else {
@@ -89,181 +85,5 @@ impl<T: BufferDataType> Buffer<T> {
 impl<T: BufferDataType> Drop for Buffer<T> {
     fn drop(&mut self) {
         self.context.delete_buffer(self.id);
-    }
-}
-
-pub(super) mod internal {
-    use crate::core::*;
-    use glow::HasContext;
-
-    pub trait BufferDataTypeExtension: Clone {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32);
-        fn data_type() -> u32;
-        fn size() -> u32;
-        fn default() -> Self;
-    }
-
-    impl BufferDataTypeExtension for u8 {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            context.buffer_data_u8_slice(target, data, usage);
-        }
-        fn data_type() -> u32 {
-            glow::UNSIGNED_BYTE
-        }
-        fn size() -> u32 {
-            1
-        }
-        fn default() -> Self {
-            0
-        }
-    }
-
-    impl BufferDataTypeExtension for u16 {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            context.buffer_data_u16(target, data, usage);
-        }
-        fn data_type() -> u32 {
-            glow::UNSIGNED_SHORT
-        }
-        fn size() -> u32 {
-            1
-        }
-        fn default() -> Self {
-            0
-        }
-    }
-
-    impl BufferDataTypeExtension for f16 {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            context.buffer_data_u16(
-                target,
-                &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
-                usage,
-            );
-        }
-        fn data_type() -> u32 {
-            glow::HALF_FLOAT
-        }
-        fn size() -> u32 {
-            1
-        }
-        fn default() -> Self {
-            f16::from_f32(0.0)
-        }
-    }
-
-    impl BufferDataTypeExtension for f32 {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            context.buffer_data_f32(target, data, usage);
-        }
-        fn data_type() -> u32 {
-            glow::FLOAT
-        }
-        fn size() -> u32 {
-            1
-        }
-        fn default() -> Self {
-            0.0
-        }
-    }
-
-    impl BufferDataTypeExtension for u32 {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            context.buffer_data_u32(target, data, usage);
-        }
-        fn data_type() -> u32 {
-            glow::UNSIGNED_INT
-        }
-        fn size() -> u32 {
-            1
-        }
-        fn default() -> Self {
-            0
-        }
-    }
-
-    impl<T: BufferDataType> BufferDataTypeExtension for Vector2<T> {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            let mut flattened_data = Vec::with_capacity(data.len() * Self::size() as usize);
-            for d in data {
-                flattened_data.push(d.x);
-                flattened_data.push(d.y);
-            }
-            T::buffer_data(context, target, &flattened_data, usage)
-        }
-        fn data_type() -> u32 {
-            T::data_type()
-        }
-        fn size() -> u32 {
-            2
-        }
-        fn default() -> Self {
-            Self::new(T::default(), T::default())
-        }
-    }
-
-    impl<T: BufferDataType> BufferDataTypeExtension for Vector3<T> {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            let mut flattened_data = Vec::with_capacity(data.len() * Self::size() as usize);
-            for d in data {
-                flattened_data.push(d.x);
-                flattened_data.push(d.y);
-                flattened_data.push(d.z);
-            }
-            T::buffer_data(context, target, &flattened_data, usage)
-        }
-        fn data_type() -> u32 {
-            T::data_type()
-        }
-        fn size() -> u32 {
-            3
-        }
-        fn default() -> Self {
-            Self::new(T::default(), T::default(), T::default())
-        }
-    }
-
-    impl<T: BufferDataType> BufferDataTypeExtension for Vector4<T> {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            let mut flattened_data = Vec::with_capacity(data.len() * Self::size() as usize);
-            for d in data {
-                flattened_data.push(d.x);
-                flattened_data.push(d.y);
-                flattened_data.push(d.z);
-                flattened_data.push(d.w);
-            }
-            T::buffer_data(context, target, &flattened_data, usage)
-        }
-        fn data_type() -> u32 {
-            T::data_type()
-        }
-        fn size() -> u32 {
-            4
-        }
-        fn default() -> Self {
-            Self::new(T::default(), T::default(), T::default(), T::default())
-        }
-    }
-
-    impl BufferDataTypeExtension for Color {
-        fn buffer_data(context: &Context, target: u32, data: &[Self], usage: u32) {
-            let mut flattened_data = Vec::with_capacity(data.len() * Self::size() as usize);
-            for d in data {
-                flattened_data.push(d.r);
-                flattened_data.push(d.g);
-                flattened_data.push(d.b);
-                flattened_data.push(d.a);
-            }
-            u8::buffer_data(context, target, &flattened_data, usage)
-        }
-        fn data_type() -> u32 {
-            u8::data_type()
-        }
-        fn size() -> u32 {
-            4
-        }
-        fn default() -> Self {
-            Color::WHITE
-        }
     }
 }
