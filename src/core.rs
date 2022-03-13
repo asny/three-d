@@ -204,8 +204,8 @@ pub enum CoreError {
     RenderTargetCopy(String, String),
     #[error("cannot read color from anything else but an RGBA texture")]
     ReadWrongFormat,
-    #[error("failed creating a new texture")]
-    TextureCreation,
+    #[error("failed creating a new texture: {0}")]
+    TextureCreation(String),
     #[error("invalid size of texture data (got {0} pixels but expected {1} pixels)")]
     InvalidTextureLength(usize, usize),
     #[error("the render call requires the {0} vertex buffer which is missing on the given mesh")]

@@ -82,6 +82,15 @@ impl Format {
             Format::RGBA => 4,
         }
     }
+
+    pub(super) fn as_const(&self) -> u32 {
+        match self {
+            Format::R => glow::RED,
+            Format::RG => glow::RG,
+            Format::RGB => glow::RGB,
+            Format::RGBA => glow::RGBA,
+        }
+    }
 }
 
 /// See [CpuTexture]
@@ -334,83 +343,27 @@ impl<T: TextureDataType> std::fmt::Debug for CpuTextureCube<T> {
 }
 
 mod internal {
-    use crate::context::{consts, DataType};
     use crate::core::*;
 
     pub trait TextureDataTypeExtension: Clone {
-        fn internal_format(format: Format) -> ThreeDResult<u32>;
-        fn fill(
-            context: &Context,
-            target: u32,
-            width: u32,
-            height: u32,
-            depth: Option<u32>,
-            format: Format,
-            data: &[Self],
-        );
-        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]);
+        fn internal_format(format: Format) -> u32;
+        fn data_type() -> u32;
         fn is_max(value: Self) -> bool;
         fn bits_per_channel() -> u8;
     }
 
     impl TextureDataTypeExtension for u8 {
-        fn internal_format(format: Format) -> ThreeDResult<u32> {
-            Ok(match format {
-                Format::R => crate::context::consts::R8,
-                Format::RG => crate::context::consts::RG8,
-                Format::RGB => crate::context::consts::RGB8,
-                Format::RGBA => crate::context::consts::RGBA8,
-            })
-        }
-
-        fn fill(
-            context: &Context,
-            target: u32,
-            width: u32,
-            height: u32,
-            depth: Option<u32>,
-            format: Format,
-            data: &[Self],
-        ) {
-            if let Some(depth) = depth {
-                context.tex_sub_image_3d_with_u8_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    depth,
-                    format_from(format),
-                    DataType::UnsignedByte,
-                    data,
-                );
-            } else {
-                context.tex_sub_image_2d_with_u8_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    format_from(format),
-                    DataType::UnsignedByte,
-                    data,
-                );
+        fn internal_format(format: Format) -> u32 {
+            match format {
+                Format::R => glow::R8,
+                Format::RG => glow::RG8,
+                Format::RGB => glow::RGB8,
+                Format::RGBA => glow::RGBA8,
             }
         }
 
-        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
-            context.read_pixels_with_u8_data(
-                viewport.x as u32,
-                viewport.y as u32,
-                viewport.width,
-                viewport.height,
-                format_from(format),
-                DataType::UnsignedByte,
-                pixels,
-            );
+        fn data_type() -> u32 {
+            glow::UNSIGNED_BYTE
         }
 
         fn is_max(value: Self) -> bool {
@@ -423,67 +376,17 @@ mod internal {
     }
 
     impl TextureDataTypeExtension for f16 {
-        fn internal_format(format: Format) -> ThreeDResult<u32> {
-            Ok(match format {
+        fn internal_format(format: Format) -> u32 {
+            match format {
                 Format::R => crate::context::consts::R16F,
                 Format::RG => crate::context::consts::RG16F,
                 Format::RGB => crate::context::consts::RGB16F,
                 Format::RGBA => crate::context::consts::RGBA16F,
-            })
-        }
-
-        fn fill(
-            context: &Context,
-            target: u32,
-            width: u32,
-            height: u32,
-            depth: Option<u32>,
-            format: Format,
-            data: &[Self],
-        ) {
-            if let Some(depth) = depth {
-                context.tex_sub_image_3d_with_u16_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    depth,
-                    format_from(format),
-                    DataType::HalfFloat,
-                    &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
-                );
-            } else {
-                context.tex_sub_image_2d_with_u16_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    format_from(format),
-                    DataType::HalfFloat,
-                    &data.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
-                );
             }
         }
 
-        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
-            let mut pixels_temp = vec![0u16; pixels.len()];
-            context.read_pixels_with_u16_data(
-                viewport.x as u32,
-                viewport.y as u32,
-                viewport.width as u32,
-                viewport.height as u32,
-                format_from(format),
-                DataType::HalfFloat,
-                &mut pixels_temp,
-            );
-            for i in 0..pixels.len() {
-                pixels[i] = f16::from_bits(pixels_temp[i]);
-            }
+        fn data_type() -> u32 {
+            glow::HALF_FLOAT
         }
 
         fn is_max(value: Self) -> bool {
@@ -496,63 +399,17 @@ mod internal {
     }
 
     impl TextureDataTypeExtension for f32 {
-        fn internal_format(format: Format) -> ThreeDResult<u32> {
-            Ok(match format {
+        fn internal_format(format: Format) -> u32 {
+            match format {
                 Format::R => crate::context::consts::R32F,
                 Format::RG => crate::context::consts::RG32F,
                 Format::RGB => crate::context::consts::RGB32F,
                 Format::RGBA => crate::context::consts::RGBA32F,
-            })
-        }
-
-        fn fill(
-            context: &Context,
-            target: u32,
-            width: u32,
-            height: u32,
-            depth: Option<u32>,
-            format: Format,
-            data: &[Self],
-        ) {
-            if let Some(depth) = depth {
-                context.tex_sub_image_3d_with_f32_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    depth,
-                    format_from(format),
-                    DataType::Float,
-                    data,
-                );
-            } else {
-                context.tex_sub_image_2d_with_f32_data(
-                    target,
-                    0,
-                    0,
-                    0,
-                    width,
-                    height,
-                    format_from(format),
-                    DataType::Float,
-                    data,
-                );
             }
         }
 
-        fn read(context: &Context, viewport: Viewport, format: Format, pixels: &mut [Self]) {
-            context.read_pixels_with_f32_data(
-                viewport.x as u32,
-                viewport.y as u32,
-                viewport.width,
-                viewport.height,
-                format_from(format),
-                DataType::Float,
-                pixels,
-            );
+        fn data_type() -> u32 {
+            glow::FLOAT
         }
 
         fn is_max(value: Self) -> bool {
@@ -561,15 +418,6 @@ mod internal {
 
         fn bits_per_channel() -> u8 {
             32
-        }
-    }
-
-    fn format_from(format: Format) -> u32 {
-        match format {
-            Format::R => consts::RED,
-            Format::RG => consts::RG,
-            Format::RGB => consts::RGB,
-            Format::RGBA => consts::RGBA,
         }
     }
 
@@ -603,8 +451,8 @@ mod internal {
     }
 }
 
-use crate::context::consts;
 use crate::core::*;
+use glow::HasContext;
 
 ///
 /// A texture that can be sampled in a fragment shader (see [Program::use_texture].
@@ -618,15 +466,14 @@ impl<T: Texture> Texture for std::rc::Rc<T> {}
 impl<T: Texture> Texture for std::rc::Rc<std::cell::RefCell<T>> {}
 
 // COMMON TEXTURE FUNCTIONS
-fn generate(context: &Context) -> ThreeDResult<crate::context::Texture> {
+fn generate(context: &Context) -> ThreeDResult<glow::Texture> {
     Ok(context
         .create_texture()
-        .ok_or_else(|| CoreError::TextureCreation)?)
+        .map_err(|e| CoreError::TextureCreation(e))?)
 }
 
 fn set_parameters(
     context: &Context,
-    id: &crate::context::Texture,
     target: u32,
     min_filter: Interpolation,
     mag_filter: Interpolation,
@@ -635,53 +482,52 @@ fn set_parameters(
     wrap_t: Wrapping,
     wrap_r: Option<Wrapping>,
 ) {
-    context.bind_texture(target, id);
     match mip_map_filter {
-        None => context.tex_parameteri(
+        None => context.tex_parameter_i32(
             target,
-            consts::TEXTURE_MIN_FILTER,
+            glow::TEXTURE_MIN_FILTER,
             interpolation_from(min_filter),
         ),
         Some(Interpolation::Nearest) => {
             if min_filter == Interpolation::Nearest {
-                context.tex_parameteri(
+                context.tex_parameter_i32(
                     target,
-                    consts::TEXTURE_MIN_FILTER,
-                    consts::NEAREST_MIPMAP_NEAREST as i32,
+                    glow::TEXTURE_MIN_FILTER,
+                    glow::NEAREST_MIPMAP_NEAREST as i32,
                 );
             } else {
-                context.tex_parameteri(
+                context.tex_parameter_i32(
                     target,
-                    consts::TEXTURE_MIN_FILTER,
-                    consts::LINEAR_MIPMAP_NEAREST as i32,
+                    glow::TEXTURE_MIN_FILTER,
+                    glow::LINEAR_MIPMAP_NEAREST as i32,
                 )
             }
         }
         Some(Interpolation::Linear) => {
             if min_filter == Interpolation::Nearest {
-                context.tex_parameteri(
+                context.tex_parameter_i32(
                     target,
-                    consts::TEXTURE_MIN_FILTER,
-                    consts::NEAREST_MIPMAP_LINEAR as i32,
+                    glow::TEXTURE_MIN_FILTER,
+                    glow::NEAREST_MIPMAP_LINEAR as i32,
                 );
             } else {
-                context.tex_parameteri(
+                context.tex_parameter_i32(
                     target,
-                    consts::TEXTURE_MIN_FILTER,
-                    consts::LINEAR_MIPMAP_LINEAR as i32,
+                    glow::TEXTURE_MIN_FILTER,
+                    glow::LINEAR_MIPMAP_LINEAR as i32,
                 )
             }
         }
     }
-    context.tex_parameteri(
+    context.tex_parameter_i32(
         target,
-        consts::TEXTURE_MAG_FILTER,
+        glow::TEXTURE_MAG_FILTER,
         interpolation_from(mag_filter),
     );
-    context.tex_parameteri(target, consts::TEXTURE_WRAP_S, wrapping_from(wrap_s));
-    context.tex_parameteri(target, consts::TEXTURE_WRAP_T, wrapping_from(wrap_t));
+    context.tex_parameter_i32(target, glow::TEXTURE_WRAP_S, wrapping_from(wrap_s));
+    context.tex_parameter_i32(target, glow::TEXTURE_WRAP_T, wrapping_from(wrap_t));
     if let Some(r) = wrap_r {
-        context.tex_parameteri(target, consts::TEXTURE_WRAP_R, wrapping_from(r));
+        context.tex_parameter_i32(target, glow::TEXTURE_WRAP_R, wrapping_from(r));
     }
 }
 
@@ -704,24 +550,24 @@ fn calculate_number_of_mip_maps(
 
 fn internal_format_from_depth(format: DepthFormat) -> u32 {
     match format {
-        DepthFormat::Depth16 => consts::DEPTH_COMPONENT16,
-        DepthFormat::Depth24 => consts::DEPTH_COMPONENT24,
-        DepthFormat::Depth32F => consts::DEPTH_COMPONENT32F,
+        DepthFormat::Depth16 => glow::DEPTH_COMPONENT16,
+        DepthFormat::Depth24 => glow::DEPTH_COMPONENT24,
+        DepthFormat::Depth32F => glow::DEPTH_COMPONENT32F,
     }
 }
 
 fn wrapping_from(wrapping: Wrapping) -> i32 {
     (match wrapping {
-        Wrapping::Repeat => consts::REPEAT,
-        Wrapping::MirroredRepeat => consts::MIRRORED_REPEAT,
-        Wrapping::ClampToEdge => consts::CLAMP_TO_EDGE,
+        Wrapping::Repeat => glow::REPEAT,
+        Wrapping::MirroredRepeat => glow::MIRRORED_REPEAT,
+        Wrapping::ClampToEdge => glow::CLAMP_TO_EDGE,
     }) as i32
 }
 
 fn interpolation_from(interpolation: Interpolation) -> i32 {
     (match interpolation {
-        Interpolation::Nearest => consts::NEAREST,
-        Interpolation::Linear => consts::LINEAR,
+        Interpolation::Nearest => glow::NEAREST,
+        Interpolation::Linear => glow::LINEAR,
     }) as i32
 }
 

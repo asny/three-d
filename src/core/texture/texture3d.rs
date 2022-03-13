@@ -1,12 +1,12 @@
 use crate::core::texture::*;
-use crate::core::*;
+use glow::HasContext;
 
 ///
 /// A 3D color texture.
 ///
 pub struct Texture3D<T: TextureDataType> {
     context: Context,
-    id: crate::context::Texture,
+    id: glow::Texture,
     width: u32,
     height: u32,
     depth: u32,
@@ -56,10 +56,20 @@ impl<T: TextureDataType> Texture3D<T> {
         let id = generate(context)?;
         let number_of_mip_maps =
             calculate_number_of_mip_maps(mip_map_filter, width, height, Some(depth));
+        let tex = Self {
+            context: context.clone(),
+            id,
+            width,
+            height,
+            depth,
+            number_of_mip_maps,
+            format,
+            _dummy: T::default(),
+        };
+        tex.bind();
         set_parameters(
             context,
-            &id,
-            consts::TEXTURE_3D,
+            glow::TEXTURE_3D,
             min_filter,
             mag_filter,
             if number_of_mip_maps == 1 {
@@ -71,25 +81,15 @@ impl<T: TextureDataType> Texture3D<T> {
             wrap_t,
             Some(wrap_r),
         );
-        context.bind_texture(consts::TEXTURE_3D, &id);
         context.tex_storage_3d(
-            consts::TEXTURE_3D,
-            number_of_mip_maps,
-            T::internal_format(format)?,
-            width,
-            height,
-            depth,
+            glow::TEXTURE_3D,
+            number_of_mip_maps as i32,
+            T::internal_format(format),
+            width as i32,
+            height as i32,
+            depth as i32,
         );
-        Ok(Self {
-            context: context.clone(),
-            id,
-            width,
-            height,
-            depth,
-            number_of_mip_maps,
-            format,
-            _dummy: T::default(),
-        })
+        Ok(tex)
     }
 
     ///
@@ -100,14 +100,18 @@ impl<T: TextureDataType> Texture3D<T> {
     ///
     pub fn fill(&mut self, data: &[T]) -> ThreeDResult<()> {
         check_data_length(self.width, self.height, self.depth, self.format, data.len())?;
-        self.context.bind_texture(consts::TEXTURE_3D, &self.id);
-        T::fill(
-            &self.context,
-            consts::TEXTURE_3D,
-            self.width,
-            self.height,
-            Some(self.depth),
-            self.format,
+        self.bind();
+        self.context.tex_sub_image_3d(
+            glow::TEXTURE_3D,
+            0,
+            0,
+            0,
+            0,
+            self.width as i32,
+            self.height as i32,
+            self.depth as i32,
+            self.format.as_const(),
+            T::data_type(),
             data,
         );
         self.generate_mip_maps();
@@ -136,15 +140,18 @@ impl<T: TextureDataType> Texture3D<T> {
 
     fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
-            self.context.bind_texture(consts::TEXTURE_3D, &self.id);
-            self.context.generate_mipmap(consts::TEXTURE_3D);
+            self.bind();
+            self.context.generate_mipmap(glow::TEXTURE_3D);
         }
+    }
+    fn bind(&self) {
+        self.context.bind_texture(glow::TEXTURE_3D, Some(self.id));
     }
 }
 
 impl<T: TextureDataType> super::internal::TextureExtensions for Texture3D<T> {
     fn bind(&self) {
-        self.context.bind_texture(consts::TEXTURE_3D, &self.id);
+        self.bind();
     }
 }
 
@@ -152,6 +159,6 @@ impl<T: TextureDataType> Texture for Texture3D<T> {}
 
 impl<T: TextureDataType> Drop for Texture3D<T> {
     fn drop(&mut self) {
-        self.context.delete_texture(&self.id);
+        self.context.delete_texture(self.id);
     }
 }

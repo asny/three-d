@@ -1,13 +1,12 @@
-use crate::context::consts;
 use crate::core::texture::*;
-use crate::core::*;
+use glow::HasContext;
 
 ///
 /// An array of 2D depth textures that can be rendered into and read from. See also [RenderTargetArray].
 ///
 pub struct DepthTargetTexture2DArray {
     context: Context,
-    id: crate::context::Texture,
+    id: glow::Texture,
     width: u32,
     height: u32,
     depth: u32,
@@ -27,9 +26,16 @@ impl DepthTargetTexture2DArray {
         format: DepthFormat,
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
+        let texture = Self {
+            context: context.clone(),
+            id,
+            width,
+            height,
+            depth,
+        };
+        texture.bind();
         set_parameters(
             context,
-            &id,
             consts::TEXTURE_2D_ARRAY,
             Interpolation::Nearest,
             Interpolation::Nearest,
@@ -38,22 +44,15 @@ impl DepthTargetTexture2DArray {
             wrap_t,
             None,
         );
-        context.bind_texture(consts::TEXTURE_2D_ARRAY, &id);
         context.tex_storage_3d(
-            consts::TEXTURE_2D_ARRAY,
+            glow::TEXTURE_2D_ARRAY,
             1,
             internal_format_from_depth(format),
-            width,
-            height,
-            depth,
+            width as i32,
+            height as i32,
+            depth as i32,
         );
-        Ok(Self {
-            context: context.clone(),
-            id,
-            width,
-            height,
-            depth,
-        })
+        Ok()
     }
 
     ///
@@ -94,19 +93,23 @@ impl DepthTargetTexture2DArray {
 
     pub(in crate::core) fn bind_as_depth_target(&self, layer: u32) {
         self.context.framebuffer_texture_layer(
-            consts::DRAW_FRAMEBUFFER,
-            consts::DEPTH_ATTACHMENT,
-            &self.id,
+            glow::DRAW_FRAMEBUFFER,
+            glow::DEPTH_ATTACHMENT,
+            Some(self.id),
             0,
-            layer as u32,
+            layer as i32,
         );
+    }
+
+    fn bind(&self) {
+        self.context
+            .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
     }
 }
 
 impl super::internal::TextureExtensions for DepthTargetTexture2DArray {
     fn bind(&self) {
-        self.context
-            .bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
+        self.bind();
     }
 }
 
@@ -114,6 +117,6 @@ impl Texture for DepthTargetTexture2DArray {}
 
 impl Drop for DepthTargetTexture2DArray {
     fn drop(&mut self) {
-        self.context.delete_texture(&self.id);
+        self.context.delete_texture(self.id);
     }
 }

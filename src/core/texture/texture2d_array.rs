@@ -1,5 +1,5 @@
 use crate::core::texture::*;
-use crate::core::*;
+use glow::HasContext;
 
 ///
 /// A array of 2D color textures that can be rendered into.
@@ -18,7 +18,7 @@ pub type ColorTargetTexture2DArray<T> = Texture2DArray<T>;
 ///
 pub struct Texture2DArray<T: TextureDataType> {
     context: Context,
-    id: crate::context::Texture,
+    id: glow::Texture,
     width: u32,
     height: u32,
     depth: u32,
@@ -45,10 +45,20 @@ impl<T: TextureDataType> Texture2DArray<T> {
     ) -> ThreeDResult<Self> {
         let id = generate(context)?;
         let number_of_mip_maps = calculate_number_of_mip_maps(mip_map_filter, width, height, None);
+        let texture = Self {
+            context: context.clone(),
+            id,
+            width,
+            height,
+            depth,
+            number_of_mip_maps,
+            format,
+            _dummy: T::default(),
+        };
+        texture.bind();
         set_parameters(
             context,
-            &id,
-            consts::TEXTURE_2D_ARRAY,
+            glow::TEXTURE_2D_ARRAY,
             min_filter,
             mag_filter,
             if number_of_mip_maps == 1 {
@@ -60,25 +70,15 @@ impl<T: TextureDataType> Texture2DArray<T> {
             wrap_t,
             None,
         );
-        context.bind_texture(consts::TEXTURE_2D_ARRAY, &id);
         context.tex_storage_3d(
-            consts::TEXTURE_2D_ARRAY,
-            number_of_mip_maps,
-            T::internal_format(format)?,
-            width,
-            height,
-            depth,
+            glow::TEXTURE_2D_ARRAY,
+            number_of_mip_maps as i32,
+            T::internal_format(format),
+            width as i32,
+            height as i32,
+            depth as i32,
         );
-        Ok(Self {
-            context: context.clone(),
-            id,
-            width,
-            height,
-            depth,
-            number_of_mip_maps,
-            format,
-            _dummy: T::default(),
-        })
+        Ok(texture)
     }
 
     ///
@@ -125,27 +125,30 @@ impl<T: TextureDataType> Texture2DArray<T> {
 
     pub(in crate::core) fn generate_mip_maps(&self) {
         if self.number_of_mip_maps > 1 {
-            self.context
-                .bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
-            self.context.generate_mipmap(consts::TEXTURE_2D_ARRAY);
+            self.bind();
+            self.context.generate_mipmap(glow::TEXTURE_2D_ARRAY);
         }
     }
 
     pub(in crate::core) fn bind_as_color_target(&self, layer: u32, channel: u32) {
         self.context.framebuffer_texture_layer(
-            consts::DRAW_FRAMEBUFFER,
-            consts::COLOR_ATTACHMENT0 + channel,
-            &self.id,
+            glow::DRAW_FRAMEBUFFER,
+            glow::COLOR_ATTACHMENT0 + channel,
+            Some(self.id),
             0,
-            layer,
+            layer as i32,
         );
+    }
+
+    fn bind(&self) {
+        self.context
+            .bind_texture(glow::TEXTURE_2D_ARRAY, Some(self.id));
     }
 }
 
 impl<T: TextureDataType> super::internal::TextureExtensions for Texture2DArray<T> {
     fn bind(&self) {
-        self.context
-            .bind_texture(consts::TEXTURE_2D_ARRAY, &self.id);
+        self.bind();
     }
 }
 
@@ -153,6 +156,6 @@ impl<T: TextureDataType> Texture for Texture2DArray<T> {}
 
 impl<T: TextureDataType> Drop for Texture2DArray<T> {
     fn drop(&mut self) {
-        self.context.delete_texture(&self.id);
+        self.context.delete_texture(self.id);
     }
 }
